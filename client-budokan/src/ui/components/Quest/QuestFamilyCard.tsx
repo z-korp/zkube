@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/ui/elements/button";
 import type { QuestFamily, QuestTier } from "@/types/questFamily";
 import { motion } from "motion/react";
@@ -27,44 +27,8 @@ const iconMap: Record<string, LucideIcon> = {
   "fa-trophy": Trophy,
 };
 
-// Format countdown timer
-function formatCountdown(seconds: number): string {
-  if (seconds <= 0) return "00:00:00";
-
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-
-  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-}
-
 export const QuestFamilyCard: React.FC<QuestFamilyCardProps> = ({ family, onClaim }) => {
   const [isClaiming, setIsClaiming] = useState(false);
-  
-  // Get countdown from the first tier (all should have same end time)
-  const endTime = family.tiers[0]?.intervalId 
-    ? family.tiers[0].intervalId * 86400 + 86400 // Next day at midnight UTC
-    : 0;
-    
-  const [countdown, setCountdown] = useState(() => {
-    // Calculate end of current interval (midnight UTC)
-    const now = Math.floor(Date.now() / 1000);
-    const todayMidnight = Math.floor(now / 86400) * 86400;
-    const nextMidnight = todayMidnight + 86400;
-    return Math.max(0, nextMidnight - now);
-  });
-
-  // Update countdown every second
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = Math.floor(Date.now() / 1000);
-      const todayMidnight = Math.floor(now / 86400) * 86400;
-      const nextMidnight = todayMidnight + 86400;
-      setCountdown(Math.max(0, nextMidnight - now));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const handleClaim = useCallback(async () => {
     if (!family.claimableTier) return;
@@ -126,10 +90,6 @@ export const QuestFamilyCard: React.FC<QuestFamilyCardProps> = ({ family, onClai
             allCompleted ? "text-green-400" : "text-slate-400"
           }`}>
             Tier {currentTier}/{family.totalTiers}
-          </span>
-          {/* Timer */}
-          <span className="text-xs text-slate-500 tabular-nums">
-            {formatCountdown(countdown)}
           </span>
         </div>
       </div>

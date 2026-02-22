@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "motion/react";
 import { Button } from "../elements/button";
 import {
@@ -30,10 +30,7 @@ const BonusButton: React.FC<BonusButtonProps> = ({
   disabled = false,
   highlighted = false,
 }) => {
-  const [isClicked, setIsClicked] = useState(false);
-
   const handleClick = () => {
-    setIsClicked(isClicked);
     if (onClick) {
       onClick();
     }
@@ -48,7 +45,7 @@ const BonusButton: React.FC<BonusButtonProps> = ({
           <motion.div
             initial={{ rotate: 0 }}
             exit={{ rotate: 0 }}
-            whileHover={isClicked || isDisabled ? {} : { rotate: [0, -10, 10, -10, 10, 0] }}
+            whileHover={isDisabled ? {} : { rotate: [0, -10, 10, -10, 10, 0] }}
             transition={{ duration: 0.5 }}
             className={`relative ${isDisabled ? "opacity-50" : ""}`}
           >

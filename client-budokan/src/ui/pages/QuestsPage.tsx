@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import {
   Check,
@@ -102,7 +102,7 @@ const QuestCountdown: React.FC = () => {
   );
 };
 
-const TierRow: React.FC<{ tier: QuestTier }> = ({ tier }) => {
+const TierRow: React.FC<{ tier: QuestTier }> = memo(({ tier }) => {
   let icon: React.ReactNode = <Circle size={13} className="text-slate-400" />;
   let textClass = "text-slate-200";
 
@@ -130,7 +130,8 @@ const TierRow: React.FC<{ tier: QuestTier }> = ({ tier }) => {
       </span>
     </div>
   );
-};
+});
+TierRow.displayName = "TierRow";
 
 interface QuestFamilyPanelProps {
   family: QuestFamily;
@@ -139,7 +140,7 @@ interface QuestFamilyPanelProps {
   disabled: boolean;
 }
 
-const QuestFamilyPanel: React.FC<QuestFamilyPanelProps> = ({
+const QuestFamilyPanel: React.FC<QuestFamilyPanelProps> = memo(({
   family,
   onClaim,
   claimingKey,
@@ -230,7 +231,8 @@ const QuestFamilyPanel: React.FC<QuestFamilyPanelProps> = ({
       )}
     </motion.section>
   );
-};
+});
+QuestFamilyPanel.displayName = "QuestFamilyPanel";
 
 interface ChampionPanelProps {
   family: QuestFamily;
@@ -241,7 +243,7 @@ interface ChampionPanelProps {
   disabled: boolean;
 }
 
-const ChampionPanel: React.FC<ChampionPanelProps> = ({
+const ChampionPanel: React.FC<ChampionPanelProps> = memo(({
   family,
   totalCompleted,
   totalQuests,
@@ -311,7 +313,8 @@ const ChampionPanel: React.FC<ChampionPanelProps> = ({
       )}
     </motion.section>
   );
-};
+});
+ChampionPanel.displayName = "ChampionPanel";
 
 const QuestsPage: React.FC = () => {
   const goBack = useNavigationStore((state) => state.goBack);

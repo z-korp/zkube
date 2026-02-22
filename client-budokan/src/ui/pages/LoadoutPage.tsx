@@ -121,7 +121,7 @@ const LoadoutPage: React.FC = () => {
     [unlockedMap],
   );
 
-  const getBonusIcon = (type: BonusType): string => {
+  const getBonusIcon = useCallback((type: BonusType): string => {
     switch (type) {
       case BonusType.Combo:
         return imgAssets.combo;
@@ -136,9 +136,9 @@ const LoadoutPage: React.FC = () => {
       default:
         return "";
     }
-  };
+  }, [imgAssets.combo, imgAssets.score, imgAssets.harvest, imgAssets.wave, imgAssets.supply]);
 
-  const getBonusStats = (type: BonusType) => {
+  const getBonusStats = useCallback((type: BonusType) => {
     if (!playerMetaData) return { bagSize: 0, startingCount: 0 };
     switch (type) {
       case BonusType.Combo:
@@ -169,16 +169,16 @@ const LoadoutPage: React.FC = () => {
       default:
         return { bagSize: 0, startingCount: 0 };
     }
-  };
+  }, [playerMetaData]);
 
-  const toggleBonus = (type: BonusType) => {
+  const toggleBonus = useCallback((type: BonusType) => {
     if (!unlockedMap[type]) return;
     setSelected((prev) => {
       if (prev.includes(type)) return prev.filter((b) => b !== type);
       if (prev.length >= 3) return prev;
       return [...prev, type];
     });
-  };
+  }, [unlockedMap]);
 
   const handleStartGame = useCallback(async (bonusOverride?: BonusType[]) => {
     const bonuses = bonusOverride ?? selected;

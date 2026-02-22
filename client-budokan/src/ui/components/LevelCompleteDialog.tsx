@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
 import { motion } from "motion/react";
 import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
@@ -59,27 +59,34 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   const cube3Threshold = gameLevel?.cube3Threshold ?? 0;
   const cube2Threshold = gameLevel?.cube2Threshold ?? 0;
 
-  const constraints: Array<{ type: ConstraintType; value: number; count: number }> = [];
-  if (gameLevel) {
-    if (gameLevel.constraintType !== ConstraintType.None) {
-      constraints.push({ type: gameLevel.constraintType, value: gameLevel.constraintValue, count: gameLevel.constraintCount });
+  const constraints = useMemo<Array<{ type: ConstraintType; value: number; count: number }>>(() => {
+    const result: Array<{ type: ConstraintType; value: number; count: number }> = [];
+    if (gameLevel) {
+      if (gameLevel.constraintType !== ConstraintType.None) {
+        result.push({ type: gameLevel.constraintType, value: gameLevel.constraintValue, count: gameLevel.constraintCount });
+      }
+      if (gameLevel.constraint2Type !== ConstraintType.None) {
+        result.push({ type: gameLevel.constraint2Type, value: gameLevel.constraint2Value, count: gameLevel.constraint2Count });
+      }
+      if (gameLevel.constraint3Type !== ConstraintType.None) {
+        result.push({ type: gameLevel.constraint3Type, value: gameLevel.constraint3Value, count: gameLevel.constraint3Count });
+      }
     }
-    if (gameLevel.constraint2Type !== ConstraintType.None) {
-      constraints.push({ type: gameLevel.constraint2Type, value: gameLevel.constraint2Value, count: gameLevel.constraint2Count });
-    }
-    if (gameLevel.constraint3Type !== ConstraintType.None) {
-      constraints.push({ type: gameLevel.constraint3Type, value: gameLevel.constraint3Value, count: gameLevel.constraint3Count });
-    }
-  }
+    return result;
+  }, [
+    gameLevel?.constraintType, gameLevel?.constraintValue, gameLevel?.constraintCount,
+    gameLevel?.constraint2Type, gameLevel?.constraint2Value, gameLevel?.constraint2Count,
+    gameLevel?.constraint3Type, gameLevel?.constraint3Value, gameLevel?.constraint3Count,
+  ]);
 
   const levelFinalScore = totalScore - prevTotalScore;
 
-  const getCubesFromMoves = (moves: number): number => {
+  const getCubesFromMoves = useCallback((moves: number): number => {
     const remaining = maxMoves - moves;
     if (remaining >= cube3Threshold) return 3;
     if (remaining >= cube2Threshold) return 2;
     return 1;
-  };
+  }, [maxMoves, cube3Threshold, cube2Threshold]);
   const baseCubesEarned = getCubesFromMoves(levelMoves);
   
   // Total cubes earned this level (includes combo bonuses, boss bonuses from contract)

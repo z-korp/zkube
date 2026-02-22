@@ -76,19 +76,6 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
       ? { games: slotResult.games, loading: slotResult.loading, refetch: slotResult.refetch }
       : { games: metagameResult.games, loading: metagameResult.loading, refetch: () => {} };
 
-  // Debug logging
-  React.useEffect(() => {
-    console.log("[HeaderLeaderboard] Query Status:", {
-      deployType: VITE_PUBLIC_DEPLOY_TYPE,
-      useRecsOnly,
-      metagameFailed,
-      source: useRecsOnly ? "recs" : metagameFailed ? "recs-fallback" : "metagame",
-      metagameGames: metagameResult.games?.length ?? 0,
-      slotGames: slotResult.games?.length ?? 0,
-      finalGames: games?.length ?? 0,
-    });
-  }, [useRecsOnly, metagameFailed, metagameResult.games, slotResult.games, games]);
-
   const filteredGames = React.useMemo(() => {
     if (!excludedLeaderboardNames.length) {
       return games;

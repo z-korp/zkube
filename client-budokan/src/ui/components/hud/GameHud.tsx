@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useSyncExternalStore } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo, useSyncExternalStore } from "react";
 import { Info } from "lucide-react";
 import ProgressRing from "@/ui/components/shared/ProgressRing";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
@@ -177,33 +177,40 @@ const GameHud: React.FC<GameHudProps> = ({
   const cube3MarkerPos = maxMoves > 0 ? (cube3Threshold / maxMoves) * 100 : 0;
   const cube2MarkerPos = maxMoves > 0 ? (cube2Threshold / maxMoves) * 100 : 0;
 
-  const constraints: ConstraintData[] = [];
-  if (gameLevel) {
-    if (gameLevel.constraintType !== ConstraintType.None) {
-      constraints.push({
-        type: gameLevel.constraintType,
-        value: gameLevel.constraintValue,
-        count: gameLevel.constraintCount,
-        progress: constraintProgress,
-      });
+  const constraints = useMemo<ConstraintData[]>(() => {
+    const result: ConstraintData[] = [];
+    if (gameLevel) {
+      if (gameLevel.constraintType !== ConstraintType.None) {
+        result.push({
+          type: gameLevel.constraintType,
+          value: gameLevel.constraintValue,
+          count: gameLevel.constraintCount,
+          progress: constraintProgress,
+        });
+      }
+      if (gameLevel.constraint2Type !== undefined && gameLevel.constraint2Type !== ConstraintType.None) {
+        result.push({
+          type: gameLevel.constraint2Type,
+          value: gameLevel.constraint2Value,
+          count: gameLevel.constraint2Count,
+          progress: constraint2Progress,
+        });
+      }
+      if (gameLevel.constraint3Type !== undefined && gameLevel.constraint3Type !== ConstraintType.None) {
+        result.push({
+          type: gameLevel.constraint3Type,
+          value: gameLevel.constraint3Value,
+          count: gameLevel.constraint3Count,
+          progress: constraint3Progress,
+        });
+      }
     }
-    if (gameLevel.constraint2Type !== undefined && gameLevel.constraint2Type !== ConstraintType.None) {
-      constraints.push({
-        type: gameLevel.constraint2Type,
-        value: gameLevel.constraint2Value,
-        count: gameLevel.constraint2Count,
-        progress: constraint2Progress,
-      });
-    }
-    if (gameLevel.constraint3Type !== undefined && gameLevel.constraint3Type !== ConstraintType.None) {
-      constraints.push({
-        type: gameLevel.constraint3Type,
-        value: gameLevel.constraint3Value,
-        count: gameLevel.constraint3Count,
-        progress: constraint3Progress,
-      });
-    }
-  }
+    return result;
+  }, [
+    gameLevel?.constraintType, gameLevel?.constraintValue, gameLevel?.constraintCount, constraintProgress,
+    gameLevel?.constraint2Type, gameLevel?.constraint2Value, gameLevel?.constraint2Count, constraint2Progress,
+    gameLevel?.constraint3Type, gameLevel?.constraint3Value, gameLevel?.constraint3Count, constraint3Progress,
+  ]);
 
   const potentialCubes = movesRemaining >= cube3Threshold ? 3
     : movesRemaining >= cube2Threshold ? 2 : 1;
