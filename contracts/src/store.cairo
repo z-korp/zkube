@@ -8,6 +8,7 @@ use crate::events::index::{
 use crate::models::config::{GameSettings, GameSettingsMetadata};
 use crate::models::game::{Game, GameSeed};
 use crate::models::player::PlayerMeta;
+use crate::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
 use crate::systems::cube_token::ICubeTokenDispatcher;
 
 /// Centralized store for world storage access
@@ -101,7 +102,12 @@ pub impl StoreImpl of StoreTrait {
 
     /// Get CubeToken contract dispatcher via world DNS
     fn cube_token_disp(self: @Store) -> ICubeTokenDispatcher {
-        let address = self.world.dns_address(@"cube_token").expect('CubeToken not found in DNS');
+        let config_address = self
+            .world
+            .dns_address(@"config_system")
+            .expect('ConfigSystem not found in DNS');
+        let config = IConfigSystemDispatcher { contract_address: config_address };
+        let address = config.get_cube_token_address();
         ICubeTokenDispatcher { contract_address: address }
     }
 

@@ -19,6 +19,7 @@ use zkube::constants::DEFAULT_SETTINGS::is_default_settings;
 pub use zkube::systems::achievement::{
     IAchievementSystemDispatcher, IAchievementSystemDispatcherTrait,
 };
+pub use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
 pub use zkube::systems::cube_token::{ICubeTokenDispatcher, ICubeTokenDispatcherTrait};
 pub use zkube::systems::grid::{IGridSystemDispatcher, IGridSystemDispatcherTrait};
 
@@ -44,7 +45,9 @@ pub impl GameLibsImpl of GameLibsTrait {
     fn new(world: WorldStorage) -> GameLibs {
         let level_addr = world.dns_address(@"level_system").expect('LevelSystem not found in DNS');
         let grid_addr = world.dns_address(@"grid_system").expect('GridSystem not found in DNS');
-        let cube_addr = world.dns_address(@"cube_token").expect('CubeToken not found in DNS');
+        let config_addr = world.dns_address(@"config_system").expect('ConfigSystem not found in DNS');
+        let config = IConfigSystemDispatcher { contract_address: config_addr };
+        let cube_addr = config.get_cube_token_address();
 
         // Quest system is optional (may not be deployed during migration)
         let quest = match world.dns_address(@"quest_system") {

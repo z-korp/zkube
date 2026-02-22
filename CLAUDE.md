@@ -419,17 +419,11 @@ This script handles:
 1. Building contracts with `sozo build -P slot`
 2. Declaring and deploying MinigameRegistryContract
 3. Declaring and deploying FullTokenContract (with registry address)
-4. Updating `dojo_slot.toml` with the denshokan_address
+4. Updating `dojo_slot.toml` with `denshokan_address` and `config_system` external `cube_token_address`
 5. Running `sozo migrate -P slot`
 6. Updating `torii_slot.toml` and `client-budokan/.env.slot`
 
-#### CRITICAL: Two Config Files
-
-There are TWO `dojo_slot.toml` files that MUST be kept in sync:
-- `./dojo_slot.toml` (root) - **sozo reads from here**
-- `./contracts/dojo_slot.toml` (contracts dir)
-
-If deployment fails with "contract address 0x0 not deployed", check that BOTH files have the correct `denshokan_address` in `[init_call_args]`.
+The script reads and updates `./dojo_slot.toml` at workspace root (this is the file used by `sozo`).
 
 #### Manual Step-by-Step Deployment
 
@@ -462,7 +456,9 @@ sozo deploy -P slot --account-address "$ACCOUNT" --private-key "$PKEY" --rpc-url
     "$TOKEN_CLASS" --constructor-calldata str:'zKube' str:'ZK' str:'' "$ACCOUNT" 500 0 "$REGISTRY_ADDR" 1
 # Note the deployed address (TOKEN_ADDR)
 
-# 5. Update BOTH dojo_slot.toml files with TOKEN_ADDR as denshokan_address
+# 5. Update dojo_slot.toml with:
+#    - game_system denshokan_address = TOKEN_ADDR
+#    - config_system cube_token_address = external ERC20 address
 
 # 6. Run migrate (MUST run from workspace root, NOT from contracts/)
 sozo migrate -P slot
@@ -482,7 +478,7 @@ sozo migrate -P slot
 
 **"Requested contract address 0x0 is not deployed"**
 - The `denshokan_address` in init_call_args is wrong or the FullTokenContract wasn't deployed
-- Check BOTH `dojo_slot.toml` files have the correct address
+- Check `dojo_slot.toml` has the correct `denshokan_address` and `config_system` `cube_token_address`
 
 **"contract address 0x... is not deployed"**
 - The FullTokenContract address doesn't match what's deployed

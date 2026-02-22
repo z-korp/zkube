@@ -18,7 +18,7 @@ This script performs the complete slot deployment:
 2. Declares MinigameRegistryContract and FullTokenContract classes
 3. Deploys MinigameRegistryContract
 4. Deploys FullTokenContract with registry address
-5. Updates `dojo_slot.toml` files (both root and contracts/) with denshokan_address
+5. Updates `dojo_slot.toml` with `denshokan_address` and `config_system` external `cube_token_address`
 6. Runs `sozo migrate -P slot` to deploy the Dojo world
 7. Updates `contracts/torii_slot.toml` with world and token addresses
 8. Updates `client-budokan/.env.slot` with all deployed addresses
@@ -26,10 +26,10 @@ This script performs the complete slot deployment:
 
 **Important Notes:**
 - Requires a fresh katana instance (restart if you get schema upgrade errors)
-- Updates TWO config files: `./dojo_slot.toml` AND `./contracts/dojo_slot.toml`
-- If deployment fails during init, check both config files have matching denshokan_address
+- Reads and updates `./dojo_slot.toml` (workspace root)
+- External CUBE token can be forced via `CUBE_TOKEN_ADDRESS=0x...`; otherwise script uses current `config_system` init value
 - **CRITICAL:** `sozo build` and `sozo migrate` MUST run from the workspace root (`/home/djizus/zkube/`), NOT from `contracts/`. Running from `contracts/` causes init to fail with "contract address 0x0 not deployed"
-- Extracts CubeToken (ERC20) address from manifest and adds it to torii config and client env
+- Uses configured external CubeToken (ERC20) address for Torii and client env; warns if world manifest `cube_token` differs
 
 **After running the script:**
 ```bash

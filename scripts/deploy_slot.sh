@@ -41,6 +41,29 @@ get_credentials() {
     PRIVATE_KEY=$(grep "private_key" "$DOJO_CONFIG" | head -1 | cut -d'"' -f2)
 }
 
+get_config_cube_token_address() {
+    sed -n "/\"${NAMESPACE}-config_system\" = \[/,/\]/p" "$DOJO_CONFIG" \
+        | grep -oE '0x[0-9a-fA-F]+' \
+        | sed -n '2p'
+}
+
+resolve_cube_token_address() {
+    if [ -n "$CUBE_TOKEN_ADDRESS" ]; then
+        EXTERNAL_CUBE_TOKEN="$CUBE_TOKEN_ADDRESS"
+        print_info "Using external CubeToken from CUBE_TOKEN_ADDRESS: $EXTERNAL_CUBE_TOKEN"
+        return
+    fi
+
+    EXTERNAL_CUBE_TOKEN=$(get_config_cube_token_address)
+    if [ -z "$EXTERNAL_CUBE_TOKEN" ]; then
+        print_error "Could not resolve external CubeToken address."
+        print_error "Set CUBE_TOKEN_ADDRESS env var or add second address in ${NAMESPACE}-config_system init_call_args."
+        exit 1
+    fi
+
+    print_info "Using external CubeToken from $DOJO_CONFIG: $EXTERNAL_CUBE_TOKEN"
+}
+
 # Extract address from sozo deploy output
 extract_address() {
     local output="$1"
@@ -84,6 +107,7 @@ print_info "Build complete!"
 get_credentials
 print_info "Using RPC: $RPC_URL"
 print_info "Account: $ACCOUNT_ADDRESS"
+resolve_cube_token_address
 
 #-----------------
 # Step 3: Declare classes
@@ -191,10 +215,9 @@ sleep 5
 #-----------------
 print_info "Step 5: Updating dojo configuration..."
 
-# Update denshokan_address in both config files using sed
 if [ -f "$DOJO_CONFIG" ]; then
-    # Replace the denshokan_address line (second line in game_system init_call_args)
     sed -i "s|\"0x[0-9a-fA-F]*\",  # denshokan_address|\"$TOKEN_ADDRESS\",  # denshokan_address|" "$DOJO_CONFIG"
+    sed -i "/\"${NAMESPACE}-config_system\" = \[/,/\]/{/account address/ {n; s|\"0x[0-9a-fA-F]*\"|\"$EXTERNAL_CUBE_TOKEN\"|;}}" "$DOJO_CONFIG"
     print_info "  Updated $DOJO_CONFIG"
 fi
 
@@ -272,18 +295,17 @@ print_info "Step 8: Extracting system addresses..."
 
 GAME_SYSTEM=""
 CONFIG_SYSTEM=""
-CUBE_TOKEN=""
+MANIFEST_CUBE_TOKEN=""
+CUBE_TOKEN="$EXTERNAL_CUBE_TOKEN"
 if [ -f "$MANIFEST_FILE" ]; then
     GAME_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-game_system\") | .address" 2>/dev/null)
     CONFIG_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-config_system\") | .address" 2>/dev/null)
-    CUBE_TOKEN=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-cube_token\") | .address" 2>/dev/null)
+    MANIFEST_CUBE_TOKEN=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-cube_token\") | .address" 2>/dev/null)
 fi
 
-if [ -n "$CUBE_TOKEN" ] && [ "$CUBE_TOKEN" != "null" ]; then
-    print_info "  CubeToken deployed at: $CUBE_TOKEN"
-else
-    CUBE_TOKEN=""
-    print_warn "  CubeToken address not found in manifest"
+print_info "  External CubeToken configured at: $CUBE_TOKEN"
+if [ -n "$MANIFEST_CUBE_TOKEN" ] && [ "$MANIFEST_CUBE_TOKEN" != "null" ] && [ "$MANIFEST_CUBE_TOKEN" != "$CUBE_TOKEN" ]; then
+    print_warn "  Manifest world cube_token differs ($MANIFEST_CUBE_TOKEN). Using external CubeToken: $CUBE_TOKEN"
 fi
 
 #-----------------

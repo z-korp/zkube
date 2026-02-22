@@ -12,7 +12,7 @@ This guide explains how to deploy zkube using `FullTokenContract` from game-comp
 │  Step 2: Declare external contract classes (sozo declare)   │
 │  Step 3: Deploy MinigameRegistryContract (sozo deploy)      │
 │  Step 4: Deploy FullTokenContract (sozo deploy)             │
-│  Step 5: Update dojo config with denshokan address          │
+│  Step 5: Update dojo config with external token addresses   │
 │  Step 6: Deploy Dojo world (sozo migrate)                   │
 │  Step 7: Update client configuration                        │
 └─────────────────────────────────────────────────────────────┘
@@ -27,11 +27,12 @@ This guide explains how to deploy zkube using `FullTokenContract` from game-comp
 │  Dojo Systems (deployed via sozo migrate):                  │
 │  ├── game_system (implements IMinigameTokenData)           │
 │  ├── shop_system (permanent upgrades)                      │
-│  ├── cube_token (ERC-20 CUBE token)                        │
+│  ├── cube_token (ERC-20 CUBE token, optional world deploy) │
 │  └── config_system                                          │
 │                                                             │
 │  Connection:                                                │
-│  └── game_system.dojo_init(denshokan_address=FullToken)    │
+│  ├── game_system.dojo_init(denshokan_address=FullToken)    │
+│  └── config_system.dojo_init(cube_token_address=ERC20)     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -51,6 +52,11 @@ This guide explains how to deploy zkube using `FullTokenContract` from game-comp
     "0x123...",  # ContractAddress
     "0x456...",  # denshokan_address (FullTokenContract address)
     "1",         # Option::None (just "1", not "0", "0")
+]
+
+"namespace-config_system" = [
+    "0x123...",  # creator_address
+    "0x789...",  # external cube_token_address (ERC20)
 ]
 ```
 
@@ -156,6 +162,11 @@ Edit `dojo_slot.toml`:
     "0x<FullTokenContract_address>",  # denshokan_address
     "1",  # renderer_address: Option::None
 ]
+
+"zkube_budo_v1_2_0-config_system" = [
+    "0x<your_creator_address>",
+    "0x<external_cube_token_address>",
+]
 ```
 
 #### Step 6: Deploy Dojo World
@@ -165,14 +176,7 @@ Edit `dojo_slot.toml`:
 sozo migrate -P slot
 ```
 
-#### Step 7: Extract CubeToken Address
-
-After migration, extract the CubeToken address from the manifest:
-```bash
-CUBE_TOKEN=$(jq -r '.contracts[] | select(.tag | contains("cube_token")) | .address' manifest_slot.json)
-```
-
-#### Step 8: Update Client
+#### Step 7: Update Client
 
 Create/update `client-budokan/.env.slot`:
 
@@ -182,16 +186,17 @@ VITE_PUBLIC_NODE_URL=https://api.cartridge.gg/x/your-slot/katana
 VITE_PUBLIC_TORII=https://api.cartridge.gg/x/your-slot/torii
 VITE_PUBLIC_WORLD_ADDRESS=0x<world_address>
 VITE_PUBLIC_GAME_TOKEN_ADDRESS=0x<FullTokenContract_address>
-VITE_PUBLIC_CUBE_TOKEN_ADDRESS=0x<CubeToken_address>
+VITE_PUBLIC_CUBE_TOKEN_ADDRESS=0x<external_cube_token_address>
 ```
 
-#### Step 9: Update Torii Config
+#### Step 8: Update Torii Config
 
-Add the CubeToken as an ERC20 contract in `torii_slot.toml`:
+Add the external CubeToken as an ERC20 contract in `torii_slot.toml`:
 ```toml
-[[contracts]]
-type = "ERC20"
-address = "0x<CubeToken_address>"
+[indexing]
+contracts = [
+  "erc20:0x<external_cube_token_address>"
+]
 ```
 
 ## FullTokenContract Features
@@ -256,7 +261,8 @@ sozo migrate -P mainnet --keystore /path/to/keystore.json
 - [ ] Declare external contract classes
 - [ ] Deploy MinigameRegistryContract
 - [ ] Deploy FullTokenContract with registry address
-- [ ] Update `dojo_<profile>.toml` with FullTokenContract address
+- [ ] Update `dojo_<profile>.toml` with FullTokenContract `denshokan_address`
+- [ ] Set `config_system` external `cube_token_address`
 - [ ] Deploy Dojo world: `sozo migrate -P <profile>`
 - [ ] Update client `.env.<profile>` with addresses
 - [ ] Start Torii indexer: `torii --config torii_<profile>.toml`
@@ -270,6 +276,13 @@ The denshokan_address in init_call_args is pointing to an invalid address (not a
 1. Deploy FullTokenContract first
 2. Update dojo_*.toml with the deployed address
 3. Re-run sozo migrate
+
+### "Cube token calls revert / balance not indexing"
+
+The `config_system` external cube token address is wrong or Torii is indexing a different ERC20.
+1. Set `zkube_budo_v1_2_0-config_system` second init arg to the intended external ERC20 address
+2. Re-run `sozo migrate -P <profile>`
+3. Ensure `torii_<profile>.toml` includes `erc20:<same_address>`
 
 ### "Failed to deserialize param #N"
 

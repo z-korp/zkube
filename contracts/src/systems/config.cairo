@@ -1,8 +1,9 @@
 use zkube::models::config::{GameSettings, GameSettingsMetadata};
 use zkube::types::difficulty::Difficulty;
+use starknet::ContractAddress;
 
 #[starknet::interface]
-trait IConfigSystem<T> {
+pub trait IConfigSystem<T> {
     /// Add new game settings with default values for a given difficulty
     fn add_game_settings(
         ref self: T, name: felt252, description: ByteArray, difficulty: Difficulty,
@@ -65,6 +66,7 @@ trait IConfigSystem<T> {
     fn get_game_settings(self: @T, settings_id: u32) -> GameSettings;
     fn get_game_settings_metadata(self: @T, settings_id: u32) -> GameSettingsMetadata;
     fn settings_exists(self: @T, settings_id: u32) -> bool;
+    fn get_cube_token_address(self: @T) -> ContractAddress;
 }
 
 #[dojo::contract]
@@ -100,6 +102,7 @@ mod config_system {
     #[storage]
     struct Storage {
         settings_counter: u32,
+        cube_token_address: ContractAddress,
         #[substorage(v0)]
         settings: SettingsComponent::Storage,
         #[substorage(v0)]
@@ -124,9 +127,12 @@ mod config_system {
         created_by: ContractAddress,
     }
 
-    fn dojo_init(ref self: ContractState, creator_address: ContractAddress) {
+    fn dojo_init(
+        ref self: ContractState, creator_address: ContractAddress, cube_token_address: ContractAddress,
+    ) {
         let mut world: WorldStorage = self.world(@DEFAULT_NS());
         self.settings.initializer();
+        self.cube_token_address.write(cube_token_address);
 
         let current_timestamp = get_block_timestamp();
 
@@ -446,6 +452,10 @@ mod config_system {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let settings = world.read_model(settings_id);
             settings.exists()
+        }
+
+        fn get_cube_token_address(self: @ContractState) -> ContractAddress {
+            self.cube_token_address.read()
         }
     }
 
