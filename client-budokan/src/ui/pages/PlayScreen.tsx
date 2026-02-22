@@ -64,6 +64,7 @@ const PlayScreen: React.FC = () => {
   const [isGameLoading, setIsGameLoading] = useState(true);
   const [activeBonus, setActiveBonus] = useState<BonusType>(BonusType.None);
   const [bonusDescription, setBonusDescription] = useState("");
+  const [isLevelCompleting, setIsLevelCompleting] = useState(false);
 
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
   const prevGameStateRef = useRef<{
@@ -173,11 +174,12 @@ const PlayScreen: React.FC = () => {
         gameLevel: prevState.gameLevel,
       };
       levelStartTotalScoreRef.current = game.totalScore;
+      setIsLevelCompleting(true);
 
       setTimeout(() => {
         setPendingLevelCompletion(completionData);
         navNavigate("map");
-      }, 2000);
+      }, 1000);
     }
 
     prevGameStateRef.current = {
@@ -454,6 +456,7 @@ const PlayScreen: React.FC = () => {
               game={game}
               activeBonus={activeBonus}
               bonusDescription={bonusDescription}
+              freezeGrid={isLevelCompleting}
             />
           </div>
         )}
