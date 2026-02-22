@@ -435,8 +435,9 @@ const Grid: React.FC<GridProps> = ({
         return block;
       });
 
+      const newBlockMap = new Map(newBlocks.map((b) => [b.id, b]));
       const blocksChanged = !prevBlocks.every((block) => {
-        const newBlock = newBlocks.find((b) => b.id === block.id);
+        const newBlock = newBlockMap.get(block.id);
         return newBlock && block.x === newBlock.x && block.y === newBlock.y;
       });
 

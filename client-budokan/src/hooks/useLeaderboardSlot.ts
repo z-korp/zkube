@@ -123,10 +123,15 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
 
   // Extract unique addresses that need username lookups
   const addressesNeedingLookup = useMemo(() => {
-    return rawGames
-      .filter((g) => g.player_address && !g.player_name)
-      .map((g) => g.player_address!)
-      .filter((addr, index, self) => self.indexOf(addr) === index); // Dedupe
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const g of rawGames) {
+      if (g.player_address && !g.player_name && !seen.has(g.player_address)) {
+        seen.add(g.player_address);
+        result.push(g.player_address);
+      }
+    }
+    return result;
   }, [rawGames]);
 
   // Batch fetch usernames for all addresses
@@ -240,7 +245,6 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
           return (a.started_at ?? 0) - (b.started_at ?? 0);
         });
 
-        console.log("[useLeaderboardSlot] Raw leaderboard:", gameList.length, "entries");
         setRawGames(gameList);
       } catch (error) {
         console.error("[useLeaderboardSlot] Error fetching leaderboard:", error);

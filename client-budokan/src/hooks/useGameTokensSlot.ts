@@ -245,7 +245,6 @@ export const useGameTokensSlot = ({
         // Sort by token_id descending (newest first)
         gameList.sort((a, b) => b.token_id - a.token_id);
 
-        console.log("[useGameTokensSlot] Final game list:", gameList.length);
         setGames(gameList);
       } catch (error) {
         console.error("[useGameTokensSlot] Error fetching games:", error);

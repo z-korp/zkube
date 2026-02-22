@@ -27,6 +27,7 @@ import { useLeaderboardSlot, type LeaderboardEntry } from "@/hooks/useLeaderboar
 
 const gameSystemAddress = getGameSystemAddress();
 const excludedLeaderboardNames = getLeaderboardExcludedNames();
+const excludedLeaderboardNameSet = new Set(excludedLeaderboardNames);
 
 // Check if we should skip metagame SDK (not available on slot/sepolia)
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
@@ -77,13 +78,13 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
       : { games: metagameResult.games, loading: metagameResult.loading, refetch: () => {} };
 
   const filteredGames = React.useMemo(() => {
-    if (!excludedLeaderboardNames.length) {
+    if (excludedLeaderboardNameSet.size === 0) {
       return games;
     }
     return games.filter((game: GameTokenData | LeaderboardEntry) => {
       if (game.game_id === 0) return true;
       const playerName = game.player_name?.toLowerCase();
-      return !(playerName && excludedLeaderboardNames.includes(playerName));
+      return !(playerName && excludedLeaderboardNameSet.has(playerName));
     });
   }, [games]);
 
