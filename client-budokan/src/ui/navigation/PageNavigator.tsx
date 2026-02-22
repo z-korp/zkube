@@ -8,6 +8,7 @@ interface PageNavigatorProps {
 
 const TRANSITION_DURATION = 0.15;
 const EASE_OUT_CUBIC: [number, number, number, number] = [0.33, 1, 0.68, 1];
+const SLIDE_TRANSITION = { duration: TRANSITION_DURATION, ease: EASE_OUT_CUBIC };
 
 const PageNavigator: React.FC<PageNavigatorProps> = ({ children }) => {
   const currentPage = useNavigationStore((s) => s.currentPage);
@@ -18,13 +19,13 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ children }) => {
   return (
     <div className="fixed inset-0 overflow-hidden">
       <ThemeBackground />
-      <AnimatePresence mode="popLayout" initial={false}>
+      <AnimatePresence initial={false}>
         <motion.div
           key={currentPage}
           initial={{ x: isBack ? "-100%" : "100%" }}
           animate={{ x: 0 }}
           exit={{ x: isBack ? "100%" : "-100%" }}
-          transition={{ duration: TRANSITION_DURATION, ease: EASE_OUT_CUBIC }}
+          transition={SLIDE_TRANSITION}
           className="absolute inset-0 overflow-y-auto overflow-x-hidden"
         >
           {children}
