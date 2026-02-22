@@ -163,7 +163,7 @@ const PlayScreen: React.FC = () => {
       } else {
         playSfx("levelup");
       }
-      const completionData = {
+      setPendingLevelCompletion({
         level: prevState.level,
         levelMoves: prevState.levelMoves,
         prevTotalCubes: prevState.totalCubes,
@@ -171,13 +171,9 @@ const PlayScreen: React.FC = () => {
         prevTotalScore: levelStartTotalScoreRef.current,
         totalScore: game.totalScore,
         gameLevel: prevState.gameLevel,
-      };
+      });
       levelStartTotalScoreRef.current = game.totalScore;
-
-      setTimeout(() => {
-        setPendingLevelCompletion(completionData);
-        navNavigate("map");
-      }, 2000);
+      navNavigate("map");
     }
 
     prevGameStateRef.current = {
