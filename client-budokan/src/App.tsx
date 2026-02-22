@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "./ui/elements/sonner";
 import { TooltipProvider } from "@/ui/elements/tooltip";
 import PageNavigator from "@/ui/navigation/PageNavigator";
@@ -8,17 +8,17 @@ import { getToastPlacement } from "@/utils/toast";
 import { useAccount } from "@starknet-react/core";
 import { Loading } from "@/ui/screens/Loading";
 
-const HomePage = lazy(() => import("@/ui/pages/HomePage"));
-const LoadoutPage = lazy(() => import("@/ui/pages/LoadoutPage"));
-const PlayScreen = lazy(() => import("@/ui/pages/PlayScreen"));
-const MapPage = lazy(() => import("@/ui/pages/MapPage"));
-const ShopPage = lazy(() => import("@/ui/pages/ShopPage"));
-const InGameShopPage = lazy(() => import("@/ui/pages/InGameShopPage"));
-const QuestsPage = lazy(() => import("@/ui/pages/QuestsPage"));
-const SettingsPage = lazy(() => import("@/ui/pages/SettingsPage"));
-const MyGamesPage = lazy(() => import("@/ui/pages/MyGamesPage"));
-const LeaderboardPage = lazy(() => import("@/ui/pages/LeaderboardPage"));
-const TutorialPage = lazy(() => import("@/ui/pages/TutorialPage"));
+import HomePage from "@/ui/pages/HomePage";
+import LoadoutPage from "@/ui/pages/LoadoutPage";
+import PlayScreen from "@/ui/pages/PlayScreen";
+import MapPage from "@/ui/pages/MapPage";
+import ShopPage from "@/ui/pages/ShopPage";
+import InGameShopPage from "@/ui/pages/InGameShopPage";
+import QuestsPage from "@/ui/pages/QuestsPage";
+import SettingsPage from "@/ui/pages/SettingsPage";
+import MyGamesPage from "@/ui/pages/MyGamesPage";
+import LeaderboardPage from "@/ui/pages/LeaderboardPage";
+import TutorialPage from "@/ui/pages/TutorialPage";
 
 const pageComponents: Record<PageId, React.ReactNode> = {
   home: <HomePage />,
@@ -36,7 +36,7 @@ const pageComponents: Record<PageId, React.ReactNode> = {
 
 const CurrentPage: React.FC = () => {
   const currentPage = useNavigationStore((s) => s.currentPage);
-  return <Suspense fallback={<Loading />}>{pageComponents[currentPage]}</Suspense>;
+  return pageComponents[currentPage];
 };
 
 // starknet-react's isReconnecting is never set to true — auto-connect is fire-and-forget.
