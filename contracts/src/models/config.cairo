@@ -418,7 +418,9 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             master_budget_max,
             _veryeasy_min_times,
             _master_min_times,
-        ) = self.unpack_lines_budgets();
+        ) =
+            self
+            .unpack_lines_budgets();
 
         // Budget is the only active lever for constraint generation.
         let budget_max = Self::interpolate(veryeasy_budget_max, master_budget_max, diff_value, 7);
@@ -484,7 +486,9 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             master_budget_max,
             _veryeasy_min_times,
             _master_min_times,
-        ) = self.unpack_lines_budgets();
+        ) =
+            self
+            .unpack_lines_budgets();
 
         // Budget constraints: derived min <= max, with non-zero ceiling at Master.
         let veryeasy_budget_min: u16 = (veryeasy_budget_max.into() * 70 + 99) / 100;
@@ -584,7 +588,9 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             master_budget_max,
             _veryeasy_min_times,
             _master_min_times,
-        ) = self.unpack_lines_budgets();
+        ) =
+            self
+            .unpack_lines_budgets();
 
         let veryeasy_budget_min: u16 = (veryeasy_budget_max.into() * 70 + 99) / 100;
         let master_budget_min: u16 = (master_budget_max.into() * 70 + 99) / 100;

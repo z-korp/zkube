@@ -142,7 +142,11 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
     /// Example: max_rows_exclusive = 8 means the grid must stay below 8 filled rows.
     #[inline(always)]
     fn keep_grid_below_with_cap(max_rows_exclusive: u8) -> LevelConstraint {
-        let cap = if max_rows_exclusive < 1 { 1 } else { max_rows_exclusive };
+        let cap = if max_rows_exclusive < 1 {
+            1
+        } else {
+            max_rows_exclusive
+        };
         LevelConstraint {
             constraint_type: ConstraintType::KeepGridBelow, value: cap, required_count: 1,
         }
@@ -252,8 +256,16 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
                     } else {
                         ctx.highest_row_after + 1
                     };
-                    let max_rows_exclusive: u8 = if self.value == 0 { 1 } else { self.value };
-                    if rows_filled_after >= max_rows_exclusive { 1 } else { 0 }
+                    let max_rows_exclusive: u8 = if self.value == 0 {
+                        1
+                    } else {
+                        self.value
+                    };
+                    if rows_filled_after >= max_rows_exclusive {
+                        1
+                    } else {
+                        0
+                    }
                 }
             },
         }
@@ -703,8 +715,7 @@ mod tests {
         );
         assert!(LevelConstraintTrait::no_bonus().is_boss_only(), "NoBonusUsed is boss-only");
         assert!(
-            LevelConstraintTrait::keep_grid_below().is_boss_only(),
-            "KeepGridBelow is boss-only",
+            LevelConstraintTrait::keep_grid_below().is_boss_only(), "KeepGridBelow is boss-only",
         );
     }
 }

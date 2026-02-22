@@ -1,6 +1,6 @@
+use starknet::ContractAddress;
 use zkube::models::config::{GameSettings, GameSettingsMetadata};
 use zkube::types::difficulty::Difficulty;
-use starknet::ContractAddress;
 
 #[starknet::interface]
 pub trait IConfigSystem<T> {
@@ -128,7 +128,9 @@ mod config_system {
     }
 
     fn dojo_init(
-        ref self: ContractState, creator_address: ContractAddress, cube_token_address: ContractAddress,
+        ref self: ContractState,
+        creator_address: ContractAddress,
+        cube_token_address: ContractAddress,
     ) {
         let mut world: WorldStorage = self.world(@DEFAULT_NS());
         self.settings.initializer();

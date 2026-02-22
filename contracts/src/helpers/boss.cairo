@@ -154,7 +154,9 @@ fn generate_boss_constraint(
         },
         ConstraintType::None => LevelConstraintTrait::none(),
         // Budget-based constraints: use the same generation as regular levels
-        _ => LevelGeneratorTrait::generate_constraint_from_budget(seed, budget_max, constraint_type),
+        _ => LevelGeneratorTrait::generate_constraint_from_budget(
+            seed, budget_max, constraint_type,
+        ),
     }
 }
 
@@ -184,10 +186,7 @@ pub fn difficulty_to_tier(difficulty: zkube::types::difficulty::Difficulty) -> u
 ///
 /// Returns (constraint_1, constraint_2, constraint_3)
 pub fn generate_boss_constraints(
-    boss_id: u8,
-    level: u8,
-    seed: felt252,
-    budget_max: u8,
+    boss_id: u8, level: u8, seed: felt252, budget_max: u8,
 ) -> (LevelConstraint, LevelConstraint, LevelConstraint) {
     let identity = get_boss_identity(boss_id);
 
@@ -195,21 +194,15 @@ pub fn generate_boss_constraints(
 
     // Generate primary constraint at budget_max
     let primary_seed: felt252 = seed;
-    let c1 = generate_boss_constraint(
-        identity.primary_type, budget_max, primary_seed, level,
-    );
+    let c1 = generate_boss_constraint(identity.primary_type, budget_max, primary_seed, level);
 
     // Generate secondary constraint (different seed segment)
     let secondary_seed: felt252 = (seed_u256 / 10000000).try_into().unwrap();
-    let c2 = generate_boss_constraint(
-        identity.secondary_type, budget_max, secondary_seed, level,
-    );
+    let c2 = generate_boss_constraint(identity.secondary_type, budget_max, secondary_seed, level);
 
     // Tertiary (caller decides when to include it based on level)
     let tertiary_seed: felt252 = (seed_u256 / 100000000000000).try_into().unwrap();
-    let c3 = generate_boss_constraint(
-        identity.tertiary_type, budget_max, tertiary_seed, level,
-    );
+    let c3 = generate_boss_constraint(identity.tertiary_type, budget_max, tertiary_seed, level);
 
     (c1, c2, c3)
 }

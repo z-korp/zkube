@@ -1,14 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
-import { Slider } from "@/ui/elements/slider";
 import { motion } from "motion/react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";
-import {
-  BonusType,
-  bonusTypeToContractValue,
-} from "@/dojo/game/types/bonus";
+import { BonusType, bonusTypeToContractValue } from "@/dojo/game/types/bonus";
 import { useMusicPlayer } from "@/contexts/hooks";
 import type { PlayerMetaData } from "@/hooks/usePlayerMeta";
 
@@ -16,7 +12,6 @@ const LOADOUT_STORAGE_KEY = "zkube_loadout";
 
 interface LoadoutData {
   selectedBonuses: BonusType[];
-  cubesToBring: number;
 }
 
 // Load saved loadout from localStorage
@@ -44,7 +39,7 @@ const saveLoadout = (loadout: LoadoutData) => {
 interface LoadoutDialogProps {
   isOpen: boolean;
   onClose: (open: boolean) => void;
-  onConfirm: (selectedBonuses: number[], cubesToBring: number) => void;
+  onConfirm: (selectedBonuses: number[]) => void;
   playerMetaData: PlayerMetaData | null;
   cubeBalance: number;
   isLoading?: boolean;
@@ -58,13 +53,13 @@ const ALL_BONUSES: BonusType[] = [
   BonusType.Supply,
 ];
 
-const DEFAULT_BONUSES: BonusType[] = [BonusType.Combo, BonusType.Harvest, BonusType.Score];
+const DEFAULT_BONUSES: BonusType[] = [
+  BonusType.Combo,
+  BonusType.Harvest,
+  BonusType.Score,
+];
 
-// Calculate max cubes allowed based on bridging rank
-export const getMaxCubesForRank = (rank: number): number => {
-  if (rank === 0) return 0;
-  return 5 * Math.pow(2, rank - 1);
-};
+export const getMaxCubesForRank = (_rank: number): number => 0;
 
 const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
   isOpen,
@@ -80,45 +75,39 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
 
   // Load saved loadout or use defaults
   const savedLoadout = useMemo(() => loadSavedLoadout(), []);
-  
-  const [selected, setSelected] = useState<BonusType[]>(
-    savedLoadout?.selectedBonuses ?? DEFAULT_BONUSES
-  );
-  const [cubesToBring, setCubesToBring] = useState(savedLoadout?.cubesToBring ?? 0);
 
-  // Bridging rank and max cubes
-  const bridgingRank = playerMetaData?.bridgingRank ?? 0;
-  const maxCubesAllowed = getMaxCubesForRank(bridgingRank);
-  const actualMaxCubes = Math.min(maxCubesAllowed, cubeBalance);
-  const canBringCubes = bridgingRank > 0 && cubeBalance > 0;
+  const [selected, setSelected] = useState<BonusType[]>(
+    savedLoadout?.selectedBonuses ?? DEFAULT_BONUSES,
+  );
+  void playerMetaData;
+  void cubeBalance;
 
   // Reset state when dialog opens
   useEffect(() => {
     if (isOpen) {
       const saved = loadSavedLoadout();
       if (saved) {
-        // Filter out any bonuses that are no longer unlocked
-        const validBonuses = saved.selectedBonuses.filter(b => {
-          if (b === BonusType.Wave) return playerMetaData?.shrinkUnlocked;
-          if (b === BonusType.Supply) return playerMetaData?.shuffleUnlocked;
-          return true;
-        });
-        setSelected(validBonuses.length === 3 ? validBonuses : DEFAULT_BONUSES);
-        setCubesToBring(Math.min(saved.cubesToBring, actualMaxCubes));
+        setSelected(
+          saved.selectedBonuses.length === 3
+            ? saved.selectedBonuses
+            : DEFAULT_BONUSES,
+        );
       } else {
         setSelected(DEFAULT_BONUSES);
-        setCubesToBring(0);
       }
     }
-  }, [isOpen, playerMetaData, actualMaxCubes]);
+  }, [isOpen]);
 
-  const unlockedMap = useMemo(() => ({
-    [BonusType.Combo]: true,
-    [BonusType.Score]: true,
-    [BonusType.Harvest]: true,
-    [BonusType.Wave]: playerMetaData?.shrinkUnlocked ?? false,
-    [BonusType.Supply]: playerMetaData?.shuffleUnlocked ?? false,
-  }), [playerMetaData]);
+  const unlockedMap = useMemo(
+    () => ({
+      [BonusType.Combo]: true,
+      [BonusType.Score]: true,
+      [BonusType.Harvest]: true,
+      [BonusType.Wave]: true,
+      [BonusType.Supply]: true,
+    }),
+    [],
+  );
 
   const getBonusIcon = (type: BonusType): string => {
     switch (type) {
@@ -138,37 +127,8 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
   };
 
   const getBonusStats = (type: BonusType) => {
-    if (!playerMetaData) return { bagSize: 0, startingCount: 0 };
-    
-    switch (type) {
-      case BonusType.Combo:
-        return { 
-          bagSize: playerMetaData.bagComboLevel, 
-          startingCount: playerMetaData.startingCombo 
-        };
-      case BonusType.Harvest:
-        return { 
-          bagSize: playerMetaData.bagHarvestLevel,
-          startingCount: playerMetaData.startingHarvest
-        };
-      case BonusType.Score:
-        return { 
-          bagSize: playerMetaData.bagScoreLevel,
-          startingCount: playerMetaData.startingScore
-        };
-      case BonusType.Wave:
-        return { 
-          bagSize: playerMetaData.bagWaveLevel, 
-          startingCount: playerMetaData.startingWave 
-        };
-      case BonusType.Supply:
-        return { 
-          bagSize: playerMetaData.bagSupplyLevel, 
-          startingCount: playerMetaData.startingSupply 
-        };
-      default:
-        return { bagSize: 0, startingCount: 0 };
-    }
+    void type;
+    return { bagSize: 0, startingCount: 0 };
   };
 
   const toggleBonus = (type: BonusType) => {
@@ -189,12 +149,14 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
 
   const handleConfirm = () => {
     if (selected.length !== 3) return;
-    
+
     // Save loadout to localStorage
-    saveLoadout({ selectedBonuses: selected, cubesToBring });
-    
-    const selectedValues = selected.map((type) => bonusTypeToContractValue(type));
-    onConfirm(selectedValues, cubesToBring);
+    saveLoadout({ selectedBonuses: selected });
+
+    const selectedValues = selected.map((type) =>
+      bonusTypeToContractValue(type),
+    );
+    onConfirm(selectedValues);
   };
 
   return (
@@ -239,9 +201,17 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
                     ${isSelected ? "border-yellow-400 bg-yellow-500/10" : "border-slate-700 bg-slate-800/30"}
                     ${isLocked ? "opacity-40 cursor-not-allowed grayscale bg-slate-900/50 border-slate-800" : "hover:border-slate-500"}`}
                 >
-                  <img src={icon} alt={bonusType} className={`w-9 h-9 ${isLocked ? "grayscale" : ""}`} />
-                  <div className={`text-xs font-semibold ${isLocked ? "text-slate-500" : ""}`}>{bonusType}</div>
-                  
+                  <img
+                    src={icon}
+                    alt={bonusType}
+                    className={`w-9 h-9 ${isLocked ? "grayscale" : ""}`}
+                  />
+                  <div
+                    className={`text-xs font-semibold ${isLocked ? "text-slate-500" : ""}`}
+                  >
+                    {bonusType}
+                  </div>
+
                   {/* Stats badges */}
                   {!isLocked && (
                     <div className="flex gap-1.5 mt-1">
@@ -257,7 +227,7 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
                       )}
                     </div>
                   )}
-                  
+
                   {isLocked && (
                     <div className="absolute top-1 right-1 text-[10px] bg-red-900/80 text-red-300 px-1.5 py-0.5 rounded">
                       Locked
@@ -269,114 +239,8 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
           </div>
         </div>
 
-        {/* Cube Bringing Section */}
-        {canBringCubes && (
-          <div className="border-t border-slate-700 pt-4 mb-4">
-            <div className="text-center text-sm text-slate-400 mb-3">
-              Bring Cubes to Spend In-Game
-            </div>
-
-            {/* Wallet Balance */}
-            <div className="text-center mb-3 bg-slate-800/50 py-2 rounded-lg">
-              <div className="text-sm font-semibold text-yellow-400 flex items-center justify-center gap-2">
-                <span>Wallet:</span>
-                <span>{cubeBalance.toLocaleString()} cubes</span>
-              </div>
-              <div className="text-[10px] text-slate-500">
-                Max allowed: {maxCubesAllowed} (Bridging Rank {bridgingRank})
-              </div>
-            </div>
-
-            {/* Slider */}
-            {actualMaxCubes > 0 && (
-              <div className="mb-3 px-2">
-                <div className="flex justify-between mb-1">
-                  <span className="text-xs text-slate-400">Cubes to bring:</span>
-                  <span className="text-sm font-bold text-yellow-400">{cubesToBring}</span>
-                </div>
-                <Slider
-                  value={[cubesToBring]}
-                  onValueChange={(value) => setCubesToBring(value[0])}
-                  min={0}
-                  max={actualMaxCubes}
-                  step={1}
-                  className="w-full"
-                />
-                <div className="flex justify-between mt-0.5 text-[10px] text-slate-500">
-                  <span>0</span>
-                  <span>{actualMaxCubes}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Quick select buttons */}
-            {actualMaxCubes > 0 && (
-              <div className="flex gap-1.5 justify-center flex-wrap">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setCubesToBring(0)}
-                  className="min-w-[45px] h-7 text-xs"
-                >
-                  0
-                </Button>
-                {actualMaxCubes >= 5 && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setCubesToBring(Math.min(5, actualMaxCubes))}
-                    className="min-w-[45px] h-7 text-xs"
-                  >
-                    5
-                  </Button>
-                )}
-                {actualMaxCubes >= 10 && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setCubesToBring(Math.min(10, actualMaxCubes))}
-                    className="min-w-[45px] h-7 text-xs"
-                  >
-                    10
-                  </Button>
-                )}
-                {actualMaxCubes >= 20 && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setCubesToBring(Math.min(20, actualMaxCubes))}
-                    className="min-w-[45px] h-7 text-xs"
-                  >
-                    20
-                  </Button>
-                )}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setCubesToBring(actualMaxCubes)}
-                  className="min-w-[45px] h-7 text-xs"
-                >
-                  Max
-                </Button>
-              </div>
-            )}
-
-            {cubesToBring > 0 && (
-              <p className="text-center text-[10px] text-orange-400 mt-2">
-                Warning: Brought cubes are lost if you die!
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Info text */}
         <div className="text-[10px] text-slate-500 text-center mb-3">
-          {!canBringCubes && bridgingRank === 0 && (
-            <span>Unlock Bridging Rank in the shop to bring cubes into games.</span>
-          )}
-          {!playerMetaData?.shrinkUnlocked && !playerMetaData?.shuffleUnlocked && (
-            <span> Unlock Wave and Supply in the permanent shop.</span>
-          )}
+          Bridging and permanent unlocks are disabled in Iteration 1.
         </div>
 
         {/* Confirm Button */}
@@ -386,9 +250,7 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
           isLoading={isLoading}
           className="w-full py-3"
         >
-          {cubesToBring > 0 
-            ? `Start Game with ${cubesToBring} Cubes` 
-            : "Start Game"}
+          Start Game
         </Button>
       </DialogContent>
     </Dialog>

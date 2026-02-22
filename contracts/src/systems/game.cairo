@@ -1,12 +1,11 @@
 #[starknet::interface]
 pub trait IGameSystem<T> {
-    /// Create a new game with bonus selection and optional cubes
+    /// Create a new game with bonus selection
     /// @param game_id: NFT token ID for this game
     /// @param selected_bonuses: Array of 3 bonus types [0-5] to use this run
     ///   - 0=None (invalid), 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
     ///   - Pass empty array for default selection [Combo, Score, Harvest]
-    /// @param cubes_amount: Cubes to bring into run (burned from wallet), 0 for none
-    fn create(ref self: T, game_id: u64, selected_bonuses: Span<u8>, cubes_amount: u16);
+    fn create(ref self: T, game_id: u64, selected_bonuses: Span<u8>);
     /// Surrender the current run (game over)
     fn surrender(ref self: T, game_id: u64);
     /// Get player name from token
@@ -43,11 +42,9 @@ mod game_system {
     use zkube::events::StartGame;
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::game_libs::{
-        GameLibsImpl, ICubeTokenDispatcherTrait, IGridSystemDispatcherTrait,
-        ILevelSystemDispatcherTrait,
+        GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
     };
     use zkube::helpers::game_over;
-    use zkube::helpers::packing::MetaDataPackingTrait;
     use zkube::helpers::random::RandomImpl;
     use zkube::models::game::{Game, GameAssert, GameSeed, GameTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
@@ -161,9 +158,7 @@ mod game_system {
 
     #[abi(embed_v0)]
     impl GameSystemImpl of super::IGameSystem<ContractState> {
-        fn create(
-            ref self: ContractState, game_id: u64, selected_bonuses: Span<u8>, cubes_amount: u16,
-        ) {
+        fn create(ref self: ContractState, game_id: u64, selected_bonuses: Span<u8>) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let token_address = self.token_address();
@@ -198,8 +193,6 @@ mod game_system {
             if !player_meta.exists() {
                 player_meta = PlayerMetaTrait::new(player);
             }
-            let meta_data = player_meta.get_meta_data();
-
             // Process bonus selection
             let mut run_data = game.get_run_data();
 
@@ -223,14 +216,6 @@ mod game_system {
                 // Validate no duplicates
                 assert!(b1 != b2 && b1 != b3 && b2 != b3, "Duplicate bonus selection");
 
-                // Validate Wave(4) and Supply(5) are unlocked
-                if b1 == 4 || b2 == 4 || b3 == 4 {
-                    assert!(meta_data.wave_unlocked, "Wave bonus not unlocked");
-                }
-                if b1 == 5 || b2 == 5 || b3 == 5 {
-                    assert!(meta_data.supply_unlocked, "Supply bonus not unlocked");
-                }
-
                 (b1, b2, b3)
             };
 
@@ -245,72 +230,6 @@ mod game_system {
 
             // Initialize GameLibs once for all dispatcher calls
             let libs = GameLibsImpl::new(world);
-
-            // Handle cube bridging if cubes_amount > 0
-            if cubes_amount > 0 {
-                // Check player has unlocked bridging
-                let max_allowed = player_meta.get_max_cubes_to_bring();
-                assert!(max_allowed > 0, "Bridging not unlocked - upgrade bridging rank first");
-                assert!(cubes_amount <= max_allowed, "Exceeds max cubes for your bridging rank");
-
-                // Burn cubes from ERC1155 wallet (will revert if insufficient)
-                libs.cube.burn(player, cubes_amount.into());
-
-                // Set cubes_brought in run_data
-                run_data.cubes_brought = cubes_amount;
-            }
-
-            // Apply starting bonuses ONLY for selected bonus types (capped at bag size)
-            // Combo = 1
-            if bonus_1 == 1 || bonus_2 == 1 || bonus_3 == 1 {
-                let bag_size = meta_data.get_bag_size(0);
-                let starting = meta_data.starting_combo;
-                run_data.combo_count = if starting > bag_size {
-                    bag_size
-                } else {
-                    starting
-                };
-            }
-            // Score = 2
-            if bonus_1 == 2 || bonus_2 == 2 || bonus_3 == 2 {
-                let bag_size = meta_data.get_bag_size(1);
-                let starting = meta_data.starting_score;
-                run_data.score_count = if starting > bag_size {
-                    bag_size
-                } else {
-                    starting
-                };
-            }
-            // Harvest = 3
-            if bonus_1 == 3 || bonus_2 == 3 || bonus_3 == 3 {
-                let bag_size = meta_data.get_bag_size(2);
-                let starting = meta_data.starting_harvest;
-                run_data.harvest_count = if starting > bag_size {
-                    bag_size
-                } else {
-                    starting
-                };
-            }
-            // Wave = 4
-            if bonus_1 == 4 || bonus_2 == 4 || bonus_3 == 4 {
-                let bag_size = meta_data.get_bag_size(3);
-                let starting = meta_data.starting_wave;
-                run_data.wave_count = if starting > bag_size {
-                    bag_size
-                } else {
-                    starting
-                };
-            }
-            // Supply = 5
-            if bonus_1 == 5 || bonus_2 == 5 || bonus_3 == 5 {
-                let bag_size = meta_data.get_bag_size(4);
-                let starting = meta_data.starting_supply;
-                run_data.supply_count = if starting > bag_size {
-                    bag_size
-                } else {
-                    starting
-                };
-            }
 
             game.set_run_data(run_data);
             world.write_model(@game);

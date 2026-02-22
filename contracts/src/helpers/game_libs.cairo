@@ -45,7 +45,9 @@ pub impl GameLibsImpl of GameLibsTrait {
     fn new(world: WorldStorage) -> GameLibs {
         let level_addr = world.dns_address(@"level_system").expect('LevelSystem not found in DNS');
         let grid_addr = world.dns_address(@"grid_system").expect('GridSystem not found in DNS');
-        let config_addr = world.dns_address(@"config_system").expect('ConfigSystem not found in DNS');
+        let config_addr = world
+            .dns_address(@"config_system")
+            .expect('ConfigSystem not found in DNS');
         let config = IConfigSystemDispatcher { contract_address: config_addr };
         let cube_addr = config.get_cube_token_address();
 

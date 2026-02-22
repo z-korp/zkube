@@ -365,7 +365,9 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     /// Roll a random count in [min, max] to determine how many constraints a level has.
     /// NoBonusUsed is boss-only — never generated on regular levels.
     fn get_constraint_count_range_from_budget(budget_min: u8, budget_max: u8) -> (u8, u8) {
-        let avg_budget: u8 = (((budget_min.into() + budget_max.into()) / 2_u16)).try_into().unwrap();
+        let avg_budget: u8 = (((budget_min.into() + budget_max.into()) / 2_u16))
+            .try_into()
+            .unwrap();
         if avg_budget <= 3 {
             (0, 0)
         } else if avg_budget <= 8 {
@@ -579,11 +581,21 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             let max_units: u16 = budget.into() * scale;
             let min_units: u16 = min_spend.into() * scale;
 
-            let count_min_budget: u8 = Self::ceil_div_u16_by_u8(min_units, cost.try_into().unwrap());
+            let count_min_budget: u8 = Self::ceil_div_u16_by_u8(
+                min_units, cost.try_into().unwrap(),
+            );
             let count_max_budget: u8 = (max_units / cost).try_into().unwrap();
 
-            let count_min: u8 = if count_min_budget < 1 { 1 } else { count_min_budget };
-            let count_max: u8 = if count_max_budget > 120 { 120 } else { count_max_budget };
+            let count_min: u8 = if count_min_budget < 1 {
+                1
+            } else {
+                count_min_budget
+            };
+            let count_max: u8 = if count_max_budget > 120 {
+                120
+            } else {
+                count_max_budget
+            };
 
             if count_min <= count_max {
                 candidates_count += (count_max - count_min + 1).into();
@@ -607,11 +619,21 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             let max_units: u16 = budget.into() * scale;
             let min_units: u16 = min_spend.into() * scale;
 
-            let count_min_budget: u8 = Self::ceil_div_u16_by_u8(min_units, cost.try_into().unwrap());
+            let count_min_budget: u8 = Self::ceil_div_u16_by_u8(
+                min_units, cost.try_into().unwrap(),
+            );
             let count_max_budget: u8 = (max_units / cost).try_into().unwrap();
 
-            let count_min: u8 = if count_min_budget < 1 { 1 } else { count_min_budget };
-            let count_max: u8 = if count_max_budget > 120 { 120 } else { count_max_budget };
+            let count_min: u8 = if count_min_budget < 1 {
+                1
+            } else {
+                count_min_budget
+            };
+            let count_max: u8 = if count_max_budget > 120 {
+                120
+            } else {
+                count_max_budget
+            };
 
             if count_min <= count_max {
                 let mut c = count_min;
