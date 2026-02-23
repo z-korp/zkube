@@ -3,7 +3,7 @@ import "../../grid.css";
 import { ComboMessages } from "@/enums/comboEnum";
 
 interface AnimatedTextProps {
-  textEnum: ComboMessages;
+  textEnum: string;
   pointsEarned?: number;
   cubesEarned?: number;
   reset: () => void;
@@ -15,7 +15,7 @@ const AnimatedText: React.FC<AnimatedTextProps> = ({
   cubesEarned,
   reset,
 }) => {
-  if (textEnum === ComboMessages.None) return null;
+  if (textEnum === ComboMessages.None || textEnum === "None") return null;
 
   return (
     <motion.div

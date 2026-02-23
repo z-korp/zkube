@@ -8,8 +8,8 @@ import {
   removeCompleteRows,
   isGridFull,
   removeBlocksSameWidth,
-  removeBlocksSameRow,
-  removeBlockId,
+  removeBlocksInRows,
+  getBlocksInRows,
   deepCompareBlocks,
   getBlocksSameRow,
   getBlocksSameWidth,
@@ -53,6 +53,7 @@ interface GridProps {
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
   currentLevel: number;
+  activeBonusLevel: number;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -75,6 +76,7 @@ const Grid: React.FC<GridProps> = ({
   isTxProcessing,
   setIsTxProcessing,
   currentLevel,
+  activeBonusLevel,
 }) => {
   const {
     setup: {
@@ -253,18 +255,26 @@ const Grid: React.FC<GridProps> = ({
     e.preventDefault();
     if (gameState !== GameState.WAITING) return;
 
-    setBlockBonus(block);
-    if (bonus === BonusType.Harvest) {
-      setBlocks(removeBlocksSameRow(block, blocks));
-      getBlocksSameRow(block.y, blocks).forEach((b) => {
-        if (gridPosition === null) return;
-        handleTriggerLocalExplosion(
-          gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
-          gridPosition.top + b.y * gridSize
-        );
-      });
+    // NON-GRID bonuses: Combo, Score, Supply — send tx directly, no block changes
+    if (bonus === BonusType.Combo) {
+      setIsTxProcessing(true);
+      setAnimateText(`+${activeBonusLevel + 1} combo`);
+      selectBlock(block);
+      return;
     } else if (bonus === BonusType.Score) {
-      setBlocks(removeBlocksSameWidth(block, blocks));
+      setIsTxProcessing(true);
+      setAnimatedPoints((activeBonusLevel + 1) * 10);
+      selectBlock(block);
+      return;
+    } else if (bonus === BonusType.Supply) {
+      setIsTxProcessing(true);
+      selectBlock(block);
+      return;
+    }
+
+    // GRID bonuses: Harvest, Wave — modify blocks, then gravity state machine
+    if (bonus === BonusType.Harvest) {
+      setBlockBonus(block);
       getBlocksSameWidth(block, blocks).forEach((b) => {
         if (gridPosition === null) return;
         handleTriggerLocalExplosion(
@@ -272,31 +282,27 @@ const Grid: React.FC<GridProps> = ({
           gridPosition.top + b.y * gridSize
         );
       });
-    } else if (bonus === BonusType.Combo) {
-      setBlocks(removeBlockId(block, blocks));
-      if (gridPosition === null) return;
-      handleTriggerLocalExplosion(
-        gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
-        gridPosition.top + block.y * gridSize
-      );
+      setBlocks(removeBlocksSameWidth(block, blocks));
     } else if (bonus === BonusType.Wave) {
-      if (gridPosition === null) return;
-      handleTriggerLocalExplosion(
-        gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
-        gridPosition.top + block.y * gridSize
-      );
-    } else if (bonus === BonusType.Supply) {
-      getBlocksSameRow(block.y, blocks).forEach((b) => {
+      setBlockBonus(block);
+      const rowCount = activeBonusLevel + 1;
+      const rows: number[] = [];
+      for (let i = 0; i < rowCount; i++) {
+        const r = block.y + i;
+        if (r < gridHeight) rows.push(r);
+      }
+      getBlocksInRows(rows, blocks).forEach((b) => {
         if (gridPosition === null) return;
         handleTriggerLocalExplosion(
           gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
           gridPosition.top + b.y * gridSize
         );
       });
+      setBlocks(removeBlocksInRows(rows, blocks));
     }
 
-    // if we have a bonus, we go in state gravity_bonus
-    if (bonus !== BonusType.None) {
+    // Grid bonuses enter gravity state machine
+    if (bonus === BonusType.Harvest || bonus === BonusType.Wave) {
       setIsTxProcessing(true);
       setIsMoving(true);
       setGameState(GameState.GRAVITY_BONUS);

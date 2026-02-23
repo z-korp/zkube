@@ -130,6 +130,22 @@ export const removeBlockId = (block: Block, blocks: Block[]): Block[] => {
   return blocks.filter((b) => b.id !== block.id);
 };
 
+export const removeBlocksInRows = (
+  rows: number[],
+  blocks: Block[]
+): Block[] => {
+  const rowSet = new Set(rows);
+  return blocks.filter((b) => !rowSet.has(b.y));
+};
+
+export const getBlocksInRows = (
+  rows: number[],
+  blocks: Block[]
+): Block[] => {
+  const rowSet = new Set(rows);
+  return blocks.filter((b) => rowSet.has(b.y));
+};
+
 export const deepCompareBlocks = (
   array1: { id: number; x: number; y: number; width: number }[],
   array2: { id: number; x: number; y: number; width: number }[]

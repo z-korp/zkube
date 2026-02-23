@@ -381,6 +381,12 @@ const PlayScreen: React.FC = () => {
     getBonusTooltip,
   ]);
 
+
+  const activeBonusLevel = useMemo(() => {
+    const slot = selectedBonusSlots.find((s) => s.type === activeBonus);
+    return slot?.level ?? 0;
+  }, [selectedBonusSlots, activeBonus]);
+
   useEffect(() => {
     setActiveBonus(BonusType.None);
     setBonusDescription("");
@@ -474,6 +480,7 @@ const PlayScreen: React.FC = () => {
               game={game}
               activeBonus={activeBonus}
               bonusDescription={bonusDescription}
+              activeBonusLevel={activeBonusLevel}
             />
           </div>
         )}
@@ -490,6 +497,7 @@ const PlayScreen: React.FC = () => {
               game={game}
               activeBonus={activeBonus}
               bonusDescription={bonusDescription}
+              activeBonusLevel={activeBonusLevel}
             />
           </div>
         )}

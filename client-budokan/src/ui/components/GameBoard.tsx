@@ -22,6 +22,7 @@ interface GameBoardProps {
   game: Game;
   activeBonus: BonusType;
   bonusDescription: string;
+  activeBonusLevel: number;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -34,6 +35,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   game,
   activeBonus,
   bonusDescription,
+  activeBonusLevel,
 }) => {
   const {
     setup: {
@@ -165,7 +167,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
             currentLevel={game.level}
-          />
+            activeBonusLevel={activeBonusLevel}          />
           <div className="mt-1">
             <NextLine
               nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
