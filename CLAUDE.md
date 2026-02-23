@@ -487,7 +487,7 @@ sozo migrate -P slot
 ## Documentation
 
 See `/docs/` for detailed documentation:
-- **GAME_DESIGN.md** - Complete game design (levels, economy, bonuses, quests, achievements)
+ **GAME_DESIGN.md** - Complete game design (skill system, draft, levels, economy, constraints, quests, achievements)
 - **CONFIGURABLE_SETTINGS.md** - GameSettings customization
 - **DEPLOYMENT_GUIDE.md** - Network deployment guide
 - **references/** - External reference material (game-components, death-mountain, dark-shuffle, architecture analysis)
