@@ -173,7 +173,12 @@ mod draft_system {
             libs.cube.burn(get_caller_address(), cost.into());
 
             let next_reroll = reroll_count + 1;
-            let reroll_seed = RandomImpl::from_vrf_enabled(game_seed.vrf_enabled).seed;
+            // Salt = poseidon(game_id, reroll_slot, next_reroll) for unique VRF per reroll.
+            let vrf_salt = core::poseidon::poseidon_hash_span(
+                array![game_id.into(), reroll_slot.into(), next_reroll.into()].span(),
+            );
+            let reroll_seed = RandomImpl::from_vrf_enabled(game_seed.vrf_enabled, vrf_salt)
+                .seed;
 
             let new_choice = if reroll_slot == 0 {
                 draft.reroll_1 = next_reroll;

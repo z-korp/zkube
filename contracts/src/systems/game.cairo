@@ -170,12 +170,13 @@ mod game_system {
             self.validate_start_conditions(game_id, @token_metadata, token_address);
 
             // Generate seed: use VRF if vrf_address is set, otherwise pseudo-random
+            // Salt = game_id for create (unique per game, matches client request_random)
             let vrf_addr = self.vrf_address.read();
             let vrf_enabled = !vrf_addr.is_zero();
             let random = if vrf_addr.is_zero() {
                 RandomImpl::new_pseudo_random()
             } else {
-                RandomImpl::new_vrf()
+                RandomImpl::new_vrf(game_id.into())
             };
             let timestamp = get_block_timestamp();
 

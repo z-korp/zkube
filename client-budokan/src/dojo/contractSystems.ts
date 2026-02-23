@@ -1,6 +1,6 @@
 import type { Config } from "../../dojo.config.ts";
 import type { Manifest } from "@/config/manifest.ts";
-import { Account, CairoOption, CairoOptionVariant, CallData } from "starknet";
+import { Account, CairoOption, CairoOptionVariant, CallData, hash } from "starknet";
 import { stringToFelt } from "@/cartridgeConnector.tsx";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
@@ -34,6 +34,7 @@ export interface Move extends Signer {
   row_index: number;
   start_index: number;
   final_index: number;
+  current_level: number; // Current level (for VRF salt on level transition)
 }
 
 export interface BonusTx extends Signer {
@@ -41,6 +42,7 @@ export interface BonusTx extends Signer {
   bonus: number;
   row_index: number;
   block_index: number;
+  current_level: number; // Current level (for VRF salt on level transition)
 }
 
 export interface PurchaseConsumable extends Signer {
@@ -73,6 +75,7 @@ export interface ClaimQuest extends Signer {
 export interface DraftReroll extends Signer {
   game_id: number;
   reroll_slot: number;
+  reroll_count: number; // Current reroll count for this slot (for VRF salt)
 }
 
 export interface DraftSelect extends Signer {
@@ -82,12 +85,14 @@ export interface DraftSelect extends Signer {
 
 export type IWorld = ReturnType<typeof setupWorld>;
 
-const buildVrfRequestCall = (callerAddress: string, sourceAddress: string) => ({
+// Build VRF request_random call using Source::Salt for deterministic, game-state-derived randomness.
+// Salt must match the contract-side consume_random(Source::Salt(salt)) call.
+const buildVrfRequestCall = (callerAddress: string, salt: bigint) => ({
   contractAddress: VRF_PROVIDER_ADDRESS,
   entrypoint: "request_random",
   calldata: CallData.compile({
     caller: callerAddress,
-    source: { type: 0, address: sourceAddress },
+    source: { type: 1, salt },
   }),
 });
 
@@ -176,7 +181,7 @@ export function setupWorld(config: Config) {
 
         // On Sepolia/Mainnet, include VRF request
         return await account.execute([
-          buildVrfRequestCall(contract.address, account.address),
+          buildVrfRequestCall(contract.address, BigInt(token_id)),
           {
             contractAddress: contract.address,
             entrypoint: "create",
@@ -210,6 +215,7 @@ export function setupWorld(config: Config) {
       row_index,
       start_index,
       final_index,
+      current_level,
     }: Move) => {
       try {
         if (isSlotMode) {
@@ -223,7 +229,7 @@ export function setupWorld(config: Config) {
         }
 
         return await account.execute([
-          buildVrfRequestCall(level_contract.address, account.address),
+          buildVrfRequestCall(level_contract.address, hash.computePoseidonHashOnElements([BigInt(game_id), BigInt(current_level + 1)])),
           {
             contractAddress: move_contract.address,
             entrypoint: "move",
@@ -242,6 +248,7 @@ export function setupWorld(config: Config) {
       bonus,
       row_index,
       block_index,
+      current_level,
     }: BonusTx) => {
       try {
         // Bonus enum serializes as just the variant index:
@@ -257,7 +264,7 @@ export function setupWorld(config: Config) {
         }
 
         return await account.execute([
-          buildVrfRequestCall(level_contract.address, account.address),
+          buildVrfRequestCall(level_contract.address, hash.computePoseidonHashOnElements([BigInt(game_id), BigInt(current_level + 1)])),
           {
             contractAddress: bonus_contract.address,
             entrypoint: "apply_bonus",
@@ -422,6 +429,7 @@ export function setupWorld(config: Config) {
       account,
       game_id,
       reroll_slot,
+      reroll_count,
     }: DraftReroll) => {
       try {
         if (isSlotMode) {
@@ -435,7 +443,7 @@ export function setupWorld(config: Config) {
         }
 
         return await account.execute([
-          buildVrfRequestCall(contract.address, account.address),
+          buildVrfRequestCall(contract.address, hash.computePoseidonHashOnElements([BigInt(game_id), BigInt(reroll_slot), BigInt(reroll_count + 1)])),
           {
             contractAddress: contract.address,
             entrypoint: "reroll",

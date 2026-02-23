@@ -85,6 +85,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           bonus: new Bonus(bonusType).into(),
           row_index: ROWS - rowIndex - 1,
           block_index: colIndex,
+          current_level: game.level,
         });
         playSfx("bonus-activate");
       } finally {
@@ -163,6 +164,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             setOptimisticMaxCombo={setOptimisticMaxCombo}
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
+            currentLevel={game.level}
           />
           <div className="mt-1">
             <NextLine

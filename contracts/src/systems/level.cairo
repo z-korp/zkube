@@ -181,7 +181,14 @@ mod level_system {
                 }
             } else {
                 // Reseed from VRF/pseudo-random for the next level generation.
-                let next_seed_random = RandomImpl::from_vrf_enabled(base_seed.vrf_enabled);
+                // Salt = poseidon(game_id, next_level) to ensure unique VRF per level transition.
+                let next_level = completed_level + 1;
+                let vrf_salt = core::poseidon::poseidon_hash_span(
+                    array![game_id.into(), next_level.into()].span(),
+                );
+                let next_seed_random = RandomImpl::from_vrf_enabled(
+                    base_seed.vrf_enabled, vrf_salt,
+                );
                 let next_seed = next_seed_random.seed;
 
                 let next_game_seed = GameSeed {

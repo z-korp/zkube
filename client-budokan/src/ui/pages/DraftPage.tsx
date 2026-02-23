@@ -197,6 +197,7 @@ const DraftPage: React.FC = () => {
         account,
         game_id: gameId,
         reroll_slot: slot,
+        reroll_count: rerollCounts[slot],
       });
     } catch (error) {
       console.error("Draft reroll failed:", error);
