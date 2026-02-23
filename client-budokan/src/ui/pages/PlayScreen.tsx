@@ -6,14 +6,15 @@ import { useGrid } from "@/hooks/useGrid";
 import { useGameLevel, type GameLevelData } from "@/hooks/useGameLevel";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import useViewport from "@/hooks/useViewport";
-import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useDojo } from "@/dojo/useDojo";
-import { getBonusInventoryCount } from "@/dojo/game/helpers/runDataPacking";
+import { isBonusSkill } from "@/dojo/game/helpers/runDataPacking";
 import {
   Bonus,
   BonusType,
   bonusTypeFromContractValue,
+  bonusTypeToContractValue,
 } from "@/dojo/game/types/bonus";
+import { getSkillName } from "@/dojo/game/types/skillData";
 import { useNavigationStore } from "@/stores/navigationStore";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import GameHud from "@/ui/components/hud/GameHud";
@@ -21,7 +22,6 @@ import GameActionBar from "@/ui/components/actionbar/GameActionBar";
 import GameBoard from "@/ui/components/GameBoard";
 import GameOverDialog from "@/ui/components/GameOverDialog";
 import VictoryDialog from "@/ui/components/VictoryDialog";
-import { PendingLevelUpDialog } from "@/ui/components/Shop";
 import Connect from "@/ui/components/Connect";
 import {
   Dialog,
@@ -52,7 +52,6 @@ const PlayScreen: React.FC = () => {
   const { setMusicContext, setMusicPlaylist, playSfx } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
 
-  const { playerMeta } = usePlayerMeta();
   const { game, seed } = useGame({
     gameId: gameId ?? 0,
     shouldLog: false,
@@ -63,8 +62,6 @@ const PlayScreen: React.FC = () => {
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
-  const [isPendingLevelUpOpen, setIsPendingLevelUpOpen] = useState(false);
-  const [openShopAfterLevelUp, setOpenShopAfterLevelUp] = useState(false);
   const [isGameLoading, setIsGameLoading] = useState(true);
   const [activeBonus, setActiveBonus] = useState<BonusType>(BonusType.None);
   const [bonusDescription, setBonusDescription] = useState("");
@@ -76,11 +73,6 @@ const PlayScreen: React.FC = () => {
     levelMoves: number;
     constraintProgress: number;
     bonusUsedThisLevel: boolean;
-    comboBonus: number;
-    scoreBonus: number;
-    harvest: number;
-    wave: number;
-    supply: number;
     totalCubes: number;
     totalScore: number;
     gameLevel: GameLevelData | null;
@@ -135,12 +127,6 @@ const PlayScreen: React.FC = () => {
   }, [account]);
 
   useEffect(() => {
-    if (game?.bossLevelUpPending && !isPendingLevelUpOpen) {
-      setIsPendingLevelUpOpen(true);
-    }
-  }, [game?.bossLevelUpPending, isPendingLevelUpOpen]);
-
-  useEffect(() => {
     if (prevGameOverRef.current !== undefined) {
       if (!prevGameOverRef.current && game?.over) {
         if (game.runCompleted) {
@@ -189,11 +175,6 @@ const PlayScreen: React.FC = () => {
       levelMoves: game.levelMoves,
       constraintProgress: game.constraintProgress,
       bonusUsedThisLevel: game.bonusUsedThisLevel,
-      comboBonus: game.comboBonus,
-      scoreBonus: game.scoreBonus,
-      harvest: game.harvest,
-      wave: game.wave,
-      supply: game.supply,
       totalCubes: game.totalCubes,
       totalScore: game.totalScore,
       gameLevel,
@@ -204,25 +185,12 @@ const PlayScreen: React.FC = () => {
     game?.levelMoves,
     game?.constraintProgress,
     game?.bonusUsedThisLevel,
-    game?.comboBonus,
-    game?.scoreBonus,
-    game?.harvest,
-    game?.wave,
-    game?.supply,
     game?.over,
     game?.totalCubes,
     game?.totalScore,
     game,
     playSfx,
   ]);
-
-  const handlePendingLevelUpClose = () => {
-    setIsPendingLevelUpOpen(false);
-    if (openShopAfterLevelUp) {
-      navNavigate("map");
-    }
-    setOpenShopAfterLevelUp(false);
-  };
 
   const handleSurrender = useCallback(async () => {
     if (!account || !game) return;
@@ -242,17 +210,6 @@ const PlayScreen: React.FC = () => {
   const targetScore =
     gameLevel?.pointsRequired ?? levelConfig?.pointsRequired ?? 0;
   const maxMoves = gameLevel?.maxMoves ?? levelConfig?.maxMoves ?? 0;
-
-  const bonusBagSizes = useMemo(() => {
-    const meta = playerMeta?.data;
-    return {
-      1: 1 + (meta?.bagComboLevel ?? 0),
-      2: 1 + (meta?.bagScoreLevel ?? 0),
-      3: 1 + (meta?.bagHarvestLevel ?? 0),
-      4: 1 + (meta?.bagWaveLevel ?? 0),
-      5: 1 + (meta?.bagSupplyLevel ?? 0),
-    };
-  }, [playerMeta?.data]);
 
   const isGridLoading =
     !!game && !game.isOver() && (!grid || grid.length === 0);
@@ -309,27 +266,11 @@ const PlayScreen: React.FC = () => {
     ],
   );
 
-  const bonusCounts = useMemo<Record<BonusType, number>>(
-    () => ({
-      [BonusType.None]: 0,
-      [BonusType.Combo]: game?.comboBonus ?? 0,
-      [BonusType.Score]: game?.scoreBonus ?? 0,
-      [BonusType.Harvest]: game?.harvest ?? 0,
-      [BonusType.Wave]: game?.wave ?? 0,
-      [BonusType.Supply]: game?.supply ?? 0,
-    }),
-    [
-      game?.comboBonus,
-      game?.scoreBonus,
-      game?.harvest,
-      game?.wave,
-      game?.supply,
-    ],
-  );
-
   const handleBonusSelect = useCallback(
     (type: BonusType) => {
-      const count = bonusCounts[type as keyof typeof bonusCounts] ?? 0;
+      const skillId = bonusTypeToContractValue(type);
+      const slot = game?.runData.slots.find((entry) => entry.skillId === skillId);
+      const count = slot?.charges ?? 0;
       if (count === 0) return;
       if (activeBonus === type) {
         playSfx("click");
@@ -340,43 +281,33 @@ const PlayScreen: React.FC = () => {
         playSfx("click");
         playSfx("equip");
         setActiveBonus(type);
-        setBonusDescription(getBonusDescription(type));
+        setBonusDescription(`${getSkillName(skillId)}: ${getBonusDescription(type)}`);
       }
     },
-    [activeBonus, bonusCounts, getBonusDescription, playSfx],
+    [activeBonus, game?.runData.slots, getBonusDescription, playSfx],
   );
 
   const selectedBonusSlots = useMemo(() => {
     if (!game) return [];
 
-    const slots = [
-      { slot: 0, value: game.selectedBonus1, level: game.bonus1Level },
-      { slot: 1, value: game.selectedBonus2, level: game.bonus2Level },
-      { slot: 2, value: game.selectedBonus3, level: game.bonus3Level },
-    ];
-
-    return slots.map((slot) => {
-      const type = bonusTypeFromContractValue(slot.value);
-      return {
-        slot: slot.slot,
-        type,
-        level: slot.level,
-        count: getBonusInventoryCount(game.runData, slot.value),
-        bagSize: bonusBagSizes[slot.value as keyof typeof bonusBagSizes] ?? 1,
-        icon: getBonusIcon(type),
-        tooltip: getBonusTooltip(type, slot.level),
-      };
-    });
+    return game.runData.slots
+      .map((slot, index) => ({ ...slot, index }))
+      .filter((slot) => isBonusSkill(slot.skillId) && slot.skillId > 0)
+      .map((slot) => {
+        const type = bonusTypeFromContractValue(slot.skillId);
+        return {
+          slot: slot.index,
+          type,
+          level: slot.level,
+          count: slot.charges,
+          bagSize: slot.charges,
+          icon: getBonusIcon(type),
+          tooltip: `${getSkillName(slot.skillId)} - ${getBonusTooltip(type, slot.level)}`,
+        };
+      });
   }, [
     game,
-    game?.runData,
-    game?.selectedBonus1,
-    game?.selectedBonus2,
-    game?.selectedBonus3,
-    game?.bonus1Level,
-    game?.bonus2Level,
-    game?.bonus3Level,
-    bonusBagSizes,
+    game?.runData.slots,
     getBonusIcon,
     getBonusTooltip,
   ]);
@@ -425,15 +356,6 @@ const PlayScreen: React.FC = () => {
             navNavigate("home");
           }}
           game={game}
-        />
-      )}
-
-      {game && (
-        <PendingLevelUpDialog
-          isOpen={isPendingLevelUpOpen}
-          onClose={handlePendingLevelUpClose}
-          gameId={game.id}
-          runData={game.runData}
         />
       )}
 

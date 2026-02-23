@@ -118,6 +118,12 @@ const HomePage: React.FC = () => {
               />
 
               <NavButton
+                label="SKILL TREE"
+                variant="green"
+                onClick={() => navigate("skilltree")}
+              />
+
+              <NavButton
                 label="MY GAMES"
                 variant="purple"
                 onClick={() => navigate("mygames")}

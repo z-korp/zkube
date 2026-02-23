@@ -6,13 +6,14 @@ pub mod models {
     pub mod draft;
     pub mod game;
     pub mod player;
+    pub mod skill_tree;
 }
 
 pub mod types {
     pub mod block;
     pub mod bonus;
     pub mod constraint;
-    pub mod consumable;
+
     pub mod difficulty;
     pub mod level;
     pub mod width;
@@ -86,6 +87,7 @@ pub mod helpers {
     pub mod random;
     pub mod renderer;
     pub mod scoring;
+    pub mod skill_effects;
     pub mod token;
 }
 
@@ -101,5 +103,7 @@ pub mod systems {
     pub mod moves;
     pub mod quest;
     pub mod renderer;
-    pub mod shop;
+
+    pub mod skill_effects;
+    pub mod skill_tree;
 }

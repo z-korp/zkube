@@ -29,6 +29,7 @@ mod bonus_system {
     };
     use zkube::helpers::{level_check, token};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
+    use zkube::models::skill_tree::PlayerSkillTree;
     use zkube::types::bonus::Bonus;
     use zkube::types::constraint::{ConstraintContext, LevelConstraint, LevelConstraintTrait};
 
@@ -54,6 +55,8 @@ mod bonus_system {
             );
 
             let game: Game = world.read_model(game_id);
+            let player = starknet::get_caller_address();
+            let skill_tree: PlayerSkillTree = world.read_model(player);
             assert_token_ownership(token_address, game_id);
             game.assert_not_over();
             game.assert_bonus_available(bonus);
@@ -69,7 +72,9 @@ mod bonus_system {
             let libs = GameLibsImpl::new(world);
 
             // Apply bonus via grid_system dispatcher (contains all bonus implementations)
-            let lines_cleared = libs.grid.apply_bonus(game_id, bonus, row_index, line_index);
+            let lines_cleared = libs
+                .grid
+                .apply_bonus(game_id, bonus, row_index, line_index, skill_tree.skill_data);
 
             // Re-read game and level after grid_system modified them
             let game: Game = world.read_model(game_id);
@@ -128,7 +133,7 @@ mod bonus_system {
             if is_complete {
                 // Level complete - call level_system via GameLibs
                 let completed_level = run_data.current_level;
-                libs.level.complete_level(game_id);
+                libs.level.complete_level(game_id, skill_tree.skill_data);
                 libs
                     .draft
                     .maybe_open_after_level(
@@ -144,7 +149,7 @@ mod bonus_system {
             world
                 .emit_event(
                     @UseBonus {
-                        player: starknet::get_caller_address(),
+                        player,
                         timestamp: get_block_timestamp(),
                         game_id,
                         bonus,

@@ -23,6 +23,7 @@ mod renderer_systems {
     use game_components_minigame::structs::GameDetail;
     use zkube::constants::DEFAULT_NS;
     use zkube::helpers::encoding::bytes_base64_encode;
+    use zkube::helpers::packing::RunDataHelpersTrait;
     use zkube::helpers::renderer as renderer_helper;
     use zkube::models::game::{Game, GameTrait};
 
@@ -149,9 +150,9 @@ mod renderer_systems {
                 run_data.level_moves.into(),
                 game.combo_counter.into(),
                 game.max_combo,
-                run_data.combo_count,
-                run_data.score_count,
-                run_data.harvest_count,
+                run_data.get_bonus_charges(1),
+                run_data.get_bonus_charges(2),
+                run_data.get_bonus_charges(3),
             )
         }
 
@@ -180,9 +181,9 @@ mod renderer_systems {
             let _score = format!("{}", run_data.total_score);
             let _combo = format!("{}", game.combo_counter);
             let _max_combo = format!("{}", game.max_combo);
-            let _combo_bonus = format!("{}", run_data.combo_count);
-            let _score_bonus = format!("{}", run_data.score_count);
-            let _harvest_bonus = format!("{}", run_data.harvest_count);
+            let _combo_bonus = format!("{}", run_data.get_bonus_charges(1));
+            let _score_bonus = format!("{}", run_data.get_bonus_charges(2));
+            let _harvest_bonus = format!("{}", run_data.get_bonus_charges(3));
             let _level = format!("{}", run_data.current_level);
 
             let mut elements = array![

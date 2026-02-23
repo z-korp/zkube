@@ -18,6 +18,7 @@ import MyGamesPage from "@/ui/pages/MyGamesPage";
 import LeaderboardPage from "@/ui/pages/LeaderboardPage";
 import TutorialPage from "@/ui/pages/TutorialPage";
 import DraftPage from "@/ui/pages/DraftPage";
+import SkillTreePage from "@/ui/pages/SkillTreePage";
 
 const pageComponents: Record<PageId, React.ReactNode> = {
   home: <HomePage />,
@@ -30,6 +31,7 @@ const pageComponents: Record<PageId, React.ReactNode> = {
   mygames: <MyGamesPage />,
   tutorial: <TutorialPage />,
   draft: <DraftPage />,
+  skilltree: <SkillTreePage />,
 };
 
 const CurrentPage: React.FC = () => {

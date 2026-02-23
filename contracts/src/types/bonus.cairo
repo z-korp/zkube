@@ -37,7 +37,7 @@ pub impl BonusImpl of BonusTrait {
     }
 
     /// Get the type code for this bonus (1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply).
-    /// This matches the encoding used in RunData.selected_bonus_*.
+    /// This matches the encoding used in RunData slot skill_id for bonus skills.
     #[inline(always)]
     fn to_type_code(self: Bonus) -> u8 {
         match self {
@@ -65,7 +65,6 @@ pub impl BonusImpl of BonusTrait {
 
     /// Get the bag index for this bonus type.
     /// Bag indices: 0=Combo, 1=Score, 2=Harvest, 3=Wave, 4=Supply.
-    /// This matches the order in MetaData.get_bag_size().
     #[inline(always)]
     fn bag_index(self: Bonus) -> u8 {
         match self {

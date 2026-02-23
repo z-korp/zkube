@@ -1,7 +1,7 @@
 use starknet::ContractAddress;
 use crate::types::bonus::Bonus;
 use crate::types::constraint::ConstraintType;
-use crate::types::consumable::ConsumableType;
+
 
 #[derive(Copy, Drop, Serde)]
 #[dojo::event(historical: true)]
@@ -94,41 +94,6 @@ pub struct ConstraintProgress {
     pub required: u8,
 }
 
-/// Emitted when a consumable is purchased from the in-game shop
-#[derive(Copy, Drop, Serde)]
-#[dojo::event(historical: true)]
-pub struct ConsumablePurchased {
-    #[key]
-    pub game_id: u64,
-    #[key]
-    pub player: ContractAddress,
-    pub consumable: ConsumableType,
-    pub cost: u16,
-    pub cubes_remaining: u16,
-}
-
-/// Emitted when a bonus is leveled up after boss clear
-#[derive(Copy, Drop, Serde)]
-#[dojo::event(historical: true)]
-pub struct BonusLevelUp {
-    #[key]
-    pub game_id: u64,
-    #[key]
-    pub player: ContractAddress,
-    pub bonus_slot: u8, // 0, 1, or 2 (which of the 3 selected)
-    pub bonus_type: u8, // The bonus type (1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply)
-    pub new_level: u8 // New level (1, 2, or 3)
-}
-
-/// Emitted when a bonus type is unlocked in the permanent shop
-#[derive(Copy, Drop, Serde)]
-#[dojo::event(historical: true)]
-pub struct BonusUnlocked {
-    #[key]
-    pub player: ContractAddress,
-    pub bonus_type: u8, // 4=Wave, 5=Supply
-    pub cost: u16 // CUBE spent
-}
 
 #[derive(Copy, Drop, Serde)]
 #[dojo::event(historical: true)]
@@ -141,9 +106,9 @@ pub struct DraftOpened {
     pub event_type: u8,
     pub trigger_level: u8,
     pub zone: u8,
-    pub choice_1: u16,
-    pub choice_2: u16,
-    pub choice_3: u16,
+    pub choice_1: u8,
+    pub choice_2: u8,
+    pub choice_3: u8,
 }
 
 #[derive(Copy, Drop, Serde)]
@@ -156,7 +121,7 @@ pub struct DraftRerolled {
     pub event_slot: u8,
     pub reroll_slot: u8,
     pub reroll_cost: u16,
-    pub new_choice: u16,
+    pub new_choice: u8,
 }
 
 #[derive(Copy, Drop, Serde)]
@@ -168,5 +133,5 @@ pub struct DraftSelected {
     pub player: ContractAddress,
     pub event_slot: u8,
     pub selected_slot: u8,
-    pub selected_choice: u16,
+    pub selected_choice: u8,
 }

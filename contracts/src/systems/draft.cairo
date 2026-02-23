@@ -19,11 +19,12 @@ mod draft_system {
     use zkube::constants::DEFAULT_NS;
     use zkube::events::{DraftOpened, DraftRerolled, DraftSelected};
     use zkube::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait};
-    use zkube::helpers::packing::RunData;
+    use zkube::helpers::packing::{RunData, RunDataHelpersTrait, SkillTreeDataPackingTrait};
     use zkube::helpers::random::RandomImpl;
     use zkube::helpers::token;
     use zkube::models::draft::{DraftState, DraftStateTrait};
     use zkube::models::game::{Game, GameSeed, GameTrait};
+    use zkube::models::skill_tree::{PlayerSkillTree, PlayerSkillTreeTrait};
 
     const EVENT_TYPE_POST_LEVEL_1: u8 = 1;
     const EVENT_TYPE_POST_BOSS: u8 = 2;
@@ -87,25 +88,8 @@ mod draft_system {
                 return;
             }
 
-            let boss_clears: u8 = if event_type == EVENT_TYPE_POST_BOSS {
-                completed_level / 10
-            } else {
-                (completed_level - 1) / 10
-            };
-
-            let choice_1 = InternalImpl::choose_bonus_option(
-                game_seed.seed,
-                event_slot,
-                0,
-                run_data.selected_bonus_1,
-                run_data.selected_bonus_2,
-                run_data.selected_bonus_3,
-            );
-            let choice_2 = InternalImpl::choose_upgrade_option(
-                game_seed.seed, event_slot, 0, boss_clears,
-            );
-            let choice_3 = InternalImpl::choose_world_option(
-                game_seed.seed, event_slot, 0, boss_clears,
+            let (choice_1, choice_2, choice_3) = InternalImpl::draw_three_skills(
+                game_seed.seed, event_slot, 0, @run_data,
             );
 
             draft.active = true;
@@ -116,9 +100,7 @@ mod draft_system {
             draft.choice_1 = choice_1;
             draft.choice_2 = choice_2;
             draft.choice_3 = choice_3;
-            draft.reroll_1 = 0;
-            draft.reroll_2 = 0;
-            draft.reroll_3 = 0;
+            draft.reroll_count = 0;
             draft.spent_cubes = 0;
             draft.selected_slot = 0;
             draft.selected_choice = 0;
@@ -147,70 +129,57 @@ mod draft_system {
             assert_token_ownership(token_address, game_id);
 
             let game: Game = world.read_model(game_id);
+            let run_data = game.get_run_data();
             let game_seed: GameSeed = world.read_model(game_id);
             let mut draft: DraftState = world.read_model(game_id);
             assert!(draft.game_id == game_id, "Draft state missing");
             assert!(draft.active, "No active draft");
             assert!(reroll_slot < 3, "Invalid reroll slot");
+            assert!(InternalImpl::pool_size(@run_data) >= 3, "Draft pool too small");
 
-            let run_data = game.get_run_data();
-            let boss_clears: u8 = if draft.event_type == EVENT_TYPE_POST_BOSS {
-                draft.trigger_level / 10
-            } else {
-                (draft.trigger_level - 1) / 10
-            };
-
-            let reroll_count: u8 = if reroll_slot == 0 {
-                draft.reroll_1
-            } else if reroll_slot == 1 {
-                draft.reroll_2
-            } else {
-                draft.reroll_3
-            };
-
-            let cost = InternalImpl::reroll_cost(reroll_count);
+            let cost = InternalImpl::reroll_cost(draft.reroll_count);
             let libs = GameLibsImpl::new(world);
             libs.cube.burn(get_caller_address(), cost.into());
 
-            let next_reroll = reroll_count + 1;
+            let next_reroll = draft.reroll_count + 1;
             // Salt = poseidon(game_id, reroll_slot, next_reroll) for unique VRF per reroll.
             let vrf_salt = core::poseidon::poseidon_hash_span(
                 array![game_id.into(), reroll_slot.into(), next_reroll.into()].span(),
             );
-            let reroll_seed = RandomImpl::from_vrf_enabled(game_seed.vrf_enabled, vrf_salt)
-                .seed;
+            let reroll_seed = RandomImpl::from_vrf_enabled(game_seed.vrf_enabled, vrf_salt).seed;
 
-            let new_choice = if reroll_slot == 0 {
-                draft.reroll_1 = next_reroll;
-                let c = InternalImpl::choose_bonus_option(
-                    reroll_seed,
-                    draft.event_slot,
-                    next_reroll,
-                    run_data.selected_bonus_1,
-                    run_data.selected_bonus_2,
-                    run_data.selected_bonus_3,
-                );
-                draft.choice_1 = c;
-                c
+            let mut new_choice = InternalImpl::draw_card_from_pool(
+                reroll_seed, draft.event_slot, reroll_slot, next_reroll, @run_data,
+            );
+
+            if reroll_slot == 0 {
+                loop {
+                    if new_choice != draft.choice_2 && new_choice != draft.choice_3 {
+                        break;
+                    }
+                    new_choice = InternalImpl::next_skill_in_pool(new_choice, @run_data);
+                };
+                draft.choice_1 = new_choice;
             } else if reroll_slot == 1 {
-                draft.reroll_2 = next_reroll;
-                let c = InternalImpl::choose_upgrade_option(
-                    reroll_seed, draft.event_slot, next_reroll, boss_clears,
-                );
-                draft.choice_2 = c;
-                c
+                loop {
+                    if new_choice != draft.choice_1 && new_choice != draft.choice_3 {
+                        break;
+                    }
+                    new_choice = InternalImpl::next_skill_in_pool(new_choice, @run_data);
+                };
+                draft.choice_2 = new_choice;
             } else {
-                draft.reroll_3 = next_reroll;
-                let c = InternalImpl::choose_world_option(
-                    reroll_seed, draft.event_slot, next_reroll, boss_clears,
-                );
-                draft.choice_3 = c;
-                c
-            };
+                loop {
+                    if new_choice != draft.choice_1 && new_choice != draft.choice_2 {
+                        break;
+                    }
+                    new_choice = InternalImpl::next_skill_in_pool(new_choice, @run_data);
+                };
+                draft.choice_3 = new_choice;
+            }
 
-            let next_spent: u32 = draft.spent_cubes.into() + cost.into();
-            assert!(next_spent <= 65535, "Draft spent overflow");
-            draft.spent_cubes = next_spent.try_into().unwrap();
+            draft.reroll_count = next_reroll;
+            draft.spent_cubes = InternalImpl::sat_add_u16(draft.spent_cubes, cost, 65535);
             world.write_model(@draft);
 
             world
@@ -231,23 +200,44 @@ mod draft_system {
             let token_address = token::get_token_address(world);
             assert_token_ownership(token_address, game_id);
 
+            let player = get_caller_address();
             let mut draft: DraftState = world.read_model(game_id);
             assert!(draft.game_id == game_id, "Draft state missing");
             assert!(draft.active, "No active draft");
             assert!(selected_slot < 3, "Invalid selected slot");
 
-            let selected_choice = if selected_slot == 0 {
+            let selected_choice: u8 = if selected_slot == 0 {
                 draft.choice_1
             } else if selected_slot == 1 {
                 draft.choice_2
             } else {
                 draft.choice_3
             };
+            assert!(selected_choice >= 1 && selected_choice <= 15, "Invalid selected choice");
+
+            let mut skill_tree: PlayerSkillTree = world.read_model(player);
+            if !skill_tree.exists() {
+                skill_tree = PlayerSkillTreeTrait::new(player);
+            }
+            let skill_data = skill_tree.get_skill_tree_data();
+            let tree_skill_id: u8 = selected_choice - 1;
+            let tree_skill = skill_data.get_skill(tree_skill_id);
 
             let mut game: Game = world.read_model(game_id);
-            InternalImpl::apply_selected_choice(
-                ref game, selected_slot, selected_choice, draft.event_slot,
-            );
+            let mut run_data = game.get_run_data();
+            let existing_slot = run_data.find_skill_slot(selected_choice);
+
+            if existing_slot != 255 {
+                let current_level = run_data.get_slot_level(existing_slot);
+                run_data.set_slot_level(existing_slot, InternalImpl::sat_add_u8(current_level, 1, 10));
+            } else if run_data.active_slot_count < 5 {
+                let added_slot = run_data.add_skill(selected_choice, tree_skill.level);
+                assert!(added_slot != 255, "Failed to add skill to run loadout");
+            } else {
+                assert!(false, "Upgrade draft offered a non-active skill");
+            }
+
+            game.set_run_data(run_data);
             world.write_model(@game);
 
             let event_slot = draft.event_slot;
@@ -263,7 +253,7 @@ mod draft_system {
                 .emit_event(
                     @DraftSelected {
                         game_id,
-                        player: get_caller_address(),
+                        player,
                         event_slot,
                         selected_slot,
                         selected_choice,
@@ -274,130 +264,6 @@ mod draft_system {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        fn apply_selected_choice(
-            ref game: Game, selected_slot: u8, selected_choice: u16, event_slot: u8,
-        ) {
-            let mut run_data = game.get_run_data();
-
-            if selected_slot == 0 {
-                Self::apply_bonus_choice(ref run_data, selected_choice, event_slot);
-            } else if selected_slot == 1 {
-                Self::apply_upgrade_choice(ref run_data, selected_choice, event_slot);
-            } else {
-                Self::apply_world_choice(ref run_data, selected_choice, event_slot);
-            }
-
-            game.set_run_data(run_data);
-        }
-
-        fn apply_bonus_choice(ref run_data: RunData, selected_choice: u16, event_slot: u8) {
-            if selected_choice < 101 || selected_choice > 105 {
-                return;
-            }
-
-            let bonus_type: u8 = (selected_choice - 100).try_into().unwrap();
-
-            if run_data.selected_bonus_1 == 0 {
-                run_data.selected_bonus_1 = bonus_type;
-                run_data.bonus_1_level = 0;
-                return;
-            }
-            if run_data.selected_bonus_2 == 0 {
-                run_data.selected_bonus_2 = bonus_type;
-                run_data.bonus_2_level = 0;
-                return;
-            }
-            if run_data.selected_bonus_3 == 0 {
-                run_data.selected_bonus_3 = bonus_type;
-                run_data.bonus_3_level = 0;
-                return;
-            }
-
-            let replace_slot = event_slot % 3;
-            if replace_slot == 0 {
-                Self::clear_bonus_inventory(ref run_data, run_data.selected_bonus_1);
-                run_data.selected_bonus_1 = bonus_type;
-                run_data.bonus_1_level = 0;
-            } else if replace_slot == 1 {
-                Self::clear_bonus_inventory(ref run_data, run_data.selected_bonus_2);
-                run_data.selected_bonus_2 = bonus_type;
-                run_data.bonus_2_level = 0;
-            } else {
-                Self::clear_bonus_inventory(ref run_data, run_data.selected_bonus_3);
-                run_data.selected_bonus_3 = bonus_type;
-                run_data.bonus_3_level = 0;
-            }
-        }
-
-        fn apply_upgrade_choice(ref run_data: RunData, selected_choice: u16, event_slot: u8) {
-            if selected_choice < 201 || selected_choice > 204 {
-                return;
-            }
-
-            let tier: u8 = (selected_choice - 200).try_into().unwrap();
-            let slot_a = event_slot % 3;
-            let slot_b = (slot_a + 1) % 3;
-
-            if tier == 1 {
-                Self::level_up_slot(ref run_data, slot_a, 1);
-            } else if tier == 2 {
-                Self::level_up_slot(ref run_data, slot_a, 1);
-                Self::level_up_slot(ref run_data, slot_b, 1);
-            } else if tier == 3 {
-                Self::level_up_slot(ref run_data, slot_a, 2);
-            } else {
-                Self::level_up_slot(ref run_data, slot_a, 2);
-                Self::level_up_slot(ref run_data, slot_b, 1);
-            }
-        }
-
-        fn apply_world_choice(ref run_data: RunData, selected_choice: u16, event_slot: u8) {
-            if selected_choice < 301 || selected_choice > 307 {
-                return;
-            }
-
-            let world_pick: u8 = (selected_choice - 300).try_into().unwrap();
-            if world_pick == 1 {
-                run_data.free_moves = Self::sat_add_u8(run_data.free_moves, 1, 7);
-            } else if world_pick == 2 {
-                run_data.total_cubes = Self::sat_add_u16(run_data.total_cubes, 5, 65535);
-            } else if world_pick == 3 {
-                run_data.free_moves = Self::sat_add_u8(run_data.free_moves, 2, 7);
-            } else if world_pick == 4 {
-                Self::level_up_slot(ref run_data, event_slot % 3, 1);
-            } else if world_pick == 5 {
-                run_data.combo_count = Self::sat_add_u8(run_data.combo_count, 1, 255);
-            } else if world_pick == 6 {
-                run_data.score_count = Self::sat_add_u8(run_data.score_count, 1, 255);
-            } else {
-                run_data.harvest_count = Self::sat_add_u8(run_data.harvest_count, 1, 255);
-            }
-        }
-
-        fn clear_bonus_inventory(ref run_data: RunData, bonus_type: u8) {
-            if bonus_type == 1 {
-                run_data.combo_count = 0;
-            } else if bonus_type == 2 {
-                run_data.score_count = 0;
-            } else if bonus_type == 3 {
-                run_data.harvest_count = 0;
-            } else if bonus_type == 4 {
-                run_data.wave_count = 0;
-            } else if bonus_type == 5 {
-                run_data.supply_count = 0;
-            }
-        }
-
-        fn level_up_slot(ref run_data: RunData, slot: u8, amount: u8) {
-            if slot == 0 {
-                run_data.bonus_1_level = Self::sat_add_u8(run_data.bonus_1_level, amount, 2);
-            } else if slot == 1 {
-                run_data.bonus_2_level = Self::sat_add_u8(run_data.bonus_2_level, amount, 2);
-            } else {
-                run_data.bonus_3_level = Self::sat_add_u8(run_data.bonus_3_level, amount, 2);
-            }
-        }
-
         fn sat_add_u8(value: u8, delta: u8, max: u8) -> u8 {
             let sum: u16 = value.into() + delta.into();
             if sum > max.into() {
@@ -434,150 +300,143 @@ mod draft_system {
             start + 1 + offset
         }
 
-        fn choice_hash(seed: felt252, event_slot: u8, slot: u8, reroll_count: u8) -> felt252 {
+        fn choice_hash(seed: felt252, event_slot: u8, card_index: u8, reroll_count: u8) -> felt252 {
             let state: HashState = PoseidonTrait::new();
             let state = state.update(seed);
-            let state = state.update('DRAFT_CHOICE');
+            let state = state.update('DRAFT_SKILL');
             let event_slot_felt: felt252 = event_slot.into();
-            let slot_felt: felt252 = slot.into();
+            let card_index_felt: felt252 = card_index.into();
             let reroll_count_felt: felt252 = reroll_count.into();
             let state = state.update(event_slot_felt);
-            let state = state.update(slot_felt);
+            let state = state.update(card_index_felt);
             let state = state.update(reroll_count_felt);
             state.finalize()
         }
 
-        fn choose_bonus_option(
-            seed: felt252,
-            event_slot: u8,
-            reroll_count: u8,
-            selected_bonus_1: u8,
-            selected_bonus_2: u8,
-            selected_bonus_3: u8,
-        ) -> u16 {
-            let h = Self::choice_hash(seed, event_slot, 0, reroll_count);
-            let h_u256: u256 = h.into();
-            let start_u256: u256 = (h_u256 % 5_u256) + 1_u256;
-            let mut candidate: u8 = start_u256.try_into().unwrap();
-            let has_empty = selected_bonus_1 == 0 || selected_bonus_2 == 0 || selected_bonus_3 == 0;
-
-            let mut i: u8 = 0;
+        fn active_skill_count(run_data: @RunData) -> u8 {
+            let mut count: u8 = 0;
+            let mut slot: u8 = 0;
             loop {
-                if i >= 5 {
+                if slot >= 5 {
                     break;
                 }
-
-                if has_empty {
-                    return (100_u16 + candidate.into());
+                if run_data.get_slot_skill(slot) != 0 {
+                    count += 1;
                 }
-
-                if candidate != selected_bonus_1
-                    && candidate != selected_bonus_2
-                    && candidate != selected_bonus_3 {
-                    return (100_u16 + candidate.into());
-                }
-
-                candidate = if candidate == 5 {
-                    1
-                } else {
-                    candidate + 1
-                };
-                i += 1;
-            }
-
-            101
+                slot += 1;
+            };
+            count
         }
 
-        fn choose_upgrade_option(
-            seed: felt252, event_slot: u8, reroll_count: u8, boss_clears: u8,
-        ) -> u16 {
-            let h = Self::choice_hash(seed, event_slot, 1, reroll_count);
-            let h_u256: u256 = h.into();
-            let start_u256: u256 = (h_u256 % 4_u256) + 1_u256;
-            let mut candidate: u8 = start_u256.try_into().unwrap();
-
-            let mut i: u8 = 0;
+        fn active_skill_at(run_data: @RunData, index: u8) -> u8 {
+            let mut seen: u8 = 0;
+            let mut slot: u8 = 0;
             loop {
-                if i >= 4 {
+                if slot >= 5 {
                     break;
                 }
-
-                let allowed = if candidate == 1 {
-                    true
-                } else if candidate == 2 {
-                    boss_clears >= 1
-                } else if candidate == 3 {
-                    boss_clears >= 2
-                } else {
-                    boss_clears >= 3
-                };
-
-                if allowed {
-                    return (200_u16 + candidate.into());
+                let skill = run_data.get_slot_skill(slot);
+                if skill != 0 {
+                    if seen == index {
+                        return skill;
+                    }
+                    seen += 1;
                 }
-
-                candidate = if candidate == 4 {
-                    1
-                } else {
-                    candidate + 1
-                };
-                i += 1;
-            }
-
-            201
+                slot += 1;
+            };
+            assert!(false, "Active skill index out of range");
+            0
         }
 
-        fn choose_world_option(
-            seed: felt252, event_slot: u8, reroll_count: u8, boss_clears: u8,
-        ) -> u16 {
-            let h = Self::choice_hash(seed, event_slot, 2, reroll_count);
+        fn pool_size(run_data: @RunData) -> u8 {
+            if (*run_data.active_slot_count) < 5 {
+                15
+            } else {
+                Self::active_skill_count(run_data)
+            }
+        }
+
+        fn draw_card_from_pool(
+            seed: felt252, event_slot: u8, card_index: u8, reroll_count: u8, run_data: @RunData,
+        ) -> u8 {
+            let h = Self::choice_hash(seed, event_slot, card_index, reroll_count);
             let h_u256: u256 = h.into();
-            let start_u256: u256 = (h_u256 % 7_u256) + 1_u256;
-            let mut candidate: u8 = start_u256.try_into().unwrap();
 
-            let mut i: u8 = 0;
-            loop {
-                if i >= 7 {
-                    break;
-                }
+            if (*run_data.active_slot_count) < 5 {
+                let candidate_u256: u256 = (h_u256 % 15_u256) + 1_u256;
+                candidate_u256.try_into().unwrap()
+            } else {
+                let count = Self::active_skill_count(run_data);
+                assert!(count > 0, "No active skills available for draft");
+                let idx_u256: u256 = h_u256 % count.into();
+                let idx: u8 = idx_u256.try_into().unwrap();
+                Self::active_skill_at(run_data, idx)
+            }
+        }
 
-                let allowed = if candidate <= 3 {
-                    true
-                } else if candidate == 4 {
-                    boss_clears >= 1
-                } else if candidate == 5 {
-                    boss_clears >= 2
-                } else if candidate == 6 {
-                    boss_clears >= 3
-                } else {
-                    boss_clears >= 2
-                };
-
-                if allowed {
-                    return (300_u16 + candidate.into());
-                }
-
-                candidate = if candidate == 7 {
+        fn next_skill_in_pool(current_skill: u8, run_data: @RunData) -> u8 {
+            if (*run_data.active_slot_count) < 5 {
+                if current_skill >= 15 {
                     1
                 } else {
-                    candidate + 1
-                };
-                i += 1;
-            }
+                    current_skill + 1
+                }
+            } else {
+                let count = Self::active_skill_count(run_data);
+                assert!(count > 0, "No active skills available for draft");
 
-            301
+                let mut idx: u8 = 0;
+                loop {
+                    if idx >= count {
+                        break;
+                    }
+                    if Self::active_skill_at(run_data, idx) == current_skill {
+                        let next_idx = if idx + 1 >= count { 0 } else { idx + 1 };
+                        return Self::active_skill_at(run_data, next_idx);
+                    }
+                    idx += 1;
+                };
+
+                Self::active_skill_at(run_data, 0)
+            }
+        }
+
+        fn draw_three_skills(
+            seed: felt252, event_slot: u8, reroll_count: u8, run_data: @RunData,
+        ) -> (u8, u8, u8) {
+            assert!(Self::pool_size(run_data) >= 3, "Draft pool too small");
+
+            let choice_1 = Self::draw_card_from_pool(seed, event_slot, 0, reroll_count, run_data);
+
+            let mut choice_2 = Self::draw_card_from_pool(seed, event_slot, 1, reroll_count, run_data);
+            loop {
+                if choice_2 != choice_1 {
+                    break;
+                }
+                choice_2 = Self::next_skill_in_pool(choice_2, run_data);
+            };
+
+            let mut choice_3 = Self::draw_card_from_pool(seed, event_slot, 2, reroll_count, run_data);
+            loop {
+                if choice_3 != choice_1 && choice_3 != choice_2 {
+                    break;
+                }
+                choice_3 = Self::next_skill_in_pool(choice_3, run_data);
+            };
+
+            (choice_1, choice_2, choice_3)
         }
 
         fn reroll_cost(reroll_count: u8) -> u16 {
             let mut cost: u16 = 5;
-            let mut i = 0;
+            let mut i: u8 = 0;
             loop {
                 if i >= reroll_count {
                     break;
                 }
-                cost = ((cost * 3) + 1) / 2;
+                cost = cost * 3;
                 i += 1;
-            }
+            };
             cost
         }
     }

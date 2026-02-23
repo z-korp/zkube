@@ -20,26 +20,13 @@ export interface DraftStateData {
   choice1: number;
   choice2: number;
   choice3: number;
-  reroll1: number;
-  reroll2: number;
-  reroll3: number;
+  rerollCount: number;
   spentCubes: number;
   completedMask: number;
   selectedPicks: bigint;
   selectedSlot: number;
   selectedChoice: number;
 }
-
-export const getDraftPickForSlot = (selectedPicks: bigint, slot: number): number => {
-  if (slot < 0 || slot >= 10) return 0;
-  const shift = BigInt(slot * 16);
-  return Number((selectedPicks >> shift) & 0xffffn);
-};
-
-export const isDraftSlotCompleted = (completedMask: number, slot: number): boolean => {
-  if (slot < 0 || slot >= 16) return false;
-  return (completedMask & (1 << slot)) !== 0;
-};
 
 export const useDraft = ({
   gameId,
@@ -74,9 +61,7 @@ export const useDraft = ({
       choice1: component.choice_1,
       choice2: component.choice_2,
       choice3: component.choice_3,
-      reroll1: component.reroll_1,
-      reroll2: component.reroll_2,
-      reroll3: component.reroll_3,
+      rerollCount: component.reroll_count,
       spentCubes: component.spent_cubes,
       completedMask: component.completed_mask,
       selectedPicks: BigInt(component.selected_picks ?? 0),

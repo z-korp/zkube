@@ -11,7 +11,8 @@ export type PageId =
   | "settings"
   | "mygames"
   | "tutorial"
-  | "draft";
+  | "draft"
+  | "skilltree";
 
 export interface PendingLevelCompletion {
   level: number;
@@ -56,6 +57,8 @@ const getBackTarget = (page: PageId): PageId => {
     case "draft":
       return "map";
     case "map":
+      return "home";
+    case "skilltree":
       return "home";
     default:
       return "home";

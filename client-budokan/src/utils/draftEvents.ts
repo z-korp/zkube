@@ -1,10 +1,7 @@
 import { hash } from "starknet";
 import type { PendingDraftEvent } from "@/stores/navigationStore";
-import {
-  getDraftPickForSlot,
-  isDraftSlotCompleted,
-  type DraftStateData,
-} from "@/hooks/useDraft";
+import type { DraftStateData } from "@/hooks/useDraft";
+import { getSkillById } from "@/dojo/game/types/skillData";
 
 const LEVELS_PER_ZONE = 10;
 const MAX_LEVEL = 50;
@@ -129,63 +126,27 @@ export interface StoredDraftPick {
   pool: string;
 }
 
-export const decodeDraftChoice = (choiceCode: number): StoredDraftPick | null => {
-  if (choiceCode >= 101 && choiceCode <= 105) {
-    const bonusCode = choiceCode - 100;
-    const bonusName =
-      bonusCode === 1
-        ? "Combo"
-        : bonusCode === 2
-          ? "Score"
-          : bonusCode === 3
-            ? "Harvest"
-            : bonusCode === 4
-              ? "Wave"
-              : "Supply";
-    return {
-      title: `Bonus Draft: ${bonusName}`,
-      description: `Swap or add ${bonusName} in your active loadout.`,
-      kind: "new_bonus",
-      pool: "bonus",
-    };
-  }
+const getDraftPickForSlot = (selectedPicks: bigint, slot: number): number => {
+  if (slot < 0 || slot >= 10) return 0;
+  const shift = BigInt(slot * 16);
+  return Number((selectedPicks >> shift) & 0xffffn);
+};
 
-  if (choiceCode >= 201 && choiceCode <= 204) {
-    const title =
-      choiceCode === 201
-        ? "Upgrade Active Bonus"
-        : choiceCode === 202
-          ? "Focus Upgrade"
-          : choiceCode === 203
-            ? "Specialization Choice"
-            : "Advanced Specialization";
-    return {
-      title,
-      description: "Boost one or more equipped bonus levels.",
-      kind: "upgrade_bonus",
-      pool: "upgrade",
-    };
-  }
+const isDraftSlotCompleted = (completedMask: number, slot: number): boolean => {
+  if (slot < 0 || slot >= 16) return false;
+  return (completedMask & (1 << slot)) !== 0;
+};
 
-  if (choiceCode >= 301 && choiceCode <= 307) {
-    const worldNames: Record<number, string> = {
-      301: "Zone Tempo",
-      302: "Zone Bounty",
-      303: "Double Gain Contract",
-      304: "Tight Moves Contract",
-      305: "Relic: First Strike",
-      306: "Relic: Boss Vigor",
-      307: "Relic: Constraint Fuel",
-    };
-    return {
-      title: worldNames[choiceCode] ?? "World Draft",
-      description: "Apply a world modifier effect to your run.",
-      kind: choiceCode <= 304 ? "zone_modifier" : "relic",
-      pool: "world",
-    };
-  }
+const toStoredDraftPick = (skillId: number): StoredDraftPick | null => {
+  const skill = getSkillById(skillId);
+  if (!skill) return null;
 
-  return null;
+  return {
+    title: `Skill Draft: ${skill.name}`,
+    description: skill.description,
+    kind: skill.category === "bonus" ? "new_bonus" : "zone_modifier",
+    pool: skill.category === "bonus" ? "bonus" : "world",
+  };
 };
 
 export const isDraftEventCompleted = (
@@ -208,7 +169,7 @@ export const getStoredDraftPick = (
   }
 
   const code = getDraftPickForSlot(draftState.selectedPicks, slot);
-  return decodeDraftChoice(code);
+  return toStoredDraftPick(code);
 };
 
 export const getDraftEventForZoneNode = (

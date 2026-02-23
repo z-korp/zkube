@@ -1,6 +1,10 @@
 import type { ComponentValue } from "@dojoengine/recs";
 import { Packer } from "../helpers/packer";
-import { unpackRunData, type RunData } from "../helpers/runDataPacking";
+import {
+  unpackRunData,
+  type RunData,
+  type SkillSlot,
+} from "../helpers/runDataPacking";
 import {
   BLOCK_BIT_COUNT,
   ROW_BIT_COUNT,
@@ -54,81 +58,27 @@ export class Game {
   public get totalCubes(): number {
     return this.runData.totalCubes;
   }
-  public get comboBonus(): number {
-    return this.runData.comboCount;
-  }
-  public get scoreBonus(): number {
-    return this.runData.scoreCount;
-  }
-  public get harvest(): number {
-    return this.runData.harvestCount;
-  }
-  public get wave(): number {
-    return this.runData.waveCount;
-  }
-  public get supply(): number {
-    return this.runData.supplyCount;
-  }
   public get maxComboRun(): number {
     return this.runData.maxComboRun;
   }
   public get totalScore(): number {
     return this.runData.totalScore;
   }
-  public get selectedBonus1(): number {
-    return this.runData.selectedBonus1;
-  }
-  public get selectedBonus2(): number {
-    return this.runData.selectedBonus2;
-  }
-  public get selectedBonus3(): number {
-    return this.runData.selectedBonus3;
-  }
-  public get bonus1Level(): number {
-    return this.runData.bonus1Level;
-  }
-  public get bonus2Level(): number {
-    return this.runData.bonus2Level;
-  }
-  public get bonus3Level(): number {
-    return this.runData.bonus3Level;
-  }
   public get freeMoves(): number {
     return this.runData.freeMoves;
   }
-  public get bossLevelUpPending(): boolean {
-    return this.runData.bossLevelUpPending;
+  public get activeSlotCount(): number {
+    return this.runData.activeSlotCount;
   }
-  public get lastShopLevel(): number {
-    return this.runData.lastShopLevel;
-  }
-  public get shopPurchases(): number {
-    return this.runData.shopPurchases;
-  }
-  public get unallocatedCharges(): number {
-    return this.runData.unallocatedCharges;
-  }
-  public get shopLevelUpBought(): boolean {
-    return this.runData.shopLevelUpBought;
-  }
-  public get shopSwapBought(): boolean {
-    return this.runData.shopSwapBought;
+  public get slots(): [SkillSlot, SkillSlot, SkillSlot, SkillSlot, SkillSlot] {
+    return this.runData.slots;
   }
   // Victory state
   public get runCompleted(): boolean {
     return this.runData.runCompleted;
   }
-  // In-game shop data
-  public get cubesBrought(): number {
-    return this.runData.cubesBrought;
-  }
-  public get cubesSpent(): number {
-    return this.runData.cubesSpent;
-  }
   public get cubesAvailable(): number {
-    // Available = brought + earned - spent
-    const totalBudget = this.runData.cubesBrought + this.runData.totalCubes;
-    return Math.max(0, totalBudget - this.runData.cubesSpent);
+    return this.runData.totalCubes;
   }
 
   // Legacy compatibility - score now means levelScore
@@ -196,7 +146,10 @@ export class Game {
 
   // Helper methods for level system
   public getTotalBonuses(): number {
-    return this.comboBonus + this.scoreBonus + this.harvest + this.wave + this.supply;
+    return this.runData.slots.reduce((total, slot) => {
+      if (slot.skillId < 1 || slot.skillId > 5) return total;
+      return total + slot.charges;
+    }, 0);
   }
 
   public hasBonuses(): boolean {

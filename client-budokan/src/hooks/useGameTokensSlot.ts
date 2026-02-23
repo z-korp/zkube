@@ -199,8 +199,6 @@ export const useGameTokensSlot = ({
           const runDataPacked = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
           const runData = unpackRunData(runDataPacked);
           const level = runData.currentLevel;
-          const cubesBrought = runData.cubesBrought;
-          const cubesSpent = runData.cubesSpent;
           const totalCubes = runData.totalCubes;
           const totalScore = runData.totalScore;
 
@@ -213,8 +211,6 @@ export const useGameTokensSlot = ({
               { trait_type: "Level", value: level },
               { trait_type: "Total Cubes", value: totalCubes },
               { trait_type: "Total Score", value: totalScore },
-              { trait_type: "Cubes Brought", value: cubesBrought },
-              { trait_type: "Cubes Spent", value: cubesSpent },
             ],
           });
 

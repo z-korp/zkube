@@ -27,6 +27,7 @@ mod move_system {
     };
     use zkube::helpers::{game_over, level_check, token};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
+    use zkube::models::skill_tree::PlayerSkillTree;
 
     #[storage]
     struct Storage {}
@@ -60,15 +61,16 @@ mod move_system {
 
             // Initialize GameLibs once for all dispatcher calls
             let libs = GameLibsImpl::new(world);
+            let player = get_caller_address();
+            let skill_tree: PlayerSkillTree = world.read_model(player);
 
             // Execute move via grid_system dispatcher (contains Controller logic)
             let (lines_cleared, is_grid_full) = libs
                 .grid
-                .execute_move(game_id, row_index, start_index, final_index);
+                .execute_move(game_id, row_index, start_index, final_index, skill_tree.skill_data);
 
             // Get settings for quest tracking
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-            let player = get_caller_address();
 
             // Track quest progress for lines cleared and combos
             if lines_cleared > 0 {
@@ -225,7 +227,7 @@ mod move_system {
             if is_complete {
                 // Level complete - call level_system via GameLibs
                 let completed_level = run_data.current_level;
-                libs.level.complete_level(game_id);
+                libs.level.complete_level(game_id, skill_tree.skill_data);
                 libs.draft.maybe_open_after_level(game_id, completed_level, player);
             } else if is_grid_full {
                 // Grid full - game over

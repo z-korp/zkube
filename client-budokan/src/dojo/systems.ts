@@ -228,7 +228,6 @@ export function systems({ client }: { client: IWorld }) {
   const create = async ({ account, ...props }: SystemTypes.Create) => {
     log.debug("create params", {
       token_id: props.token_id,
-      selected_bonuses: props.selected_bonuses,
     });
     await handleTransaction(
       account,
@@ -280,71 +279,6 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
-  const purchaseConsumable = async ({
-    account,
-    ...props
-  }: SystemTypes.PurchaseConsumable) => {
-    const setMoveComplete = useMoveStore.getState().setMoveComplete;
-    setMoveComplete(false);
-    try {
-      await handleTransaction(
-        account,
-        () => client.shop.purchase_consumable({ account, ...props }),
-        "Consumable purchased!",
-      );
-      setMoveComplete(true);
-    } catch (error) {
-      setMoveComplete(true);
-      throw error;
-    }
-  };
-
-  const levelUpBonus = async ({
-    account,
-    ...props
-  }: SystemTypes.LevelUpBonus) => {
-    await handleTransaction(
-      account,
-      () => client.shop.level_up_bonus({ account, ...props }),
-      "Bonus leveled up!",
-    );
-  };
-
-  const allocateCharge = async ({
-    account,
-    ...props
-  }: SystemTypes.AllocateCharge) => {
-    const setMoveComplete = useMoveStore.getState().setMoveComplete;
-    setMoveComplete(false);
-    try {
-      await handleTransaction(
-        account,
-        () => client.shop.allocate_charge({ account, ...props }),
-        "Charge allocated!",
-      );
-      setMoveComplete(true);
-    } catch (error) {
-      setMoveComplete(true);
-      throw error;
-    }
-  };
-
-  const swapBonus = async ({ account, ...props }: SystemTypes.SwapBonus) => {
-    const setMoveComplete = useMoveStore.getState().setMoveComplete;
-    setMoveComplete(false);
-    try {
-      await handleTransaction(
-        account,
-        () => client.shop.swap_bonus({ account, ...props }),
-        "Bonus swapped!",
-      );
-      setMoveComplete(true);
-    } catch (error) {
-      setMoveComplete(true);
-      throw error;
-    }
-  };
-
   const claimQuest = async ({ account, ...props }: SystemTypes.ClaimQuest) => {
     if (!client.quest) {
       throw new Error("Quest system not available");
@@ -378,6 +312,39 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
+  const upgradeSkill = async ({
+    account,
+    ...props
+  }: SystemTypes.SkillTreeUpgrade) => {
+    await handleTransaction(
+      account,
+      () => client.skill_tree.upgrade_skill({ account, ...props }),
+      "Skill upgraded.",
+    );
+  };
+
+  const chooseBranch = async ({
+    account,
+    ...props
+  }: SystemTypes.SkillTreeChooseBranch) => {
+    await handleTransaction(
+      account,
+      () => client.skill_tree.choose_branch({ account, ...props }),
+      "Branch selected.",
+    );
+  };
+
+  const respecBranch = async ({
+    account,
+    ...props
+  }: SystemTypes.SkillTreeRespec) => {
+    await handleTransaction(
+      account,
+      () => client.skill_tree.respec_branch({ account, ...props }),
+      "Branch reset.",
+    );
+  };
+
   return {
     // play
     freeMint,
@@ -385,14 +352,12 @@ export function systems({ client }: { client: IWorld }) {
     surrender,
     move,
     applyBonus,
-    // in-game shop
-    purchaseConsumable,
-    levelUpBonus,
-    allocateCharge,
-    swapBonus,
     // quests
     claimQuest,
     rerollDraft,
     selectDraft,
+    upgradeSkill,
+    chooseBranch,
+    respecBranch,
   };
 }

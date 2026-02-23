@@ -343,7 +343,7 @@ if [ -n "$CUBE_TOKEN" ]; then
         "$CUBE_TOKEN" \
         grant_minter_roles 2>&1) || true
     if echo "$GRANT_OUTPUT" | grep -q "Transaction hash"; then
-        print_info "  MINTER_ROLE granted to game_system and shop_system"
+        print_info "  MINTER_ROLE granted to game_system, move_system, quest_system, and skill_tree_system"
     else
         print_warn "  Failed to grant MINTER_ROLE (call grant_minter_roles manually)"
         echo "$GRANT_OUTPUT"

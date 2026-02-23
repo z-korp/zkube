@@ -63,29 +63,8 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
         self.set_meta_data(meta);
     }
 
-    /// Get the bag size for a specific bonus type
-    fn get_bag_size(self: PlayerMeta, bonus_type: u8) -> u8 {
-        self.get_meta_data().get_bag_size(bonus_type)
-    }
 
-    /// Get max cubes that can be brought into a run
-    fn get_max_cubes_to_bring(self: PlayerMeta) -> u16 {
-        self.get_meta_data().get_max_cubes_to_bring()
-    }
 
-    /// Get starting bonus count for a specific type
-    /// bonus_type: 0=Combo, 1=Score, 2=Harvest, 3=Wave, 4=Supply
-    fn get_starting_bonus(self: PlayerMeta, bonus_type: u8) -> u8 {
-        let meta = self.get_meta_data();
-        match bonus_type {
-            0 => meta.starting_combo,
-            1 => meta.starting_score,
-            2 => meta.starting_harvest,
-            3 => meta.starting_wave,
-            4 => meta.starting_supply,
-            _ => 0,
-        }
-    }
 
     /// Check if player exists (has played at least once)
     fn exists(self: PlayerMeta) -> bool {
@@ -108,8 +87,7 @@ mod tests {
 
         let data = meta.get_meta_data();
         assert!(data.total_runs == 0, "Should have 0 runs");
-        assert!(data.starting_combo == 0, "Should have 0 starting combo");
-        assert!(data.bridging_rank == 0, "Should have 0 bridging rank");
+        assert!(data.total_cubes_earned == 0, "Should have 0 cubes earned");
     }
 
     #[test]

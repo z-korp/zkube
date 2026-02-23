@@ -5,50 +5,11 @@ import { useGame } from "@/hooks/useGame";
 import { useDraft } from "@/hooks/useDraft";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { decodeDraftChoice } from "@/utils/draftEvents";
+import { getRerollCost } from "@/dojo/game/helpers/runDataPacking";
+import { getSkillById } from "@/dojo/game/types/skillData";
 import { showToast } from "@/utils/toast";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import GameButton from "@/ui/components/shared/GameButton";
-
-type DraftChoiceKind =
-  | "new_bonus"
-  | "upgrade_bonus"
-  | "zone_modifier"
-  | "risk_contract"
-  | "relic";
-
-type DraftCardPool = "bonus" | "upgrade" | "world";
-
-interface DraftCard {
-  slot: 0 | 1 | 2;
-  code: number;
-  kind: DraftChoiceKind;
-  pool: DraftCardPool;
-  title: string;
-  description: string;
-}
-
-const KIND_LABELS: Record<DraftChoiceKind, string> = {
-  new_bonus: "New Bonus",
-  upgrade_bonus: "Upgrade",
-  zone_modifier: "Zone Mod",
-  risk_contract: "Risk",
-  relic: "Relic",
-};
-
-const KIND_BADGES: Record<DraftChoiceKind, string> = {
-  new_bonus: "bg-sky-900/50 border-sky-400/50 text-sky-200",
-  upgrade_bonus: "bg-emerald-900/50 border-emerald-400/50 text-emerald-200",
-  zone_modifier: "bg-indigo-900/50 border-indigo-400/50 text-indigo-200",
-  risk_contract: "bg-amber-900/50 border-amber-400/50 text-amber-200",
-  relic: "bg-purple-900/50 border-purple-400/50 text-purple-200",
-};
-
-const POOL_TITLES: Record<DraftCardPool, string> = {
-  bonus: "Bonus Pool",
-  upgrade: "Upgrade Pool",
-  world: "World Pool",
-};
 
 const getStageLabel = (
   eventType: number,
@@ -60,45 +21,6 @@ const getStageLabel = (
     return `Post Boss ${Math.floor(triggerLevel / 10)} Draft (Zone ${zone})`;
   }
   return `Zone ${zone} Micro Draft`;
-};
-
-const getRerollCost = (rerollCount: number): number => {
-  let cost = 5;
-  for (let i = 0; i < rerollCount; i++) {
-    cost = Math.ceil((cost * 3) / 2);
-  }
-  return cost;
-};
-
-const getBonusNameFromCode = (bonusCode: number): string => {
-  switch (bonusCode) {
-    case 1:
-      return "Combo";
-    case 2:
-      return "Score";
-    case 3:
-      return "Harvest";
-    case 4:
-      return "Wave";
-    case 5:
-      return "Supply";
-    default:
-      return "Unknown";
-  }
-};
-
-const fallbackCard = (slot: 0 | 1 | 2, code: number): DraftCard => {
-  const pool: DraftCardPool = slot === 0 ? "bonus" : slot === 1 ? "upgrade" : "world";
-  const fallbackKind: DraftChoiceKind =
-    slot === 0 ? "new_bonus" : slot === 1 ? "upgrade_bonus" : "zone_modifier";
-  return {
-    slot,
-    code,
-    pool,
-    kind: fallbackKind,
-    title: `Draft Choice ${code}`,
-    description: "Apply this draft choice to continue your run.",
-  };
 };
 
 const DraftPage: React.FC = () => {
@@ -117,12 +39,35 @@ const DraftPage: React.FC = () => {
     shouldLog: false,
   });
 
-  const [busySlot, setBusySlot] = useState<number | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
+  const [isRerolling, setIsRerolling] = useState(false);
 
   const walletCubes = Number(cubeBalance);
   const spentCubes = draftState?.spentCubes ?? 0;
   const remainingCubes = Math.max(0, walletCubes - spentCubes);
+  const rerollCost = getRerollCost(draftState?.rerollCount ?? 0);
+
+  const cards = useMemo(() => {
+    if (!draftState) return [];
+    const choices = [draftState.choice1, draftState.choice2, draftState.choice3];
+    return choices.map((skillId, index) => {
+      const skill = getSkillById(skillId);
+      const slot = game?.runData.slots.find((entry) => entry.skillId === skillId);
+      return {
+        slotIndex: index as 0 | 1 | 2,
+        skillId,
+        skill,
+        level: slot?.level ?? 0,
+      };
+    });
+  }, [draftState, game?.runData.slots]);
+
+  const runSlots = useMemo(
+    () => (game ? game.runData.slots.filter((slot) => slot.skillId > 0) : []),
+    [game],
+  );
+
+  const isFullLoadout = (game?.activeSlotCount ?? runSlots.length) >= 5;
 
   useEffect(() => {
     if (gameId === null) {
@@ -138,42 +83,6 @@ const DraftPage: React.FC = () => {
     }
   }, [draftState, gameId, navigate, setPendingDraftEvent]);
 
-  const cards = useMemo<DraftCard[]>(() => {
-    if (!draftState) return [];
-    const values = [draftState.choice1, draftState.choice2, draftState.choice3] as const;
-    return values.map((code, index) => {
-      const slot = index as 0 | 1 | 2;
-      const decoded = decodeDraftChoice(code);
-      if (!decoded) {
-        return fallbackCard(slot, code);
-      }
-      return {
-        slot,
-        code,
-        kind: decoded.kind as DraftChoiceKind,
-        pool: decoded.pool as DraftCardPool,
-        title: decoded.title,
-        description: decoded.description,
-      };
-    });
-  }, [draftState]);
-
-  const rerollCounts = useMemo<[number, number, number]>(() => {
-    if (!draftState) return [0, 0, 0];
-    return [draftState.reroll1, draftState.reroll2, draftState.reroll3];
-  }, [draftState]);
-
-  const equippedBonusNames = useMemo(() => {
-    const selectedBonuses = [
-      game?.selectedBonus1 ?? 0,
-      game?.selectedBonus2 ?? 0,
-      game?.selectedBonus3 ?? 0,
-    ];
-    return selectedBonuses
-      .filter((value) => value > 0)
-      .map((value) => getBonusNameFromCode(value));
-  }, [game]);
-
   const goToMap = () => {
     setPendingDraftEvent(null);
     navigate("map", gameId ?? undefined);
@@ -181,28 +90,25 @@ const DraftPage: React.FC = () => {
 
   const rerollChoice = async (slot: 0 | 1 | 2) => {
     if (!account || gameId === null || !draftState?.active) return;
-
-    const cost = getRerollCost(rerollCounts[slot]);
-    if (remainingCubes < cost) {
+    if (remainingCubes < rerollCost) {
       showToast({
-        message: `Need ${cost} cubes for reroll.`,
+        message: `Need ${rerollCost} cubes for reroll.`,
         type: "error",
       });
       return;
     }
 
     try {
-      setBusySlot(slot);
+      setIsRerolling(true);
       await systemCalls.rerollDraft({
         account,
         game_id: gameId,
         reroll_slot: slot,
-        reroll_count: rerollCounts[slot],
       });
     } catch (error) {
       console.error("Draft reroll failed:", error);
     } finally {
-      setBusySlot(null);
+      setIsRerolling(false);
     }
   };
 
@@ -240,7 +146,7 @@ const DraftPage: React.FC = () => {
     <div className="h-screen-viewport flex flex-col text-white">
       <PageTopBar title="DRAFT EVENT" onBack={goToMap} cubeBalance={cubeBalance} />
 
-      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4 md:px-6">
         <div className="mx-auto max-w-[860px] space-y-4 pb-8">
           <section className="rounded-2xl border border-emerald-300/30 bg-slate-900/80 px-5 py-4">
             <h2 className="font-['Fredericka_the_Great'] text-2xl text-emerald-200">
@@ -251,16 +157,14 @@ const DraftPage: React.FC = () => {
               )}
             </h2>
             <p className="mt-1 text-sm text-slate-300">
-              Pick one card from the three dedicated pools. Each slot rerolls only its own pool.
+              Choose one skill from the unified pool of 15 skills.
             </p>
-            {equippedBonusNames.length > 0 && (
-              <p className="mt-2 text-xs text-slate-400">
-                Equipped bonuses: {equippedBonusNames.join(", ")}
-              </p>
-            )}
             <div className="mt-3 flex flex-wrap gap-2 text-xs">
               <span className="rounded-md border border-slate-600 bg-slate-800/80 px-2 py-1 text-slate-200">
                 Wallet: {walletCubes} cubes
+              </span>
+              <span className="rounded-md border border-slate-600 bg-slate-800/80 px-2 py-1 text-slate-200">
+                Rerolls used: {draftState.rerollCount}
               </span>
               <span className="rounded-md border border-slate-600 bg-slate-800/80 px-2 py-1 text-slate-200">
                 Reroll spent: {spentCubes}
@@ -271,51 +175,85 @@ const DraftPage: React.FC = () => {
             </div>
           </section>
 
-          <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
-            {cards.map((choice) => {
-              const rerollCost = getRerollCost(rerollCounts[choice.slot]);
-              const isBusy = busySlot === choice.slot || isSelecting;
-              return (
-                <article
-                  key={`${choice.code}-${choice.slot}-${rerollCounts[choice.slot]}`}
-                  className="rounded-2xl border border-slate-600/80 bg-slate-900/80 p-4"
-                >
-                  <div
-                    className={`inline-flex rounded-md border px-2 py-1 text-[11px] font-semibold ${KIND_BADGES[choice.kind]}`}
-                  >
-                    {KIND_LABELS[choice.kind]}
-                  </div>
-                  <div className="mt-2 text-[11px] uppercase tracking-wide text-slate-400">
-                    {POOL_TITLES[choice.pool]}
-                  </div>
-                  <h3 className="mt-2 font-['Fredericka_the_Great'] text-lg text-white">
-                    {choice.title}
-                  </h3>
-                  <p className="mt-1 min-h-[56px] text-sm text-slate-300">
-                    {choice.description}
-                  </p>
+          <section className="rounded-2xl border border-slate-600/70 bg-slate-900/80 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="font-['Fredericka_the_Great'] text-xl text-slate-100">
+                Current Run Slots ({runSlots.length}/5)
+              </h3>
+              {/* Per-card reroll buttons are on each draft card below */}
+            </div>
+            <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-5">
+              {Array.from({ length: 5 }, (_, index) => {
+                const slot = runSlots[index];
+                if (!slot) {
+                  return (
+                    <div
+                      key={`empty-slot-${index}`}
+                      className="rounded-lg border border-dashed border-slate-700 bg-slate-950/50 px-3 py-2 text-xs text-slate-500"
+                    >
+                      Empty Slot
+                    </div>
+                  );
+                }
 
-                  <div className="mt-4 space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => rerollChoice(choice.slot)}
-                      disabled={isBusy}
-                      className="w-full rounded-lg border border-amber-400/50 bg-amber-900/30 px-3 py-2 text-sm font-semibold text-amber-100 transition hover:bg-amber-900/50 disabled:opacity-50"
-                    >
-                      Reroll {POOL_TITLES[choice.pool]} ({rerollCost} cubes)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => chooseChoice(choice.slot)}
-                      disabled={isBusy}
-                      className="w-full rounded-lg border border-emerald-400/50 bg-emerald-900/30 px-3 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-900/50 disabled:opacity-50"
-                    >
-                      Choose This
-                    </button>
+                const skill = getSkillById(slot.skillId);
+                return (
+                  <div
+                    key={`run-slot-${index}-${slot.skillId}`}
+                    className="rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-xs"
+                  >
+                    <p className="font-semibold text-slate-200">
+                      {skill?.name ?? `Skill ${slot.skillId}`}
+                    </p>
+                    <p className="text-slate-400">Level {slot.level}</p>
+                    {slot.skillId >= 1 && slot.skillId <= 5 && (
+                      <p className="text-emerald-300">Charges {slot.charges}</p>
+                    )}
                   </div>
-                </article>
-              );
-            })}
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            {cards.map((choice) => (
+              <article
+                key={`draft-skill-${choice.slotIndex}-${choice.skillId}`}
+                className="rounded-2xl border border-slate-600/80 bg-slate-900/80 p-4"
+              >
+                <div className="inline-flex rounded-md border border-sky-400/40 bg-sky-900/30 px-2 py-1 text-[11px] font-semibold text-sky-200">
+                  {choice.skill?.category === "bonus" ? "Bonus" : "World"}
+                </div>
+                <h3 className="mt-2 font-['Fredericka_the_Great'] text-lg text-white">
+                  {choice.skill?.name ?? `Skill ${choice.skillId}`}
+                </h3>
+                <p className="mt-1 text-xs text-slate-400">
+                  {isFullLoadout ? "Upgrade" : "New Skill"} • Level {choice.level}
+                </p>
+                <p className="mt-2 min-h-[56px] text-sm text-slate-300">
+                  {choice.skill?.description ?? "Apply this skill to continue your run."}
+                </p>
+
+                <div className="mt-4 flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => chooseChoice(choice.slotIndex)}
+                    disabled={isSelecting || isRerolling}
+                    className="w-full rounded-lg border border-emerald-400/50 bg-emerald-900/30 px-3 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-900/50 disabled:opacity-50"
+                  >
+                    {isFullLoadout ? "Upgrade This Skill" : "Choose This Skill"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => rerollChoice(choice.slotIndex)}
+                    disabled={isSelecting || isRerolling || remainingCubes < rerollCost}
+                    className="w-full rounded-lg border border-amber-400/50 bg-amber-900/30 px-3 py-2 text-xs font-semibold text-amber-100 transition hover:bg-amber-900/50 disabled:opacity-50"
+                  >
+                    Reroll ({rerollCost} cubes)
+                  </button>
+                </div>
+              </article>
+            ))}
           </section>
 
           <div className="mx-auto max-w-[420px]">

@@ -1,11 +1,8 @@
 #[starknet::interface]
 pub trait IGameSystem<T> {
-    /// Create a new game with bonus selection
+    /// Create a new game
     /// @param game_id: NFT token ID for this game
-    /// @param selected_bonuses: Array of 3 bonus types [0-5] to use this run
-    ///   - 0=None (invalid), 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
-    ///   - Pass empty array for default selection [Combo, Score, Harvest]
-    fn create(ref self: T, game_id: u64, selected_bonuses: Span<u8>);
+    fn create(ref self: T, game_id: u64);
     /// Surrender the current run (game over)
     fn surrender(ref self: T, game_id: u64);
     /// Get player name from token
@@ -45,10 +42,12 @@ mod game_system {
         GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
     };
     use zkube::helpers::game_over;
+    use zkube::helpers::packing::RunDataHelpersTrait;
     use zkube::helpers::random::RandomImpl;
     use zkube::models::draft::{DraftState, DraftStateTrait};
     use zkube::models::game::{Game, GameAssert, GameSeed, GameTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
+    use zkube::models::skill_tree::PlayerSkillTree;
 
     component!(path: MinigameComponent, storage: minigame, event: MinigameEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -159,7 +158,7 @@ mod game_system {
 
     #[abi(embed_v0)]
     impl GameSystemImpl of super::IGameSystem<ContractState> {
-        fn create(ref self: ContractState, game_id: u64, selected_bonuses: Span<u8>) {
+        fn create(ref self: ContractState, game_id: u64) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let token_address = self.token_address();
@@ -195,49 +194,14 @@ mod game_system {
 
             // Initialize or update player meta
             let player = get_caller_address();
+            let skill_tree: PlayerSkillTree = world.read_model(player);
             let mut player_meta: PlayerMeta = world.read_model(player);
             if !player_meta.exists() {
                 player_meta = PlayerMetaTrait::new(player);
             }
-            // Process bonus selection
-            let mut run_data = game.get_run_data();
-
-            // Determine selected bonuses (use defaults if empty)
-            let (bonus_1, bonus_2, bonus_3) = if selected_bonuses.len() == 0 {
-                // Default selection: Combo(1), Score(2), Harvest(3)
-                (1_u8, 2_u8, 3_u8)
-            } else {
-                // Validate exactly 3 bonuses selected
-                assert!(selected_bonuses.len() == 3, "Must select exactly 3 bonuses");
-
-                let b1 = *selected_bonuses.at(0);
-                let b2 = *selected_bonuses.at(1);
-                let b3 = *selected_bonuses.at(2);
-
-                // Validate each bonus is valid (1-5, not 0)
-                assert!(b1 >= 1 && b1 <= 5, "Invalid bonus type");
-                assert!(b2 >= 1 && b2 <= 5, "Invalid bonus type");
-                assert!(b3 >= 1 && b3 <= 5, "Invalid bonus type");
-
-                // Validate no duplicates
-                assert!(b1 != b2 && b1 != b3 && b2 != b3, "Duplicate bonus selection");
-
-                (b1, b2, b3)
-            };
-
-            // Store selected bonuses in run_data
-            run_data.selected_bonus_1 = bonus_1;
-            run_data.selected_bonus_2 = bonus_2;
-            run_data.selected_bonus_3 = bonus_3;
-            // All bonuses start at level 0 (L1)
-            run_data.bonus_1_level = 0;
-            run_data.bonus_2_level = 0;
-            run_data.bonus_3_level = 0;
-
             // Initialize GameLibs once for all dispatcher calls
             let libs = GameLibsImpl::new(world);
 
-            game.set_run_data(run_data);
             world.write_model(@game);
 
             player_meta.increment_runs();
@@ -256,7 +220,7 @@ mod game_system {
             world.emit_event(@StartGame { player, timestamp, game_id });
 
             // Initialize level 1 and grid via GameLibs dispatchers
-            let has_no_bonus = libs.level.initialize_level(game_id);
+            let has_no_bonus = libs.level.initialize_level(game_id, skill_tree.skill_data);
             libs.grid.initialize_grid(game_id);
 
             // Update run_data with no_bonus_constraint flag if needed
@@ -320,9 +284,9 @@ mod game_system {
                 run_data.level_moves,
                 game.combo_counter,
                 game.max_combo,
-                run_data.combo_count,
-                run_data.score_count,
-                run_data.harvest_count,
+                run_data.get_bonus_charges(1),
+                run_data.get_bonus_charges(2),
+                run_data.get_bonus_charges(3),
                 run_data.total_cubes,
                 game.over,
             )

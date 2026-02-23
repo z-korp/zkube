@@ -227,9 +227,7 @@ export function defineContractComponents(world: World) {
           choice_1: RecsType.Number,
           choice_2: RecsType.Number,
           choice_3: RecsType.Number,
-          reroll_1: RecsType.Number,
-          reroll_2: RecsType.Number,
-          reroll_3: RecsType.Number,
+          reroll_count: RecsType.Number,
           spent_cubes: RecsType.Number,
           completed_mask: RecsType.Number,
           selected_picks: RecsType.BigInt,
@@ -248,9 +246,7 @@ export function defineContractComponents(world: World) {
               "u8",
               "u8",
               "u8",
-              "u16",
-              "u16",
-              "u16",
+              "u8",
               "u8",
               "u8",
               "u8",
@@ -258,13 +254,31 @@ export function defineContractComponents(world: World) {
               "u16",
               "felt252",
               "u8",
-              "u16",
+              "u8",
             ],
             customTypes: [],
           },
         }
       );
     })(),
+    PlayerSkillTree: (() => {
+      return defineComponent(
+        world,
+        {
+          player: RecsType.BigInt,
+          skill_data: RecsType.BigInt,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "PlayerSkillTree",
+            types: ["ContractAddress", "felt252"],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+
     PlayerMeta: (() => {
       return defineComponent(
         world,
