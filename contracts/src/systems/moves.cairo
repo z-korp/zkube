@@ -22,7 +22,8 @@ mod move_system {
     use zkube::elements::tasks::{clearer, combo, combo_streak};
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::game_libs::{
-        GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
+        GameLibsImpl, IDraftSystemDispatcherTrait, IGridSystemDispatcherTrait,
+        ILevelSystemDispatcherTrait,
     };
     use zkube::helpers::{game_over, level_check, token};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
@@ -223,7 +224,9 @@ mod move_system {
 
             if is_complete {
                 // Level complete - call level_system via GameLibs
+                let completed_level = run_data.current_level;
                 libs.level.complete_level(game_id);
+                libs.draft.maybe_open_after_level(game_id, completed_level, player);
             } else if is_grid_full {
                 // Grid full - game over
                 let mut updated_game: Game = world.read_model(game_id);

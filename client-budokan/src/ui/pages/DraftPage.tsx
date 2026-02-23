@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { hash } from "starknet";
 import { useNavigationStore } from "@/stores/navigationStore";
-import { useGame } from "@/hooks/useGame";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
+import { useGame } from "@/hooks/useGame";
+import { useDraft } from "@/hooks/useDraft";
+import { useDojo } from "@/dojo/useDojo";
+import useAccountCustom from "@/hooks/useAccountCustom";
+import { decodeDraftChoice } from "@/utils/draftEvents";
 import { showToast } from "@/utils/toast";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import GameButton from "@/ui/components/shared/GameButton";
@@ -16,136 +19,14 @@ type DraftChoiceKind =
 
 type DraftCardPool = "bonus" | "upgrade" | "world";
 
-interface DraftOption {
-  key: string;
+interface DraftCard {
+  slot: 0 | 1 | 2;
+  code: number;
   kind: DraftChoiceKind;
+  pool: DraftCardPool;
   title: string;
   description: string;
-  minBossClears: number;
 }
-
-interface DraftChoiceCard extends DraftOption {
-  slot: 0 | 1 | 2;
-  pool: DraftCardPool;
-}
-
-interface BonusTemplate {
-  key: string;
-  bonusCode: number;
-  bonusName: string;
-}
-
-const BONUS_TEMPLATES: BonusTemplate[] = [
-  {
-    key: "bonus-combo",
-    bonusCode: 1,
-    bonusName: "Combo",
-  },
-  {
-    key: "bonus-score",
-    bonusCode: 2,
-    bonusName: "Score",
-  },
-  {
-    key: "bonus-harvest",
-    bonusCode: 3,
-    bonusName: "Harvest",
-  },
-  {
-    key: "bonus-wave",
-    bonusCode: 4,
-    bonusName: "Wave",
-  },
-  {
-    key: "bonus-supply",
-    bonusCode: 5,
-    bonusName: "Supply",
-  },
-];
-
-const UPGRADE_POOL: DraftOption[] = [
-  {
-    key: "upgrade-primary",
-    kind: "upgrade_bonus",
-    title: "Upgrade Active Bonus",
-    description: "Increase one equipped bonus level by 1.",
-    minBossClears: 0,
-  },
-  {
-    key: "upgrade-double",
-    kind: "upgrade_bonus",
-    title: "Focus Upgrade",
-    description: "Upgrade one bonus now and one after next level clear.",
-    minBossClears: 1,
-  },
-  {
-    key: "upgrade-specialize",
-    kind: "upgrade_bonus",
-    title: "Specialization Choice",
-    description:
-      "Choose one unlocked specialization path for an equipped bonus.",
-    minBossClears: 2,
-  },
-  {
-    key: "upgrade-advanced",
-    kind: "upgrade_bonus",
-    title: "Advanced Specialization",
-    description: "Upgrade or deepen an existing specialization path.",
-    minBossClears: 3,
-  },
-];
-
-const WORLD_POOL: DraftOption[] = [
-  {
-    key: "zone-free-move",
-    kind: "zone_modifier",
-    title: "Zone Tempo",
-    description: "First move each level in this zone costs 0 moves.",
-    minBossClears: 0,
-  },
-  {
-    key: "zone-cube-boost",
-    kind: "zone_modifier",
-    title: "Zone Bounty",
-    description: "+25% cubes from clears for this zone.",
-    minBossClears: 0,
-  },
-  {
-    key: "risk-double-cubes",
-    kind: "risk_contract",
-    title: "Double Gain Contract",
-    description: "Double cube gain next zone, add +1 constraint.",
-    minBossClears: 0,
-  },
-  {
-    key: "risk-tight-moves",
-    kind: "risk_contract",
-    title: "Tight Moves Contract",
-    description: "Lose 5 max moves next zone, gain one bonus upgrade.",
-    minBossClears: 1,
-  },
-  {
-    key: "relic-first-combo",
-    kind: "relic",
-    title: "Relic: First Strike",
-    description: "First combo each level grants a free bonus charge.",
-    minBossClears: 2,
-  },
-  {
-    key: "relic-boss-refill",
-    kind: "relic",
-    title: "Relic: Boss Vigor",
-    description: "Boss clears refill all charges.",
-    minBossClears: 3,
-  },
-  {
-    key: "relic-constraint-fuel",
-    kind: "relic",
-    title: "Relic: Constraint Fuel",
-    description: "Constraint completion grants one extra bonus charge.",
-    minBossClears: 2,
-  },
-];
 
 const KIND_LABELS: Record<DraftChoiceKind, string> = {
   new_bonus: "New Bonus",
@@ -163,25 +44,22 @@ const KIND_BADGES: Record<DraftChoiceKind, string> = {
   relic: "bg-purple-900/50 border-purple-400/50 text-purple-200",
 };
 
-const SLOT_POOLS: readonly [DraftCardPool, DraftCardPool, DraftCardPool] = [
-  "bonus",
-  "upgrade",
-  "world",
-];
-
 const POOL_TITLES: Record<DraftCardPool, string> = {
   bonus: "Bonus Pool",
   upgrade: "Upgrade Pool",
   world: "World Pool",
 };
 
-const poseidon = (values: bigint[]): bigint =>
-  BigInt(hash.computePoseidonHashOnElements(values));
-
-const modIndex = (value: bigint, size: number): number => {
-  if (size <= 0) return 0;
-  const abs = value < 0n ? -value : value;
-  return Number(abs % BigInt(size));
+const getStageLabel = (
+  eventType: number,
+  triggerLevel: number,
+  zone: number,
+): string => {
+  if (eventType === 1) return "Post Level 1 Draft";
+  if (eventType === 2) {
+    return `Post Boss ${Math.floor(triggerLevel / 10)} Draft (Zone ${zone})`;
+  }
+  return `Zone ${zone} Micro Draft`;
 };
 
 const getRerollCost = (rerollCount: number): number => {
@@ -190,28 +68,6 @@ const getRerollCost = (rerollCount: number): number => {
     cost = Math.ceil((cost * 3) / 2);
   }
   return cost;
-};
-
-const getStageLabel = (
-  eventType: string,
-  triggerLevel: number,
-  zone: number,
-): string => {
-  if (eventType === "post_level_1") return "Post Level 1 Draft";
-  if (eventType === "post_boss") {
-    return `Post Boss ${Math.floor(triggerLevel / 10)} Draft (Zone ${zone})`;
-  }
-  return `Zone ${zone} Micro Draft`;
-};
-
-const getBossClearsAtDraft = (
-  eventType: string,
-  triggerLevel: number,
-): number => {
-  if (eventType === "post_boss") {
-    return Math.floor(triggerLevel / 10);
-  }
-  return Math.floor((triggerLevel - 1) / 10);
 };
 
 const getBonusNameFromCode = (bonusCode: number): string => {
@@ -231,167 +87,101 @@ const getBonusNameFromCode = (bonusCode: number): string => {
   }
 };
 
-const parseDraftSession = (
-  value: string | null,
-): { rerollCounts: [number, number, number]; spentCubes: number } => {
-  if (!value) return { rerollCounts: [0, 0, 0], spentCubes: 0 };
-
-  try {
-    const parsed = JSON.parse(value) as {
-      rerollCounts?: [number, number, number];
-      spentCubes?: number;
-    };
-    return {
-      rerollCounts:
-        parsed.rerollCounts && parsed.rerollCounts.length === 3
-          ? parsed.rerollCounts
-          : [0, 0, 0],
-      spentCubes:
-        typeof parsed.spentCubes === "number" &&
-        Number.isFinite(parsed.spentCubes)
-          ? parsed.spentCubes
-          : 0,
-    };
-  } catch {
-    return { rerollCounts: [0, 0, 0], spentCubes: 0 };
-  }
+const fallbackCard = (slot: 0 | 1 | 2, code: number): DraftCard => {
+  const pool: DraftCardPool = slot === 0 ? "bonus" : slot === 1 ? "upgrade" : "world";
+  const fallbackKind: DraftChoiceKind =
+    slot === 0 ? "new_bonus" : slot === 1 ? "upgrade_bonus" : "zone_modifier";
+  return {
+    slot,
+    code,
+    pool,
+    kind: fallbackKind,
+    title: `Draft Choice ${code}`,
+    description: "Apply this draft choice to continue your run.",
+  };
 };
 
 const DraftPage: React.FC = () => {
-  const goBack = useNavigationStore((s) => s.goBack);
   const navigate = useNavigationStore((s) => s.navigate);
   const gameId = useNavigationStore((s) => s.gameId);
-  const pendingDraftEvent = useNavigationStore((s) => s.pendingDraftEvent);
-  const setPendingDraftEvent = useNavigationStore(
-    (s) => s.setPendingDraftEvent,
-  );
+  const setPendingDraftEvent = useNavigationStore((s) => s.setPendingDraftEvent);
   const { cubeBalance } = useCubeBalance();
-  const { game, seed } = useGame({
+  const { account } = useAccountCustom();
+  const {
+    setup: { systemCalls },
+  } = useDojo();
+
+  const draftState = useDraft({ gameId: gameId ?? undefined });
+  const { game } = useGame({
     gameId: gameId ?? undefined,
     shouldLog: false,
   });
 
-  const level = game?.level ?? 1;
-  const activeDraftEvent =
-    pendingDraftEvent ??
-    ({
-      type: "zone_micro",
-      triggerLevel: level,
-      zone: Math.max(1, Math.ceil(level / 10)),
-      eventId: `fallback:${level}`,
-    } as const);
-
-  const eventType = activeDraftEvent.type;
-  const triggerLevel = activeDraftEvent.triggerLevel;
-  const stageZone = activeDraftEvent.zone;
-  const bossClears = getBossClearsAtDraft(eventType, triggerLevel);
-  const selectedBonuses = [
-    game?.selectedBonus1 ?? 0,
-    game?.selectedBonus2 ?? 0,
-    game?.selectedBonus3 ?? 0,
-  ];
-  const hasEmptySlot = selectedBonuses.some((value) => value === 0);
-
-  const equippedBonusNames = selectedBonuses
-    .filter((value) => value > 0)
-    .map((value) => getBonusNameFromCode(value));
-
-  const bonusPool = useMemo<DraftOption[]>(() => {
-    return BONUS_TEMPLATES.filter((template) => {
-      if (hasEmptySlot) return true;
-      return !selectedBonuses.includes(template.bonusCode);
-    }).map((template) => ({
-      key: template.key,
-      kind: "new_bonus",
-      title: hasEmptySlot
-        ? `Add ${template.bonusName} Bonus`
-        : `Swap to ${template.bonusName}`,
-      description: hasEmptySlot
-        ? `Fill an empty slot with ${template.bonusName}.`
-        : `Replace one equipped bonus with ${template.bonusName}.`,
-      minBossClears: 0,
-    }));
-  }, [hasEmptySlot, selectedBonuses]);
-
-  const upgradePool = useMemo(
-    () => UPGRADE_POOL.filter((choice) => choice.minBossClears <= bossClears),
-    [bossClears],
-  );
-
-  const worldPool = useMemo(
-    () => WORLD_POOL.filter((choice) => choice.minBossClears <= bossClears),
-    [bossClears],
-  );
-
-  const poolBySlot: Record<DraftCardPool, DraftOption[]> = {
-    bonus: bonusPool,
-    upgrade: upgradePool,
-    world: worldPool,
-  };
-
-  const sessionKey = `zkube:draft-session:${gameId ?? "anon"}:${activeDraftEvent.eventId}`;
-  const pickKey = `zkube:draft-pick:${gameId ?? "anon"}:${activeDraftEvent.eventId}`;
-
-  const [rerollCounts, setRerollCounts] = useState<[number, number, number]>([
-    0, 0, 0,
-  ]);
-  const [spentCubes, setSpentCubes] = useState(0);
-
-  useEffect(() => {
-    const saved = parseDraftSession(localStorage.getItem(sessionKey));
-    setRerollCounts(saved.rerollCounts);
-    setSpentCubes(saved.spentCubes);
-  }, [sessionKey]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      sessionKey,
-      JSON.stringify({
-        rerollCounts,
-        spentCubes,
-      }),
-    );
-  }, [rerollCounts, sessionKey, spentCubes]);
+  const [busySlot, setBusySlot] = useState<number | null>(null);
+  const [isSelecting, setIsSelecting] = useState(false);
 
   const walletCubes = Number(cubeBalance);
+  const spentCubes = draftState?.spentCubes ?? 0;
   const remainingCubes = Math.max(0, walletCubes - spentCubes);
 
-  const choices = useMemo<DraftChoiceCard[]>(() => {
-    const typeSeed =
-      eventType === "post_level_1" ? 1n : eventType === "post_boss" ? 2n : 3n;
-    const baseSeed = poseidon([
-      seed,
-      BigInt(triggerLevel),
-      BigInt(stageZone),
-      typeSeed,
-    ]);
+  useEffect(() => {
+    if (gameId === null) {
+      navigate("map");
+      return;
+    }
+    if (!draftState) {
+      return;
+    }
+    if (!draftState.active) {
+      setPendingDraftEvent(null);
+      navigate("map", gameId);
+    }
+  }, [draftState, gameId, navigate, setPendingDraftEvent]);
 
-    return [0, 1, 2].map((slot) => {
-      const poolId = SLOT_POOLS[slot];
-      const pool = poolBySlot[poolId];
-      const rerollSeed = BigInt(rerollCounts[slot]);
-      const slotSeed = poseidon([baseSeed, BigInt(slot), rerollSeed]);
-      const index = modIndex(slotSeed, pool.length);
-
-      const fallback: DraftOption = {
-        key: `fallback-${poolId}-${slot}`,
-        kind: "upgrade_bonus",
-        title: "Fallback Upgrade",
-        description: "Increase one equipped bonus level by 1.",
-        minBossClears: 0,
-      };
-
-      const picked = pool[index] ?? fallback;
-
+  const cards = useMemo<DraftCard[]>(() => {
+    if (!draftState) return [];
+    const values = [draftState.choice1, draftState.choice2, draftState.choice3] as const;
+    return values.map((code, index) => {
+      const slot = index as 0 | 1 | 2;
+      const decoded = decodeDraftChoice(code);
+      if (!decoded) {
+        return fallbackCard(slot, code);
+      }
       return {
-        ...picked,
-        slot: slot as 0 | 1 | 2,
-        pool: poolId,
+        slot,
+        code,
+        kind: decoded.kind as DraftChoiceKind,
+        pool: decoded.pool as DraftCardPool,
+        title: decoded.title,
+        description: decoded.description,
       };
     });
-  }, [eventType, poolBySlot, rerollCounts, seed, stageZone, triggerLevel]);
+  }, [draftState]);
 
-  const rerollChoice = (slot: 0 | 1 | 2) => {
+  const rerollCounts = useMemo<[number, number, number]>(() => {
+    if (!draftState) return [0, 0, 0];
+    return [draftState.reroll1, draftState.reroll2, draftState.reroll3];
+  }, [draftState]);
+
+  const equippedBonusNames = useMemo(() => {
+    const selectedBonuses = [
+      game?.selectedBonus1 ?? 0,
+      game?.selectedBonus2 ?? 0,
+      game?.selectedBonus3 ?? 0,
+    ];
+    return selectedBonuses
+      .filter((value) => value > 0)
+      .map((value) => getBonusNameFromCode(value));
+  }, [game]);
+
+  const goToMap = () => {
+    setPendingDraftEvent(null);
+    navigate("map", gameId ?? undefined);
+  };
+
+  const rerollChoice = async (slot: 0 | 1 | 2) => {
+    if (!account || gameId === null || !draftState?.active) return;
+
     const cost = getRerollCost(rerollCounts[slot]);
     if (remainingCubes < cost) {
       showToast({
@@ -401,61 +191,66 @@ const DraftPage: React.FC = () => {
       return;
     }
 
-    setSpentCubes((prev) => prev + cost);
-    setRerollCounts((prev) => {
-      const next: [number, number, number] = [...prev] as [
-        number,
-        number,
-        number,
-      ];
-      next[slot] = next[slot] + 1;
-      return next;
-    });
-
-    const poolName = POOL_TITLES[SLOT_POOLS[slot]];
-
-    showToast({
-      message: `${poolName} rerolled for ${cost} cubes.`,
-      type: "success",
-    });
+    try {
+      setBusySlot(slot);
+      await systemCalls.rerollDraft({
+        account,
+        game_id: gameId,
+        reroll_slot: slot,
+      });
+    } catch (error) {
+      console.error("Draft reroll failed:", error);
+    } finally {
+      setBusySlot(null);
+    }
   };
 
-  const chooseChoice = (choice: DraftChoiceCard) => {
-    localStorage.setItem(
-      pickKey,
-      JSON.stringify({
-        ...choice,
-        event: activeDraftEvent,
-      }),
+  const chooseChoice = async (slot: 0 | 1 | 2) => {
+    if (!account || gameId === null || !draftState?.active) return;
+
+    try {
+      setIsSelecting(true);
+      await systemCalls.selectDraft({
+        account,
+        game_id: gameId,
+        selected_slot: slot,
+      });
+      setPendingDraftEvent(null);
+      navigate("map", gameId);
+    } catch (error) {
+      console.error("Draft select failed:", error);
+    } finally {
+      setIsSelecting(false);
+    }
+  };
+
+  if (!draftState?.active) {
+    return (
+      <div className="h-screen-viewport flex flex-col text-white">
+        <PageTopBar title="DRAFT EVENT" onBack={goToMap} cubeBalance={cubeBalance} />
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="text-center text-slate-300">No active draft event.</div>
+        </div>
+      </div>
     );
-    localStorage.removeItem(sessionKey);
-    setPendingDraftEvent(null);
-
-    showToast({
-      message: `Selected: ${choice.title}`,
-      type: "success",
-    });
-
-    navigate("map", gameId ?? undefined);
-  };
+  }
 
   return (
     <div className="h-screen-viewport flex flex-col text-white">
-      <PageTopBar
-        title="DRAFT EVENT"
-        onBack={goBack}
-        cubeBalance={cubeBalance}
-      />
+      <PageTopBar title="DRAFT EVENT" onBack={goToMap} cubeBalance={cubeBalance} />
 
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
         <div className="mx-auto max-w-[860px] space-y-4 pb-8">
           <section className="rounded-2xl border border-emerald-300/30 bg-slate-900/80 px-5 py-4">
             <h2 className="font-['Fredericka_the_Great'] text-2xl text-emerald-200">
-              {getStageLabel(eventType, triggerLevel, stageZone)}
+              {getStageLabel(
+                draftState.eventType,
+                draftState.triggerLevel,
+                draftState.zone,
+              )}
             </h2>
             <p className="mt-1 text-sm text-slate-300">
-              Pick one card from the three dedicated pools. Each slot rerolls
-              only its own pool.
+              Pick one card from the three dedicated pools. Each slot rerolls only its own pool.
             </p>
             {equippedBonusNames.length > 0 && (
               <p className="mt-2 text-xs text-slate-400">
@@ -476,11 +271,12 @@ const DraftPage: React.FC = () => {
           </section>
 
           <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
-            {choices.map((choice) => {
+            {cards.map((choice) => {
               const rerollCost = getRerollCost(rerollCounts[choice.slot]);
+              const isBusy = busySlot === choice.slot || isSelecting;
               return (
                 <article
-                  key={`${choice.key}-${choice.slot}-${rerollCounts[choice.slot]}`}
+                  key={`${choice.code}-${choice.slot}-${rerollCounts[choice.slot]}`}
                   className="rounded-2xl border border-slate-600/80 bg-slate-900/80 p-4"
                 >
                   <div
@@ -502,14 +298,16 @@ const DraftPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => rerollChoice(choice.slot)}
-                      className="w-full rounded-lg border border-amber-400/50 bg-amber-900/30 px-3 py-2 text-sm font-semibold text-amber-100 transition hover:bg-amber-900/50"
+                      disabled={isBusy}
+                      className="w-full rounded-lg border border-amber-400/50 bg-amber-900/30 px-3 py-2 text-sm font-semibold text-amber-100 transition hover:bg-amber-900/50 disabled:opacity-50"
                     >
                       Reroll {POOL_TITLES[choice.pool]} ({rerollCost} cubes)
                     </button>
                     <button
                       type="button"
-                      onClick={() => chooseChoice(choice)}
-                      className="w-full rounded-lg border border-emerald-400/50 bg-emerald-900/30 px-3 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-900/50"
+                      onClick={() => chooseChoice(choice.slot)}
+                      disabled={isBusy}
+                      className="w-full rounded-lg border border-emerald-400/50 bg-emerald-900/30 px-3 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-900/50 disabled:opacity-50"
                     >
                       Choose This
                     </button>
@@ -520,11 +318,7 @@ const DraftPage: React.FC = () => {
           </section>
 
           <div className="mx-auto max-w-[420px]">
-            <GameButton
-              label="BACK TO MAP"
-              variant="secondary"
-              onClick={() => navigate("map", gameId ?? undefined)}
-            />
+            <GameButton label="BACK TO MAP" variant="secondary" onClick={goToMap} />
           </div>
         </div>
       </div>

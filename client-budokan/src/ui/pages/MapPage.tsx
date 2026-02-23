@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useGame } from "@/hooks/useGame";
 import { useGameLevel } from "@/hooks/useGameLevel";
+import { useDraft } from "@/hooks/useDraft";
 import {
   NODES_PER_ZONE,
   TOTAL_ZONES,
@@ -11,6 +12,7 @@ import {
   type NodeState,
 } from "@/hooks/useMapData";
 import { useMapLayout } from "@/hooks/useMapLayout";
+import { showToast } from "@/utils/toast";
 import {
   getMapPathTheme,
   getThemeImages,
@@ -20,11 +22,18 @@ import {
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
-import { getDraftEventForCompletedLevel } from "@/utils/draftEvents";
+import {
+  getDraftEventForCompletedLevel,
+  getDraftEventForZoneNode,
+  getStoredDraftPick,
+  isDraftEventCompleted,
+} from "@/utils/draftEvents";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import LevelPreview from "@/ui/components/map/LevelPreview";
 import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
 import ZoneBackground from "@/ui/components/map/ZoneBackground";
+import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
+import { Button } from "@/ui/elements/button";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -45,12 +54,25 @@ const STATE_COLORS: Record<
   visited: { fill: "#1e3a2f", border: "#4ade80", alpha: 0.85, text: "#bbf7d0" },
 };
 
+const DRAFT_KIND_LABELS: Record<string, string> = {
+  new_bonus: "New Bonus",
+  upgrade_bonus: "Upgrade",
+  zone_modifier: "Zone Modifier",
+  risk_contract: "Risk Contract",
+  relic: "Relic",
+};
+
+const DRAFT_POOL_LABELS: Record<string, string> = {
+  bonus: "Bonus Pool",
+  upgrade: "Upgrade Pool",
+  world: "World Pool",
+};
+
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-const canOpenPreview = (node: MapNodeData): boolean =>
-  node.type !== "draft" && node.state !== "locked";
+const canOpenPreview = (node: MapNodeData): boolean => node.state !== "locked";
 
 const getPathType = (
   fromState: NodeState,
@@ -117,6 +139,7 @@ const MapPage: React.FC = () => {
     gameId: gameId ?? undefined,
     shouldLog: false,
   });
+  const draftState = useDraft({ gameId: gameId ?? undefined });
   const gameLevel = useGameLevel({ gameId: game?.id });
 
   const currentLevel = game?.level ?? 1;
@@ -131,6 +154,13 @@ const MapPage: React.FC = () => {
     Math.max(0, mapData.currentZone - 1),
   );
   const [selectedNode, setSelectedNode] = useState<MapNodeData | null>(null);
+  const [resolvedDraftModal, setResolvedDraftModal] = useState<{
+    title: string;
+    description: string;
+    kind: string;
+    pool: string;
+    zone: number;
+  } | null>(null);
   const pointerStartX = useRef<number | null>(null);
   const pointerId = useRef<number | null>(null);
 
@@ -145,8 +175,14 @@ const MapPage: React.FC = () => {
   useEffect(() => {
     if (gameId === null) return;
     if (!pendingDraftEvent) return;
+
+    if (isDraftEventCompleted(draftState, pendingDraftEvent)) {
+      setPendingDraftEvent(null);
+      return;
+    }
+
     navigate("draft", gameId);
-  }, [gameId, navigate, pendingDraftEvent]);
+  }, [draftState, gameId, navigate, pendingDraftEvent, setPendingDraftEvent]);
 
   // Only switch theme/music when the player's current zone changes (zone cleared),
   // NOT when swiping between zones on the map.
@@ -378,7 +414,65 @@ const MapPage: React.FC = () => {
                         <g
                           key={`node-${zoneIdx}-${node.nodeInZone}`}
                           onClick={() => {
-                            if (isInteractive && canOpenPreview(node)) {
+                            if (!isInteractive) {
+                              return;
+                            }
+
+                            if (node.type === "draft") {
+                              if (gameId === null) {
+                                showToast({
+                                  message: "No active run found.",
+                                  type: "error",
+                                });
+                                return;
+                              }
+
+                              const event = getDraftEventForZoneNode(
+                                seed,
+                                node.zone,
+                                currentLevel,
+                                draftState,
+                              );
+
+                              if (!event) {
+                                showToast({
+                                  message:
+                                    "No unlocked draft in this zone yet.",
+                                  type: "error",
+                                });
+                                return;
+                              }
+
+                              if (
+                                isDraftEventCompleted(draftState, event)
+                              ) {
+                                const pick = getStoredDraftPick(draftState, event);
+
+                                if (!pick) {
+                                  showToast({
+                                    message:
+                                      "Draft completed, but no saved choice found.",
+                                    type: "error",
+                                  });
+                                  return;
+                                }
+
+                                setResolvedDraftModal({
+                                  title: pick.title,
+                                  description: pick.description,
+                                  kind: pick.kind,
+                                  pool: pick.pool,
+                                  zone: event.zone,
+                                });
+                                return;
+                              }
+
+                              setPendingDraftEvent(event);
+                              navigate("draft", gameId);
+                              return;
+                            }
+
+                            if (canOpenPreview(node)) {
                               setSelectedNode(node);
                             }
                           }}
@@ -527,6 +621,53 @@ const MapPage: React.FC = () => {
             draftWillOpen={completionDraftEvent !== null}
           />
         )}
+
+        <Dialog
+          open={resolvedDraftModal !== null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setResolvedDraftModal(null);
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-[460px] w-[95%] rounded-lg px-6 py-6">
+            <DialogTitle className="text-2xl text-center mb-2 text-emerald-300">
+              Draft Already Completed
+            </DialogTitle>
+
+            {resolvedDraftModal && (
+              <>
+                <p className="text-xs text-center text-slate-400">
+                  Zone {resolvedDraftModal.zone}
+                </p>
+
+                <div className="mt-4 rounded-xl border border-emerald-400/40 bg-slate-900/80 p-4">
+                  <div className="flex flex-wrap gap-2 text-[11px]">
+                    <span className="rounded-md border border-emerald-500/40 bg-emerald-900/30 px-2 py-1 text-emerald-200">
+                      {DRAFT_POOL_LABELS[resolvedDraftModal.pool] ??
+                        resolvedDraftModal.pool}
+                    </span>
+                    <span className="rounded-md border border-purple-500/40 bg-purple-900/30 px-2 py-1 text-purple-200">
+                      {DRAFT_KIND_LABELS[resolvedDraftModal.kind] ??
+                        resolvedDraftModal.kind}
+                    </span>
+                  </div>
+
+                  <h3 className="mt-3 font-['Fredericka_the_Great'] text-xl text-white">
+                    {resolvedDraftModal.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-300">
+                    {resolvedDraftModal.description}
+                  </p>
+                </div>
+              </>
+            )}
+
+            <div className="mt-5 flex justify-center">
+              <Button onClick={() => setResolvedDraftModal(null)}>Close</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

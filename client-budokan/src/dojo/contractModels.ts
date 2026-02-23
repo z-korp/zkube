@@ -151,12 +151,13 @@ export function defineContractComponents(world: World) {
         {
           game_id: RecsType.Number,
           seed: RecsType.BigInt,
+          vrf_enabled: RecsType.Boolean,
         },
         {
           metadata: {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "GameSeed",
-            types: ["u64", "felt252"],
+            types: ["u64", "felt252", "bool"],
             customTypes: [],
           },
         }
@@ -206,6 +207,58 @@ export function defineContractComponents(world: World) {
               "u8",   // constraint3_count
               "u16",  // cube_3_threshold
               "u16",  // cube_2_threshold
+            ],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+    DraftState: (() => {
+      return defineComponent(
+        world,
+        {
+          game_id: RecsType.Number,
+          seed: RecsType.BigInt,
+          active: RecsType.Boolean,
+          event_slot: RecsType.Number,
+          event_type: RecsType.Number,
+          trigger_level: RecsType.Number,
+          zone: RecsType.Number,
+          choice_1: RecsType.Number,
+          choice_2: RecsType.Number,
+          choice_3: RecsType.Number,
+          reroll_1: RecsType.Number,
+          reroll_2: RecsType.Number,
+          reroll_3: RecsType.Number,
+          spent_cubes: RecsType.Number,
+          completed_mask: RecsType.Number,
+          selected_picks: RecsType.BigInt,
+          selected_slot: RecsType.Number,
+          selected_choice: RecsType.Number,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "DraftState",
+            types: [
+              "u64",
+              "felt252",
+              "bool",
+              "u8",
+              "u8",
+              "u8",
+              "u8",
+              "u16",
+              "u16",
+              "u16",
+              "u8",
+              "u8",
+              "u8",
+              "u16",
+              "u16",
+              "felt252",
+              "u8",
+              "u16",
             ],
             customTypes: [],
           },

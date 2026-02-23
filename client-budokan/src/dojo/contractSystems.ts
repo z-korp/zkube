@@ -70,7 +70,26 @@ export interface ClaimQuest extends Signer {
   interval_id: number; // Current interval ID for the quest
 }
 
+export interface DraftReroll extends Signer {
+  game_id: number;
+  reroll_slot: number;
+}
+
+export interface DraftSelect extends Signer {
+  game_id: number;
+  selected_slot: number;
+}
+
 export type IWorld = ReturnType<typeof setupWorld>;
+
+const buildVrfRequestCall = (callerAddress: string, sourceAddress: string) => ({
+  contractAddress: VRF_PROVIDER_ADDRESS,
+  entrypoint: "request_random",
+  calldata: CallData.compile({
+    caller: callerAddress,
+    source: { type: 0, address: sourceAddress },
+  }),
+});
 
 export function setupWorld(config: Config) {
   function game() {
@@ -98,6 +117,14 @@ export function setupWorld(config: Config) {
     );
     if (!bonus_contract) {
       throw new Error(`Contract ${bonus_contract_name} not found in manifest`);
+    }
+
+    const level_contract_name = "level_system";
+    const level_contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(level_contract_name),
+    );
+    if (!level_contract) {
+      throw new Error(`Contract ${level_contract_name} not found in manifest`);
     }
 
     const free_mint = async ({ account, name, settingsId = 0 }: FreeMint) => {
@@ -149,14 +176,7 @@ export function setupWorld(config: Config) {
 
         // On Sepolia/Mainnet, include VRF request
         return await account.execute([
-          {
-            contractAddress: VRF_PROVIDER_ADDRESS,
-            entrypoint: "request_random",
-            calldata: CallData.compile({
-              caller: contract.address,
-              source: { type: 0, address: account.address },
-            }),
-          },
+          buildVrfRequestCall(contract.address, account.address),
           {
             contractAddress: contract.address,
             entrypoint: "create",
@@ -192,7 +212,18 @@ export function setupWorld(config: Config) {
       final_index,
     }: Move) => {
       try {
+        if (isSlotMode) {
+          return await account.execute([
+            {
+              contractAddress: move_contract.address,
+              entrypoint: "move",
+              calldata: [game_id, row_index, start_index, final_index],
+            },
+          ]);
+        }
+
         return await account.execute([
+          buildVrfRequestCall(level_contract.address, account.address),
           {
             contractAddress: move_contract.address,
             entrypoint: "move",
@@ -215,7 +246,18 @@ export function setupWorld(config: Config) {
       try {
         // Bonus enum serializes as just the variant index:
         // 0 = None, 1 = Combo, 2 = Score, 3 = Harvest, 4 = Wave, 5 = Supply
+        if (isSlotMode) {
+          return await account.execute([
+            {
+              contractAddress: bonus_contract.address,
+              entrypoint: "apply_bonus",
+              calldata: [game_id, bonus, row_index, block_index],
+            },
+          ]);
+        }
+
         return await account.execute([
+          buildVrfRequestCall(level_contract.address, account.address),
           {
             contractAddress: bonus_contract.address,
             entrypoint: "apply_bonus",
@@ -367,9 +409,75 @@ export function setupWorld(config: Config) {
     };
   }
 
+  function draft() {
+    const contract_name = "draft_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      throw new Error(`Contract ${contract_name} not found in manifest`);
+    }
+
+    const reroll = async ({
+      account,
+      game_id,
+      reroll_slot,
+    }: DraftReroll) => {
+      try {
+        if (isSlotMode) {
+          return await account.execute([
+            {
+              contractAddress: contract.address,
+              entrypoint: "reroll",
+              calldata: [game_id, reroll_slot],
+            },
+          ]);
+        }
+
+        return await account.execute([
+          buildVrfRequestCall(contract.address, account.address),
+          {
+            contractAddress: contract.address,
+            entrypoint: "reroll",
+            calldata: [game_id, reroll_slot],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing draft reroll:", error);
+        throw error;
+      }
+    };
+
+    const select = async ({
+      account,
+      game_id,
+      selected_slot,
+    }: DraftSelect) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "select",
+            calldata: [game_id, selected_slot],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing draft select:", error);
+        throw error;
+      }
+    };
+
+    return {
+      address: contract.address,
+      reroll,
+      select,
+    };
+  }
+
   return {
     game: game(),
     shop: shop(),
     quest: quest(),
+    draft: draft(),
   };
 }

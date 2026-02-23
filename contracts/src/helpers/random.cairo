@@ -22,8 +22,17 @@ pub impl RandomImpl of RandomTrait {
     fn new_vrf() -> Random {
         let vrf_address: ContractAddress = VRF_PROVIDER_ADDRESS.try_into().unwrap();
         let vrf_provider = IVrfProviderDispatcher { contract_address: vrf_address };
-        let seed = vrf_provider.consume_random(Source::Nonce(get_caller_address()));
+        let tx_info = get_tx_info().unbox();
+        let seed = vrf_provider.consume_random(Source::Nonce(tx_info.account_contract_address));
         Random { seed, nonce: 0 }
+    }
+
+    fn from_vrf_enabled(vrf_enabled: bool) -> Random {
+        if vrf_enabled {
+            Self::new_vrf()
+        } else {
+            Self::new_pseudo_random()
+        }
     }
 
     // Generate pseudo-random seed for slot/katana (when VRF is not available)

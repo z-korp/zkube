@@ -48,6 +48,7 @@ pub struct GameSeed {
     #[key]
     pub game_id: u64,
     pub seed: felt252,
+    pub vrf_enabled: bool,
 }
 
 /// Current level configuration - synced to client via Torii

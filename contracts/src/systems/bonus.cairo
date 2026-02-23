@@ -24,7 +24,8 @@ mod bonus_system {
     use zkube::constants::DEFAULT_NS;
     use zkube::events::UseBonus;
     use zkube::helpers::game_libs::{
-        GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
+        GameLibsImpl, IDraftSystemDispatcherTrait, IGridSystemDispatcherTrait,
+        ILevelSystemDispatcherTrait,
     };
     use zkube::helpers::{level_check, token};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
@@ -126,7 +127,13 @@ mod bonus_system {
 
             if is_complete {
                 // Level complete - call level_system via GameLibs
+                let completed_level = run_data.current_level;
                 libs.level.complete_level(game_id);
+                libs
+                    .draft
+                    .maybe_open_after_level(
+                        game_id, completed_level, starknet::get_caller_address(),
+                    );
             } else if game.blocks == 0 {
                 // Grid is empty but level not complete - insert a line
                 libs.grid.insert_line_if_empty(game_id);

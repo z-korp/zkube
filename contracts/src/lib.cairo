@@ -3,6 +3,7 @@ pub mod events;
 
 pub mod models {
     pub mod config;
+    pub mod draft;
     pub mod game;
     pub mod player;
 }
@@ -93,6 +94,7 @@ pub mod systems {
     pub mod bonus;
     pub mod config;
     pub mod cube_token;
+    pub mod draft;
     pub mod game;
     pub mod grid;
     pub mod level;

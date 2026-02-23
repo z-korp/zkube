@@ -29,6 +29,7 @@ import useGridAnimations from "@/hooks/useGridAnimations";
 import { useMoveStore } from "@/stores/moveTxStore";
 import { calculateFallDistance } from "@/utils/gridPhysics";
 import useTransitionBlocks from "@/hooks/useTransitionBlocks";
+import { showToast } from "@/utils/toast";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -84,8 +85,6 @@ const Grid: React.FC<GridProps> = ({
   // Grid Position will be used to trigger particle in the right spot
   const gridRef = useRef<HTMLDivElement | null>(null);
   const explosionRef = useRef<ConfettiExplosionRef>(null);
-  // Ref to prevent multiple move tx
-  const isProcessingRef = useRef(false);
 
   // ==================== State ====================
 
@@ -116,6 +115,8 @@ const Grid: React.FC<GridProps> = ({
   // ==================== Custom Hooks ====================
 
   const isMoveComplete = useMoveStore((state) => state.isMoveComplete);
+  const queue = useMoveStore((state) => state.queue);
+  const isQueueProcessing = useMoveStore((state) => state.isQueueProcessing);
   const { shouldBounce, animateText, resetAnimateText, setAnimateText, animatedPoints, setAnimatedPoints, animatedCubes, setAnimatedCubes } =
     useGridAnimations(lineExplodedCount);
   const {
@@ -123,6 +124,10 @@ const Grid: React.FC<GridProps> = ({
     handleTransitionBlockStart,
     handleTransitionBlockEnd,
   } = useTransitionBlocks();
+
+  const queueForGame = queue.filter((item) => item.gameId === gameId);
+  const pendingQueueCount = queueForGame.length;
+  const nextQueuedMove = queueForGame.find((item) => item.status === "queued");
 
   // ==================== Constants ====================
   const borderSize = 2;
@@ -134,8 +139,12 @@ const Grid: React.FC<GridProps> = ({
     // All animations and computing are done
     // we can apply data that we received from smart contract
     if (applyData) {
+      if (pendingQueueCount > 0) {
+        return;
+      }
+
       if (deepCompareBlocks(saveGridStateblocks, initialData)) {
-        // Prevent render if the grid is the same
+        setApplyData(false);
         return;
       }
 
@@ -164,7 +173,16 @@ const Grid: React.FC<GridProps> = ({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applyData, initialData, isMoveComplete]);
+  }, [
+    applyData,
+    initialData,
+    isMoveComplete,
+    pendingQueueCount,
+    score,
+    combo,
+    maxCombo,
+    nextLineData,
+  ]);
 
   // Keep grid position in store used for particles positionning
   useEffect(() => {
@@ -192,7 +210,7 @@ const Grid: React.FC<GridProps> = ({
 
   const handleDragMove = (x: number, _moveType: MoveType) => {
     if (!dragging) return;
-    if (isTxProcessing || applyData) return;
+    if (gameState !== GameState.DRAGGING) return;
 
     const deltaX = x - dragStartX;
     const newX = initialX + deltaX / gridSize;
@@ -223,7 +241,7 @@ const Grid: React.FC<GridProps> = ({
 
   const handleTouchStart = (e: React.TouchEvent, block: Block) => {
     e.preventDefault();
-    if (isProcessingRef.current || isTxProcessing || applyData) return;
+    if (gameState !== GameState.WAITING) return;
 
     const touch = e.touches[0];
     handleDragStart(touch.clientX, block);
@@ -231,7 +249,7 @@ const Grid: React.FC<GridProps> = ({
 
   const handleMouseDown = (e: React.MouseEvent, block: Block) => {
     e.preventDefault();
-    if (isTxProcessing || applyData) return;
+    if (gameState !== GameState.WAITING) return;
 
     setBlockBonus(block);
     if (bonus === BonusType.Harvest) {
@@ -298,7 +316,7 @@ const Grid: React.FC<GridProps> = ({
   const endDrag = () => {
     if (!dragging) return;
 
-    const shouldSubmitMove = !isProcessingRef.current && !isTxProcessing && !applyData;
+    const shouldSubmitMove = true;
 
     setBlocks((prevBlocks) => {
       const updatedBlocks = prevBlocks.map((b) => {
@@ -350,35 +368,94 @@ const Grid: React.FC<GridProps> = ({
 
   const sendMoveTX = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
-      if (isProcessingRef.current) {
-        console.warn("Already processing a move");
-        return;
-      }
-
       if (startColIndex === finalColIndex) return;
       if (!account) return;
 
-      isProcessingRef.current = true;
-      setIsTxProcessing(true);
       playSwipe();
+      useMoveStore.getState().enqueueMove({
+        gameId,
+        rowIndex: gridHeight - 1 - rowIndex,
+        startIndex: Math.trunc(startColIndex),
+        finalIndex: Math.trunc(finalColIndex),
+      });
+    },
+    [account, gameId, gridHeight, playSwipe]
+  );
+
+  useEffect(() => {
+    if (!account || !nextQueuedMove || isQueueProcessing) {
+      return;
+    }
+
+    let cancelled = false;
+    const store = useMoveStore.getState();
+
+    const processQueuedMove = async () => {
+      store.setQueueProcessing(true);
+      store.markSubmitting(nextQueuedMove.id);
+      setIsTxProcessing(true);
+
       try {
         await move({
           account: account as Account,
           game_id: gameId,
-          row_index: gridHeight - 1 - rowIndex,
-          start_index: Math.trunc(startColIndex),
-          final_index: Math.trunc(finalColIndex),
+          row_index: nextQueuedMove.rowIndex,
+          start_index: nextQueuedMove.startIndex,
+          final_index: nextQueuedMove.finalIndex,
         });
+        if (cancelled) return;
+        store.markConfirmed(nextQueuedMove.id);
       } catch (error) {
-        console.error("Erreur lors de l'envoi de la transaction", error);
-        isProcessingRef.current = false; // Reset the ref
+        if (cancelled) return;
+        const message =
+          error instanceof Error ? error.message : "Move transaction failed.";
+        store.markFailed(nextQueuedMove.id, message);
+        store.clearQueueForGame(gameId);
+
+        setBlocks(initialData);
+        setSaveGridStateblocks(initialData);
+        setNextLine(nextLineData);
+        setLineExplodedCount(0);
+        setcurrentMove(null);
+        setGameState(GameState.WAITING);
+        setApplyData(false);
+        setOptimisticScore(score);
+        setOptimisticCombo(combo);
+        setOptimisticMaxCombo(maxCombo);
+
+        showToast({
+          type: "error",
+          message: "Move sync failed. Grid rolled back to chain state.",
+        });
       } finally {
-        isProcessingRef.current = false; // Reset the ref
+        if (!cancelled) {
+          store.setQueueProcessing(false);
+          setIsTxProcessing(false);
+        }
       }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [account, isMoving, gridHeight, move]
-  );
+    };
+
+    processQueuedMove();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    account,
+    nextQueuedMove,
+    isQueueProcessing,
+    move,
+    gameId,
+    initialData,
+    nextLineData,
+    score,
+    combo,
+    maxCombo,
+    setOptimisticScore,
+    setOptimisticCombo,
+    setOptimisticMaxCombo,
+    setIsTxProcessing,
+  ]);
 
   // Send the move transaction when the currentMove state is updated
   // Keep it in useEffect to avoid multiple trigger

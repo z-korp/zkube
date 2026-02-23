@@ -356,6 +356,28 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
+  const rerollDraft = async ({
+    account,
+    ...props
+  }: SystemTypes.DraftReroll) => {
+    await handleTransaction(
+      account,
+      () => client.draft.reroll({ account, ...props }),
+      "Draft rerolled.",
+    );
+  };
+
+  const selectDraft = async ({
+    account,
+    ...props
+  }: SystemTypes.DraftSelect) => {
+    await handleTransaction(
+      account,
+      () => client.draft.select({ account, ...props }),
+      "Draft choice selected.",
+    );
+  };
+
   return {
     // play
     freeMint,
@@ -370,5 +392,7 @@ export function systems({ client }: { client: IWorld }) {
     swapBonus,
     // quests
     claimQuest,
+    rerollDraft,
+    selectDraft,
   };
 }

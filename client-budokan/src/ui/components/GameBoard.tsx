@@ -88,7 +88,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         });
         playSfx("bonus-activate");
       } finally {
-        //setIsLoading(false);
+        setIsTxProcessing(false);
       }
     },
     [account, applyBonus, game.id, playSfx]

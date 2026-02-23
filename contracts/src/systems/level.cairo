@@ -42,6 +42,7 @@ mod level_system {
         GameLibsImpl, ICubeTokenDispatcherTrait, IGridSystemDispatcherTrait,
     };
     use zkube::helpers::level::{BossLevel, LevelGeneratorTrait};
+    use zkube::helpers::random::RandomImpl;
     use zkube::models::game::{Game, GameLevelTrait, GameSeed, GameTrait};
     use zkube::types::constraint::ConstraintType;
     use zkube::types::level::LevelConfigTrait;
@@ -179,10 +180,19 @@ mod level_system {
                     libs.cube.mint(player, cubes_to_mint);
                 }
             } else {
+                // Reseed from VRF/pseudo-random for the next level generation.
+                let next_seed_random = RandomImpl::from_vrf_enabled(base_seed.vrf_enabled);
+                let next_seed = next_seed_random.seed;
+
+                let next_game_seed = GameSeed {
+                    game_id, seed: next_seed, vrf_enabled: base_seed.vrf_enabled,
+                };
+                world.write_model(@next_game_seed);
+
                 // Generate next level config
                 let updated_run_data = game.get_run_data();
                 let next_level_config = LevelGeneratorTrait::generate(
-                    base_seed.seed, updated_run_data.current_level, settings,
+                    next_seed, updated_run_data.current_level, settings,
                 );
 
                 // Set no_bonus_constraint flag for the next level (any of the 3 constraints)

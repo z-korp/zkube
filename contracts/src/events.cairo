@@ -129,3 +129,44 @@ pub struct BonusUnlocked {
     pub bonus_type: u8, // 4=Wave, 5=Supply
     pub cost: u16 // CUBE spent
 }
+
+#[derive(Copy, Drop, Serde)]
+#[dojo::event(historical: true)]
+pub struct DraftOpened {
+    #[key]
+    pub game_id: u64,
+    #[key]
+    pub player: ContractAddress,
+    pub event_slot: u8,
+    pub event_type: u8,
+    pub trigger_level: u8,
+    pub zone: u8,
+    pub choice_1: u16,
+    pub choice_2: u16,
+    pub choice_3: u16,
+}
+
+#[derive(Copy, Drop, Serde)]
+#[dojo::event(historical: true)]
+pub struct DraftRerolled {
+    #[key]
+    pub game_id: u64,
+    #[key]
+    pub player: ContractAddress,
+    pub event_slot: u8,
+    pub reroll_slot: u8,
+    pub reroll_cost: u16,
+    pub new_choice: u16,
+}
+
+#[derive(Copy, Drop, Serde)]
+#[dojo::event(historical: true)]
+pub struct DraftSelected {
+    #[key]
+    pub game_id: u64,
+    #[key]
+    pub player: ContractAddress,
+    pub event_slot: u8,
+    pub selected_slot: u8,
+    pub selected_choice: u16,
+}

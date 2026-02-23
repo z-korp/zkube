@@ -21,6 +21,7 @@ pub use zkube::systems::achievement::{
 };
 pub use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
 pub use zkube::systems::cube_token::{ICubeTokenDispatcher, ICubeTokenDispatcherTrait};
+pub use zkube::systems::draft::{IDraftSystemDispatcher, IDraftSystemDispatcherTrait};
 pub use zkube::systems::grid::{IGridSystemDispatcher, IGridSystemDispatcherTrait};
 
 // Re-export dispatcher types and traits for convenience
@@ -32,6 +33,7 @@ pub use zkube::systems::quest::{IQuestSystemDispatcher, IQuestSystemDispatcherTr
 #[derive(Copy, Drop)]
 pub struct GameLibs {
     pub level: ILevelSystemDispatcher,
+    pub draft: IDraftSystemDispatcher,
     pub grid: IGridSystemDispatcher,
     pub cube: ICubeTokenDispatcher,
     pub quest: Option<IQuestSystemDispatcher>,
@@ -44,6 +46,7 @@ pub impl GameLibsImpl of GameLibsTrait {
     /// Performs DNS lookups for all required systems.
     fn new(world: WorldStorage) -> GameLibs {
         let level_addr = world.dns_address(@"level_system").expect('LevelSystem not found in DNS');
+        let draft_addr = world.dns_address(@"draft_system").expect('DraftSystem not found in DNS');
         let grid_addr = world.dns_address(@"grid_system").expect('GridSystem not found in DNS');
         let config_addr = world
             .dns_address(@"config_system")
@@ -67,6 +70,7 @@ pub impl GameLibsImpl of GameLibsTrait {
 
         GameLibs {
             level: ILevelSystemDispatcher { contract_address: level_addr },
+            draft: IDraftSystemDispatcher { contract_address: draft_addr },
             grid: IGridSystemDispatcher { contract_address: grid_addr },
             cube: ICubeTokenDispatcher { contract_address: cube_addr },
             quest,

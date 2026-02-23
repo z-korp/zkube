@@ -46,6 +46,7 @@ mod game_system {
     };
     use zkube::helpers::game_over;
     use zkube::helpers::random::RandomImpl;
+    use zkube::models::draft::{DraftState, DraftStateTrait};
     use zkube::models::game::{Game, GameAssert, GameSeed, GameTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
 
@@ -170,6 +171,7 @@ mod game_system {
 
             // Generate seed: use VRF if vrf_address is set, otherwise pseudo-random
             let vrf_addr = self.vrf_address.read();
+            let vrf_enabled = !vrf_addr.is_zero();
             let random = if vrf_addr.is_zero() {
                 RandomImpl::new_pseudo_random()
             } else {
@@ -184,8 +186,11 @@ mod game_system {
             let mut game = GameTrait::new_empty(game_id, timestamp);
 
             // Store the seed separately
-            let game_seed = GameSeed { game_id, seed: random.seed };
+            let game_seed = GameSeed { game_id, seed: random.seed, vrf_enabled };
             world.write_model(@game_seed);
+
+            let draft_state: DraftState = DraftStateTrait::new(game_id, random.seed);
+            world.write_model(@draft_state);
 
             // Initialize or update player meta
             let player = get_caller_address();
