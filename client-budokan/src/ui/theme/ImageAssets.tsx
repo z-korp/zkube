@@ -43,11 +43,11 @@ const ImageAssets = (theme: ThemeId) => {
     skillFocus: getCommonAssetPath("skills/skill-focus.png"),
     skillLegacy: getCommonAssetPath("skills/skill-legacy.png"),
     // Archetype header icons
-    archetypeCombo: getCommonAssetPath("archetypes/archetype-combo.png"),
-    archetypeScore: getCommonAssetPath("archetypes/archetype-score.png"),
-    archetypeHarvest: getCommonAssetPath("archetypes/archetype-harvest.png"),
-    archetypeWave: getCommonAssetPath("archetypes/archetype-wave.png"),
-    archetypeSupply: getCommonAssetPath("archetypes/archetype-supply.png"),
+    archetypeTempo: getCommonAssetPath("archetypes/archetype-tempo.png"),
+    archetypeScaling: getCommonAssetPath("archetypes/archetype-scaling.png"),
+    archetypeEconomy: getCommonAssetPath("archetypes/archetype-economy.png"),
+    archetypeControl: getCommonAssetPath("archetypes/archetype-control.png"),
+    archetypeRisk: getCommonAssetPath("archetypes/archetype-risk.png"),
   };
 };
 

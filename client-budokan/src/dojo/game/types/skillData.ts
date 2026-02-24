@@ -8,7 +8,7 @@ export interface SkillDefinition {
   branchB: string;
 }
 
-export type ArchetypeId = "combo" | "score" | "harvest" | "wave" | "supply";
+export type ArchetypeId = "tempo" | "economy" | "control" | "risk" | "scaling";
 
 export interface ArchetypeDefinition {
   id: ArchetypeId;
@@ -22,192 +22,192 @@ export interface ArchetypeDefinition {
 }
 
 export const SKILLS: Record<number, SkillDefinition> = {
-  // --- Combo Archetype ---
+  // --- Tempo Archetype (Combo, Tempo, Momentum) ---
   1: {
     id: 1,
     name: "Combo",
     category: "bonus",
-    archetype: "combo",
-    description: "Add combo to next move",
-    branchA: "Chain Master",
-    branchB: "Cascade",
-  },
-  8: {
-    id: 8,
-    name: "Surge",
-    category: "world",
-    archetype: "combo",
-    description: "Extra combo on line clears",
-    branchA: "Chain Lightning",
-    branchB: "Power Surge",
-  },
-  9: {
-    id: 9,
-    name: "Catalyst",
-    category: "world",
-    archetype: "combo",
-    description: "Score multiplier from combos",
-    branchA: "Amplifier",
-    branchB: "Resonance",
-  },
-  // --- Score Archetype ---
-  2: {
-    id: 2,
-    name: "Score",
-    category: "bonus",
-    archetype: "score",
-    description: "Add instant score",
-    branchA: "Multiplier",
-    branchB: "Burst",
-  },
-  11: {
-    id: 11,
-    name: "Focus",
-    category: "world",
-    archetype: "score",
-    description: "Score threshold reduction",
-    branchA: "Clarity",
-    branchB: "Insight",
-  },
-  15: {
-    id: 15,
-    name: "Legacy",
-    category: "world",
-    archetype: "score",
-    description: "Cube multiplier for the run",
-    branchA: "Dynasty",
-    branchB: "Heritage",
-  },
-  // --- Harvest Archetype ---
-  3: {
-    id: 3,
-    name: "Harvest",
-    category: "bonus",
-    archetype: "harvest",
-    description: "Destroy blocks and earn cubes",
-    branchA: "Reaper",
-    branchB: "Prospector",
-  },
-  7: {
-    id: 7,
-    name: "Fortune",
-    category: "world",
-    archetype: "harvest",
-    description: "Bonus cubes on level completion",
-    branchA: "Midas Touch",
-    branchB: "Lucky Strike",
-  },
-  13: {
-    id: 13,
-    name: "Momentum",
-    category: "world",
-    archetype: "harvest",
-    description: "Bonus charges from combos",
-    branchA: "Snowball",
-    branchB: "Perpetual Motion",
-  },
-  // --- Wave Archetype ---
-  4: {
-    id: 4,
-    name: "Wave",
-    category: "bonus",
-    archetype: "wave",
-    description: "Clear horizontal rows",
-    branchA: "Tsunami",
-    branchB: "Precision Strike",
-  },
-  12: {
-    id: 12,
-    name: "Expansion",
-    category: "world",
-    archetype: "wave",
-    description: "Start with pre-filled lines",
-    branchA: "Foundation",
-    branchB: "Scaffold",
-  },
-  14: {
-    id: 14,
-    name: "Adrenaline",
-    category: "world",
-    archetype: "wave",
-    description: "Power boost in final moves",
-    branchA: "Last Stand",
-    branchB: "Second Wind",
-  },
-  // --- Supply Archetype ---
-  5: {
-    id: 5,
-    name: "Supply",
-    category: "bonus",
-    archetype: "supply",
-    description: "Add lines without spending moves",
-    branchA: "Abundance",
-    branchB: "Tactical Reserve",
+    archetype: "tempo",
+    description: "Turn amplifier for combo depth",
+    branchA: "Burst",
+    branchB: "Sustain",
   },
   6: {
     id: 6,
     name: "Tempo",
     category: "world",
-    archetype: "supply",
-    description: "Bonus moves per level",
+    archetype: "tempo",
+    description: "Move flow and refunds",
     branchA: "Allegro",
     branchB: "Adagio",
+  },
+  13: {
+    id: 13,
+    name: "Momentum",
+    category: "world",
+    archetype: "tempo",
+    description: "Consecutive clear value",
+    branchA: "Snowball",
+    branchB: "Perpetual Motion",
+  },
+  // --- Scaling Archetype (Score, Surge, Legacy) ---
+  2: {
+    id: 2,
+    name: "Score",
+    category: "bonus",
+    archetype: "scaling",
+    description: "Direct score injection",
+    branchA: "Chain",
+    branchB: "Finisher",
+  },
+  8: {
+    id: 8,
+    name: "Surge",
+    category: "world",
+    archetype: "scaling",
+    description: "Score multiplier (hard capped)",
+    branchA: "Chain Lightning",
+    branchB: "Power Surge",
+  },
+  15: {
+    id: 15,
+    name: "Legacy",
+    category: "world",
+    archetype: "scaling",
+    description: "Linear long-run scaling",
+    branchA: "Dynasty",
+    branchB: "Heritage",
+  },
+  // --- Economy Archetype (Harvest, Fortune, Catalyst) ---
+  3: {
+    id: 3,
+    name: "Harvest",
+    category: "bonus",
+    archetype: "economy",
+    description: "Targeted block destruction and cube gain",
+    branchA: "Control",
+    branchB: "Economy",
+  },
+  7: {
+    id: 7,
+    name: "Fortune",
+    category: "world",
+    archetype: "economy",
+    description: "Level and clear cube amplification",
+    branchA: "Midas Touch",
+    branchB: "Lucky Strike",
+  },
+  9: {
+    id: 9,
+    name: "Catalyst",
+    category: "world",
+    archetype: "economy",
+    description: "Combo threshold and reward tuning",
+    branchA: "Amplifier",
+    branchB: "Resonance",
+  },
+  // --- Control Archetype (Wave, Focus, Expansion) ---
+  4: {
+    id: 4,
+    name: "Wave",
+    category: "bonus",
+    archetype: "control",
+    description: "Row clear reset tool",
+    branchA: "Tsunami",
+    branchB: "Ripple",
+  },
+  11: {
+    id: 11,
+    name: "Focus",
+    category: "world",
+    archetype: "control",
+    description: "Constraint acceleration",
+    branchA: "Clarity",
+    branchB: "Insight",
+  },
+  12: {
+    id: 12,
+    name: "Expansion",
+    category: "world",
+    archetype: "control",
+    description: "Easier generated lines",
+    branchA: "Foundation",
+    branchB: "Scaffold",
+  },
+  // --- Risk Archetype (Supply, Adrenaline, Resilience) ---
+  5: {
+    id: 5,
+    name: "Supply",
+    category: "bonus",
+    archetype: "risk",
+    description: "Line injection and board shaping",
+    branchA: "Builder",
+    branchB: "Pressure",
+  },
+  14: {
+    id: 14,
+    name: "Adrenaline",
+    category: "world",
+    archetype: "risk",
+    description: "High-grid risk reward",
+    branchA: "Last Stand",
+    branchB: "Second Wind",
   },
   10: {
     id: 10,
     name: "Resilience",
     category: "world",
-    archetype: "supply",
-    description: "Relaxed constraint requirements",
+    archetype: "risk",
+    description: "Free-move safety budget",
     branchA: "Fortress",
     branchB: "Flexibility",
   },
 };
 
 export const ARCHETYPES: Record<ArchetypeId, ArchetypeDefinition> = {
-  combo: {
-    id: "combo",
-    name: "Combo",
+  tempo: {
+    id: "tempo",
+    name: "Tempo",
     color: "#9B59B6",
-    description: "Chain reactions and cascade mastery",
+    description: "Move flow and chain pacing",
     bonusSkillId: 1,
-    skillIds: [1, 8, 9],
+    skillIds: [1, 6, 13],
   },
-  score: {
-    id: "score",
-    name: "Score",
+  scaling: {
+    id: "scaling",
+    name: "Scaling",
     color: "#F1C40F",
-    description: "Precision scoring and reward maximization",
+    description: "Late-run growth",
     bonusSkillId: 2,
-    skillIds: [2, 11, 15],
+    skillIds: [2, 8, 15],
   },
-  harvest: {
-    id: "harvest",
-    name: "Harvest",
+  economy: {
+    id: "economy",
+    name: "Economy",
     color: "#1ABC9C",
-    description: "Resource gathering and cube economy",
+    description: "Cube amplification",
     bonusSkillId: 3,
-    skillIds: [3, 7, 13],
+    skillIds: [3, 7, 9],
   },
-  wave: {
-    id: "wave",
-    name: "Wave",
+  control: {
+    id: "control",
+    name: "Control",
     color: "#3498DB",
-    description: "Destructive force and board manipulation",
+    description: "Board and constraint control",
     bonusSkillId: 4,
-    skillIds: [4, 12, 14],
+    skillIds: [4, 11, 12],
   },
-  supply: {
-    id: "supply",
-    name: "Supply",
-    color: "#2ECC71",
-    description: "Tactical endurance and resource management",
+  risk: {
+    id: "risk",
+    name: "Risk",
+    color: "#E74C3C",
+    description: "High-pressure burst",
     bonusSkillId: 5,
-    skillIds: [5, 6, 10],
+    skillIds: [5, 14, 10],
   },
 };
 
-export const ARCHETYPE_ORDER: ArchetypeId[] = ["combo", "score", "harvest", "wave", "supply"];
+export const ARCHETYPE_ORDER: ArchetypeId[] = ["tempo", "scaling", "economy", "control", "risk"];
 
 export function getSkillName(skillId: number): string {
   return SKILLS[skillId]?.name ?? `Skill ${skillId}`;

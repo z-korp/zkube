@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import type { Swiper as SwiperType } from "swiper";
+import "swiper/css";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { useSkillTree } from "@/hooks/useSkillTree";
@@ -10,12 +13,18 @@ import {
   ARCHETYPES,
   ARCHETYPE_ORDER,
   getSkillTier,
+  getSkillsByArchetype,
+  type ArchetypeId,
 } from "@/dojo/game/types/skillData";
 import { SKILL_TREE_COSTS } from "@/dojo/game/helpers/runDataPacking";
+import { getCommonAssetPath } from "@/config/themes";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import GameButton from "@/ui/components/shared/GameButton";
-import ArchetypeColumn from "@/ui/components/SkillTree/ArchetypeColumn";
+import SkillNode from "@/ui/components/SkillTree/SkillNode";
 import { TooltipProvider } from "@/ui/elements/tooltip";
+
+/** Gap between skill node centers for the connecting SVG lines */
+const NODE_GAP = 88;
 
 const SkillTreePage: React.FC = () => {
   const goBack = useNavigationStore((s) => s.goBack);
@@ -26,8 +35,10 @@ const SkillTreePage: React.FC = () => {
     setup: { systemCalls },
   } = useDojo();
 
+  const [activeIndex, setActiveIndex] = useState(0);
   const [selectedSkillId, setSelectedSkillId] = useState<number | null>(null);
   const [busySkillId, setBusySkillId] = useState<number | null>(null);
+  const swiperRef = useRef<SwiperType | null>(null);
 
   const cubeBalanceNumber = Number(cubeBalance);
 
@@ -37,14 +48,26 @@ const SkillTreePage: React.FC = () => {
     branchId: 0,
   }));
 
+  const activeArchetypeId = ARCHETYPE_ORDER[activeIndex];
+  const activeArchetype = ARCHETYPES[activeArchetypeId];
+
   const selectedSkill = selectedSkillId ? SKILLS[selectedSkillId] : null;
   const selectedTreeInfo = selectedSkillId
     ? skills[selectedSkillId - 1]
     : null;
 
-  const handleSkillClick = (skillId: number) => {
+  const handleSkillClick = useCallback((skillId: number) => {
     setSelectedSkillId((prev) => (prev === skillId ? null : skillId));
-  };
+  }, []);
+
+  const handleSlideChange = useCallback((swiper: SwiperType) => {
+    setActiveIndex(swiper.activeIndex);
+    setSelectedSkillId(null); // deselect when changing archetype
+  }, []);
+
+  const handleArchetypePillClick = useCallback((idx: number) => {
+    swiperRef.current?.slideTo(idx);
+  }, []);
 
   const handleUpgrade = async () => {
     if (!account || !selectedSkillId || !selectedTreeInfo) return;
@@ -101,48 +124,215 @@ const SkillTreePage: React.FC = () => {
     <div className="h-screen-viewport flex flex-col text-white">
       <PageTopBar title="SKILL TREE" onBack={goBack} cubeBalance={cubeBalance} />
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="flex flex-col min-h-full">
-          {/* Skill tree columns */}
-          <TooltipProvider delayDuration={300}>
-            <div className="flex-1 overflow-x-auto px-2 py-4">
-              <div className="flex gap-3 md:gap-5 xl:gap-8 justify-start xl:justify-center min-w-max px-4 md:px-6">
-                {ARCHETYPE_ORDER.map((archetypeId, idx) => (
-                  <ArchetypeColumn
-                    key={archetypeId}
-                    archetypeId={archetypeId}
-                    skills={skills}
-                    selectedSkillId={selectedSkillId}
-                    busySkillId={busySkillId}
-                    onSkillClick={handleSkillClick}
-                    index={idx}
-                  />
-                ))}
-              </div>
-            </div>
-          </TooltipProvider>
+      {/* Archetype pills navigation */}
+      <div className="flex items-center justify-center gap-1.5 px-3 py-2">
+        {ARCHETYPE_ORDER.map((archId, idx) => {
+          const arch = ARCHETYPES[archId];
+          const isActive = idx === activeIndex;
+          return (
+            <button
+              key={archId}
+              type="button"
+              onClick={() => handleArchetypePillClick(idx)}
+              className={`px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all ${
+                isActive
+                  ? "text-white scale-105"
+                  : "text-slate-400 bg-slate-800/60 hover:bg-slate-700/60"
+              }`}
+              style={
+                isActive
+                  ? {
+                      backgroundColor: arch.color + "33",
+                      color: arch.color,
+                      border: `1px solid ${arch.color}66`,
+                    }
+                  : { border: "1px solid transparent" }
+              }
+            >
+              {arch.name}
+            </button>
+          );
+        })}
+      </div>
 
-          {/* Detail / action panel */}
-          <AnimatePresence mode="wait">
-            {selectedSkill && selectedTreeInfo && (
-              <SkillDetailPanel
-                skill={selectedSkill}
-                treeInfo={selectedTreeInfo}
-                cubeBalance={cubeBalanceNumber}
-                isBusy={busySkillId === selectedSkillId}
-                onUpgrade={handleUpgrade}
-                onChooseBranch={handleChooseBranch}
-                onRespec={handleRespec}
-                onClose={() => setSelectedSkillId(null)}
-              />
-            )}
-          </AnimatePresence>
+      {/* Swiper carousel — one archetype per slide */}
+      <div className="flex-1 overflow-hidden flex flex-col">
+        <TooltipProvider delayDuration={300}>
+          <Swiper
+            slidesPerView={1}
+            spaceBetween={0}
+            onSwiper={(swiper) => {
+              swiperRef.current = swiper;
+            }}
+            onSlideChange={handleSlideChange}
+            className="flex-1 w-full"
+          >
+            {ARCHETYPE_ORDER.map((archetypeId) => (
+              <SwiperSlide key={archetypeId}>
+                <ArchetypeSlide
+                  archetypeId={archetypeId}
+                  skills={skills}
+                  selectedSkillId={selectedSkillId}
+                  busySkillId={busySkillId}
+                  onSkillClick={handleSkillClick}
+                />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </TooltipProvider>
 
-          {/* Back button */}
-          <div className="px-4 pb-4 pt-2 max-w-[420px] mx-auto w-full">
-            <GameButton label="BACK" variant="secondary" onClick={goBack} />
-          </div>
+        {/* Detail / action panel */}
+        <AnimatePresence mode="wait">
+          {selectedSkill && selectedTreeInfo && (
+            <SkillDetailPanel
+              skill={selectedSkill}
+              treeInfo={selectedTreeInfo}
+              cubeBalance={cubeBalanceNumber}
+              isBusy={busySkillId === selectedSkillId}
+              onUpgrade={handleUpgrade}
+              onChooseBranch={handleChooseBranch}
+              onRespec={handleRespec}
+              onClose={() => setSelectedSkillId(null)}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Back button */}
+        <div className="px-4 pb-4 pt-2 max-w-[420px] mx-auto w-full">
+          <GameButton label="BACK" variant="secondary" onClick={goBack} />
         </div>
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Archetype Slide — shows one archetype with its 3 skills
+// ---------------------------------------------------------------------------
+
+interface ArchetypeSlideProps {
+  archetypeId: ArchetypeId;
+  skills: { level: number; branchChosen: boolean; branchId: number }[];
+  selectedSkillId: number | null;
+  busySkillId: number | null;
+  onSkillClick: (skillId: number) => void;
+}
+
+const ArchetypeSlide: React.FC<ArchetypeSlideProps> = ({
+  archetypeId,
+  skills,
+  selectedSkillId,
+  busySkillId,
+  onSkillClick,
+}) => {
+  const archetype = ARCHETYPES[archetypeId];
+  const archetypeSkills = getSkillsByArchetype(archetypeId);
+  const iconSrc = getCommonAssetPath(`archetypes/archetype-${archetypeId}.png`);
+
+  return (
+    <div className="h-full overflow-y-auto px-4 py-4 flex flex-col items-center">
+      {/* Archetype header */}
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+        className="flex flex-col items-center gap-2 mb-6"
+      >
+        <div
+          className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden border-2"
+          style={{ borderColor: archetype.color + "66" }}
+        >
+          <img
+            src={iconSrc}
+            alt={archetype.name}
+            className="w-full h-full object-cover"
+            draggable={false}
+          />
+        </div>
+        <h2
+          className="font-['Fredericka_the_Great'] text-2xl md:text-3xl"
+          style={{ color: archetype.color }}
+        >
+          {archetype.name}
+        </h2>
+        <p className="text-xs md:text-sm text-slate-400 text-center max-w-[280px]">
+          {archetype.description}
+        </p>
+      </motion.div>
+
+      {/* Skill nodes with connecting lines */}
+      <div className="relative flex flex-col items-center">
+        {archetypeSkills.map((skill, idx) => {
+          const treeInfo = skills[skill.id - 1] ?? {
+            level: 0,
+            branchChosen: false,
+            branchId: 0,
+          };
+          const nextSkill = archetypeSkills[idx + 1];
+          const nextTreeInfo = nextSkill
+            ? skills[nextSkill.id - 1] ?? {
+                level: 0,
+                branchChosen: false,
+                branchId: 0,
+              }
+            : null;
+
+          return (
+            <motion.div
+              key={skill.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: idx * 0.1,
+                duration: 0.35,
+                ease: "easeOut",
+              }}
+              className="relative flex flex-col items-center"
+              style={{ marginTop: idx === 0 ? 0 : `${NODE_GAP - 70}px` }}
+            >
+              {/* SVG connection line to NEXT node */}
+              {nextSkill && nextTreeInfo && (
+                <svg
+                  className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+                  style={{
+                    top: "64px",
+                    width: "2px",
+                    height: `${NODE_GAP - 30}px`,
+                  }}
+                  viewBox={`0 0 2 ${NODE_GAP - 30}`}
+                  preserveAspectRatio="none"
+                >
+                  <line
+                    x1="1"
+                    y1="0"
+                    x2="1"
+                    y2={NODE_GAP - 30}
+                    stroke={archetype.color}
+                    strokeWidth="2"
+                    strokeOpacity={nextTreeInfo.level > 0 ? 0.8 : 0.2}
+                    strokeDasharray={
+                      nextTreeInfo.level > 0 ? "none" : "4 4"
+                    }
+                  />
+                </svg>
+              )}
+
+              <SkillNode
+                skillId={skill.id}
+                treeInfo={treeInfo}
+                isSelected={selectedSkillId === skill.id}
+                isBusy={busySkillId === skill.id}
+                isRoot={idx === 0}
+                onClick={onSkillClick}
+              />
+
+              {/* Skill description below each node */}
+              <p className="mt-1 text-[10px] text-slate-500 text-center max-w-[160px] leading-tight">
+                {skill.description}
+              </p>
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
