@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import { motion } from "motion/react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
@@ -16,12 +16,16 @@ import {
   getSkillTier,
   getSkillsByArchetype,
   type ArchetypeId,
+  type SkillDefinition,
 } from "@/dojo/game/types/skillData";
 import { SKILL_TREE_COSTS } from "@/dojo/game/helpers/runDataPacking";
 import { getCommonAssetPath } from "@/config/themes";
 import { getSkillTierIconPath } from "@/ui/theme/ImageAssets";
 import PageTopBar from "@/ui/navigation/PageTopBar";
-import GameButton from "@/ui/components/shared/GameButton";
+
+/* ------------------------------------------------------------------ */
+/*  Constants                                                          */
+/* ------------------------------------------------------------------ */
 
 /** Format cost for display */
 function fmtCost(cost: number): string {
@@ -29,10 +33,44 @@ function fmtCost(cost: number): string {
   return String(cost);
 }
 
-/** Node size in px */
-const NODE = 42;
-/** Gap between branch sub-columns */
-const BRANCH_GAP = 6;
+// SVG viewBox dimensions
+const VB_W = 100;
+const VB_H = 130;
+
+// Node radii (SVG units)
+const R_CORE = 4.2;
+const R_BRANCH = 3.4;
+
+// Column X positions (3 skill columns)
+const COL_X = [17, 50, 83];
+// Branch offsets from column center
+const BRANCH_OFF = 5.5;
+
+// Row Y positions — 9 rows
+const ROW_START_Y = 14;
+const ROW_GAP = 12;
+
+function rowY(row: number): number {
+  return ROW_START_Y + row * ROW_GAP;
+}
+
+// Badge for cost/level label
+const BADGE_R = 2.0;
+const BADGE_FONT = 1.5;
+
+/* ------------------------------------------------------------------ */
+/*  Skill Info type                                                    */
+/* ------------------------------------------------------------------ */
+
+interface SkillInfo {
+  level: number;
+  branchChosen: boolean;
+  branchId: number;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main component                                                     */
+/* ------------------------------------------------------------------ */
 
 const SkillTreePage: React.FC = () => {
   const goBack = useNavigationStore((s) => s.goBack);
@@ -49,7 +87,7 @@ const SkillTreePage: React.FC = () => {
 
   const cubeBalanceNumber = Number(cubeBalance);
 
-  const skills = skillTree?.skills ?? Array.from({ length: 15 }, () => ({
+  const skills: SkillInfo[] = skillTree?.skills ?? Array.from({ length: 15 }, () => ({
     level: 0,
     branchChosen: false,
     branchId: 0,
@@ -155,22 +193,18 @@ const SkillTreePage: React.FC = () => {
             </SwiperSlide>
           ))}
         </Swiper>
-
-        <div className="px-4 pb-4 pt-2 max-w-[420px] mx-auto w-full">
-          <GameButton label="BACK" variant="secondary" onClick={goBack} />
-        </div>
       </div>
     </div>
   );
 };
 
-// ---------------------------------------------------------------------------
-// Tree Slide — the full 3-column × 9-row grid
-// ---------------------------------------------------------------------------
+/* ------------------------------------------------------------------ */
+/*  TreeSlide — SVG-based skill tree inside a dark panel               */
+/* ------------------------------------------------------------------ */
 
 interface TreeSlideProps {
   archetypeId: ArchetypeId;
-  skills: { level: number; branchChosen: boolean; branchId: number }[];
+  skills: SkillInfo[];
   busySkillId: number | null;
   cubeBalance: number;
   onUpgrade: (skillId: number) => void;
@@ -191,18 +225,19 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
   const archetypeSkills = getSkillsByArchetype(archetypeId);
   const iconSrc = getCommonAssetPath(`archetypes/archetype-${archetypeId}.png`);
 
-  // 9 rows: rows 0-3 = core (single), rows 4-8 = branch (forked)
-  // Row N represents upgrading from level N to level N+1
-  const rows = Array.from({ length: 9 }, (_, i) => i);
+  // Build all SVG node/path data
+  const treeData = useMemo(() => {
+    return buildTreeData(archetypeSkills, skills, archetype.color, cubeBalance);
+  }, [archetypeSkills, skills, archetype.color, cubeBalance]);
 
   return (
-    <div className="h-full overflow-y-auto px-2 py-3">
+    <div className="h-full overflow-y-auto px-2 py-2">
       {/* Archetype header */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        className="flex items-center gap-2.5 mb-3 max-w-[400px] mx-auto px-2"
+        className="flex items-center gap-2.5 mb-2 max-w-[440px] mx-auto px-2"
       >
         <div
           className="w-10 h-10 rounded-lg overflow-hidden border-2 flex-shrink-0"
@@ -218,353 +253,495 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
         </div>
       </motion.div>
 
-      {/* Column headers: skill names */}
-      <div className="grid grid-cols-3 gap-1 max-w-[400px] mx-auto mb-2 px-1">
-        {archetypeSkills.map((skill) => (
-          <div key={skill.id} className="text-center">
-            <span className="text-[10px] font-semibold text-slate-300">{skill.name}</span>
-            <span className="text-[8px] text-slate-600 ml-1">
+      {/* Dark panel with SVG tree */}
+      <div className="mx-auto max-w-[440px] rounded-2xl border border-slate-700/50 bg-slate-900/90 p-2 overflow-hidden">
+        <svg
+          viewBox={`0 0 ${VB_W} ${VB_H}`}
+          preserveAspectRatio="xMidYMid meet"
+          className="w-full h-auto"
+        >
+          {/* Pulse animation for available nodes */}
+          <defs>
+            <style>{`
+              @keyframes node-pulse {
+                0%, 100% { opacity: 0.3; }
+                50% { opacity: 0.8; }
+              }
+              .skill-node-pulse {
+                animation: node-pulse 2s ease-in-out infinite;
+              }
+            `}</style>
+          </defs>
+
+          {/* Skill name labels at top */}
+          {archetypeSkills.map((skill, colIdx) => (
+            <text
+              key={`label-${skill.id}`}
+              x={COL_X[colIdx]}
+              y={ROW_START_Y - 7}
+              textAnchor="middle"
+              fill="#cbd5e1"
+              fontSize={2.8}
+              fontWeight="bold"
+              fontFamily="system-ui, sans-serif"
+            >
+              {skill.name}
+            </text>
+          ))}
+
+          {/* Category sub-label */}
+          {archetypeSkills.map((skill, colIdx) => (
+            <text
+              key={`cat-${skill.id}`}
+              x={COL_X[colIdx]}
+              y={ROW_START_Y - 4}
+              textAnchor="middle"
+              fill="#475569"
+              fontSize={1.8}
+              fontFamily="system-ui, sans-serif"
+            >
               {skill.category === "bonus" ? "Active" : "World"}
-            </span>
-          </div>
-        ))}
-      </div>
+            </text>
+          ))}
 
-      {/* The grid: 3 columns × 9 rows */}
-      <div className="max-w-[400px] mx-auto">
-        {rows.map((rowIdx) => {
-          const isBranch = rowIdx >= 4;
-          const cost = SKILL_TREE_COSTS[rowIdx];
-          const targetLevel = rowIdx + 1; // upgrading TO this level
+          {/* Paths (render behind nodes) */}
+          {treeData.paths.map((p, i) => (
+            <path
+              key={`path-${i}`}
+              d={p.d}
+              fill="none"
+              stroke={p.color}
+              strokeWidth={p.strokeWidth}
+              strokeLinecap="round"
+              opacity={p.opacity}
+            />
+          ))}
 
-          return (
-            <div key={rowIdx}>
-              {/* The 3-column row */}
-              <div className="grid grid-cols-3 gap-1 px-1">
-                {archetypeSkills.map((skill) => {
-                  const info = skills[skill.id - 1] ?? { level: 0, branchChosen: false, branchId: 0 };
-
-                  if (!isBranch) {
-                    // Core path: single node
-                    return (
-                      <CoreNode
-                        key={skill.id}
-                        skill={skill}
-                        info={info}
-                        targetLevel={targetLevel}
-                        cost={cost}
-                        color={archetype.color}
-                        cubeBalance={cubeBalance}
-                        isBusy={busySkillId === skill.id}
-                        onUpgrade={() => onUpgrade(skill.id)}
-                      />
-                    );
-                  }
-
-                  // Branch path: two sub-nodes (A / B)
-                  return (
-                    <BranchRow
-                      key={skill.id}
-                      skill={skill}
-                      info={info}
-                      targetLevel={targetLevel}
-                      rowIdx={rowIdx}
-                      cost={cost}
-                      color={archetype.color}
-                      cubeBalance={cubeBalance}
-                      isBusy={busySkillId === skill.id}
-                      onUpgrade={() => onUpgrade(skill.id)}
-                      onBranch={(b) => onBranch(skill.id, b)}
-                      onRespec={() => onRespec(skill.id)}
-                    />
-                  );
-                })}
-              </div>
-
-              {/* Connecting lines between rows */}
-              {rowIdx < 8 && (
-                <div className="grid grid-cols-3 gap-1 px-1">
-                  {archetypeSkills.map((skill) => {
-                    const info = skills[skill.id - 1] ?? { level: 0, branchChosen: false, branchId: 0 };
-                    const nextIsBranch = rowIdx + 1 >= 4;
-                    const lit = info.level > targetLevel;
-
-                    if (!isBranch && !nextIsBranch) {
-                      // Single → single
-                      return (
-                        <div key={skill.id} className="flex justify-center py-0.5">
-                          <div className="w-[2px] h-3" style={{ backgroundColor: archetype.color, opacity: lit ? 0.6 : 0.12 }} />
-                        </div>
-                      );
-                    }
-
-                    if (!isBranch && nextIsBranch) {
-                      // Single → fork (row 3 → row 4)
-                      return (
-                        <div key={skill.id} className="flex justify-center py-0.5">
-                          <svg width={NODE * 2 + BRANCH_GAP} height="14" className="overflow-visible">
-                            <line x1={(NODE * 2 + BRANCH_GAP) / 2} y1="0" x2={(NODE - BRANCH_GAP) / 2 + BRANCH_GAP / 2} y2="14"
-                              stroke={archetype.color} strokeWidth="1.5" strokeOpacity={lit ? 0.5 : 0.12} />
-                            <line x1={(NODE * 2 + BRANCH_GAP) / 2} y1="0" x2={NODE + BRANCH_GAP + (NODE - BRANCH_GAP) / 2 + BRANCH_GAP / 2} y2="14"
-                              stroke={archetype.color} strokeWidth="1.5" strokeOpacity={lit ? 0.5 : 0.12} />
-                          </svg>
-                        </div>
-                      );
-                    }
-
-                    // Branch → branch
-                    const litA = info.branchChosen && info.branchId === 0 && info.level > targetLevel;
-                    const litB = info.branchChosen && info.branchId === 1 && info.level > targetLevel;
-                    return (
-                      <div key={skill.id} className="flex justify-center py-0.5">
-                        <div className="flex gap-[6px]" style={{ width: NODE * 2 + BRANCH_GAP }}>
-                          <div className="flex-1 flex justify-center">
-                            <div className="w-[2px] h-3" style={{ backgroundColor: archetype.color, opacity: litA ? 0.5 : 0.1 }} />
-                          </div>
-                          <div className="flex-1 flex justify-center">
-                            <div className="w-[2px] h-3" style={{ backgroundColor: archetype.color, opacity: litB ? 0.5 : 0.1 }} />
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+          {/* Nodes */}
+          {treeData.nodes.map((node) => (
+            <SvgNode
+              key={node.key}
+              node={node}
+              isBusy={busySkillId === node.skillId}
+              onUpgrade={onUpgrade}
+              onBranch={onBranch}
+              onRespec={onRespec}
+            />
+          ))}
+        </svg>
       </div>
     </div>
   );
 };
 
-// ---------------------------------------------------------------------------
-// Core Node — single node for levels 1-4
-// ---------------------------------------------------------------------------
+/* ------------------------------------------------------------------ */
+/*  SVG Node rendering                                                 */
+/* ------------------------------------------------------------------ */
 
-interface CoreNodeProps {
-  skill: { id: number; name: string };
-  info: { level: number; branchChosen: boolean; branchId: number };
-  targetLevel: number;
-  cost: number;
-  color: string;
-  cubeBalance: number;
-  isBusy: boolean;
-  onUpgrade: () => void;
-}
-
-const CoreNode: React.FC<CoreNodeProps> = ({ skill, info, targetLevel, cost, color, cubeBalance, isBusy, onUpgrade }) => {
-  const unlocked = info.level >= targetLevel;
-  const isNext = info.level === targetLevel - 1 && (targetLevel <= 4 || info.branchChosen);
-  const canAfford = cubeBalance >= cost;
-  const tier = getSkillTier(unlocked ? targetLevel : Math.max(0, targetLevel - 1));
-  const iconSrc = getSkillTierIconPath(SKILLS[skill.id].name, tier);
-
-  return (
-    <div className="flex flex-col items-center">
-      <TreeNode
-        iconSrc={iconSrc}
-        unlocked={unlocked}
-        isNext={isNext}
-        canAfford={canAfford}
-        isBusy={isBusy}
-        color={color}
-        onClick={isNext && canAfford ? onUpgrade : undefined}
-      />
-      <span className={`text-[8px] mt-0.5 ${unlocked ? "text-slate-300" : isNext ? "text-slate-400" : "text-slate-600"}`}>
-        {unlocked ? `Lv.${targetLevel}` : fmtCost(cost)}
-      </span>
-    </div>
-  );
-};
-
-// ---------------------------------------------------------------------------
-// Branch Row — two sub-nodes (A / B) for levels 5-9
-// ---------------------------------------------------------------------------
-
-interface BranchRowProps {
-  skill: { id: number; name: string; branchA: string; branchB: string };
-  info: { level: number; branchChosen: boolean; branchId: number };
-  targetLevel: number;
-  rowIdx: number;
-  cost: number;
-  color: string;
-  cubeBalance: number;
-  isBusy: boolean;
-  onUpgrade: () => void;
-  onBranch: (b: number) => void;
-  onRespec: () => void;
-}
-
-const BranchRow: React.FC<BranchRowProps> = ({ skill, info, targetLevel, rowIdx, cost, color, cubeBalance, isBusy, onUpgrade, onBranch }) => {
-  const canAfford = cubeBalance >= cost;
-  const skillDef = SKILLS[skill.id];
-
-  // At the fork point (row 4 = level 5), if branch not chosen yet, both are clickable choices
-  const isForkRow = rowIdx === 4;
-  const needsChoice = isForkRow && info.level === 4 && !info.branchChosen;
-
-  const nodeA = (() => {
-    if (needsChoice) {
-      // Both branches available to choose
-      return { unlocked: false, isNext: true, canAfford, disabled: false };
-    }
-    const chose = info.branchChosen;
-    const isA = info.branchId === 0;
-    const unlocked = chose && isA && info.level >= targetLevel;
-    const isNext = chose && isA && info.level === targetLevel - 1;
-    const wrongBranch = chose && !isA;
-    return { unlocked, isNext: isNext && !wrongBranch, canAfford: canAfford && !wrongBranch, disabled: wrongBranch };
-  })();
-
-  const nodeB = (() => {
-    if (needsChoice) {
-      return { unlocked: false, isNext: true, canAfford, disabled: false };
-    }
-    const chose = info.branchChosen;
-    const isB = info.branchId === 1;
-    const unlocked = chose && isB && info.level >= targetLevel;
-    const isNext = chose && isB && info.level === targetLevel - 1;
-    const wrongBranch = chose && !isB;
-    return { unlocked, isNext: isNext && !wrongBranch, canAfford: canAfford && !wrongBranch, disabled: wrongBranch };
-  })();
-
-  const tierA = getSkillTier(nodeA.unlocked ? targetLevel : Math.max(0, targetLevel - 1));
-  const tierB = getSkillTier(nodeB.unlocked ? targetLevel : Math.max(0, targetLevel - 1));
-
-  const handleClickA = () => {
-    if (needsChoice && canAfford) onBranch(0);
-    else if (nodeA.isNext && nodeA.canAfford) onUpgrade();
-  };
-
-  const handleClickB = () => {
-    if (needsChoice && canAfford) onBranch(1);
-    else if (nodeB.isNext && nodeB.canAfford) onUpgrade();
-  };
-
-  const costLabel = fmtCost(cost);
-
-  return (
-    <div className="flex flex-col items-center">
-      <div className="flex gap-[6px]" style={{ width: NODE * 2 + BRANCH_GAP }}>
-        {/* Branch A */}
-        <div className="flex flex-col items-center flex-1">
-          <TreeNode
-            iconSrc={getSkillTierIconPath(skillDef.name, tierA)}
-            unlocked={nodeA.unlocked}
-            isNext={nodeA.isNext}
-            canAfford={nodeA.canAfford}
-            isBusy={isBusy}
-            color={nodeA.disabled ? "#334155" : color}
-            dimmed={nodeA.disabled}
-            onClick={nodeA.isNext && nodeA.canAfford ? handleClickA : undefined}
-            label={isForkRow ? "A" : undefined}
-          />
-        </div>
-        {/* Branch B */}
-        <div className="flex flex-col items-center flex-1">
-          <TreeNode
-            iconSrc={getSkillTierIconPath(skillDef.name, tierB)}
-            unlocked={nodeB.unlocked}
-            isNext={nodeB.isNext}
-            canAfford={nodeB.canAfford}
-            isBusy={isBusy}
-            color={nodeB.disabled ? "#334155" : color}
-            dimmed={nodeB.disabled}
-            onClick={nodeB.isNext && nodeB.canAfford ? handleClickB : undefined}
-            label={isForkRow ? "B" : undefined}
-          />
-        </div>
-      </div>
-      <span className={`text-[8px] mt-0.5 ${nodeA.unlocked || nodeB.unlocked ? "text-slate-300" : nodeA.isNext || nodeB.isNext ? "text-slate-400" : "text-slate-600"}`}>
-        {nodeA.unlocked || nodeB.unlocked ? `Lv.${targetLevel}` : costLabel}
-      </span>
-    </div>
-  );
-};
-
-// ---------------------------------------------------------------------------
-// TreeNode — the actual square icon node
-// ---------------------------------------------------------------------------
-
-interface TreeNodeProps {
+interface TreeNodeData {
+  key: string;
+  cx: number;
+  cy: number;
+  r: number;
   iconSrc: string;
+  skillId: number;
+  targetLevel: number;
   unlocked: boolean;
   isNext: boolean;
   canAfford: boolean;
-  isBusy: boolean;
+  dimmed: boolean;
   color: string;
-  dimmed?: boolean;
-  onClick?: () => void;
-  label?: string;
+  borderColor: string;
+  borderWidth: number;
+  nodeOpacity: number;
+  iconOpacity: number;
+  iconFilter: string;
+  label: string;
+  badgeLabel: string;
+  badgeColor: string;
+  action: "upgrade" | "branchA" | "branchB" | "none";
 }
 
-const TreeNode: React.FC<TreeNodeProps> = ({ iconSrc, unlocked, isNext, canAfford, isBusy, color, dimmed, onClick, label }) => {
-  const clickable = isNext && canAfford && !isBusy && onClick;
+interface PathData {
+  d: string;
+  color: string;
+  strokeWidth: number;
+  opacity: number;
+}
+
+interface SvgNodeProps {
+  node: TreeNodeData;
+  isBusy: boolean;
+  onUpgrade: (skillId: number) => void;
+  onBranch: (skillId: number, branch: number) => void;
+  onRespec: (skillId: number) => void;
+}
+
+const SvgNode: React.FC<SvgNodeProps> = ({ node, isBusy, onUpgrade, onBranch }) => {
+  const clickable = node.isNext && node.canAfford && !isBusy && node.action !== "none";
+  const clipId = `clip-${node.key}`;
+
+  const handleClick = () => {
+    if (!clickable) return;
+    if (node.action === "upgrade") onUpgrade(node.skillId);
+    else if (node.action === "branchA") onBranch(node.skillId, 0);
+    else if (node.action === "branchB") onBranch(node.skillId, 1);
+  };
 
   return (
-    <motion.button
-      type="button"
-      disabled={!clickable}
-      onClick={onClick}
-      whileTap={clickable ? { scale: 0.9 } : undefined}
-      className={`relative rounded-lg overflow-hidden border-2 transition-all ${
-        clickable ? "cursor-pointer" : "cursor-default"
-      }`}
-      style={{
-        width: NODE,
-        height: NODE,
-        borderColor: unlocked
-          ? color + "aa"
-          : isNext
-            ? color + "55"
-            : dimmed
-              ? "#1e293b"
-              : "#1e293b44",
-        boxShadow: unlocked
-          ? `0 0 8px ${color}33`
-          : isNext && canAfford
-            ? `0 0 6px ${color}22`
-            : "none",
-        opacity: dimmed ? 0.25 : 1,
-      }}
+    <g
+      onClick={handleClick}
+      style={{ cursor: clickable ? "pointer" : "default" }}
+      opacity={node.nodeOpacity}
     >
-      {/* Background */}
-      <div className={`absolute inset-0 ${unlocked ? "bg-slate-800" : "bg-slate-900/90"}`} />
+      {/* Clip path for round icon */}
+      <clipPath id={clipId}>
+        <circle cx={node.cx} cy={node.cy} r={node.r} />
+      </clipPath>
 
-      {/* Icon */}
-      <img
-        src={iconSrc}
-        alt=""
-        className={`absolute inset-0 w-full h-full object-cover ${
-          unlocked ? "" : isNext ? "opacity-60" : "opacity-25 grayscale"
-        }`}
-        draggable={false}
+      {/* Background fill */}
+      <circle
+        cx={node.cx}
+        cy={node.cy}
+        r={node.r}
+        fill={node.unlocked ? "#1e293b" : "#0f172a"}
       />
 
-      {/* Next-available pulse ring */}
-      {isNext && canAfford && !isBusy && (
-        <div
-          className="absolute inset-0 rounded-lg animate-pulse"
-          style={{ border: `1px solid ${color}44` }}
+      {/* Skill icon */}
+      <image
+        href={node.iconSrc}
+        x={node.cx - node.r}
+        y={node.cy - node.r}
+        width={node.r * 2}
+        height={node.r * 2}
+        preserveAspectRatio="xMidYMid slice"
+        clipPath={`url(#${clipId})`}
+        opacity={node.iconOpacity}
+        filter={node.iconFilter || undefined}
+      />
+
+      {/* Border circle */}
+      <circle
+        cx={node.cx}
+        cy={node.cy}
+        r={node.r}
+        fill="none"
+        stroke={node.borderColor}
+        strokeWidth={node.borderWidth}
+      />
+
+      {/* Glow for unlocked nodes */}
+      {node.unlocked && (
+        <circle
+          cx={node.cx}
+          cy={node.cy}
+          r={node.r + 0.8}
+          fill="none"
+          stroke={node.color}
+          strokeWidth={0.3}
+          opacity={0.25}
         />
       )}
 
-      {/* Busy spinner */}
+      {/* Pulse ring for available nodes */}
+      {node.isNext && node.canAfford && !isBusy && (
+        <circle
+          cx={node.cx}
+          cy={node.cy}
+          r={node.r + 1}
+          fill="none"
+          stroke={node.color}
+          strokeWidth={0.3}
+          className="skill-node-pulse"
+        />
+      )}
+
+      {/* Busy spinner overlay */}
       {isBusy && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
-          <Loader2 size={14} className="animate-spin text-white" />
-        </div>
+        <>
+          <circle cx={node.cx} cy={node.cy} r={node.r} fill="rgba(0,0,0,0.5)" />
+          <foreignObject
+            x={node.cx - 2}
+            y={node.cy - 2}
+            width={4}
+            height={4}
+          >
+            <div className="flex items-center justify-center w-full h-full">
+              <Loader2 size={12} className="animate-spin text-white" />
+            </div>
+          </foreignObject>
+        </>
       )}
 
       {/* Branch label (A/B) at fork row */}
-      {label && (
-        <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-[7px] font-bold text-center py-px text-slate-300">
-          {label}
-        </div>
+      {node.label && (
+        <>
+          <rect
+            x={node.cx - 1.8}
+            y={node.cy + node.r - 2}
+            width={3.6}
+            height={2}
+            rx={0.5}
+            fill="rgba(0,0,0,0.7)"
+          />
+          <text
+            x={node.cx}
+            y={node.cy + node.r - 0.8}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fill="#cbd5e1"
+            fontSize={1.4}
+            fontWeight="bold"
+            fontFamily="system-ui, sans-serif"
+          >
+            {node.label}
+          </text>
+        </>
       )}
-    </motion.button>
+
+      {/* Badge: cost or level */}
+      <circle
+        cx={node.cx + node.r * 0.7}
+        cy={node.cy + node.r * 0.7}
+        r={BADGE_R}
+        fill="rgba(0,0,0,0.8)"
+        stroke={node.borderColor}
+        strokeWidth={0.2}
+      />
+      <text
+        x={node.cx + node.r * 0.7}
+        y={node.cy + node.r * 0.7 + 0.15}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill={node.badgeColor}
+        fontSize={BADGE_FONT}
+        fontWeight="bold"
+        fontFamily="system-ui, sans-serif"
+      >
+        {node.badgeLabel}
+      </text>
+    </g>
   );
 };
+
+/* ------------------------------------------------------------------ */
+/*  Build tree data — nodes + paths for all 3 skill columns            */
+/* ------------------------------------------------------------------ */
+
+function buildTreeData(
+  archetypeSkills: SkillDefinition[],
+  allSkills: SkillInfo[],
+  color: string,
+  cubeBalance: number,
+): { nodes: TreeNodeData[]; paths: PathData[] } {
+  const nodes: TreeNodeData[] = [];
+  const paths: PathData[] = [];
+
+  archetypeSkills.forEach((skill, colIdx) => {
+    const cx = COL_X[colIdx];
+    const info = allSkills[skill.id - 1] ?? { level: 0, branchChosen: false, branchId: 0 };
+    const skillDef = SKILLS[skill.id];
+
+    // Rows 0-3: core single path
+    for (let row = 0; row < 4; row++) {
+      const targetLevel = row + 1;
+      const cost = SKILL_TREE_COSTS[row];
+      const unlocked = info.level >= targetLevel;
+      const isNext = info.level === row; // level === targetLevel - 1
+      const canAfford = cubeBalance >= cost;
+
+      const tier = getSkillTier(unlocked ? targetLevel : Math.max(0, targetLevel - 1));
+      const iconSrc = getSkillTierIconPath(skillDef.name, tier);
+
+      const borderColor = unlocked ? color + "bb" : isNext ? color + "66" : "#1e293b55";
+      const iconOpacity = unlocked ? 1 : isNext ? 0.6 : 0.25;
+
+      nodes.push({
+        key: `core-${skill.id}-${row}`,
+        cx,
+        cy: rowY(row),
+        r: R_CORE,
+        iconSrc,
+        skillId: skill.id,
+        targetLevel,
+        unlocked,
+        isNext,
+        canAfford,
+        dimmed: false,
+        color,
+        borderColor,
+        borderWidth: unlocked ? 0.5 : 0.35,
+        nodeOpacity: 1,
+        iconOpacity,
+        iconFilter: !unlocked && !isNext ? "grayscale(1)" : "",
+        label: "",
+        badgeLabel: unlocked ? "✓" : fmtCost(cost),
+        badgeColor: unlocked ? "#bbf7d0" : isNext ? "#fed7aa" : "#64748b",
+        action: isNext && canAfford ? "upgrade" : "none",
+      });
+
+      // Path to next core row
+      if (row < 3) {
+        const nextY = rowY(row + 1);
+        const lit = info.level > targetLevel;
+        const midY = (rowY(row) + nextY) / 2;
+        paths.push({
+          d: `M ${cx} ${rowY(row) + R_CORE} C ${cx} ${midY}, ${cx} ${midY}, ${cx} ${nextY - R_CORE}`,
+          color,
+          strokeWidth: 0.5,
+          opacity: lit ? 0.55 : 0.12,
+        });
+      }
+    }
+
+    // Fork paths from row 3 → row 4 (level 4 → level 5 branch)
+    const forkFromY = rowY(3) + R_CORE;
+    const forkToY = rowY(4) - R_BRANCH;
+    const forkMidY = (forkFromY + forkToY) / 2;
+    const litFork = info.level > 4;
+    const litA = info.branchChosen && info.branchId === 0 && info.level > 4;
+    const litB = info.branchChosen && info.branchId === 1 && info.level > 4;
+
+    // Path to branch A
+    paths.push({
+      d: `M ${cx} ${forkFromY} C ${cx} ${forkMidY}, ${cx - BRANCH_OFF} ${forkMidY}, ${cx - BRANCH_OFF} ${forkToY}`,
+      color,
+      strokeWidth: 0.5,
+      opacity: litA || (!info.branchChosen && litFork) ? 0.55 : 0.12,
+    });
+    // Path to branch B
+    paths.push({
+      d: `M ${cx} ${forkFromY} C ${cx} ${forkMidY}, ${cx + BRANCH_OFF} ${forkMidY}, ${cx + BRANCH_OFF} ${forkToY}`,
+      color,
+      strokeWidth: 0.5,
+      opacity: litB || (!info.branchChosen && litFork) ? 0.55 : 0.12,
+    });
+
+    // Rows 4-8: branch rows (A left, B right)
+    for (let row = 4; row < 9; row++) {
+      const targetLevel = row + 1;
+      const cost = SKILL_TREE_COSTS[row];
+      const isForkRow = row === 4;
+      const needsChoice = isForkRow && info.level === 4 && !info.branchChosen;
+
+      // Branch A node
+      const nodeA = computeBranchNode(info, targetLevel, cost, cubeBalance, needsChoice, 0);
+      const tierA = getSkillTier(nodeA.unlocked ? targetLevel : Math.max(0, targetLevel - 1));
+      const iconSrcA = getSkillTierIconPath(skillDef.name, tierA);
+      const wrongA = info.branchChosen && info.branchId !== 0;
+
+      nodes.push({
+        key: `brA-${skill.id}-${row}`,
+        cx: cx - BRANCH_OFF,
+        cy: rowY(row),
+        r: R_BRANCH,
+        iconSrc: iconSrcA,
+        skillId: skill.id,
+        targetLevel,
+        unlocked: nodeA.unlocked,
+        isNext: nodeA.isNext,
+        canAfford: nodeA.canAfford,
+        dimmed: wrongA && !needsChoice,
+        color,
+        borderColor: nodeA.unlocked ? color + "bb" : nodeA.isNext ? color + "66" : wrongA ? "#1e293b" : "#1e293b55",
+        borderWidth: nodeA.unlocked ? 0.45 : 0.3,
+        nodeOpacity: wrongA && !needsChoice ? 0.25 : 1,
+        iconOpacity: nodeA.unlocked ? 1 : nodeA.isNext ? 0.6 : 0.25,
+        iconFilter: !nodeA.unlocked && !nodeA.isNext ? "grayscale(1)" : "",
+        label: isForkRow ? "A" : "",
+        badgeLabel: nodeA.unlocked ? "✓" : fmtCost(cost),
+        badgeColor: nodeA.unlocked ? "#bbf7d0" : nodeA.isNext ? "#fed7aa" : "#64748b",
+        action: needsChoice && nodeA.canAfford ? "branchA" : nodeA.isNext && nodeA.canAfford ? "upgrade" : "none",
+      });
+
+      // Branch B node
+      const nodeB = computeBranchNode(info, targetLevel, cost, cubeBalance, needsChoice, 1);
+      const tierB = getSkillTier(nodeB.unlocked ? targetLevel : Math.max(0, targetLevel - 1));
+      const iconSrcB = getSkillTierIconPath(skillDef.name, tierB);
+      const wrongB = info.branchChosen && info.branchId !== 1;
+
+      nodes.push({
+        key: `brB-${skill.id}-${row}`,
+        cx: cx + BRANCH_OFF,
+        cy: rowY(row),
+        r: R_BRANCH,
+        iconSrc: iconSrcB,
+        skillId: skill.id,
+        targetLevel,
+        unlocked: nodeB.unlocked,
+        isNext: nodeB.isNext,
+        canAfford: nodeB.canAfford,
+        dimmed: wrongB && !needsChoice,
+        color,
+        borderColor: nodeB.unlocked ? color + "bb" : nodeB.isNext ? color + "66" : wrongB ? "#1e293b" : "#1e293b55",
+        borderWidth: nodeB.unlocked ? 0.45 : 0.3,
+        nodeOpacity: wrongB && !needsChoice ? 0.25 : 1,
+        iconOpacity: nodeB.unlocked ? 1 : nodeB.isNext ? 0.6 : 0.25,
+        iconFilter: !nodeB.unlocked && !nodeB.isNext ? "grayscale(1)" : "",
+        label: isForkRow ? "B" : "",
+        badgeLabel: nodeB.unlocked ? "✓" : fmtCost(cost),
+        badgeColor: nodeB.unlocked ? "#bbf7d0" : nodeB.isNext ? "#fed7aa" : "#64748b",
+        action: needsChoice && nodeB.canAfford ? "branchB" : nodeB.isNext && nodeB.canAfford ? "upgrade" : "none",
+      });
+
+      // Paths between branch rows
+      if (row < 8) {
+        const nextY = rowY(row + 1);
+        const midY = (rowY(row) + nextY) / 2;
+        const bxA = cx - BRANCH_OFF;
+        const bxB = cx + BRANCH_OFF;
+
+        const litPathA = info.branchChosen && info.branchId === 0 && info.level > targetLevel;
+        const litPathB = info.branchChosen && info.branchId === 1 && info.level > targetLevel;
+
+        paths.push({
+          d: `M ${bxA} ${rowY(row) + R_BRANCH} C ${bxA} ${midY}, ${bxA} ${midY}, ${bxA} ${nextY - R_BRANCH}`,
+          color,
+          strokeWidth: 0.4,
+          opacity: litPathA ? 0.55 : 0.1,
+        });
+        paths.push({
+          d: `M ${bxB} ${rowY(row) + R_BRANCH} C ${bxB} ${midY}, ${bxB} ${midY}, ${bxB} ${nextY - R_BRANCH}`,
+          color,
+          strokeWidth: 0.4,
+          opacity: litPathB ? 0.55 : 0.1,
+        });
+      }
+    }
+  });
+
+  return { nodes, paths };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Branch node state computation                                      */
+/* ------------------------------------------------------------------ */
+
+function computeBranchNode(
+  info: SkillInfo,
+  targetLevel: number,
+  cost: number,
+  cubeBalance: number,
+  needsChoice: boolean,
+  branchIdx: number,
+): { unlocked: boolean; isNext: boolean; canAfford: boolean } {
+  const canAfford = cubeBalance >= cost;
+
+  if (needsChoice) {
+    return { unlocked: false, isNext: true, canAfford };
+  }
+
+  const chose = info.branchChosen;
+  const isThisBranch = info.branchId === branchIdx;
+  const unlocked = chose && isThisBranch && info.level >= targetLevel;
+  const isNext = chose && isThisBranch && info.level === targetLevel - 1;
+  const wrongBranch = chose && !isThisBranch;
+
+  return {
+    unlocked,
+    isNext: isNext && !wrongBranch,
+    canAfford: canAfford && !wrongBranch,
+  };
+}
 
 export default SkillTreePage;
