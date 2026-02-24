@@ -44,6 +44,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [gridSize, setGridSize] = useState(40);
 
   const [isTxProcessing, setIsTxProcessing] = useState(false);
+  console.log('[GAMEBOARD] render', { isTxProcessing, nextLineHasBeenConsumed: false, initialGridRows: initialGrid.length, nextLineLen: nextLine.length });
 
   // State that will allow us to hide or display the next line
   const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
@@ -70,6 +71,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       if (!account) return;
 
       setIsTxProcessing(true);
+      console.log('[GAMEBOARD] bonus TX start', bonusType);
       try {
         await applyBonus({
           account: account as Account,
@@ -81,6 +83,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         playSfx("bonus-activate");
       } finally {
         setIsTxProcessing(false);
+        console.log('[GAMEBOARD] bonus TX done, isTxProcessing=false')
       }
     },
     [account, applyBonus, game.id, playSfx]
