@@ -47,7 +47,7 @@ export const GAMEPLAY_LEVELS = 50;
 const LEVELS_PER_ZONE = 10;
 const ZONE_THEMES_SELECTOR = BigInt("0x5a4f4e455f5448454d4553");
 const MICRO_DRAFT_SELECTOR = BigInt("0x44524146545f4d4943524f");
-export const ENTRY_DRAFT_NODE_IN_ZONE = 0;
+export const ENTRY_DRAFT_NODE_IN_ZONE = 1;
 export const MID_DRAFT_NODE_IN_ZONE = 5;
 export const BOSS_NODE_IN_ZONE = NODES_PER_ZONE - 1;
 
@@ -105,9 +105,16 @@ function getMapNode(
   let contractLevel: number | null = null;
   if (type === "classic") {
     const zoneStartLevel = (zone - 1) * LEVELS_PER_ZONE + 1;
-    if (nodeInZone < MID_DRAFT_NODE_IN_ZONE) {
+    // nodeInZone 0 = level 1, 2-4 = levels 2-4, 6-10 = levels 5-9
+    // Skip entry draft (1) and mid draft (5)
+    if (nodeInZone < ENTRY_DRAFT_NODE_IN_ZONE) {
+      // nodeInZone 0 → level 1
+      contractLevel = zoneStartLevel + nodeInZone;
+    } else if (nodeInZone < MID_DRAFT_NODE_IN_ZONE) {
+      // nodeInZone 2-4 → levels 2-4 (subtract 1 for entry draft)
       contractLevel = zoneStartLevel + (nodeInZone - 1);
     } else {
+      // nodeInZone 6-10 → levels 5-9 (subtract 2 for both drafts)
       contractLevel = zoneStartLevel + (nodeInZone - 2);
     }
   } else if (type === "boss") {
@@ -148,8 +155,17 @@ export function contractLevelToNodeIndex(contractLevel: number): number {
     return (zone - 1) * NODES_PER_ZONE + BOSS_NODE_IN_ZONE;
   }
 
-  const nodeInZone =
-    levelInZone <= 4 ? levelInZone : levelInZone + 1;
+  // Level 1 → nodeInZone 0 (before entry draft at 1)
+  // Levels 2-4 → nodeInZone 2-4 (after entry draft, before mid draft)
+  // Levels 5-9 → nodeInZone 6-10 (after mid draft)
+  let nodeInZone: number;
+  if (levelInZone === 1) {
+    nodeInZone = 0;
+  } else if (levelInZone <= 4) {
+    nodeInZone = levelInZone; // 2→2, 3→3, 4→4
+  } else {
+    nodeInZone = levelInZone + 1; // 5→6, 6→7, ..., 9→10
+  }
   return (zone - 1) * NODES_PER_ZONE + nodeInZone;
 }
 
@@ -177,20 +193,25 @@ function getNodeState(
     const zoneEndLevel = node.zone * LEVELS_PER_ZONE;
 
     if (node.draftPhase === "entry") {
-      if (node.zone === 5) return "locked";
-      const triggerLevel =
-        node.zone === 1 ? zoneStartLevel : zoneEndLevel;
-      if (currentLevel < triggerLevel) return "locked";
+      // Contract triggers: completed_level==1 (zone 1), completed_level==prevBoss (zones 2-5)
+      // Draft opens AFTER completing the trigger level, so player is at triggerLevel+1
+      // Zone 1: unlocked when currentLevel >= 2 (completed level 1)
+      // Zones 2-5: unlocked when currentLevel >= zoneStartLevel (completed prev boss)
+      const unlockLevel =
+        node.zone === 1 ? zoneStartLevel + 1 : zoneStartLevel;
+      if (currentLevel < unlockLevel) return "locked";
       if (currentLevel > zoneEndLevel) return "visited";
       return "available";
     }
 
+    // Mid draft (zone 1 only)
     if (node.zone !== 1) {
       return "locked";
     }
 
+    // Contract triggers when completed_level == trigger, so player is at trigger+1
     const trigger = getZoneMicroDraftTriggerLevel(seed, node.zone);
-    if (currentLevel < trigger) return "locked";
+    if (currentLevel <= trigger) return "locked";
     if (currentLevel > zoneEndLevel) return "visited";
     return "available";
   }

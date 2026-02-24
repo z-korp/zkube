@@ -101,7 +101,7 @@ function buildZoneLayout(
 
   for (let i = 0; i < nodesPerZone; i++) {
     const isBoss = i === lastNode;
-    const isAnchorDraft = i === 0 || i === midNode;
+    const isAnchorDraft = i === 1 || i === midNode;
 
     if (isBoss || isAnchorDraft) {
       const progress = lastNode === 0 ? 0 : i / lastNode;
@@ -158,8 +158,8 @@ function buildZoneLayout(
           const push = (MIN_DIST - dist) / 2;
           const nx = dx / dist;
           const ny = dy / dist;
-          const iPinned = i === 0 || i === midNode || i === lastNode;
-          const jPinned = j === 0 || j === midNode || j === lastNode;
+          const iPinned = i === 1 || i === midNode || i === lastNode;
+          const jPinned = j === 1 || j === midNode || j === lastNode;
           if (!iPinned) {
             points[i].x = clamp(points[i].x - nx * push, 0.10, 0.90);
             points[i].y = clamp(points[i].y - ny * push, 0.07, 0.93);

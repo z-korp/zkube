@@ -85,15 +85,27 @@ export const getDraftEventsForZone = (
 ): PendingDraftEvent[] => {
   const events: PendingDraftEvent[] = [];
 
+  // Entry draft events: the draft that appears at the start of this zone
   if (zone === 1) {
+    // Zone 1 entry draft: triggers after completing level 1
     events.push({
       type: "post_level_1",
       triggerLevel: 1,
       zone: 1,
       eventId: "post_level_1:1:1",
     });
+  } else {
+    // Zones 2-5 entry draft: triggers after completing previous zone's boss
+    const prevBossLevel = (zone - 1) * LEVELS_PER_ZONE;
+    events.push({
+      type: "post_boss",
+      triggerLevel: prevBossLevel,
+      zone: zone - 1, // The event is associated with the completed boss's zone
+      eventId: `post_boss:${prevBossLevel}:${zone - 1}`,
+    });
   }
 
+  // Mid draft event (zone 1 only): triggers at random level 2-8
   if (zone === 1) {
     const microTrigger = getZoneMicroDraftTriggerLevel(seed, zone);
     events.push({
@@ -104,23 +116,13 @@ export const getDraftEventsForZone = (
     });
   }
 
-  if (zone < 5) {
-    const bossTrigger = zone * LEVELS_PER_ZONE;
-    events.push({
-      type: "post_boss",
-      triggerLevel: bossTrigger,
-      zone,
-      eventId: `post_boss:${bossTrigger}:${zone}`,
-    });
-  }
-
   return events.sort((a, b) => a.triggerLevel - b.triggerLevel);
 };
 
 export const isDraftEventUnlocked = (
   currentLevel: number,
   event: PendingDraftEvent,
-): boolean => currentLevel >= event.triggerLevel;
+): boolean => currentLevel > event.triggerLevel;
 
 export const getDraftEventSlot = (event: PendingDraftEvent): number => {
   if (event.type === "post_level_1") return 0;
