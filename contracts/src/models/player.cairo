@@ -64,8 +64,6 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
     }
 
 
-
-
     /// Check if player exists (has played at least once)
     fn exists(self: PlayerMeta) -> bool {
         self.best_level > 0 || self.data != 0

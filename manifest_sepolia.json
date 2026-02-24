@@ -48,7 +48,7 @@
     },
     {
       "address": "0x7371bd219a92938c9ed99070fcb93742997937d44c2c47ad589059ba0a52fec",
-      "class_hash": "0x46014dc7e830edfb62ba7d9fd82245ea3a84af7c8a53bb371dc014042167939",
+      "class_hash": "0x32578ab6b09cdd54fce073de0e717c7cdff97616083ac3143b687dae2281363",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-bonus_system",
       "selector": "0x7ddae8715adf015ed6b5c712f7e3a5c01fe157aac2a2f1d42270deca60c5382",
@@ -98,7 +98,7 @@
     },
     {
       "address": "0x72cb05fe25eeaf42be01889a9ee65ec340b6e63dcee4525f698c7545a74cec0",
-      "class_hash": "0x383c5ef079e8981277259c1bf2dd37d6f6c70297b2a0a08ebec17278412253",
+      "class_hash": "0x6855a66516a469f4ff6e83311f4833e6c3b9589208e1ebd586ff2f777198fed",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-draft_system",
       "selector": "0x6d65420c68635e1c965c8b8b63fadb3d82445938fdd96b7f549e0767575ca3e",
@@ -111,7 +111,7 @@
     },
     {
       "address": "0x642873300936d42d26cc5846c17217eaf1322800641b4a0558b1f83c7b75c61",
-      "class_hash": "0x52123b3acabd137ad4f9464e8ff9e37640e11c10a5055618246a5eab17c0a7d",
+      "class_hash": "0x66128a67781e254d9afdf567a87e39b6030964d7f43a1817a6df788b78e0554",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
         "0x045a74be8647d39de23b2b73e98862f6b663164fd8f985cfd80eaa6be495f8ba",
@@ -129,7 +129,7 @@
     },
     {
       "address": "0x63360d25ea03a69381edd41d78d4eb9b331983c0c5ba8891e8261eb09490118",
-      "class_hash": "0x62ddcdb4c905fa65566101449ac1599fc3e01489f1a4566ea8f1aed0b1fbe3",
+      "class_hash": "0x1f7d468750737474991e8656f9224ffe84680220d6b3995c39376d0177a5823",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-grid_system",
       "selector": "0x5ff6ef4a16262e788060768405b1310e3a5903dda6cf016268cf4453d31eec",
@@ -145,20 +145,21 @@
     },
     {
       "address": "0x59b4415003c60cb8ee930b2fe90b7b629225fd0f90fdafc5c0d0304ecf6816d",
-      "class_hash": "0x6bf395d5f629a140fa2ceb8520b393077533e6a373651def76deeb9a7c5adf9",
+      "class_hash": "0x3331e60097fe00bd61f3ba0283d495e501a235e11f3fd86a3cf9c38db4eb0db",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-level_system",
       "selector": "0xc087c6629c3c13d06cab85b37e88683bcffe82e8123eedbd704ff85463a0a5",
       "systems": [
         "initialize_level",
-        "complete_level",
+        "finalize_level",
+        "start_next_level",
         "insert_line_if_empty",
         "upgrade"
       ]
     },
     {
       "address": "0x5244ebc5c4417c1201298b035adf991fbd3db6330fa9de549c1cb7b9695c28f",
-      "class_hash": "0x39750086d16e41cca300de3d0f6cfeae0713cdd2976cd2d2622abea926e7362",
+      "class_hash": "0x40cbb1f1d1b84360e9a63db6fea82cbb4f020f7912e852e3707f2bd7ae9b751",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-move_system",
       "selector": "0x3df79bdc704eceb62aa8752e4456ee57de1c2c56b4871b20171ee4ae1e235b7",
@@ -185,7 +186,7 @@
     },
     {
       "address": "0x65c8b16358741996aeaba4a0a62cf55fb8f83b7fc5edb465bc435eea269bba5",
-      "class_hash": "0x5e4acdd5356666400a8ef2ac5b3ead0c35d693f39dce76de2cfc55e44e7d0fa",
+      "class_hash": "0x308b5aec4f5fa58e6126ae37e5eae1dbe950f8433f0e51f6a250e76f6dc556b",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-renderer_systems",
       "selector": "0x35d5ac8794cc2cf3e12c42d4ac579e7a5dc26a70c26e32c599915d2d39586cf",
@@ -195,7 +196,7 @@
     },
     {
       "address": "0x522941df3de13f63e77b5477e82156425b4c920fe8f75ca88addb37193ad8a4",
-      "class_hash": "0x77acc93d74d1eaa320269592acac96a7de3050d066c419f82e1e31437fccaa",
+      "class_hash": "0x2f39590fc1d7a6ae22aaba3280f296d999314c6cf38073cc86aa8b3c777cc0e",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-skill_effects_system",
       "selector": "0x435971822da32a14a87054bf65fdae30f89f0da3e3773450097ff0dbdadce6f",
@@ -8084,7 +8085,7 @@
         },
         {
           "type": "function",
-          "name": "complete_level",
+          "name": "finalize_level",
           "inputs": [
             {
               "name": "game_id",
@@ -8100,6 +8101,18 @@
               "type": "(core::integer::u8, core::integer::u8, core::bool)"
             }
           ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "start_next_level",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
           "state_mutability": "external"
         },
         {

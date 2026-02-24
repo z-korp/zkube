@@ -24,8 +24,7 @@ mod bonus_system {
     use zkube::constants::DEFAULT_NS;
     use zkube::events::UseBonus;
     use zkube::helpers::game_libs::{
-        GameLibsImpl, IGridSystemDispatcherTrait,
-        ILevelSystemDispatcherTrait,
+        GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
     };
     use zkube::helpers::{level_check, token};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
@@ -62,7 +61,10 @@ mod bonus_system {
 
             // Cannot apply bonus while level transition is pending
             let run_data_check = game.get_run_data();
-            assert!(!run_data_check.level_transition_pending, "Level transition pending - call start_next_level first");
+            assert!(
+                !run_data_check.level_transition_pending,
+                "Level transition pending - call start_next_level first",
+            );
             game.assert_bonus_available(bonus);
 
             // Check if NoBonusUsed constraint is active using run_data flag
@@ -146,14 +148,7 @@ mod bonus_system {
             post_action(token_address, game_id);
 
             world
-                .emit_event(
-                    @UseBonus {
-                        player,
-                        timestamp: get_block_timestamp(),
-                        game_id,
-                        bonus,
-                    },
-                );
+                .emit_event(@UseBonus { player, timestamp: get_block_timestamp(), game_id, bonus });
         }
     }
 }

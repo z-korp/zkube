@@ -377,7 +377,7 @@ pub fn combo_effect(level: u8, branch_id: u8) -> BonusEffect {
             };
         },
         _ => {},
-    };
+    }
 
     effect
 }
@@ -475,7 +475,7 @@ pub fn score_effect(level: u8, branch_id: u8) -> BonusEffect {
             };
         },
         _ => {},
-    };
+    }
 
     effect
 }
@@ -585,7 +585,7 @@ pub fn harvest_effect(level: u8, branch_id: u8) -> BonusEffect {
             };
         },
         _ => {},
-    };
+    }
 
     effect
 }
@@ -690,7 +690,7 @@ pub fn wave_effect(level: u8, branch_id: u8) -> BonusEffect {
             };
         },
         _ => {},
-    };
+    }
 
     effect
 }
@@ -794,7 +794,7 @@ pub fn supply_effect(level: u8, branch_id: u8) -> BonusEffect {
             };
         },
         _ => {},
-    };
+    }
 
     effect
 }
@@ -888,7 +888,7 @@ pub fn tempo_effect(level: u8, branch_id: u8) -> WorldEffects {
             };
         },
         _ => {},
-    };
+    }
 
     effect
 }
@@ -996,7 +996,7 @@ pub fn fortune_effect(level: u8, branch_id: u8) -> WorldEffects {
             };
         },
         _ => {},
-    };
+    }
 
     effect
 }
@@ -1071,7 +1071,7 @@ pub fn surge_effect(level: u8, branch_id: u8) -> WorldEffects {
             };
         },
         _ => {},
-    };
+    }
 
     effect
 }
@@ -1174,7 +1174,7 @@ pub fn catalyst_effect(level: u8, branch_id: u8) -> WorldEffects {
             };
         },
         _ => {},
-    };
+    }
 
     effect
 }
@@ -1257,7 +1257,7 @@ pub fn resilience_effect(level: u8, branch_id: u8) -> WorldEffects {
             };
         },
         _ => {},
-    };
+    }
 
     effect
 }
@@ -1360,7 +1360,7 @@ pub fn focus_effect(level: u8, branch_id: u8) -> WorldEffects {
             };
         },
         _ => {},
-    };
+    }
 
     effect
 }
@@ -1458,7 +1458,7 @@ pub fn expansion_effect(level: u8, branch_id: u8) -> WorldEffects {
             };
         },
         _ => {},
-    };
+    }
 
     effect
 }
@@ -1563,7 +1563,7 @@ pub fn momentum_effect(level: u8, branch_id: u8) -> WorldEffects {
             };
         },
         _ => {},
-    };
+    }
 
     effect
 }
@@ -1694,7 +1694,7 @@ pub fn adrenaline_effect(level: u8, branch_id: u8) -> WorldEffects {
             };
         },
         _ => {},
-    };
+    }
 
     effect
 }
@@ -1827,7 +1827,7 @@ pub fn legacy_effect(level: u8, branch_id: u8) -> WorldEffects {
             };
         },
         _ => {},
-    };
+    }
 
     effect
 }
@@ -1913,7 +1913,7 @@ pub fn aggregate_world_effects(run_data: @RunData, branch_ids: Span<u8>) -> Worl
         }
 
         slot += 1;
-    };
+    }
 
     combined
 }
@@ -1952,6 +1952,6 @@ pub fn build_branch_ids(skill_data: felt252) -> Array<u8> {
             ids.append(0);
         }
         i += 1;
-    };
+    }
     ids
 }

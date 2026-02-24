@@ -21,9 +21,7 @@ mod skill_tree_system {
     use dojo::world::{WorldStorage, WorldStorageTrait};
     use starknet::{ContractAddress, get_caller_address};
     use zkube::constants::DEFAULT_NS;
-    use zkube::helpers::packing::{
-        SkillTreeDataPackingTrait, SkillTreeHelpersTrait,
-    };
+    use zkube::helpers::packing::{SkillTreeDataPackingTrait, SkillTreeHelpersTrait};
     use zkube::models::skill_tree::{PlayerSkillTree, PlayerSkillTreeTrait};
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use zkube::systems::cube_token::{ICubeTokenDispatcher, ICubeTokenDispatcherTrait};
@@ -139,7 +137,9 @@ mod skill_tree_system {
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         fn burn_cubes(ref world: WorldStorage, player: ContractAddress, cost: u16) {
-            let config_address = world.dns_address(@"config_system").expect('ConfigSystem not found');
+            let config_address = world
+                .dns_address(@"config_system")
+                .expect('ConfigSystem not found');
             let config = IConfigSystemDispatcher { contract_address: config_address };
             let cube_token_address = config.get_cube_token_address();
             let cube_token = ICubeTokenDispatcher { contract_address: cube_token_address };

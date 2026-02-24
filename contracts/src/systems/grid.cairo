@@ -34,12 +34,7 @@ pub trait IGridSystem<T> {
     /// Apply a bonus effect to the grid.
     /// Returns lines_cleared
     fn apply_bonus(
-        ref self: T,
-        game_id: u64,
-        bonus: Bonus,
-        row_index: u8,
-        col_index: u8,
-        skill_data: felt252,
+        ref self: T, game_id: u64, bonus: Bonus, row_index: u8, col_index: u8, skill_data: felt252,
     ) -> u8;
 
     /// Insert a new line if the grid is empty.
@@ -285,10 +280,10 @@ mod grid_system {
                 ref run_data, ref game.combo_counter, ref game.max_combo, lines_cleared,
             );
 
-            if world_effects.catalyst_threshold_reduction > 0 || world_effects.catalyst_bonus_cubes > 0
+            if world_effects.catalyst_threshold_reduction > 0
+                || world_effects.catalyst_bonus_cubes > 0
                 || world_effects.catalyst_bonus_score > 0
-                || world_effects.catalyst_free_moves_on_combo > 0
-            {
+                || world_effects.catalyst_free_moves_on_combo > 0 {
                 let effective_lines = saturating_add_u8(
                     lines_cleared, world_effects.catalyst_threshold_reduction,
                 );
@@ -297,9 +292,11 @@ mod grid_system {
                 // Catalyst can still add explicit cubes/score/free-moves as bounded effects.
 
                 if effective_lines > 1 && world_effects.catalyst_bonus_cubes > 0 {
-                    run_data.total_cubes = saturating_add_u16(
-                        run_data.total_cubes, world_effects.catalyst_bonus_cubes.into(),
-                    );
+                    run_data
+                        .total_cubes =
+                            saturating_add_u16(
+                                run_data.total_cubes, world_effects.catalyst_bonus_cubes.into(),
+                            );
                 }
 
                 if effective_lines > 0 && world_effects.catalyst_bonus_score > 0 {
@@ -309,11 +306,11 @@ mod grid_system {
                 }
 
                 if effective_lines > 1 && world_effects.catalyst_free_moves_on_combo > 0 {
-                    run_data.free_moves = scoring::saturating_add_u8_capped(
-                        run_data.free_moves,
-                        world_effects.catalyst_free_moves_on_combo,
-                        15,
-                    );
+                    run_data
+                        .free_moves =
+                            scoring::saturating_add_u8_capped(
+                                run_data.free_moves, world_effects.catalyst_free_moves_on_combo, 15,
+                            );
                 }
             }
 
@@ -334,11 +331,12 @@ mod grid_system {
             };
 
             if world_effects.resilience_regen_on_clear > 0
-                && lines_cleared >= world_effects.resilience_regen_on_clear
-            {
-                run_data.free_moves = scoring::saturating_add_u8_capped(
-                    run_data.free_moves, world_effects.resilience_regen_amount, 15,
-                );
+                && lines_cleared >= world_effects.resilience_regen_on_clear {
+                run_data
+                    .free_moves =
+                        scoring::saturating_add_u8_capped(
+                            run_data.free_moves, world_effects.resilience_regen_amount, 15,
+                        );
             }
 
             if lines_cleared > 0 {
@@ -348,30 +346,34 @@ mod grid_system {
 
                 if world_effects.momentum_streak_cube_threshold > 0
                     && lines_cleared >= world_effects.momentum_streak_cube_threshold
-                    && world_effects.momentum_streak_cubes > 0
-                {
-                    run_data.total_cubes = saturating_add_u16(
-                        run_data.total_cubes, world_effects.momentum_streak_cubes.into(),
-                    );
+                    && world_effects.momentum_streak_cubes > 0 {
+                    run_data
+                        .total_cubes =
+                            saturating_add_u16(
+                                run_data.total_cubes, world_effects.momentum_streak_cubes.into(),
+                            );
                 }
 
                 if world_effects.momentum_move_refund > 0 {
-                    run_data.free_moves = scoring::saturating_add_u8_capped(
-                        run_data.free_moves, world_effects.momentum_move_refund, 15,
-                    );
+                    run_data
+                        .free_moves =
+                            scoring::saturating_add_u8_capped(
+                                run_data.free_moves, world_effects.momentum_move_refund, 15,
+                            );
                 }
 
                 if world_effects.momentum_combo_on_streak > 0 {
-                    game.combo_counter = saturating_add_u8(
-                        game.combo_counter, world_effects.momentum_combo_on_streak,
-                    );
+                    game
+                        .combo_counter =
+                            saturating_add_u8(
+                                game.combo_counter, world_effects.momentum_combo_on_streak,
+                            );
                 }
             }
 
             if world_effects.adrenaline_row_threshold > 0
                 && highest_row_after >= world_effects.adrenaline_row_threshold
-                && lines_cleared > 0
-            {
+                && lines_cleared > 0 {
                 if world_effects.adrenaline_score_per_clear > 0 {
                     let adrenaline_score: u16 = lines_cleared.into()
                         * world_effects.adrenaline_score_per_clear.into();
@@ -381,7 +383,8 @@ mod grid_system {
                 if world_effects.adrenaline_cubes_per_clear > 0 {
                     let adrenaline_cubes: u16 = lines_cleared.into()
                         * world_effects.adrenaline_cubes_per_clear.into();
-                    run_data.total_cubes = saturating_add_u16(run_data.total_cubes, adrenaline_cubes);
+                    run_data
+                        .total_cubes = saturating_add_u16(run_data.total_cubes, adrenaline_cubes);
                 }
 
                 if world_effects.adrenaline_combo_multiplier > 1 {
@@ -396,11 +399,12 @@ mod grid_system {
                 }
 
                 if world_effects.adrenaline_free_moves > 0
-                    && lines_cleared >= world_effects.adrenaline_free_moves_threshold
-                {
-                    run_data.free_moves = scoring::saturating_add_u8_capped(
-                        run_data.free_moves, world_effects.adrenaline_free_moves, 15,
-                    );
+                    && lines_cleared >= world_effects.adrenaline_free_moves_threshold {
+                    run_data
+                        .free_moves =
+                            scoring::saturating_add_u8_capped(
+                                run_data.free_moves, world_effects.adrenaline_free_moves, 15,
+                            );
                 }
             }
 
@@ -503,22 +507,25 @@ mod grid_system {
                     game.combo_counter = saturating_add_u8(game.combo_counter, effect.combo_add);
 
                     if effect.combo_add_from_score > 0 {
-                        game.combo_counter = saturating_add_u8(
-                            game.combo_counter, effect.combo_add_from_score,
-                        );
+                        game
+                            .combo_counter =
+                                saturating_add_u8(game.combo_counter, effect.combo_add_from_score);
                     }
 
                     if effect.cube_per_use > 0 {
-                        run_data.total_cubes = saturating_add_u16(
-                            run_data.total_cubes, effect.cube_per_use.into(),
-                        );
+                        run_data
+                            .total_cubes =
+                                saturating_add_u16(
+                                    run_data.total_cubes, effect.cube_per_use.into(),
+                                );
                     }
                 },
                 Bonus::Score => {
                     let mut score: u16 = effect.score_add;
 
                     if effect.score_doubles_under_moves > 0 {
-                        let moves_remaining: u16 = game_level.max_moves - run_data.level_moves.into();
+                        let moves_remaining: u16 = game_level.max_moves
+                            - run_data.level_moves.into();
                         if moves_remaining <= effect.score_doubles_under_moves.into() {
                             if effect.score_triples {
                                 score *= 3;
@@ -531,15 +538,17 @@ mod grid_system {
                     update_score(ref run_data, score);
 
                     if effect.combo_add_from_score > 0 {
-                        game.combo_counter = saturating_add_u8(
-                            game.combo_counter, effect.combo_add_from_score,
-                        );
+                        game
+                            .combo_counter =
+                                saturating_add_u8(game.combo_counter, effect.combo_add_from_score);
                     }
 
                     if effect.cube_per_use > 0 {
-                        run_data.total_cubes = saturating_add_u16(
-                            run_data.total_cubes, effect.cube_per_use.into(),
-                        );
+                        run_data
+                            .total_cubes =
+                                saturating_add_u16(
+                                    run_data.total_cubes, effect.cube_per_use.into(),
+                                );
                     }
 
                     if effect.score_div10_as_cubes {
@@ -562,9 +571,11 @@ mod grid_system {
                     }
 
                     if effect.harvest_free_moves > 0 {
-                        run_data.free_moves = scoring::saturating_add_u8_capped(
-                            run_data.free_moves, effect.harvest_free_moves, 15,
-                        );
+                        run_data
+                            .free_moves =
+                                scoring::saturating_add_u8_capped(
+                                    run_data.free_moves, effect.harvest_free_moves, 15,
+                                );
                     }
 
                     new_blocks = harvest::BonusImpl::apply(game.blocks, row_index, col_index);
@@ -583,12 +594,11 @@ mod grid_system {
                         } else {
                             break;
                         };
-                        wave_blocks_cleared += InternalImpl::count_non_empty_blocks_in_row(
-                            new_blocks, target_row,
-                        );
+                        wave_blocks_cleared +=
+                            InternalImpl::count_non_empty_blocks_in_row(new_blocks, target_row);
                         new_blocks = wave::BonusImpl::apply(new_blocks, target_row, 0);
                         i += 1;
-                    };
+                    }
 
                     if effect.wave_score_per_block > 0 && wave_blocks_cleared > 0 {
                         let score_bonus: u16 = wave_blocks_cleared.into()
@@ -597,17 +607,22 @@ mod grid_system {
                     }
 
                     if effect.wave_free_moves > 0 {
-                        run_data.free_moves = scoring::saturating_add_u8_capped(
-                            run_data.free_moves, effect.wave_free_moves, 15,
-                        );
+                        run_data
+                            .free_moves =
+                                scoring::saturating_add_u8_capped(
+                                    run_data.free_moves, effect.wave_free_moves, 15,
+                                );
                     }
 
                     if effect.wave_combo_add > 0 {
-                        game.combo_counter = saturating_add_u8(game.combo_counter, effect.wave_combo_add);
+                        game
+                            .combo_counter =
+                                saturating_add_u8(game.combo_counter, effect.wave_combo_add);
                     }
 
                     if effect.wave_cube_per_row > 0 {
-                        let cube_bonus: u16 = rows_to_clear.into() * effect.wave_cube_per_row.into();
+                        let cube_bonus: u16 = rows_to_clear.into()
+                            * effect.wave_cube_per_row.into();
                         run_data.total_cubes = saturating_add_u16(run_data.total_cubes, cube_bonus);
                     }
 
@@ -636,31 +651,35 @@ mod grid_system {
                         new_blocks = Controller::add_line(new_blocks, new_next_row);
                         new_next_row = new_row;
                         i += 1;
-                    };
+                    }
 
                     if effect.supply_score_per_line > 0 {
-                        let score_bonus: u16 = lines_to_add.into() * effect.supply_score_per_line.into();
+                        let score_bonus: u16 = lines_to_add.into()
+                            * effect.supply_score_per_line.into();
                         update_score(ref run_data, score_bonus);
                     }
 
                     if effect.supply_cube_reward > 0 {
-                        run_data.total_cubes = saturating_add_u16(
-                            run_data.total_cubes, effect.supply_cube_reward.into(),
-                        );
+                        run_data
+                            .total_cubes =
+                                saturating_add_u16(
+                                    run_data.total_cubes, effect.supply_cube_reward.into(),
+                                );
                     }
 
                     if effect.supply_free_moves > 0 {
-                        run_data.free_moves = scoring::saturating_add_u8_capped(
-                            run_data.free_moves, effect.supply_free_moves, 15,
-                        );
+                        run_data
+                            .free_moves =
+                                scoring::saturating_add_u8_capped(
+                                    run_data.free_moves, effect.supply_free_moves, 15,
+                                );
                     }
                 },
                 Bonus::None => {},
             }
 
             let should_consume_charge = if effect.chance_no_consume_num > 0
-                && effect.chance_no_consume_den > 0
-            {
+                && effect.chance_no_consume_den > 0 {
                 if effect.chance_no_consume_num >= effect.chance_no_consume_den {
                     false
                 } else {
@@ -692,9 +711,11 @@ mod grid_system {
             }
 
             if !should_consume_charge && effect.free_move_on_proc > 0 {
-                run_data.free_moves = scoring::saturating_add_u8_capped(
-                    run_data.free_moves, effect.free_move_on_proc, 15,
-                );
+                run_data
+                    .free_moves =
+                        scoring::saturating_add_u8_capped(
+                            run_data.free_moves, effect.free_move_on_proc, 15,
+                        );
             }
 
             if effect.charge_all_bonus {
@@ -913,10 +934,9 @@ mod grid_system {
                     count += 1;
                 }
                 col += 1;
-            };
+            }
 
             count
         }
-
     }
 }

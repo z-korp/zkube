@@ -69,8 +69,7 @@ mod draft_system {
             } else if completed_level == 10
                 || completed_level == 20
                 || completed_level == 30
-                || completed_level == 40
-            {
+                || completed_level == 40 {
                 // Entry draft for zones 2-5: after clearing boss
                 let next_zone: u8 = (completed_level / 10) + 1;
                 zone = next_zone;
@@ -169,7 +168,7 @@ mod draft_system {
                         break;
                     }
                     new_choice = InternalImpl::next_skill_in_pool(new_choice, @run_data);
-                };
+                }
                 draft.choice_1 = new_choice;
             } else if reroll_slot == 1 {
                 loop {
@@ -177,7 +176,7 @@ mod draft_system {
                         break;
                     }
                     new_choice = InternalImpl::next_skill_in_pool(new_choice, @run_data);
-                };
+                }
                 draft.choice_2 = new_choice;
             } else {
                 loop {
@@ -185,7 +184,7 @@ mod draft_system {
                         break;
                     }
                     new_choice = InternalImpl::next_skill_in_pool(new_choice, @run_data);
-                };
+                }
                 draft.choice_3 = new_choice;
             }
 
@@ -240,7 +239,8 @@ mod draft_system {
 
             if existing_slot != 255 {
                 let current_level = run_data.get_slot_level(existing_slot);
-                run_data.set_slot_level(existing_slot, InternalImpl::sat_add_u8(current_level, 1, 10));
+                run_data
+                    .set_slot_level(existing_slot, InternalImpl::sat_add_u8(current_level, 1, 10));
             } else if run_data.active_slot_count < 3 {
                 let added_slot = run_data.add_skill(selected_choice, tree_skill.level);
                 assert!(added_slot != 255, "Failed to add skill to run loadout");
@@ -262,13 +262,7 @@ mod draft_system {
 
             world
                 .emit_event(
-                    @DraftSelected {
-                        game_id,
-                        player,
-                        event_slot,
-                        selected_slot,
-                        selected_choice,
-                    },
+                    @DraftSelected { game_id, player, event_slot, selected_slot, selected_choice },
                 );
         }
     }
@@ -335,7 +329,7 @@ mod draft_system {
                     count += 1;
                 }
                 slot += 1;
-            };
+            }
             count
         }
 
@@ -354,7 +348,7 @@ mod draft_system {
                     seen += 1;
                 }
                 slot += 1;
-            };
+            }
             assert!(false, "Active skill index out of range");
             0
         }
@@ -378,7 +372,7 @@ mod draft_system {
                     count += 1;
                 }
                 skill_id += 1;
-            };
+            }
             count
         }
 
@@ -396,7 +390,7 @@ mod draft_system {
                     seen += 1;
                 }
                 skill_id += 1;
-            };
+            }
             assert!(false, "Inactive skill index out of range");
             0
         }
@@ -424,18 +418,26 @@ mod draft_system {
 
         fn next_skill_in_pool(current_skill: u8, run_data: @RunData) -> u8 {
             if (*run_data.active_slot_count) < 3 {
-                let mut next_skill = if current_skill >= 15 { 1 } else { current_skill + 1 };
+                let mut next_skill = if current_skill >= 15 {
+                    1
+                } else {
+                    current_skill + 1
+                };
                 let mut steps: u8 = 0;
                 loop {
                     if !run_data.has_skill(next_skill) {
                         return next_skill;
                     }
-                    next_skill = if next_skill >= 15 { 1 } else { next_skill + 1 };
+                    next_skill = if next_skill >= 15 {
+                        1
+                    } else {
+                        next_skill + 1
+                    };
                     steps += 1;
                     if steps >= 15 {
                         break;
                     }
-                };
+                }
                 assert!(false, "No inactive skills available for pool iteration");
                 0
             } else {
@@ -448,11 +450,15 @@ mod draft_system {
                         break;
                     }
                     if Self::active_skill_at(run_data, idx) == current_skill {
-                        let next_idx = if idx + 1 >= count { 0 } else { idx + 1 };
+                        let next_idx = if idx + 1 >= count {
+                            0
+                        } else {
+                            idx + 1
+                        };
                         return Self::active_skill_at(run_data, next_idx);
                     }
                     idx += 1;
-                };
+                }
 
                 Self::active_skill_at(run_data, 0)
             }
@@ -465,21 +471,25 @@ mod draft_system {
 
             let choice_1 = Self::draw_card_from_pool(seed, event_slot, 0, reroll_count, run_data);
 
-            let mut choice_2 = Self::draw_card_from_pool(seed, event_slot, 1, reroll_count, run_data);
+            let mut choice_2 = Self::draw_card_from_pool(
+                seed, event_slot, 1, reroll_count, run_data,
+            );
             loop {
                 if choice_2 != choice_1 {
                     break;
                 }
                 choice_2 = Self::next_skill_in_pool(choice_2, run_data);
-            };
+            }
 
-            let mut choice_3 = Self::draw_card_from_pool(seed, event_slot, 2, reroll_count, run_data);
+            let mut choice_3 = Self::draw_card_from_pool(
+                seed, event_slot, 2, reroll_count, run_data,
+            );
             loop {
                 if choice_3 != choice_1 && choice_3 != choice_2 {
                     break;
                 }
                 choice_3 = Self::next_skill_in_pool(choice_3, run_data);
-            };
+            }
 
             (choice_1, choice_2, choice_3)
         }
@@ -493,7 +503,7 @@ mod draft_system {
                 }
                 cost = cost * 3;
                 i += 1;
-            };
+            }
             cost
         }
     }

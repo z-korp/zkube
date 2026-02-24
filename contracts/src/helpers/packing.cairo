@@ -139,13 +139,11 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                self.level_score.into() & RunDataBits::U8_MASK,
-                RunDataBits::LEVEL_SCORE_POS.into(),
+                self.level_score.into() & RunDataBits::U8_MASK, RunDataBits::LEVEL_SCORE_POS.into(),
             );
         packed = packed
             | BitShift::shl(
-                self.level_moves.into() & RunDataBits::U8_MASK,
-                RunDataBits::LEVEL_MOVES_POS.into(),
+                self.level_moves.into() & RunDataBits::U8_MASK, RunDataBits::LEVEL_MOVES_POS.into(),
             );
         packed = packed
             | BitShift::shl(
@@ -367,7 +365,9 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 & RunDataBits::TWO_BITS_MASK)
                 .try_into()
                 .unwrap(),
-            level_transition_pending: (BitShift::shr(data, RunDataBits::LEVEL_TRANSITION_PENDING_POS.into())
+            level_transition_pending: (BitShift::shr(
+                data, RunDataBits::LEVEL_TRANSITION_PENDING_POS.into(),
+            )
                 & RunDataBits::BOOL_MASK) == 1,
         }
     }
@@ -413,7 +413,11 @@ pub impl RunDataHelpers of RunDataHelpersTrait {
     /// Set charges for a slot.
     /// Runtime charge cap is 3.
     fn set_slot_charges(ref self: RunData, slot: u8, count: u8) {
-        let clamped = if count > 3 { 3 } else { count };
+        let clamped = if count > 3 {
+            3
+        } else {
+            count
+        };
         match slot {
             0 => self.slot_1_charges = clamped,
             1 => self.slot_2_charges = clamped,
@@ -456,7 +460,7 @@ pub impl RunDataHelpers of RunDataHelpersTrait {
                 return slot;
             }
             slot += 1;
-        };
+        }
         255
     }
 
@@ -483,7 +487,7 @@ pub impl RunDataHelpers of RunDataHelpersTrait {
                 return slot;
             }
             slot += 1;
-        };
+        }
         255
     }
 
@@ -576,7 +580,7 @@ pub impl RunDataHelpers of RunDataHelpersTrait {
                 bonus_slots.append(slot);
             }
             slot += 1;
-        };
+        }
 
         let count = bonus_slots.len();
         if count == 0 {
@@ -830,16 +834,18 @@ pub impl SkillTreeDataPacking of SkillTreeDataPackingTrait {
             12 => self.skill_12 = info,
             13 => self.skill_13 = info,
             14 => self.skill_14 = info,
-            _ => {
-                assert!(false, "Invalid skill_id");
-            },
+            _ => { assert!(false, "Invalid skill_id"); },
         }
     }
 }
 
 fn pack_skill(packed: u256, skill: SkillInfo, bit_pos: u8) -> u256 {
     let skill_bits: u256 = (skill.level.into() & SkillTreeBits::LEVEL_MASK)
-        | BitShift::shl(if skill.branch_chosen { 1_u256 } else { 0_u256 }, 4)
+        | BitShift::shl(if skill.branch_chosen {
+            1_u256
+        } else {
+            0_u256
+        }, 4)
         | BitShift::shl(skill.branch_id.into() & SkillTreeBits::BRANCH_ID_MASK, 5);
     packed | BitShift::shl(skill_bits, bit_pos.into())
 }
@@ -885,7 +891,7 @@ pub impl SkillTreeHelpers of SkillTreeHelpersTrait {
             }
             total += Self::skill_upgrade_cost(lvl);
             lvl += 1;
-        };
+        }
 
         (total + 1) / 2
     }
@@ -903,7 +909,8 @@ pub impl SkillTreeHelpers of SkillTreeHelpersTrait {
 mod tests {
     use super::{
         MetaData, MetaDataPacking, MetaDataPackingTrait, RunData, RunDataPacking,
-        RunDataPackingTrait, SkillInfo, SkillTreeData, SkillTreeDataPacking, SkillTreeDataPackingTrait,
+        RunDataPackingTrait, SkillInfo, SkillTreeData, SkillTreeDataPacking,
+        SkillTreeDataPackingTrait,
     };
 
     #[test]
@@ -1035,10 +1042,7 @@ mod tests {
 
     #[test]
     fn test_meta_data_pack_unpack_roundtrip() {
-        let original = MetaData {
-            total_runs: 1000,
-            total_cubes_earned: 50000,
-        };
+        let original = MetaData { total_runs: 1000, total_cubes_earned: 50000 };
 
         let packed = original.pack();
         let unpacked = MetaDataPackingTrait::unpack(packed);
@@ -1053,14 +1057,10 @@ mod tests {
     #[test]
     fn test_skill_tree_data_pack_unpack_roundtrip() {
         let mut data = SkillTreeDataPackingTrait::new();
-        data
-            .set_skill(0, SkillInfo { level: 4, branch_chosen: false, branch_id: 0 });
-        data
-            .set_skill(3, SkillInfo { level: 5, branch_chosen: true, branch_id: 1 });
-        data
-            .set_skill(7, SkillInfo { level: 9, branch_chosen: true, branch_id: 0 });
-        data
-            .set_skill(14, SkillInfo { level: 2, branch_chosen: false, branch_id: 0 });
+        data.set_skill(0, SkillInfo { level: 4, branch_chosen: false, branch_id: 0 });
+        data.set_skill(3, SkillInfo { level: 5, branch_chosen: true, branch_id: 1 });
+        data.set_skill(7, SkillInfo { level: 9, branch_chosen: true, branch_id: 0 });
+        data.set_skill(14, SkillInfo { level: 2, branch_chosen: false, branch_id: 0 });
 
         let packed = data.pack();
         let unpacked = SkillTreeDataPackingTrait::unpack(packed);

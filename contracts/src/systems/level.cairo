@@ -47,7 +47,6 @@ mod level_system {
     };
     use zkube::helpers::level::{BossLevel, LevelGeneratorTrait};
     use zkube::helpers::packing::RunDataHelpersTrait;
-
     use zkube::helpers::random::RandomImpl;
     use zkube::helpers::scoring::saturating_add_u16;
     use zkube::helpers::skill_effects;
@@ -70,7 +69,9 @@ mod level_system {
             let player = get_caller_address();
             let run_data = game.get_run_data();
             let branch_ids_arr = skill_effects::build_branch_ids(skill_data);
-            let world_effects = skill_effects::aggregate_world_effects(@run_data, branch_ids_arr.span());
+            let world_effects = skill_effects::aggregate_world_effects(
+                @run_data, branch_ids_arr.span(),
+            );
 
             // Generate level 1 config
             let level_config = LevelGeneratorTrait::generate(base_seed.seed, 1, settings);
@@ -85,82 +86,81 @@ mod level_system {
             // Write level config to GameLevel model
             let mut game_level = GameLevelTrait::from_level_config(game_id, level_config);
             if world_effects.extra_max_moves > 0 {
-                game_level.max_moves = saturating_add_u16(
-                    game_level.max_moves, world_effects.extra_max_moves,
-                );
+                game_level
+                    .max_moves =
+                        saturating_add_u16(game_level.max_moves, world_effects.extra_max_moves);
             }
             if world_effects.expansion_difficulty_reduction > 0 {
-                game_level.difficulty = if game_level.difficulty > world_effects.expansion_difficulty_reduction {
-                    game_level.difficulty - world_effects.expansion_difficulty_reduction
-                } else {
-                    0
-                };
+                game_level
+                    .difficulty =
+                        if game_level.difficulty > world_effects.expansion_difficulty_reduction {
+                            game_level.difficulty - world_effects.expansion_difficulty_reduction
+                        } else {
+                            0
+                        };
             }
             world.write_model(@game_level);
 
             let mut run_data_updated = game.get_run_data();
             if world_effects.resilience_free_moves > 0 {
-                run_data_updated.free_moves = if world_effects.resilience_free_moves > 15 {
-                    15
-                } else {
-                    world_effects.resilience_free_moves
-                };
+                run_data_updated
+                    .free_moves =
+                        if world_effects.resilience_free_moves > 15 {
+                            15
+                        } else {
+                            world_effects.resilience_free_moves
+                        };
             }
 
             if world_effects.legacy_free_moves_per_10 > 0 {
-                let bonus_free: u16 = world_effects
-                    .legacy_free_moves_per_10
-                    .into()
+                let bonus_free: u16 = world_effects.legacy_free_moves_per_10.into()
                     * (run_data_updated.current_level / 10).into();
                 let total_free: u16 = run_data_updated.free_moves.into() + bonus_free;
-                run_data_updated.free_moves = if total_free > 15 {
-                    15
-                } else {
-                    total_free.try_into().unwrap()
-                };
+                run_data_updated
+                    .free_moves = if total_free > 15 {
+                        15
+                    } else {
+                        total_free.try_into().unwrap()
+                    };
             }
 
             if world_effects.focus_prefill_percent > 0 {
                 let req1 = level_config.constraint.required_count;
                 if req1 > 0 {
-                    run_data_updated.constraint_progress = (req1.into()
-                        * world_effects.focus_prefill_percent.into()
-                        / 100_u16)
+                    run_data_updated
+                        .constraint_progress =
+                            (req1.into() * world_effects.focus_prefill_percent.into() / 100_u16)
                         .try_into()
                         .unwrap();
                 }
 
                 let req2 = level_config.constraint_2.required_count;
                 if req2 > 0 {
-                    run_data_updated.constraint_2_progress = (req2.into()
-                        * world_effects.focus_prefill_percent.into()
-                        / 100_u16)
+                    run_data_updated
+                        .constraint_2_progress =
+                            (req2.into() * world_effects.focus_prefill_percent.into() / 100_u16)
                         .try_into()
                         .unwrap();
                 }
 
                 let req3 = level_config.constraint_3.required_count;
                 if req3 > 0 {
-                    run_data_updated.constraint_3_progress = (req3.into()
-                        * world_effects.focus_prefill_percent.into()
-                        / 100_u16)
+                    run_data_updated
+                        .constraint_3_progress =
+                            (req3.into() * world_effects.focus_prefill_percent.into() / 100_u16)
                         .try_into()
                         .unwrap();
                 }
             }
 
             if world_effects.legacy_cube_per_n_levels > 0
-                && world_effects.legacy_cube_level_divisor > 0
-            {
+                && world_effects.legacy_cube_level_divisor > 0 {
                 let levels_completed: u8 = run_data_updated.current_level
                     / world_effects.legacy_cube_level_divisor;
-                let legacy_cubes: u16 = world_effects
-                    .legacy_cube_per_n_levels
-                    .into()
+                let legacy_cubes: u16 = world_effects.legacy_cube_per_n_levels.into()
                     * levels_completed.into();
-                run_data_updated.total_cubes = saturating_add_u16(
-                    run_data_updated.total_cubes, legacy_cubes,
-                );
+                run_data_updated
+                    .total_cubes = saturating_add_u16(run_data_updated.total_cubes, legacy_cubes);
             }
 
             game.set_run_data(run_data_updated);
@@ -184,7 +184,9 @@ mod level_system {
             has_no_bonus
         }
 
-        fn finalize_level(ref self: ContractState, game_id: u64, skill_data: felt252) -> (u8, u8, bool) {
+        fn finalize_level(
+            ref self: ContractState, game_id: u64, skill_data: felt252,
+        ) -> (u8, u8, bool) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let mut game: Game = world.read_model(game_id);
@@ -231,11 +233,12 @@ mod level_system {
                 } else {
                     0
                 };
-                fortune_cubes = if extra_total > 65535 {
-                    65535
-                } else {
-                    extra_total.try_into().unwrap()
-                };
+                fortune_cubes =
+                    if extra_total > 65535 {
+                        65535
+                    } else {
+                        extra_total.try_into().unwrap()
+                    };
             } else if stars >= 2 && world_effects.fortune_star_multiplier_2 > 0 {
                 let multiplied_total: u32 = pre_mult_total
                     * world_effects.fortune_star_multiplier_2.into();
@@ -244,11 +247,12 @@ mod level_system {
                 } else {
                     0
                 };
-                fortune_cubes = if extra_total > 65535 {
-                    65535
-                } else {
-                    extra_total.try_into().unwrap()
-                };
+                fortune_cubes =
+                    if extra_total > 65535 {
+                        65535
+                    } else {
+                        extra_total.try_into().unwrap()
+                    };
             }
             let boss_bonus_with_fortune = saturating_add_u16(boss_bonus, fortune_cubes);
 
@@ -345,7 +349,9 @@ mod level_system {
             let player = get_caller_address();
             let skill_tree: PlayerSkillTree = world.read_model(player);
             let branch_ids_arr = skill_effects::build_branch_ids(skill_tree.skill_data);
-            let world_effects = skill_effects::aggregate_world_effects(@run_data, branch_ids_arr.span());
+            let world_effects = skill_effects::aggregate_world_effects(
+                @run_data, branch_ids_arr.span(),
+            );
 
             // current_level was already incremented by complete_level_data() in finalize_level
             let next_level = run_data.current_level;
@@ -355,9 +361,7 @@ mod level_system {
             let vrf_salt = core::poseidon::poseidon_hash_span(
                 array![game_id.into(), next_level.into()].span(),
             );
-            let next_seed_random = RandomImpl::from_vrf_enabled(
-                base_seed.vrf_enabled, vrf_salt,
-            );
+            let next_seed_random = RandomImpl::from_vrf_enabled(base_seed.vrf_enabled, vrf_salt);
             let next_seed = next_seed_random.seed;
 
             let next_game_seed = GameSeed {
@@ -366,32 +370,28 @@ mod level_system {
             world.write_model(@next_game_seed);
 
             // Generate next level config
-            let next_level_config = LevelGeneratorTrait::generate(
-                next_seed, next_level, settings,
-            );
+            let next_level_config = LevelGeneratorTrait::generate(next_seed, next_level, settings);
 
             // Set no_bonus_constraint flag for the next level (any of the 3 constraints)
             let has_no_bonus = next_level_config
                 .constraint
                 .constraint_type == ConstraintType::NoBonusUsed
                 || next_level_config.constraint_2.constraint_type == ConstraintType::NoBonusUsed
-                || next_level_config
-                    .constraint_3
-                    .constraint_type == ConstraintType::NoBonusUsed;
+                || next_level_config.constraint_3.constraint_type == ConstraintType::NoBonusUsed;
             let mut game_level = GameLevelTrait::from_level_config(game_id, next_level_config);
             if world_effects.extra_max_moves > 0 {
-                game_level.max_moves = saturating_add_u16(
-                    game_level.max_moves, world_effects.extra_max_moves,
-                );
+                game_level
+                    .max_moves =
+                        saturating_add_u16(game_level.max_moves, world_effects.extra_max_moves);
             }
             if world_effects.expansion_difficulty_reduction > 0 {
-                game_level.difficulty = if game_level.difficulty
-                    > world_effects.expansion_difficulty_reduction
-                {
-                    game_level.difficulty - world_effects.expansion_difficulty_reduction
-                } else {
-                    0
-                };
+                game_level
+                    .difficulty =
+                        if game_level.difficulty > world_effects.expansion_difficulty_reduction {
+                            game_level.difficulty - world_effects.expansion_difficulty_reduction
+                        } else {
+                            0
+                        };
             }
             world.write_model(@game_level);
 
@@ -400,73 +400,73 @@ mod level_system {
             run_data_updated.level_transition_pending = false; // Clear pending flag
 
             if world_effects.resilience_free_moves > 0 {
-                run_data_updated.free_moves = if world_effects.resilience_free_moves > 15 {
-                    15
-                } else {
-                    world_effects.resilience_free_moves
-                };
+                run_data_updated
+                    .free_moves =
+                        if world_effects.resilience_free_moves > 15 {
+                            15
+                        } else {
+                            world_effects.resilience_free_moves
+                        };
             }
 
             if world_effects.legacy_free_moves_per_10 > 0 {
-                let bonus_free: u16 = world_effects
-                    .legacy_free_moves_per_10
-                    .into()
+                let bonus_free: u16 = world_effects.legacy_free_moves_per_10.into()
                     * (run_data_updated.current_level / 10).into();
                 let total_free: u16 = run_data_updated.free_moves.into() + bonus_free;
-                run_data_updated.free_moves = if total_free > 15 {
-                    15
-                } else {
-                    total_free.try_into().unwrap()
-                };
+                run_data_updated
+                    .free_moves = if total_free > 15 {
+                        15
+                    } else {
+                        total_free.try_into().unwrap()
+                    };
             }
 
             if world_effects.focus_prefill_percent > 0 {
                 let req1 = next_level_config.constraint.required_count;
                 if req1 > 0 {
-                    run_data_updated.constraint_progress = (req1.into()
-                        * world_effects.focus_prefill_percent.into()
-                        / 100_u16)
+                    run_data_updated
+                        .constraint_progress =
+                            (req1.into() * world_effects.focus_prefill_percent.into() / 100_u16)
                         .try_into()
                         .unwrap();
                 }
 
                 let req2 = next_level_config.constraint_2.required_count;
                 if req2 > 0 {
-                    run_data_updated.constraint_2_progress = (req2.into()
-                        * world_effects.focus_prefill_percent.into()
-                        / 100_u16)
+                    run_data_updated
+                        .constraint_2_progress =
+                            (req2.into() * world_effects.focus_prefill_percent.into() / 100_u16)
                         .try_into()
                         .unwrap();
                 }
 
                 let req3 = next_level_config.constraint_3.required_count;
                 if req3 > 0 {
-                    run_data_updated.constraint_3_progress = (req3.into()
-                        * world_effects.focus_prefill_percent.into()
-                        / 100_u16)
+                    run_data_updated
+                        .constraint_3_progress =
+                            (req3.into() * world_effects.focus_prefill_percent.into() / 100_u16)
                         .try_into()
                         .unwrap();
                 }
             }
 
             if world_effects.expansion_cube_per_level > 0 {
-                run_data_updated.total_cubes = saturating_add_u16(
-                    run_data_updated.total_cubes, world_effects.expansion_cube_per_level.into(),
-                );
+                run_data_updated
+                    .total_cubes =
+                        saturating_add_u16(
+                            run_data_updated.total_cubes,
+                            world_effects.expansion_cube_per_level.into(),
+                        );
             }
 
             if world_effects.legacy_cube_per_n_levels > 0
-                && world_effects.legacy_cube_level_divisor > 0
-            {
+                && world_effects.legacy_cube_level_divisor > 0 {
                 let levels_completed: u8 = run_data_updated.current_level
                     / world_effects.legacy_cube_level_divisor;
-                let legacy_cubes: u16 = world_effects
-                    .legacy_cube_per_n_levels
-                    .into()
+                let legacy_cubes: u16 = world_effects.legacy_cube_per_n_levels.into()
                     * levels_completed.into();
-                run_data_updated.total_cubes = saturating_add_u16(
-                    run_data_updated.total_cubes, legacy_cubes,
-                );
+                run_data_updated
+                    .total_cubes = saturating_add_u16(run_data_updated.total_cubes, legacy_cubes);
             }
 
             game.set_run_data(run_data_updated);

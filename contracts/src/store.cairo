@@ -2,9 +2,7 @@ use dojo::event::EventStorage;
 use dojo::model::ModelStorage;
 use dojo::world::{WorldStorage, WorldStorageTrait};
 use starknet::ContractAddress;
-use crate::events::index::{
-    LevelCompleted, LevelStarted, RunEnded, StartGame, UseBonus,
-};
+use crate::events::index::{LevelCompleted, LevelStarted, RunEnded, StartGame, UseBonus};
 use crate::models::config::{GameSettings, GameSettingsMetadata};
 use crate::models::game::{Game, GameSeed};
 use crate::models::player::PlayerMeta;

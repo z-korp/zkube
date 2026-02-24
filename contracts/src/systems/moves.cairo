@@ -22,8 +22,7 @@ mod move_system {
     use zkube::elements::tasks::{clearer, combo, combo_streak};
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::game_libs::{
-        GameLibsImpl, IGridSystemDispatcherTrait,
-        ILevelSystemDispatcherTrait,
+        GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
     };
     use zkube::helpers::{game_over, level_check, token};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
@@ -56,7 +55,10 @@ mod move_system {
 
             // Cannot move while level transition is pending (must call start_next_level first)
             let run_data_check = game.get_run_data();
-            assert!(!run_data_check.level_transition_pending, "Level transition pending - call start_next_level first");
+            assert!(
+                !run_data_check.level_transition_pending,
+                "Level transition pending - call start_next_level first",
+            );
 
             // Validate move indices (grid is 10 rows x 8 columns)
             assert!(row_index < 10, "Invalid row_index: must be < 10");
