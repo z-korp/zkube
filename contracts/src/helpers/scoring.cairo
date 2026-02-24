@@ -64,6 +64,16 @@ pub fn process_lines_cleared(
     update_combo_tracking(ref combo_counter, ref max_combo, ref run_data, lines_cleared);
 }
 
+/// Apply combo scoring offset: each line cleared earns bonus points equal to combo_counter.
+/// This makes the Combo bonus directly affect the next move's scoring.
+#[inline(always)]
+pub fn apply_combo_scoring(ref run_data: RunData, combo_counter: u8, lines_cleared: u8) {
+    if combo_counter > 0 && lines_cleared > 0 {
+        let combo_bonus: u16 = combo_counter.into() * lines_cleared.into();
+        update_score(ref run_data, combo_bonus);
+    }
+}
+
 /// Update score after points earned from line clearing.
 /// Handles both level_score (u8, max 255) and total_score (u16, max 65535).
 #[inline(always)]

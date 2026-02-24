@@ -233,7 +233,8 @@ const Grid: React.FC<GridProps> = ({
       return;
     }
 
-    // NON-GRID bonuses: Combo, Score, Supply — send tx directly, no block changes
+    // NON-GRID bonuses: Combo, Score — send tx directly, no block changes
+    // (Supply is handled directly from PlayScreen with a confirmation dialog)
     if (bonus === BonusType.Combo) {
       setIsTxProcessing(true);
       setAnimateText(`+${activeBonusLevel + 1} combo`);
@@ -242,10 +243,6 @@ const Grid: React.FC<GridProps> = ({
     } else if (bonus === BonusType.Score) {
       setIsTxProcessing(true);
       setAnimatedPoints((activeBonusLevel + 1) * 10);
-      selectBlock(block);
-      return;
-    } else if (bonus === BonusType.Supply) {
-      setIsTxProcessing(true);
       selectBlock(block);
       return;
     }

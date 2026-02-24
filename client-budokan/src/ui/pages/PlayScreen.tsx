@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { Account } from "starknet";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useGame } from "@/hooks/useGame";
@@ -31,6 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/elements/dialog";
+import { Button } from "@/ui/elements/button";
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import { deriveZoneThemes, getZone } from "@/hooks/useMapData";
 
@@ -39,7 +41,7 @@ const PlayScreen: React.FC = () => {
 
   const {
     setup: {
-      systemCalls: { surrender, startNextLevel },
+      systemCalls: { surrender, startNextLevel, applyBonus },
     },
   } = useDojo();
   const { account } = useAccountCustom();
@@ -69,6 +71,8 @@ const PlayScreen: React.FC = () => {
   const startNextLevelCalledRef = useRef(false);
   const [activeBonus, setActiveBonus] = useState<BonusType>(BonusType.None);
   const [bonusDescription, setBonusDescription] = useState("");
+  const [isSupplyConfirmOpen, setIsSupplyConfirmOpen] = useState(false);
+  const [isSupplyProcessing, setIsSupplyProcessing] = useState(false);
 
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
   const prevGameStateRef = useRef<{
@@ -318,6 +322,14 @@ const PlayScreen: React.FC = () => {
       const slot = game?.runData.slots.find((entry) => entry.skillId === skillId);
       const count = slot?.charges ?? 0;
       if (count === 0) return;
+
+      // Supply fires directly with confirmation — no grid interaction needed
+      if (type === BonusType.Supply) {
+        playSfx("click");
+        setIsSupplyConfirmOpen(true);
+        return;
+      }
+
       if (activeBonus === type) {
         playSfx("click");
         playSfx("unequip");
@@ -369,6 +381,29 @@ const PlayScreen: React.FC = () => {
     setBonusDescription("");
   }, [grid]);
 
+  const supplyBonusLevel = useMemo(() => {
+    const slot = selectedBonusSlots.find((s) => s.type === BonusType.Supply);
+    return slot?.level ?? 0;
+  }, [selectedBonusSlots]);
+
+  const handleSupplyConfirm = useCallback(async () => {
+    if (!account || !game) return;
+    setIsSupplyProcessing(true);
+    setIsSupplyConfirmOpen(false);
+    try {
+      await applyBonus({
+        account: account as Account,
+        game_id: game.id,
+        bonus: new Bonus(BonusType.Supply).into(),
+        row_index: 0,
+        block_index: 0,
+      });
+      playSfx("bonus-activate");
+    } finally {
+      setIsSupplyProcessing(false);
+    }
+  }, [account, applyBonus, game, playSfx]);
+
   return (
     <div className="h-screen-viewport flex flex-col">
       <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
@@ -379,6 +414,33 @@ const PlayScreen: React.FC = () => {
           </DialogHeader>
           <div className="flex justify-center pt-4">
             <Connect />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isSupplyConfirmOpen} onOpenChange={setIsSupplyConfirmOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Use Supply?</DialogTitle>
+            <DialogDescription>
+              Add {supplyBonusLevel + 1} line{supplyBonusLevel > 0 ? "s" : ""} to the grid (no move cost).
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setIsSupplyConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="flex-1"
+              disabled={isSupplyProcessing}
+              onClick={handleSupplyConfirm}
+            >
+              {isSupplyProcessing ? "Applying..." : "Confirm"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -96,8 +96,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
         handleBonusTx(BonusType.Combo, block.y, block.x);
       } else if (activeBonus === BonusType.Wave) {
         handleBonusTx(BonusType.Wave, block.y, block.x);
-      } else if (activeBonus === BonusType.Supply) {
-        handleBonusTx(BonusType.Supply, block.y, block.x);
       } else if (activeBonus === BonusType.None) {
         // No bonus selected
       }
