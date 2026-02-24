@@ -19,6 +19,10 @@ import {
 } from "lucide-react";
 import type { QuestFamily, QuestTier } from "@/types/questFamily";
 
+// ─── Constants ──────────────────────────────────────────────────────────────
+
+const CUMULATIVE_FAMILIES = new Set(["player", "clearer"]);
+
 const iconMap: Record<string, LucideIcon> = {
   "fa-gamepad": Gamepad2,
   "fa-bars-staggered": ListOrdered,
@@ -54,220 +58,29 @@ const formatCountdown = (sec: number): string => {
   return `${m}m ${ss.toString().padStart(2, "0")}s`;
 };
 
-// ─── Inline cube ────────────────────────────────────────────────────────────
+// ─── Tier Dots ──────────────────────────────────────────────────────────────
 
-const InlineCube: React.FC<{
-  amount: number;
-  muted?: boolean;
-}> = ({ amount, muted = false }) => (
-  <span
-    className={`inline-flex items-center gap-0.5 flex-shrink-0 ${
-      muted ? "opacity-35" : ""
-    }`}
-  >
-    <span className="text-xs">🧊</span>
-    <span className="font-['Fredericka_the_Great'] text-sm leading-none text-yellow-200">
-      {amount}
-    </span>
-  </span>
-);
-
-// ─── Compact Breakpoint Slider ──────────────────────────────────────────────
-// Player / Clearer families — track with dots at tier targets
-
-const SLIDER_FAMILIES = new Set(["player", "clearer"]);
-
-const CompactSlider: React.FC<{
-  family: QuestFamily;
-  onClaim: (questId: string, intervalId: number) => Promise<void>;
-  claimingKey: string | null;
-  disabled: boolean;
-}> = ({ family, onClaim, claimingKey, disabled }) => {
-  const Icon = iconMap[family.icon] ?? Gamepad2;
-  const allClaimed = family.tiers.every((t) => t.claimed);
-  const maxTarget = family.tiers[family.tiers.length - 1]?.target ?? 1;
-  const progress = Math.min(family.progress, maxTarget);
-  const fillPercent = maxTarget > 0 ? (progress / maxTarget) * 100 : 0;
-
-  const breakpoints = family.tiers.map((tier) => ({
-    target: tier.target,
-    reward: tier.reward,
-    completed: tier.completed,
-    claimed: tier.claimed,
-    claimable: tier.completed && !tier.claimed,
-    questId: tier.questId,
-    intervalId: tier.intervalId,
-    position: maxTarget > 0 ? (tier.target / maxTarget) * 100 : 0,
-  }));
-
-  const hasClaimable = breakpoints.some((bp) => bp.claimable);
-
-  const cardBg = allClaimed
-    ? "bg-slate-800 border-green-500/15"
-    : hasClaimable
-      ? "bg-indigo-950 border-green-500/30"
-      : "bg-indigo-950 border-white/8";
-
-  return (
-    <motion.div
-      className={`rounded-xl border p-3 ${cardBg}`}
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2">
-          <div
-            className={`grid h-7 w-7 place-items-center rounded-lg flex-shrink-0 ${
-              allClaimed
-                ? "bg-green-500/15 text-green-400/60"
-                : hasClaimable
-                  ? "bg-yellow-400/15 text-yellow-300"
-                  : "bg-white/8 text-cyan-300"
-            }`}
-          >
-            <Icon size={14} />
-          </div>
-          <span
-            className={`font-['Fredericka_the_Great'] text-base leading-tight ${
-              allClaimed ? "text-slate-400" : "text-white"
-            }`}
-          >
-            {family.name}
-          </span>
-          {allClaimed && (
-            <Check size={12} className="text-green-400/60" />
-          )}
-        </div>
-        <InlineCube amount={family.totalReward} muted={allClaimed} />
-      </div>
-
-      {/* Slider track */}
-      <div className="relative px-2.5 pt-7 pb-5">
-        <div className="relative h-1.5 bg-slate-700 rounded-full">
-          {/* Fill */}
-          <motion.div
-            className={`absolute inset-y-0 left-0 rounded-full ${
-              allClaimed
-                ? "bg-green-500/40"
-                : hasClaimable
-                  ? "bg-gradient-to-r from-cyan-400 to-green-400"
-                  : "bg-gradient-to-r from-cyan-400 to-blue-500"
-            }`}
-            initial={{ width: 0 }}
-            animate={{ width: `${fillPercent}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          />
-
-          {/* Breakpoints */}
-          {breakpoints.map((bp, i) => {
-            const isClaimingThis =
-              claimingKey === `${bp.questId}:${bp.intervalId}`;
-            return (
-              <div
-                key={i}
-                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-10"
-                style={{ left: `${bp.position}%` }}
-              >
-                {/* Dot */}
-                <div
-                  className={`relative w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
-                    bp.claimed
-                      ? "bg-green-500 border-green-400 text-white"
-                      : bp.claimable
-                        ? "bg-yellow-400 border-yellow-300 text-slate-900"
-                        : bp.completed
-                          ? "bg-cyan-400 border-cyan-300 text-slate-900"
-                          : "bg-slate-700 border-slate-500"
-                  }`}
-                >
-                  {bp.claimed && <Check size={8} strokeWidth={3} />}
-                  {bp.claimable && (
-                    <span className="block w-1.5 h-1.5 rounded-full bg-slate-900" />
-                  )}
-                </div>
-
-                {/* Claim bubble */}
-                {bp.claimable && (
-                  <button
-                    onClick={() => {
-                      if (isClaimingThis || disabled) return;
-                      onClaim(bp.questId, bp.intervalId);
-                    }}
-                    disabled={isClaimingThis || disabled}
-                    className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-green-500 hover:bg-green-400 active:bg-green-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shadow-lg shadow-green-500/40 disabled:opacity-50 transition-colors"
-                  >
-                    {isClaimingThis ? (
-                      <Loader2 size={9} className="animate-spin" />
-                    ) : (
-                      "Claim"
-                    )}
-                  </button>
-                )}
-
-                {/* Labels below */}
-                <div className="absolute top-full mt-1.5 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                  <span
-                    className={`text-[10px] font-medium tabular-nums ${
-                      bp.claimed
-                        ? "text-green-400/50"
-                        : bp.completed
-                          ? "text-cyan-200"
-                          : "text-slate-400"
-                    }`}
-                  >
-                    {bp.target}
-                  </span>
-                  <span
-                    className={`text-[9px] leading-tight ${
-                      bp.claimed ? "text-slate-600" : "text-yellow-300/60"
-                    }`}
-                  >
-                    🧊{bp.reward}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-// ─── Pill indicators ────────────────────────────────────────────────────────
-
-const PillIndicators: React.FC<{
-  tiers: QuestTier[];
-  selectedIndex: number;
-  onSelect: (i: number) => void;
-}> = ({ tiers, selectedIndex, onSelect }) => (
+const TierDots: React.FC<{ tiers: QuestTier[] }> = ({ tiers }) => (
   <div className="flex items-center gap-0.5">
-    {tiers.map((tier, i) => (
-      <button
+    {tiers.map((tier) => (
+      <div
         key={tier.questId}
-        onClick={() => onSelect(i)}
-        className={`h-3 rounded-full transition-all ${
-          i === selectedIndex ? "w-6" : "w-4"
-        } ${
+        className={`w-1.5 h-1.5 rounded-full transition-colors ${
           tier.claimed
-            ? "bg-green-500/60"
+            ? "bg-green-400"
             : tier.completed
               ? "bg-yellow-400"
-              : i === selectedIndex
-                ? "bg-slate-500"
-                : "bg-slate-700"
+              : "bg-slate-600"
         }`}
       />
     ))}
   </div>
 );
 
-// ─── Compact Tier Card ──────────────────────────────────────────────────────
-// Combo / Combo Streak — one tier at a time with pill navigation
+// ─── Compact Quest Card ─────────────────────────────────────────────────────
+// Unified card for all families (dialog-sized).
 
-const CompactTierCard: React.FC<{
+const CompactQuestCard: React.FC<{
   family: QuestFamily;
   onClaim: (questId: string, intervalId: number) => Promise<void>;
   claimingKey: string | null;
@@ -275,122 +88,138 @@ const CompactTierCard: React.FC<{
 }> = ({ family, onClaim, claimingKey, disabled }) => {
   const Icon = iconMap[family.icon] ?? Gamepad2;
   const allClaimed = family.tiers.every((t) => t.claimed);
+  const claimable = family.claimableTier;
+  const isCumulative = CUMULATIVE_FAMILIES.has(family.id);
 
-  const autoIndex = useMemo(() => {
-    const idx = family.tiers.findIndex((t) => !t.claimed);
-    return idx >= 0 ? idx : family.tiers.length - 1;
-  }, [family.tiers]);
+  const activeTierIndex = family.currentTierIndex >= 0
+    ? family.currentTierIndex
+    : family.tiers.length - 1;
+  const activeTier = claimable ?? family.tiers[activeTierIndex];
+  if (!activeTier) return null;
 
-  const [selectedIndex, setSelectedIndex] = useState(autoIndex);
+  const claimKey = claimable
+    ? `${claimable.questId}:${claimable.intervalId}`
+    : "";
+  const isClaiming = claimable !== null && claimingKey === claimKey;
 
-  useEffect(() => {
-    setSelectedIndex(autoIndex);
-  }, [autoIndex]);
-
-  const tier = family.tiers[selectedIndex];
-  if (!tier) return null;
-
-  const claimable = tier.completed && !tier.claimed;
-  const claimKey = `${tier.questId}:${tier.intervalId}`;
-  const isClaiming = claimingKey === claimKey;
-
-  const cardBg = allClaimed
-    ? "bg-slate-800 border-green-500/15"
-    : claimable
-      ? "bg-indigo-950 border-green-500/30"
-      : "bg-indigo-950 border-white/8";
+  const progressPercent =
+    isCumulative && family.nextTarget > 0
+      ? Math.min((family.progress / family.nextTarget) * 100, 100)
+      : 0;
 
   return (
     <motion.div
-      className={`rounded-xl border p-3 ${cardBg}`}
-      initial={{ opacity: 0, y: 6 }}
+      className={`rounded-lg p-3 transition-colors ${
+        allClaimed
+          ? "bg-slate-900/50"
+          : claimable
+            ? "bg-slate-900 ring-1 ring-green-500/30"
+            : "bg-slate-900"
+      }`}
+      initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.15 }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2 mb-1.5">
+        <div className="flex items-center gap-2 min-w-0">
           <div
-            className={`grid h-7 w-7 place-items-center rounded-lg flex-shrink-0 ${
+            className={`grid h-6 w-6 place-items-center rounded-md flex-shrink-0 ${
               allClaimed
-                ? "bg-green-500/15 text-green-400/60"
+                ? "bg-green-500/10 text-green-400/50"
                 : claimable
-                  ? "bg-yellow-400/15 text-yellow-300"
+                  ? "bg-green-500/15 text-green-300"
                   : "bg-white/8 text-cyan-300"
             }`}
           >
-            <Icon size={14} />
+            {allClaimed ? <Check size={12} /> : <Icon size={12} />}
           </div>
           <span
-            className={`font-['Fredericka_the_Great'] text-base leading-tight ${
-              allClaimed ? "text-slate-400" : "text-white"
+            className={`font-['Fredericka_the_Great'] text-sm leading-tight truncate ${
+              allClaimed ? "text-slate-500" : "text-white"
             }`}
           >
             {family.name}
           </span>
         </div>
-        <PillIndicators
-          tiers={family.tiers}
-          selectedIndex={selectedIndex}
-          onSelect={setSelectedIndex}
-        />
-      </div>
-
-      {/* Active tier */}
-      <div
-        className={`rounded-lg p-2.5 ${
-          tier.claimed
-            ? "bg-black/20"
-            : claimable
-              ? "bg-green-950/40 border border-green-500/15"
-              : "bg-black/30"
-        }`}
-      >
-        <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 mb-0.5">
-              {tier.claimed && (
-                <Check size={12} className="text-green-400 flex-shrink-0" />
-              )}
-              {claimable && (
-                <span className="text-green-400 font-bold italic text-[10px] uppercase tracking-wide flex-shrink-0">
-                  DONE!
-                </span>
-              )}
-              <span
-                className={`text-xs truncate ${
-                  tier.claimed
-                    ? "text-slate-500 line-through"
-                    : claimable
-                      ? "text-green-200"
-                      : "text-slate-200"
-                }`}
-              >
-                {tier.description || tier.name}
-              </span>
-            </div>
-            <span className="text-[10px] text-slate-500">
-              Tier {tier.tier}/{family.totalTiers}
-            </span>
-          </div>
-          <InlineCube amount={tier.reward} muted={tier.claimed} />
-        </div>
-
-        {/* Claim */}
-        {claimable && (
-          <button
-            onClick={() => onClaim(tier.questId, tier.intervalId)}
-            disabled={isClaiming || disabled}
-            className="w-full mt-2 py-1.5 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50 transition-colors"
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <TierDots tiers={family.tiers} />
+          <span
+            className={`inline-flex items-center gap-0.5 ${
+              allClaimed ? "opacity-35" : ""
+            }`}
           >
-            {isClaiming ? (
-              <Loader2 size={12} className="animate-spin" />
-            ) : (
-              <>Claim 🧊 {tier.reward}</>
-            )}
-          </button>
-        )}
+            <span className="text-[10px]">🧊</span>
+            <span className="font-['Fredericka_the_Great'] text-xs text-yellow-200">
+              {activeTier.reward}
+            </span>
+          </span>
+        </div>
       </div>
+
+      {/* Description */}
+      {!allClaimed && (
+        <p
+          className={`text-xs mb-1.5 ${
+            claimable ? "text-green-200" : "text-slate-400"
+          }`}
+        >
+          {activeTier.description || activeTier.name}
+        </p>
+      )}
+
+      {/* Progress / status */}
+      {allClaimed ? (
+        <p className="text-[10px] text-green-400/50">All tiers completed</p>
+      ) : isCumulative ? (
+        <div className="flex items-center gap-2">
+          <div className="h-1 flex-1 rounded-full bg-white/10 overflow-hidden">
+            <motion.div
+              className={`h-full rounded-full ${
+                claimable
+                  ? "bg-gradient-to-r from-green-400 to-emerald-400"
+                  : "bg-gradient-to-r from-cyan-400 to-blue-400"
+              }`}
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercent}%` }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            />
+          </div>
+          <span
+            className={`font-['Fredericka_the_Great'] text-xs leading-none min-w-fit ${
+              claimable ? "text-green-200" : "text-slate-300"
+            }`}
+          >
+            {family.progress}/{family.nextTarget}
+          </span>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5">
+          {activeTier.completed ? (
+            <>
+              <Check size={11} className="text-green-400" />
+              <span className="text-xs text-green-300">Achieved!</span>
+            </>
+          ) : (
+            <span className="text-xs text-slate-500">Not yet achieved</span>
+          )}
+        </div>
+      )}
+
+      {/* Claim */}
+      {claimable && (
+        <button
+          onClick={() => onClaim(claimable.questId, claimable.intervalId)}
+          disabled={isClaiming || disabled}
+          className="w-full mt-2 py-1.5 rounded-md bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50 transition-colors"
+        >
+          {isClaiming ? (
+            <Loader2 size={12} className="animate-spin" />
+          ) : (
+            <>Claim 🧊 {claimable.reward}</>
+          )}
+        </button>
+      )}
     </motion.div>
   );
 };
@@ -464,28 +293,12 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
     questFamilies.length > 0 &&
     questFamilies.every((f) => f.tiers.every((t) => t.claimed));
 
-  const renderFamily = (family: QuestFamily) => {
-    if (SLIDER_FAMILIES.has(family.id)) {
-      return (
-        <CompactSlider
-          key={family.id}
-          family={family}
-          onClaim={handleClaim}
-          claimingKey={claimingKey}
-          disabled={!account}
-        />
-      );
-    }
-    return (
-      <CompactTierCard
-        key={family.id}
-        family={family}
-        onClaim={handleClaim}
-        claimingKey={claimingKey}
-        disabled={!account}
-      />
-    );
-  };
+  const finisherTier = finisherFamily?.tiers[0];
+  const finisherCanClaim = finisherTier?.completed && !finisherTier?.claimed;
+  const finisherProgressPercent =
+    totals.totalQuests > 0
+      ? Math.min((totals.totalCompleted / totals.totalQuests) * 100, 100)
+      : 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -518,7 +331,7 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
+        <div className="flex-1 overflow-y-auto space-y-2 pr-1">
           {status === "loading" ? (
             <div className="flex items-center justify-center py-8 text-slate-300">
               <Loader2 size={14} className="animate-spin mr-2" />
@@ -531,70 +344,76 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
           ) : (
             <>
               {/* Champion */}
-              {finisherFamily && (
+              {finisherFamily && finisherTier && (
                 <motion.div
-                  className={`rounded-xl border p-3 ${
-                    finisherFamily.tiers[0]?.claimed
-                      ? "bg-slate-800 border-yellow-500/10"
-                      : finisherFamily.tiers[0]?.completed
-                        ? "bg-gradient-to-br from-yellow-950/80 via-amber-950/70 to-orange-950/60 border-yellow-400/30"
-                        : "bg-indigo-950 border-yellow-500/15"
+                  className={`rounded-lg p-3 ${
+                    finisherTier.claimed
+                      ? "bg-slate-900/50"
+                      : finisherCanClaim
+                        ? "bg-gradient-to-br from-yellow-950/60 to-amber-950/40 ring-1 ring-yellow-500/25"
+                        : "bg-slate-900 ring-1 ring-yellow-500/10"
                   }`}
-                  initial={{ opacity: 0, y: 6 }}
+                  initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: 0.15 }}
                 >
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
-                      <Trophy size={15} className={
-                        finisherFamily.tiers[0]?.claimed
-                          ? "text-yellow-400/40"
-                          : "text-yellow-300"
-                      } />
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className={`font-['Fredericka_the_Great'] text-base ${
-                            finisherFamily.tiers[0]?.claimed ? "text-yellow-400/40" : "text-yellow-50"
-                          }`}>
-                            Daily Champion
-                          </span>
-                          {finisherFamily.tiers[0]?.completed && !finisherFamily.tiers[0]?.claimed && (
-                            <span className="text-green-400 font-bold italic text-[10px] uppercase">
-                              DONE!
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      <Trophy
+                        size={14}
+                        className={
+                          finisherTier.claimed
+                            ? "text-yellow-400/40"
+                            : "text-yellow-300"
+                        }
+                      />
+                      <span
+                        className={`font-['Fredericka_the_Great'] text-sm ${
+                          finisherTier.claimed
+                            ? "text-yellow-400/40"
+                            : "text-yellow-50"
+                        }`}
+                      >
+                        Daily Champion
+                      </span>
                     </div>
-                    <InlineCube
-                      amount={finisherFamily.tiers[0]?.reward ?? 20}
-                      muted={finisherFamily.tiers[0]?.claimed}
-                    />
+                    <span
+                      className={`inline-flex items-center gap-0.5 ${
+                        finisherTier.claimed ? "opacity-35" : ""
+                      }`}
+                    >
+                      <span className="text-[10px]">🧊</span>
+                      <span className="font-['Fredericka_the_Great'] text-xs text-yellow-200">
+                        {finisherTier.reward}
+                      </span>
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-black/30">
+                    <div className="h-1.5 flex-1 rounded-full bg-black/30 overflow-hidden">
                       <motion.div
                         className={`h-full rounded-full ${
-                          finisherFamily.tiers[0]?.claimed
+                          finisherTier.claimed
                             ? "bg-yellow-600/30"
-                            : finisherFamily.tiers[0]?.completed
-                              ? "bg-gradient-to-r from-green-400 to-emerald-500"
+                            : finisherCanClaim
+                              ? "bg-gradient-to-r from-green-400 to-emerald-400"
                               : "bg-gradient-to-r from-yellow-400 to-amber-300"
                         }`}
                         initial={{ width: 0 }}
-                        animate={{
-                          width: `${totals.totalQuests > 0 ? Math.min((totals.totalCompleted / totals.totalQuests) * 100, 100) : 0}%`,
-                        }}
+                        animate={{ width: `${finisherProgressPercent}%` }}
                         transition={{ duration: 0.4, ease: "easeOut" }}
                       />
                     </div>
-                    <span className={`font-['Fredericka_the_Great'] text-sm min-w-fit ${
-                      finisherFamily.tiers[0]?.claimed ? "text-yellow-400/35" : "text-yellow-50"
-                    }`}>
+                    <span
+                      className={`font-['Fredericka_the_Great'] text-xs min-w-fit ${
+                        finisherTier.claimed
+                          ? "text-yellow-400/35"
+                          : "text-yellow-50"
+                      }`}
+                    >
                       {totals.totalCompleted}/{totals.totalQuests}
                     </span>
                   </div>
-                  {finisherFamily.claimableTier && (
+                  {finisherCanClaim && finisherFamily.claimableTier && (
                     <button
                       onClick={() =>
                         handleClaim(
@@ -607,21 +426,29 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
                           `${finisherFamily.claimableTier.questId}:${finisherFamily.claimableTier.intervalId}` ||
                         !account
                       }
-                      className="w-full mt-2 py-1.5 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-semibold flex items-center justify-center gap-1 disabled:opacity-50"
+                      className="w-full mt-2 py-1.5 rounded-md bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-900 text-xs font-bold flex items-center justify-center gap-1 disabled:opacity-50"
                     >
                       {claimingKey ===
                       `${finisherFamily.claimableTier.questId}:${finisherFamily.claimableTier.intervalId}` ? (
-                        <Loader2 size={12} className="animate-spin" />
+                        <Loader2 size={11} className="animate-spin" />
                       ) : (
-                        <>Claim 🧊 {finisherFamily.claimableTier.reward}</>
+                        <>CLAIM 🧊 {finisherFamily.claimableTier.reward}</>
                       )}
                     </button>
                   )}
                 </motion.div>
               )}
 
-              {/* Main families */}
-              {mainFamilies.map(renderFamily)}
+              {/* Quest families */}
+              {mainFamilies.map((family) => (
+                <CompactQuestCard
+                  key={family.id}
+                  family={family}
+                  onClaim={handleClaim}
+                  claimingKey={claimingKey}
+                  disabled={!account}
+                />
+              ))}
             </>
           )}
         </div>
