@@ -394,7 +394,7 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
           ))}
         </svg>
       </div>
-    </div>
+  );
 };
 
 /* ------------------------------------------------------------------ */
@@ -1066,7 +1066,7 @@ function buildTreeData(
         nodeOpacity: wrongA && !needsChoice ? 0.25 : 1,
         iconOpacity: nA.unlocked ? 1 : nA.isNext ? 0.6 : 0.25,
         iconFilter: !nA.unlocked && !nA.isNext ? "grayscale(1)" : "",
-        label: isForkRow ? "A" : "",
+        label: "",
         badgeLabel: nA.unlocked ? "\u2713" : fmtCost(cost),
         badgeColor: nA.unlocked ? "#bbf7d0" : nA.isNext ? "#fed7aa" : "#64748b",
         action: needsChoice && nA.canAfford
@@ -1107,7 +1107,7 @@ function buildTreeData(
         nodeOpacity: wrongB && !needsChoice ? 0.25 : 1,
         iconOpacity: nB.unlocked ? 1 : nB.isNext ? 0.6 : 0.25,
         iconFilter: !nB.unlocked && !nB.isNext ? "grayscale(1)" : "",
-        label: isForkRow ? "B" : "",
+        label: "",
         badgeLabel: nB.unlocked ? "\u2713" : fmtCost(cost),
         badgeColor: nB.unlocked ? "#bbf7d0" : nB.isNext ? "#fed7aa" : "#64748b",
         action: needsChoice && nB.canAfford
