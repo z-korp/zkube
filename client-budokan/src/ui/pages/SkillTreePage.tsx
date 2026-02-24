@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
-import { Loader2, Lock, ChevronRight } from "lucide-react";
+import { Loader2, Lock, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { useSkillTree } from "@/hooks/useSkillTree";
@@ -205,37 +205,8 @@ const SkillTreePage: React.FC = () => {
     <div className="h-screen-viewport flex flex-col text-white">
       <PageTopBar title="SKILL TREE" onBack={goBack} cubeBalance={cubeBalance} />
 
-      {/* Archetype pills */}
-      <div className="flex items-center justify-center gap-1.5 px-3 py-2">
-        {ARCHETYPE_ORDER.map((id, idx) => {
-          const a = ARCHETYPES[id];
-          const active = idx === activeIndex;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => handlePillClick(idx)}
-              className={`px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all ${
-                active ? "text-white scale-105" : "text-slate-400 bg-slate-800/60 hover:bg-slate-700/60"
-              }`}
-              style={
-                active
-                  ? {
-                      backgroundColor: a.color + "33",
-                      color: a.color,
-                      border: `1px solid ${a.color}66`,
-                    }
-                  : { border: "1px solid transparent" }
-              }
-            >
-              {a.name}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Swiper — fills remaining height */}
-      <div className="flex-1 min-h-0 overflow-hidden">
+      {/* Full remaining space — panel + swiper + arrows */}
+      <div className="flex-1 min-h-0 relative overflow-hidden">
         <Swiper
           slidesPerView={1}
           spaceBetween={0}
@@ -255,6 +226,28 @@ const SkillTreePage: React.FC = () => {
             </SwiperSlide>
           ))}
         </Swiper>
+
+        {/* Left arrow */}
+        {activeIndex > 0 && (
+          <button
+            type="button"
+            className="absolute left-1.5 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-1.5 text-white/70 transition-colors hover:bg-black/70 hover:text-white"
+            onClick={() => swiperRef.current?.slidePrev()}
+          >
+            <ChevronLeft size={18} />
+          </button>
+        )}
+
+        {/* Right arrow */}
+        {activeIndex < ARCHETYPE_ORDER.length - 1 && (
+          <button
+            type="button"
+            className="absolute right-1.5 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-1.5 text-white/70 transition-colors hover:bg-black/70 hover:text-white"
+            onClick={() => swiperRef.current?.slideNext()}
+          >
+            <ChevronRight size={18} />
+          </button>
+        )}
       </div>
 
       {/* Skill detail modal */}
@@ -272,7 +265,6 @@ const SkillTreePage: React.FC = () => {
       )}
     </div>
   );
-};
 
 /* ------------------------------------------------------------------ */
 /*  TreeSlide — SVG tree inside dark panel, scales with viewport       */
@@ -304,100 +296,109 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
   }, [archetypeSkills, skills, archetype.color, cubeBalance]);
 
   return (
-    <div className="h-full flex flex-col px-3 py-2 overflow-hidden">
-      {/* Archetype header */}
-      <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
-        className="flex items-center gap-2.5 mb-2 mx-auto w-full max-w-[520px] px-1"
-      >
-        <div
-          className="w-9 h-9 rounded-lg overflow-hidden border-2 flex-shrink-0"
-          style={{ borderColor: archetype.color + "66" }}
-        >
-          <img src={iconSrc} alt={archetype.name} className="w-full h-full object-cover" draggable={false} />
-        </div>
-        <div className="min-w-0">
-          <h2
-            className="font-['Fredericka_the_Great'] text-base leading-tight"
-            style={{ color: archetype.color }}
+    <div className="h-full flex flex-col p-2 overflow-hidden">
+      {/* Dark panel — fills ALL space */}
+      <div className="flex-1 min-h-0 rounded-2xl border border-slate-700/50 bg-slate-900/90 flex flex-col overflow-hidden">
+        {/* Archetype header INSIDE panel */}
+        <div className="flex items-center gap-2.5 px-3 py-2 border-b border-slate-700/30 flex-shrink-0">
+          <div
+            className="w-8 h-8 rounded-lg overflow-hidden border-2 flex-shrink-0"
+            style={{ borderColor: archetype.color + '66' }}
           >
-            {archetype.name}
-          </h2>
-          <p className="text-[10px] text-slate-400 truncate">
-            {archetype.description}
-          </p>
+            <img src={iconSrc} alt={archetype.name} className="w-full h-full object-cover" draggable={false} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2
+              className="font-['Fredericka_the_Great'] text-base leading-tight"
+              style={{ color: archetype.color }}
+            >
+              {archetype.name}
+            </h2>
+            <p className="text-[10px] text-slate-400 truncate">{archetype.description}</p>
+          </div>
+          {/* Dot indicators */}
+          <div className="flex gap-1.5 flex-shrink-0">
+            {ARCHETYPE_ORDER.map((id, idx) => {
+              const isActive = id === archetypeId;
+              return (
+                <div
+                  key={id}
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${isActive ? 'scale-125' : 'opacity-40'}`}
+                  style={{ backgroundColor: isActive ? archetype.color : '#94a3b8' }}
+                />
+              );
+            })}
+          </div>
         </div>
-      </motion.div>
 
-      {/* Dark panel — takes remaining height */}
-      <div className="flex-1 min-h-0 mx-auto w-full max-w-[520px] rounded-2xl border border-slate-700/50 bg-slate-900/90 p-1 overflow-hidden">
-        <svg
-          viewBox={`0 0 ${VB_W} ${VB_H}`}
-          preserveAspectRatio="xMidYMid meet"
-          className="w-full h-full"
-        >
-          <defs>
-            <style>{`
-              @keyframes skill-pulse {
-                0%, 100% { opacity: 0.3; }
-                50% { opacity: 0.8; }
-              }
-              .skill-node-pulse { animation: skill-pulse 2s ease-in-out infinite; }
-            `}</style>
-          </defs>
+        {/* SVG tree — fills remaining panel space */}
+        <div className="flex-1 min-h-0 p-1">
+          <svg
+            viewBox={`0 0 ${VB_W} ${VB_H}`}
+            preserveAspectRatio="xMidYMid meet"
+            className="w-full h-full"
+          >
+            <defs>
+              <style>{`
+                @keyframes skill-pulse {
+                  0%, 100% { opacity: 0.3; }
+                  50% { opacity: 0.8; }
+                }
+                .skill-node-pulse { animation: skill-pulse 2s ease-in-out infinite; }
+              `}</style>
+            </defs>
 
-          {/* Skill name labels */}
-          {archetypeSkills.map((skill, colIdx) => (
-            <g key={`hdr-${skill.id}`}>
-              <text
-                x={COL_X[colIdx]}
-                y={ROW_START_Y - 7}
-                textAnchor="middle"
-                fill="#cbd5e1"
-                fontSize={2.8}
-                fontWeight="bold"
-                fontFamily="system-ui, sans-serif"
-              >
-                {skill.name}
-              </text>
-              <text
-                x={COL_X[colIdx]}
-                y={ROW_START_Y - 4}
-                textAnchor="middle"
-                fill="#475569"
-                fontSize={1.8}
-                fontFamily="system-ui, sans-serif"
-              >
-                {skill.category === "bonus" ? "Active" : "Passive"}
-              </text>
-            </g>
-          ))}
+            {/* Skill name labels */}
+            {archetypeSkills.map((skill, colIdx) => (
+              <g key={`hdr-${skill.id}`}>
+                <text
+                  x={COL_X[colIdx]}
+                  y={ROW_START_Y - 7}
+                  textAnchor="middle"
+                  fill="#cbd5e1"
+                  fontSize={2.8}
+                  fontWeight="bold"
+                  fontFamily="system-ui, sans-serif"
+                >
+                  {skill.name}
+                </text>
+                <text
+                  x={COL_X[colIdx]}
+                  y={ROW_START_Y - 4}
+                  textAnchor="middle"
+                  fill="#475569"
+                  fontSize={1.8}
+                  fontFamily="system-ui, sans-serif"
+                >
+                  {skill.category === 'bonus' ? 'Active' : 'Passive'}
+                </text>
+              </g>
+            ))}
 
-          {/* Paths */}
-          {treeData.paths.map((p, i) => (
-            <path
-              key={`path-${i}`}
-              d={p.d}
-              fill="none"
-              stroke={p.color}
-              strokeWidth={p.strokeWidth}
-              strokeLinecap="round"
-              opacity={p.opacity}
-            />
-          ))}
+            {/* Paths */}
+            {treeData.paths.map((p, i) => (
+              <path
+                key={`path-${i}`}
+                d={p.d}
+                fill="none"
+                stroke={p.color}
+                strokeWidth={p.strokeWidth}
+                strokeLinecap="round"
+                opacity={p.opacity}
+              />
+            ))}
 
-          {/* Nodes */}
-          {treeData.nodes.map((node) => (
-            <SvgNode
-              key={node.key}
-              node={node}
-              isBusy={busySkillId === node.skillId}
-              onClick={onNodeClick}
-            />
-          ))}
-        </svg>
+            {/* Nodes */}
+            {treeData.nodes.map((node) => (
+              <SvgNode
+                key={node.key}
+                node={node}
+                isBusy={busySkillId === node.skillId}
+                onClick={onNodeClick}
+              />
+            ))}
+          </svg>
+        </div>
       </div>
     </div>
   );
