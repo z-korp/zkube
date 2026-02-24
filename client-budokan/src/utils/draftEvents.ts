@@ -57,7 +57,14 @@ export const getDraftEventForCompletedLevel = (
     };
   }
 
+  if (completedLevel >= 10) {
+    return null;
+  }
+
   const zone = toZone(completedLevel);
+  if (zone !== 1) {
+    return null;
+  }
   const trigger = getZoneMicroDraftTriggerLevel(seed, zone);
 
   if (completedLevel === trigger) {
@@ -87,13 +94,15 @@ export const getDraftEventsForZone = (
     });
   }
 
-  const microTrigger = getZoneMicroDraftTriggerLevel(seed, zone);
-  events.push({
-    type: "zone_micro",
-    triggerLevel: microTrigger,
-    zone,
-    eventId: `zone_micro:${microTrigger}:${zone}`,
-  });
+  if (zone === 1) {
+    const microTrigger = getZoneMicroDraftTriggerLevel(seed, zone);
+    events.push({
+      type: "zone_micro",
+      triggerLevel: microTrigger,
+      zone,
+      eventId: `zone_micro:${microTrigger}:${zone}`,
+    });
+  }
 
   if (zone < 5) {
     const bossTrigger = zone * LEVELS_PER_ZONE;
@@ -115,8 +124,8 @@ export const isDraftEventUnlocked = (
 
 export const getDraftEventSlot = (event: PendingDraftEvent): number => {
   if (event.type === "post_level_1") return 0;
-  if (event.type === "zone_micro") return event.zone;
-  return 5 + event.zone;
+  if (event.type === "zone_micro") return 1;
+  return event.triggerLevel / 10 + 1;
 };
 
 export interface StoredDraftPick {
@@ -128,8 +137,8 @@ export interface StoredDraftPick {
 
 const getDraftPickForSlot = (selectedPicks: bigint, slot: number): number => {
   if (slot < 0 || slot >= 10) return 0;
-  const shift = BigInt(slot * 16);
-  return Number((selectedPicks >> shift) & 0xffffn);
+  const shift = BigInt(slot * 8);
+  return Number((selectedPicks >> shift) & 0xffn);
 };
 
 const isDraftSlotCompleted = (completedMask: number, slot: number): boolean => {
@@ -144,8 +153,8 @@ const toStoredDraftPick = (skillId: number): StoredDraftPick | null => {
   return {
     title: `Skill Draft: ${skill.name}`,
     description: skill.description,
-    kind: skill.category === "bonus" ? "new_bonus" : "zone_modifier",
-    pool: skill.category === "bonus" ? "bonus" : "world",
+    kind: skill.category === "bonus" ? "new_powerup" : "zone_modifier",
+    pool: skill.category === "bonus" ? "powerup" : "world",
   };
 };
 

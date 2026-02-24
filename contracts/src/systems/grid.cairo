@@ -292,37 +292,23 @@ mod grid_system {
                 let effective_lines = saturating_add_u8(
                     lines_cleared, world_effects.catalyst_threshold_reduction,
                 );
-                let normal_combo_cubes = scoring::calculate_combo_cubes(lines_cleared);
-                let mut catalyst_combo_cubes = scoring::calculate_combo_cubes(effective_lines);
 
-                if world_effects.catalyst_triple_cubes_above > 0
-                    && lines_cleared >= world_effects.catalyst_triple_cubes_above
-                {
-                    catalyst_combo_cubes *= 3;
-                } else if world_effects.catalyst_double_cubes_above > 0
-                    && lines_cleared >= world_effects.catalyst_double_cubes_above
-                {
-                    catalyst_combo_cubes *= 2;
-                }
+                // Combo-cube payouts are removed globally.
+                // Catalyst can still add explicit cubes/score/free-moves as bounded effects.
 
-                if catalyst_combo_cubes > normal_combo_cubes {
-                    let extra_cubes = catalyst_combo_cubes - normal_combo_cubes;
-                    run_data.total_cubes = saturating_add_u16(run_data.total_cubes, extra_cubes);
-                }
-
-                if catalyst_combo_cubes > 0 && world_effects.catalyst_bonus_cubes > 0 {
+                if effective_lines > 1 && world_effects.catalyst_bonus_cubes > 0 {
                     run_data.total_cubes = saturating_add_u16(
                         run_data.total_cubes, world_effects.catalyst_bonus_cubes.into(),
                     );
                 }
 
-                if lines_cleared > 0 && world_effects.catalyst_bonus_score > 0 {
-                    let catalyst_bonus_score: u16 = lines_cleared.into()
+                if effective_lines > 0 && world_effects.catalyst_bonus_score > 0 {
+                    let catalyst_bonus_score: u16 = effective_lines.into()
                         * world_effects.catalyst_bonus_score.into();
                     update_score(ref run_data, catalyst_bonus_score);
                 }
 
-                if lines_cleared > 1 && world_effects.catalyst_free_moves_on_combo > 0 {
+                if effective_lines > 1 && world_effects.catalyst_free_moves_on_combo > 0 {
                     run_data.free_moves = scoring::saturating_add_u8_capped(
                         run_data.free_moves,
                         world_effects.catalyst_free_moves_on_combo,
@@ -449,26 +435,9 @@ mod grid_system {
                 run_data.level_moves += 1;
             }
 
-            // --- Charge Distribution ---
-            // 3+ line clear = +1 charge to a random active bonus
-            if lines_cleared >= 3 {
-                let charge_seed_state: HashState = PoseidonTrait::new()
-                    .update(base_seed.seed)
-                    .update(run_data.level_moves.into())
-                    .update('CHARGE_LINES');
-                let charge_seed = charge_seed_state.finalize();
-                run_data.award_random_bonus_charge(charge_seed);
-            }
-
-            // 5+ combo streak milestone = +1 charge
-            if game.combo_counter == 5 && lines_cleared > 0 {
-                let charge_seed_state: HashState = PoseidonTrait::new()
-                    .update(base_seed.seed)
-                    .update(run_data.level_moves.into())
-                    .update('CHARGE_COMBO');
-                let charge_seed = charge_seed_state.finalize();
-                run_data.award_random_bonus_charge(charge_seed);
-            }
+            // Charge rewards are handled in level_system at level completion:
+            // - cadence source (every 5 levels)
+            // - highest combo-tier source (once per level)
 
             // If grid is empty after all that, add another line
             if new_blocks == 0 {
@@ -731,7 +700,7 @@ mod grid_system {
             if effect.charge_all_bonus {
                 let mut slot: u8 = 0;
                 loop {
-                    if slot >= run_data.active_slot_count || slot >= 5 {
+                    if slot >= run_data.active_slot_count || slot >= 3 {
                         break;
                     }
                     let sid = run_data.get_slot_skill(slot);

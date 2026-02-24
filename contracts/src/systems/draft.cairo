@@ -65,18 +65,37 @@ mod draft_system {
                 event_slot = 0;
                 event_type = EVENT_TYPE_POST_LEVEL_1;
                 zone = 1;
-            } else if completed_level < 50 && completed_level % 10 == 0 {
+            } else if completed_level == 10
+                || completed_level == 20
+                || completed_level == 30
+                || completed_level == 40
+            {
                 zone = completed_level / 10;
-                event_slot = 5 + zone;
+                event_slot = if completed_level == 10 {
+                    2
+                } else if completed_level == 20 {
+                    3
+                } else if completed_level == 30 {
+                    4
+                } else {
+                    5
+                };
                 event_type = EVENT_TYPE_POST_BOSS;
             } else {
+                // Only one micro augment event in zone 1 to ensure full loadout by Boss 1.
+                if completed_level >= 10 {
+                    return;
+                }
                 zone = InternalImpl::zone_for_level(completed_level);
+                if zone != 1 {
+                    return;
+                }
                 let trigger = InternalImpl::zone_micro_trigger(draft.seed, zone);
                 if completed_level != trigger {
                     return;
                 }
 
-                event_slot = zone;
+                event_slot = 1;
                 event_type = EVENT_TYPE_ZONE_MICRO;
             }
 
@@ -230,7 +249,7 @@ mod draft_system {
             if existing_slot != 255 {
                 let current_level = run_data.get_slot_level(existing_slot);
                 run_data.set_slot_level(existing_slot, InternalImpl::sat_add_u8(current_level, 1, 10));
-            } else if run_data.active_slot_count < 5 {
+            } else if run_data.active_slot_count < 3 {
                 let added_slot = run_data.add_skill(selected_choice, tree_skill.level);
                 assert!(added_slot != 255, "Failed to add skill to run loadout");
             } else {
@@ -317,7 +336,7 @@ mod draft_system {
             let mut count: u8 = 0;
             let mut slot: u8 = 0;
             loop {
-                if slot >= 5 {
+                if slot >= 3 {
                     break;
                 }
                 if run_data.get_slot_skill(slot) != 0 {
@@ -332,7 +351,7 @@ mod draft_system {
             let mut seen: u8 = 0;
             let mut slot: u8 = 0;
             loop {
-                if slot >= 5 {
+                if slot >= 3 {
                     break;
                 }
                 let skill = run_data.get_slot_skill(slot);
@@ -349,11 +368,45 @@ mod draft_system {
         }
 
         fn pool_size(run_data: @RunData) -> u8 {
-            if (*run_data.active_slot_count) < 5 {
-                15
+            if (*run_data.active_slot_count) < 3 {
+                Self::inactive_skill_count(run_data)
             } else {
                 Self::active_skill_count(run_data)
             }
+        }
+
+        fn inactive_skill_count(run_data: @RunData) -> u8 {
+            let mut count: u8 = 0;
+            let mut skill_id: u8 = 1;
+            loop {
+                if skill_id > 15 {
+                    break;
+                }
+                if !run_data.has_skill(skill_id) {
+                    count += 1;
+                }
+                skill_id += 1;
+            };
+            count
+        }
+
+        fn inactive_skill_at(run_data: @RunData, index: u8) -> u8 {
+            let mut seen: u8 = 0;
+            let mut skill_id: u8 = 1;
+            loop {
+                if skill_id > 15 {
+                    break;
+                }
+                if !run_data.has_skill(skill_id) {
+                    if seen == index {
+                        return skill_id;
+                    }
+                    seen += 1;
+                }
+                skill_id += 1;
+            };
+            assert!(false, "Inactive skill index out of range");
+            0
         }
 
         fn draw_card_from_pool(
@@ -362,9 +415,12 @@ mod draft_system {
             let h = Self::choice_hash(seed, event_slot, card_index, reroll_count);
             let h_u256: u256 = h.into();
 
-            if (*run_data.active_slot_count) < 5 {
-                let candidate_u256: u256 = (h_u256 % 15_u256) + 1_u256;
-                candidate_u256.try_into().unwrap()
+            if (*run_data.active_slot_count) < 3 {
+                let inactive_count = Self::inactive_skill_count(run_data);
+                assert!(inactive_count > 0, "No inactive skills available for draft");
+                let idx_u256: u256 = h_u256 % inactive_count.into();
+                let idx: u8 = idx_u256.try_into().unwrap();
+                Self::inactive_skill_at(run_data, idx)
             } else {
                 let count = Self::active_skill_count(run_data);
                 assert!(count > 0, "No active skills available for draft");
@@ -375,12 +431,21 @@ mod draft_system {
         }
 
         fn next_skill_in_pool(current_skill: u8, run_data: @RunData) -> u8 {
-            if (*run_data.active_slot_count) < 5 {
-                if current_skill >= 15 {
-                    1
-                } else {
-                    current_skill + 1
-                }
+            if (*run_data.active_slot_count) < 3 {
+                let mut next_skill = if current_skill >= 15 { 1 } else { current_skill + 1 };
+                let mut steps: u8 = 0;
+                loop {
+                    if !run_data.has_skill(next_skill) {
+                        return next_skill;
+                    }
+                    next_skill = if next_skill >= 15 { 1 } else { next_skill + 1 };
+                    steps += 1;
+                    if steps >= 15 {
+                        break;
+                    }
+                };
+                assert!(false, "No inactive skills available for pool iteration");
+                0
             } else {
                 let count = Self::active_skill_count(run_data);
                 assert!(count > 0, "No active skills available for draft");

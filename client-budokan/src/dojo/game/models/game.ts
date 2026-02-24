@@ -70,7 +70,7 @@ export class Game {
   public get activeSlotCount(): number {
     return this.runData.activeSlotCount;
   }
-  public get slots(): [SkillSlot, SkillSlot, SkillSlot, SkillSlot, SkillSlot] {
+  public get slots(): [SkillSlot, SkillSlot, SkillSlot] {
     return this.runData.slots;
   }
   // Victory state

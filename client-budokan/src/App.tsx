@@ -9,7 +9,6 @@ import { useAccount } from "@starknet-react/core";
 import { Loading } from "@/ui/screens/Loading";
 
 import HomePage from "@/ui/pages/HomePage";
-import LoadoutPage from "@/ui/pages/LoadoutPage";
 import PlayScreen from "@/ui/pages/PlayScreen";
 import MapPage from "@/ui/pages/MapPage";
 import QuestsPage from "@/ui/pages/QuestsPage";
@@ -22,7 +21,6 @@ import SkillTreePage from "@/ui/pages/SkillTreePage";
 
 const pageComponents: Record<PageId, React.ReactNode> = {
   home: <HomePage />,
-  loadout: <LoadoutPage />,
   play: <PlayScreen />,
   map: <MapPage />,
   quests: <QuestsPage />,

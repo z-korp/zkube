@@ -2,7 +2,7 @@ use alexandria_math::BitShift;
 
 /// Bit-packing helpers for efficient storage.
 ///
-/// run_data layout (178 bits used, 74 reserved):
+/// run_data layout (128 bits used, 124 reserved):
 /// - 0-7: current_level
 /// - 8-15: level_score
 /// - 16-23: level_moves
@@ -23,17 +23,11 @@ use alexandria_math::BitShift;
 /// - 110-113: slot_2_level
 /// - 114-117: slot_3_skill
 /// - 118-121: slot_3_level
-/// - 122-125: slot_4_skill
-/// - 126-129: slot_4_level
-/// - 130-133: slot_5_skill
-/// - 134-137: slot_5_level
-/// - 138-145: slot_1_charges
-/// - 146-153: slot_2_charges
-/// - 154-161: slot_3_charges
-/// - 162-169: slot_4_charges
-/// - 170-177: slot_5_charges
+/// - 122-123: slot_1_charges
+/// - 124-125: slot_2_charges
+/// - 126-127: slot_3_charges
 
-/// Unpacked run data structure (V4: 5-slot skill loadout)
+/// Unpacked run data structure (V6, 3-slot only runtime/storage)
 #[derive(Copy, Drop, Serde, Debug, PartialEq)]
 pub struct RunData {
     // Level progress (unchanged)
@@ -50,24 +44,18 @@ pub struct RunData {
     pub run_completed: bool,
     pub free_moves: u8,
     pub no_bonus_constraint: bool,
-    // NEW: 5-slot skill loadout
+    // Runtime loadout (3 active slots max)
     pub active_slot_count: u8,
-    // Slot 1-5: skill_id (4 bits), level (4 bits), charges (8 bits)
+    // Slot 1-3: skill_id (4 bits), level (4 bits), charges (2 bits)
     pub slot_1_skill: u8,
     pub slot_1_level: u8,
     pub slot_2_skill: u8,
     pub slot_2_level: u8,
     pub slot_3_skill: u8,
     pub slot_3_level: u8,
-    pub slot_4_skill: u8,
-    pub slot_4_level: u8,
-    pub slot_5_skill: u8,
-    pub slot_5_level: u8,
     pub slot_1_charges: u8,
     pub slot_2_charges: u8,
     pub slot_3_charges: u8,
-    pub slot_4_charges: u8,
-    pub slot_5_charges: u8,
 }
 
 /// Bit positions and masks for run_data
@@ -92,19 +80,14 @@ mod RunDataBits {
     pub const SLOT_2_LEVEL_POS: u8 = 110;
     pub const SLOT_3_SKILL_POS: u8 = 114;
     pub const SLOT_3_LEVEL_POS: u8 = 118;
-    pub const SLOT_4_SKILL_POS: u8 = 122;
-    pub const SLOT_4_LEVEL_POS: u8 = 126;
-    pub const SLOT_5_SKILL_POS: u8 = 130;
-    pub const SLOT_5_LEVEL_POS: u8 = 134;
-    pub const SLOT_1_CHARGES_POS: u8 = 138;
-    pub const SLOT_2_CHARGES_POS: u8 = 146;
-    pub const SLOT_3_CHARGES_POS: u8 = 154;
-    pub const SLOT_4_CHARGES_POS: u8 = 162;
-    pub const SLOT_5_CHARGES_POS: u8 = 170;
+    pub const SLOT_1_CHARGES_POS: u8 = 122;
+    pub const SLOT_2_CHARGES_POS: u8 = 124;
+    pub const SLOT_3_CHARGES_POS: u8 = 126;
 
     pub const U8_MASK: u256 = 0xFF;
     pub const U16_MASK: u256 = 0xFFFF;
     pub const BOOL_MASK: u256 = 0x1;
+    pub const TWO_BITS_MASK: u256 = 0x3;
     pub const FOUR_BITS_MASK: u256 = 0xF;
     pub const THREE_BITS_MASK: u256 = 0x7;
 }
@@ -134,15 +117,9 @@ pub impl RunDataPacking of RunDataPackingTrait {
             slot_2_level: 0,
             slot_3_skill: 0,
             slot_3_level: 0,
-            slot_4_skill: 0,
-            slot_4_level: 0,
-            slot_5_skill: 0,
-            slot_5_level: 0,
             slot_1_charges: 0,
             slot_2_charges: 0,
             slot_3_charges: 0,
-            slot_4_charges: 0,
-            slot_5_charges: 0,
         }
     }
 
@@ -264,48 +241,18 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                self.slot_4_skill.into() & RunDataBits::FOUR_BITS_MASK,
-                RunDataBits::SLOT_4_SKILL_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                self.slot_4_level.into() & RunDataBits::FOUR_BITS_MASK,
-                RunDataBits::SLOT_4_LEVEL_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                self.slot_5_skill.into() & RunDataBits::FOUR_BITS_MASK,
-                RunDataBits::SLOT_5_SKILL_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                self.slot_5_level.into() & RunDataBits::FOUR_BITS_MASK,
-                RunDataBits::SLOT_5_LEVEL_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                self.slot_1_charges.into() & RunDataBits::U8_MASK,
+                self.slot_1_charges.into() & RunDataBits::TWO_BITS_MASK,
                 RunDataBits::SLOT_1_CHARGES_POS.into(),
             );
         packed = packed
             | BitShift::shl(
-                self.slot_2_charges.into() & RunDataBits::U8_MASK,
+                self.slot_2_charges.into() & RunDataBits::TWO_BITS_MASK,
                 RunDataBits::SLOT_2_CHARGES_POS.into(),
             );
         packed = packed
             | BitShift::shl(
-                self.slot_3_charges.into() & RunDataBits::U8_MASK,
+                self.slot_3_charges.into() & RunDataBits::TWO_BITS_MASK,
                 RunDataBits::SLOT_3_CHARGES_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                self.slot_4_charges.into() & RunDataBits::U8_MASK,
-                RunDataBits::SLOT_4_CHARGES_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                self.slot_5_charges.into() & RunDataBits::U8_MASK,
-                RunDataBits::SLOT_5_CHARGES_POS.into(),
             );
 
         packed.try_into().unwrap()
@@ -394,40 +341,16 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 & RunDataBits::FOUR_BITS_MASK)
                 .try_into()
                 .unwrap(),
-            slot_4_skill: (BitShift::shr(data, RunDataBits::SLOT_4_SKILL_POS.into())
-                & RunDataBits::FOUR_BITS_MASK)
-                .try_into()
-                .unwrap(),
-            slot_4_level: (BitShift::shr(data, RunDataBits::SLOT_4_LEVEL_POS.into())
-                & RunDataBits::FOUR_BITS_MASK)
-                .try_into()
-                .unwrap(),
-            slot_5_skill: (BitShift::shr(data, RunDataBits::SLOT_5_SKILL_POS.into())
-                & RunDataBits::FOUR_BITS_MASK)
-                .try_into()
-                .unwrap(),
-            slot_5_level: (BitShift::shr(data, RunDataBits::SLOT_5_LEVEL_POS.into())
-                & RunDataBits::FOUR_BITS_MASK)
-                .try_into()
-                .unwrap(),
             slot_1_charges: (BitShift::shr(data, RunDataBits::SLOT_1_CHARGES_POS.into())
-                & RunDataBits::U8_MASK)
+                & RunDataBits::TWO_BITS_MASK)
                 .try_into()
                 .unwrap(),
             slot_2_charges: (BitShift::shr(data, RunDataBits::SLOT_2_CHARGES_POS.into())
-                & RunDataBits::U8_MASK)
+                & RunDataBits::TWO_BITS_MASK)
                 .try_into()
                 .unwrap(),
             slot_3_charges: (BitShift::shr(data, RunDataBits::SLOT_3_CHARGES_POS.into())
-                & RunDataBits::U8_MASK)
-                .try_into()
-                .unwrap(),
-            slot_4_charges: (BitShift::shr(data, RunDataBits::SLOT_4_CHARGES_POS.into())
-                & RunDataBits::U8_MASK)
-                .try_into()
-                .unwrap(),
-            slot_5_charges: (BitShift::shr(data, RunDataBits::SLOT_5_CHARGES_POS.into())
-                & RunDataBits::U8_MASK)
+                & RunDataBits::TWO_BITS_MASK)
                 .try_into()
                 .unwrap(),
         }
@@ -441,50 +364,44 @@ pub impl RunDataPacking of RunDataPackingTrait {
 /// Helper methods for RunData slot/skill operations.
 #[generate_trait]
 pub impl RunDataHelpers of RunDataHelpersTrait {
-    /// Get skill_id for a slot (0-indexed: 0-4). Returns 0 if empty, 1-15 for skills.
+    /// Get skill_id for a slot (0-indexed: 0-2).
     fn get_slot_skill(self: @RunData, slot: u8) -> u8 {
         match slot {
             0 => *self.slot_1_skill,
             1 => *self.slot_2_skill,
             2 => *self.slot_3_skill,
-            3 => *self.slot_4_skill,
-            4 => *self.slot_5_skill,
             _ => 0,
         }
     }
 
-    /// Get run level for a slot (0-indexed: 0-4). Returns 0-10.
+    /// Get run level for a slot (0-indexed: 0-2).
     fn get_slot_level(self: @RunData, slot: u8) -> u8 {
         match slot {
             0 => *self.slot_1_level,
             1 => *self.slot_2_level,
             2 => *self.slot_3_level,
-            3 => *self.slot_4_level,
-            4 => *self.slot_5_level,
             _ => 0,
         }
     }
 
-    /// Get charges for a slot (0-indexed: 0-4).
+    /// Get charges for a slot (0-indexed: 0-2).
     fn get_slot_charges(self: @RunData, slot: u8) -> u8 {
         match slot {
             0 => *self.slot_1_charges,
             1 => *self.slot_2_charges,
             2 => *self.slot_3_charges,
-            3 => *self.slot_4_charges,
-            4 => *self.slot_5_charges,
             _ => 0,
         }
     }
 
     /// Set charges for a slot.
+    /// Runtime charge cap is 3.
     fn set_slot_charges(ref self: RunData, slot: u8, count: u8) {
+        let clamped = if count > 3 { 3 } else { count };
         match slot {
-            0 => self.slot_1_charges = count,
-            1 => self.slot_2_charges = count,
-            2 => self.slot_3_charges = count,
-            3 => self.slot_4_charges = count,
-            4 => self.slot_5_charges = count,
+            0 => self.slot_1_charges = clamped,
+            1 => self.slot_2_charges = clamped,
+            2 => self.slot_3_charges = clamped,
             _ => {},
         }
     }
@@ -495,8 +412,6 @@ pub impl RunDataHelpers of RunDataHelpersTrait {
             0 => self.slot_1_skill = skill_id,
             1 => self.slot_2_skill = skill_id,
             2 => self.slot_3_skill = skill_id,
-            3 => self.slot_4_skill = skill_id,
-            4 => self.slot_5_skill = skill_id,
             _ => {},
         }
     }
@@ -507,20 +422,18 @@ pub impl RunDataHelpers of RunDataHelpersTrait {
             0 => self.slot_1_level = level,
             1 => self.slot_2_level = level,
             2 => self.slot_3_level = level,
-            3 => self.slot_4_level = level,
-            4 => self.slot_5_level = level,
             _ => {},
         }
     }
 
-    /// Find which slot (0-4) has a given skill_id. Returns 255 if not found.
+    /// Find which slot (0-2) has a given skill_id. Returns 255 if not found.
     fn find_skill_slot(self: @RunData, skill_id: u8) -> u8 {
         if skill_id == 0 {
             return 255;
         }
         let mut slot: u8 = 0;
         loop {
-            if slot >= 5 {
+            if slot >= 3 {
                 break;
             }
             if self.get_slot_skill(slot) == skill_id {
@@ -537,18 +450,18 @@ pub impl RunDataHelpers of RunDataHelpersTrait {
         self.find_skill_slot(skill_id) != 255
     }
 
-    /// Add a skill to the next empty slot. Returns slot index (0-4), or 255 if full.
+    /// Add a skill to the next empty runtime slot. Returns slot index (0-2), or 255 if full.
     fn add_skill(ref self: RunData, skill_id: u8, level: u8) -> u8 {
         let mut slot: u8 = 0;
         loop {
-            if slot >= 5 {
+            if slot >= 3 {
                 break;
             }
             if self.get_slot_skill(slot) == 0 {
                 self.set_slot_skill(slot, skill_id);
                 self.set_slot_level(slot, level);
                 self.set_slot_charges(slot, 0);
-                if self.active_slot_count < 5 {
+                if self.active_slot_count < 3 {
                     self.active_slot_count += 1;
                 }
                 return slot;
@@ -582,9 +495,31 @@ pub impl RunDataHelpers of RunDataHelpersTrait {
         let slot = self.find_skill_slot(bonus_skill_id);
         assert!(slot != 255, "Bonus skill not found");
         let charges = self.get_slot_charges(slot);
-        if charges < 255 {
+        if charges < 3 {
             self.set_slot_charges(slot, charges + 1);
         }
+    }
+
+    /// Add charges to all active bonus skills (skill ids 1-5), respecting cap=3.
+    fn award_all_active_bonus_charges(ref self: RunData, amount: u8) {
+        if amount == 0 {
+            return;
+        }
+
+        let mut slot: u8 = 0;
+        loop {
+            if slot >= 3 || slot >= self.active_slot_count {
+                break;
+            }
+
+            let sid = self.get_slot_skill(slot);
+            if sid >= 1 && sid <= 5 {
+                let charges = self.get_slot_charges(slot);
+                self.set_slot_charges(slot, charges + amount);
+            }
+
+            slot += 1;
+        };
     }
 
     /// Get run level for a bonus-type skill. Returns 0 if not found.
@@ -616,7 +551,7 @@ pub impl RunDataHelpers of RunDataHelpersTrait {
         let mut bonus_slots: Array<u8> = array![];
         let mut slot: u8 = 0;
         loop {
-            if slot >= 5 {
+            if slot >= 3 {
                 break;
             }
 
@@ -637,7 +572,7 @@ pub impl RunDataHelpers of RunDataHelpersTrait {
         let target_slot = *bonus_slots.at(index);
 
         let charges = self.get_slot_charges(target_slot);
-        if charges < 255 {
+        if charges < 3 {
             self.set_slot_charges(target_slot, charges + 1);
         }
     }
@@ -940,11 +875,11 @@ pub impl SkillTreeHelpers of SkillTreeHelpersTrait {
     }
 
     fn is_bonus_skill(skill_id: u8) -> bool {
-        skill_id <= 4
+        skill_id >= 1 && skill_id <= 5
     }
 
     fn is_world_skill(skill_id: u8) -> bool {
-        skill_id >= 5 && skill_id <= 14
+        skill_id >= 6 && skill_id <= 15
     }
 }
 
@@ -972,18 +907,12 @@ mod tests {
         assert!(data.slot_1_skill == 0, "Slot 1 skill should start empty");
         assert!(data.slot_2_skill == 0, "Slot 2 skill should start empty");
         assert!(data.slot_3_skill == 0, "Slot 3 skill should start empty");
-        assert!(data.slot_4_skill == 0, "Slot 4 skill should start empty");
-        assert!(data.slot_5_skill == 0, "Slot 5 skill should start empty");
         assert!(data.slot_1_level == 0, "Slot 1 level should start at 0");
         assert!(data.slot_2_level == 0, "Slot 2 level should start at 0");
         assert!(data.slot_3_level == 0, "Slot 3 level should start at 0");
-        assert!(data.slot_4_level == 0, "Slot 4 level should start at 0");
-        assert!(data.slot_5_level == 0, "Slot 5 level should start at 0");
         assert!(data.slot_1_charges == 0, "Slot 1 charges should start at 0");
         assert!(data.slot_2_charges == 0, "Slot 2 charges should start at 0");
         assert!(data.slot_3_charges == 0, "Slot 3 charges should start at 0");
-        assert!(data.slot_4_charges == 0, "Slot 4 charges should start at 0");
-        assert!(data.slot_5_charges == 0, "Slot 5 charges should start at 0");
     }
 
     #[test]
@@ -1002,22 +931,16 @@ mod tests {
             run_completed: false,
             free_moves: 3,
             no_bonus_constraint: true,
-            active_slot_count: 5,
+            active_slot_count: 3,
             slot_1_skill: 1,
             slot_1_level: 2,
             slot_2_skill: 4,
             slot_2_level: 1,
             slot_3_skill: 7,
             slot_3_level: 3,
-            slot_4_skill: 10,
-            slot_4_level: 6,
-            slot_5_skill: 15,
-            slot_5_level: 9,
-            slot_1_charges: 8,
+            slot_1_charges: 2,
             slot_2_charges: 3,
-            slot_3_charges: 200,
-            slot_4_charges: 40,
-            slot_5_charges: 255,
+            slot_3_charges: 1,
         };
 
         let packed = original.pack();
@@ -1042,22 +965,16 @@ mod tests {
             run_completed: true,
             free_moves: 15,
             no_bonus_constraint: true,
-            active_slot_count: 5,
+            active_slot_count: 3,
             slot_1_skill: 15,
             slot_1_level: 15,
             slot_2_skill: 15,
             slot_2_level: 15,
             slot_3_skill: 15,
             slot_3_level: 15,
-            slot_4_skill: 15,
-            slot_4_level: 15,
-            slot_5_skill: 15,
-            slot_5_level: 15,
-            slot_1_charges: 255,
-            slot_2_charges: 255,
-            slot_3_charges: 255,
-            slot_4_charges: 255,
-            slot_5_charges: 255,
+            slot_1_charges: 3,
+            slot_2_charges: 3,
+            slot_3_charges: 3,
         };
 
         let packed = max_values.pack();
@@ -1089,15 +1006,9 @@ mod tests {
             slot_2_level: 0,
             slot_3_skill: 0,
             slot_3_level: 0,
-            slot_4_skill: 0,
-            slot_4_level: 0,
-            slot_5_skill: 0,
-            slot_5_level: 0,
             slot_1_charges: 0,
             slot_2_charges: 0,
             slot_3_charges: 0,
-            slot_4_charges: 0,
-            slot_5_charges: 0,
         };
 
         let packed = zero_values.pack();

@@ -2,7 +2,7 @@
  * Bit-packing helpers for efficient storage
  * Mirrors the Cairo packing.cairo implementation
  *
- * run_data layout V4 (178 bits, 5-slot skill loadout):
+ * run_data layout V6 (128 bits, 3-slot loadout):
  * ┌─────────────────────────────────────────────────────────────────────┐
  * │ Bits    │ Field                 │ Size │ Range    │ Description     │
  * ├─────────┼───────────────────────┼──────┼──────────┼─────────────────┤
@@ -19,22 +19,16 @@
  * │ 89      │ run_completed         │ 1    │ 0-1      │ Victory flag    │
  * │ 90-93   │ free_moves            │ 4    │ 0-15     │ Free moves left │
  * │ 94      │ no_bonus_constraint   │ 1    │ 0-1      │ NoBonusUsed flag│
- * │ 95-97   │ active_slot_count     │ 3    │ 0-5      │ Filled slots    │
+ * │ 95-97   │ active_slot_count     │ 3    │ 0-3      │ Filled slots    │
  * │ 98-101  │ slot_1_skill          │ 4    │ 0-15     │ Skill ID        │
  * │ 102-105 │ slot_1_level          │ 4    │ 0-10     │ Skill level     │
  * │ 106-109 │ slot_2_skill          │ 4    │ 0-15     │ Skill ID        │
  * │ 110-113 │ slot_2_level          │ 4    │ 0-10     │ Skill level     │
  * │ 114-117 │ slot_3_skill          │ 4    │ 0-15     │ Skill ID        │
  * │ 118-121 │ slot_3_level          │ 4    │ 0-10     │ Skill level     │
- * │ 122-125 │ slot_4_skill          │ 4    │ 0-15     │ Skill ID        │
- * │ 126-129 │ slot_4_level          │ 4    │ 0-10     │ Skill level     │
- * │ 130-133 │ slot_5_skill          │ 4    │ 0-15     │ Skill ID        │
- * │ 134-137 │ slot_5_level          │ 4    │ 0-10     │ Skill level     │
- * │ 138-145 │ slot_1_charges        │ 8    │ 0-255    │ Bonus charges   │
- * │ 146-153 │ slot_2_charges        │ 8    │ 0-255    │ Bonus charges   │
- * │ 154-161 │ slot_3_charges        │ 8    │ 0-255    │ Bonus charges   │
- * │ 162-169 │ slot_4_charges        │ 8    │ 0-255    │ Bonus charges   │
- * │ 170-177 │ slot_5_charges        │ 8    │ 0-255    │ Bonus charges   │
+ * │ 122-123 │ slot_1_charges        │ 2    │ 0-3      │ Powerup charges │
+ * │ 124-125 │ slot_2_charges        │ 2    │ 0-3      │ Powerup charges │
+ * │ 126-127 │ slot_3_charges        │ 2    │ 0-3      │ Powerup charges │
  * └─────────────────────────────────────────────────────────────────────┘
  */
 
@@ -76,9 +70,8 @@ export interface RunData {
   // Constraint tracking
   noBonusConstraint: boolean;
 
-  // 5-slot skill loadout
   activeSlotCount: number;
-  slots: [SkillSlot, SkillSlot, SkillSlot, SkillSlot, SkillSlot];
+  slots: [SkillSlot, SkillSlot, SkillSlot];
 }
 
 // Bit positions (matching Cairo's RunDataBits exactly)
@@ -104,20 +97,14 @@ const SLOT_2_SKILL_POS = 106;
 const SLOT_2_LEVEL_POS = 110;
 const SLOT_3_SKILL_POS = 114;
 const SLOT_3_LEVEL_POS = 118;
-const SLOT_4_SKILL_POS = 122;
-const SLOT_4_LEVEL_POS = 126;
-const SLOT_5_SKILL_POS = 130;
-const SLOT_5_LEVEL_POS = 134;
 
-// Charges: 8 bits each
-const SLOT_1_CHARGES_POS = 138;
-const SLOT_2_CHARGES_POS = 146;
-const SLOT_3_CHARGES_POS = 154;
-const SLOT_4_CHARGES_POS = 162;
-const SLOT_5_CHARGES_POS = 170;
+const SLOT_1_CHARGES_POS = 122;
+const SLOT_2_CHARGES_POS = 124;
+const SLOT_3_CHARGES_POS = 126;
 
 // Bit masks (after shifting to position 0)
 const MASK_1BIT = 0x1n;
+const MASK_2BIT = 0x3n;
 const MASK_3BIT = 0x7n;
 const MASK_4BIT = 0xFn;
 const MASK_8BIT = 0xFFn;
@@ -140,7 +127,7 @@ function unpackSlot(
   return {
     skillId: extractBits(packed, skillPos, MASK_4BIT),
     level: extractBits(packed, levelPos, MASK_4BIT),
-    charges: extractBits(packed, chargesPos, MASK_8BIT),
+    charges: extractBits(packed, chargesPos, MASK_2BIT),
   };
 }
 
@@ -167,8 +154,6 @@ export function unpackRunData(packed: bigint): RunData {
       unpackSlot(packed, SLOT_1_SKILL_POS, SLOT_1_LEVEL_POS, SLOT_1_CHARGES_POS),
       unpackSlot(packed, SLOT_2_SKILL_POS, SLOT_2_LEVEL_POS, SLOT_2_CHARGES_POS),
       unpackSlot(packed, SLOT_3_SKILL_POS, SLOT_3_LEVEL_POS, SLOT_3_CHARGES_POS),
-      unpackSlot(packed, SLOT_4_SKILL_POS, SLOT_4_LEVEL_POS, SLOT_4_CHARGES_POS),
-      unpackSlot(packed, SLOT_5_SKILL_POS, SLOT_5_LEVEL_POS, SLOT_5_CHARGES_POS),
     ],
   };
 }
@@ -194,8 +179,6 @@ export function createInitialRunData(): RunData {
     noBonusConstraint: false,
     activeSlotCount: 0,
     slots: [
-      { ...emptySlot },
-      { ...emptySlot },
       { ...emptySlot },
       { ...emptySlot },
       { ...emptySlot },

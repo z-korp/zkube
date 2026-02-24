@@ -63,11 +63,14 @@ const DraftPage: React.FC = () => {
   }, [draftState, game?.runData.slots]);
 
   const runSlots = useMemo(
-    () => (game ? game.runData.slots.filter((slot) => slot.skillId > 0) : []),
+    () =>
+      game
+        ? game.runData.slots.slice(0, 3).filter((slot) => slot.skillId > 0)
+        : [],
     [game],
   );
 
-  const isFullLoadout = (game?.activeSlotCount ?? runSlots.length) >= 5;
+  const isFullLoadout = (game?.activeSlotCount ?? runSlots.length) >= 3;
 
   useEffect(() => {
     if (gameId === null) {
@@ -178,12 +181,12 @@ const DraftPage: React.FC = () => {
           <section className="rounded-2xl border border-slate-600/70 bg-slate-900/80 p-4">
             <div className="flex items-center justify-between gap-3">
               <h3 className="font-['Fredericka_the_Great'] text-xl text-slate-100">
-                Current Run Slots ({runSlots.length}/5)
+                Current Run Slots ({runSlots.length}/3)
               </h3>
               {/* Per-card reroll buttons are on each draft card below */}
             </div>
-            <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-5">
-              {Array.from({ length: 5 }, (_, index) => {
+            <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-3">
+              {Array.from({ length: 3 }, (_, index) => {
                 const slot = runSlots[index];
                 if (!slot) {
                   return (
@@ -222,7 +225,7 @@ const DraftPage: React.FC = () => {
                 className="rounded-2xl border border-slate-600/80 bg-slate-900/80 p-4"
               >
                 <div className="inline-flex rounded-md border border-sky-400/40 bg-sky-900/30 px-2 py-1 text-[11px] font-semibold text-sky-200">
-                  {choice.skill?.category === "bonus" ? "Bonus" : "World"}
+                  {choice.skill?.category === "bonus" ? "Powerup" : "World"}
                 </div>
                 <h3 className="mt-2 font-['Fredericka_the_Great'] text-lg text-white">
                   {choice.skill?.name ?? `Skill ${choice.skillId}`}

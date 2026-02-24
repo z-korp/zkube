@@ -64,16 +64,15 @@ pub mod BossLevel {
         }
     }
 
-    /// Get boss cube bonus for completing a boss level
-    /// Boss I (L10) = +10, Boss II (L20) = +20, etc.
+    /// Get boss cube bonus for completing a boss level.
+    /// Formula: 10 * boss_index^2 where boss_index is 1..5 for levels 10/20/30/40/50.
     pub fn get_boss_cube_bonus(level: u8) -> u16 {
-        match level {
-            10 => 10,
-            20 => 20,
-            30 => 30,
-            40 => 40,
-            50 => 50,
-            _ => 0,
+        let tier = get_boss_tier(level);
+        if tier == 0 {
+            0
+        } else {
+            let t: u16 = tier.into();
+            10 * t * t
         }
     }
 }

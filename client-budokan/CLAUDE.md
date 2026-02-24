@@ -40,7 +40,6 @@ client-budokan/
 │   │   ├── pages/            # Page components (11 pages)
 │   │   │   ├── HomePage.tsx
 │   │   │   ├── PlayScreen.tsx
-│   │   │   ├── LoadoutPage.tsx
 │   │   │   ├── MapPage.tsx
 │   │   │   ├── ShopPage.tsx
 │   │   │   ├── InGameShopPage.tsx
@@ -61,7 +60,6 @@ client-budokan/
 │   │   │   ├── GameOverDialog.tsx
 │   │   │   ├── VictoryDialog.tsx # Level 50 victory modal
 │   │   │   ├── LevelCompleteDialog.tsx
-│   │   │   ├── LoadoutDialog.tsx # Bonus selection at run start
 │   │   │   ├── CubeBalance.tsx # CUBE token balance
 │   │   │   ├── Connect.tsx   # Wallet connect button
 │   │   │   ├── Shop/         # Shop components

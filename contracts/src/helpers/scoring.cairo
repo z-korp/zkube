@@ -36,27 +36,6 @@ pub fn saturating_add_u8_capped(lhs: u8, rhs: u8, max: u8) -> u8 {
     }
 }
 
-/// Calculate combo cubes earned based on lines cleared in a single move.
-/// 4 lines = +1, 5 lines = +3, 6 lines = +5, 7 lines = +10, 8 lines = +25, 9+ lines = +50
-#[inline(always)]
-pub fn calculate_combo_cubes(lines_cleared: u8) -> u16 {
-    if lines_cleared >= 9 {
-        50
-    } else if lines_cleared >= 8 {
-        25
-    } else if lines_cleared >= 7 {
-        10
-    } else if lines_cleared >= 6 {
-        5
-    } else if lines_cleared >= 5 {
-        3
-    } else if lines_cleared >= 4 {
-        1
-    } else {
-        0
-    }
-}
-
 /// Update combo tracking after lines are cleared.
 /// Updates combo_counter, max_combo (per-level), and max_combo_run (per-run).
 #[inline(always)]
@@ -74,27 +53,15 @@ pub fn update_combo_tracking(
     }
 }
 
-/// Award combo cubes based on lines cleared.
-pub fn award_combo_cubes(ref run_data: RunData, lines_cleared: u8) {
-    // Award cubes for high combos (4+ lines)
-    let combo_cubes = calculate_combo_cubes(lines_cleared);
-    if combo_cubes > 0 {
-        run_data.total_cubes = saturating_add_u16(run_data.total_cubes, combo_cubes);
-    }
-}
-
 /// Process lines cleared after a move or bonus application.
 /// This is the main entry point that combines:
 /// - Combo tracking (combo_counter, max_combo, max_combo_run)
-/// - Combo cube rewards (4+ lines)
+/// - No global combo-cube rewards (handled by charge system and explicit skill effects)
 pub fn process_lines_cleared(
     ref run_data: RunData, ref combo_counter: u8, ref max_combo: u8, lines_cleared: u8,
 ) {
     // Update combo tracking
     update_combo_tracking(ref combo_counter, ref max_combo, ref run_data, lines_cleared);
-
-    // Award cubes and achievements
-    award_combo_cubes(ref run_data, lines_cleared);
 }
 
 /// Update score after points earned from line clearing.

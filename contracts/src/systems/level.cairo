@@ -30,8 +30,6 @@ pub trait ILevelSystem<T> {
 
 #[dojo::contract]
 mod level_system {
-    use core::hash::HashStateTrait;
-    use core::poseidon::PoseidonTrait;
     use dojo::event::EventStorage;
     use dojo::model::ModelStorage;
     use dojo::world::WorldStorage;
@@ -194,6 +192,7 @@ mod level_system {
             let final_score = pre_complete_data.level_score;
             let final_moves = pre_complete_data.level_moves;
             let pre_total_score = pre_complete_data.total_score;
+            let level_max_combo = game.max_combo;
             let branch_ids_arr = skill_effects::build_branch_ids(skill_data);
             let world_effects = skill_effects::aggregate_world_effects(
                 @pre_complete_data, branch_ids_arr.span(),
@@ -205,7 +204,13 @@ mod level_system {
             let level_config = LevelGeneratorTrait::generate(
                 base_seed.seed, completed_level, settings,
             );
-            let cubes = level_config.calculate_cubes(pre_complete_data.level_moves.into());
+            let stars = level_config.calculate_cubes(pre_complete_data.level_moves.into());
+            let cubes = match stars {
+                3 => 5,
+                2 => 3,
+                1 => 1,
+                _ => 0,
+            };
             let bonuses: u8 = 0; // V3.0: No bonus rewards from level completion
             let boss_bonus = BossLevel::get_boss_cube_bonus(completed_level);
             let is_victory = completed_level >= 50;
@@ -213,7 +218,7 @@ mod level_system {
             let base_level_cubes: u16 = cubes.into() + boss_bonus;
             let mut fortune_cubes: u16 = world_effects.fortune_flat_cubes.into();
             let pre_mult_total: u32 = base_level_cubes.into() + fortune_cubes.into();
-            if cubes >= 3 && world_effects.fortune_star_multiplier_3 > 0 {
+            if stars >= 3 && world_effects.fortune_star_multiplier_3 > 0 {
                 let multiplied_total: u32 = pre_mult_total
                     * world_effects.fortune_star_multiplier_3.into();
                 let extra_total: u32 = if multiplied_total > base_level_cubes.into() {
@@ -226,7 +231,7 @@ mod level_system {
                 } else {
                     extra_total.try_into().unwrap()
                 };
-            } else if cubes >= 2 && world_effects.fortune_star_multiplier_2 > 0 {
+            } else if stars >= 2 && world_effects.fortune_star_multiplier_2 > 0 {
                 let multiplied_total: u32 = pre_mult_total
                     * world_effects.fortune_star_multiplier_2.into();
                 let extra_total: u32 = if multiplied_total > base_level_cubes.into() {
@@ -242,8 +247,8 @@ mod level_system {
             }
             let boss_bonus_with_fortune = saturating_add_u16(boss_bonus, fortune_cubes);
 
-            // Record stars for this level (cubes = 1-3 star rating)
-            game.set_level_stars(completed_level, cubes);
+            // Record stars for this level (star tier is 0-3)
+            game.set_level_stars(completed_level, stars);
 
             // Update run_data (no grid changes - that's done via grid_system)
             let (cubes_final, _bonuses_final, is_victory_final) = game
@@ -416,40 +421,16 @@ mod level_system {
                 }
 
                 // --- Charge Distribution on Level Complete ---
-                // 3-star level = +1 charge to random active bonus
-                if cubes >= 3 {
-                    let charge_seed_state = PoseidonTrait::new()
-                        .update(next_seed)
-                        .update(completed_level.into())
-                        .update('CHARGE_STAR');
-                    let charge_seed = charge_seed_state.finalize();
-                    run_data_updated.award_random_bonus_charge(charge_seed);
+                // Source A: deterministic cadence (every 5 levels)
+                if completed_level % 5 == 0 {
+                    run_data_updated.award_all_active_bonus_charges(1);
                 }
 
-                // Boss level = +2 charges distributed
-                if BossLevel::is_boss_level(completed_level) {
-                    let charge_seed_1_state = PoseidonTrait::new()
-                        .update(next_seed)
-                        .update(completed_level.into())
-                        .update('CHARGE_BOSS_1');
-                    let charge_seed_1 = charge_seed_1_state.finalize();
-                    run_data_updated.award_random_bonus_charge(charge_seed_1);
-
-                    let charge_seed_2_state = PoseidonTrait::new()
-                        .update(next_seed)
-                        .update(completed_level.into())
-                        .update('CHARGE_BOSS_2');
-                    let charge_seed_2 = charge_seed_2_state.finalize();
-                    run_data_updated.award_random_bonus_charge(charge_seed_2);
+                // Source B: highest combo tier reached this level (once per level)
+                let combo_charge_bonus = InternalImpl::combo_charge_bonus(level_max_combo);
+                if combo_charge_bonus > 0 {
+                    run_data_updated.award_all_active_bonus_charges(combo_charge_bonus);
                 }
-
-                // Constraint completion = +1 charge
-                let charge_seed_constraint_state = PoseidonTrait::new()
-                    .update(next_seed)
-                    .update(completed_level.into())
-                    .update('CHARGE_CONSTRAINT');
-                let charge_seed_constraint = charge_seed_constraint_state.finalize();
-                run_data_updated.award_random_bonus_charge(charge_seed_constraint);
 
                 game.set_run_data(run_data_updated);
 
@@ -497,5 +478,20 @@ mod level_system {
             libs.grid.insert_line_if_empty(game_id);
         }
     }
-    // V3.0: award_level_bonuses removed - bonuses are only bought in shops
+    // V5: charges are granted by cadence and highest combo tier only
+
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        fn combo_charge_bonus(max_combo_depth: u8) -> u8 {
+            if max_combo_depth >= 8 {
+                3
+            } else if max_combo_depth >= 6 {
+                2
+            } else if max_combo_depth >= 4 {
+                1
+            } else {
+                0
+            }
+        }
+    }
 }

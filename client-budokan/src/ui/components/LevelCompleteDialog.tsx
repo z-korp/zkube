@@ -108,24 +108,22 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
 
   const getCubesFromMoves = useCallback(
     (moves: number): number => {
-      const remaining = maxMoves - moves;
-      if (remaining >= cube3Threshold) return 3;
-      if (remaining >= cube2Threshold) return 2;
+      if (moves <= cube3Threshold) return 5;
+      if (moves <= cube2Threshold) return 3;
       return 1;
     },
-    [maxMoves, cube3Threshold, cube2Threshold],
+    [cube3Threshold, cube2Threshold],
   );
   const baseCubesEarned = getCubesFromMoves(levelMoves);
 
-  // Total cubes earned this level (includes combo bonuses, boss bonuses from contract)
   const totalLevelCubes = totalCubes - prevTotalCubes;
 
   // Boss level bonus (levels 10, 20, 30, 40, 50)
   const isBossLevel = [10, 20, 30, 40, 50].includes(level);
-  const bossBonus = isBossLevel ? level : 0; // Boss bonus = level number (10, 20, 30, 40, 50)
+  const bossTier = Math.floor(level / 10);
+  const bossBonus = isBossLevel ? 10 * bossTier * bossTier : 0;
 
-  // Extra cubes from combos (total minus base minus boss bonus)
-  const comboCubes = Math.max(0, totalLevelCubes - baseCubesEarned - bossBonus);
+  const extraRewardCubes = Math.max(0, totalLevelCubes - baseCubesEarned - bossBonus);
 
   const isDraftLevel = draftWillOpen;
 
@@ -141,7 +139,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
 
         {/* Cubes Display with staggered animation */}
         <div className="flex justify-center gap-2 mb-4">
-          {[1, 2, 3].map((cube, index) => (
+          {[1, 2, 3, 4, 5].map((cube, index) => (
             <motion.div
               key={cube}
               initial={{ scale: 0, rotate: -180 }}
@@ -190,11 +188,11 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
                 +{baseCubesEarned}
               </span>
             </div>
-            {comboCubes > 0 && (
+            {extraRewardCubes > 0 && (
               <div className="flex justify-between">
-                <span className="text-slate-300">Combo bonus</span>
+                <span className="text-slate-300">Skill/World bonus</span>
                 <span className="text-yellow-400 font-semibold">
-                  +{comboCubes}
+                  +{extraRewardCubes}
                 </span>
               </div>
             )}

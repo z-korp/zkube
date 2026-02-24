@@ -3,7 +3,6 @@ import type { GameLevelData } from "@/hooks/useGameLevel";
 
 export type PageId =
   | "home"
-  | "loadout"
   | "map"
   | "play"
   | "quests"

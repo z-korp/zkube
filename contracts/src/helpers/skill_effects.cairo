@@ -25,7 +25,7 @@ mod BranchIds {
 }
 
 const SLOT_NOT_FOUND: u8 = 255;
-const MAX_ACTIVE_SLOTS: u8 = 5;
+const MAX_ACTIVE_SLOTS: u8 = 3;
 const MAX_SKILL_ID: u8 = 15;
 
 #[derive(Copy, Drop, Debug, Serde)]

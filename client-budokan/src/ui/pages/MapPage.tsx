@@ -55,15 +55,15 @@ const STATE_COLORS: Record<
 };
 
 const DRAFT_KIND_LABELS: Record<string, string> = {
-  new_bonus: "New Bonus",
-  upgrade_bonus: "Upgrade",
+  new_powerup: "New Powerup",
+  upgrade_powerup: "Upgrade",
   zone_modifier: "Zone Modifier",
   risk_contract: "Risk Contract",
   relic: "Relic",
 };
 
 const DRAFT_POOL_LABELS: Record<string, string> = {
-  bonus: "Bonus Pool",
+  powerup: "Powerup Pool",
   upgrade: "Upgrade Pool",
   world: "World Pool",
 };
