@@ -4,6 +4,7 @@ import { useMusicPlayer } from "@/contexts/hooks";
 import { useGame } from "@/hooks/useGame";
 import { useGrid } from "@/hooks/useGrid";
 import { useGameLevel, type GameLevelData } from "@/hooks/useGameLevel";
+import { useDraft } from "@/hooks/useDraft";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import useViewport from "@/hooks/useViewport";
 import { useDojo } from "@/dojo/useDojo";
@@ -58,6 +59,7 @@ const PlayScreen: React.FC = () => {
   });
   const grid = useGrid({ gameId: game?.id ?? 0, shouldLog: true });
   const gameLevel = useGameLevel({ gameId: game?.id });
+  const draftState = useDraft({ gameId: gameId ?? undefined });
 
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
@@ -127,6 +129,14 @@ const PlayScreen: React.FC = () => {
     if (!account) setIsConnectDialogOpen(true);
     else setIsConnectDialogOpen(false);
   }, [account]);
+
+  // Redirect to draft page if a draft is active (e.g. zone 1 entry draft at game creation)
+  useEffect(() => {
+    if (!game || !account || game.over) return;
+    if (!draftState?.active) return;
+    if (gameId === null || gameId === undefined) return;
+    navNavigate("draft", gameId);
+  }, [draftState?.active, game, account, gameId, navNavigate]);
 
   // Auto-trigger startNextLevel when level_transition_pending is detected
   useEffect(() => {

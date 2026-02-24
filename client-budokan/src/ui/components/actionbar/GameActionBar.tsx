@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import { Map, Flag, Settings, Volume2, VolumeX } from "lucide-react";
+import { useMoveStore } from "@/stores/moveTxStore";
 import { BonusType } from "@/dojo/game/types/bonus";
 import {
   Tooltip,
@@ -132,6 +133,9 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
 
         <div className="w-px h-[clamp(30px,7vw,38px)] bg-slate-700" />
 
+        {/* TX Queue indicator */}
+        <TxQueueIndicator />
+
         <Dialog>
           <DialogTrigger asChild>
             <motion.button
@@ -211,6 +215,79 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
         </Dialog>
       </div>
     </div>
+  );
+};
+
+const TxQueueIndicator: React.FC = () => {
+  const queue = useMoveStore((s) => s.queue);
+  const lastError = useMoveStore((s) => s.lastFailedMoveError);
+  const clearFailure = useMoveStore((s) => s.clearFailure);
+
+  const pendingCount = queue.length;
+  const submittingCount = queue.filter((m) => m.status === "submitting").length;
+  const queuedCount = queue.filter((m) => m.status === "queued").length;
+
+  if (pendingCount === 0 && !lastError) return null;
+
+  return (
+    <TooltipProvider delayDuration={0}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="relative flex items-center justify-center w-[clamp(32px,8vw,40px)] h-[clamp(32px,8vw,40px)] shrink-0">
+            {lastError ? (
+              <button
+                onClick={clearFailure}
+                className="w-full h-full rounded-full flex items-center justify-center bg-red-900/50 text-red-400 animate-pulse"
+              >
+                <span className="text-xs font-bold">!</span>
+              </button>
+            ) : (
+              <div className="w-full h-full rounded-full flex items-center justify-center bg-blue-900/40 border border-blue-500/40">
+                <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+              </div>
+            )}
+            {pendingCount > 0 && (
+              <span className="absolute -top-1 -right-1 text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-0.5 bg-blue-500 text-white">
+                {pendingCount}
+              </span>
+            )}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent
+          side="top"
+          className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg max-w-[220px]"
+        >
+          {lastError ? (
+            <div className="text-xs">
+              <p className="font-semibold text-red-400 mb-1">TX Failed</p>
+              <p className="text-slate-300 break-words">{lastError}</p>
+            </div>
+          ) : (
+            <div className="text-xs space-y-1">
+              {submittingCount > 0 && (
+                <p className="text-blue-300">
+                  ⏳ {submittingCount} submitting...
+                </p>
+              )}
+              {queuedCount > 0 && (
+                <p className="text-slate-300">
+                  📋 {queuedCount} queued
+                </p>
+              )}
+              {queue.map((m) => (
+                <p
+                  key={m.id}
+                  className={`text-[10px] ${m.status === "submitting" ? "text-blue-300" : "text-slate-400"}`}
+                >
+                  Row {m.rowIndex}: {m.startIndex}→{m.finalIndex}{" "}
+                  {m.status === "submitting" ? "⏳" : "⏸"}
+                </p>
+              ))}
+            </div>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 

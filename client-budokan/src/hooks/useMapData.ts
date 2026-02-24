@@ -181,12 +181,11 @@ function getNodeState(
     const zoneEndLevel = node.zone * LEVELS_PER_ZONE;
 
     if (node.draftPhase === "entry") {
-      // Contract triggers: completed_level==1 (zone 1), completed_level==prevBoss (zones 2-5)
-      // Draft opens AFTER completing the trigger level, so player is at triggerLevel+1
-      // Zone 1: unlocked when currentLevel >= 2 (completed level 1)
+      // Contract triggers: completed_level==0 (zone 1 at game creation),
+      //   completed_level==prevBoss (zones 2-5 after boss clear)
+      // Zone 1: always available from the start (draft opens at game creation)
       // Zones 2-5: unlocked when currentLevel >= zoneStartLevel (completed prev boss)
-      const unlockLevel =
-        node.zone === 1 ? zoneStartLevel + 1 : zoneStartLevel;
+      const unlockLevel = node.zone === 1 ? 1 : zoneStartLevel;
       if (currentLevel < unlockLevel) return "locked";
       if (currentLevel > zoneEndLevel) return "visited";
       return "available";

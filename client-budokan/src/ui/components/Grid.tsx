@@ -400,7 +400,7 @@ const Grid: React.FC<GridProps> = ({
     const processQueuedMove = async () => {
       store.setQueueProcessing(true);
       store.markSubmitting(nextQueuedMove.id);
-      setIsTxProcessing(true);
+      // No longer blocking UI — queue processes in background
 
       try {
         await move({
@@ -437,7 +437,7 @@ const Grid: React.FC<GridProps> = ({
       } finally {
         if (!cancelled) {
           store.setQueueProcessing(false);
-          setIsTxProcessing(false);
+          // Queue processing complete — no UI blocking needed
         }
       }
     };

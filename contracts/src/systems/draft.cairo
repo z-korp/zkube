@@ -61,8 +61,8 @@ mod draft_system {
             let mut event_type: u8 = 0;
             let mut zone: u8 = 1;
 
-            if completed_level == 1 {
-                // Zone 1 entry draft: after completing level 1
+            if completed_level == 0 {
+                // Zone 1 entry draft: at game creation (before level 1)
                 event_slot = 0; // (zone 1 - 1) * 2 = 0
                 event_type = EVENT_TYPE_POST_LEVEL_1;
                 zone = 1;

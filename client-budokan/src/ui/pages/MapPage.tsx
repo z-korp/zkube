@@ -385,13 +385,6 @@ const MapPage: React.FC = () => {
                     })}
 
                     {nodes.map((node) => {
-                      if (
-                        node.type === "draft" &&
-                        node.nodeInZone === MID_DRAFT_NODE_IN_ZONE &&
-                        node.state === "locked"
-                      ) {
-                        return null;
-                      }
 
                       const pt = layout?.points[node.nodeInZone];
                       if (!pt) return null;

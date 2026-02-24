@@ -98,7 +98,7 @@
     },
     {
       "address": "0x72cb05fe25eeaf42be01889a9ee65ec340b6e63dcee4525f698c7545a74cec0",
-      "class_hash": "0x6855a66516a469f4ff6e83311f4833e6c3b9589208e1ebd586ff2f777198fed",
+      "class_hash": "0x336960c2b6763c3ac6977fd21942c2f17e339b2c82fee9180f55db34ba61f96",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-draft_system",
       "selector": "0x6d65420c68635e1c965c8b8b63fadb3d82445938fdd96b7f549e0767575ca3e",
@@ -111,7 +111,7 @@
     },
     {
       "address": "0x642873300936d42d26cc5846c17217eaf1322800641b4a0558b1f83c7b75c61",
-      "class_hash": "0x66128a67781e254d9afdf567a87e39b6030964d7f43a1817a6df788b78e0554",
+      "class_hash": "0x1f79b9d6fb7aad898f45626ff5893d21b358d6eaf5e26427e41c09998be16d1",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
         "0x045a74be8647d39de23b2b73e98862f6b663164fd8f985cfd80eaa6be495f8ba",

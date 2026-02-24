@@ -39,7 +39,8 @@ mod game_system {
     use zkube::events::StartGame;
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::game_libs::{
-        GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
+        GameLibsImpl, IDraftSystemDispatcherTrait, IGridSystemDispatcherTrait,
+        ILevelSystemDispatcherTrait,
     };
     use zkube::helpers::game_over;
     use zkube::helpers::packing::RunDataHelpersTrait;
@@ -231,6 +232,9 @@ mod game_system {
                 game.set_run_data(run_data);
                 world.write_model(@game);
             }
+
+            // Open zone 1 entry draft (completed_level=0 means game just created)
+            libs.draft.maybe_open_after_level(game_id, 0, player);
         }
 
         fn surrender(ref self: ContractState, game_id: u64) {

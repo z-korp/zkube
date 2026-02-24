@@ -34,17 +34,17 @@ export const getDraftEventForCompletedLevel = (
   seed: bigint,
   completedLevel: number,
 ): PendingDraftEvent | null => {
-  if (completedLevel < 1 || completedLevel > MAX_LEVEL) {
+  if (completedLevel < 0 || completedLevel > MAX_LEVEL) {
     return null;
   }
 
-  // Zone 1 entry draft: after completing level 1
-  if (completedLevel === 1) {
+  // Zone 1 entry draft: at game creation (completed_level == 0)
+  if (completedLevel === 0) {
     return {
       type: "post_level_1",
-      triggerLevel: 1,
+      triggerLevel: 0,
       zone: 1,
-      eventId: "post_level_1:1:1",
+      eventId: "post_level_1:0:1",
     };
   }
 
@@ -84,12 +84,12 @@ export const getDraftEventsForZone = (
 
   // Entry draft events: the draft that appears at the start of this zone
   if (zone === 1) {
-    // Zone 1 entry draft: triggers after completing level 1
+    // Zone 1 entry draft: at game creation (completed_level == 0)
     events.push({
       type: "post_level_1",
-      triggerLevel: 1,
+      triggerLevel: 0,
       zone: 1,
-      eventId: "post_level_1:1:1",
+      eventId: "post_level_1:0:1",
     });
   } else {
     // Zones 2-5 entry draft: triggers after completing previous zone's boss
