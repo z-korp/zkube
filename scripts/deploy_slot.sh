@@ -34,14 +34,23 @@ print_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 print_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-ensure_draftstate_writers() {
+ensure_model_writers() {
+    # Ensure DraftState writers include all systems that modify it
     local draft_key="\"${NAMESPACE}-DraftState\""
-    local writers_line="${draft_key} = [\"${NAMESPACE}-draft_system\", \"${NAMESPACE}-game_system\", \"${NAMESPACE}-move_system\", \"${NAMESPACE}-bonus_system\"]"
-
+    local draft_writers="${draft_key} = [\"${NAMESPACE}-draft_system\", \"${NAMESPACE}-game_system\", \"${NAMESPACE}-move_system\", \"${NAMESPACE}-bonus_system\", \"${NAMESPACE}-level_system\"]"
     if grep -q "^${draft_key} =" "$DOJO_CONFIG"; then
-        sed -i "s|^${draft_key} = .*|${writers_line}|" "$DOJO_CONFIG"
+        sed -i "s|^${draft_key} = .*|${draft_writers}|" "$DOJO_CONFIG"
     else
-        sed -i "/^\[writers\]$/a ${writers_line}" "$DOJO_CONFIG"
+        sed -i "/^\[writers\]$/a ${draft_writers}" "$DOJO_CONFIG"
+    fi
+
+    # Ensure Game model writers include draft_system
+    local game_key="\"${NAMESPACE}-Game\""
+    local game_writers="${game_key} = [\"${NAMESPACE}-game_system\", \"${NAMESPACE}-move_system\", \"${NAMESPACE}-bonus_system\", \"${NAMESPACE}-level_system\", \"${NAMESPACE}-grid_system\", \"${NAMESPACE}-draft_system\"]"
+    if grep -q "^${game_key} =" "$DOJO_CONFIG"; then
+        sed -i "s|^${game_key} = .*|${game_writers}|" "$DOJO_CONFIG"
+    else
+        sed -i "/^\[writers\]$/a ${game_writers}" "$DOJO_CONFIG"
     fi
 }
 
@@ -229,7 +238,7 @@ print_info "Step 5: Updating dojo configuration..."
 if [ -f "$DOJO_CONFIG" ]; then
     sed -i "s|\"0x[0-9a-fA-F]*\",  # denshokan_address|\"$TOKEN_ADDRESS\",  # denshokan_address|" "$DOJO_CONFIG"
     sed -i "/\"${NAMESPACE}-config_system\" = \[/,/\]/{/account address/ {n; s|\"0x[0-9a-fA-F]*\"|\"$EXTERNAL_CUBE_TOKEN\"|;}}" "$DOJO_CONFIG"
-    ensure_draftstate_writers
+    ensure_model_writers
     print_info "  Updated $DOJO_CONFIG"
 fi
 
