@@ -32,12 +32,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/elements/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/ui/elements/tooltip";
 import { Button } from "@/ui/elements/button";
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import { deriveZoneThemes, getZone } from "@/hooks/useMapData";
@@ -369,19 +363,27 @@ const PlayScreen: React.FC = () => {
     getBonusTooltip,
   ]);
 
-  const equippedPassives = useMemo(() => {
+  const passiveSlots = useMemo(() => {
     if (!game) return [];
     return game.runData.slots
       .filter((slot) => isWorldEventSkill(slot.skillId) && slot.skillId > 0)
-      .map((slot) => ({
-        skillId: slot.skillId,
-        level: slot.level,
-        name: getSkillName(slot.skillId),
-        description: SKILLS[slot.skillId]?.description ?? "",
-        archetype: getArchetypeForSkill(slot.skillId),
-      }));
+      .map((slot) => {
+        const skill = SKILLS[slot.skillId];
+        const archetype = getArchetypeForSkill(slot.skillId);
+        const skillName = skill?.name?.toLowerCase() ?? '';
+        const tier = getSkillTier(slot.level);
+        return {
+          type: BonusType.None,
+          level: slot.level,
+          count: 0,
+          bagSize: 0,
+          icon: getSkillTierIconPath(skillName, tier),
+          tooltip: `${getSkillName(slot.skillId)} (Passive) - ${skill?.description ?? ''}`,
+          isPassive: true as const,
+          archetypeColor: archetype?.color ?? '#8b5cf6',
+        };
+      });
   }, [game?.runData.slots]);
-
 
   const activeBonusLevel = useMemo(() => {
     const slot = selectedBonusSlots.find((s) => s.type === activeBonus);
@@ -496,57 +498,6 @@ const PlayScreen: React.FC = () => {
         />
       )}
 
-      {game && !isGameLoading && !isGridLoading && equippedPassives.length > 0 && (
-        <div className="flex justify-center gap-2 py-1 z-10 pointer-events-auto mt-1">
-          <TooltipProvider>
-            {equippedPassives.map((passive) => {
-              const iconKeyMap: Record<number, keyof typeof imgAssets> = {
-                6: "skillTempo",
-                7: "skillFortune",
-                8: "skillSurge",
-                9: "skillCatalyst",
-                10: "skillResilience",
-                11: "skillFocus",
-                12: "skillExpansion",
-                13: "skillMomentum",
-                14: "skillAdrenaline",
-                15: "skillLegacy",
-              };
-              
-              const iconKey = iconKeyMap[passive.skillId];
-              if (!iconKey) return null;
-
-              const icon = imgAssets[iconKey];
-              const color = passive.archetype?.color ?? "#ffffff";
-
-              return (
-                <Tooltip key={passive.skillId} delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <div 
-                      className="relative w-8 h-8 rounded-full border border-white/20 bg-black/40 p-1 transition-transform hover:scale-110 cursor-help"
-                      style={{ boxShadow: `0 0 8px ${color}40`, borderColor: `${color}60` }}
-                    >
-                      <img src={icon} alt={passive.name} className="w-full h-full object-contain opacity-90" />
-                      <div className="absolute -bottom-1 -right-1 bg-black/80 text-[8px] px-1 rounded-full border border-white/10 text-white font-mono leading-none">
-                        {passive.level}
-                      </div>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="bg-slate-900/95 border-slate-700 text-xs max-w-[200px] backdrop-blur-sm">
-                    <div className="flex flex-col gap-1">
-                      <p className="font-bold flex justify-between items-center" style={{ color }}>
-                        {passive.name} 
-                        <span className="text-slate-400 text-[10px] bg-slate-800 px-1 rounded">Lv{passive.level}</span>
-                      </p>
-                      <p className="text-slate-300 leading-tight">{passive.description}</p>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </TooltipProvider>
-        </div>
-      )}
 
       <div className="flex-1 flex flex-col items-center justify-end min-h-0 px-2 py-1 overflow-hidden">
         {(isGameLoading || isGridLoading) && (
@@ -593,15 +544,21 @@ const PlayScreen: React.FC = () => {
 
       {game && !game.over && !isGameLoading && !isGridLoading && (
         <GameActionBar
-          bonusSlots={selectedBonusSlots.map((slot) => ({
-            type: slot.type,
-            count: slot.count,
-            level: slot.level,
-            bagSize: slot.bagSize,
-            icon: slot.icon,
-            tooltip: slot.tooltip,
-            onClick: () => handleBonusSelect(slot.type),
-          }))}
+          bonusSlots={[
+            ...selectedBonusSlots.map((slot) => ({
+              type: slot.type,
+              count: slot.count,
+              level: slot.level,
+              bagSize: slot.bagSize,
+              icon: slot.icon,
+              tooltip: slot.tooltip,
+              onClick: () => handleBonusSelect(slot.type),
+            })),
+            ...passiveSlots.map((slot) => ({
+              ...slot,
+              onClick: () => {},
+            })),
+          ]}
           activeBonus={activeBonus}
           bonusDescription={bonusDescription}
           onSurrender={handleSurrender}
