@@ -4,7 +4,7 @@ description = "Reversed tetris fully onchain."
 cover_uri = "file://assets/cover.png"
 icon_uri = "file://assets/icon.png"
 website = "https://app.zkube.xyz"
-seed = "zkube_sepolia_v3_0"
+seed = "zkube_sepolia_v3_1"
 
 [world.socials]
 x = "https://x.com/zKube_game"
@@ -19,6 +19,7 @@ default = "zkube_budo_v1_2_0"
 rpc_url = "https://api.cartridge.gg/x/starknet/sepolia"
 account_address = "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859"
 private_key = "0x03adb7da6671745419299c0ed6e54025e337df5b18fb7ef4f4660a48b1fd8ca2"
+world_address = "0x0755867a0ed92f0e2faf350b9e4f1d3ab0c541865a1f604900ceedadb53cba64"
 # world_address will be set by deploy_sepolia.sh after migration
 
 [writers]
@@ -33,7 +34,7 @@ private_key = "0x03adb7da6671745419299c0ed6e54025e337df5b18fb7ef4f4660a48b1fd8ca
 "zkube_budo_v1_2_0-GameSettings" = ["zkube_budo_v1_2_0-config_system"]
 "zkube_budo_v1_2_0-GameSettingsMetadata" = ["zkube_budo_v1_2_0-config_system"]
 "zkube_budo_v1_2_0-PlayerSkillTree" = ["zkube_budo_v1_2_0-skill_tree_system"]
-"zkube_budo_v1_2_0-DraftState" = ["zkube_budo_v1_2_0-draft_system"]
+"zkube_budo_v1_2_0-DraftState" = ["zkube_budo_v1_2_0-draft_system", "zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system"]
 # Events
 "zkube_budo_v1_2_0-StartGame" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-UseBonus" = ["zkube_budo_v1_2_0-bonus_system"]

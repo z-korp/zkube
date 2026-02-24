@@ -1,4 +1,4 @@
-world_address = "0x05790dc70b5937b5e79417e2197dd668b31c04d288b3b125ab914a556573d70f"
+world_address = "0x0755867a0ed92f0e2faf350b9e4f1d3ab0c541865a1f604900ceedadb53cba64"
 rpc = "https://api.cartridge.gg/x/starknet/sepolia"
 
 [indexing]
@@ -7,7 +7,8 @@ transactions = true
 namespaces = ["zkube_budo_v1_2_0"]
 contracts = [
   "erc721:0x045a74be8647d39de23b2b73e98862f6b663164fd8f985cfd80eaa6be495f8ba",
-  "erc20:0x75577c7909a6cc844eb4e51c9af205df9d2a67834c1c7a3870c092de0a14229"
+  "erc20:0x75577c7909a6cc844eb4e51c9af205df9d2a67834c1c7a3870c092de0a14229",
+  "erc20:0xadd0ef1c54d4b1fc9c1a402b77475e59aa22e4194ba7dc2b1d3ccfb506ae66"
 ]
 
 [events]
