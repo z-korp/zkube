@@ -47,7 +47,7 @@ export const GAMEPLAY_LEVELS = 50;
 const LEVELS_PER_ZONE = 10;
 const ZONE_THEMES_SELECTOR = BigInt("0x5a4f4e455f5448454d4553");
 const MICRO_DRAFT_SELECTOR = BigInt("0x44524146545f4d4943524f");
-export const ENTRY_DRAFT_NODE_IN_ZONE = 1;
+export const ENTRY_DRAFT_NODE_IN_ZONE = 0;
 export const MID_DRAFT_NODE_IN_ZONE = 5;
 export const BOSS_NODE_IN_ZONE = NODES_PER_ZONE - 1;
 
@@ -105,13 +105,8 @@ function getMapNode(
   let contractLevel: number | null = null;
   if (type === "classic") {
     const zoneStartLevel = (zone - 1) * LEVELS_PER_ZONE + 1;
-    // nodeInZone 0 = level 1, 2-4 = levels 2-4, 6-10 = levels 5-9
-    // Skip entry draft (1) and mid draft (5)
-    if (nodeInZone < ENTRY_DRAFT_NODE_IN_ZONE) {
-      // nodeInZone 0 → level 1
-      contractLevel = zoneStartLevel + nodeInZone;
-    } else if (nodeInZone < MID_DRAFT_NODE_IN_ZONE) {
-      // nodeInZone 2-4 → levels 2-4 (subtract 1 for entry draft)
+    if (nodeInZone < MID_DRAFT_NODE_IN_ZONE) {
+      // nodeInZone 1-4 → levels 1-4 (subtract 1 for entry draft at 0)
       contractLevel = zoneStartLevel + (nodeInZone - 1);
     } else {
       // nodeInZone 6-10 → levels 5-9 (subtract 2 for both drafts)
@@ -155,17 +150,10 @@ export function contractLevelToNodeIndex(contractLevel: number): number {
     return (zone - 1) * NODES_PER_ZONE + BOSS_NODE_IN_ZONE;
   }
 
-  // Level 1 → nodeInZone 0 (before entry draft at 1)
-  // Levels 2-4 → nodeInZone 2-4 (after entry draft, before mid draft)
-  // Levels 5-9 → nodeInZone 6-10 (after mid draft)
-  let nodeInZone: number;
-  if (levelInZone === 1) {
-    nodeInZone = 0;
-  } else if (levelInZone <= 4) {
-    nodeInZone = levelInZone; // 2→2, 3→3, 4→4
-  } else {
-    nodeInZone = levelInZone + 1; // 5→6, 6→7, ..., 9→10
-  }
+  // Levels 1-4 → nodeInZone 1-4 (entry draft at 0)
+  // Levels 5-9 → nodeInZone 6-10 (mid draft at 5)
+  const nodeInZone =
+    levelInZone <= 4 ? levelInZone : levelInZone + 1;
   return (zone - 1) * NODES_PER_ZONE + nodeInZone;
 }
 
