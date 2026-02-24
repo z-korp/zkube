@@ -331,11 +331,17 @@ print_info "Step 8: Extracting system addresses..."
 GAME_SYSTEM=""
 CONFIG_SYSTEM=""
 MANIFEST_CUBE_TOKEN=""
+MOVE_SYSTEM=""
+QUEST_SYSTEM=""
+SKILL_TREE_SYSTEM=""
 CUBE_TOKEN="$EXTERNAL_CUBE_TOKEN"
 if [ -f "$MANIFEST_FILE" ]; then
     GAME_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-game_system\") | .address" 2>/dev/null)
     CONFIG_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-config_system\") | .address" 2>/dev/null)
     MANIFEST_CUBE_TOKEN=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-cube_token\") | .address" 2>/dev/null)
+    MOVE_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-move_system\") | .address" 2>/dev/null)
+    QUEST_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-quest_system\") | .address" 2>/dev/null)
+    SKILL_TREE_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-skill_tree_system\") | .address" 2>/dev/null)
 fi
 
 print_info "  External CubeToken configured at: $CUBE_TOKEN"
@@ -344,22 +350,63 @@ if [ -n "$MANIFEST_CUBE_TOKEN" ] && [ "$MANIFEST_CUBE_TOKEN" != "null" ] && [ "$
 fi
 
 #-----------------
-# Step 9b: Grant MINTER_ROLE on CubeToken to game_system and shop_system
+# Step 9b: Grant MINTER_ROLE on world's cube_token (post-init fix for dojo_init race condition)
 #-----------------
-if [ -n "$CUBE_TOKEN" ]; then
-    print_info "Step 8b: Granting MINTER_ROLE on CubeToken..."
-    GRANT_OUTPUT=$(sozo execute -P $PROFILE \
+print_info "Step 8b: Granting MINTER_ROLE on world cube_token (via tag)..."
+GRANT_WORLD_OUTPUT=$(sozo execute -P $PROFILE \
+    --account-address "$ACCOUNT_ADDRESS" \
+    --private-key "$PRIVATE_KEY" \
+    --rpc-url "$RPC_URL" \
+    "${NAMESPACE}-cube_token" \
+    grant_minter_roles 2>&1) || true
+if echo "$GRANT_WORLD_OUTPUT" | grep -q "Transaction hash"; then
+    print_info "  MINTER_ROLE granted on world cube_token to all systems"
+else
+    print_warn "  Failed to grant MINTER_ROLE on world cube_token"
+    echo "$GRANT_WORLD_OUTPUT"
+fi
+
+# Wait for transaction confirmation on Sepolia
+sleep 15
+
+#-----------------
+# Step 9c: Grant MINTER_ROLE on external CubeToken using explicit system addresses
+# NOTE: grant_minter_roles resolves addresses via DNS from the cube_token's own world,
+# which may differ from the current deployment. Use direct grant_role instead.
+#-----------------
+MINTER_ROLE_FELT="0x4d494e5445525f524f4c45"  # felt252 encoding of 'MINTER_ROLE'
+
+grant_role_on_cube_token() {
+    local system_name="$1"
+    local system_addr="$2"
+    if [ -z "$system_addr" ] || [ "$system_addr" = "null" ]; then
+        print_warn "  Skipping $system_name (address not found in manifest)"
+        return
+    fi
+    local OUTPUT=$(sozo execute -P $PROFILE \
         --account-address "$ACCOUNT_ADDRESS" \
         --private-key "$PRIVATE_KEY" \
         --rpc-url "$RPC_URL" \
         "$CUBE_TOKEN" \
-        grant_minter_roles 2>&1) || true
-    if echo "$GRANT_OUTPUT" | grep -q "Transaction hash"; then
-        print_info "  MINTER_ROLE granted to game_system, move_system, quest_system, and skill_tree_system"
+        grant_role "$MINTER_ROLE_FELT" "$system_addr" 2>&1) || true
+    if echo "$OUTPUT" | grep -q "Transaction hash"; then
+        print_info "  MINTER_ROLE granted to $system_name ($system_addr)"
     else
-        print_warn "  Failed to grant MINTER_ROLE (call grant_minter_roles manually)"
-        echo "$GRANT_OUTPUT"
+        print_warn "  Failed to grant MINTER_ROLE to $system_name"
+        echo "$OUTPUT"
     fi
+    # Wait between grants to avoid nonce issues on Sepolia
+    sleep 5
+}
+
+if [ -n "$CUBE_TOKEN" ] && [ "$CUBE_TOKEN" != "$MANIFEST_CUBE_TOKEN" ]; then
+    print_info "Step 8c: Granting MINTER_ROLE on external CubeToken ($CUBE_TOKEN)..."
+    grant_role_on_cube_token "game_system" "$GAME_SYSTEM"
+    grant_role_on_cube_token "move_system" "$MOVE_SYSTEM"
+    grant_role_on_cube_token "quest_system" "$QUEST_SYSTEM"
+    grant_role_on_cube_token "skill_tree_system" "$SKILL_TREE_SYSTEM"
+elif [ -n "$CUBE_TOKEN" ]; then
+    print_info "  External CubeToken matches world cube_token — roles already granted via tag"
 fi
 
 #-----------------
