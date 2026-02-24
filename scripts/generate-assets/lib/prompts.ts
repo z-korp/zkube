@@ -361,3 +361,33 @@ Very simple, minimal detail — this will be rendered at 16x16 pixels and tinted
 Square format. Centered.
 `.trim();
 }
+
+/* ------------------------------------------------------------------ */
+/*  Skill tree icon prompts                                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Build a skill icon prompt for the skill tree.
+ * Uses the same art style as bonus/constraint icons but with
+ * an optional tier modifier for visual progression.
+ *
+ * Tier 1 (levels 0-3): Muted tones, simple forms
+ * Tier 2 (levels 4-6): Vibrant base (generated image as-is)
+ * Tier 3 (levels 7-9): Enhanced with golden accents
+ *
+ * In practice we generate ONE base image per skill (tier 2 quality)
+ * and use sharp tinting to create tier 1 (desaturate+darken) and
+ * tier 3 (warm golden overlay) variants in the pipeline.
+ */
+export function buildSkillIconPrompt(description: string): string {
+  return `${description}. Stylized 2D vector game icon with bold black outlines and flat cel-shading with 3 tonal steps. Thick strokes, centered composition filling inner 70% of frame for circular crop. Dark background (#0A0A14). Instantly readable at small sizes. Sharp square corners — no rounded edges, no circular framing. No text, no logos, no clutter. Square format.`;
+}
+
+/**
+ * Build an archetype header icon prompt.
+ * Larger, more elaborate than individual skill icons.
+ * These serve as the "class emblem" at the top of each skill tree column.
+ */
+export function buildArchetypeIconPrompt(description: string, accentColor: string): string {
+  return `${description}. Bold emblem icon on a dark background (#0A0A14). Drawn with ${accentColor} as the dominant accent color and white (#FFFFFF) highlights. Stylized 2D vector game art with bold black outlines and flat cel-shading. Thick strokes, centered composition, instantly readable at small sizes. Ornate and elaborate — this is a class emblem. Sharp square corners — no rounded edges, no circular framing. No text, no logos, no clutter. 512x512 pixels.`;
+}

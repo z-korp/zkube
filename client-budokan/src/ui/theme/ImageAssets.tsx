@@ -26,7 +26,37 @@ const ImageAssets = (theme: ThemeId) => {
     logo: themeImages.logo,
     loader: "/assets/theme-1/loader.svg",
     imageBackground: themeImages.background,
+    // Skill tree icons (base images, use getSkillTierIconPath for tier variants)
+    skillCombo: getCommonAssetPath("skills/skill-combo.png"),
+    skillScore: getCommonAssetPath("skills/skill-score.png"),
+    skillHarvest: getCommonAssetPath("skills/skill-harvest.png"),
+    skillWave: getCommonAssetPath("skills/skill-wave.png"),
+    skillSupply: getCommonAssetPath("skills/skill-supply.png"),
+    skillSurge: getCommonAssetPath("skills/skill-surge.png"),
+    skillCatalyst: getCommonAssetPath("skills/skill-catalyst.png"),
+    skillFortune: getCommonAssetPath("skills/skill-fortune.png"),
+    skillMomentum: getCommonAssetPath("skills/skill-momentum.png"),
+    skillExpansion: getCommonAssetPath("skills/skill-expansion.png"),
+    skillAdrenaline: getCommonAssetPath("skills/skill-adrenaline.png"),
+    skillTempo: getCommonAssetPath("skills/skill-tempo.png"),
+    skillResilience: getCommonAssetPath("skills/skill-resilience.png"),
+    skillFocus: getCommonAssetPath("skills/skill-focus.png"),
+    skillLegacy: getCommonAssetPath("skills/skill-legacy.png"),
+    // Archetype header icons
+    archetypeCombo: getCommonAssetPath("archetypes/archetype-combo.png"),
+    archetypeScore: getCommonAssetPath("archetypes/archetype-score.png"),
+    archetypeHarvest: getCommonAssetPath("archetypes/archetype-harvest.png"),
+    archetypeWave: getCommonAssetPath("archetypes/archetype-wave.png"),
+    archetypeSupply: getCommonAssetPath("archetypes/archetype-supply.png"),
   };
 };
 
 export default ImageAssets;
+
+/**
+ * Get the asset path for a skill icon at a specific tier.
+ * Example: getSkillTierIconPath("combo", 2) => "/assets/common/skills/skill-combo-t2.png"
+ */
+export function getSkillTierIconPath(skillName: string, tier: 1 | 2 | 3): string {
+  return getCommonAssetPath(`skills/skill-${skillName.toLowerCase()}-t${tier}.png`);
+}

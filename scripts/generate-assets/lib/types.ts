@@ -9,7 +9,7 @@ export const PER_THEME_ASSETS = [
   "theme-icon",
 ] as const;
 
-export const GLOBAL_ASSETS = ["buttons", "shared-icons", "catalog-icons", "bonus-icons", "constraint-icons", "ui-chrome", "panels", "particles"] as const;
+export const GLOBAL_ASSETS = ["buttons", "shared-icons", "catalog-icons", "bonus-icons", "skill-icons", "archetype-icons", "constraint-icons", "ui-chrome", "panels", "particles"] as const;
 
 export type Scope = "per-theme" | "global" | "all";
 export type PerThemeAsset = (typeof PER_THEME_ASSETS)[number];
@@ -120,11 +120,27 @@ export interface GlobalAssetsData {
   sharedIcons: FilenameDescription[];
   catalogIcons: FilenameDescription[];
   bonusIcons: FilenameDescription[];
+  skillIcons: SkillIconConfig[];
+  archetypeIcons: ArchetypeIconConfig[];
   constraintIcons: FilenameDescription[];
   uiChrome: UiChromeConfig[];
   panels: PanelConfig[];
   particles: FilenameDescription[];
   targetDimensions: Record<string, Dimensions>;
+}
+
+export interface SkillIconConfig {
+  skillId: number;
+  filename: string;
+  archetype: string;
+  description: string;
+}
+
+export interface ArchetypeIconConfig {
+  filename: string;
+  archetype: string;
+  color: string;
+  description: string;
 }
 
 export interface SfxDefinition {

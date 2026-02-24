@@ -16,11 +16,13 @@ import {
   buildThemeIconPrompt,
   buildUiChromePrompt,
   buildWhiteIconPrompt,
+  buildSkillIconPrompt,
+  buildArchetypeIconPrompt,
 } from "./lib/prompts";
 import sharp from "sharp";
 import { CONCURRENCY, IMAGE_MODEL, COMMON_ROOT, ASSETS_ROOT, formatError, loadPLimitFactory, relativePath } from "./lib/env";
 import { fal, generateImage, removeBackground, savePng, tintImage, featherEdges } from "./lib/fal-client";
-import { GLOBAL_ASSETS, PER_THEME_ASSETS, type AssetCategory, type AssetJob, type CliOptions, type GlobalAsset, type GlobalAssetsData, type PerThemeAsset, type ThemeDefinition } from "./lib/types";
+import { GLOBAL_ASSETS, PER_THEME_ASSETS, type AssetCategory, type AssetJob, type CliOptions, type GlobalAsset, type GlobalAssetsData, type PerThemeAsset, type ThemeDefinition, type SkillIconConfig, type ArchetypeIconConfig } from "./lib/types";
 
 const DATA_DIR = path.join(path.dirname(new URL(import.meta.url).pathname), "data");
 
@@ -182,6 +184,99 @@ async function runLogoPipeline(
   return { success, failures };
 }
 
+/* ------------------------------------------------------------------ */
+/*  Skill icon tier pipeline                                           */
+/*  Generates T1 (muted), T2 (base), T3 (golden) from each base icon  */
+/* ------------------------------------------------------------------ */
+
+const TIER_CONFIGS = [
+  { suffix: "-t1", label: "Tier 1 (muted)",   saturation: 0.4, brightness: 0.7 },
+  { suffix: "-t2", label: "Tier 2 (vibrant)", saturation: 1.0, brightness: 1.0 },
+  { suffix: "-t3", label: "Tier 3 (golden)",  saturation: 1.0, brightness: 1.0, tintColor: "#FFD700" },
+] as const;
+
+async function createTierVariant(
+  baseBuffer: Buffer,
+  config: typeof TIER_CONFIGS[number],
+): Promise<Buffer> {
+  let pipeline = sharp(baseBuffer).ensureAlpha();
+
+  if (config.saturation < 1.0 || config.brightness < 1.0) {
+    // Desaturate + darken for tier 1
+    pipeline = pipeline.modulate({
+      saturation: config.saturation,
+      brightness: config.brightness,
+    });
+  }
+
+  if ('tintColor' in config && config.tintColor) {
+    // For tier 3: composite a semi-transparent golden overlay
+    const meta = await sharp(baseBuffer).metadata();
+    const w = meta.width!;
+    const h = meta.height!;
+
+    // Create a golden overlay at 20% opacity
+    const overlay = await sharp({
+      create: {
+        width: w,
+        height: h,
+        channels: 4,
+        background: { r: 255, g: 215, b: 0, alpha: 0.20 },
+      },
+    }).png().toBuffer();
+
+    pipeline = pipeline.composite([{ input: overlay, blend: 'over' }]);
+    // Also boost brightness slightly for the "empowered" feel
+    pipeline = sharp(await pipeline.png().toBuffer()).modulate({
+      brightness: 1.12,
+      saturation: 1.15,
+    });
+  }
+
+  return pipeline.png().toBuffer();
+}
+
+async function runSkillTierPipeline(): Promise<{ success: number; failures: number }> {
+  const skillsDir = path.join(COMMON_ROOT, "skills");
+  let success = 0;
+  let failures = 0;
+
+  // Find all skill-*.png base files
+  const baseFiles = fs.existsSync(skillsDir)
+    ? fs.readdirSync(skillsDir).filter((f) => f.startsWith("skill-") && f.endsWith(".png") && !/-t[123]\.png$/.test(f))
+    : [];
+
+  if (baseFiles.length === 0) {
+    console.log("  [skill-tiers]  No base skill icons found to tier.");
+    return { success: 0, failures: 0 };
+  }
+
+  console.log(`  [skill-tiers]  Creating ${baseFiles.length * 3} tier variants from ${baseFiles.length} base icons...`);
+
+  for (const baseFile of baseFiles) {
+    const basePath = path.join(skillsDir, baseFile);
+    const baseBuffer = fs.readFileSync(basePath);
+    const baseName = baseFile.replace(".png", "");
+
+    for (const tier of TIER_CONFIGS) {
+      const tierFilename = `${baseName}${tier.suffix}.png`;
+      const tierPath = path.join(skillsDir, tierFilename);
+
+      try {
+        const tierBuffer = await createTierVariant(baseBuffer, tier);
+        await savePng(tierPath, tierBuffer, false);
+        console.log(`  [${tierFilename}]  ${tier.label}`);
+        success += 1;
+      } catch (error) {
+        console.log(`  [${tierFilename}]  FAILED: ${formatError(error)}`);
+        failures += 1;
+      }
+    }
+  }
+
+  return { success, failures };
+}
+
 function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: AssetCategory): AssetJob[] {
   const themeRoot = path.join(ASSETS_ROOT, themeId);
   const jobs: AssetJob[] = [];
@@ -323,6 +418,34 @@ function buildGlobalJobs(filter?: AssetCategory): AssetJob[] {
         filename: bonus.filename,
         outputPath: path.join(COMMON_ROOT, "bonus", bonus.filename),
         prompt: buildBonusIconPrompt(bonus.description),
+        width: 1024,
+        height: 1024,
+      });
+    }
+  }
+
+  if (shouldIncludeCategory("skill-icons", filter)) {
+    for (const skill of globalAssets.skillIcons) {
+      jobs.push({
+        scope: "global",
+        category: "skill-icons",
+        filename: skill.filename,
+        outputPath: path.join(COMMON_ROOT, "skills", skill.filename),
+        prompt: buildSkillIconPrompt(skill.description),
+        width: 1024,
+        height: 1024,
+      });
+    }
+  }
+
+  if (shouldIncludeCategory("archetype-icons", filter)) {
+    for (const archetype of globalAssets.archetypeIcons) {
+      jobs.push({
+        scope: "global",
+        category: "archetype-icons",
+        filename: archetype.filename,
+        outputPath: path.join(COMMON_ROOT, "archetypes", archetype.filename),
+        prompt: buildArchetypeIconPrompt(archetype.description, archetype.color),
         width: 1024,
         height: 1024,
       });
@@ -616,6 +739,10 @@ async function main(): Promise<void> {
     if (wantsLogo) {
       console.log(`[logo]  🧪 dry-run -> logo pipeline (1 master → tint+bg-remove → ${selectedThemeIds.length} logos)`);
     }
+    const skillIconCount = jobs.filter((j) => j.category === "skill-icons").length;
+    if (skillIconCount > 0) {
+      console.log(`[skill-tiers]  🧪 dry-run -> tier pipeline (${skillIconCount} bases → ${skillIconCount * 3} tier variants)`);
+    }
     jobs.forEach((job, index) => {
       const step = `[${index + 1}/${jobs.length}]`;
       console.log(`${step}  ⏳ ${job.filename}...`);
@@ -624,7 +751,8 @@ async function main(): Promise<void> {
     console.log("");
     const blockCount = wantsBlocks ? selectedThemeIds.length * 4 : 0;
     const logoCount = wantsLogo ? selectedThemeIds.length : 0;
-    console.log(`✅ Dry run complete! ${jobs.length + blockCount + logoCount} assets planned.`);
+    const tierCount = skillIconCount * 3;
+    console.log(`✅ Dry run complete! ${jobs.length + blockCount + logoCount + tierCount} assets planned.`);
     console.log(`Output: ${outputSummaryPath(options, selectedThemeIds)}`);
     return;
   }
@@ -714,6 +842,18 @@ async function main(): Promise<void> {
         console.log(`- ${relativePath(failure.job.outputPath)}: ${formatError(failure.error)}`);
       }
     }
+  }
+
+  // --- Skill icon tier pipeline (T1/T2/T3 from base icons) ---
+  const wantsSkillTiers = !options.dryRun && (
+    (!options.asset || options.asset === "skill-icons") &&
+    (options.scope === "global" || options.scope === "all")
+  );
+  if (wantsSkillTiers) {
+    console.log(`\n--- Skill Icon Tier Pipeline (base → T1 + T2 + T3) ---\n`);
+    const tierResult = await runSkillTierPipeline();
+    totalSuccess += tierResult.success;
+    totalFailures += tierResult.failures;
   }
 
   console.log("");

@@ -16,9 +16,9 @@ import {
   bonusTypeFromContractValue,
   bonusTypeToContractValue,
 } from "@/dojo/game/types/bonus";
-import { getSkillName } from "@/dojo/game/types/skillData";
+import { getSkillName, getSkillTier } from "@/dojo/game/types/skillData";
 import { useNavigationStore } from "@/stores/navigationStore";
-import ImageAssets from "@/ui/theme/ImageAssets";
+import ImageAssets, { getSkillTierIconPath } from "@/ui/theme/ImageAssets";
 import GameHud from "@/ui/components/hud/GameHud";
 import GameActionBar from "@/ui/components/actionbar/GameActionBar";
 import GameBoard from "@/ui/components/GameBoard";
@@ -291,29 +291,22 @@ const PlayScreen: React.FC = () => {
   );
 
   const getBonusIcon = useCallback(
-    (type: BonusType): string => {
-      switch (type) {
-        case BonusType.Combo:
-          return imgAssets.combo;
-        case BonusType.Score:
-          return imgAssets.score;
-        case BonusType.Harvest:
-          return imgAssets.harvest;
-        case BonusType.Wave:
-          return imgAssets.wave;
-        case BonusType.Supply:
-          return imgAssets.supply;
-        default:
-          return "";
-      }
+    (type: BonusType, level: number = 0): string => {
+      const skillName = (() => {
+        switch (type) {
+          case BonusType.Combo: return "combo";
+          case BonusType.Score: return "score";
+          case BonusType.Harvest: return "harvest";
+          case BonusType.Wave: return "wave";
+          case BonusType.Supply: return "supply";
+          default: return "";
+        }
+      })();
+      if (!skillName) return "";
+      const tier = getSkillTier(level);
+      return getSkillTierIconPath(skillName, tier);
     },
-    [
-      imgAssets.combo,
-      imgAssets.harvest,
-      imgAssets.score,
-      imgAssets.supply,
-      imgAssets.wave,
-    ],
+    [],
   );
 
   const handleBonusSelect = useCallback(
@@ -359,7 +352,7 @@ const PlayScreen: React.FC = () => {
           level: slot.level,
           count: slot.charges,
           bagSize: slot.charges,
-          icon: getBonusIcon(type),
+          icon: getBonusIcon(type, slot.level),
           tooltip: `${getSkillName(slot.skillId)} - ${getBonusTooltip(type, slot.level)}`,
         };
       });

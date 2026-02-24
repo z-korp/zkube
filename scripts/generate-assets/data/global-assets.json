@@ -30,12 +30,36 @@
     { "filename": "icon-sound.png", "description": "A speaker with sound waves — sound toggle" }
   ],
   "bonusIcons": [
-    { "filename": "combo.png", "description": "A grinning jester mask with a pointed three-bell hat, vibrant purple and gold with electric cyan accents. Glowing magical aura around the mask" },
-    { "filename": "score.png", "description": "A blazing golden star with radiating energy beams and trailing sparkle particles, vibrant amber and warm white tones with orange glow" },
-    { "filename": "harvest.png", "description": "A glowing crystal pickaxe striking a gem, scattering cyan and emerald crystal shards. Vibrant teal and green with white spark highlights" },
-    { "filename": "wave.png", "description": "A powerful ocean wave cresting and crashing with white foam spray, vibrant deep blue and aquamarine with bright white highlights" },
-    { "filename": "supply.png", "description": "A treasure chest overflowing with glowing blocks, warm wood brown and brass hardware with magical green glow spilling out" },
+    { "filename": "combo.png", "description": "A grinning theatrical jester mask with a three-pointed bell hat, vibrant purple and gold with electric cyan sparkles radiating outward" },
+    { "filename": "score.png", "description": "A blazing five-pointed star with radiating energy beams and trailing sparkle particles, vibrant gold and amber with warm white inner glow" },
+    { "filename": "harvest.png", "description": "A crystal-bladed sickle reaping glowing gemstones, scattering cyan and emerald crystal shards with teal energy trails" },
+    { "filename": "wave.png", "description": "A powerful cresting ocean wave with white foam spray and aquamarine energy, deep blue with bright white lightning crackling within" },
+    { "filename": "supply.png", "description": "An overflowing wooden supply crate with glowing blocks spilling out, warm brown wood with magical green energy wisps rising" },
     { "filename": "bridging.png", "description": "A swirling dimensional portal gateway with electric purple and magenta energy vortex inside a stone arch frame. Bright energy particles spiraling inward" }
+  ],
+  "skillIcons": [
+    { "skillId": 1, "filename": "skill-combo.png", "archetype": "combo", "description": "A grinning theatrical jester mask with a three-pointed bell hat, vibrant purple and gold with electric cyan sparkles radiating outward" },
+    { "skillId": 2, "filename": "skill-score.png", "archetype": "score", "description": "A blazing five-pointed star with radiating energy beams and trailing sparkle particles, vibrant gold and amber with warm white inner glow" },
+    { "skillId": 3, "filename": "skill-harvest.png", "archetype": "harvest", "description": "A crystal-bladed sickle reaping glowing gemstones, scattering cyan and emerald crystal shards with teal energy trails" },
+    { "skillId": 4, "filename": "skill-wave.png", "archetype": "wave", "description": "A powerful cresting ocean wave with white foam spray and aquamarine energy, deep blue with bright white lightning crackling within" },
+    { "skillId": 5, "filename": "skill-supply.png", "archetype": "supply", "description": "An overflowing wooden supply crate with glowing blocks spilling out, warm brown wood with magical green energy wisps rising" },
+    { "skillId": 6, "filename": "skill-tempo.png", "archetype": "supply", "description": "A golden metronome with its pendulum mid-swing trailing green motion blur, warm bronze body with emerald energy pulse at the tip" },
+    { "skillId": 7, "filename": "skill-fortune.png", "archetype": "harvest", "description": "A gleaming four-leaf clover surrounded by floating golden coins, vibrant emerald green with warm gold sparkle highlights" },
+    { "skillId": 8, "filename": "skill-surge.png", "archetype": "combo", "description": "A triple bolt of chain lightning converging into a central energy sphere, vibrant electric blue and white with a purple plasma core" },
+    { "skillId": 9, "filename": "skill-catalyst.png", "archetype": "combo", "description": "A bubbling alchemist flask with swirling prismatic liquid inside, vibrant purple glass with golden sparks erupting from the neck" },
+    { "skillId": 10, "filename": "skill-resilience.png", "archetype": "supply", "description": "A sturdy round shield with cracks sealed by flowing golden energy, steel blue metal with green healing runes glowing along the rim" },
+    { "skillId": 11, "filename": "skill-focus.png", "archetype": "score", "description": "A glowing archer target with three arrows clustered in the bullseye, vibrant amber concentric rings with a bright white center" },
+    { "skillId": 12, "filename": "skill-expansion.png", "archetype": "wave", "description": "A stone foundation with luminous building blocks stacking upward in a pyramid, deep blue stone with silver runic lines glowing" },
+    { "skillId": 13, "filename": "skill-momentum.png", "archetype": "harvest", "description": "A spinning flywheel with crackling energy arcs between its spokes, vibrant teal metal with electric green motion trails" },
+    { "skillId": 14, "filename": "skill-adrenaline.png", "archetype": "wave", "description": "A flaming heart with veins of electric energy pulsing outward, vibrant crimson and orange with bright blue lightning veins" },
+    { "skillId": 15, "filename": "skill-legacy.png", "archetype": "score", "description": "A golden royal crown hovering above an ancient glowing tome, warm gold with amber jewels and white radiant glow from the pages" }
+  ],
+  "archetypeIcons": [
+    { "filename": "archetype-combo.png", "archetype": "combo", "color": "#9B59B6", "description": "A grand jester scepter with cascading chain links and interlocking rings, vibrant purple and electric cyan with golden bell accents" },
+    { "filename": "archetype-score.png", "archetype": "score", "color": "#F1C40F", "description": "A celestial astrolabe with radiating golden beams and orbiting star fragments, warm amber and white with precise geometric rings" },
+    { "filename": "archetype-harvest.png", "archetype": "harvest", "color": "#1ABC9C", "description": "A cornucopia overflowing with glowing crystals and gemstones, vibrant teal and emerald with golden harvest energy wisps" },
+    { "filename": "archetype-wave.png", "archetype": "wave", "color": "#3498DB", "description": "A mighty trident rising from a powerful tsunami wave, deep blue and aquamarine with white lightning crackling between the prongs" },
+    { "filename": "archetype-supply.png", "archetype": "supply", "color": "#2ECC71", "description": "A commander war table with glowing tactical map and miniature fortifications, warm bronze frame with green strategic energy lines" }
   ],
   "constraintIcons": [
     { "filename": "constraint-clear-lines.png", "description": "Three horizontal glowing lines stacked and shattering into fragments, vibrant electric blue with white energy sparks" },
