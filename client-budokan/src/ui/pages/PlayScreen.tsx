@@ -123,7 +123,7 @@ const PlayScreen: React.FC = () => {
     const zone = getZone(game.level);
     const zoneTheme = zoneThemes[zone - 1];
     if (zoneTheme) {
-      setThemeTemplate(zoneTheme, false);
+      setThemeTemplate(zoneTheme);
     }
   }, [seed, game?.level, setThemeTemplate]);
 

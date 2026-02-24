@@ -193,7 +193,7 @@ const MapPage: React.FC = () => {
     const currentZoneIdx = Math.max(0, mapData.currentZone - 1);
     const themeRaw = mapData.zoneThemes[currentZoneIdx] ?? "theme-1";
     const themeId: ThemeId = isValidThemeId(themeRaw) ? themeRaw : "theme-1";
-    setThemeTemplate(themeId, false);
+    setThemeTemplate(themeId);
   }, [mapData.currentZone, mapData.zoneThemes, setThemeTemplate]);
 
   useEffect(() => {
