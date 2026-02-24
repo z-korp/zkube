@@ -388,7 +388,7 @@ const MapPage: React.FC = () => {
                       if (
                         node.type === "draft" &&
                         node.nodeInZone === MID_DRAFT_NODE_IN_ZONE &&
-                        node.zone !== 1
+                        node.state === "locked"
                       ) {
                         return null;
                       }

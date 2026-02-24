@@ -24,7 +24,7 @@ mod bonus_system {
     use zkube::constants::DEFAULT_NS;
     use zkube::events::UseBonus;
     use zkube::helpers::game_libs::{
-        GameLibsImpl, IDraftSystemDispatcherTrait, IGridSystemDispatcherTrait,
+        GameLibsImpl, IGridSystemDispatcherTrait,
         ILevelSystemDispatcherTrait,
     };
     use zkube::helpers::{level_check, token};
@@ -59,6 +59,10 @@ mod bonus_system {
             let skill_tree: PlayerSkillTree = world.read_model(player);
             assert_token_ownership(token_address, game_id);
             game.assert_not_over();
+
+            // Cannot apply bonus while level transition is pending
+            let run_data_check = game.get_run_data();
+            assert!(!run_data_check.level_transition_pending, "Level transition pending - call start_next_level first");
             game.assert_bonus_available(bonus);
 
             // Check if NoBonusUsed constraint is active using run_data flag
@@ -132,13 +136,8 @@ mod bonus_system {
 
             if is_complete {
                 // Level complete - call level_system via GameLibs
-                let completed_level = run_data.current_level;
-                libs.level.complete_level(game_id, skill_tree.skill_data);
-                libs
-                    .draft
-                    .maybe_open_after_level(
-                        game_id, completed_level, starknet::get_caller_address(),
-                    );
+                let _completed_level = run_data.current_level;
+                libs.level.finalize_level(game_id, skill_tree.skill_data);
             } else if game.blocks == 0 {
                 // Grid is empty but level not complete - insert a line
                 libs.grid.insert_line_if_empty(game_id);

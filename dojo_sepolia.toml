@@ -25,7 +25,7 @@ world_address = "0x0755867a0ed92f0e2faf350b9e4f1d3ab0c541865a1f604900ceedadb53cb
 [writers]
 # Models
 "zkube_budo_v1_2_0-Game" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system", "zkube_budo_v1_2_0-grid_system"]
-"zkube_budo_v1_2_0-GameSeed" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-GameSeed" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-level_system"]
 "zkube_budo_v1_2_0-GameLevel" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system"]
 "zkube_budo_v1_2_0-GameCounter" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-GameMetadata" = ["zkube_budo_v1_2_0-game_system"]
@@ -34,7 +34,7 @@ world_address = "0x0755867a0ed92f0e2faf350b9e4f1d3ab0c541865a1f604900ceedadb53cb
 "zkube_budo_v1_2_0-GameSettings" = ["zkube_budo_v1_2_0-config_system"]
 "zkube_budo_v1_2_0-GameSettingsMetadata" = ["zkube_budo_v1_2_0-config_system"]
 "zkube_budo_v1_2_0-PlayerSkillTree" = ["zkube_budo_v1_2_0-skill_tree_system"]
-"zkube_budo_v1_2_0-DraftState" = ["zkube_budo_v1_2_0-draft_system", "zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system"]
+"zkube_budo_v1_2_0-DraftState" = ["zkube_budo_v1_2_0-draft_system", "zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system"]
 # Events
 "zkube_budo_v1_2_0-StartGame" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-UseBonus" = ["zkube_budo_v1_2_0-bonus_system"]

@@ -70,6 +70,9 @@ export interface RunData {
   // Constraint tracking
   noBonusConstraint: boolean;
 
+  // Level transition
+  levelTransitionPending: boolean;
+
   activeSlotCount: number;
   slots: [SkillSlot, SkillSlot, SkillSlot];
 }
@@ -101,6 +104,7 @@ const SLOT_3_LEVEL_POS = 118;
 const SLOT_1_CHARGES_POS = 122;
 const SLOT_2_CHARGES_POS = 124;
 const SLOT_3_CHARGES_POS = 126;
+const LEVEL_TRANSITION_PENDING_POS = 128;
 
 // Bit masks (after shifting to position 0)
 const MASK_1BIT = 0x1n;
@@ -149,6 +153,7 @@ export function unpackRunData(packed: bigint): RunData {
     runCompleted: extractBool(packed, RUN_COMPLETED_POS),
     freeMoves: extractBits(packed, FREE_MOVES_POS, MASK_4BIT),
     noBonusConstraint: extractBool(packed, NO_BONUS_CONSTRAINT_POS),
+    levelTransitionPending: extractBool(packed, LEVEL_TRANSITION_PENDING_POS),
     activeSlotCount: extractBits(packed, ACTIVE_SLOT_COUNT_POS, MASK_3BIT),
     slots: [
       unpackSlot(packed, SLOT_1_SKILL_POS, SLOT_1_LEVEL_POS, SLOT_1_CHARGES_POS),
@@ -177,6 +182,7 @@ export function createInitialRunData(): RunData {
     runCompleted: false,
     freeMoves: 0,
     noBonusConstraint: false,
+    levelTransitionPending: false,
     activeSlotCount: 0,
     slots: [
       { ...emptySlot },

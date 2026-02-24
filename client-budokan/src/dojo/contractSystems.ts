@@ -33,7 +33,6 @@ export interface Move extends Signer {
   row_index: number;
   start_index: number;
   final_index: number;
-  current_level: number; // Current level (for VRF salt on level transition)
 }
 
 export interface BonusTx extends Signer {
@@ -41,7 +40,11 @@ export interface BonusTx extends Signer {
   bonus: number;
   row_index: number;
   block_index: number;
-  current_level: number; // Current level (for VRF salt on level transition)
+}
+
+export interface StartNextLevel extends Signer {
+  game_id: number;
+  current_level: number; // Current level (for VRF salt)
 }
 
 export interface ClaimQuest extends Signer {
@@ -208,29 +211,10 @@ export function setupWorld(config: Config) {
       row_index,
       start_index,
       final_index,
-      current_level,
     }: Move) => {
       try {
-        if (isSlotMode) {
-          return await account.execute([
-            {
-              contractAddress: move_contract.address,
-              entrypoint: "move",
-              calldata: [game_id, row_index, start_index, final_index],
-            },
-          ]);
-        }
-
+        // move() no longer needs VRF - level transitions are handled by start_next_level()
         return await account.execute([
-          buildVrfRequestCall(
-            level_contract.address,
-            BigInt(
-              hash.computePoseidonHashOnElements([
-                BigInt(game_id),
-                BigInt(current_level + 1),
-              ]),
-            ),
-          ),
           {
             contractAddress: move_contract.address,
             entrypoint: "move",
@@ -249,31 +233,10 @@ export function setupWorld(config: Config) {
       bonus,
       row_index,
       block_index,
-      current_level,
     }: BonusTx) => {
       try {
-        // Bonus enum serializes as just the variant index:
-        // 0 = None, 1 = Combo, 2 = Score, 3 = Harvest, 4 = Wave, 5 = Supply
-        if (isSlotMode) {
-          return await account.execute([
-            {
-              contractAddress: bonus_contract.address,
-              entrypoint: "apply_bonus",
-              calldata: [game_id, bonus, row_index, block_index],
-            },
-          ]);
-        }
-
+        // bonus() no longer needs VRF - level transitions are handled by start_next_level()
         return await account.execute([
-          buildVrfRequestCall(
-            level_contract.address,
-            BigInt(
-              hash.computePoseidonHashOnElements([
-                BigInt(game_id),
-                BigInt(current_level + 1),
-              ]),
-            ),
-          ),
           {
             contractAddress: bonus_contract.address,
             entrypoint: "apply_bonus",
@@ -286,6 +249,47 @@ export function setupWorld(config: Config) {
       }
     };
 
+    const startNextLevel = async ({
+      account,
+      game_id,
+      current_level,
+    }: StartNextLevel) => {
+      try {
+        if (isSlotMode) {
+          // On Slot, no VRF - call start_next_level directly
+          return await account.execute([
+            {
+              contractAddress: level_contract.address,
+              entrypoint: "start_next_level",
+              calldata: [game_id],
+            },
+          ]);
+        }
+
+        // On Sepolia/Mainnet, include VRF request
+        // Salt = poseidon(game_id, current_level) matching the contract
+        return await account.execute([
+          buildVrfRequestCall(
+            level_contract.address,
+            BigInt(
+              hash.computePoseidonHashOnElements([
+                BigInt(game_id),
+                BigInt(current_level),
+              ]),
+            ),
+          ),
+          {
+            contractAddress: level_contract.address,
+            entrypoint: "start_next_level",
+            calldata: [game_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing startNextLevel:", error);
+        throw error;
+      }
+    };
+
     return {
       address: contract.address,
       free_mint,
@@ -293,6 +297,7 @@ export function setupWorld(config: Config) {
       surrender,
       move,
       bonus,
+      startNextLevel,
     };
   }
 

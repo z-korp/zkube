@@ -279,6 +279,17 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
+  const startNextLevel = async ({
+    account,
+    ...props
+  }: SystemTypes.StartNextLevel) => {
+    await handleTransaction(
+      account,
+      () => client.game.startNextLevel({ account, ...props }),
+      "Next level started.",
+    );
+  };
+
   const claimQuest = async ({ account, ...props }: SystemTypes.ClaimQuest) => {
     if (!client.quest) {
       throw new Error("Quest system not available");
@@ -352,6 +363,7 @@ export function systems({ client }: { client: IWorld }) {
     surrender,
     move,
     applyBonus,
+    startNextLevel,
     // quests
     claimQuest,
     rerollDraft,

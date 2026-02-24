@@ -38,6 +38,7 @@ export const getDraftEventForCompletedLevel = (
     return null;
   }
 
+  // Zone 1 entry draft: after completing level 1
   if (completedLevel === 1) {
     return {
       type: "post_level_1",
@@ -47,24 +48,20 @@ export const getDraftEventForCompletedLevel = (
     };
   }
 
+  // Entry draft for zones 2-5: after clearing boss
   if (completedLevel < MAX_LEVEL && completedLevel % LEVELS_PER_ZONE === 0) {
-    const zone = completedLevel / LEVELS_PER_ZONE;
+    const nextZone = completedLevel / LEVELS_PER_ZONE + 1;
     return {
       type: "post_boss",
       triggerLevel: completedLevel,
-      zone,
-      eventId: `post_boss:${completedLevel}:${zone}`,
+      zone: nextZone,
+      eventId: `post_boss:${completedLevel}:${nextZone}`,
     };
   }
 
-  if (completedLevel >= 10) {
-    return null;
-  }
-
+  // Mid-zone (micro) draft: one per zone at a random level
   const zone = toZone(completedLevel);
-  if (zone !== 1) {
-    return null;
-  }
+  if (zone > 5) return null;
   const trigger = getZoneMicroDraftTriggerLevel(seed, zone);
 
   if (completedLevel === trigger) {
@@ -100,21 +97,19 @@ export const getDraftEventsForZone = (
     events.push({
       type: "post_boss",
       triggerLevel: prevBossLevel,
-      zone: zone - 1, // The event is associated with the completed boss's zone
-      eventId: `post_boss:${prevBossLevel}:${zone - 1}`,
+      zone, // The entry draft belongs to THIS zone (matches contract: zone = next_zone)
+      eventId: `post_boss:${prevBossLevel}:${zone}`,
     });
   }
 
-  // Mid draft event (zone 1 only): triggers at random level 2-8
-  if (zone === 1) {
-    const microTrigger = getZoneMicroDraftTriggerLevel(seed, zone);
-    events.push({
-      type: "zone_micro",
-      triggerLevel: microTrigger,
-      zone,
-      eventId: `zone_micro:${microTrigger}:${zone}`,
-    });
-  }
+  // Mid draft event: triggers at random level within the zone
+  const microTrigger = getZoneMicroDraftTriggerLevel(seed, zone);
+  events.push({
+    type: "zone_micro",
+    triggerLevel: microTrigger,
+    zone,
+    eventId: `zone_micro:${microTrigger}:${zone}`,
+  });
 
   return events.sort((a, b) => a.triggerLevel - b.triggerLevel);
 };
@@ -125,9 +120,10 @@ export const isDraftEventUnlocked = (
 ): boolean => currentLevel > event.triggerLevel;
 
 export const getDraftEventSlot = (event: PendingDraftEvent): number => {
-  if (event.type === "post_level_1") return 0;
-  if (event.type === "zone_micro") return 1;
-  return event.triggerLevel / 10 + 1;
+  // Formula matches contract: entry_slot = (zone-1)*2, mid_slot = (zone-1)*2+1
+  if (event.type === "zone_micro") return (event.zone - 1) * 2 + 1;
+  // Entry drafts: post_level_1 (zone 1) and post_boss (zones 2-5)
+  return (event.zone - 1) * 2;
 };
 
 export interface StoredDraftPick {

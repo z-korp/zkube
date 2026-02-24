@@ -80,6 +80,9 @@ export class Game {
   public get cubesAvailable(): number {
     return this.runData.totalCubes;
   }
+  public get levelTransitionPending(): boolean {
+    return this.runData.levelTransitionPending;
+  }
 
   // Legacy compatibility - score now means levelScore
   public get score(): number {

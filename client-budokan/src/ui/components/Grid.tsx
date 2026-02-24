@@ -52,7 +52,7 @@ interface GridProps {
   setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
-  currentLevel: number;
+  activeBonusLevel: number;
   activeBonusLevel: number;
 }
 
@@ -75,7 +75,6 @@ const Grid: React.FC<GridProps> = ({
   setOptimisticMaxCombo,
   isTxProcessing,
   setIsTxProcessing,
-  currentLevel,
   activeBonusLevel,
 }) => {
   const {
@@ -410,7 +409,6 @@ const Grid: React.FC<GridProps> = ({
           row_index: nextQueuedMove.rowIndex,
           start_index: nextQueuedMove.startIndex,
           final_index: nextQueuedMove.finalIndex,
-          current_level: currentLevel,
         });
         if (cancelled) return;
         store.markConfirmed(nextQueuedMove.id);

@@ -115,7 +115,7 @@ const VRF_ADDRESS =
   "0x051Fea4450Da9D6aeE758BDEbA88B2f665bCbf549D2C61421AA724E9AC0Ced8F";
 
 const EXCLUDED_SYSTEMS = ["renderer_systems"];
-const INTERNAL_SYSTEMS = ["config_system", "grid_system", "level_system"];
+const INTERNAL_SYSTEMS = ["config_system", "grid_system"];
 
 const ADDITIONAL_ENTRYPOINTS: Record<string, string[]> = {
   game_system: ["mint_game"],

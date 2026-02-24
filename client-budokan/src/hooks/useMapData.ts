@@ -192,12 +192,7 @@ function getNodeState(
       return "available";
     }
 
-    // Mid draft (zone 1 only)
-    if (node.zone !== 1) {
-      return "locked";
-    }
-
-    // Contract triggers when completed_level == trigger, so player is at trigger+1
+    // Mid draft: triggers when completed_level == trigger, so player is at trigger+1
     const trigger = getZoneMicroDraftTriggerLevel(seed, node.zone);
     if (currentLevel <= trigger) return "locked";
     if (currentLevel > zoneEndLevel) return "visited";

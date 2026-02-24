@@ -38,7 +38,7 @@ const PlayScreen: React.FC = () => {
 
   const {
     setup: {
-      systemCalls: { surrender },
+      systemCalls: { surrender, startNextLevel },
     },
   } = useDojo();
   const { account } = useAccountCustom();
@@ -63,6 +63,8 @@ const PlayScreen: React.FC = () => {
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isGameLoading, setIsGameLoading] = useState(true);
+  const [isStartingNextLevel, setIsStartingNextLevel] = useState(false);
+  const startNextLevelCalledRef = useRef(false);
   const [activeBonus, setActiveBonus] = useState<BonusType>(BonusType.None);
   const [bonusDescription, setBonusDescription] = useState("");
 
@@ -125,6 +127,38 @@ const PlayScreen: React.FC = () => {
     if (!account) setIsConnectDialogOpen(true);
     else setIsConnectDialogOpen(false);
   }, [account]);
+
+  // Auto-trigger startNextLevel when level_transition_pending is detected
+  useEffect(() => {
+    if (!game || !account || game.over) return;
+    if (!game.levelTransitionPending) {
+      // Reset the ref when pending clears (level started successfully)
+      startNextLevelCalledRef.current = false;
+      return;
+    }
+    if (startNextLevelCalledRef.current) return; // Already called
+    if (isStartingNextLevel) return; // Already in progress
+
+    startNextLevelCalledRef.current = true;
+    setIsStartingNextLevel(true);
+
+    const triggerStartNextLevel = async () => {
+      try {
+        await startNextLevel({
+          account,
+          game_id: game.id,
+          current_level: game.level,
+        });
+      } catch (error) {
+        console.error("Failed to start next level:", error);
+        startNextLevelCalledRef.current = false; // Allow retry
+      } finally {
+        setIsStartingNextLevel(false);
+      }
+    };
+
+    triggerStartNextLevel();
+  }, [game?.levelTransitionPending, game?.id, game?.level, game?.over, account, startNextLevel, isStartingNextLevel]);
 
   useEffect(() => {
     if (prevGameOverRef.current !== undefined) {
@@ -212,7 +246,7 @@ const PlayScreen: React.FC = () => {
   const maxMoves = gameLevel?.maxMoves ?? levelConfig?.maxMoves ?? 0;
 
   const isGridLoading =
-    !!game && !game.isOver() && (!grid || grid.length === 0);
+    !!game && !game.isOver() && (!grid || grid.length === 0 || game.levelTransitionPending);
 
   const isGameOn = game && !game.over;
 
@@ -385,7 +419,7 @@ const PlayScreen: React.FC = () => {
               className="h-16 w-16 animate-bounce drop-shadow-[0_0_12px_rgba(59,130,246,0.8)]"
             />
             <p className="text-lg font-semibold uppercase tracking-[0.25em] text-slate-100">
-              {isGameLoading ? "Preparing game" : "Loading grid"}
+              {isStartingNextLevel ? "Starting next level" : isGameLoading ? "Preparing game" : "Loading grid"}
             </p>
           </div>
         )}

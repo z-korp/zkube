@@ -8,7 +8,7 @@
 //! use zkube::helpers::game_libs::{GameLibs, GameLibsImpl};
 //!
 //! let libs = GameLibsImpl::new(world);
-//! libs.level.complete_level(game_id);
+//! libs.level.finalize_level(game_id, skill_data);
 //! libs.grid.execute_move(game_id, row, start, end);
 //! libs.cube.mint(player, amount);
 //! ```

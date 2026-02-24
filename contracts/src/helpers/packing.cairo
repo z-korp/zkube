@@ -2,7 +2,7 @@ use alexandria_math::BitShift;
 
 /// Bit-packing helpers for efficient storage.
 ///
-/// run_data layout (128 bits used, 124 reserved):
+/// run_data layout (129 bits used, 123 reserved):
 /// - 0-7: current_level
 /// - 8-15: level_score
 /// - 16-23: level_moves
@@ -26,6 +26,7 @@ use alexandria_math::BitShift;
 /// - 122-123: slot_1_charges
 /// - 124-125: slot_2_charges
 /// - 126-127: slot_3_charges
+/// - 128: level_transition_pending
 
 /// Unpacked run data structure (V6, 3-slot only runtime/storage)
 #[derive(Copy, Drop, Serde, Debug, PartialEq)]
@@ -56,6 +57,8 @@ pub struct RunData {
     pub slot_1_charges: u8,
     pub slot_2_charges: u8,
     pub slot_3_charges: u8,
+    // Level transition state
+    pub level_transition_pending: bool,
 }
 
 /// Bit positions and masks for run_data
@@ -83,6 +86,7 @@ mod RunDataBits {
     pub const SLOT_1_CHARGES_POS: u8 = 122;
     pub const SLOT_2_CHARGES_POS: u8 = 124;
     pub const SLOT_3_CHARGES_POS: u8 = 126;
+    pub const LEVEL_TRANSITION_PENDING_POS: u8 = 128;
 
     pub const U8_MASK: u256 = 0xFF;
     pub const U16_MASK: u256 = 0xFFFF;
@@ -110,6 +114,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
             run_completed: false,
             free_moves: 0,
             no_bonus_constraint: false,
+            level_transition_pending: false,
             active_slot_count: 0,
             slot_1_skill: 0,
             slot_1_level: 0,
@@ -254,6 +259,15 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 self.slot_3_charges.into() & RunDataBits::TWO_BITS_MASK,
                 RunDataBits::SLOT_3_CHARGES_POS.into(),
             );
+        packed = packed
+            | BitShift::shl(
+                if self.level_transition_pending {
+                    1_u256
+                } else {
+                    0_u256
+                },
+                RunDataBits::LEVEL_TRANSITION_PENDING_POS.into(),
+            );
 
         packed.try_into().unwrap()
     }
@@ -353,6 +367,8 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 & RunDataBits::TWO_BITS_MASK)
                 .try_into()
                 .unwrap(),
+            level_transition_pending: (BitShift::shr(data, RunDataBits::LEVEL_TRANSITION_PENDING_POS.into())
+                & RunDataBits::BOOL_MASK) == 1,
         }
     }
 }
@@ -941,8 +957,8 @@ mod tests {
             slot_1_charges: 2,
             slot_2_charges: 3,
             slot_3_charges: 1,
+            level_transition_pending: true,
         };
-
         let packed = original.pack();
         let unpacked = RunDataPackingTrait::unpack(packed);
 
@@ -975,8 +991,8 @@ mod tests {
             slot_1_charges: 3,
             slot_2_charges: 3,
             slot_3_charges: 3,
+            level_transition_pending: true,
         };
-
         let packed = max_values.pack();
         let unpacked = RunDataPackingTrait::unpack(packed);
 
@@ -1009,8 +1025,8 @@ mod tests {
             slot_1_charges: 0,
             slot_2_charges: 0,
             slot_3_charges: 0,
+            level_transition_pending: false,
         };
-
         let packed = zero_values.pack();
         let unpacked = RunDataPackingTrait::unpack(packed);
 

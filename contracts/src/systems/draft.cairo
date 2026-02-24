@@ -62,7 +62,8 @@ mod draft_system {
             let mut zone: u8 = 1;
 
             if completed_level == 1 {
-                event_slot = 0;
+                // Zone 1 entry draft: after completing level 1
+                event_slot = 0; // (zone 1 - 1) * 2 = 0
                 event_type = EVENT_TYPE_POST_LEVEL_1;
                 zone = 1;
             } else if completed_level == 10
@@ -70,24 +71,15 @@ mod draft_system {
                 || completed_level == 30
                 || completed_level == 40
             {
-                zone = completed_level / 10;
-                event_slot = if completed_level == 10 {
-                    2
-                } else if completed_level == 20 {
-                    3
-                } else if completed_level == 30 {
-                    4
-                } else {
-                    5
-                };
+                // Entry draft for zones 2-5: after clearing boss
+                let next_zone: u8 = (completed_level / 10) + 1;
+                zone = next_zone;
+                event_slot = (next_zone - 1) * 2; // slots 2, 4, 6, 8
                 event_type = EVENT_TYPE_POST_BOSS;
             } else {
-                // Only one micro augment event in zone 1 to ensure full loadout by Boss 1.
-                if completed_level >= 10 {
-                    return;
-                }
+                // Mid-zone (micro) draft: one per zone at a random level
                 zone = InternalImpl::zone_for_level(completed_level);
-                if zone != 1 {
+                if zone > 5 {
                     return;
                 }
                 let trigger = InternalImpl::zone_micro_trigger(draft.seed, zone);
@@ -95,7 +87,7 @@ mod draft_system {
                     return;
                 }
 
-                event_slot = 1;
+                event_slot = (zone - 1) * 2 + 1; // slots 1, 3, 5, 7, 9
                 event_type = EVENT_TYPE_ZONE_MICRO;
             }
 
