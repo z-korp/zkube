@@ -41,7 +41,15 @@ const BlockContainer: React.FC<BlockProps> = ({
     const element = ref.current;
     if (element === null) return;
 
-    const onTransitionStart = () => {
+    const onTransitionStart = (event: TransitionEvent) => {
+      if (event.propertyName !== "top") return;
+      if (
+        state !== GameState.GRAVITY &&
+        state !== GameState.GRAVITY2 &&
+        state !== GameState.GRAVITY_BONUS
+      ) {
+        return;
+      }
       if (onTransitionBlockStart !== undefined) onTransitionBlockStart();
     };
 
@@ -50,12 +58,11 @@ const BlockContainer: React.FC<BlockProps> = ({
     return () => {
       element?.removeEventListener("transitionstart", onTransitionStart);
     };
-  }, [onTransitionBlockStart]);
+  }, [onTransitionBlockStart, state]);
 
-  // Gestion de la fin de la transition via l'événement onTransitionEnd
-  const handleTransitionEnd = () => {
-    //setTriggerParticles(true);
-    if (onTransitionBlockEnd !== undefined) onTransitionBlockEnd(); // Notifier que la transition est terminée
+  const handleTransitionEnd = (event: React.TransitionEvent<HTMLDivElement>) => {
+    if (event.propertyName !== "top") return;
+    if (onTransitionBlockEnd !== undefined) onTransitionBlockEnd();
   };
 
   return (

@@ -87,6 +87,12 @@ const Grid: React.FC<GridProps> = ({
   // Grid Position will be used to trigger particle in the right spot
   const gridRef = useRef<HTMLDivElement | null>(null);
   const explosionRef = useRef<ConfettiExplosionRef>(null);
+  const draggingRef = useRef<Block | null>(null);
+  const dragStartXRef = useRef(0);
+  const initialXRef = useRef(0);
+  const draggedXRef = useRef(0);
+  const gameStateRef = useRef<GameState>(GameState.WAITING);
+  const endDragRef = useRef<() => void>(() => undefined);
 
   // ==================== State ====================
 
@@ -96,9 +102,6 @@ const Grid: React.FC<GridProps> = ({
   const [saveGridStateblocks, setSaveGridStateblocks] =
     useState<Block[]>(initialData);
   const [applyData, setApplyData] = useState(false);
-  const [dragging, setDragging] = useState<Block | null>(null);
-  const [dragStartX, setDragStartX] = useState(0);
-  const [initialX, setInitialX] = useState(0);
   const [isMoving, setIsMoving] = useState(true);
   const [currentMove, setcurrentMove] = useState<{
     rowIndex: number;
@@ -134,6 +137,17 @@ const Grid: React.FC<GridProps> = ({
   const borderSize = 2;
   const gravitySpeed = 100;
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
+
+  const resetDragRefs = useCallback(() => {
+    draggingRef.current = null;
+    dragStartXRef.current = 0;
+    initialXRef.current = 0;
+    draggedXRef.current = 0;
+  }, []);
+
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
 
   // =================== Grid set up ===================
   useEffect(() => {
@@ -177,28 +191,31 @@ const Grid: React.FC<GridProps> = ({
   // =================== DRAG & DROP ===================
 
   const handleDragStart = (x: number, block: Block) => {
-    setDragging(block);
-    setDragStartX(x);
-    setInitialX(block.x);
+    draggingRef.current = block;
+    dragStartXRef.current = x;
+    initialXRef.current = block.x;
+    draggedXRef.current = block.x;
+    gameStateRef.current = GameState.DRAGGING;
     setGameState(GameState.DRAGGING);
   };
 
   const handleDragMove = (x: number, _moveType: MoveType) => {
+    const dragging = draggingRef.current;
     if (!dragging) return;
-    if (gameState !== GameState.DRAGGING) return;
+    if (gameStateRef.current !== GameState.DRAGGING) return;
 
-    const deltaX = x - dragStartX;
-    const newX = initialX + deltaX / gridSize;
+    const deltaX = x - dragStartXRef.current;
+    const newX = initialXRef.current + deltaX / gridSize;
     const boundedX = Math.max(0, Math.min(gridWidth - dragging.width, newX));
 
     // Re-anchor drag origin when clamped at boundary to keep cursor synced with block
     if (boundedX !== newX) {
-      setDragStartX(x - (boundedX - initialX) * gridSize);
+      dragStartXRef.current = x - (boundedX - initialXRef.current) * gridSize;
     }
 
     if (
       !isBlocked(
-        initialX,
+        initialXRef.current,
         boundedX,
         dragging.y,
         dragging.width,
@@ -206,6 +223,7 @@ const Grid: React.FC<GridProps> = ({
         dragging.id
       )
     ) {
+      draggedXRef.current = boundedX;
       setBlocks((prevBlocks) =>
         prevBlocks.map((b) =>
           b.id === dragging.id ? { ...b, x: boundedX } : b
@@ -292,44 +310,54 @@ const Grid: React.FC<GridProps> = ({
     handleDragMove(touch.clientX, MoveType.TOUCH);
   };
 
-  const endDrag = () => {
+  const endDrag = useCallback(() => {
+    const dragging = draggingRef.current;
     if (!dragging) return;
 
-    const shouldSubmitMove = true;
+    if (gameStateRef.current !== GameState.DRAGGING) {
+      resetDragRefs();
+      return;
+    }
 
-    setBlocks((prevBlocks) => {
-      const updatedBlocks = prevBlocks.map((b) => {
-        if (b.id === dragging.id) {
-          const finalX = Math.round(b.x);
-          if (shouldSubmitMove && Math.trunc(finalX) !== Math.trunc(initialX)) {
-            setcurrentMove({
-              rowIndex: b.y,
-              startX: initialX,
-              finalX,
-            });
-          }
-          return { ...b, x: shouldSubmitMove ? finalX : initialX };
-        }
-        return b;
+    const startX = initialXRef.current;
+    const finalX = Math.round(draggedXRef.current);
+    const hasMoved = Math.trunc(finalX) !== Math.trunc(startX);
+
+    setBlocks((prevBlocks) =>
+      prevBlocks.map((b) =>
+        b.id === dragging.id ? { ...b, x: hasMoved ? finalX : startX } : b
+      )
+    );
+
+    if (hasMoved) {
+      setcurrentMove({
+        rowIndex: dragging.y,
+        startX,
+        finalX,
       });
-      return updatedBlocks;
-    });
-
-    setDragging(null);
-    if (shouldSubmitMove) {
       setIsMoving(true);
+      gameStateRef.current = GameState.GRAVITY;
       setGameState(GameState.GRAVITY);
     } else {
+      setcurrentMove(null);
+      setIsMoving(false);
+      gameStateRef.current = GameState.WAITING;
       setGameState(GameState.WAITING);
     }
-  };
+
+    resetDragRefs();
+  }, [resetDragRefs]);
+
+  useEffect(() => {
+    endDragRef.current = endDrag;
+  }, [endDrag]);
 
   useEffect(() => {
     const handleMouseUp = () => {
-      endDrag();
+      endDragRef.current();
     };
     const handleTouchEnd = () => {
-      endDrag();
+      endDragRef.current();
     };
     document.addEventListener("mouseup", handleMouseUp);
     document.addEventListener("touchend", handleTouchEnd);
@@ -340,8 +368,7 @@ const Grid: React.FC<GridProps> = ({
       document.removeEventListener("touchend", handleTouchEnd);
       document.removeEventListener("touchcancel", handleTouchEnd);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dragging]);
+  }, []);
 
   // =================== MOVE TX ===================
 
@@ -396,6 +423,9 @@ const Grid: React.FC<GridProps> = ({
         setNextLine(nextLineData);
         setLineExplodedCount(0);
         setcurrentMove(null);
+        resetDragRefs();
+        setIsMoving(false);
+        gameStateRef.current = GameState.WAITING;
         setGameState(GameState.WAITING);
         setApplyData(false);
         setOptimisticScore(score);
@@ -430,6 +460,7 @@ const Grid: React.FC<GridProps> = ({
     score,
     combo,
     maxCombo,
+    resetDragRefs,
     setOptimisticScore,
     setOptimisticCombo,
     setOptimisticMaxCombo,
@@ -519,21 +550,21 @@ const Grid: React.FC<GridProps> = ({
       playExplode();
       setLineExplodedCount(lineExplodedCount + completeRows.length);
 
-      if (gridPosition === null) return;
-
       setExplodingRows(new Set(completeRows));
 
-      completeRows.forEach((rowIndex) => {
-        const blocksSameRow = getBlocksSameRow(rowIndex, blocks);
-        blocksSameRow.forEach((block) => {
-          handleTriggerLocalExplosion(
-            gridPosition.left +
-              block.x * gridSize +
-              (block.width * gridSize) / 2,
-            gridPosition.top + block.y * gridSize
-          );
+      if (gridPosition !== null) {
+        completeRows.forEach((rowIndex) => {
+          const blocksSameRow = getBlocksSameRow(rowIndex, blocks);
+          blocksSameRow.forEach((block) => {
+            handleTriggerLocalExplosion(
+              gridPosition.left +
+                block.x * gridSize +
+                (block.width * gridSize) / 2,
+              gridPosition.top + block.y * gridSize
+            );
+          });
         });
-      });
+      }
 
       setTimeout(() => {
         setExplodingRows(new Set());
@@ -582,21 +613,38 @@ const Grid: React.FC<GridProps> = ({
         break;
 
       case GameState.ADD_LINE:
-        if (currentMove && transitioningBlocks.length === 0) {
+        if (transitioningBlocks.length > 0) {
+          break;
+        }
+
+        if (!currentMove) {
+          setIsMoving(false);
+          setGameState(GameState.WAITING);
+          break;
+        }
+
+        {
           const { startX, finalX } = currentMove;
-          if (startX !== finalX) {
-            const updatedBlocks = concatenateNewLineWithGridAndShiftGrid(
-              blocks,
-              nextLine,
-              gridHeight
-            );
-            setNextLineHasBeenConsumed(true);
-            if (isGridFull(updatedBlocks)) {
-              setGameState(GameState.UPDATE_AFTER_MOVE);
-            } else {
-              setBlocks(updatedBlocks);
-            }
+          if (startX === finalX) {
+            setcurrentMove(null);
+            setIsMoving(false);
+            setGameState(GameState.WAITING);
+            break;
           }
+
+          const updatedBlocks = concatenateNewLineWithGridAndShiftGrid(
+            blocks,
+            nextLine,
+            gridHeight
+          );
+          setNextLineHasBeenConsumed(true);
+
+          if (isGridFull(updatedBlocks)) {
+            setGameState(GameState.UPDATE_AFTER_MOVE);
+            break;
+          }
+
+          setBlocks(updatedBlocks);
           setIsMoving(true);
           setGameState(GameState.GRAVITY2);
         }
