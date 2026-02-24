@@ -36,6 +36,10 @@ import { Button } from "@/ui/elements/button";
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import { deriveZoneThemes, getZone } from "@/hooks/useMapData";
 
+// Module-level guard: survives unmount/remount to prevent duplicate startNextLevel calls
+// when Torii hasn't synced the cleared levelTransitionPending flag yet.
+const startNextLevelIssued = new Set<string>();
+
 const PlayScreen: React.FC = () => {
   useViewport();
 
@@ -147,15 +151,20 @@ const PlayScreen: React.FC = () => {
   // Auto-trigger startNextLevel when level_transition_pending is detected
   useEffect(() => {
     if (!game || !account || game.over) return;
+    const key = `${game.id}-${game.level}`;
     if (!game.levelTransitionPending) {
-      // Reset the ref when pending clears (level started successfully)
+      // Pending cleared (level started successfully) — clean up guards
       startNextLevelCalledRef.current = false;
+      startNextLevelIssued.delete(key);
       return;
     }
-    if (startNextLevelCalledRef.current) return; // Already called
+    // Module-level guard: prevents duplicate call after unmount/remount
+    if (startNextLevelIssued.has(key)) return;
+    if (startNextLevelCalledRef.current) return; // Already called this mount
     if (isStartingNextLevel) return; // Already in progress
 
     startNextLevelCalledRef.current = true;
+    startNextLevelIssued.add(key);
     setIsStartingNextLevel(true);
 
     const triggerStartNextLevel = async () => {
@@ -165,9 +174,17 @@ const PlayScreen: React.FC = () => {
           game_id: game.id,
           current_level: game.level,
         });
-      } catch (error) {
-        console.error("Failed to start next level:", error);
-        startNextLevelCalledRef.current = false; // Allow retry
+      } catch (error: unknown) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        if (errorMsg.includes("No level transition pending")) {
+          // Already processed — treat as success, keep guards in place
+          console.warn("startNextLevel: already processed, ignoring.");
+        } else {
+          console.error("Failed to start next level:", error);
+          // Real failure — allow retry
+          startNextLevelCalledRef.current = false;
+          startNextLevelIssued.delete(key);
+        }
       } finally {
         setIsStartingNextLevel(false);
       }
