@@ -663,7 +663,6 @@ const Grid: React.FC<GridProps> = ({
 
           // Reset per-move state
           setLineExplodedCount(0);
-          setNextLineHasBeenConsumed(false);
           const inDanger = blocks.some((block) => block.y < 2);
           setIsPlayerInDanger(inDanger);
 
