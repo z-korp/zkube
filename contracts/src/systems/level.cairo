@@ -366,12 +366,17 @@ mod level_system {
             let next_level_seed = next_seed_random.seed;
 
             let next_game_seed = GameSeed {
-                game_id, seed: base_seed.seed, level_seed: next_level_seed, vrf_enabled: base_seed.vrf_enabled,
+                game_id,
+                seed: base_seed.seed,
+                level_seed: next_level_seed,
+                vrf_enabled: base_seed.vrf_enabled,
             };
             world.write_model(@next_game_seed);
 
             // Generate next level config using VRF-backed level seed
-            let next_level_config = LevelGeneratorTrait::generate(next_level_seed, next_level, settings);
+            let next_level_config = LevelGeneratorTrait::generate(
+                next_level_seed, next_level, settings,
+            );
 
             // Set no_bonus_constraint flag for the next level (any of the 3 constraints)
             let has_no_bonus = next_level_config
