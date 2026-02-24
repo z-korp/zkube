@@ -394,6 +394,7 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
           ))}
         </svg>
       </div>
+    </div>
   );
 };
 
