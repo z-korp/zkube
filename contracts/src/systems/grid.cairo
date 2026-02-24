@@ -90,7 +90,7 @@ mod grid_system {
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
 
             let difficulty: Difficulty = game_level.difficulty.into();
-            let level_seed = GameTrait::generate_level_seed(base_seed.seed, 1);
+            let level_seed = GameTrait::generate_level_seed(base_seed.level_seed, 1);
 
             // Create initial next_row
             game.next_row = Controller::create_line(level_seed, difficulty, settings);
@@ -102,7 +102,7 @@ mod grid_system {
                     break;
                 }
                 // Insert the next_row and generate a new one
-                let new_seed = InternalImpl::generate_seed(game.blocks, base_seed.seed, 1);
+                let new_seed = InternalImpl::generate_seed(game.blocks, base_seed.level_seed, 1);
                 let new_next_row = Controller::create_line(new_seed, difficulty, settings);
                 game.blocks = Controller::add_line(game.blocks, game.next_row);
                 game.next_row = new_next_row;
@@ -126,7 +126,7 @@ mod grid_system {
             let run_data = game.get_run_data();
             let current_level = run_data.current_level;
             let difficulty: Difficulty = game_level.difficulty.into();
-            let level_seed = GameTrait::generate_level_seed(base_seed.seed, current_level);
+            let level_seed = GameTrait::generate_level_seed(base_seed.level_seed, current_level);
 
             // Reset grid
             game.blocks = 0;
@@ -140,7 +140,7 @@ mod grid_system {
                 }
                 // Insert the next_row and generate a new one
                 let new_seed = InternalImpl::generate_seed(
-                    game.blocks, base_seed.seed, current_level,
+                    game.blocks, base_seed.level_seed, current_level,
                 );
                 let new_next_row = Controller::create_line(new_seed, difficulty, settings);
                 game.blocks = Controller::add_line(game.blocks, game.next_row);

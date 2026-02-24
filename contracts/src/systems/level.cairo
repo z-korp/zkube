@@ -73,8 +73,8 @@ mod level_system {
                 @run_data, branch_ids_arr.span(),
             );
 
-            // Generate level 1 config
-            let level_config = LevelGeneratorTrait::generate(base_seed.seed, 1, settings);
+            // Generate level 1 config using level_seed (at creation, level_seed = seed)
+            let level_config = LevelGeneratorTrait::generate(base_seed.level_seed, 1, settings);
 
             // Check for NoBonusUsed constraint (any of the 3 constraints)
             let has_no_bonus = level_config
@@ -209,7 +209,7 @@ mod level_system {
 
             // Calculate level rewards using LevelGeneratorTrait
             let level_config = LevelGeneratorTrait::generate(
-                base_seed.seed, completed_level, settings,
+                base_seed.level_seed, completed_level, settings,
             );
             let stars = level_config.calculate_cubes(pre_complete_data.level_moves.into());
             let cubes = match stars {
@@ -356,21 +356,22 @@ mod level_system {
             // current_level was already incremented by complete_level_data() in finalize_level
             let next_level = run_data.current_level;
 
-            // Reseed from VRF for the next level generation.
+            // Call VRF for per-level randomness.
             // Salt = poseidon(game_id, next_level) to ensure unique VRF per level transition.
+            // VRF result stored in level_seed; base seed is NEVER overwritten.
             let vrf_salt = core::poseidon::poseidon_hash_span(
                 array![game_id.into(), next_level.into()].span(),
             );
             let next_seed_random = RandomImpl::from_vrf_enabled(base_seed.vrf_enabled, vrf_salt);
-            let next_seed = next_seed_random.seed;
+            let next_level_seed = next_seed_random.seed;
 
             let next_game_seed = GameSeed {
-                game_id, seed: next_seed, vrf_enabled: base_seed.vrf_enabled,
+                game_id, seed: base_seed.seed, level_seed: next_level_seed, vrf_enabled: base_seed.vrf_enabled,
             };
             world.write_model(@next_game_seed);
 
-            // Generate next level config
-            let next_level_config = LevelGeneratorTrait::generate(next_seed, next_level, settings);
+            // Generate next level config using VRF-backed level seed
+            let next_level_config = LevelGeneratorTrait::generate(next_level_seed, next_level, settings);
 
             // Set no_bonus_constraint flag for the next level (any of the 3 constraints)
             let has_no_bonus = next_level_config

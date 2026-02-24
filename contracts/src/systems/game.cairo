@@ -187,7 +187,7 @@ mod game_system {
             let mut game = GameTrait::new_empty(game_id, timestamp);
 
             // Store the seed separately
-            let game_seed = GameSeed { game_id, seed: random.seed, vrf_enabled };
+            let game_seed = GameSeed { game_id, seed: random.seed, level_seed: random.seed, vrf_enabled };
             world.write_model(@game_seed);
 
             let draft_state: DraftState = DraftStateTrait::new(game_id, random.seed);

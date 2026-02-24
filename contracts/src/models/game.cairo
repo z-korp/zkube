@@ -47,7 +47,8 @@ pub struct Game {
 pub struct GameSeed {
     #[key]
     pub game_id: u64,
-    pub seed: felt252,
+    pub seed: felt252,       // Original VRF seed — set once at game creation, NEVER changes
+    pub level_seed: felt252, // Per-level VRF seed — updated each start_next_level
     pub vrf_enabled: bool,
 }
 
