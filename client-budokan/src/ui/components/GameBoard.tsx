@@ -15,9 +15,6 @@ import "../../grid.css";
 interface GameBoardProps {
   initialGrid: number[][];
   nextLine: number[];
-  score: number;
-  combo: number;
-  maxCombo: number;
   account: Account | null;
   game: Game;
   activeBonus: BonusType;
@@ -28,9 +25,6 @@ interface GameBoardProps {
 const GameBoard: React.FC<GameBoardProps> = ({
   initialGrid,
   nextLine,
-  score,
-  combo,
-  maxCombo,
   account,
   game,
   activeBonus,
@@ -54,10 +48,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   // State that will allow us to hide or display the next line
   const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
 
-  // Optimistic data (score, combo, maxcombo)
-  const [, setOptimisticScore] = useState(score);
-  const [, setOptimisticCombo] = useState(combo);
-  const [, setOptimisticMaxCombo] = useState(maxCombo);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -121,9 +111,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const memoizedNextLineData = useMemo(() => {
     return transformDataContractIntoBlock([nextLine]);
-    // initialGrid on purpose
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialGrid]);
+  }, [nextLine]);
 
   if (memoizedInitialData.length === 0) return null; // otherwise sometimes
   // the grid is not displayed in Grid because the data is not ready
@@ -157,12 +145,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
             selectBlock={selectBlock}
             bonus={activeBonus}
             account={account}
-            score={game.score}
-            combo={game.combo}
-            maxCombo={game.max_combo}
-            setOptimisticScore={setOptimisticScore}
-            setOptimisticCombo={setOptimisticCombo}
-            setOptimisticMaxCombo={setOptimisticMaxCombo}
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
             activeBonusLevel={activeBonusLevel}          />

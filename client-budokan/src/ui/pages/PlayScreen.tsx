@@ -439,9 +439,6 @@ const PlayScreen: React.FC = () => {
             <GameBoard
               initialGrid={grid}
               nextLine={game.isOver() ? [] : game.next_row}
-              score={game.isOver() ? 0 : game.score}
-              combo={game.isOver() ? 0 : game.combo}
-              maxCombo={game.isOver() ? 0 : game.maxComboRun}
               account={account}
               game={game}
               activeBonus={activeBonus}
@@ -456,9 +453,6 @@ const PlayScreen: React.FC = () => {
             <GameBoard
               initialGrid={grid}
               nextLine={[]}
-              score={0}
-              combo={0}
-              maxCombo={0}
               account={account}
               game={game}
               activeBonus={activeBonus}

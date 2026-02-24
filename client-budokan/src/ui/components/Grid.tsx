@@ -46,12 +46,6 @@ interface GridProps {
   account: Account | null;
   isTxProcessing: boolean;
   setIsTxProcessing: React.Dispatch<React.SetStateAction<boolean>>;
-  score: number;
-  combo: number;
-  maxCombo: number;
-  setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
-  setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
-  setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
   activeBonusLevel: number;
 }
 
@@ -66,12 +60,6 @@ const Grid: React.FC<GridProps> = ({
   selectBlock,
   bonus,
   account,
-  score,
-  combo,
-  maxCombo,
-  setOptimisticScore,
-  setOptimisticCombo,
-  setOptimisticMaxCombo,
   isTxProcessing,
   setIsTxProcessing,
   activeBonusLevel,
@@ -149,29 +137,25 @@ const Grid: React.FC<GridProps> = ({
     gameStateRef.current = gameState;
   }, [gameState]);
 
-  // =================== Grid set up ===================
+  // =================== Chain sync ===================
+  // After state machine completes (applyData=true), wait for chain data to arrive.
+  // When chain state differs from our saved baseline, sync everything to chain.
   useEffect(() => {
-    // All animations and computing are done
-    // we can apply data that we received from smart contract
-    if (applyData) {
-      if (pendingQueueCount > 0) {
-        return;
-      }
+    if (!applyData) return;
 
-      if (deepCompareBlocks(saveGridStateblocks, initialData)) {
-        setApplyData(false);
-        return;
-      }
-
-      // Sync chain state non-disruptively — DON'T override optimistic blocks/score
-      // Only update the saved baseline and next line from chain
-      setSaveGridStateblocks(initialData);
-      setNextLine(nextLineData);
-      setNextLineHasBeenConsumed(false);
-      setApplyData(false);
+    // Chain data hasn't changed yet — keep waiting
+    if (deepCompareBlocks(saveGridStateblocks, initialData)) {
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applyData, initialData, pendingQueueCount, nextLineData]);
+
+    // Chain data arrived — sync everything to chain state
+    setBlocks(initialData);
+    setSaveGridStateblocks(initialData);
+    setNextLine(nextLineData);
+    setNextLineHasBeenConsumed(false);
+    setIsTxProcessing(false);
+    setApplyData(false);
+  }, [applyData, initialData, nextLineData, saveGridStateblocks, setIsTxProcessing, setNextLineHasBeenConsumed]);
 
   // Keep grid position in store used for particles positionning
   useEffect(() => {
@@ -234,7 +218,7 @@ const Grid: React.FC<GridProps> = ({
 
   const handleTouchStart = (e: React.TouchEvent, block: Block) => {
     e.preventDefault();
-    if (gameState !== GameState.WAITING) return;
+    if (gameState !== GameState.WAITING || isTxProcessing) return;
 
     const touch = e.touches[0];
     handleDragStart(touch.clientX, block);
@@ -242,7 +226,7 @@ const Grid: React.FC<GridProps> = ({
 
   const handleMouseDown = (e: React.MouseEvent, block: Block) => {
     e.preventDefault();
-    if (gameState !== GameState.WAITING) return;
+    if (gameState !== GameState.WAITING || isTxProcessing) return;
 
     // NON-GRID bonuses: Combo, Score, Supply — send tx directly, no block changes
     if (bonus === BonusType.Combo) {
@@ -425,12 +409,12 @@ const Grid: React.FC<GridProps> = ({
         setcurrentMove(null);
         resetDragRefs();
         setIsMoving(false);
+        setExplodingRows(new Set());
+        setBlockBonus(null);
         gameStateRef.current = GameState.WAITING;
         setGameState(GameState.WAITING);
         setApplyData(false);
-        setOptimisticScore(score);
-        setOptimisticCombo(combo);
-        setOptimisticMaxCombo(maxCombo);
+        setIsTxProcessing(false);
 
         showToast({
           type: "error",
@@ -457,13 +441,7 @@ const Grid: React.FC<GridProps> = ({
     gameId,
     initialData,
     nextLineData,
-    score,
-    combo,
-    maxCombo,
     resetDragRefs,
-    setOptimisticScore,
-    setOptimisticCombo,
-    setOptimisticMaxCombo,
     setIsTxProcessing,
   ]);
 
@@ -668,17 +646,9 @@ const Grid: React.FC<GridProps> = ({
       case GameState.UPDATE_AFTER_BONUS:
       case GameState.UPDATE_AFTER_MOVE:
         {
-          // Update the score and combo
-          const currentCombo = lineExplodedCount > 1 ? lineExplodedCount : 0;
+          // Calculate points for animation display
           const pointsEarned =
             (lineExplodedCount * (lineExplodedCount + 1)) / 2;
-
-          setOptimisticScore((prevPoints) => prevPoints + pointsEarned);
-          setOptimisticCombo((prevCombo) => prevCombo + currentCombo);
-          setOptimisticMaxCombo((prevMaxCombo) =>
-            currentCombo > prevMaxCombo ? currentCombo : prevMaxCombo
-          );
-
           // If we have a combo, we display a message with points and cubes
           if (lineExplodedCount > 1) {
             setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
@@ -688,22 +658,22 @@ const Grid: React.FC<GridProps> = ({
             setAnimatedCubes(cubesFromCombo);
           }
 
-          // All animations and computing are done
-          // we can apply data that we received from smart contract
+          // All animations done — wait for chain data to arrive
           setApplyData(true);
 
-          // Reset states that were previously only in applyData
+          // Reset per-move state
           setLineExplodedCount(0);
           setNextLineHasBeenConsumed(false);
           const inDanger = blocks.some((block) => block.y < 2);
           setIsPlayerInDanger(inDanger);
 
-          // Reset states
           if (gameState === GameState.UPDATE_AFTER_BONUS) {
             selectBlock(blockBonus as Block);
             setBlockBonus(null);
             setGameState(GameState.WAITING);
           } else if (gameState === GameState.UPDATE_AFTER_MOVE) {
+            // Block input until chain data syncs
+            setIsTxProcessing(true);
             setcurrentMove(null);
             setGameState(GameState.WAITING);
           }
