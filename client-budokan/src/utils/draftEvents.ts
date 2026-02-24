@@ -120,7 +120,7 @@ export const getDraftEventsForZone = (
 export const isDraftEventUnlocked = (
   currentLevel: number,
   event: PendingDraftEvent,
-): boolean => currentLevel > event.triggerLevel;
+): boolean => currentLevel >= event.triggerLevel;
 
 export const getDraftEventSlot = (event: PendingDraftEvent): number => {
   if (event.type === "post_level_1") return 0;
