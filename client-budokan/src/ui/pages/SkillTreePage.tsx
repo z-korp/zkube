@@ -39,22 +39,22 @@ const VB_W = 100;
 const VB_H = 130;
 
 // Node radii
-const R_CORE = 4.2;
-const R_BRANCH = 3.4;
+const R_CORE = 5.5;
+const R_BRANCH = 4.5;
 
 // 3 skill columns
 const COL_X = [17, 50, 83];
-const BRANCH_OFF = 5.5;
+const BRANCH_OFF = 7.5;
 
 // Row Y positions
-const ROW_START_Y = 14;
-const ROW_GAP = 12;
+const ROW_START_Y = 16;
+const ROW_GAP = 13;
 function rowY(row: number): number {
   return ROW_START_Y + row * ROW_GAP;
 }
 
-const BADGE_R = 2.0;
-const BADGE_FONT = 1.5;
+const BADGE_R = 2.4;
+const BADGE_FONT = 1.8;
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -135,9 +135,6 @@ const SkillTreePage: React.FC = () => {
     setActiveIndex(swiper.activeIndex);
   }, []);
 
-  const handlePillClick = useCallback((idx: number) => {
-    swiperRef.current?.slideTo(idx);
-  }, []);
 
   const handleUpgrade = useCallback(async (skillId: number) => {
       const info = skills[skillId - 1];
@@ -296,34 +293,34 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
   }, [archetypeSkills, skills, archetype.color, cubeBalance]);
 
   return (
-    <div className="h-full flex flex-col p-2 overflow-hidden">
+    <div className="h-full flex flex-col p-1 overflow-hidden">
       {/* Dark panel — fills ALL space */}
       <div className="flex-1 min-h-0 rounded-2xl border border-slate-700/50 bg-slate-900/90 flex flex-col overflow-hidden">
         {/* Archetype header INSIDE panel */}
-        <div className="flex items-center gap-2.5 px-3 py-2 border-b border-slate-700/30 flex-shrink-0">
+        <div className="flex items-center gap-3 px-3 py-2 border-b border-slate-700/30 flex-shrink-0">
           <div
-            className="w-8 h-8 rounded-lg overflow-hidden border-2 flex-shrink-0"
+            className="w-10 h-10 rounded-lg overflow-hidden border-2 flex-shrink-0"
             style={{ borderColor: archetype.color + '66' }}
           >
             <img src={iconSrc} alt={archetype.name} className="w-full h-full object-cover" draggable={false} />
           </div>
           <div className="min-w-0 flex-1">
             <h2
-              className="font-['Fredericka_the_Great'] text-base leading-tight"
+              className="font-['Fredericka_the_Great'] text-lg leading-tight"
               style={{ color: archetype.color }}
             >
               {archetype.name}
             </h2>
-            <p className="text-[10px] text-slate-400 truncate">{archetype.description}</p>
+            <p className="text-xs text-slate-400 truncate">{archetype.description}</p>
           </div>
           {/* Dot indicators */}
-          <div className="flex gap-1.5 flex-shrink-0">
+          <div className="flex gap-2 flex-shrink-0">
             {ARCHETYPE_ORDER.map((id, idx) => {
               const isActive = id === archetypeId;
               return (
                 <div
                   key={id}
-                  className={`w-1.5 h-1.5 rounded-full transition-all ${isActive ? 'scale-125' : 'opacity-40'}`}
+                  className={`w-2 h-2 rounded-full transition-all ${isActive ? 'scale-125' : 'opacity-40'}`}
                   style={{ backgroundColor: isActive ? archetype.color : '#94a3b8' }}
                 />
               );
@@ -332,7 +329,7 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
         </div>
 
         {/* SVG tree — fills remaining panel space */}
-        <div className="flex-1 min-h-0 p-1">
+        <div className="flex-1 min-h-0">
           <svg
             viewBox={`0 0 ${VB_W} ${VB_H}`}
             preserveAspectRatio="xMidYMid meet"
@@ -353,10 +350,10 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
               <g key={`hdr-${skill.id}`}>
                 <text
                   x={COL_X[colIdx]}
-                  y={ROW_START_Y - 7}
+                  y={ROW_START_Y - 8}
                   textAnchor="middle"
                   fill="#cbd5e1"
-                  fontSize={2.8}
+                  fontSize={3.2}
                   fontWeight="bold"
                   fontFamily="system-ui, sans-serif"
                 >
@@ -364,10 +361,10 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
                 </text>
                 <text
                   x={COL_X[colIdx]}
-                  y={ROW_START_Y - 4}
+                  y={ROW_START_Y - 4.5}
                   textAnchor="middle"
                   fill="#475569"
-                  fontSize={1.8}
+                  fontSize={2.2}
                   fontFamily="system-ui, sans-serif"
                 >
                   {skill.category === 'bonus' ? 'Active' : 'Passive'}
@@ -459,10 +456,10 @@ const SvgNode: React.FC<SvgNodeProps> = ({ node, isBusy, onClick }) => {
         <circle
           cx={node.cx}
           cy={node.cy}
-          r={node.r + 0.8}
+          r={node.r + 1.0}
           fill="none"
           stroke={node.color}
-          strokeWidth={0.3}
+          strokeWidth={0.35}
           opacity={0.25}
         />
       )}
@@ -471,10 +468,10 @@ const SvgNode: React.FC<SvgNodeProps> = ({ node, isBusy, onClick }) => {
         <circle
           cx={node.cx}
           cy={node.cy}
-          r={node.r + 1}
+          r={node.r + 1.2}
           fill="none"
           stroke={node.color}
-          strokeWidth={0.3}
+          strokeWidth={0.35}
           className="skill-node-pulse"
         />
       )}
@@ -483,10 +480,10 @@ const SvgNode: React.FC<SvgNodeProps> = ({ node, isBusy, onClick }) => {
         <>
           <circle cx={node.cx} cy={node.cy} r={node.r} fill="rgba(0,0,0,0.5)" />
           <foreignObject
-            x={node.cx - 2}
-            y={node.cy - 2}
-            width={4}
-            height={4}
+            x={node.cx - 3}
+            y={node.cy - 3}
+            width={6}
+            height={6}
           >
             <div className="flex items-center justify-center w-full h-full">
               <Loader2 size={12} className="animate-spin text-white" />
@@ -498,20 +495,20 @@ const SvgNode: React.FC<SvgNodeProps> = ({ node, isBusy, onClick }) => {
       {node.label && (
         <>
           <rect
-            x={node.cx - 1.8}
-            y={node.cy + node.r - 2}
-            width={3.6}
-            height={2}
-            rx={0.5}
+            x={node.cx - 2.4}
+            y={node.cy + node.r - 2.6}
+            width={4.8}
+            height={2.6}
+            rx={0.6}
             fill="rgba(0,0,0,0.7)"
           />
           <text
             x={node.cx}
-            y={node.cy + node.r - 0.8}
+            y={node.cy + node.r - 1.0}
             textAnchor="middle"
             dominantBaseline="central"
             fill="#cbd5e1"
-            fontSize={1.4}
+            fontSize={1.8}
             fontWeight="bold"
             fontFamily="system-ui, sans-serif"
           >
