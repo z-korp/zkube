@@ -253,9 +253,9 @@ All active skills consume charges. Gravity always resolves after use. Reward cla
 
 **Branch A - Burst** (tradeoff: Lv8+ costs 2 charges)
 - Lv5: Combo effect applies twice
-- Lv6: Combo depth >=6 doubles combo cube reward for that move
+- Lv6: If next move reaches combo depth >=6, gain +2 score per combo depth (once/level)
 - Lv7: Next combo move ignores move cost
-- Lv8: 2-charge use, triple combo bonus
+- Lv8: Costs 2 charges and triples this skill's added combo depth (example: +3 -> +9)
 - Lv9: Combo depth >=8 gives +10 cubes (once/level)
 - Lv10: Triple combo, free move, +15 cubes if combo depth >=8
 
@@ -288,7 +288,7 @@ All active skills consume charges. Gravity always resolves after use. Reward cla
 - Lv5: +2 cubes per block
 - Lv6: Double cubes if >=10 destroyed
 - Lv7: +5 cubes if combo depth >=6
-- Lv8: Refund charge if >=12 destroyed (once/level)
+- Lv8: If >=12 blocks are destroyed, gain +1 free move (once/level)
 - Lv9: +10 cubes if combo depth >=8
 - Lv10: Harvest doubles cube output once/level
 
@@ -304,7 +304,7 @@ All active skills consume charges. Gravity always resolves after use. Reward cla
 **Branch A - Tsunami** (tradeoff: no move refunds)
 - Lv5: Clear 3 rows
 - Lv6: +2 cubes per row
-- Lv7: Combo depth >=6 gives +1 charge (once/level)
+- Lv7: Combo depth >=6 gives +1 free move (once/level)
 - Lv8: Clear 4 rows
 - Lv9: +10 cubes if combo depth >=8
 - Lv10: Clear 5 rows, +15 cubes if combo depth >=8
@@ -329,18 +329,18 @@ All active skills consume charges. Gravity always resolves after use. Reward cla
 **Branch A - Builder** (tradeoff: no cube scaling)
 - Lv5: Biased near-complete rows
 - Lv6: Guarantee one near-complete row
-- Lv7: Next combo >=4 grants +1 charge
+- Lv7: Next combo >=4 grants +2 cubes (once/level)
 - Lv8: Add 3 setup lines
 - Lv9: Combo depth >=6 grants +5 cubes
-- Lv10: Add 4 setup lines, +1 charge if combo depth >=6
+- Lv10: Add 4 setup lines, +1 free move if combo depth >=6 (once/level)
 
 **Branch B - Pressure** (tradeoff: injected lines are harder)
 - Lv5: +2 cubes per line cleared at >=7 filled rows
 - Lv6: Add 3 hard lines
-- Lv7: Combo depth >=6 at >=7 rows grants +1 charge
+- Lv7: Combo depth >=6 at >=7 rows grants +1 free move (once/level)
 - Lv8: +1 combo per line added
 - Lv9: +10 cubes if combo depth >=8 at >=7 rows
-- Lv10: Add 4 hard lines, double next combo cube reward
+- Lv10: Add 4 hard lines, and first combo depth >=8 at >=7 rows gives +15 cubes (once/level)
 
 #### Score - Direct Injection
 
@@ -354,7 +354,7 @@ All active skills consume charges. Gravity always resolves after use. Reward cla
 **Branch A - Chain** (tradeoff: lower base score)
 - Lv5: +2 combo depth
 - Lv6: +1 move
-- Lv7: Combo depth >=6 grants +1 charge (once/level)
+- Lv7: Combo depth >=6 grants +10 score (once/level)
 - Lv8: Double combo effect
 - Lv9: +5 cubes if combo depth >=8
 - Lv10: Double combo and +15 cubes once/level
@@ -393,9 +393,9 @@ Global policy:
 - Lv10: flat +50% cap behavior
 
 #### Catalyst
-- -1 combo threshold for combo rewards
-- +1 cube per combo reward
-- Lv10: double combo reward once/level
+- -1 combo-depth threshold for combo charge tiers (4/6/8 -> 3/5/7)
+- +1 score per combo depth when combo-charge source triggers
+- Lv10: once per level, treat combo depth as +1 for charge-tier evaluation (caps still apply)
 
 #### Resilience
 - +1 free move baseline
@@ -548,18 +548,7 @@ Where `boss_index` is 1..5 for levels 10,20,30,40,50.
 
 Boss cubes are granted once per boss completion.
 
-### 8.3 Combo Cube Rewards
-
-| Combo Depth | Cube Bonus |
-|-------------|------------|
-| 4+ | +1 |
-| 5+ | +3 |
-| 6+ | +5 |
-| 7+ | +10 |
-| 8+ | +25 |
-| 9+ | +50 |
-
-### 8.4 Charge System (Two Sources Only)
+### 8.3 Charge System (Two Sources Only)
 
 Hard rules:
 
@@ -585,7 +574,7 @@ Implementation guards:
 - Combo source and cadence source each have separate once-guards.
 - Overflow above cap is dropped, not banked.
 
-### 8.5 Spending Cubes
+### 8.4 Spending Cubes
 
 | Usage | Source | Destination |
 |---|---|---|
