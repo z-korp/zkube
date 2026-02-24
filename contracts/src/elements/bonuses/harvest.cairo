@@ -40,10 +40,15 @@ pub impl BonusImpl of BonusTrait {
     }
 }
 
-/// Count how many blocks of the target size exist on the grid.
+/// Count how many visual blocks of the target size exist on the grid.
+/// A block of width N occupies N cells, each storing value N.
+/// We divide by block_size to convert cell count to visual block count.
 /// Used to calculate CUBE rewards for Harvest bonus.
 pub fn count_blocks_of_size(blocks: felt252, row_index: u8, index: u8) -> u8 {
     let block_size = Controller::get_block(blocks, row_index, index);
+    if block_size == 0 {
+        return 0;
+    }
     let mut packed: u256 = blocks.into();
     let modulo: u256 = constants::BLOCK_SIZE.into();
     let mut count: u8 = 0;
@@ -60,5 +65,6 @@ pub fn count_blocks_of_size(blocks: felt252, row_index: u8, index: u8) -> u8 {
             break;
         }
     }
-    count
+    // Divide by block width: each visual block of width N has N cells with value N
+    count / block_size
 }

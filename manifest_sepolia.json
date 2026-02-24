@@ -129,7 +129,7 @@
     },
     {
       "address": "0x6af1b412876aafc89541b09d206fe15f4ce7b4192794b0de05dc87422bd5680",
-      "class_hash": "0x1a77ff913d01e19b4c51c428b433f9d8218a86081758657e25d7f6b4aeed8e9",
+      "class_hash": "0x5a30ae76dad3b71db7db77c328713a9b4b9babbfa3850f2e01741539a4864da",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-grid_system",
       "selector": "0x5ff6ef4a16262e788060768405b1310e3a5903dda6cf016268cf4453d31eec",
