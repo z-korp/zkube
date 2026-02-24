@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x755867a0ed92f0e2faf350b9e4f1d3ab0c541865a1f604900ceedadb53cba64",
-    "seed": "zkube_sepolia_v3_1",
+    "address": "0x2e5b2210254d283d3f570dc5c4680f455add1898e42beea9e414c0d1ef67f5c",
+    "seed": "zkube_sepolia_v3_2",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,7 +33,7 @@
   },
   "contracts": [
     {
-      "address": "0x2ddde56787a79f3275255361ea120e3e738e2cb9b267626e9ebb275e741783",
+      "address": "0xc46719d00c733b88df6c5c671b150b58888e5483cfa489bcd501ce9a7a464c",
       "class_hash": "0x7311e652f0580d8cd447d2d88fac0debb68498279f55a71590ca2edf25d7715",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-achievement_system",
@@ -47,7 +47,7 @@
       ]
     },
     {
-      "address": "0x7371bd219a92938c9ed99070fcb93742997937d44c2c47ad589059ba0a52fec",
+      "address": "0x5b991c62edd15b32c52708beb102047d6c7755670af35ee42cb41b4f040d731",
       "class_hash": "0x32578ab6b09cdd54fce073de0e717c7cdff97616083ac3143b687dae2281363",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-bonus_system",
@@ -58,7 +58,7 @@
       ]
     },
     {
-      "address": "0x2866c821399bf61734554fc591af14d67928d0e0136792696d06b19420c6170",
+      "address": "0x157fa06bc2d6cc1460fa96be7c34413a84e48d47ed6129f7de518db8d18038b",
       "class_hash": "0x6943a3ff771505b15a644770a1f4800462a4b22f677687c0e2757f2ef34ad27",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
@@ -74,7 +74,7 @@
       ]
     },
     {
-      "address": "0xadd0ef1c54d4b1fc9c1a402b77475e59aa22e4194ba7dc2b1d3ccfb506ae66",
+      "address": "0x3f51856999dd81301722fad2292566e178cc58b02891b315ec00749341b1e21",
       "class_hash": "0x6a995e976382d6977f25c66b4f4e994c0e040a906951ce5a058e9011bef4e9f",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-cube_token",
@@ -97,8 +97,8 @@
       ]
     },
     {
-      "address": "0x72cb05fe25eeaf42be01889a9ee65ec340b6e63dcee4525f698c7545a74cec0",
-      "class_hash": "0x336960c2b6763c3ac6977fd21942c2f17e339b2c82fee9180f55db34ba61f96",
+      "address": "0x55c74c83e41af9b499b53b27026c7870107eae81f18451a02204316fe276e00",
+      "class_hash": "0x4a2dc49c9f2ae3566c4b9a08812663b4ca4f68bfe42999899a9c8ab27d06f45",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-draft_system",
       "selector": "0x6d65420c68635e1c965c8b8b63fadb3d82445938fdd96b7f549e0767575ca3e",
@@ -110,8 +110,8 @@
       ]
     },
     {
-      "address": "0x642873300936d42d26cc5846c17217eaf1322800641b4a0558b1f83c7b75c61",
-      "class_hash": "0x1f79b9d6fb7aad898f45626ff5893d21b358d6eaf5e26427e41c09998be16d1",
+      "address": "0x183908b34cc802c08e8b0da306c51b8e58a4e2fcf3ee997b369ad8d371d3309",
+      "class_hash": "0x517e9fa2365eb08e3096b9c5db455528a98271fbe5cdc8b7cb22d330cc9a31c",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
         "0x045a74be8647d39de23b2b73e98862f6b663164fd8f985cfd80eaa6be495f8ba",
@@ -128,8 +128,8 @@
       ]
     },
     {
-      "address": "0x63360d25ea03a69381edd41d78d4eb9b331983c0c5ba8891e8261eb09490118",
-      "class_hash": "0x1f7d468750737474991e8656f9224ffe84680220d6b3995c39376d0177a5823",
+      "address": "0x6af1b412876aafc89541b09d206fe15f4ce7b4192794b0de05dc87422bd5680",
+      "class_hash": "0x38b77ba043cfa90ec4047465d0f5cebff3f7cf9cf0a25e9b04a8fc7263b3bf0",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-grid_system",
       "selector": "0x5ff6ef4a16262e788060768405b1310e3a5903dda6cf016268cf4453d31eec",
@@ -144,8 +144,8 @@
       ]
     },
     {
-      "address": "0x59b4415003c60cb8ee930b2fe90b7b629225fd0f90fdafc5c0d0304ecf6816d",
-      "class_hash": "0x3331e60097fe00bd61f3ba0283d495e501a235e11f3fd86a3cf9c38db4eb0db",
+      "address": "0x139a03209ad2a5f4cd0b0ec1304cb27e37e61d38f99457dfe94f27616f7e9cd",
+      "class_hash": "0x6a9def86f8f410a188e3389af1a87fc34ce0eb958496f768833941683925c34",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-level_system",
       "selector": "0xc087c6629c3c13d06cab85b37e88683bcffe82e8123eedbd704ff85463a0a5",
@@ -158,7 +158,7 @@
       ]
     },
     {
-      "address": "0x5244ebc5c4417c1201298b035adf991fbd3db6330fa9de549c1cb7b9695c28f",
+      "address": "0x31fb6b30b0051590f58fd4784705a105ba5a9111e1fe6095c0a2f6a6d30e755",
       "class_hash": "0x40cbb1f1d1b84360e9a63db6fea82cbb4f020f7912e852e3707f2bd7ae9b751",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-move_system",
@@ -169,7 +169,7 @@
       ]
     },
     {
-      "address": "0x1871a432ecaca8eca0bec4b3514c5a11110f36c444e037a6d76c5b8f48c485d",
+      "address": "0x477a28fee4357ba1e13f96c3e127a04e14b948fe090d2569b6759c05533f4fc",
       "class_hash": "0x3b9012a8e36960244d37954c73d674aec062d8ffd9b763809cf344b722980f8",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-quest_system",
@@ -185,7 +185,7 @@
       ]
     },
     {
-      "address": "0x65c8b16358741996aeaba4a0a62cf55fb8f83b7fc5edb465bc435eea269bba5",
+      "address": "0x543b57e767dbe27c6d52d7c5fcb6ce1d65397778a59d33c06716bd2e8aab6bf",
       "class_hash": "0x308b5aec4f5fa58e6126ae37e5eae1dbe950f8433f0e51f6a250e76f6dc556b",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-renderer_systems",
@@ -195,7 +195,7 @@
       ]
     },
     {
-      "address": "0x522941df3de13f63e77b5477e82156425b4c920fe8f75ca88addb37193ad8a4",
+      "address": "0x610400d277ac79b5d371027d6af07df314a30036706e496f526c29e3e44e120",
       "class_hash": "0x2f39590fc1d7a6ae22aaba3280f296d999314c6cf38073cc86aa8b3c777cc0e",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-skill_effects_system",
@@ -205,7 +205,7 @@
       ]
     },
     {
-      "address": "0x39420ac99c55915d1c939a3317103cb6bbdde4c9e2cb6d1aba86e19c2ee6288",
+      "address": "0x3d134bd715ac28a17fc18129f7486d88ce8147690a2dda29df00fe90527eb60",
       "class_hash": "0x35ab4c185798c629ea70ea83a34830fe6362170fac3ec40f363f1f325acaa33",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-skill_tree_system",
@@ -567,12 +567,17 @@
           "key": false
         },
         {
+          "name": "level_seed",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
           "name": "vrf_enabled",
           "type": "core::bool",
           "key": false
         }
       ],
-      "class_hash": "0x2173ae5b714436e8eb420b2087607fd5e941ec3ecc2ec449f16d72ea85d9aae",
+      "class_hash": "0x796103e7ec905e1f23d9782481ee923d82455ff8d5aef4d9ad3fff108efef4d",
       "tag": "zkube_budo_v1_2_0-GameSeed",
       "selector": "0x5e155330954a8b2ebc46d774a5ac2d374692bafa8e2461c74d8e4aae7458a22"
     },
@@ -7085,6 +7090,10 @@
           "type": "core::felt252"
         },
         {
+          "name": "level_seed",
+          "type": "core::felt252"
+        },
+        {
           "name": "vrf_enabled",
           "type": "core::bool"
         }
@@ -7096,6 +7105,10 @@
       "members": [
         {
           "name": "seed",
+          "type": "core::felt252"
+        },
+        {
+          "name": "level_seed",
           "type": "core::felt252"
         },
         {
