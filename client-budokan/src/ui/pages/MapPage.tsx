@@ -5,6 +5,7 @@ import { useGame } from "@/hooks/useGame";
 import { useGameLevel } from "@/hooks/useGameLevel";
 import { useDraft } from "@/hooks/useDraft";
 import {
+  MID_DRAFT_NODE_IN_ZONE,
   NODES_PER_ZONE,
   TOTAL_ZONES,
   useMapData,
@@ -384,6 +385,14 @@ const MapPage: React.FC = () => {
                     })}
 
                     {nodes.map((node) => {
+                      if (
+                        node.type === "draft" &&
+                        node.nodeInZone === MID_DRAFT_NODE_IN_ZONE &&
+                        node.zone !== 1
+                      ) {
+                        return null;
+                      }
+
                       const pt = layout?.points[node.nodeInZone];
                       if (!pt) return null;
 
@@ -432,6 +441,9 @@ const MapPage: React.FC = () => {
                                 node.zone,
                                 currentLevel,
                                 draftState,
+                                node.nodeInZone === MID_DRAFT_NODE_IN_ZONE
+                                  ? "mid"
+                                  : "entry",
                               );
 
                               if (!event) {

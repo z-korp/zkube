@@ -135,6 +135,8 @@ export interface StoredDraftPick {
   pool: string;
 }
 
+export type DraftNodePhase = "entry" | "mid";
+
 const getDraftPickForSlot = (selectedPicks: bigint, slot: number): number => {
   if (slot < 0 || slot >= 10) return 0;
   const shift = BigInt(slot * 8);
@@ -186,20 +188,30 @@ export const getDraftEventForZoneNode = (
   zone: number,
   currentLevel: number,
   draftState: DraftStateData | null,
+  phase: DraftNodePhase = "entry",
 ): PendingDraftEvent | null => {
   const unlocked = getDraftEventsForZone(seed, zone).filter((event) =>
     isDraftEventUnlocked(currentLevel, event),
   );
 
-  if (unlocked.length === 0) {
+  const phaseEvents = unlocked.filter((event) => {
+    if (phase === "mid") {
+      return event.type === "zone_micro";
+    }
+    return event.type === "post_level_1" || event.type === "post_boss";
+  });
+
+  if (phaseEvents.length === 0) {
     return null;
   }
 
-  const pending = unlocked.find((event) => !isDraftEventCompleted(draftState, event));
+  const pending = phaseEvents.find(
+    (event) => !isDraftEventCompleted(draftState, event),
+  );
 
   if (pending) {
     return pending;
   }
 
-  return unlocked[unlocked.length - 1];
+  return phaseEvents[phaseEvents.length - 1];
 };
