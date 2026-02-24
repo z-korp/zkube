@@ -407,7 +407,7 @@ const Grid: React.FC<GridProps> = ({
           start_index: nextQueuedMove.startIndex,
           final_index: nextQueuedMove.finalIndex,
         });
-        if (cancelled) return;
+        // Always mark confirmed — store op is safe even if effect re-ran
         store.markConfirmed(nextQueuedMove.id);
         console.log('[GRID] ✅ TX confirmed', nextQueuedMove.id);
       } catch (error) {
@@ -437,10 +437,10 @@ const Grid: React.FC<GridProps> = ({
           message: "Move sync failed. Grid rolled back to chain state.",
         });
       } finally {
-        if (!cancelled) {
-          store.setQueueProcessing(false);
-          // Queue processing complete — no UI blocking needed
-        }
+        // ALWAYS clean up queue processing — even if effect re-ran.
+        // The cancelled flag only guards React setState calls above.
+        store.setQueueProcessing(false);
+        console.log('[GRID] TX queue processing done');
       }
     };
 
@@ -455,8 +455,10 @@ const Grid: React.FC<GridProps> = ({
     isQueueProcessing,
     move,
     gameId,
-    initialData,
-    nextLineData,
+    // NOTE: initialData/nextLineData intentionally excluded.
+    // They change on chain sync which would cancel the in-flight TX handler,
+    // leaving isQueueProcessing stuck true forever. Error rollback reads
+    // them from the closure at mount time — stale but acceptable for rollback.
     resetDragRefs,
     setIsTxProcessing,
   ]);
