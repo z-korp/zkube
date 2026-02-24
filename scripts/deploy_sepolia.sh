@@ -28,6 +28,7 @@ TORII_CONFIG="${CONTRACTS_DIR}/torii_sepolia.toml"
 CLIENT_ENV="./client-budokan/.env.sepolia"
 MOBILE_ENV="./mobile-app/.env.sepolia"
 TARGET_DIR="./target/sepolia"
+DEFAULT_SEPOLIA_TORII_URL="https://api.cartridge.gg/x/zkube-djizus-sepolia/torii"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -419,12 +420,7 @@ fi
 #-----------------
 print_info "Step 11: Updating client configuration..."
 
-# Extract Torii URL from RPC URL (replace /rpc/v0_8 with /torii or similar)
-# For Cartridge hosted Sepolia: https://api.cartridge.gg/x/starknet/sepolia
-TORII_URL="${RPC_URL/\/rpc\/v0_8/}"
-# If using a dedicated Torii instance, you may need to adjust this
-# For now, assume Cartridge's hosted Torii at similar path
-TORII_URL="${TORII_URL}/torii"
+TORII_URL="${SEPOLIA_TORII_URL:-$DEFAULT_SEPOLIA_TORII_URL}"
 
 cat > "$CLIENT_ENV" << EOF
 # Sepolia deployment configuration
@@ -446,8 +442,7 @@ EOF
 
 print_info "  Updated $CLIENT_ENV"
 
-TORII_URL_MOBILE="${RPC_URL/\/rpc\/v0_8/}"
-TORII_URL_MOBILE="${TORII_URL_MOBILE}/torii"
+TORII_URL_MOBILE="$TORII_URL"
 
 if [ -d "$(dirname "$MOBILE_ENV")" ]; then
 cat > "$MOBILE_ENV" << EOF
