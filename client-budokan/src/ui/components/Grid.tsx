@@ -53,7 +53,6 @@ interface GridProps {
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
   activeBonusLevel: number;
-  activeBonusLevel: number;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -117,7 +116,6 @@ const Grid: React.FC<GridProps> = ({
 
   // ==================== Custom Hooks ====================
 
-  const isMoveComplete = useMoveStore((state) => state.isMoveComplete);
   const queue = useMoveStore((state) => state.queue);
   const isQueueProcessing = useMoveStore((state) => state.isQueueProcessing);
   const { shouldBounce, animateText, resetAnimateText, setAnimateText, animatedPoints, setAnimatedPoints, animatedCubes, setAnimatedCubes } =
@@ -151,41 +149,15 @@ const Grid: React.FC<GridProps> = ({
         return;
       }
 
-      // Every time the initial grid changes, we erase the optimistic data
-      // and set the data to the one returned by the contract
-      // just in case of discrepancies
-      setOptimisticScore(score);
-      setOptimisticCombo(combo);
-      setOptimisticMaxCombo(maxCombo);
-
-      if (isMoveComplete) {
-        // Save the grid state
-        setSaveGridStateblocks(initialData);
-        setBlocks(initialData);
-        setNextLine(nextLineData);
-
-        // Check if the player is in danger
-        const inDanger = initialData.some((block) => block.y < 2);
-        setIsPlayerInDanger(inDanger);
-
-        // Reset states
-        setLineExplodedCount(0);
-        setNextLineHasBeenConsumed(false);
-        setApplyData(false);
-        setIsTxProcessing(false);
-      }
+      // Sync chain state non-disruptively — DON'T override optimistic blocks/score
+      // Only update the saved baseline and next line from chain
+      setSaveGridStateblocks(initialData);
+      setNextLine(nextLineData);
+      setNextLineHasBeenConsumed(false);
+      setApplyData(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    applyData,
-    initialData,
-    isMoveComplete,
-    pendingQueueCount,
-    score,
-    combo,
-    maxCombo,
-    nextLineData,
-  ]);
+  }, [applyData, initialData, pendingQueueCount, nextLineData]);
 
   // Keep grid position in store used for particles positionning
   useEffect(() => {
@@ -671,6 +643,12 @@ const Grid: React.FC<GridProps> = ({
           // All animations and computing are done
           // we can apply data that we received from smart contract
           setApplyData(true);
+
+          // Reset states that were previously only in applyData
+          setLineExplodedCount(0);
+          setNextLineHasBeenConsumed(false);
+          const inDanger = blocks.some((block) => block.y < 2);
+          setIsPlayerInDanger(inDanger);
 
           // Reset states
           if (gameState === GameState.UPDATE_AFTER_BONUS) {
