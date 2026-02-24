@@ -27,6 +27,7 @@ const DraftPage: React.FC = () => {
   const navigate = useNavigationStore((s) => s.navigate);
   const gameId = useNavigationStore((s) => s.gameId);
   const setPendingDraftEvent = useNavigationStore((s) => s.setPendingDraftEvent);
+  const pendingDraftEvent = useNavigationStore((s) => s.pendingDraftEvent);
   const { cubeBalance } = useCubeBalance();
   const { account } = useAccountCustom();
   const {
@@ -81,10 +82,12 @@ const DraftPage: React.FC = () => {
       return;
     }
     if (!draftState.active) {
+      // If we have a pending draft event, wait for start_next_level to activate the draft
+      if (pendingDraftEvent) return;
       setPendingDraftEvent(null);
       navigate("map", gameId);
     }
-  }, [draftState, gameId, navigate, setPendingDraftEvent]);
+  }, [draftState, gameId, navigate, pendingDraftEvent, setPendingDraftEvent]);
 
   const goToMap = () => {
     setPendingDraftEvent(null);
@@ -139,7 +142,9 @@ const DraftPage: React.FC = () => {
       <div className="h-screen-viewport flex flex-col text-white">
         <PageTopBar title="DRAFT EVENT" onBack={goToMap} cubeBalance={cubeBalance} />
         <div className="flex-1 flex items-center justify-center px-4">
-          <div className="text-center text-slate-300">No active draft event.</div>
+          <div className="text-center text-slate-300">
+            {pendingDraftEvent ? "Preparing draft..." : "No active draft event."}
+          </div>
         </div>
       </div>
     );

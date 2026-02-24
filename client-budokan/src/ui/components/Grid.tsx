@@ -145,13 +145,11 @@ const Grid: React.FC<GridProps> = ({
 
     // Chain data hasn't changed yet — keep waiting
     const same = deepCompareBlocks(saveGridStateblocks, initialData);
-    console.log('[GRID] chain-sync check', { applyData, same, savedLen: saveGridStateblocks.length, chainLen: initialData.length });
     if (same) {
       return;
     }
 
     // Chain data arrived — sync everything to chain state
-    console.log('[GRID] ✅ chain data arrived — syncing. blocks:', initialData.length, 'nextLine:', nextLineData.length);
     setBlocks(initialData);
     setSaveGridStateblocks(initialData);
     setNextLine(nextLineData);
@@ -222,7 +220,6 @@ const Grid: React.FC<GridProps> = ({
   const handleTouchStart = (e: React.TouchEvent, block: Block) => {
     e.preventDefault();
     if (gameState !== GameState.WAITING || isTxProcessing) {
-      console.log('[GRID] ❌ touch blocked', { gameState, isTxProcessing });
       return;
     }
 
@@ -233,7 +230,6 @@ const Grid: React.FC<GridProps> = ({
   const handleMouseDown = (e: React.MouseEvent, block: Block) => {
     e.preventDefault();
     if (gameState !== GameState.WAITING || isTxProcessing) {
-      console.log('[GRID] ❌ mouse blocked', { gameState, isTxProcessing });
       return;
     }
 
@@ -323,7 +319,6 @@ const Grid: React.FC<GridProps> = ({
     );
 
     if (hasMoved) {
-      console.log('[GRID] endDrag → hasMoved, setting GRAVITY', { rowIndex: dragging.y, startX, finalX });
       setcurrentMove({
         rowIndex: dragging.y,
         startX,
@@ -333,7 +328,6 @@ const Grid: React.FC<GridProps> = ({
       gameStateRef.current = GameState.GRAVITY;
       setGameState(GameState.GRAVITY);
     } else {
-      console.log('[GRID] endDrag → no move, back to WAITING');
       setcurrentMove(null);
       setIsMoving(false);
       gameStateRef.current = GameState.WAITING;
@@ -372,7 +366,6 @@ const Grid: React.FC<GridProps> = ({
       if (startColIndex === finalColIndex) return;
       if (!account) return;
 
-      console.log('[GRID] sendMoveTX enqueue', { rowIndex, startColIndex, finalColIndex });
       playSwipe();
       useMoveStore.getState().enqueueMove({
         gameId,
@@ -386,7 +379,6 @@ const Grid: React.FC<GridProps> = ({
 
   useEffect(() => {
     if (!account || !nextQueuedMove || isQueueProcessing) {
-      console.log('[GRID] TX queue idle', { hasAccount: !!account, nextQueuedMove: nextQueuedMove?.id ?? null, isQueueProcessing });
       return;
     }
 
@@ -397,7 +389,6 @@ const Grid: React.FC<GridProps> = ({
       store.setQueueProcessing(true);
       store.markSubmitting(nextQueuedMove.id);
       // No longer blocking UI — queue processes in background
-      console.log('[GRID] 🔄 TX submitting move', nextQueuedMove.id, { row: nextQueuedMove.rowIndex, start: nextQueuedMove.startIndex, final: nextQueuedMove.finalIndex });
 
       try {
         await move({
@@ -409,14 +400,12 @@ const Grid: React.FC<GridProps> = ({
         });
         // Always mark confirmed — store op is safe even if effect re-ran
         store.markConfirmed(nextQueuedMove.id);
-        console.log('[GRID] ✅ TX confirmed', nextQueuedMove.id);
       } catch (error) {
         if (cancelled) return;
         const message =
           error instanceof Error ? error.message : "Move transaction failed.";
         store.markFailed(nextQueuedMove.id, message);
         store.clearQueueForGame(gameId);
-        console.log('[GRID] ❌ TX failed', nextQueuedMove.id, message);
 
         setBlocks(initialData);
         setSaveGridStateblocks(initialData);
@@ -440,7 +429,6 @@ const Grid: React.FC<GridProps> = ({
         // ALWAYS clean up queue processing — even if effect re-ran.
         // The cancelled flag only guards React setState calls above.
         store.setQueueProcessing(false);
-        console.log('[GRID] TX queue processing done');
       }
     };
 
@@ -586,7 +574,6 @@ const Grid: React.FC<GridProps> = ({
       }, gravitySpeed);
     };
 
-    console.log('[GRID] state machine =>', gameState, { isMoving, transitioning: transitioningBlocks.length, isTxProcessing });
     switch (gameState) {
       case GameState.GRAVITY:
       case GameState.GRAVITY2:
@@ -672,13 +659,12 @@ const Grid: React.FC<GridProps> = ({
           if (lineExplodedCount > 1) {
             setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
             setAnimatedPoints(pointsEarned);
-            // Cube bonuses: 4 lines = +1, 5 lines = +2, 6+ lines = +3
-            const cubesFromCombo = lineExplodedCount >= 6 ? 3 : lineExplodedCount >= 5 ? 2 : lineExplodedCount >= 4 ? 1 : 0;
+            // Cube bonuses match contract: 4→+1, 5→+3, 6→+5, 7→+10, 8→+25, 9+→+50
+            const cubesFromCombo = lineExplodedCount >= 9 ? 50 : lineExplodedCount >= 8 ? 25 : lineExplodedCount >= 7 ? 10 : lineExplodedCount >= 6 ? 5 : lineExplodedCount >= 5 ? 3 : lineExplodedCount >= 4 ? 1 : 0;
             setAnimatedCubes(cubesFromCombo);
           }
 
           // All animations done — wait for chain data to arrive
-          console.log('[GRID] UPDATE_AFTER_MOVE/BONUS → setApplyData(true), lineExploded:', lineExplodedCount);
           setApplyData(true);
 
           // Reset per-move state
@@ -689,11 +675,9 @@ const Grid: React.FC<GridProps> = ({
           if (gameState === GameState.UPDATE_AFTER_BONUS) {
             selectBlock(blockBonus as Block);
             setBlockBonus(null);
-            console.log('[GRID] → WAITING (bonus path)');
             setGameState(GameState.WAITING);
           } else if (gameState === GameState.UPDATE_AFTER_MOVE) {
             // Block input until chain data syncs
-            console.log('[GRID] → WAITING (move path), setting isTxProcessing=true');
             setIsTxProcessing(true);
             setcurrentMove(null);
             setGameState(GameState.WAITING);

@@ -12,6 +12,7 @@ const normalizeEntityId = (entityId: string): Entity => {
 
 export interface DraftStateData {
   gameId: number;
+  seed: bigint;
   active: boolean;
   eventSlot: number;
   eventType: number;
@@ -53,6 +54,7 @@ export const useDraft = ({
     if (!component) return null;
     return {
       gameId: component.game_id,
+      seed: BigInt(component.seed ?? 0),
       active: component.active,
       eventSlot: component.event_slot,
       eventType: component.event_type,

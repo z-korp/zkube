@@ -105,15 +105,19 @@ const PlayScreen: React.FC = () => {
     prevBossLevelRef.current = level;
   }, [game?.level, playSfx, setMusicContext, setMusicPlaylist]);
 
+  // Use the original game seed (from DraftState) for stable zone themes.
+  // GameSeed.seed changes per level (VRF reseed), but DraftState.seed stays fixed for the run.
+  const stableSeed = draftState?.seed && draftState.seed !== 0n ? draftState.seed : seed;
+
   useEffect(() => {
-    if (seed === 0n || !game) return;
-    const zoneThemes = deriveZoneThemes(seed);
+    if (stableSeed === 0n || !game) return;
+    const zoneThemes = deriveZoneThemes(stableSeed);
     const zone = getZone(game.level);
     const zoneTheme = zoneThemes[zone - 1];
     if (zoneTheme) {
       setThemeTemplate(zoneTheme, false);
     }
-  }, [seed, game?.level, setThemeTemplate]);
+  }, [stableSeed, game?.level, setThemeTemplate]);
 
   useEffect(() => {
     setIsGameLoading(true);

@@ -6,6 +6,11 @@ import {
   type Level,
 } from "@/dojo/game/types/level";
 import { THEME_IDS, type ThemeId } from "@/config/themes";
+import type { DraftStateData } from "@/hooks/useDraft";
+import {
+  getDraftEventsForZone,
+  isDraftEventCompleted,
+} from "@/utils/draftEvents";
 
 export type NodeType = "classic" | "draft" | "boss";
 export type NodeState =
@@ -38,6 +43,7 @@ export interface MapData {
 export interface UseMapDataParams {
   seed: bigint;
   currentLevel: number;
+  draftState?: DraftStateData | null;
 }
 
 export const NODES_PER_ZONE = 12;
@@ -167,6 +173,7 @@ function getNodeState(
   currentLevel: number,
   currentNodeIndex: number,
   seed: bigint,
+  draftState?: DraftStateData | null,
 ): NodeState {
   if (node.contractLevel !== null && node.contractLevel < currentLevel) {
     return "cleared";
@@ -181,13 +188,18 @@ function getNodeState(
     const zoneEndLevel = node.zone * LEVELS_PER_ZONE;
 
     if (node.draftPhase === "entry") {
-      // Contract triggers: completed_level==0 (zone 1 at game creation),
-      //   completed_level==prevBoss (zones 2-5 after boss clear)
-      // Zone 1: always available from the start (draft opens at game creation)
-      // Zones 2-5: unlocked when currentLevel >= zoneStartLevel (completed prev boss)
       const unlockLevel = node.zone === 1 ? 1 : zoneStartLevel;
       if (currentLevel < unlockLevel) return "locked";
       if (currentLevel > zoneEndLevel) return "visited";
+
+      // Check if this entry draft has been completed
+      const events = getDraftEventsForZone(seed, node.zone);
+      const entryEvent = events.find(
+        (e) => e.type === "post_level_1" || e.type === "post_boss",
+      );
+      if (entryEvent && isDraftEventCompleted(draftState ?? null, entryEvent)) {
+        return "visited";
+      }
       return "available";
     }
 
@@ -195,6 +207,13 @@ function getNodeState(
     const trigger = getZoneMicroDraftTriggerLevel(seed, node.zone);
     if (currentLevel <= trigger) return "locked";
     if (currentLevel > zoneEndLevel) return "visited";
+
+    // Check if this mid-draft has been completed
+    const events = getDraftEventsForZone(seed, node.zone);
+    const midEvent = events.find((e) => e.type === "zone_micro");
+    if (midEvent && isDraftEventCompleted(draftState ?? null, midEvent)) {
+      return "visited";
+    }
     return "available";
   }
 
@@ -225,6 +244,7 @@ export function deriveZoneThemes(seed: bigint): ThemeId[] {
 export function generateMapData({
   seed,
   currentLevel,
+  draftState,
 }: UseMapDataParams): MapData {
   const clampedLevel = Math.max(1, Math.min(GAMEPLAY_LEVELS, currentLevel));
   const zoneThemes = deriveZoneThemes(seed);
@@ -237,7 +257,7 @@ export function generateMapData({
         ? generateLevelConfig(seed, node.contractLevel, DEFAULT_SETTINGS)
         : null;
 
-    const state = getNodeState(node, clampedLevel, currentNodeIndex, seed);
+    const state = getNodeState(node, clampedLevel, currentNodeIndex, seed, draftState);
 
     return {
       ...node,
@@ -255,9 +275,9 @@ export function generateMapData({
   };
 }
 
-export function useMapData({ seed, currentLevel }: UseMapDataParams): MapData {
+export function useMapData({ seed, currentLevel, draftState }: UseMapDataParams): MapData {
   return useMemo(
-    () => generateMapData({ seed, currentLevel }),
-    [seed, currentLevel],
+    () => generateMapData({ seed, currentLevel, draftState }),
+    [seed, currentLevel, draftState],
   );
 }

@@ -143,10 +143,14 @@ const MapPage: React.FC = () => {
   const draftState = useDraft({ gameId: gameId ?? undefined });
   const gameLevel = useGameLevel({ gameId: game?.id });
 
+  // Use the original game seed (from DraftState) for stable zone themes and map data.
+  // GameSeed.seed changes per level (VRF reseed), but DraftState.seed stays fixed for the run.
+  const stableSeed = draftState?.seed && draftState.seed !== 0n ? draftState.seed : seed;
+
   const currentLevel = game?.level ?? 1;
-  const mapData = useMapData({ seed, currentLevel });
+  const mapData = useMapData({ seed: stableSeed, currentLevel, draftState });
   const zoneLayouts = useMapLayout({
-    seed,
+    seed: stableSeed,
     totalZones: TOTAL_ZONES,
     nodesPerZone: NODES_PER_ZONE,
   });
@@ -217,8 +221,8 @@ const MapPage: React.FC = () => {
 
   const completionDraftEvent = useMemo(() => {
     if (!pendingLevelCompletion) return null;
-    return getDraftEventForCompletedLevel(seed, pendingLevelCompletion.level);
-  }, [pendingLevelCompletion, seed]);
+    return getDraftEventForCompletedLevel(stableSeed, pendingLevelCompletion.level);
+  }, [pendingLevelCompletion, stableSeed]);
 
   /* ---- Swipe handlers (Pointer Events for reliable mobile) ---- */
 
@@ -430,7 +434,7 @@ const MapPage: React.FC = () => {
                               }
 
                               const event = getDraftEventForZoneNode(
-                                seed,
+                                stableSeed,
                                 node.zone,
                                 currentLevel,
                                 draftState,
