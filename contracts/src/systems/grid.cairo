@@ -275,8 +275,6 @@ mod grid_system {
                 }
             }
 
-            // Apply combo scoring offset (combo_counter boosts points per line cleared)
-            scoring::apply_combo_scoring(ref run_data, game.combo_counter, lines_cleared);
 
             // Update combos and award cubes
             process_lines_cleared(
@@ -748,8 +746,6 @@ mod grid_system {
                 update_score(ref run_data, extra_score);
             }
 
-            // Apply combo scoring offset (combo_counter boosts points per line cleared)
-            scoring::apply_combo_scoring(ref run_data, game.combo_counter, lines_cleared);
 
             // Update combos
             process_lines_cleared(
