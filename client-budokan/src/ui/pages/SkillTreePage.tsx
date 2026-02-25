@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { Loader2, Lock, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
@@ -105,6 +105,21 @@ const SkillTreePage: React.FC = () => {
   const [modal, setModal] = useState<ModalState | null>(null);
   const cubeBalanceNumber = Number(cubeBalance);
 
+  // Swipe gesture on the panel
+  const panelRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef(0);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  }, []);
+
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) < 50) return; // ignore small swipes
+    if (dx < 0) setActiveIndex((i) => Math.min(ARCHETYPE_ORDER.length - 1, i + 1));
+    else setActiveIndex((i) => Math.max(0, i - 1));
+  }, []);
+
   const skills: SkillInfo[] =
     skillTree?.skills ??
     Array.from({ length: 15 }, () => ({
@@ -196,36 +211,43 @@ const SkillTreePage: React.FC = () => {
         .skill-pulse { animation: skill-pulse 2s ease-in-out infinite; }
       `}</style>
 
-      <div className="flex-1 min-h-0 relative overflow-hidden bg-slate-900">
-        <TreeSlide
-          archetypeId={ARCHETYPE_ORDER[activeIndex]}
-          skills={skills}
-          busySkillId={busySkillId}
-          cubeBalance={cubeBalanceNumber}
-          onNodeClick={handleNodeClick}
-        />
+      <div className="flex-1 min-h-0 flex items-center justify-center p-3 pt-1.5">
+        <div
+          ref={panelRef}
+          className="relative w-full max-w-lg h-full rounded-2xl border border-white/10 bg-slate-900/90 backdrop-blur-sm overflow-hidden"
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
+          <TreeSlide
+            archetypeId={ARCHETYPE_ORDER[activeIndex]}
+            skills={skills}
+            busySkillId={busySkillId}
+            cubeBalance={cubeBalanceNumber}
+            onNodeClick={handleNodeClick}
+          />
 
-        {/* Left arrow */}
-        {activeIndex > 0 && (
-          <button
-            type="button"
-            className="absolute left-1.5 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-1.5 text-white/70 hover:bg-black/70 hover:text-white"
-            onClick={() => setActiveIndex((i) => Math.max(0, i - 1))}
-          >
-            <ChevronLeft size={18} />
-          </button>
-        )}
+          {/* Left arrow */}
+          {activeIndex > 0 && (
+            <button
+              type="button"
+              className="absolute left-1.5 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-1.5 text-white/70 hover:bg-black/70 hover:text-white"
+              onClick={() => setActiveIndex((i) => Math.max(0, i - 1))}
+            >
+              <ChevronLeft size={18} />
+            </button>
+          )}
 
-        {/* Right arrow */}
-        {activeIndex < ARCHETYPE_ORDER.length - 1 && (
-          <button
-            type="button"
-            className="absolute right-1.5 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-1.5 text-white/70 hover:bg-black/70 hover:text-white"
-            onClick={() => setActiveIndex((i) => Math.min(ARCHETYPE_ORDER.length - 1, i + 1))}
-          >
-            <ChevronRight size={18} />
-          </button>
-        )}
+          {/* Right arrow */}
+          {activeIndex < ARCHETYPE_ORDER.length - 1 && (
+            <button
+              type="button"
+              className="absolute right-1.5 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-1.5 text-white/70 hover:bg-black/70 hover:text-white"
+              onClick={() => setActiveIndex((i) => Math.min(ARCHETYPE_ORDER.length - 1, i + 1))}
+            >
+              <ChevronRight size={18} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Skill detail modal */}
@@ -278,10 +300,10 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
   return (
     <div className="h-full flex flex-col">
       {/* ---- Archetype header ---- */}
-      <div className="shrink-0 flex items-center gap-3 px-4 py-2 border-b border-white/10">
+      <div className="shrink-0 flex flex-col items-center gap-1 px-4 py-2.5 border-b border-white/10">
         <div
-          className="w-9 h-9 rounded-lg overflow-hidden border-2 shrink-0"
-          style={{ borderColor: archetype.color + "66" }}
+          className="w-10 h-10 rounded-lg overflow-hidden border-2 shrink-0"
+          style={{ borderColor: archetype.color + '66' }}
         >
           <img
             src={iconSrc}
@@ -290,26 +312,19 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
             draggable={false}
           />
         </div>
-        <div className="min-w-0 flex-1">
-          <h2
-            className="font-['Fredericka_the_Great'] text-base leading-tight"
-            style={{ color: archetype.color }}
-          >
-            {archetype.name}
-          </h2>
-          <p className="text-[11px] text-slate-400 truncate">
-            {archetype.description}
-          </p>
-        </div>
-        <div className="flex gap-1.5 shrink-0">
+        <h2
+          className="font-['Fredericka_the_Great'] text-base leading-tight text-center"
+          style={{ color: archetype.color }}
+        >
+          {archetype.name}
+        </h2>
+        <p className="text-[11px] text-slate-400 text-center truncate max-w-[80%]">{archetype.description}</p>
+        <div className="flex gap-1.5">
           {ARCHETYPE_ORDER.map((id) => (
             <div
               key={id}
-              className={`w-2 h-2 rounded-full ${id === archetypeId ? "scale-125" : "opacity-40"}`}
-              style={{
-                backgroundColor:
-                  id === archetypeId ? archetype.color : "#94a3b8",
-              }}
+              className={`w-2 h-2 rounded-full ${id === archetypeId ? 'scale-125' : 'opacity-40'}`}
+              style={{ backgroundColor: id === archetypeId ? archetype.color : '#94a3b8' }}
             />
           ))}
         </div>
