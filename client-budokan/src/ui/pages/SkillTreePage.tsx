@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from "react";
+import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { motion } from "motion/react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
@@ -26,7 +26,7 @@ import PageTopBar from "@/ui/navigation/PageTopBar";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
 
 /* ------------------------------------------------------------------ */
-/*  Constants                                                          */
+/*  Constants & Layout                                                  */
 /* ------------------------------------------------------------------ */
 
 function fmtCost(cost: number): string {
@@ -34,27 +34,71 @@ function fmtCost(cost: number): string {
   return String(cost);
 }
 
-// SVG viewBox
-const VB_W = 100;
-const VB_H = 140;
-
-// Node radii
-const R_CORE = 5.5;
-const R_BRANCH = 4.5;
-
-// 3 skill columns
-const COL_X = [17, 50, 83];
-const BRANCH_OFF = 7.5;
-
-// Row Y positions
-const ROW_START_Y = 15;
-const ROW_GAP = 14;
-function rowY(row: number): number {
-  return ROW_START_Y + row * ROW_GAP;
+/** Dynamic layout computed from actual pixel dimensions of the SVG container */
+interface TreeLayout {
+  w: number;
+  h: number;
+  colX: [number, number, number];
+  branchOff: number;
+  rowStartY: number;
+  rowGap: number;
+  rCore: number;
+  rBranch: number;
+  badgeR: number;
+  badgeFont: number;
+  pathStrokeW: number;
+  pathStrokeWBranch: number;
+  hdrFontLg: number;
+  hdrFontSm: number;
+  glowOffset: number;
+  glowStroke: number;
+  pulseOffset: number;
+  pulseStroke: number;
+  labelRectW: number;
+  labelRectH: number;
+  labelRectRx: number;
+  labelFont: number;
+  labelOffsetY: number;
+  busyForeignSize: number;
+  borderWidthCore: number;
+  borderWidthBranch: number;
 }
 
-const BADGE_R = 2.4;
-const BADGE_FONT = 1.8;
+function computeLayout(w: number, h: number): TreeLayout {
+  // Base unit derived from both dimensions — ensures nodes scale with the container
+  const rCore = Math.min(w * 0.038, h * 0.042);
+  const rBranch = rCore * 0.82;
+  const badgeR = rCore * 0.44;
+
+  return {
+    w,
+    h,
+    colX: [w * 0.17, w * 0.50, w * 0.83],
+    branchOff: w * 0.065,
+    rowStartY: h * 0.09,
+    rowGap: (h * 0.88) / 8,
+    rCore,
+    rBranch,
+    badgeR,
+    badgeFont: rCore * 0.33,
+    pathStrokeW: Math.max(rCore * 0.09, 0.5),
+    pathStrokeWBranch: Math.max(rCore * 0.07, 0.4),
+    hdrFontLg: Math.max(rCore * 0.58, 8),
+    hdrFontSm: Math.max(rCore * 0.40, 6),
+    glowOffset: rCore * 0.18,
+    glowStroke: Math.max(rCore * 0.06, 0.35),
+    pulseOffset: rCore * 0.22,
+    pulseStroke: Math.max(rCore * 0.06, 0.35),
+    labelRectW: rCore * 0.87,
+    labelRectH: rCore * 0.47,
+    labelRectRx: rCore * 0.11,
+    labelFont: rCore * 0.33,
+    labelOffsetY: rCore * 0.18,
+    busyForeignSize: rCore * 1.1,
+    borderWidthCore: Math.max(rCore * 0.09, 0.5),
+    borderWidthBranch: Math.max(rCore * 0.07, 0.3),
+  };
+}
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -87,6 +131,12 @@ interface TreeNodeData {
   label: string;
   badgeLabel: string;
   badgeColor: string;
+  badgeR: number;
+  badgeFont: number;
+  glowOffset: number;
+  glowStroke: number;
+  pulseOffset: number;
+  pulseStroke: number;
   action: "upgrade" | "branchA" | "branchB" | "none";
   branchSide: number;
 }
@@ -288,9 +338,40 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
     `archetypes/archetype-${archetypeId}.png`,
   );
 
+  // ---- ResizeObserver: measure the SVG container in real pixels ----
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dims, setDims] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (width > 0 && height > 0) {
+          setDims((prev) =>
+            prev.w === Math.round(width) && prev.h === Math.round(height)
+              ? prev
+              : { w: Math.round(width), h: Math.round(height) },
+          );
+        }
+      }
+    });
+
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const layout = useMemo(
+    () => (dims.w > 0 && dims.h > 0 ? computeLayout(dims.w, dims.h) : null),
+    [dims.w, dims.h],
+  );
+
   const treeData = useMemo(() => {
-    return buildTreeData(archetypeSkills, skills, archetype.color, cubeBalance);
-  }, [archetypeSkills, skills, archetype.color, cubeBalance]);
+    if (!layout) return null;
+    return buildTreeData(archetypeSkills, skills, archetype.color, cubeBalance, layout);
+  }, [archetypeSkills, skills, archetype.color, cubeBalance, layout]);
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -327,12 +408,12 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
           </div>
         </div>
 
-        {/* SVG tree — fills remaining panel space */}
-        <div className="flex-1 min-h-0">
+        {/* SVG tree — fills remaining panel space, measured by ResizeObserver */}
+        <div ref={containerRef} className="flex-1 min-h-0 relative">
+          {layout && treeData && (
             <svg
-              viewBox={`0 0 ${VB_W} ${VB_H}`}
-              preserveAspectRatio="none"
-              className="w-full h-full"
+              viewBox={`0 0 ${layout.w} ${layout.h}`}
+              className="absolute inset-0 w-full h-full"
             >
               <defs>
                 <style>{`
@@ -348,22 +429,22 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
               {archetypeSkills.map((skill, colIdx) => (
                 <g key={`hdr-${skill.id}`}>
                   <text
-                    x={COL_X[colIdx]}
-                    y={ROW_START_Y - 7}
+                    x={layout.colX[colIdx]}
+                    y={layout.rowStartY - layout.rCore * 1.3}
                     textAnchor="middle"
                     fill="#cbd5e1"
-                    fontSize={3.2}
+                    fontSize={layout.hdrFontLg}
                     fontWeight="bold"
                     fontFamily="system-ui, sans-serif"
                   >
                     {skill.name}
                   </text>
                   <text
-                    x={COL_X[colIdx]}
-                    y={ROW_START_Y - 3.5}
+                    x={layout.colX[colIdx]}
+                    y={layout.rowStartY - layout.rCore * 0.6}
                     textAnchor="middle"
                     fill="#475569"
-                    fontSize={2.2}
+                    fontSize={layout.hdrFontSm}
                     fontFamily="system-ui, sans-serif"
                   >
                     {skill.category === 'bonus' ? 'Active' : 'Passive'}
@@ -394,6 +475,7 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
                 />
               ))}
             </svg>
+          )}
         </div>
       </div>
     </div>
@@ -455,10 +537,10 @@ const SvgNode: React.FC<SvgNodeProps> = ({ node, isBusy, onClick }) => {
         <circle
           cx={node.cx}
           cy={node.cy}
-          r={node.r + 1.0}
+          r={node.r + node.glowOffset}
           fill="none"
           stroke={node.color}
-          strokeWidth={0.35}
+          strokeWidth={node.glowStroke}
           opacity={0.25}
         />
       )}
@@ -467,10 +549,10 @@ const SvgNode: React.FC<SvgNodeProps> = ({ node, isBusy, onClick }) => {
         <circle
           cx={node.cx}
           cy={node.cy}
-          r={node.r + 1.2}
+          r={node.r + node.pulseOffset}
           fill="none"
           stroke={node.color}
-          strokeWidth={0.35}
+          strokeWidth={node.pulseStroke}
           className="skill-node-pulse"
         />
       )}
@@ -479,10 +561,10 @@ const SvgNode: React.FC<SvgNodeProps> = ({ node, isBusy, onClick }) => {
         <>
           <circle cx={node.cx} cy={node.cy} r={node.r} fill="rgba(0,0,0,0.5)" />
           <foreignObject
-            x={node.cx - 3}
-            y={node.cy - 3}
-            width={6}
-            height={6}
+            x={node.cx - node.r * 0.55}
+            y={node.cy - node.r * 0.55}
+            width={node.r * 1.1}
+            height={node.r * 1.1}
           >
             <div className="flex items-center justify-center w-full h-full">
               <Loader2 size={12} className="animate-spin text-white" />
@@ -494,20 +576,20 @@ const SvgNode: React.FC<SvgNodeProps> = ({ node, isBusy, onClick }) => {
       {node.label && (
         <>
           <rect
-            x={node.cx - 2.4}
-            y={node.cy + node.r - 2.6}
-            width={4.8}
-            height={2.6}
-            rx={0.6}
+            x={node.cx - node.r * 0.44}
+            y={node.cy + node.r - node.r * 0.47}
+            width={node.r * 0.87}
+            height={node.r * 0.47}
+            rx={node.r * 0.11}
             fill="rgba(0,0,0,0.7)"
           />
           <text
             x={node.cx}
-            y={node.cy + node.r - 1.0}
+            y={node.cy + node.r - node.r * 0.18}
             textAnchor="middle"
             dominantBaseline="central"
             fill="#cbd5e1"
-            fontSize={1.8}
+            fontSize={node.r * 0.33}
             fontWeight="bold"
             fontFamily="system-ui, sans-serif"
           >
@@ -519,18 +601,18 @@ const SvgNode: React.FC<SvgNodeProps> = ({ node, isBusy, onClick }) => {
       <circle
         cx={node.cx + node.r * 0.7}
         cy={node.cy + node.r * 0.7}
-        r={BADGE_R}
+        r={node.badgeR}
         fill="rgba(0,0,0,0.8)"
         stroke={node.borderColor}
-        strokeWidth={0.2}
+        strokeWidth={node.badgeR * 0.08}
       />
       <text
         x={node.cx + node.r * 0.7}
-        y={node.cy + node.r * 0.7 + 0.15}
+        y={node.cy + node.r * 0.7 + node.badgeFont * 0.08}
         textAnchor="middle"
         dominantBaseline="central"
         fill={node.badgeColor}
-        fontSize={BADGE_FONT}
+        fontSize={node.badgeFont}
         fontWeight="bold"
         fontFamily="system-ui, sans-serif"
       >
@@ -945,12 +1027,15 @@ function buildTreeData(
   allSkills: SkillInfo[],
   color: string,
   cubeBalance: number,
+  layout: TreeLayout,
 ): { nodes: TreeNodeData[]; paths: PathData[] } {
   const nodes: TreeNodeData[] = [];
   const paths: PathData[] = [];
 
+  const rowY = (row: number) => layout.rowStartY + row * layout.rowGap;
+
   archetypeSkills.forEach((skill, colIdx) => {
-    const cx = COL_X[colIdx];
+    const cx = layout.colX[colIdx];
     const info = allSkills[skill.id - 1] ?? {
       level: 0,
       branchChosen: false,
@@ -977,7 +1062,7 @@ function buildTreeData(
         key: `core-${skill.id}-${row}`,
         cx,
         cy: rowY(row),
-        r: R_CORE,
+        r: layout.rCore,
         iconSrc,
         skillId: skill.id,
         targetLevel,
@@ -987,13 +1072,19 @@ function buildTreeData(
         dimmed: false,
         color,
         borderColor,
-        borderWidth: unlocked ? 0.5 : 0.35,
+        borderWidth: layout.borderWidthCore,
         nodeOpacity: 1,
         iconOpacity,
         iconFilter: !unlocked && !isNext ? "grayscale(1)" : "",
         label: "",
         badgeLabel: unlocked ? "\u2713" : fmtCost(cost),
         badgeColor: unlocked ? "#bbf7d0" : isNext ? "#fed7aa" : "#64748b",
+        badgeR: layout.badgeR,
+        badgeFont: layout.badgeFont,
+        glowOffset: layout.glowOffset,
+        glowStroke: layout.glowStroke,
+        pulseOffset: layout.pulseOffset,
+        pulseStroke: layout.pulseStroke,
         action: isNext && canAfford ? "upgrade" : "none",
         branchSide: -1,
       });
@@ -1003,32 +1094,32 @@ function buildTreeData(
         const lit = info.level > targetLevel;
         const midY = (rowY(row) + nextY) / 2;
         paths.push({
-          d: `M ${cx} ${rowY(row) + R_CORE} C ${cx} ${midY}, ${cx} ${midY}, ${cx} ${nextY - R_CORE}`,
+          d: `M ${cx} ${rowY(row) + layout.rCore} C ${cx} ${midY}, ${cx} ${midY}, ${cx} ${nextY - layout.rCore}`,
           color,
-          strokeWidth: 0.5,
+          strokeWidth: layout.pathStrokeW,
           opacity: lit ? 0.55 : 0.12,
         });
       }
     }
 
     // Fork paths (row 3 -> row 4)
-    const forkFromY = rowY(3) + R_CORE;
-    const forkToY = rowY(4) - R_BRANCH;
+    const forkFromY = rowY(3) + layout.rCore;
+    const forkToY = rowY(4) - layout.rBranch;
     const forkMidY = (forkFromY + forkToY) / 2;
     const litA = info.branchChosen && info.branchId === 0 && info.level > 4;
     const litB = info.branchChosen && info.branchId === 1 && info.level > 4;
     const litForkGeneral = !info.branchChosen && info.level > 4;
 
     paths.push({
-      d: `M ${cx} ${forkFromY} C ${cx} ${forkMidY}, ${cx - BRANCH_OFF} ${forkMidY}, ${cx - BRANCH_OFF} ${forkToY}`,
+      d: `M ${cx} ${forkFromY} C ${cx} ${forkMidY}, ${cx - layout.branchOff} ${forkMidY}, ${cx - layout.branchOff} ${forkToY}`,
       color,
-      strokeWidth: 0.5,
+      strokeWidth: layout.pathStrokeW,
       opacity: litA || litForkGeneral ? 0.55 : 0.12,
     });
     paths.push({
-      d: `M ${cx} ${forkFromY} C ${cx} ${forkMidY}, ${cx + BRANCH_OFF} ${forkMidY}, ${cx + BRANCH_OFF} ${forkToY}`,
+      d: `M ${cx} ${forkFromY} C ${cx} ${forkMidY}, ${cx + layout.branchOff} ${forkMidY}, ${cx + layout.branchOff} ${forkToY}`,
       color,
-      strokeWidth: 0.5,
+      strokeWidth: layout.pathStrokeW,
       opacity: litB || litForkGeneral ? 0.55 : 0.12,
     });
 
@@ -1047,9 +1138,9 @@ function buildTreeData(
 
       nodes.push({
         key: `brA-${skill.id}-${row}`,
-        cx: cx - BRANCH_OFF,
+        cx: cx - layout.branchOff,
         cy: rowY(row),
-        r: R_BRANCH,
+        r: layout.rBranch,
         iconSrc: iconSrcA,
         skillId: skill.id,
         targetLevel,
@@ -1065,13 +1156,19 @@ function buildTreeData(
             : wrongA
               ? "#1e293b"
               : "#1e293b55",
-        borderWidth: nA.unlocked ? 0.45 : 0.3,
+        borderWidth: layout.borderWidthBranch,
         nodeOpacity: wrongA && !needsChoice ? 0.25 : 1,
         iconOpacity: nA.unlocked ? 1 : nA.isNext ? 0.6 : 0.25,
         iconFilter: !nA.unlocked && !nA.isNext ? "grayscale(1)" : "",
         label: "",
         badgeLabel: nA.unlocked ? "\u2713" : fmtCost(cost),
         badgeColor: nA.unlocked ? "#bbf7d0" : nA.isNext ? "#fed7aa" : "#64748b",
+        badgeR: layout.badgeR,
+        badgeFont: layout.badgeFont,
+        glowOffset: layout.glowOffset,
+        glowStroke: layout.glowStroke,
+        pulseOffset: layout.pulseOffset,
+        pulseStroke: layout.pulseStroke,
         action: needsChoice && nA.canAfford
           ? "branchA"
           : nA.isNext && nA.canAfford
@@ -1088,9 +1185,9 @@ function buildTreeData(
 
       nodes.push({
         key: `brB-${skill.id}-${row}`,
-        cx: cx + BRANCH_OFF,
+        cx: cx + layout.branchOff,
         cy: rowY(row),
-        r: R_BRANCH,
+        r: layout.rBranch,
         iconSrc: iconSrcB,
         skillId: skill.id,
         targetLevel,
@@ -1106,13 +1203,19 @@ function buildTreeData(
             : wrongB
               ? "#1e293b"
               : "#1e293b55",
-        borderWidth: nB.unlocked ? 0.45 : 0.3,
+        borderWidth: layout.borderWidthBranch,
         nodeOpacity: wrongB && !needsChoice ? 0.25 : 1,
         iconOpacity: nB.unlocked ? 1 : nB.isNext ? 0.6 : 0.25,
         iconFilter: !nB.unlocked && !nB.isNext ? "grayscale(1)" : "",
         label: "",
         badgeLabel: nB.unlocked ? "\u2713" : fmtCost(cost),
         badgeColor: nB.unlocked ? "#bbf7d0" : nB.isNext ? "#fed7aa" : "#64748b",
+        badgeR: layout.badgeR,
+        badgeFont: layout.badgeFont,
+        glowOffset: layout.glowOffset,
+        glowStroke: layout.glowStroke,
+        pulseOffset: layout.pulseOffset,
+        pulseStroke: layout.pulseStroke,
         action: needsChoice && nB.canAfford
           ? "branchB"
           : nB.isNext && nB.canAfford
@@ -1125,22 +1228,22 @@ function buildTreeData(
       if (row < 8) {
         const nextY = rowY(row + 1);
         const midY = (rowY(row) + nextY) / 2;
-        const bxA = cx - BRANCH_OFF;
-        const bxB = cx + BRANCH_OFF;
+        const bxA = cx - layout.branchOff;
+        const bxB = cx + layout.branchOff;
 
         paths.push({
-          d: `M ${bxA} ${rowY(row) + R_BRANCH} C ${bxA} ${midY}, ${bxA} ${midY}, ${bxA} ${nextY - R_BRANCH}`,
+          d: `M ${bxA} ${rowY(row) + layout.rBranch} C ${bxA} ${midY}, ${bxA} ${midY}, ${bxA} ${nextY - layout.rBranch}`,
           color,
-          strokeWidth: 0.4,
+          strokeWidth: layout.pathStrokeWBranch,
           opacity:
             info.branchChosen && info.branchId === 0 && info.level > targetLevel
               ? 0.55
               : 0.1,
         });
         paths.push({
-          d: `M ${bxB} ${rowY(row) + R_BRANCH} C ${bxB} ${midY}, ${bxB} ${midY}, ${bxB} ${nextY - R_BRANCH}`,
+          d: `M ${bxB} ${rowY(row) + layout.rBranch} C ${bxB} ${midY}, ${bxB} ${midY}, ${bxB} ${nextY - layout.rBranch}`,
           color,
-          strokeWidth: 0.4,
+          strokeWidth: layout.pathStrokeWBranch,
           opacity:
             info.branchChosen && info.branchId === 1 && info.level > targetLevel
               ? 0.55
