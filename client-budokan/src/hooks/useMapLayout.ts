@@ -80,9 +80,8 @@ function buildZoneLayout(
   // Evenly space nodes vertically with guaranteed monotonic ascent
   const yStep = (Y_BOTTOM - Y_TOP) / Math.max(lastNode, 1);
 
-  // Pick starting lane from hash
-  const startRoll = hashToUnit(seed, zoneIndex, 0, 200);
-  let lane = startRoll < 0.33 ? 0 : startRoll < 0.66 ? 1 : 2;
+  // First node (entry draft) is centered — treat as lane 1 for alternation
+  let lane = 1;
 
   for (let i = 0; i < nodesPerZone; i++) {
     // Y: strict even spacing, bottom to top (node 0 = bottom, last = top)
@@ -91,22 +90,28 @@ function buildZoneLayout(
     const isFirst = i === 0;
     const isLast = i === lastNode;
 
-    // Boss and draft nodes (first = entry draft, last = boss) get centered
+    // Boss and entry-draft nodes get centered
     if (isFirst || isLast) {
       points.push({ x: 0.5, y });
+      lane = 1; // reset to center for next alternation
       continue;
     }
 
-    // For regular nodes: zigzag lanes with jitter
+    // Force lane change: NEVER same lane as previous node.
+    // From center (1) → go left or right.
+    // From left (0) → go center or right.
+    // From right (2) → go center or left.
     const moveRoll = hashToUnit(seed, zoneIndex, i, 201);
 
-    // Force lane changes more aggressively: 15% stay, 42.5% left, 42.5% right
-    if (moveRoll < 0.15) {
-      // stay
-    } else if (moveRoll < 0.575) {
-      lane = clamp(lane - 1, 0, 2);
+    if (lane === 1) {
+      // From center: go left or right (never stay center)
+      lane = moveRoll < 0.5 ? 0 : 2;
+    } else if (lane === 0) {
+      // From left: go center or right (never stay left)
+      lane = moveRoll < 0.5 ? 1 : 2;
     } else {
-      lane = clamp(lane + 1, 0, 2);
+      // From right: go center or left (never stay right)
+      lane = moveRoll < 0.5 ? 1 : 0;
     }
 
     const xJitter = (hashToUnit(seed, zoneIndex, i, 202) - 0.5) * X_JITTER;
