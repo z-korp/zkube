@@ -203,7 +203,7 @@ const SkillTreePage: React.FC = () => {
       <PageTopBar title="SKILL TREE" onBack={goBack} cubeBalance={cubeBalance} />
 
       {/* Full remaining space — panel + swiper + arrows */}
-      <div className="flex-1 min-h-0 relative overflow-hidden bg-slate-900/95">
+      <div className="flex-1 min-h-0 relative overflow-hidden">
         <Swiper
           slidesPerView={1}
           spaceBetween={0}
@@ -295,7 +295,7 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Dark panel */}
-      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+      <div className="flex-1 min-h-0 bg-slate-900/95 flex flex-col overflow-hidden">
         {/* Archetype header */}
         <div className="flex items-center gap-3 px-4 py-2.5 border-b border-slate-700/30 flex-shrink-0">
           <div
