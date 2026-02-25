@@ -68,7 +68,6 @@ export const useGameLevel = ({
   useEffect(() => {
     if (gameId !== undefined && !component && retryCount < 5) {
       const timer = setTimeout(() => {
-        console.log("[useGameLevel] Retrying fetch, attempt:", retryCount + 1);
         setRetryCount((prev) => prev + 1);
       }, 500);
       return () => clearTimeout(timer);
@@ -101,17 +100,6 @@ export const useGameLevel = ({
       cube3Threshold: component.cube_3_threshold,
       cube2Threshold: component.cube_2_threshold,
     };
-
-    console.log("[useGameLevel] GameLevel fetched:", {
-      gameId: data.gameId,
-      level: data.level,
-      pointsRequired: data.pointsRequired,
-      maxMoves: data.maxMoves,
-      constraintType: ConstraintType[data.constraintType],
-      constraintValue: data.constraintValue,
-      constraintCount: data.constraintCount,
-      constraint2Type: ConstraintType[data.constraint2Type],
-    });
 
     return data;
   }, [component, retryCount]);

@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { useAccount } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
+import { useDojo } from "@/dojo/useDojo";
+import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { loadThemeTemplate } from "@/config/themes";
@@ -11,9 +13,9 @@ import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { useQuests } from "@/contexts/quests";
+import { showToast } from "@/utils/toast";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import TopBar from "@/ui/navigation/TopBar";
-import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import NavButton from "@/ui/components/shared/NavButton";
 import Connect from "@/ui/components/Connect";
 import useViewport from "@/hooks/useViewport";
@@ -29,6 +31,11 @@ const HomePage: React.FC = () => {
   useViewport();
 
   const { account } = useAccountCustom();
+  const {
+    setup: {
+      systemCalls: { freeMint, create },
+    },
+  } = useDojo();
   const { connector } = useAccount();
   const { username } = useControllerUsername();
   const { themeTemplate, setThemeTemplate } = useTheme();
@@ -37,6 +44,7 @@ const HomePage: React.FC = () => {
   const navigate = useNavigationStore((s) => s.navigate);
   const { questFamilies } = useQuests();
   const imgAssets = ImageAssets(themeTemplate);
+  const [isStartingGame, setIsStartingGame] = useState(false);
 
   useEffect(() => {
     setThemeTemplate(loadThemeTemplate(), false);
@@ -77,10 +85,44 @@ const HomePage: React.FC = () => {
     }
   }, [account, connector]);
 
+  const handleStartGame = useCallback(async () => {
+    if (!account || isStartingGame) return;
+
+    setIsStartingGame(true);
+    try {
+      const mintResult = await freeMint({
+        account,
+        name: username ?? "",
+        settingsId: DEFAULT_SETTINGS_ID,
+      });
+
+      const gameId = mintResult.game_id;
+      if (!gameId) throw new Error("Failed to extract game_id from mint");
+
+      await create({
+        account,
+        token_id: gameId,
+      });
+
+      showToast({
+        message: `Game #${gameId} started!`,
+        type: "success",
+      });
+
+      navigate("map", gameId);
+    } catch (error) {
+      console.error("Error starting game:", error);
+      showToast({
+        message: "Failed to start game. Check My Games if a token was minted.",
+        type: "error",
+      });
+    } finally {
+      setIsStartingGame(false);
+    }
+  }, [account, create, freeMint, isStartingGame, navigate, username]);
+
   return (
     <div className="h-screen-viewport flex flex-col">
-      <ThemeBackground />
-
       <TopBar
         cubeBalance={cubeBalance}
         onTutorial={() => navigate("tutorial")}
@@ -114,10 +156,10 @@ const HomePage: React.FC = () => {
           ) : (
             <>
               <NavButton
-                label="NEW GAME"
+                label={isStartingGame ? "STARTING..." : "NEW GAME"}
                 variant="orange"
-                onClick={() => navigate("loadout")}
-                disabled={false}
+                onClick={handleStartGame}
+                disabled={isStartingGame}
               />
 
               <NavButton
@@ -128,9 +170,9 @@ const HomePage: React.FC = () => {
               />
 
               <NavButton
-                label="SHOP"
+                label="SKILL TREE"
                 variant="green"
-                onClick={() => navigate("shop")}
+                onClick={() => navigate("skilltree")}
               />
 
               <NavButton
@@ -141,8 +183,6 @@ const HomePage: React.FC = () => {
             </>
           )}
         </div>
-
-
       </div>
     </div>
   );

@@ -96,7 +96,6 @@ const parsePlayerName = (metadata: string | undefined): string | undefined => {
 
 /**
  * Hook for fetching leaderboard data directly from RECS (Torii).
- * Works on slot mode by default, but can be forced on other networks via `forceRecs`.
  * Queries all Game entities and sorts by level -> totalScore -> totalCubes.
  * 
  * Uses Torii's tokenTransfers query to get token ownership and player names.
@@ -123,10 +122,15 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
 
   // Extract unique addresses that need username lookups
   const addressesNeedingLookup = useMemo(() => {
-    return rawGames
-      .filter((g) => g.player_address && !g.player_name)
-      .map((g) => g.player_address!)
-      .filter((addr, index, self) => self.indexOf(addr) === index); // Dedupe
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const g of rawGames) {
+      if (g.player_address && !g.player_name && !seen.has(g.player_address)) {
+        seen.add(g.player_address);
+        result.push(g.player_address);
+      }
+    }
+    return result;
   }, [rawGames]);
 
   // Batch fetch usernames for all addresses
@@ -181,8 +185,6 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
 
                 tokenOwnerMap.set(tokenId, { owner, playerName });
               }
-
-              console.log("[useLeaderboardSlot] Loaded token ownership for", tokenOwnerMap.size, "tokens");
             }
           } catch (error) {
             console.error("[useLeaderboardSlot] Error fetching token data:", error);
@@ -240,7 +242,6 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
           return (a.started_at ?? 0) - (b.started_at ?? 0);
         });
 
-        console.log("[useLeaderboardSlot] Raw leaderboard:", gameList.length, "entries");
         setRawGames(gameList);
       } catch (error) {
         console.error("[useLeaderboardSlot] Error fetching leaderboard:", error);

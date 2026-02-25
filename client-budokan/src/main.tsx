@@ -127,20 +127,6 @@ export function Main() {
     }
   };
 
-  // Debug logging
-  console.log("[main.tsx] Network Configuration:", {
-    VITE_PUBLIC_DEPLOY_TYPE,
-    VITE_PUBLIC_NODE_URL,
-    VITE_PUBLIC_SLOT,
-    defaultChainId: getDefaultChainId()?.toString(16),
-    chainIds: {
-      mainnet: mainnet.id.toString(16),
-      sepolia: sepolia.id.toString(16),
-      slot: slotChain?.id?.toString(16),
-    },
-    chainsOrder: chains.map(c => c.network || c.name),
-  });
-
   return (
     <React.StrictMode>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">

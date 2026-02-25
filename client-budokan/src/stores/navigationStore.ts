@@ -3,16 +3,15 @@ import type { GameLevelData } from "@/hooks/useGameLevel";
 
 export type PageId =
   | "home"
-  | "loadout"
   | "map"
   | "play"
-  | "shop"
   | "quests"
   | "leaderboard"
   | "settings"
   | "mygames"
   | "tutorial"
-  | "ingameshop";
+  | "draft"
+  | "skilltree";
 
 export interface PendingLevelCompletion {
   level: number;
@@ -24,6 +23,15 @@ export interface PendingLevelCompletion {
   gameLevel: GameLevelData | null;
 }
 
+export type DraftEventType = "post_level_1" | "post_boss" | "zone_micro";
+
+export interface PendingDraftEvent {
+  type: DraftEventType;
+  triggerLevel: number;
+  zone: number;
+  eventId: string;
+}
+
 interface NavigationState {
   currentPage: PageId;
   previousPage: PageId | null;
@@ -32,20 +40,24 @@ interface NavigationState {
   gameId: number | null;
   pendingPreviewLevel: number | null;
   pendingLevelCompletion: PendingLevelCompletion | null;
+  pendingDraftEvent: PendingDraftEvent | null;
   navigate: (page: PageId, gameId?: number) => void;
   goBack: () => void;
   setGameId: (id: number | null) => void;
   setPendingPreviewLevel: (level: number | null) => void;
   setPendingLevelCompletion: (data: PendingLevelCompletion | null) => void;
+  setPendingDraftEvent: (data: PendingDraftEvent | null) => void;
 }
 
 const getBackTarget = (page: PageId): PageId => {
   switch (page) {
     case "play":
       return "map";
-    case "ingameshop":
-      return "play";
+    case "draft":
+      return "map";
     case "map":
+      return "home";
+    case "skilltree":
       return "home";
     default:
       return "home";
@@ -60,6 +72,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
   gameId: null,
   pendingPreviewLevel: null,
   pendingLevelCompletion: null,
+  pendingDraftEvent: null,
 
   navigate: (page, gameId) => {
     const { currentPage, isTransitioning } = get();
@@ -75,7 +88,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
 
     setTimeout(() => {
       set({ isTransitioning: false, transitionDirection: null });
-    }, 300);
+    }, 150);
   },
 
   goBack: () => {
@@ -92,10 +105,11 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
 
     setTimeout(() => {
       set({ isTransitioning: false, transitionDirection: null });
-    }, 300);
+    }, 150);
   },
 
   setGameId: (id) => set({ gameId: id }),
   setPendingPreviewLevel: (level) => set({ pendingPreviewLevel: level }),
   setPendingLevelCompletion: (data) => set({ pendingLevelCompletion: data }),
+  setPendingDraftEvent: (data) => set({ pendingDraftEvent: data }),
 }));

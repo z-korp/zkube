@@ -3,16 +3,229 @@ import { useQuests } from "@/contexts/quests";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { QuestFamilyCard } from "./QuestFamilyCard";
-import { useMemo, useCallback, useState } from "react";
+import { useMemo, useCallback, useState, useEffect } from "react";
 import { shortString } from "starknet";
 import { motion } from "motion/react";
-import { Loader2, Scroll, Trophy } from "lucide-react";
+import CubeIcon from "@/ui/components/CubeIcon";
+import {
+  Check,
+  Clock3,
+  Gamepad2,
+  ListOrdered,
+  Loader2,
+  TrendingUp,
+  Trophy,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
+import type { QuestFamily, QuestTier } from "@/types/questFamily";
+
+// ─── Constants ──────────────────────────────────────────────────────────────
+
+const CUMULATIVE_FAMILIES = new Set(["player", "clearer"]);
+
+const iconMap: Record<string, LucideIcon> = {
+  "fa-gamepad": Gamepad2,
+  "fa-bars-staggered": ListOrdered,
+  "fa-bolt": Zap,
+  "fa-arrow-trend-up": TrendingUp,
+  "fa-trophy": Trophy,
+};
 
 interface QuestsDialogProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+const secondsUntilNextUtcMidnight = (): number => {
+  const now = new Date();
+  const next = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate() + 1,
+    0, 0, 0, 0,
+  );
+  return Math.max(0, Math.floor((next - now.getTime()) / 1000));
+};
+
+const formatCountdown = (sec: number): string => {
+  const s = Math.max(0, sec);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (h > 0) return `${h}h ${m.toString().padStart(2, "0")}m`;
+  const ss = s % 60;
+  return `${m}m ${ss.toString().padStart(2, "0")}s`;
+};
+
+// ─── Tier Dots ──────────────────────────────────────────────────────────────
+
+const TierDots: React.FC<{ tiers: QuestTier[] }> = ({ tiers }) => (
+  <div className="flex items-center gap-0.5">
+    {tiers.map((tier) => (
+      <div
+        key={tier.questId}
+        className={`w-1.5 h-1.5 rounded-full transition-colors ${
+          tier.claimed
+            ? "bg-green-400"
+            : tier.completed
+              ? "bg-yellow-400"
+              : "bg-slate-600"
+        }`}
+      />
+    ))}
+  </div>
+);
+
+// ─── Compact Quest Card ─────────────────────────────────────────────────────
+// Unified card for all families (dialog-sized).
+
+const CompactQuestCard: React.FC<{
+  family: QuestFamily;
+  onClaim: (questId: string, intervalId: number) => Promise<void>;
+  claimingKey: string | null;
+  disabled: boolean;
+}> = ({ family, onClaim, claimingKey, disabled }) => {
+  const Icon = iconMap[family.icon] ?? Gamepad2;
+  const allClaimed = family.tiers.every((t) => t.claimed);
+  const claimable = family.claimableTier;
+  const isCumulative = CUMULATIVE_FAMILIES.has(family.id);
+
+  const activeTierIndex = family.currentTierIndex >= 0
+    ? family.currentTierIndex
+    : family.tiers.length - 1;
+  const activeTier = claimable ?? family.tiers[activeTierIndex];
+  if (!activeTier) return null;
+
+  const claimKey = claimable
+    ? `${claimable.questId}:${claimable.intervalId}`
+    : "";
+  const isClaiming = claimable !== null && claimingKey === claimKey;
+
+  const progressPercent =
+    isCumulative && family.nextTarget > 0
+      ? Math.min((family.progress / family.nextTarget) * 100, 100)
+      : 0;
+
+  return (
+    <motion.div
+      className={`rounded-lg p-3 transition-colors ${
+        allClaimed
+          ? "bg-slate-900/50"
+          : claimable
+            ? "bg-slate-900 ring-1 ring-green-500/30"
+            : "bg-slate-900"
+      }`}
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.15 }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2 mb-1.5">
+        <div className="flex items-center gap-2 min-w-0">
+          <div
+            className={`grid h-6 w-6 place-items-center rounded-md flex-shrink-0 ${
+              allClaimed
+                ? "bg-green-500/10 text-green-400/50"
+                : claimable
+                  ? "bg-green-500/15 text-green-300"
+                  : "bg-white/8 text-cyan-300"
+            }`}
+          >
+            {allClaimed ? <Check size={12} /> : <Icon size={12} />}
+          </div>
+          <span
+            className={`font-['Fredericka_the_Great'] text-sm leading-tight truncate ${
+              allClaimed ? "text-slate-500" : "text-white"
+            }`}
+          >
+            {family.name}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <TierDots tiers={family.tiers} />
+          <span
+            className={`inline-flex items-center gap-0.5 ${
+              allClaimed ? "opacity-35" : ""
+            }`}
+          >
+            <CubeIcon size="xs" />
+            <span className="font-['Fredericka_the_Great'] text-xs text-yellow-200">
+              {activeTier.reward}
+            </span>
+          </span>
+        </div>
+      </div>
+
+      {/* Description */}
+      {!allClaimed && (
+        <p
+          className={`text-xs mb-1.5 ${
+            claimable ? "text-green-200" : "text-slate-400"
+          }`}
+        >
+          {activeTier.description || activeTier.name}
+        </p>
+      )}
+
+      {/* Progress / status */}
+      {allClaimed ? (
+        <p className="text-[10px] text-green-400/50">All tiers completed</p>
+      ) : isCumulative ? (
+        <div className="flex items-center gap-2">
+          <div className="h-1 flex-1 rounded-full bg-white/10 overflow-hidden">
+            <motion.div
+              className={`h-full rounded-full ${
+                claimable
+                  ? "bg-gradient-to-r from-green-400 to-emerald-400"
+                  : "bg-gradient-to-r from-cyan-400 to-blue-400"
+              }`}
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercent}%` }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            />
+          </div>
+          <span
+            className={`font-['Fredericka_the_Great'] text-xs leading-none min-w-fit ${
+              claimable ? "text-green-200" : "text-slate-300"
+            }`}
+          >
+            {family.progress}/{family.nextTarget}
+          </span>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5">
+          {activeTier.completed ? (
+            <>
+              <Check size={11} className="text-green-400" />
+              <span className="text-xs text-green-300">Achieved!</span>
+            </>
+          ) : (
+            <span className="text-xs text-slate-500">Not yet achieved</span>
+          )}
+        </div>
+      )}
+
+      {/* Claim */}
+      {claimable && (
+        <button
+          onClick={() => onClaim(claimable.questId, claimable.intervalId)}
+          disabled={isClaiming || disabled}
+          className="w-full mt-2 py-1.5 rounded-md bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50 transition-colors"
+        >
+          {isClaiming ? (
+            <Loader2 size={12} className="animate-spin" />
+          ) : (
+            <>Claim <CubeIcon size="xs" /> {claimable.reward}</>
+          )}
+        </button>
+      )}
+    </motion.div>
+  );
+};
+
+// ─── Main dialog ────────────────────────────────────────────────────────────
 
 export const QuestsDialog: React.FC<QuestsDialogProps> = ({
   isOpen,
@@ -25,245 +238,236 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
     setup: { systemCalls },
   } = useDojo();
 
-  // Separate main families from finisher
+  const [claimingKey, setClaimingKey] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(secondsUntilNextUtcMidnight);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const id = window.setInterval(
+      () => setCountdown(secondsUntilNextUtcMidnight()),
+      1000,
+    );
+    return () => window.clearInterval(id);
+  }, [isOpen]);
+
   const { mainFamilies, finisherFamily } = useMemo(() => {
-    const main = questFamilies.filter((f) => f.id !== 'finisher');
-    const finisher = questFamilies.find((f) => f.id === 'finisher');
+    const main = questFamilies.filter((f) => f.id !== "finisher");
+    const finisher = questFamilies.find((f) => f.id === "finisher");
     return { mainFamilies: main, finisherFamily: finisher };
   }, [questFamilies]);
 
-  // Calculate total claimable rewards
-  const claimableRewards = useMemo(() => {
-    return questFamilies.reduce((sum, family) => {
-      if (family.claimableTier) {
-        return sum + family.claimableTier.reward;
-      }
-      return sum;
-    }, 0);
-  }, [questFamilies]);
+  const totals = useMemo(() => {
+    const totalQuests = mainFamilies.reduce((s, f) => s + f.totalTiers, 0);
+    const totalCompleted = mainFamilies.reduce(
+      (s, f) => s + f.tiers.filter((t) => t.completed).length,
+      0,
+    );
+    return { totalCompleted, totalQuests };
+  }, [mainFamilies]);
 
-  // Handle claiming a quest
+  const claimableRewards = useMemo(
+    () => questFamilies.reduce((s, f) => s + (f.claimableTier?.reward ?? 0), 0),
+    [questFamilies],
+  );
+
   const handleClaim = useCallback(
     async (questId: string, intervalId: number) => {
       if (!account) return;
-      
-      // Convert quest ID string to felt252
-      const questIdFelt = `0x${BigInt(shortString.encodeShortString(questId)).toString(16)}`;
-      await systemCalls.claimQuest({
-        account,
-        quest_id: questIdFelt,
-        interval_id: intervalId,
-      });
-      playSfx("claim");
+      const key = `${questId}:${intervalId}`;
+      setClaimingKey(key);
+      try {
+        const questIdFelt = `0x${BigInt(shortString.encodeShortString(questId)).toString(16)}`;
+        await systemCalls.claimQuest({
+          account,
+          quest_id: questIdFelt,
+          interval_id: intervalId,
+        });
+        playSfx("claim");
+      } finally {
+        setClaimingKey(null);
+      }
     },
-    [account, playSfx, systemCalls]
+    [account, playSfx, systemCalls],
   );
 
-  // Check if all families are fully claimed
-  const allClaimed = questFamilies.every(f => 
-    f.tiers.every(t => t.claimed)
-  );
+  const allClaimed =
+    questFamilies.length > 0 &&
+    questFamilies.every((f) => f.tiers.every((t) => t.claimed));
+
+  const finisherTier = finisherFamily?.tiers[0];
+  const finisherCanClaim = finisherTier?.completed && !finisherTier?.claimed;
+  const finisherProgressPercent =
+    totals.totalQuests > 0
+      ? Math.min((totals.totalCompleted / totals.totalQuests) * 100, 100)
+      : 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         aria-describedby={undefined}
-        className="sm:max-w-[520px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-5 py-5 max-h-[85vh] overflow-hidden gap-0"
+        className="sm:max-w-[480px] w-[95%] flex flex-col mx-auto justify-start rounded-xl px-4 py-4 max-h-[85vh] overflow-hidden gap-0 bg-[#0a0f2a] border-indigo-500/20"
       >
-        <DialogTitle className="text-2xl text-center mb-3 flex items-center justify-center gap-2">
-          <Scroll size={16} className="text-yellow-400" />
-          Daily Quests
-        </DialogTitle>
-
-        {/* Summary Stats */}
-        {claimableRewards > 0 && (
-          <div className="text-center mb-4 bg-gradient-to-r from-yellow-900/30 to-amber-900/30 py-2 px-3 rounded-lg border border-yellow-500/30">
-            <span className="text-yellow-400 font-medium">
-              {claimableRewards} CUBE ready to claim!
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3">
+          <DialogTitle className="font-['Fredericka_the_Great'] text-xl text-white flex items-center gap-2">
+            Daily Quests
+          </DialogTitle>
+          <div className="flex items-center gap-1.5 text-cyan-200">
+            <Clock3 size={13} />
+            <span className="font-['Fredericka_the_Great'] text-sm leading-none">
+              {formatCountdown(countdown)}
             </span>
+          </div>
+        </div>
+
+        {/* Claimable banner */}
+        {claimableRewards > 0 && (
+          <div className="flex items-center justify-center gap-2 mb-3 bg-yellow-500/10 border border-yellow-400/20 rounded-lg py-1.5 px-3">
+            <CubeIcon size="sm" />
+            <span className="font-['Fredericka_the_Great'] text-lg text-yellow-200 leading-none">
+              {claimableRewards}
+            </span>
+            <span className="text-xs text-yellow-300/70">CUBE to claim</span>
           </div>
         )}
 
-        {/* Quest Families List */}
-        <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto space-y-2 pr-1">
           {status === "loading" ? (
-            <div className="flex items-center justify-center py-10 text-slate-400">
-              <Loader2 size={16} className="animate-spin mr-2" />
-              Loading quests...
+            <div className="flex items-center justify-center py-8 text-slate-300">
+              <Loader2 size={14} className="animate-spin mr-2" />
+              <span className="text-sm">Loading…</span>
             </div>
           ) : questFamilies.length === 0 ? (
-            <div className="text-center py-10 text-slate-400">
+            <div className="text-center py-8 text-sm text-slate-400">
               No quests available yet.
             </div>
           ) : (
             <>
-              {/* Main Quest Families */}
+              {/* Champion */}
+              {finisherFamily && finisherTier && (
+                <motion.div
+                  className={`rounded-lg p-3 ${
+                    finisherTier.claimed
+                      ? "bg-slate-900/50"
+                      : finisherCanClaim
+                        ? "bg-gradient-to-br from-yellow-950/60 to-amber-950/40 ring-1 ring-yellow-500/25"
+                        : "bg-slate-900 ring-1 ring-yellow-500/10"
+                  }`}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <Trophy
+                        size={14}
+                        className={
+                          finisherTier.claimed
+                            ? "text-yellow-400/40"
+                            : "text-yellow-300"
+                        }
+                      />
+                      <span
+                        className={`font-['Fredericka_the_Great'] text-sm ${
+                          finisherTier.claimed
+                            ? "text-yellow-400/40"
+                            : "text-yellow-50"
+                        }`}
+                      >
+                        Daily Champion
+                      </span>
+                    </div>
+                    <span
+                      className={`inline-flex items-center gap-0.5 ${
+                        finisherTier.claimed ? "opacity-35" : ""
+                      }`}
+                    >
+                      <CubeIcon size="xs" />
+                      <span className="font-['Fredericka_the_Great'] text-xs text-yellow-200">
+                        {finisherTier.reward}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 flex-1 rounded-full bg-black/30 overflow-hidden">
+                      <motion.div
+                        className={`h-full rounded-full ${
+                          finisherTier.claimed
+                            ? "bg-yellow-600/30"
+                            : finisherCanClaim
+                              ? "bg-gradient-to-r from-green-400 to-emerald-400"
+                              : "bg-gradient-to-r from-yellow-400 to-amber-300"
+                        }`}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${finisherProgressPercent}%` }}
+                        transition={{ duration: 0.4, ease: "easeOut" }}
+                      />
+                    </div>
+                    <span
+                      className={`font-['Fredericka_the_Great'] text-xs min-w-fit ${
+                        finisherTier.claimed
+                          ? "text-yellow-400/35"
+                          : "text-yellow-50"
+                      }`}
+                    >
+                      {totals.totalCompleted}/{totals.totalQuests}
+                    </span>
+                  </div>
+                  {finisherCanClaim && finisherFamily.claimableTier && (
+                    <button
+                      onClick={() =>
+                        handleClaim(
+                          finisherFamily.claimableTier!.questId,
+                          finisherFamily.claimableTier!.intervalId,
+                        )
+                      }
+                      disabled={
+                        claimingKey ===
+                          `${finisherFamily.claimableTier.questId}:${finisherFamily.claimableTier.intervalId}` ||
+                        !account
+                      }
+                      className="w-full mt-2 py-1.5 rounded-md bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-900 text-xs font-bold flex items-center justify-center gap-1 disabled:opacity-50"
+                    >
+                      {claimingKey ===
+                      `${finisherFamily.claimableTier.questId}:${finisherFamily.claimableTier.intervalId}` ? (
+                        <Loader2 size={11} className="animate-spin" />
+                      ) : (
+                        <>CLAIM <CubeIcon size="xs" /> {finisherFamily.claimableTier.reward}</>
+                      )}
+                    </button>
+                  )}
+                </motion.div>
+              )}
+
+              {/* Quest families */}
               {mainFamilies.map((family) => (
-                <QuestFamilyCard
+                <CompactQuestCard
                   key={family.id}
                   family={family}
                   onClaim={handleClaim}
+                  claimingKey={claimingKey}
+                  disabled={!account}
                 />
               ))}
-
-              {/* Daily Champion (Finisher) - Separate Section */}
-              {finisherFamily && (
-                <>
-                  <div className="text-xs text-slate-500 uppercase tracking-wider mt-2 mb-1 flex items-center gap-2">
-                    <Trophy size={16} className="text-yellow-500" />
-                    <span>Complete all quests</span>
-                  </div>
-                  <DailyChampionCard 
-                    family={finisherFamily} 
-                    onClaim={handleClaim}
-                    totalQuestsCompleted={mainFamilies.reduce(
-                      (sum, f) => sum + f.tiers.filter(t => t.completed).length, 
-                      0
-                    )}
-                    totalQuests={mainFamilies.reduce((sum, f) => sum + f.totalTiers, 0)}
-                  />
-                </>
-              )}
             </>
           )}
         </div>
 
-        {/* Footer Info */}
-        <div className="mt-4 pt-3 border-t border-slate-700/50 text-center">
-          <p className="text-xs text-slate-500">
-            Quests reset daily at midnight UTC
-          </p>
-          {allClaimed && (
-            <p className="text-xs text-green-400 mt-1">
-              All quests completed! Come back tomorrow.
+        {/* Footer */}
+        <div className="mt-3 pt-2 border-t border-white/5 text-center">
+          {allClaimed ? (
+            <p className="text-xs text-green-400/60">
+              All done! Come back after reset.
+            </p>
+          ) : (
+            <p className="text-xs text-slate-500">
+              Resets at midnight UTC
             </p>
           )}
         </div>
       </DialogContent>
     </Dialog>
-  );
-};
-
-// Special card for Daily Champion quest
-interface DailyChampionCardProps {
-  family: ReturnType<typeof useQuests>['questFamilies'][0];
-  onClaim: (questId: string, intervalId: number) => Promise<void>;
-  totalQuestsCompleted: number;
-  totalQuests: number;
-}
-
-const DailyChampionCard: React.FC<DailyChampionCardProps> = ({ 
-  family, 
-  onClaim,
-  totalQuestsCompleted,
-  totalQuests,
-}) => {
-  const [isClaiming, setIsClaiming] = useState(false);
-  
-  const tier = family.tiers[0];
-  if (!tier) return null;
-  
-  const isCompleted = tier.completed;
-  const isClaimed = tier.claimed;
-  const canClaim = isCompleted && !isClaimed;
-  
-  // Progress based on completed quests across all families
-  const progressPercent = totalQuests > 0 
-    ? (totalQuestsCompleted / totalQuests) * 100 
-    : 0;
-
-  const handleClaim = async () => {
-    setIsClaiming(true);
-    try {
-      await onClaim(tier.questId, tier.intervalId);
-    } finally {
-      setIsClaiming(false);
-    }
-  };
-
-  return (
-    <motion.div
-      className={`
-        select-none flex flex-col gap-3 rounded-lg p-4
-        ${isClaimed 
-          ? "bg-yellow-900/10 border border-yellow-500/20" 
-          : canClaim
-            ? "bg-yellow-900/20 ring-1 ring-yellow-500/50"
-            : "bg-slate-900"
-        }
-      `}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-    >
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <Trophy
-            size={20}
-            className={`text-xl ${isClaimed ? "text-yellow-600" : canClaim ? "text-yellow-400" : "text-slate-500"}`}
-          />
-          <div>
-            <h3 className="text-lg font-semibold text-white tracking-wide">
-              Daily Champion
-            </h3>
-            <p className="text-xs text-slate-400">
-              Complete all daily quests
-            </p>
-          </div>
-        </div>
-        <span className={`text-lg font-bold ${
-          isClaimed ? "text-yellow-600" : canClaim ? "text-yellow-400" : "text-slate-400"
-        }`}>
-          +{tier.reward} CUBE
-        </span>
-      </div>
-
-      {/* Progress bar */}
-      <div className="flex items-center gap-3">
-        <div className="flex-1 h-3 p-0.5 bg-slate-800 rounded-full overflow-hidden">
-          <motion.div
-            className={`h-full rounded-full ${
-              isClaimed ? "bg-yellow-600" : isCompleted ? "bg-yellow-400" : "bg-slate-600"
-            }`}
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPercent}%` }}
-            transition={{
-              duration: 0.6,
-              ease: "easeOut",
-            }}
-          />
-        </div>
-        <span className="text-sm text-slate-400 min-w-fit tabular-nums">
-          {totalQuestsCompleted}/{totalQuests}
-        </span>
-      </div>
-
-      {/* Claim button */}
-      {canClaim && (
-        <button
-          onClick={handleClaim}
-          disabled={isClaiming}
-          className="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-semibold h-10 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-        >
-          {isClaiming ? (
-            <Loader2 size={16} className="animate-spin" />
-          ) : (
-            <>
-              <Trophy size={16} />
-              <span>Claim Daily Champion Reward!</span>
-            </>
-          )}
-        </button>
-      )}
-
-      {/* Claimed state */}
-      {isClaimed && (
-        <div className="text-center py-1 text-yellow-600 font-medium">
-          Champion reward claimed!
-        </div>
-      )}
-    </motion.div>
   );
 };
 

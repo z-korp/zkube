@@ -23,15 +23,17 @@ private_key = "0x3e3979c1ed728490308054fe357a9f49cf67f80f9721f44cc57235129e090f4
 
 [writers]
 # Models
-"zkube_budo_v1_2_0-Game" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-shop_system", "zkube_budo_v1_2_0-level_system", "zkube_budo_v1_2_0-grid_system"]
-"zkube_budo_v1_2_0-GameSeed" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-shop_system"]
+"zkube_budo_v1_2_0-Game" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system", "zkube_budo_v1_2_0-grid_system", "zkube_budo_v1_2_0-draft_system"]
+"zkube_budo_v1_2_0-GameSeed" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-level_system"]
 "zkube_budo_v1_2_0-GameLevel" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system"]
 "zkube_budo_v1_2_0-GameCounter" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-GameMetadata" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-TokenMetadata" = ["zkube_budo_v1_2_0-game_system"]
-"zkube_budo_v1_2_0-PlayerMeta" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-shop_system"]
+"zkube_budo_v1_2_0-PlayerMeta" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system"]
 "zkube_budo_v1_2_0-GameSettings" = ["zkube_budo_v1_2_0-config_system"]
 "zkube_budo_v1_2_0-GameSettingsMetadata" = ["zkube_budo_v1_2_0-config_system"]
+"zkube_budo_v1_2_0-PlayerSkillTree" = ["zkube_budo_v1_2_0-skill_tree_system"]
+"zkube_budo_v1_2_0-DraftState" = ["zkube_budo_v1_2_0-draft_system", "zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system"]
 # Events
 "zkube_budo_v1_2_0-StartGame" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-UseBonus" = ["zkube_budo_v1_2_0-bonus_system"]
@@ -40,9 +42,10 @@ private_key = "0x3e3979c1ed728490308054fe357a9f49cf67f80f9721f44cc57235129e090f4
 "zkube_budo_v1_2_0-RunEnded" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system"]
 "zkube_budo_v1_2_0-RunCompleted" = ["zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system"]
 "zkube_budo_v1_2_0-ConstraintProgress" = ["zkube_budo_v1_2_0-game_system"]
-"zkube_budo_v1_2_0-ConsumablePurchased" = ["zkube_budo_v1_2_0-shop_system"]
-"zkube_budo_v1_2_0-BonusLevelUp" = ["zkube_budo_v1_2_0-shop_system"]
-"zkube_budo_v1_2_0-BonusUnlocked" = ["zkube_budo_v1_2_0-shop_system"]
+# Draft system events
+"zkube_budo_v1_2_0-DraftOpened" = ["zkube_budo_v1_2_0-draft_system"]
+"zkube_budo_v1_2_0-DraftRerolled" = ["zkube_budo_v1_2_0-draft_system"]
+"zkube_budo_v1_2_0-DraftSelected" = ["zkube_budo_v1_2_0-draft_system"]
 # Quest system models and events
 "zkube_budo_v1_2_0-QuestDefinition" = ["zkube_budo_v1_2_0-quest_system"]
 "zkube_budo_v1_2_0-QuestCompletion" = ["zkube_budo_v1_2_0-quest_system"]
@@ -74,4 +77,5 @@ private_key = "0x3e3979c1ed728490308054fe357a9f49cf67f80f9721f44cc57235129e090f4
 ]
 "zkube_budo_v1_2_0-config_system" = [
     "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",  # account address
+    "0x4a26e3f67dae6f4049f80a418b2c11cbf3b88f5e15c11fd3ecbd6608b31b8bd",
 ]

@@ -106,9 +106,15 @@ pub impl QuestImpl of IQuest {
             QuestType::DailyComboOne => quests::combo::DailyComboOne::props(registry),
             QuestType::DailyComboTwo => quests::combo::DailyComboTwo::props(registry),
             QuestType::DailyComboThree => quests::combo::DailyComboThree::props(registry),
-            QuestType::DailyComboStreakOne => quests::combo_streak::DailyComboStreakOne::props(registry),
-            QuestType::DailyComboStreakTwo => quests::combo_streak::DailyComboStreakTwo::props(registry),
-            QuestType::DailyComboStreakThree => quests::combo_streak::DailyComboStreakThree::props(registry),
+            QuestType::DailyComboStreakOne => quests::combo_streak::DailyComboStreakOne::props(
+                registry,
+            ),
+            QuestType::DailyComboStreakTwo => quests::combo_streak::DailyComboStreakTwo::props(
+                registry,
+            ),
+            QuestType::DailyComboStreakThree => quests::combo_streak::DailyComboStreakThree::props(
+                registry,
+            ),
             QuestType::DailyFinisher => quests::finisher::DailyFinisher::props(registry),
             _ => Default::default(),
         }

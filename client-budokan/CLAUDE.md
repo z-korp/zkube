@@ -2,7 +2,7 @@
 
 ## Overview
 
-React 18.3.1 + TypeScript frontend for the zKube puzzle game. Uses Dojo SDK for blockchain interaction, Cartridge Controller for wallet management, and integrates with Starknet.
+React 19.2.4 + TypeScript frontend for the zKube puzzle game. Uses Dojo SDK for blockchain interaction, Cartridge Controller for wallet management, and integrates with Starknet.
 
 ## Directory Structure
 
@@ -37,9 +37,18 @@ client-budokan/
 │   │       │   └── constraint.ts
 │   │       └── elements/bonuses/ # Bonus implementations
 │   ├── ui/                   # React components
-│   │   ├── screens/          # Page components
-│   │   │   ├── Home.tsx      # Main menu with game list
-│   │   │   ├── Play.tsx      # Game screen
+│   │   ├── pages/            # Page components (11 pages)
+│   │   │   ├── HomePage.tsx
+│   │   │   ├── PlayScreen.tsx
+│   │   │   ├── MapPage.tsx
+│   │   │   ├── ShopPage.tsx
+│   │   │   ├── InGameShopPage.tsx
+│   │   │   ├── QuestsPage.tsx
+│   │   │   ├── MyGamesPage.tsx
+│   │   │   ├── LeaderboardPage.tsx
+│   │   │   ├── SettingsPage.tsx
+│   │   │   └── TutorialPage.tsx
+│   │   ├── screens/          # Legacy screens
 │   │   │   └── Loading.tsx   # Loading screen
 │   │   ├── components/       # Reusable components (50+)
 │   │   │   ├── GameBoard.tsx # Game board container
@@ -51,7 +60,6 @@ client-budokan/
 │   │   │   ├── GameOverDialog.tsx
 │   │   │   ├── VictoryDialog.tsx # Level 50 victory modal
 │   │   │   ├── LevelCompleteDialog.tsx
-│   │   │   ├── LoadoutDialog.tsx # Bonus selection at run start
 │   │   │   ├── CubeBalance.tsx # CUBE token balance
 │   │   │   ├── Connect.tsx   # Wallet connect button
 │   │   │   ├── Shop/         # Shop components
@@ -80,32 +88,39 @@ client-budokan/
 │   │   │   └── ...
 │   │   ├── theme/            # Theme assets
 │   │   └── actions/          # Action components
-│   ├── hooks/                # Custom React hooks
-│   │   ├── useGame.tsx       # Game state from RECS
-│   │   ├── useGrid.tsx       # Grid state management
-│   │   ├── useGridAnimations.ts # Animation state
-│   │   ├── useDragHandlers.tsx # Drag/drop handlers
-│   │   ├── useTransitionBlocks.ts # Block transitions
-│   │   ├── useAccountCustom.tsx # Account wrapper
-│   │   ├── useCubeBalance.tsx # ERC1155 CUBE balance
-│   │   ├── usePlayerMeta.tsx # Player progression
-│   │   ├── useSettings.tsx   # Game settings
-│   │   ├── useGames.tsx      # All games query
-│   │   ├── useGameTokensSlot.ts # Slot-mode game tokens
-│   │   ├── useDeepMemo.tsx   # Deep comparison memo
-│   │   ├── useViewport.tsx   # Viewport management
-│   │   ├── useControllerUsername.tsx
+│   ├── hooks/                # Custom React hooks (19)
+│   │   ├── useAccountCustom.tsx
+│   │   ├── useControllerUsername.ts
+│   │   ├── useCubeBalance.tsx   # ERC20 CUBE balance
+│   │   ├── useDeepMemo.tsx
+│   │   ├── useGame.tsx
+│   │   ├── useGameLevel.tsx     # Level config from Torii
+│   │   ├── useGameTokensSlot.ts
+│   │   ├── useGetUsernames.ts
+│   │   ├── useGrid.tsx
+│   │   ├── useGridAnimations.ts
+│   │   ├── useLeaderboardSlot.ts
+│   │   ├── useLerpNumber.tsx
+│   │   ├── useMapData.ts        # Map progression data
+│   │   ├── useMapLayout.ts      # Map layout generation
 │   │   ├── useNftBalance.ts
-│   │   └── useLerpNumber.tsx
+│   │   ├── usePlayerMeta.tsx
+│   │   ├── useSettings.tsx
+│   │   ├── useTransitionBlocks.ts
+│   │   └── useViewport.tsx
 │   ├── stores/               # Zustand state stores
+│   │   ├── cubeBalanceStore.ts # CUBE balance cache
 │   │   ├── generalStore.ts   # App-wide state
-│   │   └── moveTxStore.ts    # Move transaction state
+│   │   ├── moveTxStore.ts    # Move transaction state
+│   │   └── navigationStore.ts # Navigation state
 │   ├── contexts/             # React contexts
-│   │   ├── music.tsx         # MusicPlayerContext/Provider
-│   │   ├── sound.tsx         # SoundPlayerContext/Provider
-│   │   ├── quests.tsx        # QuestsProvider
+│   │   ├── controllers.tsx   # ControllersProvider
+│   │   ├── gameEvents.tsx    # GameEventsProvider
+│   │   ├── hooks.ts          # Context hooks
 │   │   ├── MetagameProvider.tsx
-│   │   └── hooks.ts          # Context hooks
+│   │   ├── music.tsx         # MusicPlayerContext/Provider
+│   │   ├── quests.tsx        # QuestsProvider
+│   │   └── sound.tsx         # SoundPlayerContext/Provider
 │   ├── config/               # Configuration
 │   │   ├── manifest.ts       # Dojo world manifest
 │   │   ├── manifest_slot.json
@@ -136,11 +151,15 @@ client-budokan/
       <MusicPlayerProvider>    {/* Background music */}
         <MetagameProvider>     {/* Metagame SDK */}
           <DojoProvider>       {/* Dojo client */}
-            <QuestsProvider>   {/* Quest state */}
-              <SoundPlayerProvider> {/* Sound effects */}
-                <App />
-              </SoundPlayerProvider>
-            </QuestsProvider>
+            <ControllersProvider> {/* Controller state */}
+              <QuestsProvider>   {/* Quest state */}
+                <GameEventsProvider> {/* Game events */}
+                  <SoundPlayerProvider> {/* Sound effects */}
+                    <App />
+                  </SoundPlayerProvider>
+                </GameEventsProvider>
+              </QuestsProvider>
+            </ControllersProvider>
           </DojoProvider>
         </MetagameProvider>
       </MusicPlayerProvider>
@@ -235,15 +254,15 @@ const {
 - Abstracts mouse vs touch input
 
 ### `useCubeBalance()`
-- Fetches ERC1155 CUBE balance via Torii GraphQL
+- Fetches ERC20 CUBE balance via Torii
 - Polls every 10 seconds
 - Normalizes addresses for comparison
 
 ### `usePlayerMeta()`
 - Fetches player progression data
 - Unpacks packed `data` field into:
-  - Starting bonuses (hammer, wave, totem)
-  - Bag sizes (hammer, wave, totem)
+  - Starting bonuses (combo, score, harvest, wave, supply)
+  - Bag sizes (combo, score, harvest, wave, supply)
   - Bridging rank
   - Total runs, total cubes earned
 
@@ -260,6 +279,17 @@ const {
 ### `useDeepMemo(factory, deps)`
 - Like useMemo but with deep comparison
 - Prevents unnecessary re-renders
+
+### `useGameLevel({ gameId })`
+- Fetches GameLevel model from Torii
+- Returns current level config (points, moves, constraints, thresholds)
+
+### `useMapData()`
+- Returns level progression data for map display
+- Extracts star ratings from level_stars field
+
+### `useMapLayout()`
+- Generates map node layout from level data
 
 ## State Management
 
@@ -288,6 +318,12 @@ interface MoveState {
 }
 ```
 
+**navigationStore.ts:**
+- Navigation state management
+
+**cubeBalanceStore.ts:**
+- CUBE balance caching and updates
+
 ### React Contexts
 
 **QuestsProvider (`contexts/quests.tsx`):**
@@ -302,6 +338,12 @@ interface MoveState {
 **SoundPlayerProvider (`contexts/sound.tsx`):**
 - Game sound effects
 - Triggered by game state changes
+
+**ControllersProvider (`contexts/controllers.tsx`):**
+- Controller state management
+
+**GameEventsProvider (`contexts/gameEvents.tsx`):**
+- Game event subscriptions and handling
 
 ## Grid Representation
 
@@ -364,7 +406,7 @@ VITE_PUBLIC_MASTER_ADDRESS=  # Dev master address
 VITE_PUBLIC_MASTER_PRIVATE_KEY= # Dev private key
 VITE_PUBLIC_WORLD_ADDRESS=   # Dojo world contract address
 VITE_PUBLIC_GAME_TOKEN_ADDRESS= # FullTokenContract (ERC721) address
-VITE_PUBLIC_CUBE_TOKEN_ADDRESS= # CubeToken (ERC1155) address
+VITE_PUBLIC_CUBE_TOKEN_ADDRESS= # CubeToken (ERC20) address
 ```
 
 ## Build Modes
@@ -425,7 +467,7 @@ Shadcn-based components:
 ## Audio
 
 - **MusicPlayerProvider:** Background music management
-- **SoundPlayerProvider:** Sound effects (use-sound library with Howler.js)
+- **SoundPlayerProvider:** Sound effects (Howler.js)
 - Sounds in `public/assets/theme-1/sounds/`
 
 ## Wallet Integration
@@ -454,23 +496,23 @@ Tests use Vitest + Testing Library, located in `src/test/`.
 
 ```json
 {
-  "@dojoengine/core": "^1.8.1",
-  "@dojoengine/sdk": "^1.8.1",
-  "@dojoengine/react": "^1.8.1",
-  "@dojoengine/recs": "2.0.13",
-  "@dojoengine/state": "^1.8.4",
-  "@dojoengine/torii-client": "^1.8.1",
-  "@cartridge/controller": "^0.10.7",
-  "@starknet-react/core": "^5.0.1",
+  "@dojoengine/core": "1.8.8",
+  "@dojoengine/sdk": "1.9.0",
+  "@dojoengine/react": "1.8.8",
+  "@dojoengine/state": "1.8.8",
+  "@dojoengine/torii-client": "1.8.8",
+  "@cartridge/controller": "0.13.9",
+  "@starknet-react/core": "5.0.1",
   "starknet": "8.5.2",
-  "react": "^18.3.1",
-  "zustand": "^4.5.5",
-  "framer-motion": "^11.2.10",
-  "gsap": "^3.12.5",
-  "use-sound": "^4.0.1",
+  "react": "19.2.4",
+  "zustand": "5.0.11",
+  "motion": "12.34.1",
+  "gsap": "3.14.2",
+  "howler": "2.2.4",
   "metagame-sdk": "0.1.22"
-}
+  }
 ```
+
 
 ## Important Patterns
 

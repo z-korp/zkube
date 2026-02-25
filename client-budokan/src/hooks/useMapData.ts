@@ -6,15 +6,26 @@ import {
   type Level,
 } from "@/dojo/game/types/level";
 import { THEME_IDS, type ThemeId } from "@/config/themes";
+import type { DraftStateData } from "@/hooks/useDraft";
+import {
+  getDraftEventsForZone,
+  isDraftEventCompleted,
+} from "@/utils/draftEvents";
 
-export type NodeType = "classic" | "shop" | "boss";
-export type NodeState = "locked" | "cleared" | "current" | "available" | "visited";
+export type NodeType = "classic" | "draft" | "boss";
+export type NodeState =
+  | "locked"
+  | "cleared"
+  | "current"
+  | "available"
+  | "visited";
 
 export interface MapNodeData {
   nodeIndex: number;
   zone: number;
   nodeInZone: number;
   type: NodeType;
+  draftPhase: "entry" | "mid" | null;
   contractLevel: number | null;
   displayLabel: string;
   state: NodeState;
@@ -32,14 +43,19 @@ export interface MapData {
 export interface UseMapDataParams {
   seed: bigint;
   currentLevel: number;
+  draftState?: DraftStateData | null;
 }
 
-export const NODES_PER_ZONE = 11;
+export const NODES_PER_ZONE = 12;
 export const CLASSIC_PER_ZONE = 9;
 export const TOTAL_ZONES = 5;
 export const GAMEPLAY_LEVELS = 50;
 const LEVELS_PER_ZONE = 10;
 const ZONE_THEMES_SELECTOR = BigInt("0x5a4f4e455f5448454d4553");
+const MICRO_DRAFT_SELECTOR = BigInt("0x44524146545f4d4943524f");
+export const ENTRY_DRAFT_NODE_IN_ZONE = 0;
+export const MID_DRAFT_NODE_IN_ZONE = 5;
+export const BOSS_NODE_IN_ZONE = NODES_PER_ZONE - 1;
 
 export const MAP_NODE_POSITIONS: ReadonlyArray<{ x: number; y: number }> = [
   { x: 0.35, y: 0.92 },
@@ -60,31 +76,68 @@ function poseidon(values: bigint[]): bigint {
 }
 
 function getNodeType(nodeInZone: number): NodeType {
-  if (nodeInZone < CLASSIC_PER_ZONE) return "classic";
-  if (nodeInZone === CLASSIC_PER_ZONE) return "shop";
-  return "boss";
+  if (nodeInZone === BOSS_NODE_IN_ZONE) return "boss";
+  if (
+    nodeInZone === ENTRY_DRAFT_NODE_IN_ZONE ||
+    nodeInZone === MID_DRAFT_NODE_IN_ZONE
+  ) {
+    return "draft";
+  }
+  return "classic";
 }
 
-function getMapNode(nodeIndex: number): Omit<MapNodeData, "state" | "levelConfig" | "zoneTheme"> {
+function getDraftPhase(nodeInZone: number): "entry" | "mid" | null {
+  if (nodeInZone === ENTRY_DRAFT_NODE_IN_ZONE) return "entry";
+  if (nodeInZone === MID_DRAFT_NODE_IN_ZONE) return "mid";
+  return null;
+}
+
+function getZoneMicroDraftTriggerLevel(seed: bigint, zone: number): number {
+  const start = (zone - 1) * LEVELS_PER_ZONE + 1;
+  const hashed = poseidon([seed, MICRO_DRAFT_SELECTOR, BigInt(zone)]);
+  const abs = hashed < 0n ? -hashed : hashed;
+  const offset = Number(abs % 7n);
+  return start + 1 + offset;
+}
+
+function getMapNode(
+  nodeIndex: number,
+): Omit<MapNodeData, "state" | "levelConfig" | "zoneTheme"> {
   const zone = Math.floor(nodeIndex / NODES_PER_ZONE) + 1;
   const nodeInZone = nodeIndex % NODES_PER_ZONE;
   const type = getNodeType(nodeInZone);
+  const draftPhase = getDraftPhase(nodeInZone);
 
   let contractLevel: number | null = null;
   if (type === "classic") {
-    contractLevel = (zone - 1) * LEVELS_PER_ZONE + nodeInZone + 1;
+    const zoneStartLevel = (zone - 1) * LEVELS_PER_ZONE + 1;
+    if (nodeInZone < MID_DRAFT_NODE_IN_ZONE) {
+      // nodeInZone 1-4 → levels 1-4 (subtract 1 for entry draft at 0)
+      contractLevel = zoneStartLevel + (nodeInZone - 1);
+    } else {
+      // nodeInZone 6-10 → levels 5-9 (subtract 2 for both drafts)
+      contractLevel = zoneStartLevel + (nodeInZone - 2);
+    }
   } else if (type === "boss") {
     contractLevel = zone * LEVELS_PER_ZONE;
   }
 
   const displayLabel =
-    type === "shop"
-      ? `${zone}-SHOP`
+    type === "draft"
+      ? `${zone}-DRAFT`
       : type === "boss"
         ? `${zone}-BOSS`
-        : `${zone}-${nodeInZone + 1}`;
+        : `${contractLevel ?? ""}`;
 
-  return { nodeIndex, zone, nodeInZone, type, contractLevel, displayLabel };
+  return {
+    nodeIndex,
+    zone,
+    nodeInZone,
+    type,
+    draftPhase,
+    contractLevel,
+    displayLabel,
+  };
 }
 
 function getAllNodes(): ReturnType<typeof getMapNode>[] {
@@ -100,10 +153,14 @@ export function contractLevelToNodeIndex(contractLevel: number): number {
   const levelInZone = contractLevel - (zone - 1) * LEVELS_PER_ZONE;
 
   if (levelInZone === LEVELS_PER_ZONE) {
-    return (zone - 1) * NODES_PER_ZONE + NODES_PER_ZONE - 1;
+    return (zone - 1) * NODES_PER_ZONE + BOSS_NODE_IN_ZONE;
   }
 
-  return (zone - 1) * NODES_PER_ZONE + (levelInZone - 1);
+  // Levels 1-4 → nodeInZone 1-4 (entry draft at 0)
+  // Levels 5-9 → nodeInZone 6-10 (mid draft at 5)
+  const nodeInZone =
+    levelInZone <= 4 ? levelInZone : levelInZone + 1;
+  return (zone - 1) * NODES_PER_ZONE + nodeInZone;
 }
 
 export function getZone(level: number): number {
@@ -115,6 +172,8 @@ function getNodeState(
   node: ReturnType<typeof getMapNode>,
   currentLevel: number,
   currentNodeIndex: number,
+  seed: bigint,
+  draftState?: DraftStateData | null,
 ): NodeState {
   if (node.contractLevel !== null && node.contractLevel < currentLevel) {
     return "cleared";
@@ -124,14 +183,38 @@ function getNodeState(
     return "current";
   }
 
-  if (node.type === "shop") {
-    const bossLevel = node.zone * 10;
-    const lastClassicInZone = bossLevel - 1;
-    if (currentLevel > lastClassicInZone && currentLevel <= bossLevel) {
+  if (node.type === "draft") {
+    const zoneStartLevel = (node.zone - 1) * LEVELS_PER_ZONE + 1;
+    const zoneEndLevel = node.zone * LEVELS_PER_ZONE;
+
+    if (node.draftPhase === "entry") {
+      const unlockLevel = node.zone === 1 ? 1 : zoneStartLevel;
+      if (currentLevel < unlockLevel) return "locked";
+      if (currentLevel > zoneEndLevel) return "visited";
+
+      // Check if this entry draft has been completed
+      const events = getDraftEventsForZone(seed, node.zone);
+      const entryEvent = events.find(
+        (e) => e.type === "post_level_1" || e.type === "post_boss",
+      );
+      if (entryEvent && isDraftEventCompleted(draftState ?? null, entryEvent)) {
+        return "visited";
+      }
       return "available";
     }
-    if (currentLevel > bossLevel) return "visited";
-    return "locked";
+
+    // Mid draft: triggers when completed_level == trigger, so player is at trigger+1
+    const trigger = getZoneMicroDraftTriggerLevel(seed, node.zone);
+    if (currentLevel <= trigger) return "locked";
+    if (currentLevel > zoneEndLevel) return "visited";
+
+    // Check if this mid-draft has been completed
+    const events = getDraftEventsForZone(seed, node.zone);
+    const midEvent = events.find((e) => e.type === "zone_micro");
+    if (midEvent && isDraftEventCompleted(draftState ?? null, midEvent)) {
+      return "visited";
+    }
+    return "available";
   }
 
   if (node.contractLevel !== null && node.contractLevel === currentLevel) {
@@ -148,7 +231,9 @@ export function deriveZoneThemes(seed: bigint): ThemeId[] {
   for (let i = 0; i < TOTAL_ZONES; i++) {
     const stepSeed = poseidon([zoneSeed, BigInt(i)]);
     const remaining = themes.length - i;
-    const offset = Number((stepSeed < 0n ? -stepSeed : stepSeed) % BigInt(remaining));
+    const offset = Number(
+      (stepSeed < 0n ? -stepSeed : stepSeed) % BigInt(remaining),
+    );
     const j = i + offset;
     [themes[i], themes[j]] = [themes[j], themes[i]];
   }
@@ -156,7 +241,11 @@ export function deriveZoneThemes(seed: bigint): ThemeId[] {
   return themes.slice(0, TOTAL_ZONES);
 }
 
-export function generateMapData({ seed, currentLevel }: UseMapDataParams): MapData {
+export function generateMapData({
+  seed,
+  currentLevel,
+  draftState,
+}: UseMapDataParams): MapData {
   const clampedLevel = Math.max(1, Math.min(GAMEPLAY_LEVELS, currentLevel));
   const zoneThemes = deriveZoneThemes(seed);
   const allNodes = getAllNodes();
@@ -168,7 +257,7 @@ export function generateMapData({ seed, currentLevel }: UseMapDataParams): MapDa
         ? generateLevelConfig(seed, node.contractLevel, DEFAULT_SETTINGS)
         : null;
 
-    const state = getNodeState(node, clampedLevel, currentNodeIndex);
+    const state = getNodeState(node, clampedLevel, currentNodeIndex, seed, draftState);
 
     return {
       ...node,
@@ -186,9 +275,9 @@ export function generateMapData({ seed, currentLevel }: UseMapDataParams): MapDa
   };
 }
 
-export function useMapData({ seed, currentLevel }: UseMapDataParams): MapData {
+export function useMapData({ seed, currentLevel, draftState }: UseMapDataParams): MapData {
   return useMemo(
-    () => generateMapData({ seed, currentLevel }),
-    [seed, currentLevel],
+    () => generateMapData({ seed, currentLevel, draftState }),
+    [seed, currentLevel, draftState],
   );
 }

@@ -19,7 +19,7 @@ pub trait IMockVrfProvider<TContractState> {
 pub mod MockVrfProvider {
     use core::poseidon::poseidon_hash_span;
     use starknet::storage::{Map, StorageMapReadAccess, StorageMapWriteAccess};
-    use starknet::{ContractAddress, get_caller_address, get_block_timestamp, get_tx_info};
+    use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_tx_info};
     use super::Source;
 
     #[storage]
@@ -31,9 +31,7 @@ pub mod MockVrfProvider {
     #[abi(embed_v0)]
     impl MockVrfProviderImpl of super::IMockVrfProvider<ContractState> {
         // No-op, just for compatibility with real VRF
-        fn request_random(
-            self: @ContractState, caller: ContractAddress, source: Source,
-        ) {}
+        fn request_random(self: @ContractState, caller: ContractAddress, source: Source) {}
 
         // Returns pseudo-random value based on source + tx hash + timestamp
         fn consume_random(ref self: ContractState, source: Source) -> felt252 {
@@ -46,12 +44,15 @@ pub mod MockVrfProvider {
                     let nonce = self.nonces.read(addr);
                     self.nonces.write(addr, nonce + 1);
                     poseidon_hash_span(
-                        array![nonce, addr.into(), caller.into(), tx_info.transaction_hash, timestamp].span(),
+                        array![
+                            nonce, addr.into(), caller.into(), tx_info.transaction_hash, timestamp,
+                        ]
+                            .span(),
                     )
                 },
                 Source::Salt(salt) => {
                     poseidon_hash_span(
-                        array![salt, caller.into(), tx_info.transaction_hash, timestamp].span()
+                        array![salt, caller.into(), tx_info.transaction_hash, timestamp].span(),
                     )
                 },
             };

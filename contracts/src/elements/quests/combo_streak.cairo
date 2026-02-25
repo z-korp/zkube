@@ -2,7 +2,9 @@
 use quest::types::reward::RewardTrait;
 use quest::types::task::{Task as QuestTask, TaskTrait as QuestTaskTrait};
 use starknet::ContractAddress;
-use crate::elements::tasks::combo_streak::{ComboStreakFifteen, ComboStreakTwenty, ComboStreakTwentyFive};
+use crate::elements::tasks::combo_streak::{
+    ComboStreakFifteen, ComboStreakTwenty, ComboStreakTwentyFive,
+};
 use super::index::{ICON, ONE_DAY, QuestMetadataTrait, QuestProps, QuestTrait};
 
 /// DailyComboStreakOne - Reach a 15+ combo streak (rewards 3 CUBE)

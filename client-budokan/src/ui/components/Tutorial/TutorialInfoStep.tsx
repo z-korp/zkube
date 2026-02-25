@@ -5,6 +5,7 @@ import { Button } from "@/ui/elements/button";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import type { InfoStep, InfoItem } from "./tutorialSteps";
+import CubeIcon from "@/ui/components/CubeIcon";
 
 interface TutorialInfoStepProps {
   step: InfoStep;
@@ -82,7 +83,7 @@ const TutorialInfoStep: React.FC<TutorialInfoStepProps> = ({
           <div className="flex items-center gap-2">
             {Array.from({ length: item.cubes || 1 }).map((_, i) => (
               <span key={i} className="text-xl">
-                🧊
+                <CubeIcon size="lg" />
               </span>
             ))}
           </div>

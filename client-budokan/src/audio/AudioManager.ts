@@ -49,17 +49,6 @@ export class AudioManager {
     const settings = loadAudioSettings();
     this.musicVolume = clampVolume(settings.musicVolume);
     this.effectsVolume = clampVolume(settings.effectsVolume);
-
-    (Object.keys(SFX_PATHS) as SfxName[]).forEach((name) => {
-      this.sfxHowls.set(
-        name,
-        new Howl({
-          src: [SFX_PATHS[name]],
-          volume: this.effectsVolume,
-          loop: false,
-        }),
-      );
-    });
   }
 
   public playMusic(themeId: ThemeId, context: MusicContext): void {
@@ -155,10 +144,7 @@ export class AudioManager {
   }
 
   public playSfx(name: SfxName): void {
-    const howl = this.sfxHowls.get(name);
-    if (!howl) {
-      return;
-    }
+    const howl = this.getOrCreateSfx(name);
     howl.play();
   }
 
@@ -254,6 +240,22 @@ export class AudioManager {
     });
 
     this.musicHowls.set(url, created);
+    return created;
+  }
+
+  private getOrCreateSfx(name: SfxName): Howl {
+    const existing = this.sfxHowls.get(name);
+    if (existing) {
+      return existing;
+    }
+
+    const created = new Howl({
+      src: [SFX_PATHS[name]],
+      volume: this.effectsVolume,
+      loop: false,
+    });
+
+    this.sfxHowls.set(name, created);
     return created;
   }
 

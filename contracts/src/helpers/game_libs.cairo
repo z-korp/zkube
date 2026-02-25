@@ -1,35 +1,39 @@
 //! GameLibs - Bundled dispatcher pattern for cross-system calls.
-//! 
+//!
 //! Inspired by death-mountain's GameLibs pattern. Provides a single initialization
 //! point for all system dispatchers, reducing boilerplate and ensuring type safety.
-//! 
+//!
 //! Usage:
 //! ```cairo
 //! use zkube::helpers::game_libs::{GameLibs, GameLibsImpl};
-//! 
+//!
 //! let libs = GameLibsImpl::new(world);
-//! libs.level.complete_level(game_id);
+//! libs.level.finalize_level(game_id, skill_data);
 //! libs.grid.execute_move(game_id, row, start, end);
 //! libs.cube.mint(player, amount);
 //! ```
 
 use dojo::world::{WorldStorage, WorldStorageTrait};
 use starknet::ContractAddress;
+use zkube::constants::DEFAULT_SETTINGS::is_default_settings;
+pub use zkube::systems::achievement::{
+    IAchievementSystemDispatcher, IAchievementSystemDispatcherTrait,
+};
+pub use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
+pub use zkube::systems::cube_token::{ICubeTokenDispatcher, ICubeTokenDispatcherTrait};
+pub use zkube::systems::draft::{IDraftSystemDispatcher, IDraftSystemDispatcherTrait};
+pub use zkube::systems::grid::{IGridSystemDispatcher, IGridSystemDispatcherTrait};
 
 // Re-export dispatcher types and traits for convenience
 pub use zkube::systems::level::{ILevelSystemDispatcher, ILevelSystemDispatcherTrait};
-pub use zkube::systems::grid::{IGridSystemDispatcher, IGridSystemDispatcherTrait};
-pub use zkube::systems::cube_token::{ICubeTokenDispatcher, ICubeTokenDispatcherTrait};
 pub use zkube::systems::quest::{IQuestSystemDispatcher, IQuestSystemDispatcherTrait};
-pub use zkube::systems::achievement::{IAchievementSystemDispatcher, IAchievementSystemDispatcherTrait};
-
-use zkube::constants::DEFAULT_SETTINGS::is_default_settings;
 
 /// Bundled dispatchers for all game systems.
 /// Initialize once with GameLibsImpl::new(world) and use throughout the function.
 #[derive(Copy, Drop)]
 pub struct GameLibs {
     pub level: ILevelSystemDispatcher,
+    pub draft: IDraftSystemDispatcher,
     pub grid: IGridSystemDispatcher,
     pub cube: ICubeTokenDispatcher,
     pub quest: Option<IQuestSystemDispatcher>,
@@ -41,41 +45,44 @@ pub impl GameLibsImpl of GameLibsTrait {
     /// Create a new GameLibs bundle from world storage.
     /// Performs DNS lookups for all required systems.
     fn new(world: WorldStorage) -> GameLibs {
-        let level_addr = world.dns_address(@"level_system")
-            .expect('LevelSystem not found in DNS');
-        let grid_addr = world.dns_address(@"grid_system")
-            .expect('GridSystem not found in DNS');
-        let cube_addr = world.dns_address(@"cube_token")
-            .expect('CubeToken not found in DNS');
-        
+        let level_addr = world.dns_address(@"level_system").expect('LevelSystem not found in DNS');
+        let draft_addr = world.dns_address(@"draft_system").expect('DraftSystem not found in DNS');
+        let grid_addr = world.dns_address(@"grid_system").expect('GridSystem not found in DNS');
+        let config_addr = world
+            .dns_address(@"config_system")
+            .expect('ConfigSystem not found in DNS');
+        let config = IConfigSystemDispatcher { contract_address: config_addr };
+        let cube_addr = config.get_cube_token_address();
+
         // Quest system is optional (may not be deployed during migration)
         let quest = match world.dns_address(@"quest_system") {
-            Option::Some(addr) => Option::Some(
-                IQuestSystemDispatcher { contract_address: addr }
-            ),
+            Option::Some(addr) => Option::Some(IQuestSystemDispatcher { contract_address: addr }),
             Option::None => Option::None,
         };
-        
+
         // Achievement system is optional (may not be deployed during migration)
         let achievement = match world.dns_address(@"achievement_system") {
             Option::Some(addr) => Option::Some(
-                IAchievementSystemDispatcher { contract_address: addr }
+                IAchievementSystemDispatcher { contract_address: addr },
             ),
             Option::None => Option::None,
         };
-        
+
         GameLibs {
             level: ILevelSystemDispatcher { contract_address: level_addr },
+            draft: IDraftSystemDispatcher { contract_address: draft_addr },
             grid: IGridSystemDispatcher { contract_address: grid_addr },
             cube: ICubeTokenDispatcher { contract_address: cube_addr },
             quest,
             achievement,
         }
     }
-    
+
     /// Track quest progress for a player.
     /// No-op if quest system not deployed or using custom settings.
-    fn track_quest(self: @GameLibs, player: ContractAddress, task_id: felt252, count: u32, settings_id: u32) {
+    fn track_quest(
+        self: @GameLibs, player: ContractAddress, task_id: felt252, count: u32, settings_id: u32,
+    ) {
         // Only track for default settings games
         if !is_default_settings(settings_id) {
             return;
@@ -84,10 +91,12 @@ pub impl GameLibsImpl of GameLibsTrait {
             quest.progress(player, task_id, count);
         }
     }
-    
+
     /// Track achievement progress for a player.
     /// No-op if achievement system not deployed or using custom settings.
-    fn track_achievement(self: @GameLibs, player: ContractAddress, task_id: felt252, count: u32, settings_id: u32) {
+    fn track_achievement(
+        self: @GameLibs, player: ContractAddress, task_id: felt252, count: u32, settings_id: u32,
+    ) {
         // Only track for default settings games
         if !is_default_settings(settings_id) {
             return;

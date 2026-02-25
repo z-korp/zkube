@@ -537,7 +537,7 @@ Square format. Dark atmospheric background. No text, no logos.
 | `common/constraints/achieve-combo.png` | 128×128 | ❌ |
 | `common/constraints/fill-and-clear.png` | 128×128 | ❌ |
 | `common/constraints/no-bonus-used.png` | 128×128 | ❌ |
-| `common/constraints/clear-grid.png` | 128×128 | ❌ |
+| `common/constraints/constraint-keep-grid-below.png` | 128×128 | ✅ |
 
 **Constraint Icon Prompt:**
 ```
@@ -550,12 +550,12 @@ Centered. Square. Dark background.
 
 | Constraint | Description |
 |------------|------------|
-| ClearLines | Three horizontal lines stacked, top line has sparkle burst |
+| ComboLines | Three horizontal lines stacked, top line has sparkle burst |
 | BreakBlocks | A block with visible crack lines splitting it |
-| AchieveCombo | Chain links with lightning spark at junction |
+| ComboStreak | Chain links with lightning spark at junction |
 | FillAndClear | Upward arrow reaching a horizontal target line |
 | NoBonusUsed | A star with diagonal line through it (prohibition) |
-| ClearGrid | Empty grid outline with sparkle/clean sweep marks |
+| KeepGridBelow | Grid with a visible cap line and a warning marker above it |
 
 ---
 

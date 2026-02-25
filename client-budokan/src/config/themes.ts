@@ -30,11 +30,13 @@ export const THEME_META: Record<ThemeId, ThemeMeta> = {
   },
   "theme-2": {
     name: "Ancient Egypt",
-    description: "Golden pyramids at dusk with hieroglyph-covered obelisks and sun-drenched sandstone",
+    description:
+      "Golden pyramids at dusk with hieroglyph-covered obelisks and sun-drenched sandstone",
   },
   "theme-3": {
     name: "Norse",
-    description: "Frost-covered viking realm with heavy rune stones, iron-clad shields, and aurora-lit skies",
+    description:
+      "Frost-covered viking realm with heavy rune stones, iron-clad shields, and aurora-lit skies",
   },
   "theme-4": {
     name: "Ancient Greece",
@@ -43,23 +45,28 @@ export const THEME_META: Record<ThemeId, ThemeMeta> = {
   },
   "theme-5": {
     name: "Feudal Japan",
-    description: "Black lacquer dojo with red trim, brushstroke calligraphy, and cherry blossom petals",
+    description:
+      "Black lacquer dojo with red trim, brushstroke calligraphy, and cherry blossom petals",
   },
   "theme-6": {
     name: "Ancient China",
-    description: "Imperial jade palace with dragon-scale overlays, golden calligraphy, and mystical mist",
+    description:
+      "Imperial jade palace with dragon-scale overlays, golden calligraphy, and mystical mist",
   },
   "theme-7": {
     name: "Ancient Persia",
-    description: "Regal Persian palace with blue geometric tile mosaics, golden relief carvings, and luminous symmetry",
+    description:
+      "Regal Persian palace with blue geometric tile mosaics, golden relief carvings, and luminous symmetry",
   },
   "theme-8": {
     name: "Mayan",
-    description: "Dense jungle temple ruins with carved stone, calendar glyphs, and moss-covered ancient masonry",
+    description:
+      "Dense jungle temple ruins with carved stone, calendar glyphs, and moss-covered ancient masonry",
   },
   "theme-9": {
     name: "Pueblo",
-    description: "Adobe desert settlement with turquoise inlays, geometric painted borders, and vast canyon skies",
+    description:
+      "Adobe desert settlement with turquoise inlays, geometric painted borders, and vast canyon skies",
   },
   "theme-10": {
     name: "Inca",
@@ -104,14 +111,26 @@ function darken(hexColor: string, amount: number): string {
   const r = parseInt(hexColor.slice(1, 3), 16);
   const g = parseInt(hexColor.slice(3, 5), 16);
   const b = parseInt(hexColor.slice(5, 7), 16);
-  return `#${Math.round(r * (1 - amount)).toString(16).padStart(2, "0")}${Math.round(g * (1 - amount)).toString(16).padStart(2, "0")}${Math.round(b * (1 - amount)).toString(16).padStart(2, "0")}`;
+  return `#${Math.round(r * (1 - amount))
+    .toString(16)
+    .padStart(2, "0")}${Math.round(g * (1 - amount))
+    .toString(16)
+    .padStart(2, "0")}${Math.round(b * (1 - amount))
+    .toString(16)
+    .padStart(2, "0")}`;
 }
 
 function lighten(hexColor: string, amount: number): string {
   const r = parseInt(hexColor.slice(1, 3), 16);
   const g = parseInt(hexColor.slice(3, 5), 16);
   const b = parseInt(hexColor.slice(5, 7), 16);
-  return `#${Math.round(r + (255 - r) * amount).toString(16).padStart(2, "0")}${Math.round(g + (255 - g) * amount).toString(16).padStart(2, "0")}${Math.round(b + (255 - b) * amount).toString(16).padStart(2, "0")}`;
+  return `#${Math.round(r + (255 - r) * amount)
+    .toString(16)
+    .padStart(2, "0")}${Math.round(g + (255 - g) * amount)
+    .toString(16)
+    .padStart(2, "0")}${Math.round(b + (255 - b) * amount)
+    .toString(16)
+    .padStart(2, "0")}`;
 }
 
 const POLYNESIAN_COLORS: ThemeColors = {
@@ -130,10 +149,26 @@ const POLYNESIAN_COLORS: ThemeColors = {
   dangerZoneAlpha: 0.25,
   accent: "#A9D8FF",
   blocks: {
-    1: { fill: "#7EC8E3", glow: darken("#7EC8E3", 0.18), highlight: lighten("#7EC8E3", 0.18) },
-    2: { fill: "#2ECFB0", glow: darken("#2ECFB0", 0.18), highlight: lighten("#2ECFB0", 0.18) },
-    3: { fill: "#1B3A6B", glow: darken("#1B3A6B", 0.18), highlight: lighten("#1B3A6B", 0.18) },
-    4: { fill: "#B0BEC5", glow: darken("#B0BEC5", 0.18), highlight: lighten("#B0BEC5", 0.18) },
+    1: {
+      fill: "#7EC8E3",
+      glow: darken("#7EC8E3", 0.18),
+      highlight: lighten("#7EC8E3", 0.18),
+    },
+    2: {
+      fill: "#2ECFB0",
+      glow: darken("#2ECFB0", 0.18),
+      highlight: lighten("#2ECFB0", 0.18),
+    },
+    3: {
+      fill: "#1B3A6B",
+      glow: darken("#1B3A6B", 0.18),
+      highlight: lighten("#1B3A6B", 0.18),
+    },
+    4: {
+      fill: "#B0BEC5",
+      glow: darken("#B0BEC5", 0.18),
+      highlight: lighten("#B0BEC5", 0.18),
+    },
   },
   particles: {
     primary: ["#7EC8E3", "#2ECFB0", "#1B3A6B", "#B0BEC5", "#A9D8FF"],
@@ -157,10 +192,26 @@ const ANCIENT_EGYPT_COLORS: ThemeColors = {
   dangerZoneAlpha: 0.25,
   accent: "#D4AF37",
   blocks: {
-    1: { fill: "#F0CF7A", glow: darken("#F0CF7A", 0.18), highlight: lighten("#F0CF7A", 0.18) },
-    2: { fill: "#6A4A1F", glow: darken("#6A4A1F", 0.18), highlight: lighten("#6A4A1F", 0.18) },
-    3: { fill: "#B8823A", glow: darken("#B8823A", 0.18), highlight: lighten("#B8823A", 0.18) },
-    4: { fill: "#8A7B64", glow: darken("#8A7B64", 0.18), highlight: lighten("#8A7B64", 0.18) },
+    1: {
+      fill: "#F0CF7A",
+      glow: darken("#F0CF7A", 0.18),
+      highlight: lighten("#F0CF7A", 0.18),
+    },
+    2: {
+      fill: "#6A4A1F",
+      glow: darken("#6A4A1F", 0.18),
+      highlight: lighten("#6A4A1F", 0.18),
+    },
+    3: {
+      fill: "#B8823A",
+      glow: darken("#B8823A", 0.18),
+      highlight: lighten("#B8823A", 0.18),
+    },
+    4: {
+      fill: "#8A7B64",
+      glow: darken("#8A7B64", 0.18),
+      highlight: lighten("#8A7B64", 0.18),
+    },
   },
   particles: {
     primary: ["#F0CF7A", "#6A4A1F", "#B8823A", "#8A7B64", "#D4AF37"],
@@ -184,10 +235,26 @@ const NORSE_COLORS: ThemeColors = {
   dangerZoneAlpha: 0.25,
   accent: "#7EB8DA",
   blocks: {
-    1: { fill: "#A9C4DF", glow: darken("#A9C4DF", 0.18), highlight: lighten("#A9C4DF", 0.18) },
-    2: { fill: "#2F4760", glow: darken("#2F4760", 0.18), highlight: lighten("#2F4760", 0.18) },
-    3: { fill: "#4C7FA3", glow: darken("#4C7FA3", 0.18), highlight: lighten("#4C7FA3", 0.18) },
-    4: { fill: "#7B6FA3", glow: darken("#7B6FA3", 0.18), highlight: lighten("#7B6FA3", 0.18) },
+    1: {
+      fill: "#A9C4DF",
+      glow: darken("#A9C4DF", 0.18),
+      highlight: lighten("#A9C4DF", 0.18),
+    },
+    2: {
+      fill: "#2F4760",
+      glow: darken("#2F4760", 0.18),
+      highlight: lighten("#2F4760", 0.18),
+    },
+    3: {
+      fill: "#4C7FA3",
+      glow: darken("#4C7FA3", 0.18),
+      highlight: lighten("#4C7FA3", 0.18),
+    },
+    4: {
+      fill: "#7B6FA3",
+      glow: darken("#7B6FA3", 0.18),
+      highlight: lighten("#7B6FA3", 0.18),
+    },
   },
   particles: {
     primary: ["#A9C4DF", "#2F4760", "#4C7FA3", "#7B6FA3", "#7EB8DA"],
@@ -211,10 +278,26 @@ const ANCIENT_GREECE_COLORS: ThemeColors = {
   dangerZoneAlpha: 0.25,
   accent: "#3B6FA0",
   blocks: {
-    1: { fill: "#BFD5E8", glow: darken("#BFD5E8", 0.18), highlight: lighten("#BFD5E8", 0.18) },
-    2: { fill: "#1F3E63", glow: darken("#1F3E63", 0.18), highlight: lighten("#1F3E63", 0.18) },
-    3: { fill: "#3E7FB3", glow: darken("#3E7FB3", 0.18), highlight: lighten("#3E7FB3", 0.18) },
-    4: { fill: "#6B86B0", glow: darken("#6B86B0", 0.18), highlight: lighten("#6B86B0", 0.18) },
+    1: {
+      fill: "#BFD5E8",
+      glow: darken("#BFD5E8", 0.18),
+      highlight: lighten("#BFD5E8", 0.18),
+    },
+    2: {
+      fill: "#1F3E63",
+      glow: darken("#1F3E63", 0.18),
+      highlight: lighten("#1F3E63", 0.18),
+    },
+    3: {
+      fill: "#3E7FB3",
+      glow: darken("#3E7FB3", 0.18),
+      highlight: lighten("#3E7FB3", 0.18),
+    },
+    4: {
+      fill: "#6B86B0",
+      glow: darken("#6B86B0", 0.18),
+      highlight: lighten("#6B86B0", 0.18),
+    },
   },
   particles: {
     primary: ["#BFD5E8", "#1F3E63", "#3E7FB3", "#6B86B0", "#3B6FA0"],
@@ -238,10 +321,26 @@ const FEUDAL_JAPAN_COLORS: ThemeColors = {
   dangerZoneAlpha: 0.25,
   accent: "#C41E3A",
   blocks: {
-    1: { fill: "#E19AA3", glow: darken("#E19AA3", 0.18), highlight: lighten("#E19AA3", 0.18) },
-    2: { fill: "#4B1821", glow: darken("#4B1821", 0.18), highlight: lighten("#4B1821", 0.18) },
-    3: { fill: "#C45A3A", glow: darken("#C45A3A", 0.18), highlight: lighten("#C45A3A", 0.18) },
-    4: { fill: "#7A3E7E", glow: darken("#7A3E7E", 0.18), highlight: lighten("#7A3E7E", 0.18) },
+    1: {
+      fill: "#E19AA3",
+      glow: darken("#E19AA3", 0.18),
+      highlight: lighten("#E19AA3", 0.18),
+    },
+    2: {
+      fill: "#4B1821",
+      glow: darken("#4B1821", 0.18),
+      highlight: lighten("#4B1821", 0.18),
+    },
+    3: {
+      fill: "#C45A3A",
+      glow: darken("#C45A3A", 0.18),
+      highlight: lighten("#C45A3A", 0.18),
+    },
+    4: {
+      fill: "#7A3E7E",
+      glow: darken("#7A3E7E", 0.18),
+      highlight: lighten("#7A3E7E", 0.18),
+    },
   },
   particles: {
     primary: ["#E19AA3", "#4B1821", "#C45A3A", "#7A3E7E", "#C41E3A"],
@@ -265,10 +364,26 @@ const ANCIENT_CHINA_COLORS: ThemeColors = {
   dangerZoneAlpha: 0.25,
   accent: "#50C878",
   blocks: {
-    1: { fill: "#9CD8B6", glow: darken("#9CD8B6", 0.18), highlight: lighten("#9CD8B6", 0.18) },
-    2: { fill: "#174A33", glow: darken("#174A33", 0.18), highlight: lighten("#174A33", 0.18) },
-    3: { fill: "#7AA34A", glow: darken("#7AA34A", 0.18), highlight: lighten("#7AA34A", 0.18) },
-    4: { fill: "#3F7F8C", glow: darken("#3F7F8C", 0.18), highlight: lighten("#3F7F8C", 0.18) },
+    1: {
+      fill: "#9CD8B6",
+      glow: darken("#9CD8B6", 0.18),
+      highlight: lighten("#9CD8B6", 0.18),
+    },
+    2: {
+      fill: "#174A33",
+      glow: darken("#174A33", 0.18),
+      highlight: lighten("#174A33", 0.18),
+    },
+    3: {
+      fill: "#7AA34A",
+      glow: darken("#7AA34A", 0.18),
+      highlight: lighten("#7AA34A", 0.18),
+    },
+    4: {
+      fill: "#3F7F8C",
+      glow: darken("#3F7F8C", 0.18),
+      highlight: lighten("#3F7F8C", 0.18),
+    },
   },
   particles: {
     primary: ["#9CD8B6", "#174A33", "#7AA34A", "#3F7F8C", "#50C878"],
@@ -292,10 +407,26 @@ const ANCIENT_PERSIA_COLORS: ThemeColors = {
   dangerZoneAlpha: 0.25,
   accent: "#1E90FF",
   blocks: {
-    1: { fill: "#9EB7DF", glow: darken("#9EB7DF", 0.18), highlight: lighten("#9EB7DF", 0.18) },
-    2: { fill: "#1A2E5A", glow: darken("#1A2E5A", 0.18), highlight: lighten("#1A2E5A", 0.18) },
-    3: { fill: "#3C5FA8", glow: darken("#3C5FA8", 0.18), highlight: lighten("#3C5FA8", 0.18) },
-    4: { fill: "#3F8AA2", glow: darken("#3F8AA2", 0.18), highlight: lighten("#3F8AA2", 0.18) },
+    1: {
+      fill: "#9EB7DF",
+      glow: darken("#9EB7DF", 0.18),
+      highlight: lighten("#9EB7DF", 0.18),
+    },
+    2: {
+      fill: "#1A2E5A",
+      glow: darken("#1A2E5A", 0.18),
+      highlight: lighten("#1A2E5A", 0.18),
+    },
+    3: {
+      fill: "#3C5FA8",
+      glow: darken("#3C5FA8", 0.18),
+      highlight: lighten("#3C5FA8", 0.18),
+    },
+    4: {
+      fill: "#3F8AA2",
+      glow: darken("#3F8AA2", 0.18),
+      highlight: lighten("#3F8AA2", 0.18),
+    },
   },
   particles: {
     primary: ["#9EB7DF", "#1A2E5A", "#3C5FA8", "#3F8AA2", "#1E90FF"],
@@ -319,10 +450,26 @@ const MAYAN_COLORS: ThemeColors = {
   dangerZoneAlpha: 0.25,
   accent: "#4CAF50",
   blocks: {
-    1: { fill: "#A9BE72", glow: darken("#A9BE72", 0.18), highlight: lighten("#A9BE72", 0.18) },
-    2: { fill: "#2E3B1A", glow: darken("#2E3B1A", 0.18), highlight: lighten("#2E3B1A", 0.18) },
-    3: { fill: "#5E8A3B", glow: darken("#5E8A3B", 0.18), highlight: lighten("#5E8A3B", 0.18) },
-    4: { fill: "#8A6A3B", glow: darken("#8A6A3B", 0.18), highlight: lighten("#8A6A3B", 0.18) },
+    1: {
+      fill: "#A9BE72",
+      glow: darken("#A9BE72", 0.18),
+      highlight: lighten("#A9BE72", 0.18),
+    },
+    2: {
+      fill: "#2E3B1A",
+      glow: darken("#2E3B1A", 0.18),
+      highlight: lighten("#2E3B1A", 0.18),
+    },
+    3: {
+      fill: "#5E8A3B",
+      glow: darken("#5E8A3B", 0.18),
+      highlight: lighten("#5E8A3B", 0.18),
+    },
+    4: {
+      fill: "#8A6A3B",
+      glow: darken("#8A6A3B", 0.18),
+      highlight: lighten("#8A6A3B", 0.18),
+    },
   },
   particles: {
     primary: ["#A9BE72", "#2E3B1A", "#5E8A3B", "#8A6A3B", "#4CAF50"],
@@ -346,10 +493,26 @@ const PUEBLO_COLORS: ThemeColors = {
   dangerZoneAlpha: 0.25,
   accent: "#40C8B8",
   blocks: {
-    1: { fill: "#E0A07A", glow: darken("#E0A07A", 0.18), highlight: lighten("#E0A07A", 0.18) },
-    2: { fill: "#5C2E1D", glow: darken("#5C2E1D", 0.18), highlight: lighten("#5C2E1D", 0.18) },
-    3: { fill: "#B85D3C", glow: darken("#B85D3C", 0.18), highlight: lighten("#B85D3C", 0.18) },
-    4: { fill: "#4E8F9B", glow: darken("#4E8F9B", 0.18), highlight: lighten("#4E8F9B", 0.18) },
+    1: {
+      fill: "#E0A07A",
+      glow: darken("#E0A07A", 0.18),
+      highlight: lighten("#E0A07A", 0.18),
+    },
+    2: {
+      fill: "#5C2E1D",
+      glow: darken("#5C2E1D", 0.18),
+      highlight: lighten("#5C2E1D", 0.18),
+    },
+    3: {
+      fill: "#B85D3C",
+      glow: darken("#B85D3C", 0.18),
+      highlight: lighten("#B85D3C", 0.18),
+    },
+    4: {
+      fill: "#4E8F9B",
+      glow: darken("#4E8F9B", 0.18),
+      highlight: lighten("#4E8F9B", 0.18),
+    },
   },
   particles: {
     primary: ["#E0A07A", "#5C2E1D", "#B85D3C", "#4E8F9B", "#40C8B8"],
@@ -373,10 +536,26 @@ const INCA_COLORS: ThemeColors = {
   dangerZoneAlpha: 0.25,
   accent: "#D4AF37",
   blocks: {
-    1: { fill: "#C7BCA9", glow: darken("#C7BCA9", 0.18), highlight: lighten("#C7BCA9", 0.18) },
-    2: { fill: "#4B4438", glow: darken("#4B4438", 0.18), highlight: lighten("#4B4438", 0.18) },
-    3: { fill: "#8C8670", glow: darken("#8C8670", 0.18), highlight: lighten("#8C8670", 0.18) },
-    4: { fill: "#A08A4E", glow: darken("#A08A4E", 0.18), highlight: lighten("#A08A4E", 0.18) },
+    1: {
+      fill: "#C7BCA9",
+      glow: darken("#C7BCA9", 0.18),
+      highlight: lighten("#C7BCA9", 0.18),
+    },
+    2: {
+      fill: "#4B4438",
+      glow: darken("#4B4438", 0.18),
+      highlight: lighten("#4B4438", 0.18),
+    },
+    3: {
+      fill: "#8C8670",
+      glow: darken("#8C8670", 0.18),
+      highlight: lighten("#8C8670", 0.18),
+    },
+    4: {
+      fill: "#A08A4E",
+      glow: darken("#A08A4E", 0.18),
+      highlight: lighten("#A08A4E", 0.18),
+    },
   },
   particles: {
     primary: ["#C7BCA9", "#4B4438", "#8C8670", "#A08A4E", "#D4AF37"],
@@ -401,7 +580,10 @@ export function getThemeColors(themeId: ThemeId): ThemeColors {
   return THEME_COLORS[themeId] ?? POLYNESIAN_COLORS;
 }
 
-export function getBlockColors(themeId: ThemeId, blockWidth: 1 | 2 | 3 | 4): BlockColors {
+export function getBlockColors(
+  themeId: ThemeId,
+  blockWidth: 1 | 2 | 3 | 4,
+): BlockColors {
   const colors = getThemeColors(themeId);
   return colors.blocks[blockWidth] ?? colors.blocks[1];
 }
@@ -484,7 +666,8 @@ export const SFX_PATHS = {
   "shop-purchase": "/assets/common/sounds/effects/shop-purchase.mp3",
   equip: "/assets/common/sounds/effects/equip.mp3",
   unequip: "/assets/common/sounds/effects/unequip.mp3",
-  "constraint-complete": "/assets/common/sounds/effects/constraint-complete.mp3",
+  "constraint-complete":
+    "/assets/common/sounds/effects/constraint-complete.mp3",
 } as const;
 
 export type SfxName = keyof typeof SFX_PATHS;
@@ -511,7 +694,7 @@ export function getThemeImages(themeId: ThemeId) {
     gridBg: `${base}/grid-bg.png`,
     mapBg: `${base}/map-bg.png`,
     mapNodeLevel: `${base}/map-node-level.png`,
-    mapNodeShop: `${base}/map-node-shop.png`,
+    mapNodeDraft: `${base}/map-node-draft.png`,
     mapNodeBoss: `${base}/map-node-boss.png`,
     mapNodeCompleted: `${base}/map-node-completed.png`,
     themeIcon: `${base}/theme-icon.png`,
@@ -537,8 +720,16 @@ export function loadAudioSettings(): AudioSettings {
     if (!raw) return DEFAULT_AUDIO_SETTINGS;
     const parsed = JSON.parse(raw) as Partial<AudioSettings>;
     return {
-      musicVolume: clamp(parsed.musicVolume ?? DEFAULT_AUDIO_SETTINGS.musicVolume, 0, 1),
-      effectsVolume: clamp(parsed.effectsVolume ?? DEFAULT_AUDIO_SETTINGS.effectsVolume, 0, 1),
+      musicVolume: clamp(
+        parsed.musicVolume ?? DEFAULT_AUDIO_SETTINGS.musicVolume,
+        0,
+        1,
+      ),
+      effectsVolume: clamp(
+        parsed.effectsVolume ?? DEFAULT_AUDIO_SETTINGS.effectsVolume,
+        0,
+        1,
+      ),
     };
   } catch {
     return DEFAULT_AUDIO_SETTINGS;

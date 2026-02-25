@@ -1,5 +1,5 @@
 // Internal imports
-use zkube::elements::difficulties::data::{get_count, get_block};
+use zkube::elements::difficulties::data::{get_block, get_count};
 use zkube::types::block::Block;
 
 #[derive(Introspect, Copy, Drop, Serde, PartialEq)]

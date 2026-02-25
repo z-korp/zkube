@@ -1,22 +1,22 @@
 //! Lightweight level completion check - no heavy imports.
-//! 
+//!
 //! This module provides level completion checking using the GameLevel model,
 //! avoiding the need to import LevelGeneratorTrait (949 lines).
-//! 
+//!
 //! Use this in systems that need to CHECK completion but don't need to
 //! GENERATE the next level (that's handled by level_system via dispatcher).
 
-use zkube::models::game::GameLevel;
 use zkube::helpers::packing::RunData;
+use zkube::models::game::GameLevel;
 use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait};
 
 /// Check if level is complete using GameLevel model data.
 /// This is a lightweight alternative to Game::is_level_complete which imports LevelGeneratorTrait.
-/// 
+///
 /// Arguments:
 /// - game_level: The GameLevel model with current level config
 /// - run_data: The unpacked run data with current progress
-/// 
+///
 /// Returns: true if level is complete
 #[inline(always)]
 pub fn is_level_complete(game_level: @GameLevel, run_data: @RunData) -> bool {
@@ -24,7 +24,7 @@ pub fn is_level_complete(game_level: @GameLevel, run_data: @RunData) -> bool {
     if (*run_data.level_score).into() < *game_level.points_required {
         return false;
     }
-    
+
     // Check primary constraint
     let constraint = LevelConstraint {
         constraint_type: (*game_level.constraint_type).into(),
@@ -34,27 +34,29 @@ pub fn is_level_complete(game_level: @GameLevel, run_data: @RunData) -> bool {
     if !constraint.is_satisfied(*run_data.constraint_progress, *run_data.bonus_used_this_level) {
         return false;
     }
-    
+
     // Check secondary constraint
     let constraint_2 = LevelConstraint {
         constraint_type: (*game_level.constraint2_type).into(),
         value: *game_level.constraint2_value,
         required_count: *game_level.constraint2_count,
     };
-    if !constraint_2.is_satisfied(*run_data.constraint_2_progress, *run_data.bonus_used_this_level) {
+    if !constraint_2
+        .is_satisfied(*run_data.constraint_2_progress, *run_data.bonus_used_this_level) {
         return false;
     }
-    
+
     // Check tertiary constraint
     let constraint_3 = LevelConstraint {
         constraint_type: (*game_level.constraint3_type).into(),
         value: *game_level.constraint3_value,
         required_count: *game_level.constraint3_count,
     };
-    if !constraint_3.is_satisfied(*run_data.constraint_3_progress, *run_data.bonus_used_this_level) {
+    if !constraint_3
+        .is_satisfied(*run_data.constraint_3_progress, *run_data.bonus_used_this_level) {
         return false;
     }
-    
+
     true
 }
 
@@ -62,7 +64,7 @@ pub fn is_level_complete(game_level: @GameLevel, run_data: @RunData) -> bool {
 #[inline(always)]
 pub fn is_level_failed(game_level: @GameLevel, run_data: @RunData) -> bool {
     let current_moves: u16 = (*run_data.level_moves).into();
-    
+
     current_moves >= *game_level.max_moves && !is_level_complete(game_level, run_data)
 }
 

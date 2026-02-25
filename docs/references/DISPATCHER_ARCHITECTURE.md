@@ -204,7 +204,7 @@ Responsibilities:
 - burn() - Spend cubes
 
 Imports:
-- ERC1155 component
+ ERC20 component
 ```
 
 ---
@@ -381,7 +381,7 @@ After full refactor:
 | **grid_system** | N/A | ~40,000 | Controller, Bonuses |
 | **level_system** | 24,368 | ~30,000 | LevelGeneratorTrait |
 | quest_system | 11,462 | ~12,000 | Quest component |
-| cube_token | 8,285 | ~8,000 | ERC1155 |
+| cube_token | 8,285 | ~8,000 | ERC20 |
 
 ---
 

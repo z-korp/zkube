@@ -1,7 +1,7 @@
 use starknet::ContractAddress;
 use crate::types::bonus::Bonus;
 use crate::types::constraint::ConstraintType;
-use crate::types::consumable::ConsumableType;
+
 
 /// Emitted when a new game starts
 #[derive(Copy, Drop, Serde)]
@@ -52,10 +52,11 @@ pub struct LevelCompleted {
     pub cubes: u8,
     pub moves_used: u16,
     pub score: u16,
+    pub total_score: u16,
     pub bonuses_earned: u8,
 }
 
-/// Emitted when a game run ends (game over)
+/// Emitted when a game run ends (game over - failed)
 #[derive(Copy, Drop, Serde)]
 #[dojo::event(historical: true)]
 pub struct RunEnded {
@@ -70,17 +71,16 @@ pub struct RunEnded {
     pub ended_at: u64,
 }
 
-/// Emitted when a consumable is purchased from the in-game shop
+/// Emitted when a game run is completed (victory - cleared level 50)
 #[derive(Copy, Drop, Serde)]
 #[dojo::event(historical: true)]
-pub struct ConsumablePurchased {
+pub struct RunCompleted {
     #[key]
     pub game_id: u64,
     #[key]
     pub player: ContractAddress,
-    pub consumable: ConsumableType,
-    pub cost: u16,
-    pub cubes_remaining: u16,
+    pub final_score: u16,
+    pub total_cubes: u16,
+    pub started_at: u64,
+    pub completed_at: u64,
 }
-
-// NOTE: ConstraintProgress event was removed as it was never emitted

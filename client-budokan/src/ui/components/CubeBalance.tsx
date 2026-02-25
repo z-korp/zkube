@@ -1,6 +1,7 @@
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import React, { useState } from "react";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import CubeIcon from "@/ui/components/CubeIcon";
 
 const { VITE_PUBLIC_CUBE_TOKEN_ADDRESS, VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
@@ -45,7 +46,7 @@ const CubeBalance: React.FC<CubeBalanceProps> = ({
   if (isLoading) {
     return (
       <div className={`flex items-center gap-1 ${className}`}>
-        <span className="text-lg">🧊</span>
+        <CubeIcon />
         <span className="text-sm text-slate-400">...</span>
       </div>
     );
@@ -54,7 +55,7 @@ const CubeBalance: React.FC<CubeBalanceProps> = ({
   if (error) {
     return (
       <div className={`flex items-center gap-1 ${className}`}>
-        <span className="text-lg">🧊</span>
+        <CubeIcon />
         <span className="text-sm text-red-400">?</span>
       </div>
     );
@@ -62,11 +63,11 @@ const CubeBalance: React.FC<CubeBalanceProps> = ({
 
   return (
     <div className={`flex items-center gap-1 ${className}`}>
-      <span className="text-lg">🧊</span>
+      <CubeIcon />
       <span className="text-sm font-semibold text-yellow-400">
         {displayBalance.toLocaleString()}
       </span>
-      {showLabel && <span className="text-xs text-slate-400">cubes</span>}
+      {showLabel && <span className="text-xs text-slate-400">ZKUBE</span>}
       {isSlotMode && (
         <button
           onClick={handleMintDev}

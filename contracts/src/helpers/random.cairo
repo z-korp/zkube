@@ -1,9 +1,8 @@
 use core::pedersen::pedersen;
 use core::poseidon::poseidon_hash_span;
-
-use starknet::ContractAddress;
-use starknet::{get_caller_address, get_contract_address, get_block_timestamp, get_tx_info};
-
+use starknet::{
+    ContractAddress, get_block_timestamp, get_caller_address, get_contract_address, get_tx_info,
+};
 use zkube::interfaces::vrf::{IVrfProviderDispatcher, IVrfProviderDispatcherTrait, Source};
 
 const VRF_PROVIDER_ADDRESS: felt252 =
@@ -18,15 +17,22 @@ pub struct Random {
 #[generate_trait]
 pub impl RandomImpl of RandomTrait {
     // https://docs.cartridge.gg/vrf/overview
-    // On networks with VRF (Sepolia/Mainnet), this consumes VRF randomness
-    // On slot/katana without VRF, use new_pseudo_random() instead
-    fn new_vrf() -> Random {
+    // Uses Source::Salt(salt) for deterministic, game-state-derived VRF randomness.
+    // The salt must match the client-side request_random call.
+    // On slot/katana without VRF, use new_pseudo_random() instead.
+    fn new_vrf(salt: felt252) -> Random {
         let vrf_address: ContractAddress = VRF_PROVIDER_ADDRESS.try_into().unwrap();
-        let vrf_provider = IVrfProviderDispatcher {
-            contract_address: vrf_address
-        };
-        let seed = vrf_provider.consume_random(Source::Nonce(get_caller_address()));
+        let vrf_provider = IVrfProviderDispatcher { contract_address: vrf_address };
+        let seed = vrf_provider.consume_random(Source::Salt(salt));
         Random { seed, nonce: 0 }
+    }
+
+    fn from_vrf_enabled(vrf_enabled: bool, salt: felt252) -> Random {
+        if vrf_enabled {
+            Self::new_vrf(salt)
+        } else {
+            Self::new_pseudo_random()
+        }
     }
 
     // Generate pseudo-random seed for slot/katana (when VRF is not available)
@@ -38,12 +44,9 @@ pub impl RandomImpl of RandomTrait {
 
         let seed = poseidon_hash_span(
             array![
-                tx_info.transaction_hash,
-                caller.into(),
-                contract.into(),
-                timestamp,
-                tx_info.nonce,
-            ].span()
+                tx_info.transaction_hash, caller.into(), contract.into(), timestamp, tx_info.nonce,
+            ]
+                .span(),
         );
 
         Random { seed, nonce: 0 }

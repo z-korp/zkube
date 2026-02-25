@@ -15,7 +15,7 @@ pub impl Clearer of AchievementTrait {
     }
 
     fn index(level: u8) -> u8 {
-        level + 5  // Offset after Grinder achievements
+        level + 5 // Offset after Grinder achievements
     }
 
     fn hidden(level: u8) -> bool {

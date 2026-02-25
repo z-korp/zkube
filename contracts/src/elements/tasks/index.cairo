@@ -11,27 +11,27 @@ use crate::elements::tasks;
 pub enum Task {
     None,
     // Daily gameplay tasks
-    Grinder,                // Play X games
-    LineClearer,            // Clear X lines
-    ComboTwo,               // Achieve 2+ line combos
-    ComboThree,             // Achieve 3+ line combos (achievements)
-    ComboFour,              // Achieve 4+ line combos (quests)
-    ComboFive,              // Achieve 5+ line combos
-    ComboSix,               // Achieve 6+ line combos (quests)
-    ComboSeven,             // Achieve 7+ line combos (achievements)
-    ComboEight,             // Achieve 8+ line combos
-    ComboNine,              // Achieve 9+ line combos
-    ComboStreakFifteen,     // Reach 15+ combo streak
-    ComboStreakTwenty,      // Reach 20+ combo streak
-    ComboStreakTwentyFive,  // Reach 25+ combo streak
-    ComboStreakFifty,       // Reach 50+ combo streak
-    ComboStreakHundred,     // Reach 100+ combo streak
+    Grinder, // Play X games
+    LineClearer, // Clear X lines
+    ComboTwo, // Achieve 2+ line combos
+    ComboThree, // Achieve 3+ line combos (achievements)
+    ComboFour, // Achieve 4+ line combos (quests)
+    ComboFive, // Achieve 5+ line combos
+    ComboSix, // Achieve 6+ line combos (quests)
+    ComboSeven, // Achieve 7+ line combos (achievements)
+    ComboEight, // Achieve 8+ line combos
+    ComboNine, // Achieve 9+ line combos
+    ComboStreakFifteen, // Reach 15+ combo streak
+    ComboStreakTwenty, // Reach 20+ combo streak
+    ComboStreakTwentyFive, // Reach 25+ combo streak
+    ComboStreakFifty, // Reach 50+ combo streak
+    ComboStreakHundred, // Reach 100+ combo streak
     // Meta task
-    DailyMaster,            // Complete X daily quests
+    DailyMaster, // Complete X daily quests
     // Achievement-only tasks
-    LevelReacher,           // Reach level X
-    Scorer,                 // Score X points in a level
-    Victory,                // Complete level 50 (full win)
+    LevelReacher, // Reach level X
+    Scorer, // Score X points in a level
+    Victory // Complete level 50 (full win)
 }
 
 // Implementations
@@ -80,7 +80,9 @@ pub impl TaskImpl of TaskTrait {
             Task::ComboNine => tasks::combo::ComboNine::description(count),
             Task::ComboStreakFifteen => tasks::combo_streak::ComboStreakFifteen::description(count),
             Task::ComboStreakTwenty => tasks::combo_streak::ComboStreakTwenty::description(count),
-            Task::ComboStreakTwentyFive => tasks::combo_streak::ComboStreakTwentyFive::description(count),
+            Task::ComboStreakTwentyFive => tasks::combo_streak::ComboStreakTwentyFive::description(
+                count,
+            ),
             Task::ComboStreakFifty => tasks::combo_streak::ComboStreakFifty::description(count),
             Task::ComboStreakHundred => tasks::combo_streak::ComboStreakHundred::description(count),
             Task::DailyMaster => tasks::master::DailyMaster::description(count),

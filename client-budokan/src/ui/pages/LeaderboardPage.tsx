@@ -2,8 +2,8 @@ import { motion } from "motion/react";
 import { Users } from "lucide-react";
 import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
 import { useNavigationStore } from "@/stores/navigationStore";
-import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import PageTopBar from "@/ui/navigation/PageTopBar";
+import CubeIcon from "@/ui/components/CubeIcon";
 
 const rankStyle = (rank: number): string => {
   if (rank === 1) return "bg-yellow-400/25 text-yellow-100 border border-yellow-300/50";
@@ -18,8 +18,6 @@ const LeaderboardPage: React.FC = () => {
 
   return (
     <div className="h-screen-viewport flex flex-col">
-      <ThemeBackground />
-
       <PageTopBar title="LEADERBOARD" onBack={goBack} />
 
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
@@ -50,7 +48,7 @@ const LeaderboardPage: React.FC = () => {
                     <th className="py-2 px-2 font-['Fredericka_the_Great']">Player</th>
                     <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
                     <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
-                    <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">🧊</th>
+                    <th className="py-2 px-2 w-16 text-right"><CubeIcon size="sm" /></th>
                   </tr>
                 </thead>
                 <tbody>

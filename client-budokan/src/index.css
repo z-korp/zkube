@@ -495,20 +495,6 @@ body {
     blink 0.5s ease-in-out infinite;
 }
 
-.wiggle {
-  animation: wiggle 0.2s ease-in-out infinite;
-}
-
-.blink {
-  animation: blink 0.5s ease-in-out infinite;
-}
-
-.wiggle-blink {
-  animation:
-    wiggle 0.2s ease-in-out infinite,
-    blink 0.5s ease-in-out infinite;
-}
-
 ::-webkit-scrollbar {
   width: 12px;
 }

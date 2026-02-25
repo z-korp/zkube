@@ -1,8 +1,8 @@
 # zKube Game Design Document
 
-> **Version:** 1.2.0  
-> **Last Updated:** January 2026  
-> **Status:** Fully Implemented  
+> **Version:** 3.1.0
+> **Last Updated:** February 2026
+> **Status:** Validated Design Update
 > **Namespace:** `zkube_budo_v1_2_0`
 
 ## Table of Contents
@@ -11,13 +11,14 @@
 2. [Grid & Block System](#grid--block-system)
 3. [Level System](#level-system)
 4. [Difficulty System](#difficulty-system)
-5. [Bonus System](#bonus-system)
-6. [Constraint System](#constraint-system)
-7. [Cube Economy](#cube-economy)
-8. [Two-Shop System](#two-shop-system)
+5. [Skill System](#skill-system)
+6. [Draft System](#draft-system)
+7. [Constraint System](#constraint-system)
+8. [Cube Economy](#cube-economy)
 9. [Data Architecture](#data-architecture)
 10. [Quest System](#quest-system)
 11. [Achievement System](#achievement-system)
+12. [Related Documentation](#related-documentation)
 
 ---
 
@@ -26,11 +27,33 @@
 zKube is a **Puzzle Roguelike** where players manipulate blocks on an 8x10 grid to form solid horizontal lines. The game features:
 
 - **50 Levels** of progressive difficulty (survival mode after level 50)
-- **CUBE Currency** - ERC-1155 soulbound tokens earned through gameplay
-- **Permanent Shop** - Upgrades that persist across runs
-- **In-Game Shop** - Consumables purchasable every 10 levels
-- **Constraint System** - Per-level challenges for bonus rewards
-- **Meta-Progression** - PlayerMeta tracks upgrades and stats
+- **15 Skills** (5 active bonus skills + 10 passive world skills)
+- **3 Skill Slots per run** with augment pacing (full loadout by end of Boss 1)
+- **Skill Tree** for permanent progression (levels 0-9)
+- **Draft-only Level 10** spikes for in-run power moments
+- **No shop system** (removed)
+- **CUBE Currency** (ERC-20, `zKube`, `ZKUBE`, 0 decimals)
+- **Constraint, Quest, and Achievement systems**
+
+Core runtime principles:
+
+- **Gravity always applies** after any move or bonus usage.
+- **Combo depth** is the number of clear events in one resolution chain.
+- **Archetypes are frontend taxonomy only** (skill page organization), not runtime loadout assignment.
+
+### Combo Definition (Authoritative)
+
+Combo depth is measured per action resolution:
+
+1. Player action (move or bonus)
+2. Clear full lines
+3. Apply gravity
+4. Clear newly formed lines
+5. Repeat steps 3-4 until no lines clear
+
+If a single action clears lines three times in sequence (primary clear + two gravity clears), **combo depth = 3**.
+
+There is no separate cascade mechanic. Cascade terminology is replaced by combo depth.
 
 ---
 
@@ -60,6 +83,7 @@ zKube is a **Puzzle Roguelike** where players manipulate blocks on an 8x10 grid 
 ### Grid Storage
 
 The grid is packed into a single `felt252` (240 bits):
+
 - 10 rows x 8 columns x 3 bits = 240 bits
 - Row 0 at bottom, Row 9 at top
 
@@ -99,9 +123,7 @@ The grid is packed into a single `felt252` (240 bits):
 
 ### Variance
 
-All levels use **±5% variance** for consistent gameplay experience.
-
-The variance is applied to both moves and points calculations, ensuring levels feel slightly different on each playthrough while maintaining balanced difficulty progression.
+All levels use **+/-5% variance**.
 
 ### Sample Level Configs
 
@@ -133,46 +155,344 @@ The variance is applied to both moves and points calculations, ensuring levels f
 
 ### Block Distribution Examples
 
-**VeryEasy/Easy:**
-- Many gaps (empty blocks)
-- Mostly small blocks (size 1-2)
-- Easier to clear lines
+**VeryEasy / Easy**
+- More gaps
+- More small blocks
+- Easier line setup
 
-**Master:**
-- Few gaps
-- Mostly large blocks (size 3-4)
-- Requires strategic planning
+**Master**
+- Fewer gaps
+- More large blocks
+- High planning pressure
 
 ---
 
-## Bonus System
+## Skill System
 
-**Location:** `contracts/src/elements/bonuses/`
+**Location:** `contracts/src/systems/skill_tree.cairo`, `contracts/src/systems/skill_effects.cairo`, `contracts/src/helpers/skill_effects.cairo`
 
-### Bonus Types (5 types, 3 levels each)
+### 5.1 Skill Roster (15 Total)
 
-Players select **3 bonuses** before each run from the 5 available types:
+| ID | Name | Type | Description |
+|---|---|---|---|
+| 1 | Combo | Active | Turn amplifier for combo depth |
+| 2 | Score | Active | Direct score injection |
+| 3 | Harvest | Active | Targeted block destruction and cube gain |
+| 4 | Wave | Active | Row clear reset tool |
+| 5 | Supply | Active | Line injection and board shaping |
+| 6 | Tempo | World | Move flow and refunds |
+| 7 | Fortune | World | Level and clear cube amplification |
+| 8 | Surge | World | Score multiplier (hard capped) |
+| 9 | Catalyst | World | Combo threshold and reward tuning |
+| 10 | Resilience | World | Free-move safety budget |
+| 11 | Focus | World | Constraint acceleration |
+| 12 | Expansion | World | Easier generated lines |
+| 13 | Momentum | World | Consecutive clear value |
+| 14 | Adrenaline | World | High-grid risk reward |
+| 15 | Legacy | World | Linear long-run scaling |
 
-| Bonus | Effect | L1 | L2 | L3 | Unlock |
-|-------|--------|----|----|----| -------|
-| **Combo** | Adds combo to next move | +1 combo | +2 combo | +3 combo | Default |
-| **Score** | Instantly adds score | +10 score | +20 score | +30 score | Default |
-| **Harvest** | Destroys all blocks of chosen size, earns CUBEs | +1 CUBE/block | +2 CUBE/block | +3 CUBE/block | Default |
-| **Wave** | Clears entire horizontal rows | 1 row | 2 rows | 3 rows | Locked |
-| **Supply** | Adds new lines at no move cost | 1 line | 2 lines | 3 lines | Locked |
+### 5.2 Skill Tree Structure
 
-### Acquiring Bonus Charges
+Each skill has persistent progression:
 
-- **Permanent shop:** Buy starting charges, upgrade bag size (max 5)
-- **In-game shop (every 10 levels):** Buy charges during run with CUBEs
-- **Boss clear (L10/20/30/40):** Awards Level Up Item to upgrade one bonus
+```
+Lv0 -> Lv1 -> Lv2 -> Lv3 -> Lv4
+                              \
+                               Lv5A -> Lv6A -> Lv7A -> Lv8A -> Lv9A
+                              /
+                               Lv5B -> Lv6B -> Lv7B -> Lv8B -> Lv9B
+                                                \
+                                                 Lv10 (draft-only)
+```
 
-### Bonus Selection (Run Start)
+- Levels **0-9** are permanent tree levels (purchased with cubes).
+- **Branch choice** happens at level 5.
+- **Branch respec** costs 50% of branch investment (rounded up).
+- **Level 10** is draft-only and cannot be purchased.
 
-When creating a game, players select exactly 3 of the 5 bonus types:
-- Wave and Supply require unlocking in permanent shop
-- Default selection: Combo, Score, Harvest
-- Selection stored in `run_data` bits 164-172
+### 5.3 Skill Tree Costs
+
+| Level | Cost | Cumulative |
+|---|---|---|
+| 0 -> 1 | 50 | 50 |
+| 1 -> 2 | 100 | 150 |
+| 2 -> 3 | 250 | 400 |
+| 3 -> 4 | 500 | 900 |
+| 4 -> 5 | 1,000 | 1,900 |
+| 5 -> 6 | 2,000 | 3,900 |
+| 6 -> 7 | 4,000 | 7,900 |
+| 7 -> 8 | 8,000 | 15,900 |
+| 8 -> 9 | 10,000 | 25,900 |
+
+### 5.4 Archetypes (Frontend Skill Page Taxonomy Only)
+
+Archetypes are used for UI grouping and build guidance. They do **not** auto-fill runtime loadout.
+
+Each archetype has 1 active + 2 world skills.
+
+| Archetype | Skills | Theme |
+|---|---|---|
+| Tempo | Combo, Tempo, Momentum | Move flow and chain pacing |
+| Economy | Harvest, Fortune, Catalyst | Cube amplification |
+| Control | Wave, Focus, Expansion | Board and constraint control |
+| Risk | Supply, Adrenaline, Resilience | High-pressure burst |
+| Scaling | Score, Surge, Legacy | Late-run growth |
+
+### 5.5 Active Skills (Revised, Anti-Loop)
+
+All active skills consume charges. Gravity always resolves after use. Reward clauses are capped.
+
+#### Combo - Turn Amplifier
+
+**Core (0-4)**
+- Lv0: Next move gains +1 combo depth
+- Lv1: +2 combo depth
+- Lv2: +3 combo depth
+- Lv3: If next move combo depth >=4, +2 cubes (once/level)
+- Lv4: If next move combo depth >=6, +3 cubes (once/level)
+
+**Branch A - Burst** (tradeoff: Lv8+ costs 2 charges)
+- Lv5: Combo effect applies twice
+- Lv6: If next move reaches combo depth >=6, gain +2 score per combo depth (once/level)
+- Lv7: Next combo move ignores move cost
+- Lv8: Costs 2 charges and triples this skill's added combo depth (example: +3 -> +9)
+- Lv9: Combo depth >=8 gives +10 cubes (once/level)
+- Lv10: Triple combo, free move, +15 cubes if combo depth >=8
+
+**Branch B - Sustain** (tradeoff: combo bonus reduced by 1)
+- Lv5: 50% chance no charge consumed
+- Lv6: Combo depth >=4 refunds 1 move (max 2/level)
+- Lv7: +1 cube on combo use
+- Lv8: Always refund 1 move if combo depth >=5
+- Lv9: First combo use per level is free
+- Lv10: Free use, refunds move, +5 cubes once/level
+
+#### Harvest - Targeted Destruction
+
+**Core (0-4)**
+- Lv0: Destroy selected size
+- Lv1: Adjacent same-size blocks also destroyed
+- Lv2: +1 cube per block
+- Lv3: If destroyed >=8 blocks, +3 cubes (once/level)
+- Lv4: If combo depth >=4, +3 cubes (once/level)
+
+**Branch A - Control** (tradeoff: cube gain reduced 50%)
+- Lv5: Target +/-1 size
+- Lv6: Destroyed blocks count toward constraints
+- Lv7: Next generated line -1 difficulty
+- Lv8: Target two sizes
+- Lv9: Constraint requirement -10% (once/level)
+- Lv10: Forces one additional gravity resolution cycle
+
+**Branch B - Economy** (tradeoff: only size 1-2 blocks)
+- Lv5: +2 cubes per block
+- Lv6: Double cubes if >=10 destroyed
+- Lv7: +5 cubes if combo depth >=6
+- Lv8: If >=12 blocks are destroyed, gain +1 free move (once/level)
+- Lv9: +10 cubes if combo depth >=8
+- Lv10: Harvest doubles cube output once/level
+
+#### Wave - Row Clear
+
+**Core (0-4)**
+- Lv0: Clear 1 row
+- Lv1: +1 cube per row
+- Lv2: Clear 2 rows
+- Lv3: If combo depth >=4, +3 cubes
+- Lv4: Bottom-up clear priority
+
+**Branch A - Tsunami** (tradeoff: no move refunds)
+- Lv5: Clear 3 rows
+- Lv6: +2 cubes per row
+- Lv7: Combo depth >=6 gives +1 free move (once/level)
+- Lv8: Clear 4 rows
+- Lv9: +10 cubes if combo depth >=8
+- Lv10: Clear 5 rows, +15 cubes if combo depth >=8
+
+**Branch B - Ripple** (tradeoff: clears fewer rows)
+- Lv5: Clear 2 rows +1 move
+- Lv6: Combo depth >=4 gives +1 move (max 2/level)
+- Lv7: Clear 3 rows
+- Lv8: +2 free moves
+- Lv9: 50% chance no charge consumed
+- Lv10: Clear 3 rows, +3 moves
+
+#### Supply - Line Injection
+
+**Core (0-4)**
+- Lv0: Add 1 line
+- Lv1: -1 difficulty on injected line
+- Lv2: Add 2 lines
+- Lv3: Immediate combo depth >=4 grants +2 cubes
+- Lv4: Prefer gaps
+
+**Branch A - Builder** (tradeoff: no cube scaling)
+- Lv5: Biased near-complete rows
+- Lv6: Guarantee one near-complete row
+- Lv7: Next combo >=4 grants +2 cubes (once/level)
+- Lv8: Add 3 setup lines
+- Lv9: Combo depth >=6 grants +5 cubes
+- Lv10: Add 4 setup lines, +1 free move if combo depth >=6 (once/level)
+
+**Branch B - Pressure** (tradeoff: injected lines are harder)
+- Lv5: +2 cubes per line cleared at >=7 filled rows
+- Lv6: Add 3 hard lines
+- Lv7: Combo depth >=6 at >=7 rows grants +1 free move (once/level)
+- Lv8: +1 combo per line added
+- Lv9: +10 cubes if combo depth >=8 at >=7 rows
+- Lv10: Add 4 hard lines, and first combo depth >=8 at >=7 rows gives +15 cubes (once/level)
+
+#### Score - Direct Injection
+
+**Core (0-4)**
+- Lv0: +5 score
+- Lv1: +10 score
+- Lv2: +15 score
+- Lv3: +1 combo depth
+- Lv4: Double score at <=5 moves remaining
+
+**Branch A - Chain** (tradeoff: lower base score)
+- Lv5: +2 combo depth
+- Lv6: +1 move
+- Lv7: Combo depth >=6 grants +10 score (once/level)
+- Lv8: Double combo effect
+- Lv9: +5 cubes if combo depth >=8
+- Lv10: Double combo and +15 cubes once/level
+
+**Branch B - Finisher** (tradeoff: no combo bonus)
+- Lv5: Double score at <=7 moves remaining
+- Lv6: Triple score at <=5 moves remaining
+- Lv7: Freeze move counter for next move
+- Lv8: +5 cubes if level ends with <=3 moves remaining
+- Lv9: No charge consumed at <=5 moves remaining
+- Lv10: Triple score, +15 cubes on 3-star
+
+### 5.6 World Skills (Capped Policy)
+
+All world skills must obey hard caps and no recursive amplification.
+
+Global policy:
+
+- No world skill may grant unbounded charges.
+- No world skill may recursively multiply another world skill.
+- Per-level trigger caps are mandatory.
+
+#### Tempo
+- Base: +1 max move
+- Combo >=4 -> +1 move (max 4/level)
+- Lv10: refund on combo >=4 (max 5/level)
+
+#### Fortune
+- Base: +1 cube per level clear
+- +1 cube per 4 lines cleared
+- Lv10: double 3-star reward
+
+#### Surge
+- Score bonus starts at +5%
+- Hard cap +50%
+- Lv10: flat +50% cap behavior
+
+#### Catalyst
+- -1 combo-depth threshold for combo charge tiers (4/6/8 -> 3/5/7)
+- +1 score per combo depth when combo-charge source triggers
+- Lv10: once per level, treat combo depth as +1 for charge-tier evaluation (caps still apply)
+
+#### Resilience
+- +1 free move baseline
+- Regen after 3 clears (max 3/level)
+- Lv10: hard cap 8 free moves
+
+#### Focus
+- +1 constraint progress baseline
+- Shortcut branch up to 30% start
+- Lv10 hard cap 50% shortcut
+
+#### Expansion
+- -1 generated line difficulty
+- 1 guaranteed gap per level baseline
+- Lv10: 2 guaranteed gaps
+
+#### Momentum
+- +1 score per consecutive clear
+- Combo >=4 -> +1 cube (once/level)
+- Lv10: combo >=6 clears 1 extra row (once/level)
+
+#### Adrenaline
+- +2 score per line at >=7 filled rows
+- Combo >=6 at >=7 rows -> +5 cubes (once/level)
+- Lv10: double combo once/level
+
+#### Legacy
+- +1 score per 5 levels cleared
+- +1 cube per 5 levels
+- Lv10: +2 cubes per 5 levels
+
+---
+
+## Draft System
+
+**Location:** `contracts/src/systems/draft.cairo`
+
+Draft is the only in-run build engine. No shop and no mid-run skill swap.
+
+### 6.1 Loadout Pacing (3 Slots)
+
+Run starts with 0 equipped runtime skills. Skills are acquired through early augment pacing:
+
+| Event | Purpose | Outcome |
+|---|---|---|
+| Post Level 1 | Augment pick A | Fill slot 1 |
+| Zone 1 micro draft (L2-L9) | Augment pick B | Fill slot 2 |
+| Post Boss 1 (L10 clear) | Augment pick C | Fill slot 3 (full loadout) |
+
+By end of Boss 1, player has a full 3-skill loadout.
+
+### 6.2 Post-Boss Upgrade Drafts
+
+After loadout is full, drafts are upgrades only.
+
+Upgrade drafts occur after:
+
+- Boss 2 (L20)
+- Boss 3 (L30)
+- Boss 4 (L40)
+- Boss 5 (L50)
+
+Each upgrade draft can offer:
+
+- +1 run level to one equipped skill
+- Branch unlock if that skill is reaching level 5
+- Level 10 unlock if that skill is already level 9
+
+No new skills are added after slot 3 is filled.
+
+### 6.3 Reroll System
+
+Shared escalating counter per draft event:
+
+`cost(n) = 5 * 3^(n-1)`
+
+| Reroll # | Cost |
+|---|---|
+| 1 | 5 |
+| 2 | 15 |
+| 3 | 45 |
+| 4 | 135 |
+| 5+ | 405 |
+
+Rules:
+
+- Reroll replaces only the targeted card.
+- Counter is shared inside that draft event.
+- Counter resets on next draft event.
+- Reroll burns cubes from wallet.
+
+### 6.4 Invariants (Must Hold)
+
+- Loadout slots are unlocked by progression only, not archetype.
+- Slot count is fixed at 3 and cannot exceed 3.
+- Upgrade drafts must exclude skills already at level 10.
+- If all equipped skills are level 10, draft auto-resolves and does not block progression.
 
 ---
 
@@ -185,215 +505,82 @@ When creating a game, players select exactly 3 of the 5 bonus types:
 | # | Type | Value Meaning | Count Meaning | Regular | Boss |
 |---|------|---------------|---------------|:---:|:---:|
 | 0 | **None** | - | - | ✅ | ❌ |
-| 1 | **ClearLines** | Lines to clear in one move | How many times | ✅ | ✅ |
+| 1 | **ComboLines** | Lines to clear in one move | How many times | ✅ | ✅ |
 | 2 | **BreakBlocks** | Block size to target (1-4) | Total blocks to destroy | ✅ | ✅ |
-| 3 | **AchieveCombo** | Combo target to reach | 1 (one-shot) | ✅ | ✅ |
-| 4 | **Fill** | Row height target (after resolve) | How many times | ✅ | ✅ |
+| 3 | **ComboStreak** | Combo target to reach | 1 (one-shot) | ✅ | ✅ |
+| 4 | **FillAndClear** | Row height target (after resolve) | How many times | ✅ | ✅ |
 | 5 | **NoBonusUsed** | 0 | 0 | ❌ | ✅ |
-| 6 | **ClearGrid** | 0 | 1 (one-shot) | ❌ | ✅ |
+| 6 | **KeepGridBelow** | Keep grid below cap (6/7/8) | 1 (breach flag) | ❌ | ✅ |
 
-*Note: Fill is stored as `FillAndClear` in code for ABI stability.*
-
-### When Constraints Apply
-
-- **Levels 1-2:** No constraints (warm-up)
-- **Level 3+:** Constraints generated from seed + difficulty via unified budget system
-- **Constraint count:** Deterministic per tier — `constraint_min` to `constraint_max` rolled randomly (0-3 constraints depending on difficulty)
-- **NoBonusUsed:** Boss-only — never generated on regular levels
-- **Boss levels (10/20/30/40/50):** Fixed constraint combos from boss identity system at budget_max, up to triple constraints at L40/50
-
-### Unified Budget System
-
-All constraint types (regular + boss) use the same budget-based generation engine:
-
-1. **Budget** interpolates from VeryEasy (1-3) to Master (32-40)
-2. **Type selection** uses difficulty-weighted probabilities (regular levels)
-3. **Cost functions** per type convert budget → constraint values
-4. **Skew-high rolls** favor harder values within budget range
-
-**Type Selection Weights (regular levels):**
-
-| Tier | ClearLines | BreakBlocks | Fill | AchieveCombo |
-|------|:---:|:---:|:---:|:---:|
-| 0 (VeryEasy) | 80% | 15% | 0% | 5% |
-| 1 (Easy) | 55% | 15% | 15% | 15% |
-| 2 (Medium) | 50% | 18% | 15% | 17% |
-| 3 (MediumHard) | 45% | 20% | 17% | 18% |
-| 4 (Hard) | 40% | 22% | 18% | 20% |
-| 5 (VeryHard) | 35% | 23% | 20% | 22% |
-| 6 (Expert) | 30% | 24% | 24% | 22% |
-| 7 (Master) | 25% | 25% | 28% | 22% |
-
-**Cost Functions:**
-
-| Type | Cost → Values | Examples (budget=25) |
-|------|--------------|---------------------|
-| ClearLines | line_cost: 2→2, 3→4, 4→6, 5→10, 6→15, 7→20. min_lines: tier 0-1→2, 2-3→3, 4-6→4, 7→5 | 5 lines x2, or 4 lines x4 |
-| BreakBlocks | break_cost(size): 1→3, 2→4, 3→5, 4→6. blocks=(budget×8)/cost | size-2: 50 blocks, size-4: 33 blocks |
-| AchieveCombo | combo_cost(c)=c×(c-1)/2: 3→3, 4→6, 5→10, 6→15, 7→21, 8→28. Max combo = 8 | combo 5 (cost 10) or combo 7 (cost 21) |
-| Fill | row_cost: 4→2, 5→5, 6→10, 7→17, 8→26. times_cap: 4→4, 5→3, 6→2, 7→2, 8→1 | row 6 x2, or row 7 x1 |
-
-**Constraint count:** Deterministic per tier (0 at VeryEasy → 3 at Master). Each constraint rolls a different type from the weight table above.
-
-### Boss Identity System
-
-10 themed bosses with fixed constraint type combinations. Boss identity determines WHICH types, the unified budget system at `budget_max` determines the VALUES.
-
-Selected by `derive_boss_id(level_seed) % 10 + 1`:
-
-| # | Boss | Core Pair (L10-30) | Third Constraint (L40/50) |
-|---|------|--------------------|---------------------------|
-| 1 | Combo Master | ClearLines + AchieveCombo | NoBonusUsed |
-| 2 | Demolisher | BreakBlocks + ClearLines | ClearGrid |
-| 3 | Daredevil | Fill + AchieveCombo | ClearLines |
-| 4 | Purist | NoBonusUsed + ClearLines | AchieveCombo |
-| 5 | Harvester | BreakBlocks + AchieveCombo | Fill |
-| 6 | Tidal | ClearGrid + ClearLines | BreakBlocks |
-| 7 | Stacker | Fill + ClearLines | BreakBlocks |
-| 8 | Surgeon | BreakBlocks + Fill | NoBonusUsed |
-| 9 | Ascetic | NoBonusUsed + AchieveCombo | Fill |
-| 10 | Perfectionist | ClearLines + Fill | AchieveCombo |
-
-**Constraint progression:**
-- L10/20/30: Dual constraints (core pair), generated at budget_max
-- L40/50: Triple constraints (core pair + third), generated at budget_max
-- NoBonusUsed and ClearGrid are binary (no budget needed)
+Constraint generation and boss identity model remain unchanged from prior version.
 
 ---
 
 ## Cube Economy
 
-**Token:** ERC-1155 Soulbound (`cube_token` system, CUBE_TOKEN_ID=1)
+**Token:** ERC-20 (`cube_token`, name="zKube", symbol="ZKUBE", decimals=0)
 
-### Earning Cubes (During Run)
+### 8.1 Level Completion Rewards
 
-| Source | Amount | Condition |
-|--------|--------|-----------|
-| Level complete (3-star) | 3 | Moves <= 40% of max |
-| Level complete (2-star) | 2 | Moves <= 70% of max |
-| Level complete (1-star) | 1 | Level completed |
-| Clear 4 lines | +1 | Combo bonus |
-| Clear 5 lines | +3 | Combo bonus |
-| Clear 6 lines | +5 | Combo bonus |
-| Clear 7 lines | +10 | Combo bonus |
-| Clear 8 lines | +25 | Combo bonus |
-| Clear 9+ lines | +50 | Combo bonus |
-| First 5-line combo | +3 | One-time per run |
-| First 10-line combo | +5 | One-time per run |
-| Boss level (L10/20/30/40/50) | +10/20/30/40/50 | Boss level bonus |
+| Result | Cubes |
+|--------|-------|
+| 3-Star | 5 |
+| 2-Star | 3 |
+| 1-Star | 1 |
 
-### Boss Levels
+No cube reward on failure.
 
-Special levels every 10 levels with themed boss identities and bonus rewards:
+### 8.2 Boss Cube Formula (Quadratic)
 
-| Level | Cube Bonus | Constraints | Boss Identity |
-|-------|------------|-------------|---------------|
-| 10 | +10 CUBE | Dual (core pair) | Seeded from run |
-| 20 | +20 CUBE | Dual (core pair) | Seeded from run |
-| 30 | +30 CUBE | Dual (core pair) | Seeded from run |
-| 40 | +40 CUBE | Triple (core pair + third) | Seeded from run |
-| 50 | +50 CUBE | Triple (core pair + third) | Seeded from run |
+Boss clear reward is:
 
-Boss identity is determined by `derive_boss_id(level_seed) % 10 + 1`, giving one of 10 themed bosses (see Constraint System for details). Completing level 50 triggers the victory state and mints all earned cubes.
+`boss_cubes(boss_index) = 10 * boss_index^2`
 
-### Cube Thresholds
+Where `boss_index` is 1..5 for levels 10,20,30,40,50.
 
-Calculated from `max_moves` for each level:
-- `cube_3_threshold = max_moves * 40%`
-- `cube_2_threshold = max_moves * 70%`
+| Boss | Cubes |
+|------|-------|
+| 1 | 10 |
+| 2 | 40 |
+| 3 | 90 |
+| 4 | 160 |
+| 5 | 250 |
 
-### Cube Flow
+Boss cubes are granted once per boss completion.
 
-```
-WALLET (ERC-1155)
-       |
-       +---> PERMANENT SHOP (burn cubes for upgrades)
-       |
-       +---> START RUN
-                |
-                +---> Fresh Start (0 cubes)
-                |
-                +---> Bring Cubes (requires bridging rank)
-                            |
-                            v
-                      DURING RUN
-                      - Brought cubes (LOST on death)
-                      - Earned cubes (KEPT on death)
-                      - In-game shop every 5 levels
-                            |
-                            v
-                      GAME END --> Earned cubes minted to wallet
-```
+### 8.3 Charge System (Two Sources Only)
 
----
+Hard rules:
 
-## Two-Shop System
+- Max 3 charges per active skill.
+- No passive regen.
+- No charge gain from shops (shop removed).
+- No separate cascade farming mechanic.
+- All writes clamp with: `charge = min(3, charge + delta)`.
 
-### 1. Permanent Shop (Outside Game)
+Charge sources:
 
-**Location:** `contracts/src/systems/shop.cairo`
+1. **Cadence source**: every 5 levels cleared, +1 charge to all equipped active skills.
+2. **Combo source**: once per level, highest combo threshold reached grants:
+   - Combo depth 4+: +1 to all active skills
+   - Combo depth 6+: +2 to all active skills
+   - Combo depth 8+: +3 to all active skills
 
-#### Unlock Bonuses
+Only highest tier applies once per level.
 
-| Bonus | Cost | Effect |
-|-------|------|--------|
-| Wave | 200 CUBE | Unlock Wave bonus for selection |
-| Supply | 200 CUBE | Unlock Supply bonus for selection |
+Implementation guards:
 
-#### Starting Bonus Upgrades
+- `combo_charge_awarded_this_level` flag prevents multiple grants.
+- Combo source and cadence source each have separate once-guards.
+- Overflow above cap is dropped, not banked.
 
-| Level | Cost | Effect |
-|-------|------|--------|
-| 0 -> 1 | 100 CUBE | Start with 1 bonus |
-| 1 -> 2 | 250 CUBE | Start with 2 bonuses |
-| 2 -> 3 | 500 CUBE | Start with 3 bonuses |
+### 8.4 Spending Cubes
 
-*Applies to each of the 5 bonus types*
-
-#### Bag Size Upgrades
-
-**Formula:** `cost = 10 * 2^level`
-
-| Level | Cost | Max Capacity |
-|-------|------|--------------|
-| 0 | - | 1 |
-| 1 | 10 | 2 |
-| 2 | 20 | 3 |
-| 3 | 40 | 4 |
-
-#### Bridging Rank Upgrades
-
-**Formula:** `cost = 100 * 2^rank`, `max_cubes = 5 * 2^(rank-1)`
-
-| Rank | Cost | Max Cubes to Bring |
-|------|------|-------------------|
-| 0 | - | 0 (can't bring) |
-| 1 | 100 | 5 |
-| 2 | 200 | 10 |
-| 3 | 400 | 20 |
-| 4 | 800 | 40 |
-
-### 2. In-Game Shop (Every 5 Levels)
-
-**Location:** `contracts/src/systems/shop.cairo` (`purchase_consumable`)
-
-Shop appears after levels 9, 19, 29, 39, 49 (when `(current_level - 1) % 10 == 9`).
-
-| Item | Cost | Effect |
-|------|------|--------|
-| Bonus1 | 5 CUBE | +1 of selected_bonus_1 |
-| Bonus2 | 5 CUBE | +1 of selected_bonus_2 |
-| Bonus3 | 5 CUBE | +1 of selected_bonus_3 |
-| Refill | 2*(n+1) CUBE | Reset shop availability |
-| LevelUp | 50 CUBE | Level up one bonus |
-
-**Shop State:**
-- Each bonus can only be bought once per shop visit
-- Refill resets the "bought" flags
-- State resets when entering new shop level
-- Tracked in `run_data` bits 183-195
-
-**Spending Order:** Brought cubes first, then earned cubes.
+| Usage | Source | Destination |
+|---|---|---|
+| Skill tree upgrades | Wallet (burn) | Permanent progression |
+| Draft rerolls | Wallet (burn) | Better draft options |
+| Branch respec | Wallet (burn) | Change specialization |
 
 ---
 
@@ -405,55 +592,77 @@ Shop appears after levels 9, 19, 29, 39, 49 (when `(current_level - 1) % 10 == 9
 pub struct Game {
     #[key]
     pub game_id: u64,
-    pub blocks: felt252,      // 240 bits - the grid
-    pub next_row: u32,        // 24 bits - queued row
-    pub combo_counter: u8,    // Current combo streak
-    pub max_combo: u8,        // Best combo this level
-    pub run_data: felt252,    // Bit-packed level/run progress
-    pub started_at: u64,      // Run start timestamp
+    pub blocks: felt252,
+    pub next_row: u32,
+    pub combo_counter: u8,
+    pub max_combo: u8,
+    pub run_data: felt252,
+    pub level_stars: felt252,
+    pub started_at: u64,
     pub over: bool,
 }
 ```
 
-### run_data Bit Layout (205 bits used)
+### run_data Bit Layout (3-Slot Revision)
 
 | Bits | Field | Size | Description |
 |------|-------|------|-------------|
-| 0-7 | current_level | 8 | Current level (1-255) |
+| 0-7 | current_level | 8 | Current level |
 | 8-15 | level_score | 8 | Score this level |
 | 16-23 | level_moves | 8 | Moves used this level |
-| 24-31 | constraint_progress | 8 | Primary constraint progress |
-| 32-39 | constraint_2_progress | 8 | Secondary constraint progress |
-| 40 | bonus_used_this_level | 1 | For NoBonusUsed constraint |
-| 41 | combo_5_achieved | 1 | First 5+ combo flag |
-| 42 | combo_10_achieved | 1 | First 10+ combo flag |
-| 43-50 | combo_count | 8 | Combo inventory |
-| 51-58 | score_count | 8 | Score inventory |
-| 59-66 | harvest_count | 8 | Harvest inventory |
-| 67-74 | wave_count | 8 | Wave inventory |
-| 75-82 | supply_count | 8 | Supply inventory |
-| 83-90 | max_combo_run | 8 | Best combo this run |
-| 91-98 | extra_moves | 8 | Extra moves from consumables |
-| 99-114 | cubes_brought | 16 | Cubes brought into run |
-| 115-130 | cubes_spent | 16 | Cubes spent this run |
-| 131-146 | total_cubes | 16 | Cubes earned this run |
-| 147-162 | total_score | 16 | Cumulative score |
-| 163 | run_completed | 1 | Victory flag (level 50) |
-| 164-166 | selected_bonus_1 | 3 | First bonus type (0-5) |
-| 167-169 | selected_bonus_2 | 3 | Second bonus type (0-5) |
-| 170-172 | selected_bonus_3 | 3 | Third bonus type (0-5) |
-| 173-174 | bonus_1_level | 2 | L1/L2/L3 (0-2) |
-| 175-176 | bonus_2_level | 2 | L1/L2/L3 (0-2) |
-| 177-178 | bonus_3_level | 2 | L1/L2/L3 (0-2) |
-| 179-181 | free_moves | 3 | Free moves remaining |
-| 182 | pending_level_up | 1 | Level-up pending |
-| 183-188 | last_shop_level | 6 | Last shop interaction level |
-| 189 | shop_bonus_1_bought | 1 | Bonus 1 purchased |
-| 190 | shop_bonus_2_bought | 1 | Bonus 2 purchased |
-| 191 | shop_bonus_3_bought | 1 | Bonus 3 purchased |
-| 192-195 | shop_refills | 4 | Refills purchased |
-| 196 | no_bonus_constraint | 1 | NoBonusUsed active |
-| 197-204 | constraint_3_progress | 8 | Tertiary constraint progress |
+| 24-31 | constraint_progress | 8 | Primary constraint |
+| 32-39 | constraint2_progress | 8 | Secondary |
+| 40-47 | constraint3_progress | 8 | Tertiary |
+| 48 | bonus_used_this_level | 1 | For NoBonusUsed |
+| 49-56 | max_combo_depth_level | 8 | Max combo depth in level |
+| 57-72 | total_cubes | 16 | Run cubes |
+| 73-88 | total_score | 16 | Run score |
+| 89 | run_completed | 1 | Victory flag |
+| 90-93 | free_moves | 4 | Free moves |
+| 94 | no_bonus_constraint | 1 | NoBonusUsed active |
+| 95-96 | active_slot_count | 2 | 0-3 slots |
+| 97-100 | slot_1_skill | 4 | Skill ID |
+| 101-104 | slot_1_level | 4 | Runtime level |
+| 105-106 | slot_1_charges | 2 | 0-3 charges |
+| 107-110 | slot_2_skill | 4 | Skill ID |
+| 111-114 | slot_2_level | 4 | Runtime level |
+| 115-116 | slot_2_charges | 2 | 0-3 charges |
+| 117-120 | slot_3_skill | 4 | Skill ID |
+| 121-124 | slot_3_level | 4 | Runtime level |
+| 125-126 | slot_3_charges | 2 | 0-3 charges |
+| 127 | combo_charge_awarded_this_level | 1 | Once-per-level guard |
+| 128-129 | highest_combo_tier_this_level | 2 | 0/4+/6+/8+ tier |
+
+### PlayerSkillTree Model
+
+```cairo
+pub struct PlayerSkillTree {
+    #[key]
+    pub player: ContractAddress,
+    /// 15 skills * (4 bits level + 1 bit branch_chosen + 1 bit branch_id) = 90 bits
+    pub skill_data: felt252,
+}
+```
+
+### DraftState Model (Pacing-Oriented)
+
+```cairo
+pub struct DraftState {
+    #[key]
+    pub game_id: u64,
+    pub seed: felt252,
+    pub active: bool,
+    pub event_slot: u8,       // Ordered draft event index for this run
+    pub event_type: u8,       // 1=augment_fill, 2=boss_upgrade
+    pub trigger_level: u8,
+    pub choice_1: u8,
+    pub choice_2: u8,
+    pub choice_3: u8,
+    pub reroll_count: u8,
+    pub spent_cubes: u16,
+    pub completed_mask: u16,
+}
+```
 
 ### PlayerMeta Model
 
@@ -461,87 +670,27 @@ pub struct Game {
 pub struct PlayerMeta {
     #[key]
     pub player: ContractAddress,
-    pub data: felt252,      // Bit-packed upgrades/stats
-    pub best_level: u8,     // Highest level reached
+    pub data: felt252,
+    pub best_level: u8,
 }
 ```
 
-### PlayerMeta.data Bit Layout (86 bits used)
+`PlayerMeta.data` (current usage):
 
-| Bits | Field | Size | Description |
-|------|-------|------|-------------|
-| 0-1 | starting_combo | 2 | Starting combo charges (0-3) |
-| 2-3 | starting_score | 2 | Starting score charges (0-3) |
-| 4-5 | starting_harvest | 2 | Starting harvest charges (0-3) |
-| 6-7 | starting_wave | 2 | Starting wave charges (0-3) |
-| 8-9 | starting_supply | 2 | Starting supply charges (0-3) |
-| 10-13 | bag_combo_level | 4 | Combo bag capacity |
-| 14-17 | bag_score_level | 4 | Score bag capacity |
-| 18-21 | bag_harvest_level | 4 | Harvest bag capacity |
-| 22-25 | bag_wave_level | 4 | Wave bag capacity |
-| 26-29 | bag_supply_level | 4 | Supply bag capacity |
-| 30-33 | bridging_rank | 4 | Cube bridging rank (0-15) |
-| 34 | wave_unlocked | 1 | Wave bonus unlocked |
-| 35 | supply_unlocked | 1 | Supply bonus unlocked |
-| 36-51 | total_runs | 16 | Lifetime run count |
-| 52-83 | total_cubes_earned | 32 | Lifetime cubes earned |
+- `total_runs`
+- `total_cubes_earned`
 
----
+### File Structure Notes
 
-## File Structure
+Current key files:
 
-### Contract Files
-
-```
-contracts/src/
-├── constants.cairo           # Grid constants, namespace
-├── models/
-│   ├── game.cairo            # Game state model
-│   ├── player.cairo          # PlayerMeta model
-│   └── config.cairo          # GameSettings (configurable)
-├── systems/
-│   ├── game.cairo            # Main game logic
-│   ├── shop.cairo            # Permanent shop
-│   └── cube_token.cairo      # ERC-1155 CUBE token
-├── types/
-│   ├── difficulty.cairo      # Difficulty enum
-│   ├── constraint.cairo      # Constraint types
-│   ├── level.cairo           # LevelConfig struct
-│   ├── bonus.cairo           # Bonus enum
-│   └── consumable.cairo      # ConsumableType enum
-├── helpers/
-│   ├── level.cairo           # Level generation
-│   ├── boss.cairo            # Boss identity system (10 bosses)
-│   ├── packing.cairo         # Bit-pack/unpack utilities
-│   ├── controller.cairo      # Grid manipulation
-│   └── gravity.cairo         # Block falling logic
-└── elements/
-    ├── bonuses/              # Bonus implementations
-    └── difficulties/         # Difficulty configurations
-```
-
-### Client Files (client-budokan)
-
-```
-client-budokan/src/
-├── dojo/
-│   ├── game/
-│   │   ├── models/game.ts         # Game model
-│   │   ├── types/bonus.ts         # Bonus enum + display names
-│   │   ├── types/level.ts         # LevelConfig, settings
-│   │   └── helpers/
-│   │       └── runDataPacking.ts  # Bit-pack/unpack
-│   └── systems.ts                 # Contract calls
-├── hooks/
-│   ├── useGame.tsx                # Game state hook
-│   ├── usePlayerMeta.tsx          # Meta progression hook
-│   └── useCubeBalance.tsx         # ERC-1155 balance
-└── ui/
-    ├── screens/
-    │   └── Play.tsx               # Game play screen
-    └── components/
-        └── Shop/LoadoutDialog.tsx # Bonus selection
-```
+- `contracts/src/systems/skill_tree.cairo`
+- `contracts/src/systems/draft.cairo`
+- `contracts/src/systems/skill_effects.cairo`
+- `contracts/src/helpers/skill_effects.cairo`
+- `contracts/src/helpers/packing.cairo`
+- `client-budokan/src/ui/pages/SkillTreePage.tsx`
+- `client-budokan/src/ui/pages/DraftPage.tsx`
 
 ---
 
@@ -549,46 +698,29 @@ client-budokan/src/
 
 **Location:** `contracts/src/systems/quest.cairo`, `contracts/src/elements/quests/`
 
-### Daily Quests (10 total, 102 CUBE/day)
+### Daily Quests (13 total, 92 CUBE/day)
 
 | Category | Quest | Requirement | Reward |
 |----------|-------|-------------|--------|
-| Player | Warm-Up | Play 1 game | 3 CUBE |
-| Player | Getting Started | Play 3 games | 6 CUBE |
-| Player | Dedicated | Play 5 games | 12 CUBE |
-| Clearer | Line Breaker | Clear 10 lines | 3 CUBE |
-| Clearer | Line Crusher | Clear 30 lines | 6 CUBE |
-| Clearer | Line Master | Clear 50 lines | 12 CUBE |
-| Combo | Combo Starter | 3+ line combo | 5 CUBE |
-| Combo | Combo Builder | 5+ line combo | 10 CUBE |
-| Combo | Combo Expert | 7+ line combo | 20 CUBE |
-| Finisher | Daily Champion | Complete all 9 | 25 CUBE |
-
-### Quest Chains
-
-Progress is cumulative within each category. Quests within a family are tiered — completing tier 1 unlocks tier 2, etc. The Finisher quest requires all 9 other quests.
-
-### Integration Points
-
-| Game Function | Quest Progress |
-|---------------|---------------|
-| `create_with_cubes()` | +1 Grinder (games played) |
-| `move()` | +N LineClearer (lines cleared) |
-| `move()` | +1 ComboThree/Five/Seven (if combo achieved) |
-
-### Dependencies
-
-Uses Cartridge's `quest` and `achievement` packages from the arcade repository. Quest system needs `MINTER_ROLE` on `cube_token` to distribute CUBE rewards.
-
-### Known Limitation
-
-The Cartridge Controller's built-in profile quest UI claim button does not work (ENTRYPOINT_NOT_FOUND). Use the in-game QuestsDialog instead, which calls `quest_system.claim()` correctly.
+| Player | DailyPlayerOne | Play 1 game | 3 CUBE |
+| Player | DailyPlayerTwo | Play 3 games | 5 CUBE |
+| Player | DailyPlayerThree | Play 5 games | 10 CUBE |
+| Clearer | DailyClearerOne | Clear 10 lines | 3 CUBE |
+| Clearer | DailyClearerTwo | Clear 30 lines | 5 CUBE |
+| Clearer | DailyClearerThree | Clear 50 lines | 10 CUBE |
+| Combo | DailyComboOne | 3+ line combo | 3 CUBE |
+| Combo | DailyComboTwo | 5+ line combo | 5 CUBE |
+| Combo | DailyComboThree | 7+ line combo | 10 CUBE |
+| ComboStreak | DailyComboStreakOne | 5+ combo streak | 3 CUBE |
+| ComboStreak | DailyComboStreakTwo | 7+ combo streak | 5 CUBE |
+| ComboStreak | DailyComboStreakThree | 9+ combo streak | 10 CUBE |
+| Finisher | DailyFinisher | Complete all 12 | 20 CUBE |
 
 ---
 
 ## Achievement System
 
-28 trophies tracked via Cartridge's arcade achievement system:
+28 trophies tracked via Cartridge achievement system:
 
 | Category | Milestones |
 |----------|------------|
@@ -606,5 +738,5 @@ The Cartridge Controller's built-in profile quest UI claim button does not work 
 ## Related Documentation
 
 - [CONFIGURABLE_SETTINGS.md](./CONFIGURABLE_SETTINGS.md) - GameSettings customization
-- [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Network deployment
-- [FUTURE_FEATURES.md](./FUTURE_FEATURES.md) - Planned features
+- [CONSTRAINT_CONFIG.md](./CONSTRAINT_CONFIG.md) - Constraint budget and cost functions
+- [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Deployment guide

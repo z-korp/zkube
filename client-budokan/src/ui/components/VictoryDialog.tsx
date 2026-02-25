@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
 import { useMemo, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Flame, Gem, Star, Trophy } from "lucide-react";
+import CubeIcon from "@/ui/components/CubeIcon";
 
 interface VictoryDialogProps {
   isOpen: boolean;
@@ -38,9 +39,9 @@ const VictoryDialog: React.FC<VictoryDialogProps> = ({
 
   // Generate tweet URL for victory
   const tweetUrl = useMemo(() => {
-    const cubesDisplay = "🧊".repeat(Math.min(game.totalCubes, 10)) + (game.totalCubes > 10 ? `+${game.totalCubes - 10}` : "");
+    const cubesDisplay = "💰".repeat(Math.min(game.totalCubes, 10)) + (game.totalCubes > 10 ? `+${game.totalCubes - 10}` : "");
     const tweetMsg = `🏆 I BEAT zKube! All 50 levels COMPLETE!
-${cubesDisplay} ${game.totalCubes} cubes earned
+${cubesDisplay} ${game.totalCubes} ZKUBE earned
 💎 ${game.totalScore.toLocaleString()} total points
 🔥 ${game.maxComboRun} max combo
 Can you beat all 50 levels? 😎
@@ -74,7 +75,7 @@ Play now: app.zkube.xyz
                   <motion.div
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: [0, 1, 0], scale: [0.5, 1, 0.5], x: [-30, -40], y: [-10, -20] }}
-                    transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.5 }}
+                    transition={{ duration: 1, repeat: 3, repeatDelay: 0.5 }}
                     className="absolute top-0 left-0"
                   >
                     <Star size={20} className="text-yellow-300" />
@@ -82,7 +83,7 @@ Play now: app.zkube.xyz
                   <motion.div
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: [0, 1, 0], scale: [0.5, 1, 0.5], x: [30, 40], y: [-5, -15] }}
-                    transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.7 }}
+                    transition={{ duration: 1, repeat: 3, repeatDelay: 0.7 }}
                     className="absolute top-0 right-0"
                   >
                     <Star size={20} className="text-yellow-300" />
@@ -90,7 +91,7 @@ Play now: app.zkube.xyz
                   <motion.div
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: [0, 1, 0], scale: [0.5, 1, 0.5], y: [20, 30] }}
-                    transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.9 }}
+                    transition={{ duration: 1, repeat: 3, repeatDelay: 0.9 }}
                     className="absolute bottom-0 left-1/2 -translate-x-1/2"
                   >
                     <Star size={20} className="text-yellow-300" />
@@ -141,7 +142,7 @@ Play now: app.zkube.xyz
             <div className="flex flex-col items-center gap-1 bg-yellow-900/30 px-4 py-3 rounded-lg flex-1 border border-yellow-500/30">
               <div className="text-3xl flex gap-2 items-center text-yellow-400">
                 {game.totalCubes}
-                <span>🧊</span>
+                <CubeIcon />
               </div>
               <div className="text-xs text-yellow-400/80">Cubes</div>
             </div>

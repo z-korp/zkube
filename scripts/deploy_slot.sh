@@ -34,11 +34,54 @@ print_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 print_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
+ensure_model_writers() {
+    # Ensure DraftState writers include all systems that modify it
+    local draft_key="\"${NAMESPACE}-DraftState\""
+    local draft_writers="${draft_key} = [\"${NAMESPACE}-draft_system\", \"${NAMESPACE}-game_system\", \"${NAMESPACE}-move_system\", \"${NAMESPACE}-bonus_system\", \"${NAMESPACE}-level_system\"]"
+    if grep -q "^${draft_key} =" "$DOJO_CONFIG"; then
+        sed -i "s|^${draft_key} = .*|${draft_writers}|" "$DOJO_CONFIG"
+    else
+        sed -i "/^\[writers\]$/a ${draft_writers}" "$DOJO_CONFIG"
+    fi
+
+    # Ensure Game model writers include draft_system
+    local game_key="\"${NAMESPACE}-Game\""
+    local game_writers="${game_key} = [\"${NAMESPACE}-game_system\", \"${NAMESPACE}-move_system\", \"${NAMESPACE}-bonus_system\", \"${NAMESPACE}-level_system\", \"${NAMESPACE}-grid_system\", \"${NAMESPACE}-draft_system\"]"
+    if grep -q "^${game_key} =" "$DOJO_CONFIG"; then
+        sed -i "s|^${game_key} = .*|${game_writers}|" "$DOJO_CONFIG"
+    else
+        sed -i "/^\[writers\]$/a ${game_writers}" "$DOJO_CONFIG"
+    fi
+}
+
 # Get credentials from dojo config
 get_credentials() {
     RPC_URL=$(grep "rpc_url" "$DOJO_CONFIG" | head -1 | cut -d'"' -f2)
     ACCOUNT_ADDRESS=$(grep "account_address" "$DOJO_CONFIG" | head -1 | cut -d'"' -f2)
     PRIVATE_KEY=$(grep "private_key" "$DOJO_CONFIG" | head -1 | cut -d'"' -f2)
+}
+
+get_config_cube_token_address() {
+    sed -n "/\"${NAMESPACE}-config_system\" = \[/,/\]/p" "$DOJO_CONFIG" \
+        | grep -oE '0x[0-9a-fA-F]+' \
+        | sed -n '2p'
+}
+
+resolve_cube_token_address() {
+    if [ -n "$CUBE_TOKEN_ADDRESS" ]; then
+        EXTERNAL_CUBE_TOKEN="$CUBE_TOKEN_ADDRESS"
+        print_info "Using external CubeToken from CUBE_TOKEN_ADDRESS: $EXTERNAL_CUBE_TOKEN"
+        return
+    fi
+
+    EXTERNAL_CUBE_TOKEN=$(get_config_cube_token_address)
+    if [ -z "$EXTERNAL_CUBE_TOKEN" ]; then
+        print_error "Could not resolve external CubeToken address."
+        print_error "Set CUBE_TOKEN_ADDRESS env var or add second address in ${NAMESPACE}-config_system init_call_args."
+        exit 1
+    fi
+
+    print_info "Using external CubeToken from $DOJO_CONFIG: $EXTERNAL_CUBE_TOKEN"
 }
 
 # Extract address from sozo deploy output
@@ -84,6 +127,7 @@ print_info "Build complete!"
 get_credentials
 print_info "Using RPC: $RPC_URL"
 print_info "Account: $ACCOUNT_ADDRESS"
+resolve_cube_token_address
 
 #-----------------
 # Step 3: Declare classes
@@ -191,10 +235,10 @@ sleep 5
 #-----------------
 print_info "Step 5: Updating dojo configuration..."
 
-# Update denshokan_address in both config files using sed
 if [ -f "$DOJO_CONFIG" ]; then
-    # Replace the denshokan_address line (second line in game_system init_call_args)
     sed -i "s|\"0x[0-9a-fA-F]*\",  # denshokan_address|\"$TOKEN_ADDRESS\",  # denshokan_address|" "$DOJO_CONFIG"
+    sed -i "/\"${NAMESPACE}-config_system\" = \[/,/\]/{/account address/ {n; s|\"0x[0-9a-fA-F]*\"|\"$EXTERNAL_CUBE_TOKEN\"|;}}" "$DOJO_CONFIG"
+    ensure_model_writers
     print_info "  Updated $DOJO_CONFIG"
 fi
 
@@ -256,11 +300,10 @@ print_info "Step 7: Updating world address in configs..."
 
 if [ -f "$DOJO_CONFIG" ]; then
     # Check if world_address exists, update or add
-    if grep -q "world_address" "$DOJO_CONFIG"; then
+    if grep -q "^world_address = \"0x[0-9a-fA-F]*\"" "$DOJO_CONFIG"; then
         sed -i "s|world_address = \"0x[0-9a-fA-F]*\"|world_address = \"$WORLD_ADDRESS\"|" "$DOJO_CONFIG"
     else
-        # Add after private_key line
-        sed -i "/private_key/a world_address = \"$WORLD_ADDRESS\"" "$DOJO_CONFIG"
+        sed -i "/^private_key = /a world_address = \"$WORLD_ADDRESS\"" "$DOJO_CONFIG"
     fi
     print_info "  Updated $DOJO_CONFIG"
 fi
@@ -272,37 +315,78 @@ print_info "Step 8: Extracting system addresses..."
 
 GAME_SYSTEM=""
 CONFIG_SYSTEM=""
-CUBE_TOKEN=""
+MANIFEST_CUBE_TOKEN=""
+MOVE_SYSTEM=""
+QUEST_SYSTEM=""
+SKILL_TREE_SYSTEM=""
+CUBE_TOKEN="$EXTERNAL_CUBE_TOKEN"
 if [ -f "$MANIFEST_FILE" ]; then
     GAME_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-game_system\") | .address" 2>/dev/null)
     CONFIG_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-config_system\") | .address" 2>/dev/null)
-    CUBE_TOKEN=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-cube_token\") | .address" 2>/dev/null)
+    MANIFEST_CUBE_TOKEN=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-cube_token\") | .address" 2>/dev/null)
+    MOVE_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-move_system\") | .address" 2>/dev/null)
+    QUEST_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-quest_system\") | .address" 2>/dev/null)
+    SKILL_TREE_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-skill_tree_system\") | .address" 2>/dev/null)
 fi
 
-if [ -n "$CUBE_TOKEN" ] && [ "$CUBE_TOKEN" != "null" ]; then
-    print_info "  CubeToken deployed at: $CUBE_TOKEN"
+print_info "  External CubeToken configured at: $CUBE_TOKEN"
+if [ -n "$MANIFEST_CUBE_TOKEN" ] && [ "$MANIFEST_CUBE_TOKEN" != "null" ] && [ "$MANIFEST_CUBE_TOKEN" != "$CUBE_TOKEN" ]; then
+    print_warn "  Manifest world cube_token differs ($MANIFEST_CUBE_TOKEN). Using external CubeToken: $CUBE_TOKEN"
+fi
+
+#-----------------
+# Step 9b: Grant MINTER_ROLE on world's cube_token (post-init fix for dojo_init race condition)
+#-----------------
+print_info "Step 8b: Granting MINTER_ROLE on world cube_token (via tag)..."
+GRANT_WORLD_OUTPUT=$(sozo execute -P $PROFILE \
+    --account-address "$ACCOUNT_ADDRESS" \
+    --private-key "$PRIVATE_KEY" \
+    --rpc-url "$RPC_URL" \
+    "${NAMESPACE}-cube_token" \
+    grant_minter_roles 2>&1) || true
+if echo "$GRANT_WORLD_OUTPUT" | grep -q "Transaction hash"; then
+    print_info "  MINTER_ROLE granted on world cube_token to all systems"
 else
-    CUBE_TOKEN=""
-    print_warn "  CubeToken address not found in manifest"
+    print_warn "  Failed to grant MINTER_ROLE on world cube_token"
+    echo "$GRANT_WORLD_OUTPUT"
 fi
 
 #-----------------
-# Step 9b: Grant MINTER_ROLE on CubeToken to game_system and shop_system
+# Step 9c: Grant MINTER_ROLE on external CubeToken using explicit system addresses
+# NOTE: grant_minter_roles resolves addresses via DNS from the cube_token's own world,
+# which may differ from the current deployment. Use direct grant_role instead.
 #-----------------
-if [ -n "$CUBE_TOKEN" ]; then
-    print_info "Step 8b: Granting MINTER_ROLE on CubeToken..."
-    GRANT_OUTPUT=$(sozo execute -P $PROFILE \
+MINTER_ROLE_FELT="0x4d494e5445525f524f4c45"  # felt252 encoding of 'MINTER_ROLE'
+
+grant_role_on_cube_token() {
+    local system_name="$1"
+    local system_addr="$2"
+    if [ -z "$system_addr" ] || [ "$system_addr" = "null" ]; then
+        print_warn "  Skipping $system_name (address not found in manifest)"
+        return
+    fi
+    local OUTPUT=$(sozo execute -P $PROFILE \
         --account-address "$ACCOUNT_ADDRESS" \
         --private-key "$PRIVATE_KEY" \
         --rpc-url "$RPC_URL" \
         "$CUBE_TOKEN" \
-        grant_minter_roles 2>&1) || true
-    if echo "$GRANT_OUTPUT" | grep -q "Transaction hash"; then
-        print_info "  MINTER_ROLE granted to game_system and shop_system"
+        grant_role "$MINTER_ROLE_FELT" "$system_addr" 2>&1) || true
+    if echo "$OUTPUT" | grep -q "Transaction hash"; then
+        print_info "  MINTER_ROLE granted to $system_name ($system_addr)"
     else
-        print_warn "  Failed to grant MINTER_ROLE (call grant_minter_roles manually)"
-        echo "$GRANT_OUTPUT"
+        print_warn "  Failed to grant MINTER_ROLE to $system_name"
+        echo "$OUTPUT"
     fi
+}
+
+if [ -n "$CUBE_TOKEN" ] && [ "$CUBE_TOKEN" != "$MANIFEST_CUBE_TOKEN" ]; then
+    print_info "Step 8c: Granting MINTER_ROLE on external CubeToken ($CUBE_TOKEN)..."
+    grant_role_on_cube_token "game_system" "$GAME_SYSTEM"
+    grant_role_on_cube_token "move_system" "$MOVE_SYSTEM"
+    grant_role_on_cube_token "quest_system" "$QUEST_SYSTEM"
+    grant_role_on_cube_token "skill_tree_system" "$SKILL_TREE_SYSTEM"
+elif [ -n "$CUBE_TOKEN" ]; then
+    print_info "  External CubeToken matches world cube_token — roles already granted via tag"
 fi
 
 #-----------------
@@ -312,9 +396,13 @@ print_info "Step 9: Updating torii configuration..."
 
 # Build contracts array for Torii config
 TORII_CONTRACTS="\"erc721:$TOKEN_ADDRESS\""
-if [ -n "$CUBE_TOKEN" ]; then
+if [ -n "$CUBE_TOKEN" ] && [ "$CUBE_TOKEN" != "null" ]; then
     TORII_CONTRACTS="$TORII_CONTRACTS,
   \"erc20:$CUBE_TOKEN\""
+fi
+if [ -n "$MANIFEST_CUBE_TOKEN" ] && [ "$MANIFEST_CUBE_TOKEN" != "null" ] && [ "$MANIFEST_CUBE_TOKEN" != "$CUBE_TOKEN" ]; then
+    TORII_CONTRACTS="$TORII_CONTRACTS,
+  \"erc20:$MANIFEST_CUBE_TOKEN\""
 fi
 
 cat > "$TORII_CONFIG" << EOF
@@ -384,6 +472,7 @@ EOF
 
 print_info "  Updated $CLIENT_ENV"
 
+if [ -d "$(dirname "$MOBILE_ENV")" ]; then
 cat > "$MOBILE_ENV" << EOF
 # Slot deployment configuration
 # Generated by deploy_slot.sh on $(date)
@@ -404,6 +493,9 @@ VITE_PUBLIC_CUBE_TOKEN_ADDRESS=$CUBE_TOKEN
 EOF
 
 print_info "  Updated $MOBILE_ENV"
+else
+    print_warn "  Skipping mobile env update (directory missing): $(dirname "$MOBILE_ENV")"
+fi
 
 #-----------------
 # Summary

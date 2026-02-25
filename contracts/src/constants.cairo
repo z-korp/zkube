@@ -5,9 +5,10 @@ pub const DEFAULT_GRID_HEIGHT: u8 = 10;
 // Packing
 pub const BLOCK_SIZE: u8 = 8;
 pub const BLOCK_BIT_COUNT: u8 = 3;
-pub const ROW_SIZE: u32 = 16777216;      // 2^24 - used for row shifting
+pub const ROW_SIZE: u32 = 16777216; // 2^24 - used for row shifting
 pub const ROW_BIT_COUNT: u8 = 24;
-pub const LINE_FULL_BOUND: u32 = 2097152; // 2^21 - minimum value for a full row (leftmost block != 0)
+pub const LINE_FULL_BOUND: u32 =
+    2097152; // 2^21 - minimum value for a full row (leftmost block != 0)
 pub const CARDS_IN_DECK: u32 = 14;
 pub const TWO_POW_1: u128 = 0x2;
 pub const MASK_1: u128 = 0x1;
@@ -36,8 +37,8 @@ pub fn SETTINGS_MODEL() -> ByteArray {
 // SETTINGS
 pub mod DEFAULT_SETTINGS {
     use starknet::ContractAddress;
-    use zkube::types::difficulty::Difficulty;
     use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
+    use zkube::types::difficulty::Difficulty;
 
     /// The official default settings ID used for cube minting, quests, and leaderboards
     pub const DEFAULT_SETTINGS_ID: u32 = 0;
@@ -53,7 +54,7 @@ pub mod DEFAULT_SETTINGS {
     }
 
     pub fn GET_DEFAULT_SETTINGS_METADATA(
-        current_timestamp: u64, creator_address: ContractAddress
+        current_timestamp: u64, creator_address: ContractAddress,
     ) -> @GameSettingsMetadata {
         @GameSettingsMetadata {
             settings_id: DEFAULT_SETTINGS_ID,

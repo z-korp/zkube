@@ -19,7 +19,7 @@ contracts/
 │   ├── systems/               # Dojo systems (logic)
 │   │   ├── game.cairo         # Main game system + MinigameComponent
 │   │   ├── shop.cairo         # Permanent shop (cube economy)
-│   │   ├── cube_token.cairo   # Soulbound ERC1155 CUBE token
+│   │   ├── cube_token.cairo   # ERC20 CUBE token (zKube/ZKUBE)
 │   │   ├── quest.cairo        # Daily quest system
 │   │   ├── config.cairo       # Configuration + IMinigameSettings
 │   │   └── renderer.cairo     # NFT metadata & SVG (IMinigameDetails)
@@ -69,12 +69,42 @@ pub struct Game {
     pub max_combo: u8,        // Best combo this level
     // Level system (bit-packed run progress)
     pub run_data: felt252,    // Bit-packed: level, score, moves, bonuses, cubes, etc.
+    pub level_stars: felt252,  // 2 bits per level × 50 levels = 100 bits
     // Timestamps
     pub started_at: u64,      // Run start timestamp
     // Game state
     pub over: bool,
 }
 ```
+
+### GameLevel Model
+
+Current level configuration synced to client via Torii:
+
+```cairo
+#[dojo::model]
+pub struct GameLevel {
+    #[key]
+    pub game_id: u64,
+    pub level: u8,
+    pub points_required: u16,
+    pub max_moves: u16,
+    pub difficulty: u8,
+    pub constraint_type: u8,
+    pub constraint_value: u8,
+    pub constraint_count: u8,
+    pub constraint2_type: u8,
+    pub constraint2_value: u8,
+    pub constraint2_count: u8,
+    pub constraint3_type: u8,
+    pub constraint3_value: u8,
+    pub constraint3_count: u8,
+    pub cube_3_threshold: u16,
+    pub cube_2_threshold: u16,
+}
+```
+
+Single source of truth for level config, eliminating client-side level generation.
 
 ### GameSeed Model
 
@@ -101,7 +131,7 @@ pub struct PlayerMeta {
 }
 ```
 
-**Note:** Cube balance is tracked via the ERC1155 CubeToken contract, not in PlayerMeta.
+**Note:** Cube balance is tracked via the ERC20 CubeToken contract, not in PlayerMeta.
 
 **MetaData bit-packing** (in `helpers/packing.cairo`):
 - `starting_combo/score/harvest/wave/supply` (2 bits each, 0-3)
@@ -123,7 +153,7 @@ pub struct GameSettings {
     pub base_moves: u16,           // Default: 20
     pub max_moves: u16,            // Default: 60
     pub base_ratio_x100: u16,      // Default: 80 (0.80)
-    pub max_ratio_x100: u16,       // Default: 250 (2.50)
+    pub max_ratio_x100: u16,       // Default: 180 (1.80)
     // Cube Thresholds
     pub cube_3_percent: u8,        // Default: 40%
     pub cube_2_percent: u8,        // Default: 70%
@@ -198,15 +228,16 @@ trait IShopSystem {
 ```
 
 **Upgrade Costs:**
-- Starting Bonus: 50 / 200 / 500 cubes for levels 1/2/3
-- Bag Size: 10 * 2^level cubes (10, 20, 40, 80...)
-- Bridging Rank: 100 * 2^rank cubes (100, 200, 400, 800...)
+- Starting Bonus: 100 / 250 / 500 cubes for levels 1/2/3
+- Bag Size: 100 / 250 / 500 cubes for levels 1/2/3
+- Bridging Rank: 200 / 500 / 1000 cubes for ranks 1/2/3
+- Unlock Bonus: 200 cubes each (Wave/Supply)
 
-All upgrades burn cubes via the ERC1155 `CubeToken` contract.
+All upgrades burn cubes via the ERC20 `CubeToken` contract.
 
 ### CubeToken System (`systems/cube_token.cairo`)
 
-Soulbound ERC1155 token for the CUBE currency (token ID = 1):
+ERC20 token for the CUBE currency (name='zKube', symbol='ZKUBE', 0 decimals):
 
 ```cairo
 trait ICubeToken {
@@ -218,10 +249,9 @@ trait ICubeToken {
 }
 ```
 
-- **Soulbound:** Transfers blocked (only mint from=0 and burn to=0 allowed)
 - **Access Control:** MINTER_ROLE required for mint; burn allowed by owner or MINTER_ROLE
-- **dojo_init:** Grants MINTER_ROLE to game_system, shop_system, and quest_system
-- **Torii Integration:** `register_external_contract()` registers with Torii for ERC1155 balance indexing
+- **dojo_init:** Grants MINTER_ROLE to game_system, move_system, shop_system, and quest_system
+- **Torii Integration:** `register_external_contract()` registers with Torii for ERC20 balance indexing
 
 ### Quest System (`systems/quest.cairo`)
 
@@ -234,20 +264,23 @@ trait IQuestSystem {
 }
 ```
 
-**Quests (10 total, 102 CUBE/day):**
+**Quests (13 total, 92 CUBE/day):**
 
 | Quest | Task | Threshold | Reward |
 |-------|------|-----------|--------|
 | DailyPlayerOne | Games played | 1 | 3 CUBE |
-| DailyPlayerTwo | Games played | 3 | 6 CUBE |
-| DailyPlayerThree | Games played | 5 | 12 CUBE |
+| DailyPlayerTwo | Games played | 3 | 5 CUBE |
+| DailyPlayerThree | Games played | 5 | 10 CUBE |
 | DailyClearerOne | Lines cleared | 10 | 3 CUBE |
-| DailyClearerTwo | Lines cleared | 30 | 6 CUBE |
-| DailyClearerThree | Lines cleared | 50 | 12 CUBE |
-| DailyComboOne | 3+ combos | 1 | 5 CUBE |
-| DailyComboTwo | 5+ combos | 1 | 10 CUBE |
-| DailyComboThree | 7+ combos | 1 | 20 CUBE |
-| DailyFinisher | All 9 quests | 9 | 25 CUBE |
+| DailyClearerTwo | Lines cleared | 30 | 5 CUBE |
+| DailyClearerThree | Lines cleared | 50 | 10 CUBE |
+| DailyComboOne | 3+ combos | 1 | 3 CUBE |
+| DailyComboTwo | 5+ combos | 1 | 5 CUBE |
+| DailyComboThree | 7+ combos | 1 | 10 CUBE |
+| DailyComboStreakOne | 5+ combo streak | 1 | 3 CUBE |
+| DailyComboStreakTwo | 7+ combo streak | 1 | 5 CUBE |
+| DailyComboStreakThree | 9+ combo streak | 1 | 10 CUBE |
+| DailyFinisher | All 12 quests | 12 | 20 CUBE |
 
 ### Config System (`systems/config.cairo`)
 
@@ -378,19 +411,18 @@ Adds new lines at no move cost. Must unlock in permanent shop.
 
 ## ConsumableType (`types/consumable.cairo`)
 
-In-game shop items purchasable during a run (every 5 levels):
+In-game shop items purchasable during a run (every 10 levels):
 
 ```cairo
 pub enum ConsumableType {
-    Bonus1,   // 5 CUBE - Add 1 of selected_bonus_1
-    Bonus2,   // 5 CUBE - Add 1 of selected_bonus_2
-    Bonus3,   // 5 CUBE - Add 1 of selected_bonus_3
-    Refill,   // 2*(n+1) CUBE - Reset shop availability
-    LevelUp,  // 50 CUBE - Level up a bonus
+    BonusCharge, // ceil(5 × 1.5^n) CUBE - Buy charge to unallocated pool (n = purchases this visit)
+    LevelUp,     // 50 CUBE - Upgrade one selected bonus (limit 1 per shop)
+    SwapBonus,   // 50 CUBE - Replace one selected bonus with unselected one (limit 1 per shop)
 }
 ```
 
-**Shop availability resets** when entering a new shop level (every 5 levels).
+**BonusCharge Cost Sequence:** 5, 8, 12, 18, 27, 41, ...
+**Shop availability resets** when entering a new shop level (every 10 levels).
 
 ## Difficulty Levels
 
@@ -425,14 +457,14 @@ Defined in `types/difficulty.cairo` and implemented in `elements/difficulties/`:
 | # | Type | Regular Levels | Boss Only |
 |---|------|:-:|:-:|
 | 0 | None | ✅ | ❌ |
-| 1 | ClearLines | ✅ | ✅ |
+| 1 | ComboLines | ✅ | ✅ |
 | 2 | BreakBlocks | ✅ | ✅ |
-| 3 | AchieveCombo | ✅ | ✅ |
+| 3 | ComboStreak | ✅ | ✅ |
 | 4 | FillAndClear (Fill) | ✅ | ✅ |
 | 5 | NoBonusUsed | ❌ | ✅ |
-| 6 | ClearGrid | ❌ | ✅ |
+| 6 | KeepGridBelow | ❌ | ✅ |
 
-**Unified budget system:** All 4 regular types use the same budget-based generation in `helpers/level.cairo`. Regular levels select type by difficulty-weighted probabilities; boss levels use boss identity for types and `budget_max` for values. Boss levels (10/20/30/40/50) use `helpers/boss.cairo` which defines 10 themed bosses. Boss ID is derived from `level_seed % 10 + 1`. L10-30 have dual constraints, L40/50 have triple constraints. NoBonusUsed and ClearGrid are binary (no budget).
+**Unified budget system:** All 4 regular types use the same budget-based generation in `helpers/level.cairo`. Regular levels select type by difficulty-weighted probabilities; boss levels use boss identity for types and `budget_max` for values. Boss levels (10/20/30/40/50) use `helpers/boss.cairo` which defines 10 themed bosses. Boss ID is derived from `level_seed % 10 + 1`. L10-30 have dual constraints, L40/50 have triple constraints. NoBonusUsed and KeepGridBelow are binary (no budget).
 
 The `ConstraintContext` struct (includes `highest_row_after` for Fill constraint) is passed to `update_progress()` for all constraint types, gating expensive computations (e.g., BreakBlocks counting) behind `any_needs_break_blocks()` checks. Fill triggers when grid height after move resolves reaches the target row.
 

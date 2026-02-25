@@ -1,5 +1,4 @@
 use alexandria_math::fast_power::fast_power;
-
 use zkube::constants;
 use zkube::elements::bonuses::interface::BonusTrait;
 

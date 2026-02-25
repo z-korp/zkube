@@ -1,12 +1,8 @@
 #[starknet::interface]
 pub trait IGameSystem<T> {
-    /// Create a new game with bonus selection and optional cubes
+    /// Create a new game
     /// @param game_id: NFT token ID for this game
-    /// @param selected_bonuses: Array of 3 bonus types [0-5] to use this run
-    ///   - 0=None (invalid), 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
-    ///   - Pass empty array for default selection [Combo, Score, Harvest]
-    /// @param cubes_amount: Cubes to bring into run (burned from wallet), 0 for none
-    fn create(ref self: T, game_id: u64, selected_bonuses: Span<u8>, cubes_amount: u16);
+    fn create(ref self: T, game_id: u64);
     /// Surrender the current run (game over)
     fn surrender(ref self: T, game_id: u64);
     /// Get player name from token
@@ -14,37 +10,18 @@ pub trait IGameSystem<T> {
     /// Get current level score
     fn get_score(self: @T, game_id: u64) -> u16;
     /// Get game data for UI
-    /// Returns: (level, level_score, level_moves, combo, max_combo, combo_bonus, score_bonus, harvest_bonus, total_cubes, over)
-    fn get_game_data(
-        self: @T, game_id: u64,
-    ) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool);
+    /// Returns: (level, level_score, level_moves, combo, max_combo, combo_bonus, score_bonus,
+    /// harvest_bonus, total_cubes, over)
+    fn get_game_data(self: @T, game_id: u64) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool);
 }
 
 #[dojo::contract]
 mod game_system {
-    use zkube::constants::DEFAULT_NS;
-    use zkube::models::game::{Game, GameTrait, GameAssert, GameSeed};
-    use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
-    use zkube::helpers::random::RandomImpl;
-    use zkube::helpers::config::ConfigUtilsTrait;
-    use zkube::helpers::packing::MetaDataPackingTrait;
-    use zkube::helpers::game_over;
-    use zkube::events::StartGame;
-    use zkube::helpers::game_libs::{
-        GameLibsImpl, 
-        ILevelSystemDispatcherTrait, IGridSystemDispatcherTrait, ICubeTokenDispatcherTrait
-    };
-    use zkube::elements::tasks::grinder;
-
+    use core::num::traits::Zero;
+    use dojo::event::EventStorage;
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
-    use dojo::event::EventStorage;
-
-    use starknet::{get_block_timestamp, get_caller_address, ContractAddress};
-    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
-    use core::num::traits::Zero;
-
-    use game_components_minigame::interface::{IMinigameTokenData};
+    use game_components_minigame::interface::IMinigameTokenData;
     use game_components_minigame::libs::{
         assert_token_ownership, get_player_name as get_token_player_name, post_action, pre_action,
     };
@@ -55,6 +32,23 @@ mod game_system {
     use game_components_token::libs::LifecycleTrait;
     use game_components_token::structs::TokenMetadata;
     use openzeppelin_introspection::src5::SRC5Component;
+    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+    use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
+    use zkube::constants::DEFAULT_NS;
+    use zkube::elements::tasks::grinder;
+    use zkube::events::StartGame;
+    use zkube::helpers::config::ConfigUtilsTrait;
+    use zkube::helpers::game_libs::{
+        GameLibsImpl, IDraftSystemDispatcherTrait, IGridSystemDispatcherTrait,
+        ILevelSystemDispatcherTrait,
+    };
+    use zkube::helpers::game_over;
+    use zkube::helpers::packing::RunDataHelpersTrait;
+    use zkube::helpers::random::RandomImpl;
+    use zkube::models::draft::{DraftState, DraftStateTrait};
+    use zkube::models::game::{Game, GameAssert, GameSeed, GameTrait};
+    use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
+    use zkube::models::skill_tree::PlayerSkillTree;
 
     component!(path: MinigameComponent, storage: minigame, event: MinigameEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -142,7 +136,7 @@ mod game_system {
                 Option::None, // objectives_address (using Cartridge arcade)
                 denshokan_address,
             );
-        
+
         // Store VRF address for runtime random source selection
         self.vrf_address.write(vrf_address);
     }
@@ -165,7 +159,7 @@ mod game_system {
 
     #[abi(embed_v0)]
     impl GameSystemImpl of super::IGameSystem<ContractState> {
-        fn create(ref self: ContractState, game_id: u64, selected_bonuses: Span<u8>, cubes_amount: u16) {
+        fn create(ref self: ContractState, game_id: u64) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let token_address = self.token_address();
@@ -176,125 +170,41 @@ mod game_system {
             self.validate_start_conditions(game_id, @token_metadata, token_address);
 
             // Generate seed: use VRF if vrf_address is set, otherwise pseudo-random
+            // Salt = game_id for create (unique per game, matches client request_random)
             let vrf_addr = self.vrf_address.read();
+            let vrf_enabled = !vrf_addr.is_zero();
             let random = if vrf_addr.is_zero() {
                 RandomImpl::new_pseudo_random()
             } else {
-                RandomImpl::new_vrf()
+                RandomImpl::new_vrf(game_id.into())
             };
             let timestamp = get_block_timestamp();
 
             // Get game settings (selected via token settings_id)
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-            
+
             // Create empty game shell (grid will be initialized via dispatcher)
             let mut game = GameTrait::new_empty(game_id, timestamp);
 
             // Store the seed separately
-            let game_seed = GameSeed { game_id, seed: random.seed };
+            let game_seed = GameSeed {
+                game_id, seed: random.seed, level_seed: random.seed, vrf_enabled,
+            };
             world.write_model(@game_seed);
+
+            let draft_state: DraftState = DraftStateTrait::new(game_id, random.seed);
+            world.write_model(@draft_state);
 
             // Initialize or update player meta
             let player = get_caller_address();
+            let skill_tree: PlayerSkillTree = world.read_model(player);
             let mut player_meta: PlayerMeta = world.read_model(player);
             if !player_meta.exists() {
                 player_meta = PlayerMetaTrait::new(player);
             }
-            let meta_data = player_meta.get_meta_data();
-
-            // Process bonus selection
-            let mut run_data = game.get_run_data();
-            
-            // Determine selected bonuses (use defaults if empty)
-            let (bonus_1, bonus_2, bonus_3) = if selected_bonuses.len() == 0 {
-                // Default selection: Combo(1), Score(2), Harvest(3)
-                (1_u8, 2_u8, 3_u8)
-            } else {
-                // Validate exactly 3 bonuses selected
-                assert!(selected_bonuses.len() == 3, "Must select exactly 3 bonuses");
-                
-                let b1 = *selected_bonuses.at(0);
-                let b2 = *selected_bonuses.at(1);
-                let b3 = *selected_bonuses.at(2);
-                
-                // Validate each bonus is valid (1-5, not 0)
-                assert!(b1 >= 1 && b1 <= 5, "Invalid bonus type");
-                assert!(b2 >= 1 && b2 <= 5, "Invalid bonus type");
-                assert!(b3 >= 1 && b3 <= 5, "Invalid bonus type");
-                
-                // Validate no duplicates
-                assert!(b1 != b2 && b1 != b3 && b2 != b3, "Duplicate bonus selection");
-                
-                // Validate Wave(4) and Supply(5) are unlocked
-                if b1 == 4 || b2 == 4 || b3 == 4 {
-                    assert!(meta_data.wave_unlocked, "Wave bonus not unlocked");
-                }
-                if b1 == 5 || b2 == 5 || b3 == 5 {
-                    assert!(meta_data.supply_unlocked, "Supply bonus not unlocked");
-                }
-                
-                (b1, b2, b3)
-            };
-            
-            // Store selected bonuses in run_data
-            run_data.selected_bonus_1 = bonus_1;
-            run_data.selected_bonus_2 = bonus_2;
-            run_data.selected_bonus_3 = bonus_3;
-            // All bonuses start at level 0 (L1)
-            run_data.bonus_1_level = 0;
-            run_data.bonus_2_level = 0;
-            run_data.bonus_3_level = 0;
-
             // Initialize GameLibs once for all dispatcher calls
             let libs = GameLibsImpl::new(world);
-            
-            // Handle cube bridging if cubes_amount > 0
-            if cubes_amount > 0 {
-                // Check player has unlocked bridging
-                let max_allowed = player_meta.get_max_cubes_to_bring();
-                assert!(max_allowed > 0, "Bridging not unlocked - upgrade bridging rank first");
-                assert!(cubes_amount <= max_allowed, "Exceeds max cubes for your bridging rank");
-                
-                // Burn cubes from ERC1155 wallet (will revert if insufficient)
-                libs.cube.burn(player, cubes_amount.into());
-                
-                // Set cubes_brought in run_data
-                run_data.cubes_brought = cubes_amount;
-            }
 
-            // Apply starting bonuses ONLY for selected bonus types (capped at bag size)
-            // Combo = 1
-            if bonus_1 == 1 || bonus_2 == 1 || bonus_3 == 1 {
-                let bag_size = meta_data.get_bag_size(0);
-                let starting = meta_data.starting_combo;
-                run_data.combo_count = if starting > bag_size { bag_size } else { starting };
-            }
-            // Score = 2
-            if bonus_1 == 2 || bonus_2 == 2 || bonus_3 == 2 {
-                let bag_size = meta_data.get_bag_size(1);
-                let starting = meta_data.starting_score;
-                run_data.score_count = if starting > bag_size { bag_size } else { starting };
-            }
-            // Harvest = 3
-            if bonus_1 == 3 || bonus_2 == 3 || bonus_3 == 3 {
-                let bag_size = meta_data.get_bag_size(2);
-                let starting = meta_data.starting_harvest;
-                run_data.harvest_count = if starting > bag_size { bag_size } else { starting };
-            }
-            // Wave = 4
-            if bonus_1 == 4 || bonus_2 == 4 || bonus_3 == 4 {
-                let bag_size = meta_data.get_bag_size(3);
-                let starting = meta_data.starting_wave;
-                run_data.wave_count = if starting > bag_size { bag_size } else { starting };
-            }
-            // Supply = 5
-            if bonus_1 == 5 || bonus_2 == 5 || bonus_3 == 5 {
-                let bag_size = meta_data.get_bag_size(4);
-                let starting = meta_data.starting_supply;
-                run_data.supply_count = if starting > bag_size { bag_size } else { starting };
-            }
-
-            game.set_run_data(run_data);
             world.write_model(@game);
 
             player_meta.increment_runs();
@@ -303,7 +213,7 @@ mod game_system {
             // Track quest progress: games played (Grinder task)
             // Only counts for default settings games
             libs.track_quest(player, grinder::Grinder::identifier(), 1, settings.settings_id);
-            
+
             // Track achievement progress: games played (Grinder achievement)
             libs.track_achievement(player, grinder::Grinder::identifier(), 1, settings.settings_id);
 
@@ -313,9 +223,9 @@ mod game_system {
             world.emit_event(@StartGame { player, timestamp, game_id });
 
             // Initialize level 1 and grid via GameLibs dispatchers
-            let has_no_bonus = libs.level.initialize_level(game_id);
+            let has_no_bonus = libs.level.initialize_level(game_id, skill_tree.skill_data);
             libs.grid.initialize_grid(game_id);
-            
+
             // Update run_data with no_bonus_constraint flag if needed
             if has_no_bonus {
                 let mut game: Game = world.read_model(game_id);
@@ -324,6 +234,9 @@ mod game_system {
                 game.set_run_data(run_data);
                 world.write_model(@game);
             }
+
+            // Open zone 1 entry draft (completed_level=0 means game just created)
+            libs.draft.maybe_open_after_level(game_id, 0, player);
         }
 
         fn surrender(ref self: ContractState, game_id: u64) {
@@ -377,9 +290,9 @@ mod game_system {
                 run_data.level_moves,
                 game.combo_counter,
                 game.max_combo,
-                run_data.combo_count,
-                run_data.score_count,
-                run_data.harvest_count,
+                run_data.get_bonus_charges(1),
+                run_data.get_bonus_charges(2),
+                run_data.get_bonus_charges(3),
                 run_data.total_cubes,
                 game.over,
             )

@@ -1,5 +1,4 @@
 use alexandria_math::fast_power::fast_power;
-
 use zkube::constants;
 use zkube::helpers::packer::Packer;
 
@@ -18,14 +17,14 @@ pub impl Gravity of GravityTrait {
         loop {
             if top == 0 {
                 break;
-            };
+            }
             let upper = top % constants::BLOCK_SIZE.into();
             if upper == 0 {
                 top /= constants::BLOCK_SIZE.into();
                 bottom /= constants::BLOCK_SIZE.into();
                 pointer *= constants::BLOCK_SIZE.into();
                 continue;
-            };
+            }
             let size: u32 = fast_power(2, upper * constants::BLOCK_BIT_COUNT.into());
             let lower = bottom % size;
             let lower_mask = pointer - 1;
@@ -35,11 +34,11 @@ pub impl Gravity of GravityTrait {
                 let mask = upper_mask - lower_mask;
                 new_bottom = new_bottom | (mask & new_top);
                 new_top = new_top & ~mask;
-            };
+            }
             top /= size;
             bottom /= size;
-        };
-        (new_top, new_bottom,)
+        }
+        (new_top, new_bottom)
     }
 }
 

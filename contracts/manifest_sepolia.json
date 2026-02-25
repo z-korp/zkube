@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x3bdc246e14e21891ed644d29e7c86a2e3bddf997d155e2b958cc705e85988e0",
-    "seed": "zkube_sepolia_v2_4",
+    "address": "0x2e5b2210254d283d3f570dc5c4680f455add1898e42beea9e414c0d1ef67f5c",
+    "seed": "zkube_sepolia_v3_2",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,7 +33,7 @@
   },
   "contracts": [
     {
-      "address": "0x754837f62cf6e18943fbd3e745dd563ea6b19d62f2d40247c8443df4b22e468",
+      "address": "0xc46719d00c733b88df6c5c671b150b58888e5483cfa489bcd501ce9a7a464c",
       "class_hash": "0x7311e652f0580d8cd447d2d88fac0debb68498279f55a71590ca2edf25d7715",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-achievement_system",
@@ -47,8 +47,8 @@
       ]
     },
     {
-      "address": "0x74d571a400af104a2b8786730aa32c3dc5d9b6acda88aacb2c082f740c355db",
-      "class_hash": "0x6c154e32c8bed2759ff226c2e5cbdc4cca048f51738fdeef0ca3fccad43b589",
+      "address": "0x5b991c62edd15b32c52708beb102047d6c7755670af35ee42cb41b4f040d731",
+      "class_hash": "0x32578ab6b09cdd54fce073de0e717c7cdff97616083ac3143b687dae2281363",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-bonus_system",
       "selector": "0x7ddae8715adf015ed6b5c712f7e3a5c01fe157aac2a2f1d42270deca60c5382",
@@ -58,10 +58,11 @@
       ]
     },
     {
-      "address": "0x1d97cb7711d91b0edc12bb2d161e2f76df0baddcdbe1fec7403911577ebe99d",
-      "class_hash": "0x2da4a45dee70d63d874284095a7a6851236d24c653060194f01182d9782f032",
+      "address": "0x157fa06bc2d6cc1460fa96be7c34413a84e48d47ed6129f7de518db8d18038b",
+      "class_hash": "0x6943a3ff771505b15a644770a1f4800462a4b22f677687c0e2757f2ef34ad27",
       "init_calldata": [
-        "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859"
+        "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
+        "0x75577c7909a6cc844eb4e51c9af205df9d2a67834c1c7a3870c092de0a14229"
       ],
       "tag": "zkube_budo_v1_2_0-config_system",
       "selector": "0xebe42c5440f35cc9a3742fb773019f34101eae85c5e314bcebd749b6ec84f0",
@@ -73,8 +74,8 @@
       ]
     },
     {
-      "address": "0x690de553158e369dc50368eab90bbb172c7de1a64e6758978c4627049e5ad08",
-      "class_hash": "0x37874ac24c4bd5aed2b3aa64ce11184afead0eb378a89ac67e4ba5b76e340a9",
+      "address": "0x3f51856999dd81301722fad2292566e178cc58b02891b315ec00749341b1e21",
+      "class_hash": "0x6a995e976382d6977f25c66b4f4e994c0e040a906951ce5a058e9011bef4e9f",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-cube_token",
       "selector": "0x58ce743cd328aa3800df3c962d39156cf1c6fcffeae123925c693902472043b",
@@ -96,8 +97,21 @@
       ]
     },
     {
-      "address": "0x595f18c56c790f979bdeac31e6871ba8f0eff8e6d5e6dd01c21e205a630eb27",
-      "class_hash": "0x4fc51e960cfb020ecd986f29eca7b1b01b767a098543f393c54f994e154b6f7",
+      "address": "0x55c74c83e41af9b499b53b27026c7870107eae81f18451a02204316fe276e00",
+      "class_hash": "0x4a2dc49c9f2ae3566c4b9a08812663b4ca4f68bfe42999899a9c8ab27d06f45",
+      "init_calldata": [],
+      "tag": "zkube_budo_v1_2_0-draft_system",
+      "selector": "0x6d65420c68635e1c965c8b8b63fadb3d82445938fdd96b7f549e0767575ca3e",
+      "systems": [
+        "maybe_open_after_level",
+        "reroll",
+        "select",
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x183908b34cc802c08e8b0da306c51b8e58a4e2fcf3ee997b369ad8d371d3309",
+      "class_hash": "0x517e9fa2365eb08e3096b9c5db455528a98271fbe5cdc8b7cb22d330cc9a31c",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
         "0x045a74be8647d39de23b2b73e98862f6b663164fd8f985cfd80eaa6be495f8ba",
@@ -114,8 +128,8 @@
       ]
     },
     {
-      "address": "0x7f0d94d80899957abdc2069663dfacdabc468b3c6afec843b7f151f281a3116",
-      "class_hash": "0x10b3f28b1ba2531c0c1f318886fb173496810f45969196621e6e7c7a2587af0",
+      "address": "0x6af1b412876aafc89541b09d206fe15f4ce7b4192794b0de05dc87422bd5680",
+      "class_hash": "0x38b77ba043cfa90ec4047465d0f5cebff3f7cf9cf0a25e9b04a8fc7263b3bf0",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-grid_system",
       "selector": "0x5ff6ef4a16262e788060768405b1310e3a5903dda6cf016268cf4453d31eec",
@@ -130,21 +144,22 @@
       ]
     },
     {
-      "address": "0x7422946b59c7fa198adf5df5a2a68bda3881a25c74ef0adf8b225af11ce3482",
-      "class_hash": "0x2d9ec247203fff8b864b25badd4bb70a28ff195c8b9418eb440896c6d73bbb9",
+      "address": "0x139a03209ad2a5f4cd0b0ec1304cb27e37e61d38f99457dfe94f27616f7e9cd",
+      "class_hash": "0x6a9def86f8f410a188e3389af1a87fc34ce0eb958496f768833941683925c34",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-level_system",
       "selector": "0xc087c6629c3c13d06cab85b37e88683bcffe82e8123eedbd704ff85463a0a5",
       "systems": [
         "initialize_level",
-        "complete_level",
+        "finalize_level",
+        "start_next_level",
         "insert_line_if_empty",
         "upgrade"
       ]
     },
     {
-      "address": "0x3410accb8024ad0c5f73cc9eb746f1e6cb6c2c4813f765beaed8b489fd0b9f3",
-      "class_hash": "0x45e5c78f5a09909acc1a990bfa72a3b1e780ca654386367643910124aa99c1b",
+      "address": "0x31fb6b30b0051590f58fd4784705a105ba5a9111e1fe6095c0a2f6a6d30e755",
+      "class_hash": "0x40cbb1f1d1b84360e9a63db6fea82cbb4f020f7912e852e3707f2bd7ae9b751",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-move_system",
       "selector": "0x3df79bdc704eceb62aa8752e4456ee57de1c2c56b4871b20171ee4ae1e235b7",
@@ -154,8 +169,8 @@
       ]
     },
     {
-      "address": "0x14f39cab01a1319a1ede26534acea9ba3e663bbe7684c39b24ae156e9e3b3f9",
-      "class_hash": "0xdaac669b09122e6e0181294ee84a7a5b812a43ded3fce754e325a69425849c",
+      "address": "0x477a28fee4357ba1e13f96c3e127a04e14b948fe090d2569b6759c05533f4fc",
+      "class_hash": "0x3b9012a8e36960244d37954c73d674aec062d8ffd9b763809cf344b722980f8",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-quest_system",
       "selector": "0x436c9e32f41800b6e41f7a2132179a85ad4fbbcd73cf2db6bcb4b65fd2071e",
@@ -170,8 +185,8 @@
       ]
     },
     {
-      "address": "0xe5f8484bba789e8a0c925a0280d0d7e2a9d4bb714aeabb68d400e98a3e6666",
-      "class_hash": "0x14faab36e753c7f399df5f24bb0aa300a040257b50a7b6a2739ab67ac922769",
+      "address": "0x543b57e767dbe27c6d52d7c5fcb6ce1d65397778a59d33c06716bd2e8aab6bf",
+      "class_hash": "0x308b5aec4f5fa58e6126ae37e5eae1dbe950f8433f0e51f6a250e76f6dc556b",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-renderer_systems",
       "selector": "0x35d5ac8794cc2cf3e12c42d4ac579e7a5dc26a70c26e32c599915d2d39586cf",
@@ -180,20 +195,25 @@
       ]
     },
     {
-      "address": "0x66506505e1a15dc853f950659410f4ba11ff182b563ef36a18005323e566b6b",
-      "class_hash": "0x7368d91ff6d26522a2c55cf5e5bfc38ab8f3816449b7702cc3b284347e4688b",
+      "address": "0x610400d277ac79b5d371027d6af07df314a30036706e496f526c29e3e44e120",
+      "class_hash": "0x2f39590fc1d7a6ae22aaba3280f296d999314c6cf38073cc86aa8b3c777cc0e",
       "init_calldata": [],
-      "tag": "zkube_budo_v1_2_0-shop_system",
-      "selector": "0x456e9ac1689ce0bf6afd29733b144d9ef8e7db5c0df5ec0dc79ed1ea22579a0",
+      "tag": "zkube_budo_v1_2_0-skill_effects_system",
+      "selector": "0x435971822da32a14a87054bf65fdae30f89f0da3e3773450097ff0dbdadce6f",
       "systems": [
-        "upgrade_starting_bonus",
-        "upgrade_bag_size",
-        "upgrade_bridging_rank",
-        "unlock_bonus",
-        "level_up_bonus",
-        "purchase_consumable",
-        "allocate_charge",
-        "swap_bonus",
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x3d134bd715ac28a17fc18129f7486d88ce8147690a2dda29df00fe90527eb60",
+      "class_hash": "0x35ab4c185798c629ea70ea83a34830fe6362170fac3ec40f363f1f325acaa33",
+      "init_calldata": [],
+      "tag": "zkube_budo_v1_2_0-skill_tree_system",
+      "selector": "0x62314811e214d7a99f6e71065a4ec9abeafb5fa504e74e12e25b8daf628ac73",
+      "systems": [
+        "upgrade_skill",
+        "choose_branch",
+        "respec_branch",
         "upgrade"
       ]
     }
@@ -307,6 +327,93 @@
       "class_hash": "0x303b6cb6458240c2bb0bd2ad2363744a5320d8bbff0cc75a6d6f5e2d8ff1874",
       "tag": "zkube_budo_v1_2_0-AchievementDefinition",
       "selector": "0x4335d8a8f4bb2c48e7c547485b6f72e9f8d34437ab71a57c30f04bb604effed"
+    },
+    {
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "seed",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
+          "name": "active",
+          "type": "core::bool",
+          "key": false
+        },
+        {
+          "name": "event_slot",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "event_type",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "trigger_level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "zone",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "choice_1",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "choice_2",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "choice_3",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "reroll_count",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "spent_cubes",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "completed_mask",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "selected_picks",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
+          "name": "selected_slot",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "selected_choice",
+          "type": "core::integer::u8",
+          "key": false
+        }
+      ],
+      "class_hash": "0x43e99de3c3b4e1f71837f745c2ec4867bbed12f77d1609a625575354f93d19e",
+      "tag": "zkube_budo_v1_2_0-DraftState",
+      "selector": "0x15b00e9074bfcb5987b8d3c5cd18bad86984372dec19e91fdbea8a4dc35f3f"
     },
     {
       "members": [
@@ -458,9 +565,19 @@
           "name": "seed",
           "type": "core::felt252",
           "key": false
+        },
+        {
+          "name": "level_seed",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
+          "name": "vrf_enabled",
+          "type": "core::bool",
+          "key": false
         }
       ],
-      "class_hash": "0x46cac2d8bf16970afe21dc376ba0ababb99339a89d1c294c5bd0a18374c6b53",
+      "class_hash": "0x796103e7ec905e1f23d9782481ee923d82455ff8d5aef4d9ad3fff108efef4d",
       "tag": "zkube_budo_v1_2_0-GameSeed",
       "selector": "0x5e155330954a8b2ebc46d774a5ac2d374692bafa8e2461c74d8e4aae7458a22"
     },
@@ -718,6 +835,23 @@
     {
       "members": [
         {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
+          "name": "skill_data",
+          "type": "core::felt252",
+          "key": false
+        }
+      ],
+      "class_hash": "0x4b2d38bd7dcb6d29de1cd7d733665701cc52979ca14d91c92d874e6df663edd",
+      "tag": "zkube_budo_v1_2_0-PlayerSkillTree",
+      "selector": "0x6373ed9e9f7a9ed58b40ad99e1dd2c69979bbfc02ff52b6e9c8d11b6b35e9fe"
+    },
+    {
+      "members": [
+        {
           "name": "player_id",
           "type": "core::felt252",
           "key": true
@@ -924,60 +1058,6 @@
           "key": true
         },
         {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "key": true
-        },
-        {
-          "name": "bonus_slot",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "bonus_type",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "new_level",
-          "type": "core::integer::u8",
-          "key": false
-        }
-      ],
-      "class_hash": "0xc087932a06c2358da94a966b829f1fa192ce59a82eacd44105ae9e664b72ca",
-      "tag": "zkube_budo_v1_2_0-BonusLevelUp",
-      "selector": "0x7499b73f60e3282b2434423a03a4392c2aada91156c0ae55c02c167a450c073"
-    },
-    {
-      "members": [
-        {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "key": true
-        },
-        {
-          "name": "bonus_type",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "cost",
-          "type": "core::integer::u16",
-          "key": false
-        }
-      ],
-      "class_hash": "0x206c0318e26053b3739b29bbf07557aeb0956a9af008a42a3b82b0bde72df93",
-      "tag": "zkube_budo_v1_2_0-BonusUnlocked",
-      "selector": "0xb30bd925700a1622d0012bdd78e9e7e1c75a5077ff8b942e9aa5589a8540ad"
-    },
-    {
-      "members": [
-        {
-          "name": "game_id",
-          "type": "core::integer::u64",
-          "key": true
-        },
-        {
           "name": "constraint_type",
           "type": "zkube::types::constraint::ConstraintType",
           "key": false
@@ -993,7 +1073,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x7a8f7f0be0ab09dcf05b544d7a80fbef4f4a60eeb9c6f180262ceffbf79eb0d",
+      "class_hash": "0x5a928d7b39a1327de1c0661a06f88c4ae76b739b11dc104ed0bd5b710e8ab96",
       "tag": "zkube_budo_v1_2_0-ConstraintProgress",
       "selector": "0x353bf174f35f86ea87568181261d084bde41c365a7d78454eeb7015f9f58988"
     },
@@ -1010,24 +1090,113 @@
           "key": true
         },
         {
-          "name": "consumable",
-          "type": "zkube::types::consumable::ConsumableType",
+          "name": "event_slot",
+          "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "cost",
-          "type": "core::integer::u16",
+          "name": "event_type",
+          "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "cubes_remaining",
-          "type": "core::integer::u16",
+          "name": "trigger_level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "zone",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "choice_1",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "choice_2",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "choice_3",
+          "type": "core::integer::u8",
           "key": false
         }
       ],
-      "class_hash": "0x51b555a0bce86813ff95ac210482549d1abf4af198837225e8d2bb1c72f6570",
-      "tag": "zkube_budo_v1_2_0-ConsumablePurchased",
-      "selector": "0x6735939232284480d9ef5a27efe714fbcaba2d65885f5309083dc29f0320ad1"
+      "class_hash": "0x229f10c38b5df576e3dcdc28466adbc29fa88abdfa23669f32cb52fe1d11563",
+      "tag": "zkube_budo_v1_2_0-DraftOpened",
+      "selector": "0x71366d86ec2442de0d8951cde78ccde2b38f807db8f4300e3eb16fb30b55355"
+    },
+    {
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
+          "name": "event_slot",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "reroll_slot",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "reroll_cost",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "new_choice",
+          "type": "core::integer::u8",
+          "key": false
+        }
+      ],
+      "class_hash": "0x343ab27a10f0957c96bd6b57f608f26cdac671cc86bbc58d7e6eac53ded534c",
+      "tag": "zkube_budo_v1_2_0-DraftRerolled",
+      "selector": "0x1426cea22cfa4d61fb0562ed7833b9e55ccfde010ca4122aceadc5b3023451e"
+    },
+    {
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
+          "name": "event_slot",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "selected_slot",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "selected_choice",
+          "type": "core::integer::u8",
+          "key": false
+        }
+      ],
+      "class_hash": "0x77668f6ae5e63f72a49fcedcf58239e20d4f2ba8fdc26ade851ec32002f5227",
+      "tag": "zkube_budo_v1_2_0-DraftSelected",
+      "selector": "0x440ebaeb40875c47ba6d79f122d3b65c70f42a38db0ac3ea57e01d34006f396"
     },
     {
       "members": [
@@ -1119,7 +1288,7 @@
           "key": false
         }
       ],
-      "class_hash": "0xcb91f269b7da234b56652f3bf03c55558d79e51e6aef766510bb01d72d3932",
+      "class_hash": "0x7042ccb608038b0c0ce0777298673cfd3cb3990842d813cc05933801c2b0f7a",
       "tag": "zkube_budo_v1_2_0-LevelStarted",
       "selector": "0x1253fbd361d7ea8f1af4785316aaeea4348f393df3c4e456fcc1f4114c44834"
     },
@@ -5298,82 +5467,6 @@
     },
     {
       "type": "struct",
-      "name": "zkube::events::BonusLevelUp",
-      "members": [
-        {
-          "name": "game_id",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "bonus_slot",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_type",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "new_level",
-          "type": "core::integer::u8"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "zkube::events::BonusLevelUpValue",
-      "members": [
-        {
-          "name": "bonus_slot",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_type",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "new_level",
-          "type": "core::integer::u8"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "zkube::events::BonusUnlocked",
-      "members": [
-        {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "bonus_type",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "cost",
-          "type": "core::integer::u16"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "zkube::events::BonusUnlockedValue",
-      "members": [
-        {
-          "name": "bonus_type",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "cost",
-          "type": "core::integer::u16"
-        }
-      ]
-    },
-    {
-      "type": "struct",
       "name": "zkube::events::ConstraintProgress",
       "members": [
         {
@@ -5414,7 +5507,7 @@
     },
     {
       "type": "struct",
-      "name": "zkube::events::ConsumablePurchased",
+      "name": "zkube::events::DraftOpened",
       "members": [
         {
           "name": "game_id",
@@ -5425,34 +5518,162 @@
           "type": "core::starknet::contract_address::ContractAddress"
         },
         {
-          "name": "consumable",
-          "type": "zkube::types::consumable::ConsumableType"
+          "name": "event_slot",
+          "type": "core::integer::u8"
         },
         {
-          "name": "cost",
-          "type": "core::integer::u16"
+          "name": "event_type",
+          "type": "core::integer::u8"
         },
         {
-          "name": "cubes_remaining",
-          "type": "core::integer::u16"
+          "name": "trigger_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "zone",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_1",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_2",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_3",
+          "type": "core::integer::u8"
         }
       ]
     },
     {
       "type": "struct",
-      "name": "zkube::events::ConsumablePurchasedValue",
+      "name": "zkube::events::DraftOpenedValue",
       "members": [
         {
-          "name": "consumable",
-          "type": "zkube::types::consumable::ConsumableType"
+          "name": "event_slot",
+          "type": "core::integer::u8"
         },
         {
-          "name": "cost",
+          "name": "event_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "trigger_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "zone",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_1",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_2",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_3",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::DraftRerolled",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "event_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "reroll_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "reroll_cost",
           "type": "core::integer::u16"
         },
         {
-          "name": "cubes_remaining",
+          "name": "new_choice",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::DraftRerolledValue",
+      "members": [
+        {
+          "name": "event_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "reroll_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "reroll_cost",
           "type": "core::integer::u16"
+        },
+        {
+          "name": "new_choice",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::DraftSelected",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "event_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "selected_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "selected_choice",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::DraftSelectedValue",
+      "members": [
+        {
+          "name": "event_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "selected_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "selected_choice",
+          "type": "core::integer::u8"
         }
       ]
     },
@@ -5778,25 +5999,25 @@
     },
     {
       "type": "event",
-      "name": "zkube::events::e_BonusLevelUp::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "zkube::events::e_BonusUnlocked::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
       "name": "zkube::events::e_ConstraintProgress::Event",
       "kind": "enum",
       "variants": []
     },
     {
       "type": "event",
-      "name": "zkube::events::e_ConsumablePurchased::Event",
+      "name": "zkube::events::e_DraftOpened::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::events::e_DraftRerolled::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::events::e_DraftSelected::Event",
       "kind": "enum",
       "variants": []
     },
@@ -5835,6 +6056,334 @@
       "name": "zkube::events::e_UseBonus::Event",
       "kind": "enum",
       "variants": []
+    },
+    {
+      "type": "struct",
+      "name": "zkube::helpers::skill_effects::BonusEffect",
+      "members": [
+        {
+          "name": "combo_add",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "score_add",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "cube_reward_per_block",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "rows_to_clear",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "lines_to_add",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "bonus_score_per_line",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "chance_no_consume_num",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "chance_no_consume_den",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "free_move_on_proc",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "score_doubles_under_moves",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "score_triples",
+          "type": "core::bool"
+        },
+        {
+          "name": "harvest_adjacent",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "harvest_size_range",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "harvest_only_small",
+          "type": "core::bool"
+        },
+        {
+          "name": "harvest_score_per_block",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "harvest_triggers_gravity",
+          "type": "core::bool"
+        },
+        {
+          "name": "harvest_free_moves",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "wave_score_per_block",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "wave_free_moves",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "wave_combo_add",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "wave_chance_no_consume",
+          "type": "core::bool"
+        },
+        {
+          "name": "wave_cube_per_row",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "wave_auto_add_line",
+          "type": "core::bool"
+        },
+        {
+          "name": "supply_difficulty_reduction",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "supply_very_easy",
+          "type": "core::bool"
+        },
+        {
+          "name": "supply_score_per_line",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "supply_cube_reward",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "supply_free_moves",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "combo_add_from_score",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "cube_per_use",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "score_div10_as_cubes",
+          "type": "core::bool"
+        },
+        {
+          "name": "charge_all_bonus",
+          "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::helpers::skill_effects::WorldEffects",
+      "members": [
+        {
+          "name": "extra_max_moves",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "tempo_refund_every_n_clears",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "tempo_refund_score",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "fortune_flat_cubes",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "fortune_cubes_per_n_lines",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "fortune_lines_divisor",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "fortune_star_multiplier_3",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "fortune_star_multiplier_2",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "surge_score_percent",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "surge_per_level_percent",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "catalyst_threshold_reduction",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "catalyst_bonus_cubes",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "catalyst_bonus_score",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "catalyst_free_moves_on_combo",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "catalyst_double_cubes_above",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "catalyst_triple_cubes_above",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "resilience_free_moves",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "resilience_regen_on_clear",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "resilience_regen_amount",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "resilience_score_per_free",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "focus_bonus_progress",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "focus_score_on_progress",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "focus_prefill_percent",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "focus_cube_per_constraint",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "expansion_difficulty_reduction",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "expansion_score_per_line",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "expansion_guaranteed_gaps",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "expansion_cube_per_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "expansion_cube_per_10_lines",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "momentum_score_per_consec",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "momentum_streak_cube_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "momentum_streak_cubes",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "momentum_move_refund",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "momentum_combo_on_streak",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "momentum_streak_clear_rows",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "adrenaline_row_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "adrenaline_score_per_clear",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "adrenaline_cubes_per_clear",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "adrenaline_combo_multiplier",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "adrenaline_free_moves",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "adrenaline_free_moves_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "legacy_score_per_n_levels",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "legacy_level_divisor",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "legacy_cube_per_n_levels",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "legacy_cube_level_divisor",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "legacy_score_per_unique_skill",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "legacy_free_moves_per_10",
+          "type": "core::integer::u8"
+        }
+      ]
     },
     {
       "type": "struct",
@@ -6210,6 +6759,148 @@
     },
     {
       "type": "struct",
+      "name": "zkube::models::draft::DraftState",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "seed",
+          "type": "core::felt252"
+        },
+        {
+          "name": "active",
+          "type": "core::bool"
+        },
+        {
+          "name": "event_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "event_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "trigger_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "zone",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_1",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_2",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_3",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "reroll_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "spent_cubes",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "completed_mask",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "selected_picks",
+          "type": "core::felt252"
+        },
+        {
+          "name": "selected_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "selected_choice",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::draft::DraftStateValue",
+      "members": [
+        {
+          "name": "seed",
+          "type": "core::felt252"
+        },
+        {
+          "name": "active",
+          "type": "core::bool"
+        },
+        {
+          "name": "event_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "event_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "trigger_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "zone",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_1",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_2",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_3",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "reroll_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "spent_cubes",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "completed_mask",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "selected_picks",
+          "type": "core::felt252"
+        },
+        {
+          "name": "selected_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "selected_choice",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::draft::m_DraftState::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "struct",
       "name": "zkube::models::game::Game",
       "members": [
         {
@@ -6397,6 +7088,14 @@
         {
           "name": "seed",
           "type": "core::felt252"
+        },
+        {
+          "name": "level_seed",
+          "type": "core::felt252"
+        },
+        {
+          "name": "vrf_enabled",
+          "type": "core::bool"
         }
       ]
     },
@@ -6407,6 +7106,14 @@
         {
           "name": "seed",
           "type": "core::felt252"
+        },
+        {
+          "name": "level_seed",
+          "type": "core::felt252"
+        },
+        {
+          "name": "vrf_enabled",
+          "type": "core::bool"
         }
       ]
     },
@@ -6501,6 +7208,36 @@
     {
       "type": "event",
       "name": "zkube::models::player::m_PlayerMeta::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::skill_tree::PlayerSkillTree",
+      "members": [
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "skill_data",
+          "type": "core::felt252"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::skill_tree::PlayerSkillTreeValue",
+      "members": [
+        {
+          "name": "skill_data",
+          "type": "core::felt252"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::skill_tree::m_PlayerSkillTree::Event",
       "kind": "enum",
       "variants": []
     },
@@ -6854,6 +7591,17 @@
             }
           ],
           "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "get_cube_token_address",
+          "inputs": [],
+          "outputs": [
+            {
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ],
+          "state_mutability": "view"
         }
       ]
     },
@@ -7007,6 +7755,81 @@
     },
     {
       "type": "interface",
+      "name": "zkube::systems::draft::IDraftSystem",
+      "items": [
+        {
+          "type": "function",
+          "name": "maybe_open_after_level",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "completed_level",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "player",
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "reroll",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "reroll_slot",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "select",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "selected_slot",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::systems::draft::draft_system::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
+        }
+      ]
+    },
+    {
+      "type": "interface",
       "name": "zkube::systems::game::IGameSystem",
       "items": [
         {
@@ -7016,14 +7839,6 @@
             {
               "name": "game_id",
               "type": "core::integer::u64"
-            },
-            {
-              "name": "selected_bonuses",
-              "type": "core::array::Span::<core::integer::u8>"
-            },
-            {
-              "name": "cubes_amount",
-              "type": "core::integer::u16"
             }
           ],
           "outputs": [],
@@ -7165,6 +7980,10 @@
             {
               "name": "final_index",
               "type": "core::integer::u8"
+            },
+            {
+              "name": "skill_data",
+              "type": "core::felt252"
             }
           ],
           "outputs": [
@@ -7193,6 +8012,10 @@
             {
               "name": "col_index",
               "type": "core::integer::u8"
+            },
+            {
+              "name": "skill_data",
+              "type": "core::felt252"
             }
           ],
           "outputs": [
@@ -7260,6 +8083,10 @@
             {
               "name": "game_id",
               "type": "core::integer::u64"
+            },
+            {
+              "name": "skill_data",
+              "type": "core::felt252"
             }
           ],
           "outputs": [
@@ -7271,11 +8098,15 @@
         },
         {
           "type": "function",
-          "name": "complete_level",
+          "name": "finalize_level",
           "inputs": [
             {
               "name": "game_id",
               "type": "core::integer::u64"
+            },
+            {
+              "name": "skill_data",
+              "type": "core::felt252"
             }
           ],
           "outputs": [
@@ -7283,6 +8114,18 @@
               "type": "(core::integer::u8, core::integer::u8, core::bool)"
             }
           ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "start_next_level",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
           "state_mutability": "external"
         },
         {
@@ -7500,183 +8343,68 @@
     },
     {
       "type": "interface",
-      "name": "zkube::systems::shop::IShopSystem",
+      "name": "zkube::systems::skill_effects::ISkillEffectsSystem",
       "items": [
         {
           "type": "function",
-          "name": "upgrade_starting_bonus",
+          "name": "get_bonus_effect",
           "inputs": [
             {
-              "name": "bonus_type",
-              "type": "core::integer::u8"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "upgrade_bag_size",
-          "inputs": [
-            {
-              "name": "bonus_type",
-              "type": "core::integer::u8"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "upgrade_bridging_rank",
-          "inputs": [],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "unlock_bonus",
-          "inputs": [
-            {
-              "name": "bonus_type",
-              "type": "core::integer::u8"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "level_up_bonus",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::integer::u64"
-            },
-            {
-              "name": "bonus_slot",
-              "type": "core::integer::u8"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "purchase_consumable",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::integer::u64"
-            },
-            {
-              "name": "consumable",
-              "type": "zkube::types::consumable::ConsumableType"
-            },
-            {
-              "name": "bonus_slot",
-              "type": "core::integer::u8"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "allocate_charge",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::integer::u64"
-            },
-            {
-              "name": "bonus_slot",
-              "type": "core::integer::u8"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "swap_bonus",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::integer::u64"
-            },
-            {
-              "name": "bonus_slot",
+              "name": "skill_id",
               "type": "core::integer::u8"
             },
             {
-              "name": "new_bonus_type",
+              "name": "level",
               "type": "core::integer::u8"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "get_starting_bonus_upgrade_cost",
-          "inputs": [
+            },
             {
-              "name": "current_level",
+              "name": "branch_id",
               "type": "core::integer::u8"
             }
           ],
           "outputs": [
             {
-              "type": "core::integer::u64"
+              "type": "zkube::helpers::skill_effects::BonusEffect"
             }
           ],
           "state_mutability": "view"
         },
         {
           "type": "function",
-          "name": "get_bag_upgrade_cost",
+          "name": "get_branch_id",
           "inputs": [
             {
-              "name": "current_level",
+              "name": "skill_data",
+              "type": "core::felt252"
+            },
+            {
+              "name": "skill_id",
               "type": "core::integer::u8"
             }
           ],
           "outputs": [
             {
-              "type": "core::integer::u64"
+              "type": "core::integer::u8"
             }
           ],
           "state_mutability": "view"
         },
         {
           "type": "function",
-          "name": "get_bridging_upgrade_cost",
+          "name": "get_world_effects",
           "inputs": [
             {
-              "name": "current_rank",
-              "type": "core::integer::u8"
+              "name": "run_data",
+              "type": "core::felt252"
+            },
+            {
+              "name": "skill_data",
+              "type": "core::felt252"
             }
           ],
           "outputs": [
             {
-              "type": "core::integer::u64"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "get_shop_data",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::integer::u64"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "(core::integer::u16, core::integer::u16, core::integer::u16)"
+              "type": "zkube::helpers::skill_effects::WorldEffects"
             }
           ],
           "state_mutability": "view"
@@ -7685,7 +8413,90 @@
     },
     {
       "type": "event",
-      "name": "zkube::systems::shop::shop_system::Event",
+      "name": "zkube::systems::skill_effects::skill_effects_system::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "zkube::systems::skill_tree::ISkillTreeSystem",
+      "items": [
+        {
+          "type": "function",
+          "name": "upgrade_skill",
+          "inputs": [
+            {
+              "name": "skill_id",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "choose_branch",
+          "inputs": [
+            {
+              "name": "skill_id",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "branch",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "respec_branch",
+          "inputs": [
+            {
+              "name": "skill_id",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "get_skill_info",
+          "inputs": [
+            {
+              "name": "player",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "skill_id",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "(core::integer::u8, core::bool, core::integer::u8)"
+            }
+          ],
+          "state_mutability": "view"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::systems::skill_tree::skill_tree_system::Event",
       "kind": "enum",
       "variants": [
         {
@@ -7759,25 +8570,7 @@
           "type": "()"
         },
         {
-          "name": "ClearGrid",
-          "type": "()"
-        }
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "zkube::types::consumable::ConsumableType",
-      "variants": [
-        {
-          "name": "BonusCharge",
-          "type": "()"
-        },
-        {
-          "name": "LevelUp",
-          "type": "()"
-        },
-        {
-          "name": "SwapBonus",
+          "name": "KeepGridBelow",
           "type": "()"
         }
       ]

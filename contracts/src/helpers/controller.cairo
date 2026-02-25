@@ -1,19 +1,18 @@
-use core::traits::Into;
-use core::traits::TryInto;
-use core::poseidon::PoseidonTrait;
-use core::hash::HashStateTrait;
-
-use alexandria_math::fast_power::fast_power;
 use alexandria_math::BitShift;
+use alexandria_math::fast_power::fast_power;
+use core::hash::HashStateTrait;
+use core::poseidon::PoseidonTrait;
+use core::traits::{Into, TryInto};
 use origami_random::deck::{Deck, DeckTrait};
 use origami_random::dice::{Dice, DiceTrait};
-
-use zkube::constants::{BLOCK_BIT_COUNT, ROW_BIT_COUNT, ROW_SIZE, BLOCK_SIZE, DEFAULT_GRID_WIDTH, LINE_FULL_BOUND};
-use zkube::helpers::packer::Packer;
+use zkube::constants::{
+    BLOCK_BIT_COUNT, BLOCK_SIZE, DEFAULT_GRID_WIDTH, LINE_FULL_BOUND, ROW_BIT_COUNT, ROW_SIZE,
+};
 use zkube::helpers::gravity::Gravity;
+use zkube::helpers::packer::Packer;
+use zkube::models::config::{GameSettings, GameSettingsTrait};
 use zkube::types::block::{Block, BlockTrait};
 use zkube::types::difficulty::{Difficulty, DifficultyTrait};
-use zkube::models::config::{GameSettings, GameSettingsTrait};
 
 pub mod errors {
     pub const CONTROLLER_NOT_ENOUGH_ROOM: felt252 = 'Controller: not enough room';
@@ -48,7 +47,7 @@ pub impl Controller of ControllerTrait {
             let (new_top, new_bottom) = Gravity::apply(top, bottom);
             bottom = new_top;
             new_block_rows.append(new_bottom);
-        };
+        }
 
         let blocks: u256 = Packer::pack(new_block_rows, ROW_SIZE);
         let blocks: felt252 = blocks.try_into().unwrap();
@@ -64,7 +63,7 @@ pub impl Controller of ControllerTrait {
     /// # Returns
     /// The new grid.
     fn assess_lines(
-        bitmap: felt252, ref counter: u8, ref points_earned: u16, accountable: bool
+        bitmap: felt252, ref counter: u8, ref points_earned: u16, accountable: bool,
     ) -> felt252 {
         let bitmap: u256 = bitmap.into();
         let mut new_rows: Array<u32> = array![];
@@ -85,7 +84,7 @@ pub impl Controller of ControllerTrait {
                 },
                 Option::None => { break; },
             };
-        };
+        }
         let result: u256 = Packer::pack(new_rows, ROW_SIZE);
         result.try_into().unwrap()
     }
@@ -133,11 +132,16 @@ pub impl Controller of ControllerTrait {
         let mut validated: bool = false;
         let mut size: u8 = 0;
         let mut blocks: u32 = 0;
-        
+
         // Get interpolated weights for this difficulty
-        let (zero_w, one_w, two_w, three_w, four_w) = settings.get_block_weights_for_difficulty(difficulty);
-        let total_weight: u16 = zero_w.into() + one_w.into() + two_w.into() + three_w.into() + four_w.into();
-        
+        let (zero_w, one_w, two_w, three_w, four_w) = settings
+            .get_block_weights_for_difficulty(difficulty);
+        let total_weight: u16 = zero_w.into()
+            + one_w.into()
+            + two_w.into()
+            + three_w.into()
+            + four_w.into();
+
         // Use a deterministic but properly randomized roll for block selection
         let mut roll_counter: felt252 = 0;
 
@@ -158,30 +162,32 @@ pub impl Controller of ControllerTrait {
             roll_counter += 1;
             let roll_u256: u256 = roll_hash.into();
             let roll: u16 = (roll_u256 % total_weight.into()).try_into().unwrap();
-            
+
             // Select block based on cumulative weights
-            let block: Block = Self::select_block_by_weight(roll, zero_w, one_w, two_w, three_w, four_w);
+            let block: Block = Self::select_block_by_weight(
+                roll, zero_w, one_w, two_w, three_w, four_w,
+            );
             let block_size: u8 = block.size().into();
-            
+
             // Check if block fits. If this is the final segment, allow a hole (bits == 0)
             // to satisfy the "at least one empty cell" invariant.
             let remaining = DEFAULT_GRID_WIDTH - size;
             if block_size > remaining
                 || (block_size == remaining && !validated && block.get_bits() != 0) {
                 continue;
-            };
-            
+            }
+
             let power: u32 = block_size.into() * BLOCK_BIT_COUNT.into();
             let exp: u32 = fast_power(2, power);
             validated = validated || block.get_bits() == 0;
             blocks = blocks * exp + block.get_bits();
             size += block_size;
-        };
-        
+        }
+
         // Shuffle because often the hole is at the end of the line
         Self::shuffle_line(blocks, seed)
     }
-    
+
     /// Fallback line generator using the original deck-based logic.
     /// Used when settings-based generation fails (e.g., pathological weights).
     fn create_line_fallback(seed: felt252, difficulty: Difficulty) -> u32 {
@@ -197,18 +203,18 @@ pub impl Controller of ControllerTrait {
             if block_size > (DEFAULT_GRID_WIDTH - size)
                 || (block_size == (DEFAULT_GRID_WIDTH - size) && !validated) {
                 continue;
-            };
+            }
             let power: u32 = block_size.into() * BLOCK_BIT_COUNT.into();
             let exp: u32 = fast_power(2, power);
             validated = validated || block.get_bits() == 0;
             blocks = blocks * exp + block.get_bits();
             size += block_size;
-        };
+        }
 
         // Shuffle because often the hole is at the end of the line
         Self::shuffle_line(blocks, seed)
     }
-    
+
     /// Select a block type based on weighted random selection.
     /// # Arguments
     /// * `roll` - Random value (0 to total_weight-1)
@@ -216,19 +222,14 @@ pub impl Controller of ControllerTrait {
     /// # Returns
     /// The selected Block type.
     fn select_block_by_weight(
-        roll: u16,
-        zero_w: u8,
-        one_w: u8,
-        two_w: u8,
-        three_w: u8,
-        four_w: u8,
+        roll: u16, zero_w: u8, one_w: u8, two_w: u8, three_w: u8, four_w: u8,
     ) -> Block {
         let zero_threshold: u16 = zero_w.into();
         let one_threshold: u16 = zero_threshold + one_w.into();
         let two_threshold: u16 = one_threshold + two_w.into();
         let three_threshold: u16 = two_threshold + three_w.into();
         // four_threshold would be total, but we use else for it
-        
+
         if roll < zero_threshold {
             Block::Zero
         } else if roll < one_threshold {
@@ -265,7 +266,7 @@ pub impl Controller of ControllerTrait {
         let mut new_blocks = blocks;
         while !Self::are_block_aligned(new_blocks) {
             new_blocks = Self::circular_shift_right(new_blocks, BLOCK_BIT_COUNT, ROW_BIT_COUNT);
-        };
+        }
         new_blocks
     }
 
@@ -285,7 +286,7 @@ pub impl Controller of ControllerTrait {
 
         // Get the bits that were shifted out
         let wrapped_bits = BitShift::shl(
-            bitmap & (BitShift::shl(1, shift.into()) - 1), (total_bits - shift).into()
+            bitmap & (BitShift::shl(1, shift.into()) - 1), (total_bits - shift).into(),
         );
 
         // Combine and mask
@@ -422,7 +423,7 @@ pub impl Controller of ControllerTrait {
                 valid = false;
                 break valid;
             }
-        };
+        }
 
         valid
     }
@@ -576,7 +577,7 @@ pub impl Controller of ControllerTrait {
     /// The updated grid.
     #[inline(always)]
     fn swipe(
-        blocks: felt252, row_index: u8, block_index: u8, direction: bool, mut count: u8
+        blocks: felt252, row_index: u8, block_index: u8, direction: bool, mut count: u8,
     ) -> felt252 {
         match direction {
             true => Self::swipe_left(blocks, row_index, block_index, count),
@@ -647,7 +648,7 @@ mod tests {
         let blocks = Controller::assess_lines(blocks, ref counter, ref points, true);
         assert_eq!(
             blocks,
-            0b100_100_100_100_000_000_000_000_000_000_001_000_000_000_000_000_001_010_010_000_011_011_011_000
+            0b100_100_100_100_000_000_000_000_000_000_001_000_000_000_000_000_001_010_010_000_011_011_011_000,
         );
     }
 
@@ -695,7 +696,7 @@ mod tests {
     fn test_controller_circular_shift_right() {
         assert_eq!(
             Controller::circular_shift_right(0b000_000_000_001_000_000_000_001, 3, 24),
-            0b001_000_000_000_001_000_000_000
+            0b001_000_000_000_001_000_000_000,
         );
     }
 
@@ -858,7 +859,7 @@ mod tests {
         let result = Controller::assess_lines(blocks, ref counter, ref points, false);
         assert_eq!(
             result,
-            0b100_100_100_100_000_000_000_001__010_010_010_010_010_010_010_000__010_010_010_100_100_100_000_000__000_100_100_100_100_100_100_001
+            0b100_100_100_100_000_000_000_001__010_010_010_010_010_010_010_000__010_010_010_100_100_100_000_000__000_100_100_100_100_100_100_001,
         );
     }
 
@@ -887,7 +888,7 @@ mod tests {
         let blocks = Controller::swipe(bitmap, 0, 5, true, 2);
 
         println!("blocks: {}", blocks);
-    // 001_001_011_000_000_011_011_001_001_000
+        // 001_001_011_000_000_011_011_001_001_000
     }
 
     #[test]
@@ -895,7 +896,7 @@ mod tests {
         // Empty row
         assert(
             Controller::check_row_coherence(0b000_000_000_000_000_000_000_000),
-            'empty row should be valid'
+            'empty row should be valid',
         );
 
         // Single blocks (size 1) in different positions
@@ -936,42 +937,42 @@ mod tests {
         // Size 1 + Size 1
         assert(Controller::check_row_coherence(0b001_000_001_000_000_000_000_000), 'two size 1');
         assert(
-            Controller::check_row_coherence(0b001_000_000_000_001_000_000_000), 'two size 1 spaced'
+            Controller::check_row_coherence(0b001_000_000_000_001_000_000_000), 'two size 1 spaced',
         );
 
         // Size 1 + Size 2
         assert(
-            Controller::check_row_coherence(0b001_010_010_000_000_000_000_000), 'size 1,2 right'
+            Controller::check_row_coherence(0b001_010_010_000_000_000_000_000), 'size 1,2 right',
         );
         assert(
-            Controller::check_row_coherence(0b010_010_001_000_000_000_000_000), 'size 2,1 right'
+            Controller::check_row_coherence(0b010_010_001_000_000_000_000_000), 'size 2,1 right',
         );
         assert(
-            Controller::check_row_coherence(0b000_000_001_000_010_010_000_000), 'size 1,2 middle'
+            Controller::check_row_coherence(0b000_000_001_000_010_010_000_000), 'size 1,2 middle',
         );
 
         // Size 1 + Size 3
         assert(
-            Controller::check_row_coherence(0b001_011_011_011_000_000_000_000), 'size 1,3 right'
+            Controller::check_row_coherence(0b001_011_011_011_000_000_000_000), 'size 1,3 right',
         );
         assert(
-            Controller::check_row_coherence(0b011_011_011_001_000_000_000_000), 'size 3,1 right'
+            Controller::check_row_coherence(0b011_011_011_001_000_000_000_000), 'size 3,1 right',
         );
 
         // Size 2 + Size 2
         assert(
-            Controller::check_row_coherence(0b010_010_010_010_000_000_000_000), 'two size 2 right'
+            Controller::check_row_coherence(0b010_010_010_010_000_000_000_000), 'two size 2 right',
         );
         assert(
-            Controller::check_row_coherence(0b010_010_000_000_010_010_000_000), 'two size 2 spaced'
+            Controller::check_row_coherence(0b010_010_000_000_010_010_000_000), 'two size 2 spaced',
         );
 
         // Size 2 + Size 3
         assert(
-            Controller::check_row_coherence(0b010_010_011_011_011_000_000_000), 'size 2,3 right'
+            Controller::check_row_coherence(0b010_010_011_011_011_000_000_000), 'size 2,3 right',
         );
         assert(
-            Controller::check_row_coherence(0b011_011_011_010_010_000_000_000), 'size 3,2 right'
+            Controller::check_row_coherence(0b011_011_011_010_010_000_000_000), 'size 3,2 right',
         );
 
         // Maximum combinations filling the row
@@ -986,166 +987,168 @@ mod tests {
         // Invalid single block values
         assert(
             !Controller::check_row_coherence(0b100_000_000_000_000_000_000_000),
-            'invalid block value 4'
+            'invalid block value 4',
         );
         assert(
             !Controller::check_row_coherence(0b101_000_000_000_000_000_000_000),
-            'invalid block value 5'
+            'invalid block value 5',
         );
         assert(
             !Controller::check_row_coherence(0b110_000_000_000_000_000_000_000),
-            'invalid block value 6'
+            'invalid block value 6',
         );
         assert(
             !Controller::check_row_coherence(0b111_000_000_000_000_000_000_000),
-            'invalid block value 7'
+            'invalid block value 7',
         );
 
         // Incomplete Size 2 blocks
         assert(
             !Controller::check_row_coherence(0b010_000_000_000_000_000_000_000),
-            'incomplete size 2 right'
+            'incomplete size 2 right',
         );
         assert(
             !Controller::check_row_coherence(0b000_010_000_000_000_000_000_000),
-            'incomplete size 2 pos 6'
+            'incomplete size 2 pos 6',
         );
         assert(
             !Controller::check_row_coherence(0b000_000_010_000_000_000_000_000),
-            'incomplete size 2 pos 5'
+            'incomplete size 2 pos 5',
         );
         assert(
             !Controller::check_row_coherence(0b000_000_000_010_000_000_000_000),
-            'incomplete size 2 middle'
+            'incomplete size 2 middle',
         );
         assert(
             !Controller::check_row_coherence(0b000_000_000_000_010_000_000_000),
-            'incomplete size 2 pos 3'
+            'incomplete size 2 pos 3',
         );
         assert(
             !Controller::check_row_coherence(0b000_000_000_000_000_010_000_000),
-            'incomplete size 2 pos 2'
+            'incomplete size 2 pos 2',
         );
         assert(
             !Controller::check_row_coherence(0b000_000_000_000_000_000_010_000),
-            'incomplete size 2 left'
+            'incomplete size 2 left',
         );
 
         // Incomplete Size 3 blocks
         assert(
             !Controller::check_row_coherence(0b011_000_000_000_000_000_000_000),
-            'incomplete size 3 right single'
+            'incomplete size 3 right single',
         );
         assert(
             !Controller::check_row_coherence(0b011_011_000_000_000_000_000_000),
-            'incomplete size 3 right double'
+            'incomplete size 3 right double',
         );
         assert(
             !Controller::check_row_coherence(0b000_011_011_000_000_000_000_000),
-            'incomplete size 3 pos 5'
+            'incomplete size 3 pos 5',
         );
         assert(
             !Controller::check_row_coherence(0b000_000_011_011_000_000_000_000),
-            'incomplete size 3 pos 4'
+            'incomplete size 3 pos 4',
         );
         assert(
             !Controller::check_row_coherence(0b000_000_000_011_011_000_000_000),
-            'incomplete size 3 pos 3'
+            'incomplete size 3 pos 3',
         );
         assert(
             !Controller::check_row_coherence(0b000_000_000_000_011_011_000_000),
-            'incomplete size 3 pos 2'
+            'incomplete size 3 pos 2',
         );
         assert(
             !Controller::check_row_coherence(0b000_000_000_000_000_011_011_000),
-            'incomplete size 3 pos 1'
+            'incomplete size 3 pos 1',
         );
         assert(
             !Controller::check_row_coherence(0b000_000_000_000_000_000_011_011),
-            'incomplete size 3 left'
+            'incomplete size 3 left',
         );
 
         // Incomplete Size 4 blocks
         assert(
             !Controller::check_row_coherence(0b100_000_000_000_000_000_000_000),
-            'incomplete size 4 right single'
+            'incomplete size 4 right single',
         );
         assert(
             !Controller::check_row_coherence(0b100_100_000_000_000_000_000_000),
-            'incomplete size 4 right double'
+            'incomplete size 4 right double',
         );
         assert(
             !Controller::check_row_coherence(0b100_100_100_000_000_000_000_000),
-            'incomplete size 4 right triple'
+            'incomplete size 4 right triple',
         );
         assert(
             !Controller::check_row_coherence(0b000_100_100_100_000_000_000_000),
-            'incomplete size 4 pos 4'
+            'incomplete size 4 pos 4',
         );
         assert(
             !Controller::check_row_coherence(0b000_000_100_100_100_000_000_000),
-            'incomplete size 4 pos 3'
+            'incomplete size 4 pos 3',
         );
         assert(
             !Controller::check_row_coherence(0b000_000_000_100_100_100_000_000),
-            'incomplete size 4 pos 2'
+            'incomplete size 4 pos 2',
         );
         assert(
             !Controller::check_row_coherence(0b000_000_000_000_100_100_100_000),
-            'incomplete size 4 pos 1'
+            'incomplete size 4 pos 1',
         );
 
         // Invalid mixed patterns
         assert(
-            !Controller::check_row_coherence(0b010_011_000_000_000_000_000_000), 'invalid mix 2,3'
+            !Controller::check_row_coherence(0b010_011_000_000_000_000_000_000), 'invalid mix 2,3',
         );
         assert(
-            !Controller::check_row_coherence(0b011_010_000_000_000_000_000_000), 'invalid mix 3,2'
+            !Controller::check_row_coherence(0b011_010_000_000_000_000_000_000), 'invalid mix 3,2',
         );
         assert(
-            !Controller::check_row_coherence(0b010_001_010_000_000_000_000_000), 'invalid mix 2,1,2'
+            !Controller::check_row_coherence(0b010_001_010_000_000_000_000_000),
+            'invalid mix 2,1,2',
         );
         assert(
-            !Controller::check_row_coherence(0b011_001_011_000_000_000_000_000), 'invalid mix 3,1,3'
+            !Controller::check_row_coherence(0b011_001_011_000_000_000_000_000),
+            'invalid mix 3,1,3',
         );
 
         // Invalid continuations
         assert(
             !Controller::check_row_coherence(0b010_010_011_000_000_000_000_000),
-            'invalid continuation 2->3'
+            'invalid continuation 2->3',
         );
         assert(
             !Controller::check_row_coherence(0b011_011_010_000_000_000_000_000),
-            'invalid continuation 3->2'
+            'invalid continuation 3->2',
         );
         assert(
             !Controller::check_row_coherence(0b010_011_010_000_000_000_000_000),
-            'invalid mix middle'
+            'invalid mix middle',
         );
 
         // Row overflow tests
         assert(
-            !Controller::check_row_coherence(0b010_010_010_000_000_000_000_000), 'overflow size 2'
+            !Controller::check_row_coherence(0b010_010_010_000_000_000_000_000), 'overflow size 2',
         );
         assert(
-            !Controller::check_row_coherence(0b011_011_011_011_011_000_000_000), 'overflow size 3'
+            !Controller::check_row_coherence(0b011_011_011_011_011_000_000_000), 'overflow size 3',
         );
         assert(
-            !Controller::check_row_coherence(0b100_100_100_100_100_000_000_000), 'overflow size 4'
+            !Controller::check_row_coherence(0b100_100_100_100_100_000_000_000), 'overflow size 4',
         );
 
         // Wrong block order
         assert(
             !Controller::check_row_coherence(0b010_011_010_011_000_000_000_000),
-            'wrong block order 1'
+            'wrong block order 1',
         );
         assert(
             !Controller::check_row_coherence(0b011_010_011_010_000_000_000_000),
-            'wrong block order 2'
+            'wrong block order 2',
         );
         assert(
             !Controller::check_row_coherence(0b001_010_001_010_000_000_000_000),
-            'wrong block order 3'
+            'wrong block order 3',
         );
     }
 
@@ -1181,7 +1184,7 @@ mod tests {
             0b000_000_000_001_000_000_000_001__010_000_010_010_100_100_100_100__001_010_010_000_011_011_011_000;
         assert(
             !Controller::check_grid_coherence(multi_row_one_invalid),
-            'grid should be incoherent (2)'
+            'grid should be incoherent (2)',
         );
 
         // Test case 3: Invalid block value
@@ -1754,7 +1757,7 @@ mod tests {
         // Trying to move beyond rightmost valid position
         let bitmap: felt252 = 0b000_000_000_000_000_000_010_010;
         Controller::swipe(
-            bitmap, 0, 0, false, 1
+            bitmap, 0, 0, false, 1,
         ); // Should fail - would push part of block beyond boundary
     }
 
@@ -1766,7 +1769,7 @@ mod tests {
         // Trying to move beyond rightmost valid position
         let bitmap: felt252 = 0b010_010_000_000_000_000_000_000;
         Controller::swipe(
-            bitmap, 0, 6, false, 7
+            bitmap, 0, 6, false, 7,
         ); // Should fail - would push part of block beyond boundary
     }
 
@@ -1778,7 +1781,7 @@ mod tests {
         // Trying to move beyond rightmost valid position
         let bitmap: felt252 = 0b000_000_000_000_000_011_011_011;
         Controller::swipe(
-            bitmap, 0, 0, false, 1
+            bitmap, 0, 0, false, 1,
         ); // Should fail - would push part of block beyond boundary
     }
 
@@ -1790,7 +1793,7 @@ mod tests {
         // Trying to move beyond rightmost valid position
         let bitmap: felt252 = 0b000_000_000_000_100_100_100_100;
         Controller::swipe(
-            bitmap, 0, 0, false, 1
+            bitmap, 0, 0, false, 1,
         ); // Should fail - would push part of block beyond boundary
     }
 
@@ -1802,7 +1805,7 @@ mod tests {
         // Trying to move beyond rightmost valid position
         let bitmap: felt252 = 0b000_000_000_000_100_100_100_100;
         Controller::swipe(
-            bitmap, 0, 1, false, 1
+            bitmap, 0, 1, false, 1,
         ); // Should fail - would push part of block beyond boundary
     }
 
@@ -1824,7 +1827,7 @@ mod tests {
         // Trying to move beyond leftmost valid position
         let bitmap: felt252 = 0b010_010_000_000_000_000_000_000;
         Controller::swipe(
-            bitmap, 0, 6, true, 1
+            bitmap, 0, 6, true, 1,
         ); // Should fail - would push part of block beyond boundary
     }
 
@@ -1836,7 +1839,7 @@ mod tests {
         // Trying to move beyond leftmost valid position
         let bitmap: felt252 = 0b011_011_011_000_000_000_000_000;
         Controller::swipe(
-            bitmap, 0, 5, true, 3
+            bitmap, 0, 5, true, 3,
         ); // Should fail - would push part of block beyond boundary
     }
 
@@ -1848,7 +1851,7 @@ mod tests {
         // Trying to move beyond leftmost valid position
         let bitmap: felt252 = 0b100_100_100_100_000_000_000_000;
         Controller::swipe(
-            bitmap, 0, 4, true, 5
+            bitmap, 0, 4, true, 5,
         ); // Should fail - would push part of block beyond boundary
     }
 
@@ -1883,7 +1886,7 @@ mod tests {
         let blocks = Controller::swipe(bitmap, 1, 4, true, 3);
         assert_eq!(
             blocks,
-            0b000_000_000_000_000_000_000_000__001_000_000_000_000_000_000_000__010_010_000_000_000_000_000_000
+            0b000_000_000_000_000_000_000_000__001_000_000_000_000_000_000_000__010_010_000_000_000_000_000_000,
         );
     }
 
@@ -1898,7 +1901,7 @@ mod tests {
         let blocks = Controller::swipe(bitmap, 1, 4, false, 3);
         assert_eq!(
             blocks,
-            0b000_000_000_000_000_000_000_000__000_000_000_000_000_000_001_000__010_010_000_000_000_000_000_000
+            0b000_000_000_000_000_000_000_000__000_000_000_000_000_000_001_000__010_010_000_000_000_000_000_000,
         );
     }
 
@@ -1913,7 +1916,7 @@ mod tests {
         let blocks = Controller::swipe(bitmap, 2, 3, true, 3);
         assert_eq!(
             blocks,
-            0b010_010_000_000_000_000_000_000__000_000_001_000_000_000_000_000__010_010_000_000_000_000_000_000
+            0b010_010_000_000_000_000_000_000__000_000_001_000_000_000_000_000__010_010_000_000_000_000_000_000,
         );
     }
 
@@ -1928,7 +1931,7 @@ mod tests {
         let blocks = Controller::swipe(bitmap, 2, 2, false, 2);
         assert_eq!(
             blocks,
-            0b000_000_000_000_000_011_011_011__000_000_001_000_000_000_000_000__010_010_000_000_000_000_000_000
+            0b000_000_000_000_000_011_011_011__000_000_001_000_000_000_000_000__010_010_000_000_000_000_000_000,
         );
     }
 
@@ -1972,7 +1975,7 @@ mod tests {
 
         assert_eq!(
             blocks,
-            0b000_000_000_000_000_000_001_000__001_000_000_000_000_000_000_000__010_010_000_000_000_000_000_000
+            0b000_000_000_000_000_000_001_000__001_000_000_000_000_000_000_000__010_010_000_000_000_000_000_000,
         );
     }
 

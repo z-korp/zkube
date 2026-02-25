@@ -1,25 +1,20 @@
 //! Shared game over handling logic.
 //! Consolidates duplicate handle_game_over() from game_system and play_system.
 
-use starknet::{ContractAddress, get_block_timestamp};
+use dojo::event::EventStorage;
 use dojo::model::ModelStorage;
 use dojo::world::WorldStorage;
-use dojo::event::EventStorage;
-
+use starknet::{ContractAddress, get_block_timestamp};
 use zkube::constants::DEFAULT_SETTINGS::is_default_settings;
+use zkube::events::RunEnded;
+use zkube::helpers::config::ConfigUtilsTrait;
+use zkube::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait};
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
-use zkube::events::RunEnded;
-use zkube::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait};
-use zkube::helpers::config::ConfigUtilsTrait;
 
 /// Handle game over: update player meta, mint cubes, emit event.
 /// Used by game_system (surrender) and move_system (level failed/game over).
-pub fn handle_game_over(
-    ref world: WorldStorage,
-    game: Game,
-    player: ContractAddress,
-) {
+pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAddress) {
     let run_data = game.get_run_data();
 
     // Update player meta with best level
@@ -32,20 +27,7 @@ pub fn handle_game_over(
     // Get game settings for default check
     let settings = ConfigUtilsTrait::get_game_settings(world, game.game_id);
 
-    // Calculate cubes to mint:
-    // - Spending first depletes brought cubes (already burned from wallet)
-    // - Any excess spending comes from earned cubes
-    // - Mint: total_cubes - max(0, cubes_spent - cubes_brought)
-    let cubes_spent_from_earned: u16 = if run_data.cubes_spent > run_data.cubes_brought {
-        run_data.cubes_spent - run_data.cubes_brought
-    } else {
-        0
-    };
-    let base_cubes: u16 = if run_data.total_cubes > cubes_spent_from_earned {
-        run_data.total_cubes - cubes_spent_from_earned
-    } else {
-        0
-    };
+    let base_cubes: u16 = run_data.total_cubes;
 
     // Only mint cubes and update stats for games using default settings
     let libs = GameLibsImpl::new(world);

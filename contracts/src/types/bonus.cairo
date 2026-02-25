@@ -11,11 +11,11 @@ use core::traits::Into;
 #[derive(Drop, Copy, Serde, Introspect, PartialEq)]
 pub enum Bonus {
     None,
-    Combo,    // +combo to next move (L1: +1, L2: +2, L3: +3)
-    Score,    // +direct score (L1: +10, L2: +20, L3: +30)
-    Harvest,  // Destroy blocks of chosen size, +CUBE/block (L1: +1, L2: +2, L3: +3)
-    Wave,     // Clear lines (L1: 1, L2: 2, L3: 3) [requires unlock]
-    Supply,   // Add lines at no move cost (L1: 1, L2: 2, L3: 3) [requires unlock]
+    Combo, // +combo to next move (L1: +1, L2: +2, L3: +3)
+    Score, // +direct score (L1: +10, L2: +20, L3: +30)
+    Harvest, // Destroy blocks of chosen size, +CUBE/block (L1: +1, L2: +2, L3: +3)
+    Wave, // Clear lines (L1: 1, L2: 2, L3: 3) [requires unlock]
+    Supply // Add lines at no move cost (L1: 1, L2: 2, L3: 3) [requires unlock]
 }
 
 #[generate_trait]
@@ -37,7 +37,7 @@ pub impl BonusImpl of BonusTrait {
     }
 
     /// Get the type code for this bonus (1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply).
-    /// This matches the encoding used in RunData.selected_bonus_*.
+    /// This matches the encoding used in RunData slot skill_id for bonus skills.
     #[inline(always)]
     fn to_type_code(self: Bonus) -> u8 {
         match self {
@@ -65,7 +65,6 @@ pub impl BonusImpl of BonusTrait {
 
     /// Get the bag index for this bonus type.
     /// Bag indices: 0=Combo, 1=Score, 2=Harvest, 3=Wave, 4=Supply.
-    /// This matches the order in MetaData.get_bag_size().
     #[inline(always)]
     fn bag_index(self: Bonus) -> u8 {
         match self {
@@ -141,7 +140,9 @@ mod tests {
         let codes: Array<u8> = array![0, 1, 2, 3, 4, 5];
         let mut i: u32 = 0;
         loop {
-            if i >= codes.len() { break; }
+            if i >= codes.len() {
+                break;
+            }
             let code = *codes.at(i);
             let bonus = BonusTrait::from_type_code(code);
             assert!(bonus.to_type_code() == code, "Roundtrip failed");
@@ -171,8 +172,8 @@ mod tests {
 #[cfg(test)]
 mod bonus_effect_tests {
     // Local imports
-    use super::Bonus;
     use zkube::helpers::bonus_logic::apply_bonus_effect;
+    use super::Bonus;
 
     #[test]
     fn test_bonus_harvest() {
@@ -195,7 +196,7 @@ mod bonus_effect_tests {
         let blocks = apply_bonus_effect(Bonus::Harvest, bitmap, 2, 4);
         assert_eq!(
             blocks,
-            0b000_000_000_001_000_000_000_001_000_000_000_000_000_000_000_000_000_000_000_000_100_100_100_100_001_000_000_000_011_011_011_000
+            0b000_000_000_001_000_000_000_001_000_000_000_000_000_000_000_000_000_000_000_000_100_100_100_100_001_000_000_000_011_011_011_000,
         );
     }
 
@@ -215,7 +216,7 @@ mod bonus_effect_tests {
         let blocks = apply_bonus_effect(Bonus::Wave, bitmap, 0, 1);
         assert_eq!(
             blocks,
-            0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_000_000_000_000_000_000_000_000
+            0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_000_000_000_000_000_000_000_000,
         );
     }
 

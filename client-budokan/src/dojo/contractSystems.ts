@@ -1,11 +1,6 @@
 import type { Config } from "../../dojo.config.ts";
 import type { Manifest } from "@/config/manifest.ts";
-import {
-  Account,
-  CairoOption,
-  CairoOptionVariant,
-  CallData,
-} from "starknet";
+import { Account, CairoOption, CairoOptionVariant, CallData, hash } from "starknet";
 import { stringToFelt } from "@/cartridgeConnector.tsx";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
@@ -26,8 +21,6 @@ export interface Surrender extends Signer {
 
 export interface Create extends Signer {
   token_id: number;
-  selected_bonuses: number[]; // [] uses default Combo/Harvest/Score
-  cubes_amount: number; // 0 if not bringing cubes
 }
 
 export interface FreeMint extends Signer {
@@ -49,34 +42,9 @@ export interface BonusTx extends Signer {
   block_index: number;
 }
 
-export interface ShopUpgrade extends Signer {
-  bonus_type: number; // 0=Combo, 1=Score, 2=Harvest, 3=Wave, 4=Supply
-}
-
-export interface UnlockBonus extends Signer {
-  bonus_type: number; // 4=Wave, 5=Supply
-}
-
-export interface PurchaseConsumable extends Signer {
+export interface StartNextLevel extends Signer {
   game_id: number;
-  consumable_type: number;
-  bonus_slot: number;
-}
-
-export interface LevelUpBonus extends Signer {
-  game_id: number;
-  bonus_slot: number;
-}
-
-export interface AllocateCharge extends Signer {
-  game_id: number;
-  bonus_slot: number;
-}
-
-export interface SwapBonus extends Signer {
-  game_id: number;
-  bonus_slot: number;
-  new_bonus_type: number;
+  current_level: number; // Current level (for VRF salt)
 }
 
 export interface ClaimQuest extends Signer {
@@ -84,13 +52,52 @@ export interface ClaimQuest extends Signer {
   interval_id: number; // Current interval ID for the quest
 }
 
+export interface DraftReroll extends Signer {
+  game_id: number;
+  reroll_slot: number;
+  current_count?: number;
+}
+
+export interface DraftSelect extends Signer {
+  game_id: number;
+  selected_slot: number;
+}
+
+export interface SkillTreeUpgrade extends Signer {
+  skill_id: number;
+}
+
+export interface SkillTreeChooseBranch extends Signer {
+  skill_id: number;
+  branch_id: number;
+}
+
+export interface SkillTreeRespec extends Signer {
+  skill_id: number;
+}
+
 export type IWorld = ReturnType<typeof setupWorld>;
+
+// Build VRF request_random call using Source::Salt for deterministic, game-state-derived randomness.
+// Salt must match the contract-side consume_random(Source::Salt(salt)) call.
+const buildVrfRequestCall = (callerAddress: string, salt: bigint | string) => {
+  const normalizedSalt = typeof salt === "bigint" ? salt : BigInt(salt);
+
+  return {
+    contractAddress: VRF_PROVIDER_ADDRESS,
+    entrypoint: "request_random",
+    calldata: CallData.compile({
+      caller: callerAddress,
+      source: { type: 1, salt: normalizedSalt },
+    }),
+  };
+};
 
 export function setupWorld(config: Config) {
   function game() {
     const contract_name = "game_system";
     const contract = config.manifest.contracts.find(
-      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name)
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
     );
     if (!contract) {
       throw new Error(`Contract ${contract_name} not found in manifest`);
@@ -99,7 +106,7 @@ export function setupWorld(config: Config) {
     // move_system handles move() function
     const move_contract_name = "move_system";
     const move_contract = config.manifest.contracts.find(
-      (c: Manifest["contracts"][number]) => c.tag.includes(move_contract_name)
+      (c: Manifest["contracts"][number]) => c.tag.includes(move_contract_name),
     );
     if (!move_contract) {
       throw new Error(`Contract ${move_contract_name} not found in manifest`);
@@ -108,10 +115,18 @@ export function setupWorld(config: Config) {
     // bonus_system handles apply_bonus() function
     const bonus_contract_name = "bonus_system";
     const bonus_contract = config.manifest.contracts.find(
-      (c: Manifest["contracts"][number]) => c.tag.includes(bonus_contract_name)
+      (c: Manifest["contracts"][number]) => c.tag.includes(bonus_contract_name),
     );
     if (!bonus_contract) {
       throw new Error(`Contract ${bonus_contract_name} not found in manifest`);
+    }
+
+    const level_contract_name = "level_system";
+    const level_contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(level_contract_name),
+    );
+    if (!level_contract) {
+      throw new Error(`Contract ${level_contract_name} not found in manifest`);
     }
 
     const free_mint = async ({ account, name, settingsId = 0 }: FreeMint) => {
@@ -123,7 +138,10 @@ export function setupWorld(config: Config) {
             contractAddress: contract.address,
             entrypoint: "mint_game",
             calldata: CallData.compile([
-              new CairoOption(CairoOptionVariant.Some, stringToFelt(trimmedName)),
+              new CairoOption(
+                CairoOptionVariant.Some,
+                stringToFelt(trimmedName),
+              ),
               new CairoOption(CairoOptionVariant.Some, settingsId),
               1, // start
               1, // end
@@ -133,8 +151,8 @@ export function setupWorld(config: Config) {
               1, // renderer_address
               account.address,
               false, // soulbound
-            ])
-          }
+            ]),
+          },
         ]);
       } catch (error) {
         console.error("Error executing free_mint:", error);
@@ -142,11 +160,9 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const create = async ({ account, token_id, selected_bonuses, cubes_amount }: Create) => {
+    const create = async ({ account, token_id }: Create) => {
       try {
-        const bonusList = selected_bonuses ?? [];
-        const calldata = [token_id, bonusList.length, ...bonusList, cubes_amount];
-        console.log("[create] calldata:", calldata);
+        const calldata = [token_id];
 
         // On Slot, skip VRF call since it's not deployed
         if (isSlotMode) {
@@ -161,14 +177,7 @@ export function setupWorld(config: Config) {
 
         // On Sepolia/Mainnet, include VRF request
         return await account.execute([
-          {
-            contractAddress: VRF_PROVIDER_ADDRESS,
-            entrypoint: "request_random",
-            calldata: CallData.compile({
-              caller: contract.address,
-              source: { type: 0, address: account.address },
-            }),
-          },
+          buildVrfRequestCall(contract.address, BigInt(token_id)),
           {
             contractAddress: contract.address,
             entrypoint: "create",
@@ -204,6 +213,7 @@ export function setupWorld(config: Config) {
       final_index,
     }: Move) => {
       try {
+        // move() no longer needs VRF - level transitions are handled by start_next_level()
         return await account.execute([
           {
             contractAddress: move_contract.address,
@@ -225,8 +235,7 @@ export function setupWorld(config: Config) {
       block_index,
     }: BonusTx) => {
       try {
-        // Bonus enum serializes as just the variant index:
-        // 0 = None, 1 = Combo, 2 = Score, 3 = Harvest, 4 = Wave, 5 = Supply
+        // bonus() no longer needs VRF - level transitions are handled by start_next_level()
         return await account.execute([
           {
             contractAddress: bonus_contract.address,
@@ -240,6 +249,47 @@ export function setupWorld(config: Config) {
       }
     };
 
+    const startNextLevel = async ({
+      account,
+      game_id,
+      current_level,
+    }: StartNextLevel) => {
+      try {
+        if (isSlotMode) {
+          // On Slot, no VRF - call start_next_level directly
+          return await account.execute([
+            {
+              contractAddress: level_contract.address,
+              entrypoint: "start_next_level",
+              calldata: [game_id],
+            },
+          ]);
+        }
+
+        // On Sepolia/Mainnet, include VRF request
+        // Salt = poseidon(game_id, current_level) matching the contract
+        return await account.execute([
+          buildVrfRequestCall(
+            level_contract.address,
+            BigInt(
+              hash.computePoseidonHashOnElements([
+                BigInt(game_id),
+                BigInt(current_level),
+              ]),
+            ),
+          ),
+          {
+            contractAddress: level_contract.address,
+            entrypoint: "start_next_level",
+            calldata: [game_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing startNextLevel:", error);
+        throw error;
+      }
+    };
+
     return {
       address: contract.address,
       free_mint,
@@ -247,158 +297,19 @@ export function setupWorld(config: Config) {
       surrender,
       move,
       bonus,
-    };
-  }
-
-  function shop() {
-    const contract_name = "shop_system";
-    const contract = config.manifest.contracts.find(
-      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name)
-    );
-    if (!contract) {
-      throw new Error(`Contract ${contract_name} not found in manifest`);
-    }
-
-    const upgrade_starting_bonus = async ({ account, bonus_type }: ShopUpgrade) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "upgrade_starting_bonus",
-            calldata: [bonus_type],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing upgrade_starting_bonus:", error);
-        throw error;
-      }
-    };
-
-    const upgrade_bag_size = async ({ account, bonus_type }: ShopUpgrade) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "upgrade_bag_size",
-            calldata: [bonus_type],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing upgrade_bag_size:", error);
-        throw error;
-      }
-    };
-
-    const upgrade_bridging_rank = async ({ account }: Signer) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "upgrade_bridging_rank",
-            calldata: [],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing upgrade_bridging_rank:", error);
-        throw error;
-      }
-    };
-
-    const purchase_consumable = async ({ account, game_id, consumable_type, bonus_slot }: PurchaseConsumable) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "purchase_consumable",
-            calldata: [game_id, consumable_type, bonus_slot],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing purchase_consumable:", error);
-        throw error;
-      }
-    };
-
-    const allocate_charge = async ({ account, game_id, bonus_slot }: AllocateCharge) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "allocate_charge",
-            calldata: [game_id, bonus_slot],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing allocate_charge:", error);
-        throw error;
-      }
-    };
-
-    const swap_bonus = async ({ account, game_id, bonus_slot, new_bonus_type }: SwapBonus) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "swap_bonus",
-            calldata: [game_id, bonus_slot, new_bonus_type],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing swap_bonus:", error);
-        throw error;
-      }
-    };
-
-    const unlock_bonus = async ({ account, bonus_type }: UnlockBonus) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "unlock_bonus",
-            calldata: [bonus_type],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing unlock_bonus:", error);
-        throw error;
-      }
-    };
-
-    const level_up_bonus = async ({ account, game_id, bonus_slot }: LevelUpBonus) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "level_up_bonus",
-            calldata: [game_id, bonus_slot],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing level_up_bonus:", error);
-        throw error;
-      }
-    };
-
-    return {
-      address: contract.address,
-      upgrade_starting_bonus,
-      upgrade_bag_size,
-      upgrade_bridging_rank,
-      purchase_consumable,
-      allocate_charge,
-      swap_bonus,
-      unlock_bonus,
-      level_up_bonus,
+      startNextLevel,
     };
   }
 
   function quest() {
     const contract_name = "quest_system";
     const contract = config.manifest.contracts.find(
-      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name)
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
     );
     if (!contract) {
-      console.warn(`Contract ${contract_name} not found in manifest - quest system disabled`);
+      console.warn(
+        `Contract ${contract_name} not found in manifest - quest system disabled`,
+      );
       return null;
     }
 
@@ -423,9 +334,157 @@ export function setupWorld(config: Config) {
     };
   }
 
+  function draft() {
+    const contract_name = "draft_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      throw new Error(`Contract ${contract_name} not found in manifest`);
+    }
+
+    const reroll = async ({
+      account,
+      game_id,
+      reroll_slot,
+      current_count,
+    }: DraftReroll) => {
+      try {
+        const rerollCount = current_count ?? 0;
+        if (isSlotMode) {
+          return await account.execute([
+            {
+              contractAddress: contract.address,
+              entrypoint: "reroll",
+              calldata: [game_id, reroll_slot],
+            },
+          ]);
+        }
+
+        return await account.execute([
+          buildVrfRequestCall(
+            contract.address,
+            BigInt(
+              hash.computePoseidonHashOnElements([
+                BigInt(game_id),
+                BigInt(rerollCount),
+              ]),
+            ),
+          ),
+          {
+            contractAddress: contract.address,
+            entrypoint: "reroll",
+            calldata: [game_id, reroll_slot],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing draft reroll:", error);
+        throw error;
+      }
+    };
+
+    const select = async ({
+      account,
+      game_id,
+      selected_slot,
+    }: DraftSelect) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "select",
+            calldata: [game_id, selected_slot],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing draft select:", error);
+        throw error;
+      }
+    };
+
+    return {
+      address: contract.address,
+      reroll,
+      select,
+    };
+  }
+
+  function skill_tree() {
+    const contract_name = "skill_tree_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      throw new Error(`Contract ${contract_name} not found in manifest`);
+    }
+
+    const upgrade_skill = async ({
+      account,
+      skill_id,
+    }: SkillTreeUpgrade) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "upgrade_skill",
+            calldata: [skill_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing upgrade_skill:", error);
+        throw error;
+      }
+    };
+
+    const choose_branch = async ({
+      account,
+      skill_id,
+      branch_id,
+    }: SkillTreeChooseBranch) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "choose_branch",
+            calldata: [skill_id, branch_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing choose_branch:", error);
+        throw error;
+      }
+    };
+
+    const respec_branch = async ({
+      account,
+      skill_id,
+    }: SkillTreeRespec) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "respec_branch",
+            calldata: [skill_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing respec_branch:", error);
+        throw error;
+      }
+    };
+
+    return {
+      address: contract.address,
+      upgrade_skill,
+      choose_branch,
+      respec_branch,
+    };
+  }
+
   return {
     game: game(),
-    shop: shop(),
     quest: quest(),
+    draft: draft(),
+    skill_tree: skill_tree(),
   };
 }

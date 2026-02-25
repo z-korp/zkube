@@ -1,15 +1,13 @@
-use core::traits::Into;
-use core::num::traits::zero::Zero;
-use core::poseidon::{PoseidonTrait, HashState};
-use core::hash::HashStateTrait;
-
-use alexandria_math::fast_power::fast_power;
 use alexandria_math::BitShift;
-
+use alexandria_math::fast_power::fast_power;
+use core::hash::HashStateTrait;
+use core::num::traits::zero::Zero;
+use core::poseidon::{HashState, PoseidonTrait};
+use core::traits::Into;
 use zkube::constants;
-use zkube::helpers::packing::{RunData, RunDataPackingTrait};
+use zkube::helpers::packing::{RunData, RunDataHelpersTrait, RunDataPackingTrait};
 use zkube::helpers::scoring::saturating_add_u16;
-use zkube::types::bonus::Bonus;
+use zkube::types::bonus::{Bonus, BonusTrait};
 
 /// Game model for the level-based system
 /// All run progress is packed into run_data for efficient storage
@@ -23,24 +21,20 @@ pub struct Game {
     // ----------------------------------------
     pub blocks: felt252, // 10 lines of 3x8 bits = 240 bits
     pub next_row: u32, // 3x8 bits per row = 24 bits
-
     // ----------------------------------------
     // Per-level combo tracking (resets each level)
     // ----------------------------------------
     pub combo_counter: u8, // Current combo streak this level
     pub max_combo: u8, // Best combo this level
-
     // ----------------------------------------
     // Level system (bit-packed run progress)
     // ----------------------------------------
     pub run_data: felt252, // Bit-packed: level, score, moves, bonuses, stars, etc.
     pub level_stars: felt252, // 2 bits per level × 50 levels = 100 bits
-
     // ----------------------------------------
     // Timestamps
     // ----------------------------------------
     pub started_at: u64, // Run start timestamp
-
     // ----------------------------------------
     // Game state
     // ----------------------------------------
@@ -53,7 +47,9 @@ pub struct Game {
 pub struct GameSeed {
     #[key]
     pub game_id: u64,
-    pub seed: felt252,
+    pub seed: felt252, // Original VRF seed — set once at game creation, NEVER changes
+    pub level_seed: felt252, // Per-level VRF seed — updated each start_next_level
+    pub vrf_enabled: bool,
 }
 
 /// Current level configuration - synced to client via Torii
@@ -67,11 +63,11 @@ pub struct GameLevel {
     pub level: u8,
     pub points_required: u16,
     pub max_moves: u16,
-    pub difficulty: u8,           // Difficulty enum as u8
+    pub difficulty: u8, // Difficulty enum as u8
     // Primary constraint
-    pub constraint_type: u8,      // ConstraintType enum as u8 (0-6)
-    pub constraint_value: u8,     // Constraint parameter
-    pub constraint_count: u8,     // Required count
+    pub constraint_type: u8, // ConstraintType enum as u8 (0-6)
+    pub constraint_value: u8, // Constraint parameter
+    pub constraint_count: u8, // Required count
     // Secondary constraint
     pub constraint2_type: u8,
     pub constraint2_value: u8,
@@ -81,10 +77,9 @@ pub struct GameLevel {
     pub constraint3_value: u8,
     pub constraint3_count: u8,
     // Cube thresholds
-    pub cube_3_threshold: u16,    // Moves threshold for 3 cubes
-    pub cube_2_threshold: u16,    // Moves threshold for 2 cubes
+    pub cube_3_threshold: u16, // Moves threshold for 3 cubes
+    pub cube_2_threshold: u16 // Moves threshold for 2 cubes
 }
-
 use zkube::types::level::LevelConfig;
 
 #[generate_trait]
@@ -118,7 +113,7 @@ pub impl GameImpl of GameTrait {
     /// Grid should be initialized separately via grid_system.initialize_grid()
     fn new_empty(game_id: u64, started_at: u64) -> Game {
         let run_data = RunDataPackingTrait::new();
-        
+
         Game {
             game_id,
             blocks: 0,
@@ -171,31 +166,31 @@ pub impl GameImpl of GameTrait {
     /// Get combo bonus count from inventory
     #[inline(always)]
     fn get_combo_count(self: Game) -> u8 {
-        self.get_run_data().combo_count
+        self.get_run_data().get_bonus_charges(1)
     }
 
     /// Get score bonus count from inventory
     #[inline(always)]
     fn get_score_count(self: Game) -> u8 {
-        self.get_run_data().score_count
+        self.get_run_data().get_bonus_charges(2)
     }
 
     /// Get harvest bonus count from inventory
     #[inline(always)]
     fn get_harvest_count(self: Game) -> u8 {
-        self.get_run_data().harvest_count
+        self.get_run_data().get_bonus_charges(3)
     }
 
     /// Get wave bonus count from inventory
     #[inline(always)]
     fn get_wave_count(self: Game) -> u8 {
-        self.get_run_data().wave_count
+        self.get_run_data().get_bonus_charges(4)
     }
 
     /// Get supply bonus count from inventory
     #[inline(always)]
     fn get_supply_count(self: Game) -> u8 {
-        self.get_run_data().supply_count
+        self.get_run_data().get_bonus_charges(5)
     }
 
     /// Check if bonus was used this level (for NoBonusUsed constraint)
@@ -209,7 +204,7 @@ pub impl GameImpl of GameTrait {
     fn get_constraint_progress(self: Game) -> u8 {
         self.get_run_data().constraint_progress
     }
-    
+
     /// Get constraint_2 progress (secondary constraint)
     #[inline(always)]
     fn get_constraint_2_progress(self: Game) -> u8 {
@@ -222,22 +217,11 @@ pub impl GameImpl of GameTrait {
         self.get_run_data().constraint_3_progress
     }
 
-    /// Get the level (0-2) for a given bonus type based on selected bonuses
+    /// Get the level for a given bonus skill id
     /// @param bonus_type: 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
-    /// Returns 0 (L1), 1 (L2), or 2 (L3)
     fn get_bonus_level(self: Game, bonus_type: u8) -> u8 {
         let run_data = self.get_run_data();
-        
-        // Find which slot this bonus is in
-        if run_data.selected_bonus_1 == bonus_type {
-            run_data.bonus_1_level
-        } else if run_data.selected_bonus_2 == bonus_type {
-            run_data.bonus_2_level
-        } else if run_data.selected_bonus_3 == bonus_type {
-            run_data.bonus_3_level
-        } else {
-            0 // Default to L1 if not found (shouldn't happen)
-        }
+        run_data.get_bonus_level(bonus_type)
     }
 
     /// Get total score (cumulative across all levels)
@@ -268,7 +252,9 @@ pub impl GameImpl of GameTrait {
     /// Complete the current level and advance to next (run_data only, no grid changes)
     /// Grid should be reset separately via grid_system.reset_grid_for_level()
     /// Returns (cubes_earned, bonuses_to_award, is_victory)
-    fn complete_level_data(ref self: Game, cubes: u8, bonuses: u8, boss_bonus: u16, is_victory: bool) -> (u8, u8, bool) {
+    fn complete_level_data(
+        ref self: Game, cubes: u8, bonuses: u8, boss_bonus: u16, is_victory: bool,
+    ) -> (u8, u8, bool) {
         let mut run_data = self.get_run_data();
 
         // Add cubes to total
@@ -374,14 +360,7 @@ pub impl GameAssert of AssertTrait {
     #[inline(always)]
     fn assert_bonus_available(self: Game, bonus: Bonus) {
         let run_data = self.get_run_data();
-        let count = match bonus {
-            Bonus::Combo => run_data.combo_count,
-            Bonus::Score => run_data.score_count,
-            Bonus::Harvest => run_data.harvest_count,
-            Bonus::Wave => run_data.wave_count,
-            Bonus::Supply => run_data.supply_count,
-            Bonus::None => 0,
-        };
+        let count = run_data.get_bonus_charges(bonus.to_type_code());
         assert!(count > 0, "Game {} bonus is not available", self.game_id);
     }
 }

@@ -1,6 +1,6 @@
 use dojo::world::{WorldStorage, WorldStorageTrait};
 use game_components_minigame::interface::{IMinigameDispatcher, IMinigameDispatcherTrait};
-use game_components_token::core::interface::{IMinigameTokenDispatcher,};
+use game_components_token::core::interface::IMinigameTokenDispatcher;
 use starknet::ContractAddress;
 
 /// Returns the configured minigame token contract address registered in the Dojo world.

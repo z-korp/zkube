@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-zKube is a fully on-chain puzzle roguelike built with the Dojo framework on Starknet. Players manipulate blocks on an 8x10 grid to form solid horizontal lines, progress through levels, earn cubes (ERC1155 currency), and spend them on upgrades. The game features VRF-powered randomness, strategic bonuses, a level system with constraints, a cube economy with two shops, a daily quest system, and an achievement system.
+zKube is a fully on-chain puzzle roguelike built with the Dojo framework on Starknet. Players manipulate blocks on an 8x10 grid to form solid horizontal lines, progress through levels, earn cubes (ERC-20 currency), and spend them on upgrades. The game features VRF-powered randomness, strategic bonuses, a level system with constraints, a cube economy with two shops, a daily quest system, and an achievement system.
 
 ## Architecture
 
@@ -11,7 +11,7 @@ zkube/
 ├── Scarb.toml              # Workspace root (shared dependencies)
 ├── contracts/              # Dojo smart contracts (Cairo 2.13.1)
 │   ├── src/
-│   │   ├── systems/        # game, shop, cube_token, config, quest, renderer
+│   │   ├── systems/        # game, shop, cube_token, config, quest, grid, moves, bonus, level, renderer, achievement
 │   │   ├── models/         # Game, GameSeed, PlayerMeta, GameSettings
 │   │   ├── helpers/        # controller, level, packing, gravity, random
 │   │   ├── types/          # bonus, difficulty, constraint, consumable, level
@@ -40,15 +40,15 @@ zkube/
 ## Technology Stack
 
 ### Frontend (`client-budokan/`)
-- **Framework:** React 18.3.1 + TypeScript 5.8.3
-- **Build Tool:** Vite 6.3.5
-- **Styling:** TailwindCSS 3.4.4
-- **State Management:** Zustand 4.5.5, MobX 6.13.2, RECS (Reactive ECS)
-- **Animation:** Framer Motion 11.2.10, GSAP 3.12.5
-- **Audio:** use-sound (Howler.js)
+- **Framework:** React 19.2.4 + TypeScript ~5.9.3
+- **Build Tool:** Vite 7.3.1
+- **Styling:** TailwindCSS 4.1.18
+- **State Management:** Zustand 5.0.11, MobX 6.13.2, RECS (Reactive ECS)
+- **Animation:** Motion 12.34.1, GSAP 3.14.2
+- **Audio:** Howler.js 2.2.4
 - **Starknet:** starknet 8.5.2, @starknet-react/core 5.0.1
-- **Dojo:** @dojoengine/sdk 1.8.1, @dojoengine/core 1.8.1
-- **Wallet:** Cartridge Controller 0.10.7
+- **Dojo:** @dojoengine/sdk 1.9.0, @dojoengine/core 1.8.8
+- **Wallet:** Cartridge Controller 0.13.9
 
 ### Smart Contracts (`contracts/`)
 - **Language:** Cairo 2.13.1
@@ -76,9 +76,9 @@ zkube/
 │                    DOJO WORLD (Starknet)                            │
 │  ┌────────────────┐  ┌──────────────┐  ┌─────────────────┐        │
 │  │  Game System   │  │ Shop System  │  │  CubeToken      │        │
-│  │  - create()    │  │ - upgrades   │  │  (ERC1155)      │        │
+│  │  - create()    │  │ - upgrades   │  │  (ERC-20)       │        │
 │  │  - move()      │  │ - bag size   │  │  - mint/burn    │        │
-│  │  - surrender() │  │ - bridging   │  │  - soulbound    │        │
+│  │  - surrender() │  │ - bridging   │  │  - mint/burn    │        │
 │  │  - apply_bonus │  └──────────────┘  └─────────────────┘        │
 │  │  - purchase_   │                                                │
 │  │    consumable  │  ┌──────────────┐  ┌─────────────────┐        │
@@ -119,7 +119,7 @@ zkube/
    - Level completes when score threshold + constraints met
    - Bonuses awarded based on star rating (3-star/2-star/1-star performance)
    - Every 10 levels, in-game shop appears to spend cubes on consumables
-   - On game over, earned cubes are minted as ERC1155 tokens to player's wallet
+   - On game over, earned cubes are minted as ERC-20 tokens to player's wallet
 
 3. **State Synchronization:**
    - Torii indexes all Game model changes
@@ -164,7 +164,7 @@ Players select 3 bonuses before each run. Charges are purchased in shops:
 - **Moves:** 20 at level 1, scales to 60 at level 50
 - **Points ratio:** 0.80 at level 1, scales to 1.80 at level 50
 - **Difficulty:** VeryEasy -> Easy -> Medium -> MediumHard -> Hard -> VeryHard -> Expert -> Master
-- **Constraints:** ClearLines (X lines in one move, Y times) or NoBonusUsed
+- **Constraints:** ComboLines (X lines in one move, Y times) or NoBonusUsed
 - **Variance:** +/-5% consistent across all levels
 
 ### Boss Levels
@@ -190,31 +190,34 @@ Clearing multiple lines in one move awards bonus cubes:
 
 ### Constraint System
 
-7 constraint types (None, ClearLines, BreakBlocks, AchieveCombo, Fill, NoBonusUsed, ClearGrid):
-- **Unified budget system:** All 4 regular types (ClearLines, BreakBlocks, Fill, AchieveCombo) generated from same budget engine
+7 constraint types (None, ComboLines, BreakBlocks, ComboStreak, FillAndClear, NoBonusUsed, KeepGridBelow):
+- **Unified budget system:** All 4 regular types (ComboLines, BreakBlocks, FillAndClear, ComboStreak) generated from same budget engine
 - **Regular levels (3+):** Type selected by difficulty-weighted probabilities, values from budget
 - **Boss levels (10/20/30/40/50):** Boss identity = which types, budget_max = values
 - **Boss progression:** Dual constraints at L10-30, triple at L40/50
-- **Boss-only types:** NoBonusUsed and ClearGrid only appear on boss levels (binary, no budget)
-- **Fill constraint:** Triggers when grid height after move resolves reaches target row
+- **Boss-only types:** NoBonusUsed and KeepGridBelow only appear on boss levels (binary, no budget)
+- **FillAndClear constraint:** Triggers when grid height after move resolves reaches target row
 - 10 boss identities defined in `contracts/src/helpers/boss.cairo`
 
 ### Quest System
 
-Daily quests for earning CUBE tokens (102 CUBE/day total):
+### Daily Quests (13 total, 92 CUBE/day)
 
 | Category | Quest | Requirement | Reward |
 |----------|-------|-------------|--------|
-| Player | Warm-Up | Play 1 game | 3 CUBE |
-| Player | Getting Started | Play 3 games | 6 CUBE |
-| Player | Dedicated | Play 5 games | 12 CUBE |
-| Clearer | Line Breaker | Clear 10 lines | 3 CUBE |
-| Clearer | Line Crusher | Clear 30 lines | 6 CUBE |
-| Clearer | Line Master | Clear 50 lines | 12 CUBE |
-| Combo | Combo Starter | 3+ line combo | 5 CUBE |
-| Combo | Combo Builder | 5+ line combo | 10 CUBE |
-| Combo | Combo Expert | 7+ line combo | 20 CUBE |
-| Finisher | Daily Champion | Complete all 9 | 25 CUBE |
+| Player | DailyPlayerOne | Play 1 game | 3 CUBE |
+| Player | DailyPlayerTwo | Play 3 games | 5 CUBE |
+| Player | DailyPlayerThree | Play 5 games | 10 CUBE |
+| Clearer | DailyClearerOne | Clear 10 lines | 3 CUBE |
+| Clearer | DailyClearerTwo | Clear 30 lines | 5 CUBE |
+| Clearer | DailyClearerThree | Clear 50 lines | 10 CUBE |
+| Combo | DailyComboOne | 3+ line combo | 3 CUBE |
+| Combo | DailyComboTwo | 5+ line combo | 5 CUBE |
+| Combo | DailyComboThree | 7+ line combo | 10 CUBE |
+| ComboStreak | DailyComboStreakOne | 5+ combo streak | 3 CUBE |
+| ComboStreak | DailyComboStreakTwo | 7+ combo streak | 5 CUBE |
+| ComboStreak | DailyComboStreakThree | 9+ combo streak | 10 CUBE |
+| Finisher | DailyFinisher | Complete all 12 | 20 CUBE |
 
 ### Achievement System
 
@@ -241,7 +244,7 @@ Daily quests for earning CUBE tokens (102 CUBE/day total):
 ### Smart Contract Entry Points
 - `contracts/src/systems/game.cairo` - Main game logic (create, move, apply_bonus, purchase_consumable)
 - `contracts/src/systems/shop.cairo` - Permanent shop (upgrades, bag size, bridging rank)
-- `contracts/src/systems/cube_token.cairo` - Soulbound ERC1155 CUBE token (mint/burn)
+- `contracts/src/systems/cube_token.cairo` - ERC20 CUBE token (zKube/ZKUBE) (mint/burn)
 - `contracts/src/systems/quest.cairo` - Daily quest system (progress, claim)
 - `contracts/src/systems/config.cairo` - Game settings management
 - `contracts/src/models/game.cairo` - Game state model (blocks, run_data, combo, over)
@@ -257,9 +260,9 @@ Daily quests for earning CUBE tokens (102 CUBE/day total):
 - `packages/game_erc721/` - Legacy ERC721 (replaced by FullTokenContract)
 - **FullTokenContract** - game-components ERC721 for game NFTs (deployed externally)
 
-### Cube Token (ERC1155)
-- `contracts/src/systems/cube_token.cairo` - Soulbound ERC1155 with CUBE_TOKEN_ID=1
-- Mint/burn controlled by MINTER_ROLE (granted to game_system, shop_system, quest_system)
+### Cube Token (ERC-20)
+- `contracts/src/systems/cube_token.cairo` - ERC-20 token (name="zKube", symbol="ZKUBE", 0 decimals)
+- Mint/burn controlled by MINTER_ROLE (granted to game_system, move_system, shop_system, quest_system)
 - Torii indexes balances via registered external contract
 
 ## Development Commands
@@ -416,17 +419,11 @@ This script handles:
 1. Building contracts with `sozo build -P slot`
 2. Declaring and deploying MinigameRegistryContract
 3. Declaring and deploying FullTokenContract (with registry address)
-4. Updating `dojo_slot.toml` with the denshokan_address
+4. Updating `dojo_slot.toml` with `denshokan_address` and `config_system` external `cube_token_address`
 5. Running `sozo migrate -P slot`
 6. Updating `torii_slot.toml` and `client-budokan/.env.slot`
 
-#### CRITICAL: Two Config Files
-
-There are TWO `dojo_slot.toml` files that MUST be kept in sync:
-- `./dojo_slot.toml` (root) - **sozo reads from here**
-- `./contracts/dojo_slot.toml` (contracts dir)
-
-If deployment fails with "contract address 0x0 not deployed", check that BOTH files have the correct `denshokan_address` in `[init_call_args]`.
+The script reads and updates `./dojo_slot.toml` at workspace root (this is the file used by `sozo`).
 
 #### Manual Step-by-Step Deployment
 
@@ -459,7 +456,9 @@ sozo deploy -P slot --account-address "$ACCOUNT" --private-key "$PKEY" --rpc-url
     "$TOKEN_CLASS" --constructor-calldata str:'zKube' str:'ZK' str:'' "$ACCOUNT" 500 0 "$REGISTRY_ADDR" 1
 # Note the deployed address (TOKEN_ADDR)
 
-# 5. Update BOTH dojo_slot.toml files with TOKEN_ADDR as denshokan_address
+# 5. Update dojo_slot.toml with:
+#    - game_system denshokan_address = TOKEN_ADDR
+#    - config_system cube_token_address = external ERC20 address
 
 # 6. Run migrate (MUST run from workspace root, NOT from contracts/)
 sozo migrate -P slot
@@ -479,7 +478,7 @@ sozo migrate -P slot
 
 **"Requested contract address 0x0 is not deployed"**
 - The `denshokan_address` in init_call_args is wrong or the FullTokenContract wasn't deployed
-- Check BOTH `dojo_slot.toml` files have the correct address
+- Check `dojo_slot.toml` has the correct `denshokan_address` and `config_system` `cube_token_address`
 
 **"contract address 0x... is not deployed"**
 - The FullTokenContract address doesn't match what's deployed
@@ -488,7 +487,7 @@ sozo migrate -P slot
 ## Documentation
 
 See `/docs/` for detailed documentation:
-- **GAME_DESIGN.md** - Complete game design (levels, economy, bonuses, quests, achievements)
+ **GAME_DESIGN.md** - Complete game design (skill system, draft, levels, economy, constraints, quests, achievements)
 - **CONFIGURABLE_SETTINGS.md** - GameSettings customization
 - **DEPLOYMENT_GUIDE.md** - Network deployment guide
 - **references/** - External reference material (game-components, death-mountain, dark-shuffle, architecture analysis)

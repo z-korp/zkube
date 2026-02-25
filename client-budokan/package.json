@@ -3,12 +3,17 @@
   "private": false,
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "slot": "vite --mode slot --port 5125",
     "sepolia": "vite --mode sepolia --host",
     "mainnet": "vite --mode mainnet --host",
     "build": "tsc && vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
     "preview": "vite preview",
     "codegen": "graphql-codegen",
     "gen:models": "npx create-models ../contracts/manifests/dev/manifest.json ./src/dojo/generated/contractModels.ts",
@@ -110,6 +115,7 @@
     "ts-jest": "^29.2.5",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.30.1",
+    "prettier": "^3.6.2",
     "vite": "^7.3.1",
     "vite-plugin-mkcert": "^1.17.5",
     "vitest": "^2.1.4"

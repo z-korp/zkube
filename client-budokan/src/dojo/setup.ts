@@ -41,18 +41,22 @@ export async function setup({ ...config }: Config) {
     `${namespace}-Game`,
     `${namespace}-GameSeed`,
     `${namespace}-GameLevel`,
+    `${namespace}-DraftState`,
+    `${namespace}-PlayerSkillTree`,
   ] as `${string}-${string}`[];
   const modelsToWatch = [
     `${namespace}-Game`,
     `${namespace}-GameSeed`,
     `${namespace}-GameLevel`,
+    `${namespace}-DraftState`,
     `${namespace}-GameSettingsMetadata`,
+    `${namespace}-PlayerSkillTree`,
   ];
 
   log.info("Starting entity sync", {
     modelsToSync,
     modelsToWatch,
-    pollingInterval: 10000,
+    batchLimit: 10000,
   });
 
   const sync = await getSyncEntities(

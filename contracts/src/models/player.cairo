@@ -19,11 +19,7 @@ pub struct PlayerMeta {
 pub impl PlayerMetaImpl of PlayerMetaTrait {
     /// Create a new PlayerMeta with default values
     fn new(player: ContractAddress) -> PlayerMeta {
-        PlayerMeta {
-            player,
-            data: MetaDataPackingTrait::new().pack(),
-            best_level: 0,
-        }
+        PlayerMeta { player, data: MetaDataPackingTrait::new().pack(), best_level: 0 }
     }
 
     /// Get unpacked meta data
@@ -57,37 +53,16 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
         let mut meta = self.get_meta_data();
         // Cap at max u32
         let new_total: u64 = meta.total_cubes_earned.into() + cubes.into();
-        meta.total_cubes_earned = if new_total > 0xFFFFFFFF {
-            0xFFFFFFFF
-        } else {
-            new_total.try_into().unwrap()
-        };
+        meta
+            .total_cubes_earned =
+                if new_total > 0xFFFFFFFF {
+                    0xFFFFFFFF
+                } else {
+                    new_total.try_into().unwrap()
+                };
         self.set_meta_data(meta);
     }
 
-    /// Get the bag size for a specific bonus type
-    fn get_bag_size(self: PlayerMeta, bonus_type: u8) -> u8 {
-        self.get_meta_data().get_bag_size(bonus_type)
-    }
-
-    /// Get max cubes that can be brought into a run
-    fn get_max_cubes_to_bring(self: PlayerMeta) -> u16 {
-        self.get_meta_data().get_max_cubes_to_bring()
-    }
-
-    /// Get starting bonus count for a specific type
-    /// bonus_type: 0=Combo, 1=Score, 2=Harvest, 3=Wave, 4=Supply
-    fn get_starting_bonus(self: PlayerMeta, bonus_type: u8) -> u8 {
-        let meta = self.get_meta_data();
-        match bonus_type {
-            0 => meta.starting_combo,
-            1 => meta.starting_score,
-            2 => meta.starting_harvest,
-            3 => meta.starting_wave,
-            4 => meta.starting_supply,
-            _ => 0,
-        }
-    }
 
     /// Check if player exists (has played at least once)
     fn exists(self: PlayerMeta) -> bool {
@@ -97,8 +72,8 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
 
 #[cfg(test)]
 mod tests {
-    use super::{PlayerMeta, PlayerMetaTrait};
     use starknet::contract_address_const;
+    use super::{PlayerMeta, PlayerMetaTrait};
 
     #[test]
     fn test_player_meta_new() {
@@ -110,8 +85,7 @@ mod tests {
 
         let data = meta.get_meta_data();
         assert!(data.total_runs == 0, "Should have 0 runs");
-        assert!(data.starting_combo == 0, "Should have 0 starting combo");
-        assert!(data.bridging_rank == 0, "Should have 0 bridging rank");
+        assert!(data.total_cubes_earned == 0, "Should have 0 cubes earned");
     }
 
     #[test]
@@ -143,6 +117,5 @@ mod tests {
         let data = meta.get_meta_data();
         assert!(data.total_runs == 3, "Should have 3 runs");
     }
-
     // Note: Cube balance tests removed - cube balance is now managed by ERC1155 CubeToken contract
 }

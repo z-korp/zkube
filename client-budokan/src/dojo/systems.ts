@@ -61,7 +61,7 @@ export function systems({ client }: { client: IWorld }) {
   const waitForPreConfirmedTransaction = async (
     account: Account,
     txHash: string,
-    retries = 0
+    retries = 0,
   ): Promise<TransactionReceipt & { events: any[] }> => {
     if (retries > MAX_RETRIES) {
       throw new Error("Transaction confirmation timed out after max retries");
@@ -75,7 +75,10 @@ export function systems({ client }: { client: IWorld }) {
 
       return receipt;
     } catch (error) {
-      log.warn(`Pre-confirm wait failed (attempt ${retries + 1}/${MAX_RETRIES + 1})`, error);
+      log.warn(
+        `Pre-confirm wait failed (attempt ${retries + 1}/${MAX_RETRIES + 1})`,
+        error,
+      );
       await delay(RETRY_DELAY_MS);
       return waitForPreConfirmedTransaction(account, txHash, retries + 1);
     }
@@ -84,14 +87,18 @@ export function systems({ client }: { client: IWorld }) {
   const handleTransaction = async (
     account: Account,
     action: () => Promise<{ transaction_hash: string }>,
-    successMessage: string
+    successMessage: string,
   ): Promise<{ transaction_hash: string; events: any[] }> => {
     // Generate a unique ID for this transaction attempt
     const toastId = `tx-${Date.now()}`;
 
     try {
       if (shouldShowToast()) {
-        showToast({ message: "Transaction in progress...", type: "loading", toastId });
+        showToast({
+          message: "Transaction in progress...",
+          type: "loading",
+          toastId,
+        });
       }
 
       // Execute the transaction
@@ -114,14 +121,16 @@ export function systems({ client }: { client: IWorld }) {
       // Wait for pre-confirmed status (faster than full L2 confirmation)
       const receipt = await waitForPreConfirmedTransaction(
         account,
-        transaction_hash
+        transaction_hash,
       );
       const events = receipt.events;
 
       if ((receipt as any).execution_status === "REVERTED") {
         const revertReason = (receipt as any).revert_reason ?? "";
         if (isSessionError(revertReason)) {
-          log.warn("Transaction reverted with session error, clearing and reloading");
+          log.warn(
+            "Transaction reverted with session error, clearing and reloading",
+          );
           showToast({
             message: "Session expired. Reconnecting...",
             type: "loading",
@@ -134,7 +143,11 @@ export function systems({ client }: { client: IWorld }) {
 
         log.error("Transaction reverted", receipt);
         if (shouldShowToast()) {
-          showToast({ message: "Transaction reverted.", type: "error", toastId });
+          showToast({
+            message: "Transaction reverted.",
+            type: "error",
+            toastId,
+          });
         }
         throw new Error("Transaction reverted");
       }
@@ -177,14 +190,14 @@ export function systems({ client }: { client: IWorld }) {
     const { transaction_hash, events } = await handleTransaction(
       account,
       () => client.game.free_mint({ account, ...props, settingsId }),
-      "Game has been minted."
+      "Game has been minted.",
     );
     log.info("freeMint transaction", { transaction_hash });
 
     // Try to extract token_id from Transfer event (ERC721)
     // Transfer event has 5 keys: [selector, from, to, token_id_low, token_id_high]
     const transferEvent = events.find(
-      (event: any) => event.keys?.length === 5 && event.data?.length === 0
+      (event: any) => event.keys?.length === 5 && event.data?.length === 0,
     );
 
     let game_id = 0;
@@ -197,11 +210,13 @@ export function systems({ client }: { client: IWorld }) {
     } else {
       // Fallback: try TokenMetadata event with data.length === 11
       const tokenMetadataEvent = events.find(
-        (event: any) => event.data.length === 11
+        (event: any) => event.data.length === 11,
       );
       if (tokenMetadataEvent) {
         game_id = parseInt(tokenMetadataEvent.data[1], 16);
-        log.info("freeMint game_id extracted from fallback metadata", { game_id });
+        log.info("freeMint game_id extracted from fallback metadata", {
+          game_id,
+        });
       } else {
         log.warn("Could not find Transfer or TokenMetadata event for freeMint");
       }
@@ -213,13 +228,11 @@ export function systems({ client }: { client: IWorld }) {
   const create = async ({ account, ...props }: SystemTypes.Create) => {
     log.debug("create params", {
       token_id: props.token_id,
-      selected_bonuses: props.selected_bonuses,
-      cubes_amount: props.cubes_amount,
     });
     await handleTransaction(
       account,
       () => client.game.create({ account, ...props }),
-      "Game has been started."
+      "Game has been started.",
     );
     log.info("create success");
   };
@@ -228,7 +241,7 @@ export function systems({ client }: { client: IWorld }) {
     await handleTransaction(
       account,
       () => client.game.surrender({ account, ...props }),
-      "Game has been surrendered."
+      "Game has been surrendered.",
     );
   };
 
@@ -241,7 +254,7 @@ export function systems({ client }: { client: IWorld }) {
       await handleTransaction(
         account,
         () => client.game.move({ account, ...props }),
-        "Move has been done."
+        "Move has been done.",
       );
       setMoveComplete(true);
     } catch (error) {
@@ -257,7 +270,7 @@ export function systems({ client }: { client: IWorld }) {
       await handleTransaction(
         account,
         () => client.game.bonus({ account, ...props }),
-        "Bonus has been applied."
+        "Bonus has been applied.",
       );
       setMoveComplete(true);
     } catch (error) {
@@ -266,92 +279,15 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
-  const upgradeStartingBonus = async ({ account, ...props }: SystemTypes.ShopUpgrade) => {
+  const startNextLevel = async ({
+    account,
+    ...props
+  }: SystemTypes.StartNextLevel) => {
     await handleTransaction(
       account,
-      () => client.shop.upgrade_starting_bonus({ account, ...props }),
-      "Starting bonus upgraded!"
+      () => client.game.startNextLevel({ account, ...props }),
+      "Next level started.",
     );
-  };
-
-  const upgradeBagSize = async ({ account, ...props }: SystemTypes.ShopUpgrade) => {
-    await handleTransaction(
-      account,
-      () => client.shop.upgrade_bag_size({ account, ...props }),
-      "Bag size upgraded!"
-    );
-  };
-
-  const upgradeBridgingRank = async ({ account }: SystemTypes.Signer) => {
-    await handleTransaction(
-      account,
-      () => client.shop.upgrade_bridging_rank({ account }),
-      "Bridging rank upgraded!"
-    );
-  };
-
-  const unlockBonus = async ({ account, ...props }: SystemTypes.UnlockBonus) => {
-    await handleTransaction(
-      account,
-      () => client.shop.unlock_bonus({ account, ...props }),
-      "Bonus unlocked!"
-    );
-  };
-
-  const purchaseConsumable = async ({ account, ...props }: SystemTypes.PurchaseConsumable) => {
-    const setMoveComplete = useMoveStore.getState().setMoveComplete;
-    setMoveComplete(false);
-    try {
-      await handleTransaction(
-        account,
-        () => client.shop.purchase_consumable({ account, ...props }),
-        "Consumable purchased!"
-      );
-      setMoveComplete(true);
-    } catch (error) {
-      setMoveComplete(true);
-      throw error;
-    }
-  };
-
-  const levelUpBonus = async ({ account, ...props }: SystemTypes.LevelUpBonus) => {
-    await handleTransaction(
-      account,
-      () => client.shop.level_up_bonus({ account, ...props }),
-      "Bonus leveled up!"
-    );
-  };
-
-  const allocateCharge = async ({ account, ...props }: SystemTypes.AllocateCharge) => {
-    const setMoveComplete = useMoveStore.getState().setMoveComplete;
-    setMoveComplete(false);
-    try {
-      await handleTransaction(
-        account,
-        () => client.shop.allocate_charge({ account, ...props }),
-        "Charge allocated!"
-      );
-      setMoveComplete(true);
-    } catch (error) {
-      setMoveComplete(true);
-      throw error;
-    }
-  };
-
-  const swapBonus = async ({ account, ...props }: SystemTypes.SwapBonus) => {
-    const setMoveComplete = useMoveStore.getState().setMoveComplete;
-    setMoveComplete(false);
-    try {
-      await handleTransaction(
-        account,
-        () => client.shop.swap_bonus({ account, ...props }),
-        "Bonus swapped!"
-      );
-      setMoveComplete(true);
-    } catch (error) {
-      setMoveComplete(true);
-      throw error;
-    }
   };
 
   const claimQuest = async ({ account, ...props }: SystemTypes.ClaimQuest) => {
@@ -361,7 +297,62 @@ export function systems({ client }: { client: IWorld }) {
     await handleTransaction(
       account,
       () => client.quest!.claim({ account, ...props }),
-      "Quest reward claimed!"
+      "Quest reward claimed!",
+    );
+  };
+
+  const rerollDraft = async ({
+    account,
+    ...props
+  }: SystemTypes.DraftReroll) => {
+    await handleTransaction(
+      account,
+      () => client.draft.reroll({ account, ...props }),
+      "Draft rerolled.",
+    );
+  };
+
+  const selectDraft = async ({
+    account,
+    ...props
+  }: SystemTypes.DraftSelect) => {
+    await handleTransaction(
+      account,
+      () => client.draft.select({ account, ...props }),
+      "Draft choice selected.",
+    );
+  };
+
+  const upgradeSkill = async ({
+    account,
+    ...props
+  }: SystemTypes.SkillTreeUpgrade) => {
+    await handleTransaction(
+      account,
+      () => client.skill_tree.upgrade_skill({ account, ...props }),
+      "Skill upgraded.",
+    );
+  };
+
+  const chooseBranch = async ({
+    account,
+    ...props
+  }: SystemTypes.SkillTreeChooseBranch) => {
+    await handleTransaction(
+      account,
+      () => client.skill_tree.choose_branch({ account, ...props }),
+      "Branch selected.",
+    );
+  };
+
+  const respecBranch = async ({
+    account,
+    ...props
+  }: SystemTypes.SkillTreeRespec) => {
+    await handleTransaction(
+      account,
+      () => client.skill_tree.respec_branch({ account, ...props }),
+      "Branch reset.",
     );
   };
 
@@ -372,17 +363,13 @@ export function systems({ client }: { client: IWorld }) {
     surrender,
     move,
     applyBonus,
-    // in-game shop
-    purchaseConsumable,
-    levelUpBonus,
-    allocateCharge,
-    swapBonus,
-    // permanent shop
-    upgradeStartingBonus,
-    upgradeBagSize,
-    upgradeBridgingRank,
-    unlockBonus,
+    startNextLevel,
     // quests
     claimQuest,
+    rerollDraft,
+    selectDraft,
+    upgradeSkill,
+    chooseBranch,
+    respecBranch,
   };
 }

@@ -64,9 +64,6 @@ interface TokenBalancesResponse {
 
 /**
  * Hook for fetching game tokens directly from Torii GraphQL.
- * Works on slot mode by default, but can be forced on other networks via `forceRecs`.
- * This is a fallback approach that works without the metagame relayer.
- * 
  * Uses Torii's tokenBalances query to get owned ERC721 tokens, then matches
  * with Game model data from RECS for additional game state info.
  */
@@ -119,8 +116,6 @@ export const useGameTokensSlot = ({
 
         // Pad the owner address for Torii query
         const paddedOwner = padAddress(owner!);
-        
-        console.log("[useGameTokensSlot] Fetching ERC721 tokens for owner:", paddedOwner);
 
         // Query Torii GraphQL for token balances
         const response = await fetch(`${toriiUrl}/graphql`, {
@@ -158,8 +153,6 @@ export const useGameTokensSlot = ({
             return true;
           });
 
-        console.log("[useGameTokensSlot] Found ERC721 tokens:", erc721Tokens.length);
-
         // Get owned token IDs
         const ownedTokenIds = new Set(
           erc721Tokens.map((token) => {
@@ -168,12 +161,8 @@ export const useGameTokensSlot = ({
           })
         );
 
-        console.log("[useGameTokensSlot] Owned token IDs:", [...ownedTokenIds]);
-
         // Query all Game entities from RECS
         const gameEntities = runQuery([Has(Game)]);
-
-        console.log("[useGameTokensSlot] RECS Game entities count:", gameEntities.size);
 
         const gameList: GameTokenData[] = [];
         const seenIds = new Set<number>();
@@ -210,8 +199,6 @@ export const useGameTokensSlot = ({
           const runDataPacked = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
           const runData = unpackRunData(runDataPacked);
           const level = runData.currentLevel;
-          const cubesBrought = runData.cubesBrought;
-          const cubesSpent = runData.cubesSpent;
           const totalCubes = runData.totalCubes;
           const totalScore = runData.totalScore;
 
@@ -224,8 +211,6 @@ export const useGameTokensSlot = ({
               { trait_type: "Level", value: level },
               { trait_type: "Total Cubes", value: totalCubes },
               { trait_type: "Total Score", value: totalScore },
-              { trait_type: "Cubes Brought", value: cubesBrought },
-              { trait_type: "Cubes Spent", value: cubesSpent },
             ],
           });
 
@@ -245,7 +230,6 @@ export const useGameTokensSlot = ({
         // Sort by token_id descending (newest first)
         gameList.sort((a, b) => b.token_id - a.token_id);
 
-        console.log("[useGameTokensSlot] Final game list:", gameList.length);
         setGames(gameList);
       } catch (error) {
         console.error("[useGameTokensSlot] Error fetching games:", error);

@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect, useCallback, useSyncExternalStore } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo, useSyncExternalStore } from "react";
 import { Info } from "lucide-react";
 import ProgressRing from "@/ui/components/shared/ProgressRing";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
 import { getCommonAssetPath } from "@/config/themes";
+import CubeIcon from "@/ui/components/CubeIcon";
 import {
   Tooltip,
   TooltipContent,
@@ -43,7 +44,7 @@ const CONSTRAINT_ICON_MAP: Record<ConstraintType, string | null> = {
   [ConstraintType.ComboStreak]: getCommonAssetPath("constraints/constraint-combo.png"),
   [ConstraintType.FillAndClear]: getCommonAssetPath("constraints/constraint-fill.png"),
   [ConstraintType.NoBonusUsed]: getCommonAssetPath("constraints/constraint-no-bonus.png"),
-  [ConstraintType.ClearGrid]: getCommonAssetPath("constraints/constraint-clear-grid.png"),
+  [ConstraintType.KeepGridBelow]: getCommonAssetPath("constraints/constraint-keep-grid-below.png"),
   [ConstraintType.None]: null,
 };
 
@@ -62,6 +63,9 @@ const getConstraintColor = (
   if (type === ConstraintType.NoBonusUsed) {
     return bonusUsed ? "red" : "green";
   }
+  if (type === ConstraintType.KeepGridBelow) {
+    return progress >= 1 ? "red" : "green";
+  }
   if (progress >= count) return "green";
   if (progress > 0) return "orange";
   return "blue";
@@ -75,6 +79,9 @@ const getConstraintProgress = (
 ): number => {
   if (type === ConstraintType.NoBonusUsed) {
     return bonusUsed ? 0 : 1;
+  }
+  if (type === ConstraintType.KeepGridBelow) {
+    return progress >= 1 ? 0 : 1;
   }
   return count > 0 ? progress / count : 0;
 };
@@ -93,6 +100,8 @@ const getValueBadge = (
       return `${value}x`;
     case ConstraintType.FillAndClear:
       return `R${value}`;
+    case ConstraintType.KeepGridBelow:
+      return `<${value}`;
     default:
       return undefined;
   }
@@ -104,7 +113,7 @@ const getProgressBadge = (
   progress: number,
   count: number,
 ): string | undefined => {
-  if (type === ConstraintType.NoBonusUsed || type === ConstraintType.ClearGrid) {
+  if (type === ConstraintType.NoBonusUsed || type === ConstraintType.KeepGridBelow) {
     return undefined;
   }
   return `${progress}/${count}`;
@@ -177,33 +186,40 @@ const GameHud: React.FC<GameHudProps> = ({
   const cube3MarkerPos = maxMoves > 0 ? (cube3Threshold / maxMoves) * 100 : 0;
   const cube2MarkerPos = maxMoves > 0 ? (cube2Threshold / maxMoves) * 100 : 0;
 
-  const constraints: ConstraintData[] = [];
-  if (gameLevel) {
-    if (gameLevel.constraintType !== ConstraintType.None) {
-      constraints.push({
-        type: gameLevel.constraintType,
-        value: gameLevel.constraintValue,
-        count: gameLevel.constraintCount,
-        progress: constraintProgress,
-      });
+  const constraints = useMemo<ConstraintData[]>(() => {
+    const result: ConstraintData[] = [];
+    if (gameLevel) {
+      if (gameLevel.constraintType !== ConstraintType.None) {
+        result.push({
+          type: gameLevel.constraintType,
+          value: gameLevel.constraintValue,
+          count: gameLevel.constraintCount,
+          progress: constraintProgress,
+        });
+      }
+      if (gameLevel.constraint2Type !== undefined && gameLevel.constraint2Type !== ConstraintType.None) {
+        result.push({
+          type: gameLevel.constraint2Type,
+          value: gameLevel.constraint2Value,
+          count: gameLevel.constraint2Count,
+          progress: constraint2Progress,
+        });
+      }
+      if (gameLevel.constraint3Type !== undefined && gameLevel.constraint3Type !== ConstraintType.None) {
+        result.push({
+          type: gameLevel.constraint3Type,
+          value: gameLevel.constraint3Value,
+          count: gameLevel.constraint3Count,
+          progress: constraint3Progress,
+        });
+      }
     }
-    if (gameLevel.constraint2Type !== undefined && gameLevel.constraint2Type !== ConstraintType.None) {
-      constraints.push({
-        type: gameLevel.constraint2Type,
-        value: gameLevel.constraint2Value,
-        count: gameLevel.constraint2Count,
-        progress: constraint2Progress,
-      });
-    }
-    if (gameLevel.constraint3Type !== undefined && gameLevel.constraint3Type !== ConstraintType.None) {
-      constraints.push({
-        type: gameLevel.constraint3Type,
-        value: gameLevel.constraint3Value,
-        count: gameLevel.constraint3Count,
-        progress: constraint3Progress,
-      });
-    }
-  }
+    return result;
+  }, [
+    gameLevel?.constraintType, gameLevel?.constraintValue, gameLevel?.constraintCount, constraintProgress,
+    gameLevel?.constraint2Type, gameLevel?.constraint2Value, gameLevel?.constraint2Count, constraint2Progress,
+    gameLevel?.constraint3Type, gameLevel?.constraint3Value, gameLevel?.constraint3Count, constraint3Progress,
+  ]);
 
   const potentialCubes = movesRemaining >= cube3Threshold ? 3
     : movesRemaining >= cube2Threshold ? 2 : 1;
@@ -222,7 +238,7 @@ const GameHud: React.FC<GameHudProps> = ({
         </div>
 
         <div className="flex items-center gap-1 col-span-2">
-          <span className="text-base">🧊</span>
+          <CubeIcon />
           <span className="font-['Fredericka_the_Great'] text-base text-blue-300 tabular-nums">{totalCubes}</span>
         </div>
 
@@ -309,15 +325,15 @@ const GameHud: React.FC<GameHudProps> = ({
                 <div className="absolute left-0 top-full mt-1.5 z-[200] bg-slate-900 border border-slate-500 rounded-md px-3 py-2 shadow-lg whitespace-nowrap">
                   <div className="flex flex-col gap-1 text-xs text-white">
                     <div className="flex items-center gap-2">
-                      <span>🧊🧊🧊</span>
+                      <span className="inline-flex gap-0.5"><CubeIcon size="xs" /><CubeIcon size="xs" /><CubeIcon size="xs" /></span>
                       <span>≥ {cube3Threshold} moves left</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span>🧊🧊</span>
+                      <span className="inline-flex gap-0.5"><CubeIcon size="xs" /><CubeIcon size="xs" /></span>
                       <span>≥ {cube2Threshold} moves left</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span>🧊</span>
+                      <CubeIcon size="xs" />
                       <span>Complete level</span>
                     </div>
                   </div>
@@ -349,7 +365,7 @@ const GameHud: React.FC<GameHudProps> = ({
         </div>
 
         <div className="flex items-center gap-0.5">
-          <span className="text-xs">🧊</span>
+          <CubeIcon size="xs" />
           <span className={`font-['Fredericka_the_Great'] text-sm tabular-nums ${
             potentialCubes >= 3 ? "text-green-400" : potentialCubes >= 2 ? "text-yellow-400" : "text-red-400"
           }`}>+{potentialCubes}</span>

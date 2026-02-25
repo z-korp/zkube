@@ -92,6 +92,7 @@ function buildZoneLayout(
   const points: MapLayoutPoint[] = [];
   const edges: MapLayoutEdge[] = [];
   const lastNode = nodesPerZone - 1;
+  const midNode = Math.floor((nodesPerZone - 1) / 2);
 
   const startRoll = hashToUnit(seed, zoneIndex, 0, 100);
   let lane = startRoll < 0.33 ? 0 : startRoll < 0.66 ? 1 : 2;
@@ -100,11 +101,15 @@ function buildZoneLayout(
 
   for (let i = 0; i < nodesPerZone; i++) {
     const isBoss = i === lastNode;
+    const isAnchorDraft = i === 0 || i === midNode;
 
-    if (isBoss) {
+    if (isBoss || isAnchorDraft) {
       const progress = lastNode === 0 ? 0 : i / lastNode;
       const baseY = 0.92 - progress * 0.84;
-      points.push({ x: 0.5, y: baseY });
+      const yJitter = isBoss
+        ? 0
+        : (hashToUnit(seed, zoneIndex, i, 105) - 0.5) * 0.01;
+      points.push({ x: 0.5, y: clamp(baseY + yJitter, 0.07, 0.93) });
       continue;
     }
 
@@ -153,13 +158,13 @@ function buildZoneLayout(
           const push = (MIN_DIST - dist) / 2;
           const nx = dx / dist;
           const ny = dy / dist;
-          const iTerminal = i === lastNode;
-          const jTerminal = j === lastNode;
-          if (!iTerminal) {
+          const iPinned = i === 0 || i === midNode || i === lastNode;
+          const jPinned = j === 0 || j === midNode || j === lastNode;
+          if (!iPinned) {
             points[i].x = clamp(points[i].x - nx * push, 0.10, 0.90);
             points[i].y = clamp(points[i].y - ny * push, 0.07, 0.93);
           }
-          if (!jTerminal) {
+          if (!jPinned) {
             points[j].x = clamp(points[j].x + nx * push, 0.10, 0.90);
             points[j].y = clamp(points[j].y + ny * push, 0.07, 0.93);
           }

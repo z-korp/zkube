@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { motion, type Variants } from "motion/react";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { Flame, Gem, Layers, RotateCw, Trophy } from "lucide-react";
+import CubeIcon from "@/ui/components/CubeIcon";
 
 interface GameOverDialogProps {
   isOpen: boolean;
@@ -38,7 +39,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
   const subtitle = useMemo(() => {
     if (isNewBestLevel && game.level > 1) return "New personal best!";
     if ([9, 19, 29, 39, 49].includes(game.level)) return "So close to the boss...";
-    if (BOSS_LEVELS.includes(game.level) && game.level < 50) return "Boss defeated!";
+    if (BOSS_LEVELS.includes(game.level) && game.level < 50) return "Fell to the boss...";
     if (game.level >= 40) return "Legendary run!";
     if (game.level >= 25) return "Incredible run!";
     if (game.level >= 10) return "Nice run!";
@@ -50,7 +51,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
   const subtitleColor = useMemo(() => {
     if (isNewBestLevel && game.level > 1) return "text-yellow-400";
     if ([9, 19, 29, 39, 49].includes(game.level)) return "text-orange-400";
-    if (BOSS_LEVELS.includes(game.level)) return "text-green-400";
+    if (BOSS_LEVELS.includes(game.level)) return "text-red-400";
     if (game.level >= 25) return "text-purple-400";
     if (game.level >= 10) return "text-cyan-400";
     if (game.level >= 5) return "text-slate-300";
@@ -222,7 +223,7 @@ app.zkube.xyz`;
             <div className="flex flex-col items-center gap-1 bg-slate-800/50 px-3 py-3 rounded-lg flex-1">
               <div className="text-2xl flex gap-1.5 items-center text-yellow-400">
                 {game.totalCubes}
-                <span className="text-xl">🧊</span>
+                <CubeIcon size="lg" />
               </div>
               <div className="text-xs text-slate-400">Cubes</div>
             </div>

@@ -16,8 +16,7 @@ export enum ConstraintType {
   FillAndClear = 4,
   /** Must complete level without using any bonus (boss-only) */
   NoBonusUsed = 5,
-  /** Must clear entire grid to 0 blocks (boss-only, one-shot) */
-  ClearGrid = 6,
+  KeepGridBelow = 6,
 }
 
 export interface LevelConstraint {
@@ -64,8 +63,8 @@ export class Constraint {
     return new Constraint(ConstraintType.NoBonusUsed, 0, 0);
   }
 
-  static clearGrid(): Constraint {
-    return new Constraint(ConstraintType.ClearGrid, 0, 1);
+  static keepGridBelow(maxRowsExclusive: number): Constraint {
+    return new Constraint(ConstraintType.KeepGridBelow, maxRowsExclusive, 1);
   }
 
   static fromContractValues(type: number, value: number, count: number): Constraint {
@@ -86,8 +85,8 @@ export class Constraint {
         return progress >= this.requiredCount;
       case ConstraintType.NoBonusUsed:
         return !bonusUsed;
-      case ConstraintType.ClearGrid:
-        return progress >= 1;
+      case ConstraintType.KeepGridBelow:
+        return progress === 0;
       default:
         return true;
     }
@@ -107,8 +106,8 @@ export class Constraint {
         return `Fill to row ${this.value} ${this.requiredCount} time${this.requiredCount > 1 ? "s" : ""}`;
       case ConstraintType.NoBonusUsed:
         return "No bonus allowed";
-      case ConstraintType.ClearGrid:
-        return "Clear entire grid";
+      case ConstraintType.KeepGridBelow:
+        return `Keep below ${this.value} rows`;
       default:
         return "Unknown";
     }
@@ -128,8 +127,8 @@ export class Constraint {
         return `Fill row ${this.value} x${this.requiredCount}`;
       case ConstraintType.NoBonusUsed:
         return "No Bonus";
-      case ConstraintType.ClearGrid:
-        return "Clear Grid";
+      case ConstraintType.KeepGridBelow:
+        return `Below ${this.value}r`;
       default:
         return "";
     }

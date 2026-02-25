@@ -51,12 +51,11 @@ export class Bonus {
   }
 
   public into(): number {
-    return Object.values(BonusType).indexOf(this.value);
+    return bonusTypeToContractValue(this.value);
   }
 
   public static from(index: number): Bonus {
-    const item = Object.values(BonusType)[index];
-    return new Bonus(item);
+    return new Bonus(bonusTypeFromContractValue(index));
   }
 
   /**

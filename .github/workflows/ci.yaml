@@ -4,22 +4,14 @@ on:
   push:
   pull_request:
 
-env:
-  DOJO_VERSION: v0.7.2
-  SCARB_VERSION: nightly-2024-06-08
-  WORKING_DIRECTORY: ./contracts
-
 jobs:
   check:
     runs-on: ubuntu-latest
     name: Check format
     steps:
       - uses: actions/checkout@v4
-      - uses: software-mansion/setup-scarb@v1
-        with:
-          scarb-version: ${{ env.SCARB_VERSION }}
+      - uses: ./.github/actions/setup
       - name: Format
-        working-directory: ${{ env.WORKING_DIRECTORY }}
         run: scarb fmt --check
         shell: bash
 
@@ -31,8 +23,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - name: Build
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: sozo build
+        run: scarb build
         shell: bash
 
   test:
@@ -43,6 +34,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - name: Test
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: sozo test
+        run: scarb test
         shell: bash

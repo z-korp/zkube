@@ -15,7 +15,7 @@ pub impl Leveler of AchievementTrait {
     }
 
     fn index(level: u8) -> u8 {
-        level + 19  // Offset after SuperChain achievements
+        level + 19 // Offset after SuperChain achievements
     }
 
     fn hidden(level: u8) -> bool {

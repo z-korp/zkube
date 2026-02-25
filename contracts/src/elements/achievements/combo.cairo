@@ -15,7 +15,7 @@ pub impl Combo of AchievementTrait {
     }
 
     fn index(level: u8) -> u8 {
-        level + 10  // Offset after Clearer achievements
+        level + 10 // Offset after Clearer achievements
     }
 
     fn hidden(level: u8) -> bool {

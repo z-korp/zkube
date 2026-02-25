@@ -6,6 +6,7 @@ import type { MapNodeData } from "@/hooks/useMapData";
 import type { Game } from "@/dojo/game/models/game";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import GameButton from "@/ui/components/shared/GameButton";
+import CubeIcon from "@/ui/components/CubeIcon";
 
 export interface LevelPreviewProps {
   node: MapNodeData;
@@ -35,39 +36,54 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
   onPlay,
   onClose,
 }) => {
-  const stars = game && node.contractLevel ? game.getLevelStars(node.contractLevel) : 0;
+  const stars =
+    game && node.contractLevel ? game.getLevelStars(node.contractLevel) : 0;
 
   const useContractData = gameLevel && node.contractLevel === gameLevel.level;
 
   const difficulty = useContractData
     ? Difficulty.from(gameLevel.difficulty).value
-    : node.levelConfig?.difficulty.value ?? "Unknown";
+    : (node.levelConfig?.difficulty.value ?? "Unknown");
 
   const pointsRequired = useContractData
     ? gameLevel.pointsRequired
-    : node.levelConfig?.pointsRequired ?? 0;
+    : (node.levelConfig?.pointsRequired ?? 0);
 
   const maxMoves = useContractData
     ? gameLevel.maxMoves
-    : node.levelConfig?.maxMoves ?? 0;
+    : (node.levelConfig?.maxMoves ?? 0);
 
   const cube3Threshold = useContractData
     ? gameLevel.cube3Threshold
-    : node.levelConfig?.cube3Threshold ?? 0;
+    : (node.levelConfig?.cube3Threshold ?? 0);
 
   const cube2Threshold = useContractData
     ? gameLevel.cube2Threshold
-    : node.levelConfig?.cube2Threshold ?? 0;
+    : (node.levelConfig?.cube2Threshold ?? 0);
 
   const constraints: string[] = [];
   if (useContractData) {
     [
-      { type: gameLevel.constraintType, value: gameLevel.constraintValue, count: gameLevel.constraintCount },
-      { type: gameLevel.constraint2Type, value: gameLevel.constraint2Value, count: gameLevel.constraint2Count },
-      { type: gameLevel.constraint3Type, value: gameLevel.constraint3Value, count: gameLevel.constraint3Count },
+      {
+        type: gameLevel.constraintType,
+        value: gameLevel.constraintValue,
+        count: gameLevel.constraintCount,
+      },
+      {
+        type: gameLevel.constraint2Type,
+        value: gameLevel.constraint2Value,
+        count: gameLevel.constraint2Count,
+      },
+      {
+        type: gameLevel.constraint3Type,
+        value: gameLevel.constraint3Value,
+        count: gameLevel.constraint3Count,
+      },
     ].forEach(({ type, value, count }) => {
       if (type !== ConstraintType.None) {
-        constraints.push(Constraint.fromContractValues(type, value, count).getDescription());
+        constraints.push(
+          Constraint.fromContractValues(type, value, count).getDescription(),
+        );
       }
     });
   } else if (node.levelConfig) {
@@ -77,7 +93,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
   }
 
   const canPlay =
-    node.type !== "shop" &&
+    node.type !== "draft" &&
     gameId !== null &&
     (node.state === "current" || node.state === "available");
 
@@ -105,30 +121,34 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
         </button>
 
         <h3 className="pr-8 font-['Fredericka_the_Great'] text-xl text-white">
-          {node.type === "shop"
-            ? `Zone ${node.zone} Shop`
+          {node.type === "draft"
+            ? `Zone ${node.zone} Draft`
             : node.type === "boss"
               ? `Boss Level ${node.contractLevel}`
               : `Level ${node.contractLevel}`}
         </h3>
 
-        {node.type === "shop" ? (
+        {node.type === "draft" ? (
           <p className="mt-4 text-sm text-slate-200/90">
-            Spend cubes on consumables before the boss encounter.
+            Draft event: choose your run direction before pushing to the boss.
           </p>
         ) : node.state === "cleared" || node.state === "visited" ? (
           <div className="mt-4 space-y-3 text-sm font-['Fredericka_the_Great']">
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Difficulty</span>
-              <span className={`text-lg ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}>
+              <span
+                className={`text-lg ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}
+              >
                 {difficulty}
               </span>
             </div>
             <div className="flex items-center justify-between rounded-lg bg-emerald-500/15 px-3 py-2.5">
               <span className="text-emerald-200">✓ Cleared</span>
               <span className="text-lg">
-                {"🧊".repeat(stars)}
-                {stars === 0 && <span className="text-slate-500 text-sm">—</span>}
+                {Array.from({ length: stars }).map((_, i) => <CubeIcon key={i} size="sm" />)}
+                {stars === 0 && (
+                  <span className="text-slate-500 text-sm">—</span>
+                )}
               </span>
             </div>
 
@@ -137,7 +157,10 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
                 <p className="mb-1 text-slate-400">Constraints</p>
                 <div className="space-y-1">
                   {constraints.map((c) => (
-                    <p key={c} className="rounded-md bg-slate-800/80 px-2 py-1 text-slate-100">
+                    <p
+                      key={c}
+                      className="rounded-md bg-slate-800/80 px-2 py-1 text-slate-100"
+                    >
                       {c}
                     </p>
                   ))}
@@ -168,13 +191,18 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
               {constraints.length > 0 ? (
                 <div className="space-y-1">
                   {constraints.map((constraint) => (
-                    <p key={constraint} className="rounded-md bg-slate-800/80 px-2 py-1 text-slate-100">
+                    <p
+                      key={constraint}
+                      className="rounded-md bg-slate-800/80 px-2 py-1 text-slate-100"
+                    >
                       {constraint}
                     </p>
                   ))}
                 </div>
               ) : (
-                <p className="rounded-md bg-slate-800/60 px-2 py-1 text-slate-300">No constraint</p>
+                <p className="rounded-md bg-slate-800/60 px-2 py-1 text-slate-300">
+                  No constraint
+                </p>
               )}
             </div>
 
@@ -190,10 +218,8 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
                     key={cubes}
                     className="flex items-center justify-between rounded-md bg-slate-800/60 px-2 py-1 text-slate-300"
                   >
-                    <span>{"🧊".repeat(cubes)}</span>
-                    <span className="text-lg">
-                      ≤ {threshold}
-                    </span>
+                    <span className="inline-flex">{Array.from({ length: cubes }).map((_, i) => <CubeIcon key={i} size="sm" />)}</span>
+                    <span className="text-lg">≤ {threshold}</span>
                   </div>
                 ))}
               </div>

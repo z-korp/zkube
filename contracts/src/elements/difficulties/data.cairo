@@ -151,9 +151,9 @@ fn get_master_block(id: u8) -> Block {
 
 #[cfg(test)]
 mod tests {
-    use super::{get_count, get_block};
     use zkube::types::block::Block;
     use zkube::types::difficulty::Difficulty;
+    use super::{get_block, get_count};
 
     #[test]
     fn test_count_is_15() {
