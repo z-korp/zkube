@@ -58,11 +58,11 @@ function clamp(value: number, min: number, max: number): number {
 const Y_TOP = 0.08;
 const Y_BOTTOM = 0.92;
 
-/** 3-lane X positions — centre lane for draft/boss, outer lanes for levels */
-const LANES = [0.28, 0.5, 0.72] as const;
+/** 3-lane X positions — wide spread for visual variety */
+const LANES = [0.2, 0.5, 0.8] as const;
 
-/** Maximum jitter applied to X (prevents overlap with edges) */
-const X_JITTER = 0.08;
+/** Maximum jitter applied to X */
+const X_JITTER = 0.10;
 
 /* ------------------------------------------------------------------ */
 /*  Build zone layout                                                  */
@@ -100,10 +100,10 @@ function buildZoneLayout(
     // For regular nodes: zigzag lanes with jitter
     const moveRoll = hashToUnit(seed, zoneIndex, i, 201);
 
-    // Bias lane movement: 30% stay, 35% left, 35% right
-    if (moveRoll < 0.30) {
+    // Force lane changes more aggressively: 15% stay, 42.5% left, 42.5% right
+    if (moveRoll < 0.15) {
       // stay
-    } else if (moveRoll < 0.65) {
+    } else if (moveRoll < 0.575) {
       lane = clamp(lane - 1, 0, 2);
     } else {
       lane = clamp(lane + 1, 0, 2);
