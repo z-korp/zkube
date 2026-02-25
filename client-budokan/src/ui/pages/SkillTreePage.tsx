@@ -293,9 +293,9 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
   }, [archetypeSkills, skills, archetype.color, cubeBalance]);
 
   return (
-    <div className="h-full flex flex-col p-1.5 pt-0 overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Dark panel */}
-      <div className="flex-1 min-h-0 rounded-2xl border border-slate-700/50 bg-slate-900/90 flex flex-col overflow-hidden">
+      <div className="flex-1 min-h-0 bg-slate-900/95 flex flex-col overflow-hidden">
         {/* Archetype header */}
         <div className="flex items-center gap-3 px-4 py-2.5 border-b border-slate-700/30 flex-shrink-0">
           <div
