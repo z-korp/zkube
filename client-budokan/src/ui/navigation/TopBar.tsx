@@ -23,7 +23,7 @@ const TopBar: React.FC<TopBarProps> = ({
   claimableQuestCount,
 }) => {
   return (
-    <div className="flex items-center justify-between px-3 md:px-4 h-12 md:h-13 lg:h-14 bg-slate-900/70 backdrop-blur-sm border-b border-slate-700/50">
+    <div className="flex items-center justify-between px-3 md:px-4 h-12 md:h-13 lg:h-14 bg-slate-900/90 backdrop-blur-sm border-b border-white/10">
       <div className="flex items-center gap-1">
         <button
           onClick={onProfile}
