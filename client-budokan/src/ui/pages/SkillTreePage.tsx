@@ -1,7 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import type { Swiper as SwiperType } from "swiper";
-import "swiper/css";
+import { useState, useCallback, useMemo } from "react";
 import { Loader2, Lock, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
@@ -106,7 +103,6 @@ const SkillTreePage: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [busySkillId, setBusySkillId] = useState<number | null>(null);
   const [modal, setModal] = useState<ModalState | null>(null);
-  const swiperRef = useRef<SwiperType | null>(null);
   const cubeBalanceNumber = Number(cubeBalance);
 
   const skills: SkillInfo[] =
@@ -117,10 +113,6 @@ const SkillTreePage: React.FC = () => {
       branchId: 0,
     }));
 
-  const handleSlideChange = useCallback(
-    (swiper: SwiperType) => setActiveIndex(swiper.activeIndex),
-    [],
-  );
 
   const handleUpgrade = useCallback(
     async (skillId: number) => {
@@ -204,45 +196,21 @@ const SkillTreePage: React.FC = () => {
         .skill-pulse { animation: skill-pulse 2s ease-in-out infinite; }
       `}</style>
 
-      {/*
-       * CRITICAL: bg-slate-900 is here (not inside slides) so the dark
-       * background covers the full area regardless of slide sizing.
-       * flex-1 + min-h-0 = this div gets ALL remaining viewport height.
-       */}
       <div className="flex-1 min-h-0 relative overflow-hidden bg-slate-900">
-        {/*
-         * Force every .swiper-slide to height:100% via Tailwind arbitrary
-         * variant. This is the root fix — without it, slides collapse to
-         * content height and the tree never fills the viewport.
-         */}
-        <Swiper
-          slidesPerView={1}
-          spaceBetween={0}
-          onSwiper={(s) => {
-            swiperRef.current = s;
-          }}
-          onSlideChange={handleSlideChange}
-          className="h-full w-full [&_.swiper-slide]:!h-full"
-        >
-          {ARCHETYPE_ORDER.map((archetypeId) => (
-            <SwiperSlide key={archetypeId} style={{ height: "100%" }}>
-              <TreeSlide
-                archetypeId={archetypeId}
-                skills={skills}
-                busySkillId={busySkillId}
-                cubeBalance={cubeBalanceNumber}
-                onNodeClick={handleNodeClick}
-              />
-            </SwiperSlide>
-          ))}
-        </Swiper>
+        <TreeSlide
+          archetypeId={ARCHETYPE_ORDER[activeIndex]}
+          skills={skills}
+          busySkillId={busySkillId}
+          cubeBalance={cubeBalanceNumber}
+          onNodeClick={handleNodeClick}
+        />
 
         {/* Left arrow */}
         {activeIndex > 0 && (
           <button
             type="button"
             className="absolute left-1.5 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-1.5 text-white/70 hover:bg-black/70 hover:text-white"
-            onClick={() => swiperRef.current?.slidePrev()}
+            onClick={() => setActiveIndex((i) => Math.max(0, i - 1))}
           >
             <ChevronLeft size={18} />
           </button>
@@ -253,7 +221,7 @@ const SkillTreePage: React.FC = () => {
           <button
             type="button"
             className="absolute right-1.5 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-1.5 text-white/70 hover:bg-black/70 hover:text-white"
-            onClick={() => swiperRef.current?.slideNext()}
+            onClick={() => setActiveIndex((i) => Math.min(ARCHETYPE_ORDER.length - 1, i + 1))}
           >
             <ChevronRight size={18} />
           </button>
