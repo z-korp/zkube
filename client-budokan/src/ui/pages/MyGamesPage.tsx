@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { motion } from "motion/react";
-import { Map } from "lucide-react";
+import { Play, Eye } from "lucide-react";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -126,9 +126,9 @@ const MyGamesPage: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => navigate("map", game.token_id)}
-                                className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-emerald-500 text-black transition hover:bg-emerald-400"
+                                className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-emerald-500 text-white transition hover:bg-emerald-400"
                               >
-                                <Map size={16} />
+                                <Play size={16} fill="currentColor" />
                               </button>
                             </td>
                           </motion.tr>
@@ -194,9 +194,9 @@ const MyGamesPage: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => navigate("map", game.token_id)}
-                                className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-slate-700 text-slate-100 transition hover:bg-slate-600"
+                                className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-slate-700 text-slate-300 transition hover:bg-slate-600"
                               >
-                                <Map size={16} />
+                                <Eye size={16} />
                               </button>
                             </td>
                           </motion.tr>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, type Variants } from "motion/react";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw, Zap } from "lucide-react";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { useGame } from "@/hooks/useGame";
@@ -19,34 +19,13 @@ import {
 import { showToast } from "@/utils/toast";
 import { getSkillTierIconPath } from "@/ui/theme/ImageAssets";
 import PageTopBar from "@/ui/navigation/PageTopBar";
-import GameButton from "@/ui/components/shared/GameButton";
 import CubeIcon from "@/ui/components/CubeIcon";
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
-
-const getStageLabel = (
-  eventType: number,
-  triggerLevel: number,
-  zone: number,
-): string => {
-  if (eventType === 1) return "Post Level 1 Draft";
-  if (eventType === 2) {
-    return `Post Boss ${Math.floor(triggerLevel / 10)} Draft (Zone ${zone})`;
-  }
-  return `Zone ${zone} Micro Draft`;
-};
-
-const getStageSubtitle = (
-  eventType: number,
-  isFullLoadout: boolean,
-): string => {
-  if (isFullLoadout) return "Upgrade one of your skills";
-  if (eventType === 1) return "Choose your first power";
-  if (eventType === 2) return "The boss has fallen — claim your reward";
-  return "A new power awaits";
-};
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/ui/elements/tooltip";
 
 /* ------------------------------------------------------------------ */
 /*  Animation Variants                                                 */
@@ -56,26 +35,26 @@ const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+    transition: { staggerChildren: 0.06, delayChildren: 0.05 },
   },
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 18 },
+  hidden: { opacity: 0, y: 12 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, ease: "easeOut" },
+    transition: { duration: 0.35, ease: "easeOut" },
   },
 };
 
 const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  hidden: { opacity: 0, y: 20, scale: 0.97 },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.45, ease: [0.34, 1.56, 0.64, 1] },
+    transition: { duration: 0.4, ease: [0.34, 1.56, 0.64, 1] },
   },
 };
 
@@ -108,7 +87,6 @@ const DraftPage: React.FC = () => {
   const remainingCubes = Math.max(0, walletCubes - spentCubes);
   const rerollCost = getRerollCost(draftState?.rerollCount ?? 0);
 
-
   const runSlots = useMemo(
     () =>
       game
@@ -128,7 +106,7 @@ const DraftPage: React.FC = () => {
         (entry) => entry.skillId === skillId,
       );
       const currentLevel = slot?.level ?? 0;
-      const branchId = undefined; // Run slots don't track branch; branch comes from skill tree
+      const branchId = undefined;
       const archetype = getArchetypeForSkill(skillId);
       const nextLevel = isFullLoadout ? currentLevel + 1 : 0;
       return {
@@ -156,7 +134,6 @@ const DraftPage: React.FC = () => {
       return;
     }
     if (!draftState.active) {
-      // If we have a pending draft event, wait for start_next_level to activate the draft
       if (pendingDraftEvent) return;
       setPendingDraftEvent(null);
       navigate("map", gameId);
@@ -245,388 +222,307 @@ const DraftPage: React.FC = () => {
 
   /* ---- Main render ---- */
 
-  const accentColor =
-    cards.length > 0 && cards[0].archetype
-      ? cards[0].archetype.color
-      : "#22c55e";
-
   return (
-    <div className="h-screen-viewport flex flex-col text-white">
-      <PageTopBar
-        title="DRAFT EVENT"
-        onBack={goToMap}
-        cubeBalance={cubeBalance}
-      />
+    <TooltipProvider delayDuration={200}>
+      <div className="h-screen-viewport flex flex-col text-white">
+        <PageTopBar
+          title="DRAFT EVENT"
+          onBack={goToMap}
+          cubeBalance={cubeBalance}
+        />
 
-      <div className="flex-1 overflow-y-auto">
-        <motion.div
-          className="mx-auto max-w-[920px] px-4 py-4 md:px-6 pb-8"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* ============================================= */}
-          {/*  HERO HEADER                                  */}
-          {/* ============================================= */}
-          <motion.section
-            variants={itemVariants}
-            className="relative mb-5 overflow-hidden rounded-2xl border border-white/10 bg-slate-900/90 backdrop-blur-sm px-5 py-5 text-center"
+        <div className="flex-1 overflow-y-auto">
+          <motion.div
+            className="mx-auto max-w-[920px] px-3 py-3 md:px-6 pb-6 flex flex-col gap-3"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
           >
-            {/* Subtle glow accent */}
-            <div
-              className="pointer-events-none absolute inset-0 opacity-[0.07]"
-              style={{
-                background: `radial-gradient(ellipse at 50% 0%, ${accentColor}, transparent 70%)`,
-              }}
-            />
-
-            <motion.h2
-              className="relative font-['Fredericka_the_Great'] text-2xl md:text-3xl text-white"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.4 }}
+            {/* ================================================= */}
+            {/*  HEADER PANEL — economy + loadout                  */}
+            {/* ================================================= */}
+            <motion.section
+              variants={itemVariants}
+              className="relative overflow-hidden rounded-xl border border-white/10 bg-slate-900/90 backdrop-blur-sm px-4 py-3"
             >
-              {getStageLabel(
-                draftState.eventType,
-                draftState.triggerLevel,
-                draftState.zone,
-              )}
-            </motion.h2>
-            <motion.p
-              className="relative mt-1.5 text-sm md:text-base text-slate-300"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.4 }}
-            >
-              {getStageSubtitle(draftState.eventType, isFullLoadout)}
-            </motion.p>
+              {/* Subtle glow */}
+              <div
+                className="pointer-events-none absolute inset-0 opacity-[0.06]"
+                style={{
+                  background: `radial-gradient(ellipse at 50% 0%, ${cards[0]?.archetype?.color ?? "#22c55e"}, transparent 70%)`,
+                }}
+              />
 
-            {/* Cube economy strip */}
-            <motion.div
-              className="relative mt-4 flex flex-wrap items-center justify-center gap-3 text-xs"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.3 }}
-            >
-              <span className="flex items-center gap-1.5 rounded-full border border-slate-600 bg-slate-800/80 px-3 py-1.5 text-slate-200">
-                <CubeIcon size="xs" /> {walletCubes}
-              </span>
-              <span className="flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-900/20 px-3 py-1.5 text-amber-200">
-                Reroll: <CubeIcon size="xs" /> {rerollCost}
-              </span>
-              <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-900/20 px-3 py-1.5 text-emerald-200">
-                Remaining: <CubeIcon size="xs" /> {remainingCubes}
-              </span>
-            </motion.div>
-          </motion.section>
+              {/* Economy strip */}
+              <div className="relative flex items-center justify-center gap-2.5 text-[11px]">
+                <span className="flex items-center gap-1 rounded-full border border-slate-600 bg-slate-800/80 px-2.5 py-1 text-slate-200">
+                  <CubeIcon size="xs" /> {walletCubes}
+                </span>
+                <span className="flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-900/20 px-2.5 py-1 text-amber-200">
+                  <RefreshCw size={10} /> <CubeIcon size="xs" /> {rerollCost}
+                </span>
+                <span className="flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-900/20 px-2.5 py-1 text-emerald-200">
+                  <CubeIcon size="xs" /> {remainingCubes}
+                </span>
+              </div>
 
-          {/* ============================================= */}
-          {/*  CURRENT RUN SLOTS — compact strip            */}
-          {/* ============================================= */}
-          <motion.section
-            variants={itemVariants}
-            className="mb-5 flex items-center justify-center gap-3"
-          >
-            <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
-              Loadout
-            </span>
-            <div className="flex items-center gap-2">
-              {Array.from({ length: 3 }, (_, index) => {
-                const slot = runSlots[index];
+              {/* Loadout with tooltips */}
+              <div className="relative mt-2.5 flex items-center justify-center gap-2">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500 mr-1">
+                  Loadout
+                </span>
+                {Array.from({ length: 3 }, (_, index) => {
+                  const slot = runSlots[index];
 
-                if (!slot) {
+                  if (!slot) {
+                    return (
+                      <div
+                        key={`empty-${index}`}
+                        className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-dashed border-slate-700/60"
+                      >
+                        <span className="text-[10px] text-slate-600">?</span>
+                      </div>
+                    );
+                  }
+
+                  const skill = getSkillById(slot.skillId);
+                  const arch = getArchetypeForSkill(slot.skillId);
+                  const skillName = skill?.name?.toLowerCase() ?? "";
+                  const tier = getSkillTier(slot.level);
+                  const iconPath = getSkillTierIconPath(skillName, tier);
+                  const color = arch?.color ?? "#64748b";
+                  const effectText = getSkillEffectDescription(slot.skillId, slot.level, undefined);
+
                   return (
-                    <div
-                      key={`empty-${index}`}
-                      className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-dashed border-slate-700/60"
-                    >
-                      <span className="text-[10px] text-slate-600">?</span>
-                    </div>
+                    <Tooltip key={`slot-${index}-${slot.skillId}`}>
+                      <TooltipTrigger asChild>
+                        <div className="relative cursor-default">
+                          <div
+                            className="h-10 w-10 rounded-full overflow-hidden border-2"
+                            style={{ borderColor: color }}
+                          >
+                            <img
+                              src={iconPath}
+                              alt={skill?.name}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          {/* Level badge */}
+                          <span
+                            className="absolute -bottom-0.5 -left-0.5 flex h-[16px] w-[16px] items-center justify-center rounded-full text-[8px] font-bold text-white"
+                            style={{ backgroundColor: color }}
+                          >
+                            {slot.level + 1}
+                          </span>
+                          {/* Charges badge */}
+                          {slot.skillId >= 1 && slot.skillId <= 5 && (
+                            <span
+                              className={`absolute -top-0.5 -right-0.5 flex h-[16px] w-[16px] items-center justify-center rounded-full text-[8px] font-bold ${
+                                slot.charges > 0
+                                  ? "bg-yellow-500 text-white"
+                                  : "bg-slate-600 text-slate-400"
+                              }`}
+                            >
+                              {slot.charges}
+                            </span>
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        className="max-w-[200px] bg-slate-800 border border-slate-600 text-slate-100 px-3 py-2"
+                        side="bottom"
+                      >
+                        <p className="font-semibold text-xs" style={{ color }}>{skill?.name}</p>
+                        <p className="text-[10px] text-slate-300 mt-0.5">{effectText}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   );
-                }
+                })}
+              </div>
+            </motion.section>
 
-                const skill = getSkillById(slot.skillId);
-                const arch = getArchetypeForSkill(slot.skillId);
-                const skillName = skill?.name?.toLowerCase() ?? "";
-                const tier = getSkillTier(slot.level);
+            {/* ================================================= */}
+            {/*  SKILL CHOICE CARDS — compact boon offerings       */}
+            {/* ================================================= */}
+            <motion.section
+              className="flex flex-col gap-2.5 md:grid md:grid-cols-3 md:gap-3"
+              variants={containerVariants}
+            >
+              {cards.map((choice) => {
+                const skillName = choice.skill?.name?.toLowerCase() ?? "";
+                const tier = getSkillTier(choice.level);
                 const iconPath = getSkillTierIconPath(skillName, tier);
-                const color = arch?.color ?? "#64748b";
+                const isBranchPoint = choice.level === 4 && isFullLoadout;
+                const accentCol = choice.archetype?.color ?? "#64748b";
+                const isPassive = choice.skill?.category === "world";
+                const displayLevel = isFullLoadout ? choice.level + 1 : 0;
 
                 return (
-                  <div key={`slot-${index}-${slot.skillId}`} className="relative">
-                    <div
-                      className="h-11 w-11 rounded-full overflow-hidden border-2"
-                      style={{ borderColor: color }}
-                    >
-                      <img
-                        src={iconPath}
-                        alt={skill?.name}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    {/* Level badge */}
-                    <span
-                      className="absolute -bottom-0.5 -left-0.5 flex h-[18px] w-[18px] items-center justify-center rounded-full text-[9px] font-bold text-white"
-                      style={{ backgroundColor: color }}
-                    >
-                      {slot.level + 1}
-                    </span>
-                    {/* Charges badge for bonus skills */}
-                    {slot.skillId >= 1 && slot.skillId <= 5 && (
-                      <span
-                        className={`absolute -top-0.5 -right-0.5 flex h-[18px] w-[18px] items-center justify-center rounded-full text-[9px] font-bold ${
-                          slot.charges > 0
-                            ? "bg-yellow-500 text-white"
-                            : "bg-slate-600 text-slate-400"
-                        }`}
-                      >
-                        {slot.charges}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </motion.section>
-
-          {/* ============================================= */}
-          {/*  SKILL CHOICE CARDS — the main event          */}
-          {/* ============================================= */}
-          <motion.section
-            className="grid grid-cols-1 gap-4 md:grid-cols-3"
-            variants={containerVariants}
-          >
-            {cards.map((choice) => {
-              const skillName = choice.skill?.name?.toLowerCase() ?? "";
-              const tier = getSkillTier(choice.level);
-              const iconPath = getSkillTierIconPath(skillName, tier);
-              const isBranchPoint = choice.level === 4 && isFullLoadout;
-              const accentCol = choice.archetype?.color ?? "#64748b";
-              const isPassive = choice.skill?.category === "world";
-
-              return (
-                <motion.article
-                  key={`draft-skill-${choice.slotIndex}-${choice.skillId}`}
-                  variants={cardVariants}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  className="relative flex flex-col overflow-hidden rounded-2xl border bg-slate-900/90 backdrop-blur-sm"
-                  style={{
-                    borderColor: `${accentCol}40`,
-                    boxShadow: `0 0 24px ${accentCol}12, 0 4px 16px rgba(0,0,0,0.3)`,
-                  }}
-                >
-                  {/* Top accent glow */}
-                  <div
-                    className="pointer-events-none absolute inset-x-0 top-0 h-24 opacity-[0.08]"
+                  <motion.article
+                    key={`draft-skill-${choice.slotIndex}-${choice.skillId}`}
+                    variants={cardVariants}
+                    whileHover={{ scale: 1.015, y: -1 }}
+                    className="relative flex items-stretch overflow-hidden rounded-xl border bg-slate-900/90 backdrop-blur-sm"
                     style={{
-                      background: `radial-gradient(ellipse at 50% 0%, ${accentCol}, transparent 70%)`,
+                      borderColor: `${accentCol}40`,
+                      boxShadow: `0 0 20px ${accentCol}10, 0 2px 12px rgba(0,0,0,0.3)`,
                     }}
-                  />
+                  >
+                    {/* Left accent glow */}
+                    <div
+                      className="pointer-events-none absolute inset-y-0 left-0 w-24 opacity-[0.07]"
+                      style={{
+                        background: `radial-gradient(ellipse at 0% 50%, ${accentCol}, transparent 70%)`,
+                      }}
+                    />
 
-                  <div className="relative flex flex-col items-center px-4 pt-5 pb-2">
-                    {/* Skill icon — circular with archetype ring */}
-                    <div className="relative mb-3">
-                      <div
-                        className="h-[72px] w-[72px] rounded-full overflow-hidden border-[3px] bg-slate-950"
-                        style={{
-                          borderColor: accentCol,
-                          boxShadow: `0 0 18px ${accentCol}35`,
-                        }}
-                      >
-                        {iconPath && (
-                          <img
-                            src={iconPath}
-                            alt={choice.skill?.name}
-                            className="h-full w-full object-cover"
-                          />
-                        )}
-                      </div>
-                      {/* Level badge */}
-                      <span
-                        className="absolute -bottom-1 -left-1 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold text-white z-10"
-                        style={{ backgroundColor: isPassive ? accentCol : undefined }}
-                      >
-                        {isPassive ? (
-                          <span>{isFullLoadout ? choice.level + 1 : 0}</span>
-                        ) : (
-                          <span className="flex h-full w-full items-center justify-center rounded-full bg-indigo-500">
-                            {isFullLoadout ? choice.level + 1 : 0}
-                          </span>
-                        )}
-                      </span>
-                    </div>
-
-                    {/* Badges row */}
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
-                          isPassive
-                            ? "border border-purple-400/30 bg-purple-900/25 text-purple-200"
-                            : "border border-sky-400/30 bg-sky-900/25 text-sky-200"
-                        }`}
-                      >
-                        {isPassive ? "Passive" : "Active"}
-                      </span>
-                      {choice.archetype && (
-                        <span
-                          className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
+                    {/* LEFT — Icon column */}
+                    <div className="relative flex flex-col items-center justify-center px-3 py-3 shrink-0">
+                      <div className="relative">
+                        <div
+                          className="h-12 w-12 rounded-full overflow-hidden border-2 bg-slate-950"
                           style={{
-                            backgroundColor: `${accentCol}20`,
-                            color: accentCol,
-                            border: `1px solid ${accentCol}30`,
+                            borderColor: accentCol,
+                            boxShadow: `0 0 12px ${accentCol}30`,
                           }}
                         >
-                          {choice.archetype.name}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Skill name */}
-                    <h3 className="font-['Fredericka_the_Great'] text-xl leading-tight text-white text-center">
-                      {choice.skill?.name ?? `Skill ${choice.skillId}`}
-                    </h3>
-
-                    {/* Level info */}
-                    <p className="mt-1 text-xs text-slate-400">
-                      {isFullLoadout
-                        ? `Upgrade to Level ${choice.level + 1}`
-                        : "New Skill \u2022 Level 0"}
-                    </p>
-                  </div>
-
-                  {/* Effect box */}
-                  <div className="mx-4 mb-2 rounded-lg border border-slate-700/40 bg-slate-950/50 px-3 py-2.5">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400/80 mb-1">
-                      {isFullLoadout ? "Next Level Effect" : "Effect"}
-                    </p>
-                    <p className="text-sm text-slate-200 leading-snug">
-                      {choice.effectDesc}
-                    </p>
-                  </div>
-
-                  {/* Current level comparison (upgrade mode) */}
-                  {isFullLoadout && choice.level > 0 && (
-                    <div className="mx-4 mb-2 rounded-lg bg-slate-800/30 px-3 py-2">
-                      <p className="text-[10px] text-slate-500">
-                        Current (Lv{choice.level}):{" "}
-                        <span className="text-slate-400">
-                          {getSkillEffectDescription(
-                            choice.skillId,
-                            choice.level,
-                            choice.branchId,
+                          {iconPath && (
+                            <img
+                              src={iconPath}
+                              alt={choice.skill?.name}
+                              className="h-full w-full object-cover"
+                            />
                           )}
+                        </div>
+                        {/* Level badge */}
+                        <span
+                          className="absolute -bottom-0.5 -left-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold text-white z-10"
+                          style={{ backgroundColor: isPassive ? accentCol : "#6366f1" }}
+                        >
+                          {displayLevel}
                         </span>
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Branch point warning */}
-                  {isBranchPoint && choice.skill && (
-                    <div className="mx-4 mb-2 rounded-lg border border-amber-500/25 bg-amber-950/15 px-3 py-2.5">
-                      <p className="text-[11px] font-semibold text-amber-300 mb-1.5">
-                        ⚡ Branch Point at Level 5
-                      </p>
-                      <div className="grid grid-cols-2 gap-2 text-[10px]">
-                        <div className="rounded-md border border-slate-700/50 bg-slate-950/50 p-2">
-                          <p className="font-bold text-sky-300 mb-0.5">
-                            A: {choice.skill.branchA}
-                          </p>
-                          <p className="text-slate-400">
-                            {getSkillEffectDescription(choice.skillId, 5, 1)}
-                          </p>
-                        </div>
-                        <div className="rounded-md border border-slate-700/50 bg-slate-950/50 p-2">
-                          <p className="font-bold text-purple-300 mb-0.5">
-                            B: {choice.skill.branchB}
-                          </p>
-                          <p className="text-slate-400">
-                            {getSkillEffectDescription(choice.skillId, 5, 2)}
-                          </p>
-                        </div>
                       </div>
+
+                      {/* Branch point indicator */}
+                      {isBranchPoint && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="mt-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 border border-amber-500/40 cursor-default">
+                              <Zap size={10} className="text-amber-400" />
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            className="max-w-[220px] bg-slate-800 border border-amber-500/30 text-slate-100 px-3 py-2"
+                            side="right"
+                          >
+                            <p className="font-semibold text-xs text-amber-300">Branch Point at Lv5</p>
+                            {choice.skill && (
+                              <div className="mt-1 text-[10px] text-slate-300 space-y-0.5">
+                                <p>A: {choice.skill.branchA} — {getSkillEffectDescription(choice.skillId, 5, 1)}</p>
+                                <p>B: {choice.skill.branchB} — {getSkillEffectDescription(choice.skillId, 5, 2)}</p>
+                              </div>
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
                     </div>
-                  )}
 
-                  {/* Spacer to push buttons to bottom */}
-                  <div className="flex-1" />
+                    {/* CENTER — Info */}
+                    <div className="relative flex-1 flex flex-col justify-center py-2.5 pr-1 min-w-0">
+                      {/* Name + badges */}
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h3 className="font-['Fredericka_the_Great'] text-base leading-tight text-white truncate">
+                          {choice.skill?.name ?? `Skill ${choice.skillId}`}
+                        </h3>
+                        <span
+                          className={`shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${
+                            isPassive
+                              ? "border border-purple-400/30 bg-purple-900/25 text-purple-200"
+                              : "border border-sky-400/30 bg-sky-900/25 text-sky-200"
+                          }`}
+                        >
+                          {isPassive ? "Passive" : "Active"}
+                        </span>
+                      </div>
 
-                  {/* Action buttons */}
-                  <div className="px-4 pb-4 pt-2 flex flex-col gap-2">
-                    <motion.button
-                      type="button"
-                      onClick={() => chooseChoice(choice.slotIndex)}
-                      disabled={isSelecting || isRerolling}
-                      whileHover={
-                        isSelecting || isRerolling
-                          ? undefined
-                          : { scale: 1.02, y: -1 }
-                      }
-                      whileTap={
-                        isSelecting || isRerolling
-                          ? undefined
-                          : { scale: 0.98, y: 1 }
-                      }
-                      className="w-full rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-green-500/25 transition-shadow hover:shadow-green-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isSelecting ? (
-                        <Loader2 className="mx-auto h-5 w-5 animate-spin" />
-                      ) : isFullLoadout ? (
-                        "Upgrade This Skill"
-                      ) : (
-                        "Choose This Skill"
+                      {/* Effect */}
+                      <p className="mt-0.5 text-[11px] text-slate-300 leading-snug line-clamp-2">
+                        {choice.effectDesc}
+                      </p>
+
+                      {/* Upgrade comparison */}
+                      {isFullLoadout && choice.level > 0 && (
+                        <p className="mt-0.5 text-[9px] text-slate-500 truncate">
+                          Current: {getSkillEffectDescription(choice.skillId, choice.level, choice.branchId)}
+                        </p>
                       )}
-                    </motion.button>
+                    </div>
 
-                    <motion.button
-                      type="button"
-                      onClick={() => rerollChoice(choice.slotIndex)}
-                      disabled={
-                        isSelecting ||
-                        isRerolling ||
-                        remainingCubes < rerollCost
-                      }
-                      whileHover={
-                        isSelecting || isRerolling || remainingCubes < rerollCost
-                          ? undefined
-                          : { scale: 1.02 }
-                      }
-                      whileTap={
-                        isSelecting || isRerolling || remainingCubes < rerollCost
-                          ? undefined
-                          : { scale: 0.98 }
-                      }
-                      className="flex w-full items-center justify-center gap-1.5 rounded-xl border-2 border-b-4 border-amber-600 bg-gradient-to-b from-amber-400/15 to-amber-900/25 px-4 py-2.5 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-900/35 disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      {isRerolling ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <>
-                          Reroll <CubeIcon size="xs" /> {rerollCost}
-                        </>
-                      )}
-                    </motion.button>
-                  </div>
-                </motion.article>
-              );
-            })}
-          </motion.section>
+                    {/* RIGHT — Actions */}
+                    <div className="relative flex flex-col items-center justify-center gap-1.5 px-2.5 py-2 shrink-0">
+                      <motion.button
+                        type="button"
+                        onClick={() => chooseChoice(choice.slotIndex)}
+                        disabled={isSelecting || isRerolling}
+                        whileHover={
+                          isSelecting || isRerolling
+                            ? undefined
+                            : { scale: 1.05 }
+                        }
+                        whileTap={
+                          isSelecting || isRerolling
+                            ? undefined
+                            : { scale: 0.95 }
+                        }
+                        className="rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-md shadow-green-500/20 transition-shadow hover:shadow-green-500/35 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                      >
+                        {isSelecting ? (
+                          <Loader2 className="mx-auto h-4 w-4 animate-spin" />
+                        ) : isFullLoadout ? (
+                          "Upgrade"
+                        ) : (
+                          "Select"
+                        )}
+                      </motion.button>
 
-          {/* ============================================= */}
-          {/*  BACK TO MAP                                  */}
-          {/* ============================================= */}
-          <motion.div
-            variants={itemVariants}
-            className="mx-auto mt-5 max-w-[420px]"
-          >
-            <GameButton
-              label="BACK TO MAP"
-              variant="secondary"
-              onClick={goToMap}
-            />
+                      <motion.button
+                        type="button"
+                        onClick={() => rerollChoice(choice.slotIndex)}
+                        disabled={
+                          isSelecting ||
+                          isRerolling ||
+                          remainingCubes < rerollCost
+                        }
+                        whileHover={
+                          isSelecting || isRerolling || remainingCubes < rerollCost
+                            ? undefined
+                            : { scale: 1.05 }
+                        }
+                        whileTap={
+                          isSelecting || isRerolling || remainingCubes < rerollCost
+                            ? undefined
+                            : { scale: 0.95 }
+                        }
+                        className="flex items-center gap-1 rounded-lg border border-amber-600/50 bg-amber-900/20 px-2.5 py-1 text-[10px] font-semibold text-amber-200 transition-colors hover:bg-amber-900/35 disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        {isRerolling ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <>
+                            <RefreshCw size={11} />
+                            <CubeIcon size="xs" /> {rerollCost}
+                          </>
+                        )}
+                      </motion.button>
+                    </div>
+                  </motion.article>
+                );
+              })}
+            </motion.section>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 
