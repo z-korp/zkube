@@ -357,22 +357,39 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
 
       {/* ---- Skill name labels (CSS Grid) ---- */}
       <div className="shrink-0 grid grid-cols-3 text-center py-1.5 px-2">
-        {archetypeSkills.map((skill) => (
-          <div key={skill.id} className="min-w-0 px-1">
-            <div
-              className="font-bold text-slate-300 truncate"
-              style={{ fontSize: "clamp(10px, 1.6vw, 14px)" }}
-            >
-              {skill.name}
+        {archetypeSkills.map((skill) => {
+          const info = skills[skill.id - 1];
+          const lvl = info?.level ?? 0;
+          return (
+            <div key={skill.id} className="min-w-0 px-1">
+              <div
+                className="font-bold text-slate-300 truncate flex items-center justify-center gap-1"
+                style={{ fontSize: "clamp(10px, 1.6vw, 14px)" }}
+              >
+                {skill.name}
+                <span
+                  className="shrink-0 inline-flex items-center justify-center rounded-full border font-['Fredericka_the_Great']"
+                  style={{
+                    width: "clamp(16px, 2.2vw, 22px)",
+                    height: "clamp(16px, 2.2vw, 22px)",
+                    fontSize: "clamp(7px, 1vw, 10px)",
+                    borderColor: lvl > 0 ? archetype.color + '88' : '#475569',
+                    color: lvl > 0 ? archetype.color : '#64748b',
+                    backgroundColor: lvl > 0 ? archetype.color + '15' : 'transparent',
+                  }}
+                >
+                  {lvl + 1}
+                </span>
+              </div>
+              <div
+                className="text-slate-500"
+                style={{ fontSize: "clamp(8px, 1.2vw, 11px)" }}
+              >
+                {skill.category === "bonus" ? "Active" : "Passive"}
+              </div>
             </div>
-            <div
-              className="text-slate-500"
-              style={{ fontSize: "clamp(8px, 1.2vw, 11px)" }}
-            >
-              {skill.category === "bonus" ? "Active" : "Passive"}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* ---- Tree area — takes ALL remaining height ---- */}
