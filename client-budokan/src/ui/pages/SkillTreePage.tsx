@@ -94,7 +94,7 @@ interface ModalState {
 const SkillTreePage: React.FC = () => {
   const goBack = useNavigationStore((s) => s.goBack);
   const { cubeBalance } = useCubeBalance();
-  const { skillTree } = useSkillTree();
+  const { skillTree, optimisticUpgrade, optimisticBranch, optimisticRespec } = useSkillTree();
   const { account } = useAccountCustom();
   const {
     setup: { systemCalls },
@@ -158,6 +158,7 @@ const SkillTreePage: React.FC = () => {
       try {
         setBusySkillId(skillId);
         await systemCalls.upgradeSkill({ account, skill_id: skillId });
+        optimisticUpgrade(skillId);
       } catch (e) {
         console.error("upgrade_skill failed:", e);
       } finally {
@@ -178,6 +179,7 @@ const SkillTreePage: React.FC = () => {
           skill_id: skillId,
           branch_id: branch,
         });
+        optimisticBranch(skillId, branch);
       } catch (e) {
         console.error("choose_branch failed:", e);
       } finally {
@@ -194,6 +196,7 @@ const SkillTreePage: React.FC = () => {
       try {
         setBusySkillId(skillId);
         await systemCalls.respecBranch({ account, skill_id: skillId });
+        optimisticRespec(skillId);
       } catch (e) {
         console.error("respec_branch failed:", e);
       } finally {
