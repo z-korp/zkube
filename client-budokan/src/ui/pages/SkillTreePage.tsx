@@ -705,7 +705,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
             <p className="text-[10px] text-slate-500 mt-0.5">
               {archetype.name} •{" "}
               {skill.category === "bonus" ? "Active Bonus" : "Passive World"} •
-              Level {currentLevel}/9
+              Level {currentLevel + 1}/10
             </p>
           </div>
         </div>
@@ -714,7 +714,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
         {currentEffect && (
           <div className="rounded-lg border border-slate-700/50 bg-slate-800/50 px-3 py-2 mb-3">
             <div className="text-[10px] font-semibold text-slate-400 mb-0.5">
-              CURRENT (Level {currentLevel})
+              CURRENT (Level {currentLevel + 1})
             </div>
             <p className="text-xs text-emerald-300">{currentEffect}</p>
           </div>
@@ -739,8 +739,8 @@ const SkillModal: React.FC<SkillModalProps> = ({
           <div className="flex items-center justify-between mb-0.5">
             <span className="text-[10px] font-semibold" style={{ color }}>
               {isUnlocked
-                ? `\u2713 LEVEL ${targetLevel}`
-                : `LEVEL ${targetLevel}`}
+                ? `\u2713 LEVEL ${targetLevel + 1}`
+                : `LEVEL ${targetLevel + 1}`}
               {isBranchRow &&
                 branchSide >= 0 &&
                 ` \u2014 ${branchSide === 0 ? skill.branchA : skill.branchB}`}
@@ -840,7 +840,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
           ) : (
             <div className="flex-1 rounded-lg px-3 py-2 text-xs text-center text-slate-500 border border-slate-800">
               <Lock size={12} className="inline mr-1 -mt-0.5" />
-              Reach level {targetLevel - 1} first
+              Reach level {targetLevel} first
             </div>
           )}
         </div>
@@ -882,7 +882,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
                       <div
                         className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${done ? "bg-emerald-900/50 text-emerald-400 border border-emerald-700/50" : "bg-slate-800 text-slate-500 border border-slate-700/40"}`}
                       >
-                        {done ? "\u2713" : fl.level}
+                        {done ? "\u2713" : fl.level + 1}
                       </div>
                     </div>
                     <div className="min-w-0 flex-1">
