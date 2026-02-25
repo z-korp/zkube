@@ -190,7 +190,7 @@ const DraftPage: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto px-4 py-4 md:px-6">
         <div className="mx-auto max-w-[860px] space-y-4 pb-8">
-          <section className="rounded-2xl border border-emerald-300/30 bg-slate-900/80 px-5 py-4">
+          <section className="rounded-2xl border border-emerald-300/30 bg-slate-900/90 px-5 py-4">
             <h2 className="font-['Fredericka_the_Great'] text-2xl text-emerald-200">
               {getStageLabel(
                 draftState.eventType,
@@ -217,7 +217,7 @@ const DraftPage: React.FC = () => {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-600/70 bg-slate-900/80 p-4">
+          <section className="rounded-2xl border border-white/10 bg-slate-900/90 p-4">
             <div className="flex items-center justify-between gap-3">
               <h3 className="font-['Fredericka_the_Great'] text-xl text-slate-100">
                 Current Run Slots ({runSlots.length}/3)
@@ -299,7 +299,7 @@ const DraftPage: React.FC = () => {
               return (
                 <article
                   key={`draft-skill-${choice.slotIndex}-${choice.skillId}`}
-                  className="rounded-2xl border bg-slate-900/80 p-4"
+                  className="rounded-2xl border bg-slate-900/90 p-4"
                   style={{
                     borderColor: choice.archetype
                       ? `${choice.archetype.color}50`

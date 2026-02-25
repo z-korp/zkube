@@ -16,7 +16,7 @@ const ShopPage = () => {
           <motion.section
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border border-amber-300/25 bg-black/40 px-5 py-5 backdrop-blur-sm"
+            className="rounded-2xl border border-white/10 bg-slate-900/90 px-5 py-5"
           >
             <h2 className="font-['Fredericka_the_Great'] text-2xl text-amber-100">
               Permanent Shop Removed
@@ -30,13 +30,13 @@ const ShopPage = () => {
             </p>
 
             <div className="mt-5 grid grid-cols-1 gap-2 text-xs text-slate-300">
-              <div className="rounded-lg border border-slate-700/80 bg-slate-900/70 px-3 py-2">
+              <div className="rounded-lg border border-slate-700/50 bg-slate-900/50 px-3 py-2">
                 - Bridging rank upgrades removed
               </div>
-              <div className="rounded-lg border border-slate-700/80 bg-slate-900/70 px-3 py-2">
+              <div className="rounded-lg border border-slate-700/50 bg-slate-900/50 px-3 py-2">
                 - Starting charge and bag upgrades removed
               </div>
-              <div className="rounded-lg border border-slate-700/80 bg-slate-900/70 px-3 py-2">
+              <div className="rounded-lg border border-slate-700/50 bg-slate-900/50 px-3 py-2">
                 - Wave and Supply unlock purchases removed
               </div>
             </div>

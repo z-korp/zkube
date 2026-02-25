@@ -60,7 +60,7 @@ const SettingsPage: React.FC = () => {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.22 }}
-            className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60"
+            className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
           >
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg">🎵</span>
@@ -112,7 +112,7 @@ const SettingsPage: React.FC = () => {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.04 }}
-            className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60"
+            className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
           >
             <div className="flex items-center gap-2 mb-3">
               <Palette size={18} className="text-amber-300" />
@@ -161,7 +161,7 @@ const SettingsPage: React.FC = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.08 }}
-            className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60"
+            className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
           >
             <div className="flex items-center gap-2 mb-3">
               <UserRound size={18} className="text-indigo-300" />
@@ -172,12 +172,12 @@ const SettingsPage: React.FC = () => {
 
             {accountAddress ? (
               <div className="space-y-3">
-                <div className="rounded-lg border border-slate-600/70 bg-slate-900/45 p-3">
+                <div className="rounded-lg border border-slate-700/50 bg-slate-900/50 p-3">
                   <p className="text-xs text-slate-400 mb-1">Username</p>
                   <p className="text-white text-sm">{resolvedUsername}</p>
                 </div>
 
-                <div className="rounded-lg border border-slate-600/70 bg-slate-900/45 p-3">
+                <div className="rounded-lg border border-slate-700/50 bg-slate-900/50 p-3">
                   <p className="text-xs text-slate-400 mb-1">Wallet Address</p>
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-white text-sm truncate">
@@ -202,7 +202,7 @@ const SettingsPage: React.FC = () => {
                 />
               </div>
             ) : (
-              <div className="rounded-lg border border-slate-600/70 bg-slate-900/45 p-4 text-sm text-slate-300">
+              <div className="rounded-lg border border-slate-700/50 bg-slate-900/50 p-4 text-sm text-slate-300">
                 Connect a wallet to manage your account settings.
               </div>
             )}

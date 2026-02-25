@@ -152,8 +152,8 @@ const QuestCard: React.FC<{
         allClaimed
           ? "bg-slate-900/50"
           : claimable
-            ? "bg-slate-900 ring-1 ring-green-500/30"
-            : "bg-slate-900"
+            ? "bg-slate-900/90 ring-1 ring-green-500/30"
+            : "bg-slate-900/90"
       }`}
     >
       {/* Header: icon, name, tier dots, reward */}
@@ -290,7 +290,7 @@ const ChampionCard: React.FC<{
           ? "bg-slate-900/50"
           : canClaim
             ? "bg-gradient-to-br from-yellow-950/60 to-amber-950/40 ring-1 ring-yellow-500/25"
-            : "bg-slate-900 ring-1 ring-yellow-500/10"
+            : "bg-slate-900/90 ring-1 ring-yellow-500/10"
       }`}
     >
       {/* Header */}
