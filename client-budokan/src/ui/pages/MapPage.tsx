@@ -18,6 +18,7 @@ import {
   getMapPathTheme,
   getThemeImages,
   isValidThemeId,
+  THEME_META,
   type ThemeId,
 } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
@@ -273,10 +274,14 @@ const MapPage: React.FC = () => {
     }
   };
 
+  const activeThemeRaw = mapData.zoneThemes[activeZone] ?? "theme-1";
+  const activeThemeId: ThemeId = isValidThemeId(activeThemeRaw) ? activeThemeRaw : "theme-1";
+  const zoneName = THEME_META[activeThemeId].name;
+
   return (
     <div className="h-screen-viewport flex flex-col">
       <PageTopBar
-        title="WORLD MAP"
+        title={`${zoneName} Zone`}
         subtitle={`Level ${currentLevel}`}
         onBack={goBack}
         rightSlot={null}
