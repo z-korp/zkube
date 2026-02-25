@@ -11,4 +11,5 @@ export enum GameState {
   ADD_LINE,
   UPDATE_AFTER_MOVE,
   UPDATE_AFTER_BONUS,
+  CASCADE_COMPLETE,
 }

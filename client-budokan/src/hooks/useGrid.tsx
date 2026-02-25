@@ -26,10 +26,16 @@ export const useGrid = ({
       blocksRef.current = [];
       return;
     }
+    // During level transitions the chain grid is stale (old level's final state).
+    // Return empty so the UI shows a loading state instead of the obsolete grid.
+    if (game?.levelTransitionPending) {
+      setBlocks([]);
+      blocksRef.current = [];
+      return;
+    }
     if (game && memoizedBlocks.length > 0) {
-      // Mettre à jour `blocks` et `blocksRef` simultanément
       setBlocks(memoizedBlocks);
-      blocksRef.current = memoizedBlocks; // synchroniser la ref
+      blocksRef.current = memoizedBlocks;
     }
   }, [memoizedBlocks, game, shouldLog]);
 
