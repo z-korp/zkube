@@ -1,5 +1,4 @@
-import { useState, useCallback, useRef, useMemo, useEffect } from "react";
-import { motion } from "motion/react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
@@ -26,7 +25,7 @@ import PageTopBar from "@/ui/navigation/PageTopBar";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
 
 /* ------------------------------------------------------------------ */
-/*  Constants & Layout                                                  */
+/*  Layout constants (all values in %)                                 */
 /* ------------------------------------------------------------------ */
 
 function fmtCost(cost: number): string {
@@ -34,71 +33,11 @@ function fmtCost(cost: number): string {
   return String(cost);
 }
 
-/** Dynamic layout computed from actual pixel dimensions of the SVG container */
-interface TreeLayout {
-  w: number;
-  h: number;
-  colX: [number, number, number];
-  branchOff: number;
-  rowStartY: number;
-  rowGap: number;
-  rCore: number;
-  rBranch: number;
-  badgeR: number;
-  badgeFont: number;
-  pathStrokeW: number;
-  pathStrokeWBranch: number;
-  hdrFontLg: number;
-  hdrFontSm: number;
-  glowOffset: number;
-  glowStroke: number;
-  pulseOffset: number;
-  pulseStroke: number;
-  labelRectW: number;
-  labelRectH: number;
-  labelRectRx: number;
-  labelFont: number;
-  labelOffsetY: number;
-  busyForeignSize: number;
-  borderWidthCore: number;
-  borderWidthBranch: number;
-}
-
-function computeLayout(w: number, h: number): TreeLayout {
-  // Base unit derived from both dimensions — ensures nodes scale with the container
-  const rCore = Math.min(w * 0.038, h * 0.042);
-  const rBranch = rCore * 0.82;
-  const badgeR = rCore * 0.44;
-
-  return {
-    w,
-    h,
-    colX: [w * 0.17, w * 0.50, w * 0.83],
-    branchOff: w * 0.065,
-    rowStartY: h * 0.09,
-    rowGap: (h * 0.88) / 8,
-    rCore,
-    rBranch,
-    badgeR,
-    badgeFont: rCore * 0.33,
-    pathStrokeW: Math.max(rCore * 0.09, 0.5),
-    pathStrokeWBranch: Math.max(rCore * 0.07, 0.4),
-    hdrFontLg: Math.max(rCore * 0.58, 8),
-    hdrFontSm: Math.max(rCore * 0.40, 6),
-    glowOffset: rCore * 0.18,
-    glowStroke: Math.max(rCore * 0.06, 0.35),
-    pulseOffset: rCore * 0.22,
-    pulseStroke: Math.max(rCore * 0.06, 0.35),
-    labelRectW: rCore * 0.87,
-    labelRectH: rCore * 0.47,
-    labelRectRx: rCore * 0.11,
-    labelFont: rCore * 0.33,
-    labelOffsetY: rCore * 0.18,
-    busyForeignSize: rCore * 1.1,
-    borderWidthCore: Math.max(rCore * 0.09, 0.5),
-    borderWidthBranch: Math.max(rCore * 0.07, 0.3),
-  };
-}
+const COL_X = [17, 50, 83];
+const BRANCH_OFF = 7;
+const ROW_START = 5;
+const ROW_GAP = 11.25;
+const rowY = (row: number) => ROW_START + row * ROW_GAP;
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -112,9 +51,9 @@ interface SkillInfo {
 
 interface TreeNodeData {
   key: string;
-  cx: number;
-  cy: number;
-  r: number;
+  xPct: number;
+  yPct: number;
+  isCore: boolean;
   iconSrc: string;
   skillId: number;
   targetLevel: number;
@@ -124,27 +63,22 @@ interface TreeNodeData {
   dimmed: boolean;
   color: string;
   borderColor: string;
-  borderWidth: number;
   nodeOpacity: number;
   iconOpacity: number;
   iconFilter: string;
-  label: string;
   badgeLabel: string;
   badgeColor: string;
-  badgeR: number;
-  badgeFont: number;
-  glowOffset: number;
-  glowStroke: number;
-  pulseOffset: number;
-  pulseStroke: number;
   action: "upgrade" | "branchA" | "branchB" | "none";
   branchSide: number;
 }
 
-interface PathData {
-  d: string;
+interface LineData {
+  key: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
   color: string;
-  strokeWidth: number;
   opacity: number;
 }
 
@@ -176,68 +110,57 @@ const SkillTreePage: React.FC = () => {
   const cubeBalanceNumber = Number(cubeBalance);
 
   const skills: SkillInfo[] = skillTree?.skills ?? Array.from({ length: 15 }, () => ({
-      level: 0,
-      branchChosen: false,
-      branchId: 0,
-    }));
+    level: 0,
+    branchChosen: false,
+    branchId: 0,
+  }));
 
   const handleSlideChange = useCallback((swiper: SwiperType) => {
     setActiveIndex(swiper.activeIndex);
   }, []);
 
-
   const handleUpgrade = useCallback(async (skillId: number) => {
-      const info = skills[skillId - 1];
-      if (!account || !info || info.level >= 9) return;
-      if (info.level >= 4 && !info.branchChosen) return;
-      const cost = SKILL_TREE_COSTS[info.level];
-      if (cubeBalanceNumber < cost) return;
-      try {
-        setBusySkillId(skillId);
-        await systemCalls.upgradeSkill({ account, skill_id: skillId });
-      } catch (e) {
-        console.error("upgrade_skill failed:", e);
-      } finally {
-        setBusySkillId(null);
-        setModal(null);
-      }
-    },
-    [account, skills, cubeBalanceNumber, systemCalls],
-  );
+    const info = skills[skillId - 1];
+    if (!account || !info || info.level >= 9) return;
+    if (info.level >= 4 && !info.branchChosen) return;
+    const cost = SKILL_TREE_COSTS[info.level];
+    if (cubeBalanceNumber < cost) return;
+    try {
+      setBusySkillId(skillId);
+      await systemCalls.upgradeSkill({ account, skill_id: skillId });
+    } catch (e) {
+      console.error("upgrade_skill failed:", e);
+    } finally {
+      setBusySkillId(null);
+      setModal(null);
+    }
+  }, [account, skills, cubeBalanceNumber, systemCalls]);
 
   const handleBranch = useCallback(async (skillId: number, branch: number) => {
-      if (!account) return;
-      try {
-        setBusySkillId(skillId);
-        await systemCalls.chooseBranch({
-          account,
-          skill_id: skillId,
-          branch_id: branch,
-        });
-      } catch (e) {
-        console.error("choose_branch failed:", e);
-      } finally {
-        setBusySkillId(null);
-        setModal(null);
-      }
-    },
-    [account, systemCalls],
-  );
+    if (!account) return;
+    try {
+      setBusySkillId(skillId);
+      await systemCalls.chooseBranch({ account, skill_id: skillId, branch_id: branch });
+    } catch (e) {
+      console.error("choose_branch failed:", e);
+    } finally {
+      setBusySkillId(null);
+      setModal(null);
+    }
+  }, [account, systemCalls]);
 
   const handleRespec = useCallback(async (skillId: number) => {
-      if (!account) return;
-      try {
-        setBusySkillId(skillId);
-        await systemCalls.respecBranch({ account, skill_id: skillId });
-      } catch (e) {
-        console.error("respec_branch failed:", e);
-      } finally {
-        setBusySkillId(null);
-        setModal(null);
-      }
-    },
-    [account, systemCalls],
-  );
+    if (!account) return;
+    try {
+      setBusySkillId(skillId);
+      await systemCalls.respecBranch({ account, skill_id: skillId });
+    } catch (e) {
+      console.error("respec_branch failed:", e);
+    } finally {
+      setBusySkillId(null);
+      setModal(null);
+    }
+  }, [account, systemCalls]);
 
   const handleNodeClick = useCallback((node: TreeNodeData) => {
     setModal({
@@ -252,7 +175,6 @@ const SkillTreePage: React.FC = () => {
     <div className="h-screen-viewport flex flex-col text-white">
       <PageTopBar title="SKILL TREE" onBack={goBack} cubeBalance={cubeBalance} />
 
-      {/* Full remaining space — panel + swiper + arrows */}
       <div className="flex-1 min-h-0 relative overflow-hidden bg-slate-900/95">
         <Swiper
           slidesPerView={1}
@@ -274,7 +196,6 @@ const SkillTreePage: React.FC = () => {
           ))}
         </Swiper>
 
-        {/* Left arrow */}
         {activeIndex > 0 && (
           <button
             type="button"
@@ -285,7 +206,6 @@ const SkillTreePage: React.FC = () => {
           </button>
         )}
 
-        {/* Right arrow */}
         {activeIndex < ARCHETYPE_ORDER.length - 1 && (
           <button
             type="button"
@@ -297,7 +217,6 @@ const SkillTreePage: React.FC = () => {
         )}
       </div>
 
-      {/* Skill detail modal */}
       {modal && (
         <SkillModal
           modal={modal}
@@ -313,8 +232,9 @@ const SkillTreePage: React.FC = () => {
     </div>
   );
 };
+
 /* ------------------------------------------------------------------ */
-/*  TreeSlide — SVG tree inside dark panel, scales with viewport       */
+/*  TreeSlide                                                          */
 /* ------------------------------------------------------------------ */
 
 interface TreeSlideProps {
@@ -334,54 +254,21 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
 }) => {
   const archetype = ARCHETYPES[archetypeId];
   const archetypeSkills = getSkillsByArchetype(archetypeId);
-  const iconSrc = getCommonAssetPath(
-    `archetypes/archetype-${archetypeId}.png`,
+  const iconSrc = getCommonAssetPath(`archetypes/archetype-${archetypeId}.png`);
+
+  const treeData = useMemo(
+    () => buildTreeData(archetypeSkills, skills, archetype.color, cubeBalance),
+    [archetypeSkills, skills, archetype.color, cubeBalance],
   );
-
-  // ---- ResizeObserver: measure the SVG container in real pixels ----
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [dims, setDims] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        if (width > 0 && height > 0) {
-          setDims((prev) =>
-            prev.w === Math.round(width) && prev.h === Math.round(height)
-              ? prev
-              : { w: Math.round(width), h: Math.round(height) },
-          );
-        }
-      }
-    });
-
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  const layout = useMemo(
-    () => (dims.w > 0 && dims.h > 0 ? computeLayout(dims.w, dims.h) : null),
-    [dims.w, dims.h],
-  );
-
-  const treeData = useMemo(() => {
-    if (!layout) return null;
-    return buildTreeData(archetypeSkills, skills, archetype.color, cubeBalance, layout);
-  }, [archetypeSkills, skills, archetype.color, cubeBalance, layout]);
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      {/* Dark panel */}
       <div className="flex-1 min-h-0 bg-slate-900/95 flex flex-col overflow-hidden">
         {/* Archetype header */}
         <div className="flex items-center gap-3 px-4 py-2.5 border-b border-slate-700/30 flex-shrink-0">
           <div
             className="w-10 h-10 rounded-lg overflow-hidden border-2 flex-shrink-0"
-            style={{ borderColor: archetype.color + '66' }}
+            style={{ borderColor: archetype.color + "66" }}
           >
             <img src={iconSrc} alt={archetype.name} className="w-full h-full object-cover" draggable={false} />
           </div>
@@ -400,82 +287,55 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
               return (
                 <div
                   key={id}
-                  className={`w-2 h-2 rounded-full transition-all ${isActive ? 'scale-125' : 'opacity-40'}`}
-                  style={{ backgroundColor: isActive ? archetype.color : '#94a3b8' }}
+                  className={`w-2 h-2 rounded-full transition-all ${isActive ? "scale-125" : "opacity-40"}`}
+                  style={{ backgroundColor: isActive ? archetype.color : "#94a3b8" }}
                 />
               );
             })}
           </div>
         </div>
 
-        {/* SVG tree — fills remaining panel space, measured by ResizeObserver */}
-        <div ref={containerRef} className="flex-1 min-h-0 relative">
-          {layout && treeData && (
-            <svg
-              viewBox={`0 0 ${layout.w} ${layout.h}`}
-              className="absolute inset-0 w-full h-full"
-            >
-              <defs>
-                <style>{`
-                  @keyframes skill-pulse {
-                    0%, 100% { opacity: 0.3; }
-                    50% { opacity: 0.8; }
-                  }
-                  .skill-node-pulse { animation: skill-pulse 2s ease-in-out infinite; }
-                `}</style>
-              </defs>
+        {/* Skill name labels */}
+        <div className="flex-shrink-0 flex items-end px-2 pt-1.5 pb-0.5">
+          {archetypeSkills.map((skill) => (
+            <div key={skill.id} className="flex-1 text-center min-w-0">
+              <div
+                className="font-bold text-slate-300 leading-tight truncate"
+                style={{ fontSize: "clamp(10px, 1.5vw, 14px)" }}
+              >
+                {skill.name}
+              </div>
+              <div className="text-slate-500" style={{ fontSize: "clamp(8px, 1.2vw, 11px)" }}>
+                {skill.category === "bonus" ? "Active" : "Passive"}
+              </div>
+            </div>
+          ))}
+        </div>
 
-              {/* Skill name labels */}
-              {archetypeSkills.map((skill, colIdx) => (
-                <g key={`hdr-${skill.id}`}>
-                  <text
-                    x={layout.colX[colIdx]}
-                    y={layout.rowStartY - layout.rCore * 1.3}
-                    textAnchor="middle"
-                    fill="#cbd5e1"
-                    fontSize={layout.hdrFontLg}
-                    fontWeight="bold"
-                    fontFamily="system-ui, sans-serif"
-                  >
-                    {skill.name}
-                  </text>
-                  <text
-                    x={layout.colX[colIdx]}
-                    y={layout.rowStartY - layout.rCore * 0.6}
-                    textAnchor="middle"
-                    fill="#475569"
-                    fontSize={layout.hdrFontSm}
-                    fontFamily="system-ui, sans-serif"
-                  >
-                    {skill.category === 'bonus' ? 'Active' : 'Passive'}
-                  </text>
-                </g>
-              ))}
+        {/* Tree area — pure CSS positioned nodes + div lines */}
+        <div className="flex-1 min-h-0 relative">
+          <style>{`
+            @keyframes skill-pulse {
+              0%, 100% { opacity: 0.3; }
+              50% { opacity: 0.8; }
+            }
+            .skill-node-pulse { animation: skill-pulse 2s ease-in-out infinite; }
+          `}</style>
 
-              {/* Paths */}
-              {treeData.paths.map((p, i) => (
-                <path
-                  key={`path-${i}`}
-                  d={p.d}
-                  fill="none"
-                  stroke={p.color}
-                  strokeWidth={p.strokeWidth}
-                  strokeLinecap="round"
-                  opacity={p.opacity}
-                />
-              ))}
+          {/* Connection lines (behind nodes) */}
+          {treeData.lines.map((line) => (
+            <TreeLine key={line.key} line={line} />
+          ))}
 
-              {/* Nodes */}
-              {treeData.nodes.map((node) => (
-                <SvgNode
-                  key={node.key}
-                  node={node}
-                  isBusy={busySkillId === node.skillId}
-                  onClick={onNodeClick}
-                />
-              ))}
-            </svg>
-          )}
+          {/* Nodes (on top of lines) */}
+          {treeData.nodes.map((node) => (
+            <TreeNode
+              key={node.key}
+              node={node}
+              isBusy={busySkillId === node.skillId}
+              onClick={onNodeClick}
+            />
+          ))}
         </div>
       </div>
     </div>
@@ -483,142 +343,159 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
 };
 
 /* ------------------------------------------------------------------ */
-/*  SVG Node                                                           */
+/*  Tree Node (pure HTML/CSS)                                          */
 /* ------------------------------------------------------------------ */
 
-interface SvgNodeProps {
+interface TreeNodeProps {
   node: TreeNodeData;
   isBusy: boolean;
   onClick: (node: TreeNodeData) => void;
 }
 
-const SvgNode: React.FC<SvgNodeProps> = ({ node, isBusy, onClick }) => {
-  const clipId = `clip-${node.key}`;
+const TreeNode: React.FC<TreeNodeProps> = ({ node, isBusy, onClick }) => {
+  const nodeSize = node.isCore
+    ? "clamp(30px, calc(2.2vw + 2.2vh + 4px), 54px)"
+    : "clamp(24px, calc(1.8vw + 1.8vh + 4px), 46px)";
+  const badgeSize = "clamp(13px, calc(0.8vw + 0.8vh + 2px), 22px)";
+  const badgeFont = "clamp(6px, calc(0.4vw + 0.4vh + 1px), 11px)";
+  const borderW = node.isCore ? 2 : 1.5;
 
   return (
-    <g
+    <div
+      className="absolute z-10 group"
+      style={{
+        left: `${node.xPct}%`,
+        top: `${node.yPct}%`,
+        transform: "translate(-50%, -50%)",
+        opacity: node.nodeOpacity,
+      }}
       onClick={() => onClick(node)}
-      style={{ cursor: "pointer" }}
-      opacity={node.nodeOpacity}
     >
-      <clipPath id={clipId}>
-        <circle cx={node.cx} cy={node.cy} r={node.r} />
-      </clipPath>
-
-      <circle
-        cx={node.cx}
-        cy={node.cy}
-        r={node.r}
-        fill={node.unlocked ? "#1e293b" : "#0f172a"}
-      />
-
-      <image
-        href={node.iconSrc}
-        x={node.cx - node.r}
-        y={node.cy - node.r}
-        width={node.r * 2}
-        height={node.r * 2}
-        preserveAspectRatio="xMidYMid slice"
-        clipPath={`url(#${clipId})`}
-        opacity={node.iconOpacity}
-        filter={node.iconFilter || undefined}
-      />
-
-      <circle
-        cx={node.cx}
-        cy={node.cy}
-        r={node.r}
-        fill="none"
-        stroke={node.borderColor}
-        strokeWidth={node.borderWidth}
-      />
-
-      {node.unlocked && (
-        <circle
-          cx={node.cx}
-          cy={node.cy}
-          r={node.r + node.glowOffset}
-          fill="none"
-          stroke={node.color}
-          strokeWidth={node.glowStroke}
-          opacity={0.25}
-        />
-      )}
-
-      {node.isNext && node.canAfford && !isBusy && (
-        <circle
-          cx={node.cx}
-          cy={node.cy}
-          r={node.r + node.pulseOffset}
-          fill="none"
-          stroke={node.color}
-          strokeWidth={node.pulseStroke}
-          className="skill-node-pulse"
-        />
-      )}
-
-      {isBusy && (
-        <>
-          <circle cx={node.cx} cy={node.cy} r={node.r} fill="rgba(0,0,0,0.5)" />
-          <foreignObject
-            x={node.cx - node.r * 0.55}
-            y={node.cy - node.r * 0.55}
-            width={node.r * 1.1}
-            height={node.r * 1.1}
-          >
-            <div className="flex items-center justify-center w-full h-full">
-              <Loader2 size={12} className="animate-spin text-white" />
-            </div>
-          </foreignObject>
-        </>
-      )}
-
-      {node.label && (
-        <>
-          <rect
-            x={node.cx - node.r * 0.44}
-            y={node.cy + node.r - node.r * 0.47}
-            width={node.r * 0.87}
-            height={node.r * 0.47}
-            rx={node.r * 0.11}
-            fill="rgba(0,0,0,0.7)"
-          />
-          <text
-            x={node.cx}
-            y={node.cy + node.r - node.r * 0.18}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fill="#cbd5e1"
-            fontSize={node.r * 0.33}
-            fontWeight="bold"
-            fontFamily="system-ui, sans-serif"
-          >
-            {node.label}
-          </text>
-        </>
-      )}
-
-      <circle
-        cx={node.cx + node.r * 0.7}
-        cy={node.cy + node.r * 0.7}
-        r={node.badgeR}
-        fill="rgba(0,0,0,0.8)"
-        stroke={node.borderColor}
-        strokeWidth={node.badgeR * 0.08}
-      />
-      <text
-        x={node.cx + node.r * 0.7}
-        y={node.cy + node.r * 0.7 + node.badgeFont * 0.08}
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill={node.badgeColor}
-        fontSize={node.badgeFont}
-        fontWeight="bold"
-        fontFamily="system-ui, sans-serif"
+      <div
+        className="relative cursor-pointer transition-transform duration-150 group-hover:scale-110"
+        style={{ width: nodeSize, height: nodeSize }}
       >
-        {node.badgeLabel}
-      </text>
-    </g>
+        {/* Unlocked glow ring */}
+        {node.unlocked && (
+          <div
+            className="absolute rounded-full pointer-events-none"
+            style={{
+              inset: "-3px",
+              border: `1px solid ${node.color}40`,
+            }}
+          />
+        )}
+
+        {/* Pulse ring for next affordable upgrade */}
+        {node.isNext && node.canAfford && !isBusy && (
+          <div
+            className="absolute rounded-full pointer-events-none skill-node-pulse"
+            style={{
+              inset: "-5px",
+              border: `1.5px solid ${node.color}`,
+            }}
+          />
+        )}
+
+        {/* Main circle */}
+        <div
+          className="w-full h-full rounded-full overflow-hidden"
+          style={{
+            borderWidth: `${borderW}px`,
+            borderStyle: "solid",
+            borderColor: node.borderColor,
+            backgroundColor: node.unlocked ? "#1e293b" : "#0f172a",
+          }}
+        >
+          <img
+            src={node.iconSrc}
+            alt=""
+            className="w-full h-full object-cover"
+            style={{
+              opacity: node.iconOpacity,
+              filter: node.iconFilter || undefined,
+            }}
+            draggable={false}
+          />
+        </div>
+
+        {/* Badge */}
+        <div
+          className="absolute rounded-full flex items-center justify-center"
+          style={{
+            bottom: "-2px",
+            right: "-2px",
+            width: badgeSize,
+            height: badgeSize,
+            backgroundColor: "rgba(0,0,0,0.85)",
+            border: `1px solid ${node.borderColor}`,
+          }}
+        >
+          <span
+            className="font-bold leading-none"
+            style={{
+              fontSize: badgeFont,
+              color: node.badgeColor,
+              fontFamily: "system-ui, sans-serif",
+            }}
+          >
+            {node.badgeLabel}
+          </span>
+        </div>
+
+        {/* Busy spinner */}
+        {isBusy && (
+          <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center">
+            <Loader2 size={12} className="animate-spin text-white" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+/*  Tree Line (pure CSS div)                                           */
+/* ------------------------------------------------------------------ */
+
+const TreeLine: React.FC<{ line: LineData }> = ({ line }) => {
+  const isVertical = line.x1 === line.x2;
+
+  if (isVertical) {
+    const top = Math.min(line.y1, line.y2);
+    const height = Math.abs(line.y2 - line.y1);
+    return (
+      <div
+        className="absolute"
+        style={{
+          left: `${line.x1}%`,
+          top: `${top}%`,
+          width: "2px",
+          height: `${height}%`,
+          transform: "translateX(-50%)",
+          backgroundColor: line.color,
+          opacity: line.opacity,
+        }}
+      />
+    );
+  }
+
+  // Horizontal
+  const left = Math.min(line.x1, line.x2);
+  const width = Math.abs(line.x2 - line.x1);
+  return (
+    <div
+      className="absolute"
+      style={{
+        left: `${left}%`,
+        top: `${line.y1}%`,
+        width: `${width}%`,
+        height: "2px",
+        transform: "translateY(-50%)",
+        backgroundColor: line.color,
+        opacity: line.opacity,
+      }}
+    />
   );
 };
 
@@ -649,11 +526,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
 }) => {
   const { skillId, targetLevel, branchSide } = modal;
   const skill = SKILLS[skillId];
-  const info = skills[skillId - 1] ?? {
-    level: 0,
-    branchChosen: false,
-    branchId: 0,
-  };
+  const info = skills[skillId - 1] ?? { level: 0, branchChosen: false, branchId: 0 };
   const archetype = ARCHETYPES[skill.archetype];
   const color = archetype.color;
 
@@ -674,17 +547,11 @@ const SkillModal: React.FC<SkillModalProps> = ({
       ? getSkillEffectDescription(
           skillId,
           currentLevel,
-          currentLevel >= 5 && info.branchChosen
-            ? info.branchId + 1
-            : undefined,
+          currentLevel >= 5 && info.branchChosen ? info.branchId + 1 : undefined,
         )
       : null;
 
-  const thisEffect = getSkillEffectDescription(
-    skillId,
-    targetLevel,
-    branchForDesc,
-  );
+  const thisEffect = getSkillEffectDescription(skillId, targetLevel, branchForDesc);
 
   const cost = SKILL_TREE_COSTS[targetLevel - 1];
   const isUnlocked = (() => {
@@ -704,37 +571,20 @@ const SkillModal: React.FC<SkillModalProps> = ({
 
   const canAfford = cubeBalance >= cost;
   const wrongBranch =
-    isBranchRow &&
-    info.branchChosen &&
-    branchSide >= 0 &&
-    info.branchId !== branchSide;
+    isBranchRow && info.branchChosen && branchSide >= 0 && info.branchId !== branchSide;
 
   const futureLevels = useMemo(() => {
-    const levels: {
-      level: number;
-      cost: number;
-      effect: string;
-      branchLabel?: string;
-    }[] = [];
-
+    const levels: { level: number; cost: number; effect: string; branchLabel?: string }[] = [];
     for (let lvl = targetLevel; lvl <= 9; lvl++) {
       const lvlCost = SKILL_TREE_COSTS[lvl - 1];
       if (lvl < 5) {
-        levels.push({
-          level: lvl,
-          cost: lvlCost,
-          effect: getSkillEffectDescription(skillId, lvl),
-        });
+        levels.push({ level: lvl, cost: lvlCost, effect: getSkillEffectDescription(skillId, lvl) });
       } else {
         if (info.branchChosen) {
           levels.push({
             level: lvl,
             cost: lvlCost,
-            effect: getSkillEffectDescription(
-              skillId,
-              lvl,
-              info.branchId + 1,
-            ),
+            effect: getSkillEffectDescription(skillId, lvl, info.branchId + 1),
             branchLabel: info.branchId === 0 ? skill.branchA : skill.branchB,
           });
         } else if (branchSide >= 0) {
@@ -763,9 +613,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
     return levels;
   }, [skillId, targetLevel, info, branchSide, skill]);
 
-  const tier = getSkillTier(
-    isUnlocked ? targetLevel : Math.max(0, targetLevel - 1),
-  );
+  const tier = getSkillTier(isUnlocked ? targetLevel : Math.max(0, targetLevel - 1));
   const iconSrc = getSkillTierIconPath(skill.name, tier);
 
   return (
@@ -779,25 +627,16 @@ const SkillModal: React.FC<SkillModalProps> = ({
             className="w-12 h-12 rounded-xl overflow-hidden border-2 flex-shrink-0"
             style={{ borderColor: color + "88" }}
           >
-            <img
-              src={iconSrc}
-              alt={skill.name}
-              className="w-full h-full object-cover"
-              draggable={false}
-            />
+            <img src={iconSrc} alt={skill.name} className="w-full h-full object-cover" draggable={false} />
           </div>
           <div className="min-w-0">
-            <h3
-              className="font-['Fredericka_the_Great'] text-xl leading-tight"
-              style={{ color }}
-            >
+            <h3 className="font-['Fredericka_the_Great'] text-xl leading-tight" style={{ color }}>
               {skill.name}
             </h3>
             <p className="text-xs text-slate-400">{skill.description}</p>
             <p className="text-[10px] text-slate-500 mt-0.5">
-              {archetype.name} •{" "}
-              {skill.category === "bonus" ? "Active Bonus" : "Passive World"} •
-              Level {currentLevel}/9
+              {archetype.name} • {skill.category === "bonus" ? "Active Bonus" : "Passive World"} • Level{" "}
+              {currentLevel}/9
             </p>
           </div>
         </div>
@@ -805,9 +644,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
         {/* Current level effect */}
         {currentEffect && (
           <div className="rounded-lg border border-slate-700/50 bg-slate-800/50 px-3 py-2 mb-3">
-            <div className="text-[10px] font-semibold text-slate-400 mb-0.5">
-              CURRENT (Level {currentLevel})
-            </div>
+            <div className="text-[10px] font-semibold text-slate-400 mb-0.5">CURRENT (Level {currentLevel})</div>
             <p className="text-xs text-emerald-300">{currentEffect}</p>
           </div>
         )}
@@ -816,38 +653,18 @@ const SkillModal: React.FC<SkillModalProps> = ({
         <div
           className="rounded-lg border px-3 py-2 mb-3"
           style={{
-            borderColor: isUnlocked
-              ? color + "44"
-              : isNext
-                ? color + "33"
-                : "#334155",
-            backgroundColor: isUnlocked
-              ? color + "11"
-              : isNext
-                ? color + "08"
-                : "rgba(15,23,42,0.5)",
+            borderColor: isUnlocked ? color + "44" : isNext ? color + "33" : "#334155",
+            backgroundColor: isUnlocked ? color + "11" : isNext ? color + "08" : "rgba(15,23,42,0.5)",
           }}
         >
           <div className="flex items-center justify-between mb-0.5">
             <span className="text-[10px] font-semibold" style={{ color }}>
-              {isUnlocked
-                ? `\u2713 LEVEL ${targetLevel}`
-                : `LEVEL ${targetLevel}`}
-              {isBranchRow &&
-                branchSide >= 0 &&
-                ` \u2014 ${branchSide === 0 ? skill.branchA : skill.branchB}`}
+              {isUnlocked ? `\u2713 LEVEL ${targetLevel}` : `LEVEL ${targetLevel}`}
+              {isBranchRow && branchSide >= 0 && ` \u2014 ${branchSide === 0 ? skill.branchA : skill.branchB}`}
             </span>
-            {!isUnlocked && (
-              <span className="text-[10px] text-slate-400">
-                {fmtCost(cost)} CUBE
-              </span>
-            )}
+            {!isUnlocked && <span className="text-[10px] text-slate-400">{fmtCost(cost)} CUBE</span>}
           </div>
-          <p
-            className={`text-xs ${isUnlocked ? "text-emerald-300" : "text-slate-200"}`}
-          >
-            {thisEffect}
-          </p>
+          <p className={`text-xs ${isUnlocked ? "text-emerald-300" : "text-slate-200"}`}>{thisEffect}</p>
         </div>
 
         {/* Action buttons */}
@@ -859,20 +676,14 @@ const SkillModal: React.FC<SkillModalProps> = ({
                 disabled={!canAfford || isBusy}
                 onClick={() => onBranch(skillId, 0)}
                 className="flex-1 rounded-lg px-3 py-2.5 text-xs font-semibold transition-all disabled:opacity-40"
-                style={{
-                  backgroundColor: color + "22",
-                  color,
-                  border: `1px solid ${color}55`,
-                }}
+                style={{ backgroundColor: color + "22", color, border: `1px solid ${color}55` }}
               >
                 {isBusy ? (
                   <Loader2 size={14} className="animate-spin mx-auto" />
                 ) : (
                   <>
                     Choose {skill.branchA}
-                    <span className="block text-[10px] opacity-60 mt-0.5">
-                      {fmtCost(cost)} CUBE
-                    </span>
+                    <span className="block text-[10px] opacity-60 mt-0.5">{fmtCost(cost)} CUBE</span>
                   </>
                 )}
               </button>
@@ -881,20 +692,14 @@ const SkillModal: React.FC<SkillModalProps> = ({
                 disabled={!canAfford || isBusy}
                 onClick={() => onBranch(skillId, 1)}
                 className="flex-1 rounded-lg px-3 py-2.5 text-xs font-semibold transition-all disabled:opacity-40"
-                style={{
-                  backgroundColor: color + "22",
-                  color,
-                  border: `1px solid ${color}55`,
-                }}
+                style={{ backgroundColor: color + "22", color, border: `1px solid ${color}55` }}
               >
                 {isBusy ? (
                   <Loader2 size={14} className="animate-spin mx-auto" />
                 ) : (
                   <>
                     Choose {skill.branchB}
-                    <span className="block text-[10px] opacity-60 mt-0.5">
-                      {fmtCost(cost)} CUBE
-                    </span>
+                    <span className="block text-[10px] opacity-60 mt-0.5">{fmtCost(cost)} CUBE</span>
                   </>
                 )}
               </button>
@@ -926,8 +731,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
           ) : wrongBranch ? (
             <div className="flex-1 rounded-lg px-3 py-2 text-xs text-center text-slate-500 border border-slate-800">
               <Lock size={12} className="inline mr-1 -mt-0.5" />
-              Wrong branch \u2014 you chose{" "}
-              {info.branchId === 0 ? skill.branchA : skill.branchB}
+              Wrong branch \u2014 you chose {info.branchId === 0 ? skill.branchA : skill.branchB}
             </div>
           ) : (
             <div className="flex-1 rounded-lg px-3 py-2 text-xs text-center text-slate-500 border border-slate-800">
@@ -963,14 +767,11 @@ const SkillModal: React.FC<SkillModalProps> = ({
                   if (!info.branchChosen) return false;
                   return currentLevel >= fl.level;
                 })();
-
                 return (
                   <div
                     key={`future-${fl.level}-${idx}`}
                     className={`flex items-start gap-2 rounded-md px-2.5 py-1.5 text-xs ${
-                      isThisNode
-                        ? "bg-slate-800/80 border border-slate-700/50"
-                        : "bg-slate-900/40"
+                      isThisNode ? "bg-slate-800/80 border border-slate-700/50" : "bg-slate-900/40"
                     }`}
                   >
                     <div className="flex-shrink-0 mt-0.5">
@@ -991,21 +792,14 @@ const SkillModal: React.FC<SkillModalProps> = ({
                             {fl.branchLabel}
                           </span>
                         )}
-                        <span className="text-[9px] text-slate-500">
-                          {fmtCost(fl.cost)}
-                        </span>
+                        <span className="text-[9px] text-slate-500">{fmtCost(fl.cost)}</span>
                       </div>
-                      <p
-                        className={`text-[11px] mt-0.5 ${flUnlocked ? "text-emerald-300" : "text-slate-300"}`}
-                      >
+                      <p className={`text-[11px] mt-0.5 ${flUnlocked ? "text-emerald-300" : "text-slate-300"}`}>
                         {fl.effect}
                       </p>
                     </div>
                     {!flUnlocked && (
-                      <ChevronRight
-                        size={12}
-                        className="flex-shrink-0 text-slate-600 mt-1"
-                      />
+                      <ChevronRight size={12} className="flex-shrink-0 text-slate-600 mt-1" />
                     )}
                   </div>
                 );
@@ -1027,23 +821,16 @@ function buildTreeData(
   allSkills: SkillInfo[],
   color: string,
   cubeBalance: number,
-  layout: TreeLayout,
-): { nodes: TreeNodeData[]; paths: PathData[] } {
+): { nodes: TreeNodeData[]; lines: LineData[] } {
   const nodes: TreeNodeData[] = [];
-  const paths: PathData[] = [];
-
-  const rowY = (row: number) => layout.rowStartY + row * layout.rowGap;
+  const lines: LineData[] = [];
 
   archetypeSkills.forEach((skill, colIdx) => {
-    const cx = layout.colX[colIdx];
-    const info = allSkills[skill.id - 1] ?? {
-      level: 0,
-      branchChosen: false,
-      branchId: 0,
-    };
+    const cx = COL_X[colIdx];
+    const info = allSkills[skill.id - 1] ?? { level: 0, branchChosen: false, branchId: 0 };
     const skillDef = SKILLS[skill.id];
 
-    // Rows 0-3: core
+    // Core rows 0-3 (levels 1-4)
     for (let row = 0; row < 4; row++) {
       const targetLevel = row + 1;
       const cost = SKILL_TREE_COSTS[row];
@@ -1051,18 +838,14 @@ function buildTreeData(
       const isNext = info.level === row;
       const canAfford = cubeBalance >= cost;
 
-      const tier = getSkillTier(
-        unlocked ? targetLevel : Math.max(0, targetLevel - 1),
-      );
+      const tier = getSkillTier(unlocked ? targetLevel : Math.max(0, targetLevel - 1));
       const iconSrc = getSkillTierIconPath(skillDef.name, tier);
-      const borderColor = unlocked ? color + "bb" : isNext ? color + "66" : "#1e293b55";
-      const iconOpacity = unlocked ? 1 : isNext ? 0.6 : 0.25;
 
       nodes.push({
         key: `core-${skill.id}-${row}`,
-        cx,
-        cy: rowY(row),
-        r: layout.rCore,
+        xPct: cx,
+        yPct: rowY(row),
+        isCore: true,
         iconSrc,
         skillId: skill.id,
         targetLevel,
@@ -1071,59 +854,70 @@ function buildTreeData(
         canAfford,
         dimmed: false,
         color,
-        borderColor,
-        borderWidth: layout.borderWidthCore,
+        borderColor: unlocked ? color + "bb" : isNext ? color + "66" : "#1e293b55",
         nodeOpacity: 1,
-        iconOpacity,
+        iconOpacity: unlocked ? 1 : isNext ? 0.6 : 0.25,
         iconFilter: !unlocked && !isNext ? "grayscale(1)" : "",
-        label: "",
         badgeLabel: unlocked ? "\u2713" : fmtCost(cost),
         badgeColor: unlocked ? "#bbf7d0" : isNext ? "#fed7aa" : "#64748b",
-        badgeR: layout.badgeR,
-        badgeFont: layout.badgeFont,
-        glowOffset: layout.glowOffset,
-        glowStroke: layout.glowStroke,
-        pulseOffset: layout.pulseOffset,
-        pulseStroke: layout.pulseStroke,
         action: isNext && canAfford ? "upgrade" : "none",
         branchSide: -1,
       });
 
+      // Vertical line to next core row
       if (row < 3) {
-        const nextY = rowY(row + 1);
         const lit = info.level > targetLevel;
-        const midY = (rowY(row) + nextY) / 2;
-        paths.push({
-          d: `M ${cx} ${rowY(row) + layout.rCore} C ${cx} ${midY}, ${cx} ${midY}, ${cx} ${nextY - layout.rCore}`,
+        lines.push({
+          key: `vline-core-${skill.id}-${row}`,
+          x1: cx, y1: rowY(row),
+          x2: cx, y2: rowY(row + 1),
           color,
-          strokeWidth: layout.pathStrokeW,
           opacity: lit ? 0.55 : 0.12,
         });
       }
     }
 
-    // Fork paths (row 3 -> row 4)
-    const forkFromY = rowY(3) + layout.rCore;
-    const forkToY = rowY(4) - layout.rBranch;
-    const forkMidY = (forkFromY + forkToY) / 2;
+    // Fork: row 3 → row 4 (T-shape connector)
+    const forkMidY = (rowY(3) + rowY(4)) / 2;
     const litA = info.branchChosen && info.branchId === 0 && info.level > 4;
     const litB = info.branchChosen && info.branchId === 1 && info.level > 4;
-    const litForkGeneral = !info.branchChosen && info.level > 4;
+    const litGeneral = !info.branchChosen && info.level > 4;
+    const forkLit = litA || litB || litGeneral;
 
-    paths.push({
-      d: `M ${cx} ${forkFromY} C ${cx} ${forkMidY}, ${cx - layout.branchOff} ${forkMidY}, ${cx - layout.branchOff} ${forkToY}`,
+    // Center vertical down
+    lines.push({
+      key: `fork-v-${skill.id}`,
+      x1: cx, y1: rowY(3),
+      x2: cx, y2: forkMidY,
       color,
-      strokeWidth: layout.pathStrokeW,
-      opacity: litA || litForkGeneral ? 0.55 : 0.12,
+      opacity: forkLit ? 0.55 : 0.12,
     });
-    paths.push({
-      d: `M ${cx} ${forkFromY} C ${cx} ${forkMidY}, ${cx + layout.branchOff} ${forkMidY}, ${cx + layout.branchOff} ${forkToY}`,
+    // Horizontal bar
+    lines.push({
+      key: `fork-h-${skill.id}`,
+      x1: cx - BRANCH_OFF, y1: forkMidY,
+      x2: cx + BRANCH_OFF, y2: forkMidY,
       color,
-      strokeWidth: layout.pathStrokeW,
-      opacity: litB || litForkGeneral ? 0.55 : 0.12,
+      opacity: forkLit ? 0.55 : 0.12,
+    });
+    // Down to branch A
+    lines.push({
+      key: `fork-a-${skill.id}`,
+      x1: cx - BRANCH_OFF, y1: forkMidY,
+      x2: cx - BRANCH_OFF, y2: rowY(4),
+      color,
+      opacity: litA || litGeneral ? 0.55 : 0.12,
+    });
+    // Down to branch B
+    lines.push({
+      key: `fork-b-${skill.id}`,
+      x1: cx + BRANCH_OFF, y1: forkMidY,
+      x2: cx + BRANCH_OFF, y2: rowY(4),
+      color,
+      opacity: litB || litGeneral ? 0.55 : 0.12,
     });
 
-    // Rows 4-8: branches
+    // Branch rows 4-8 (levels 5-9)
     for (let row = 4; row < 9; row++) {
       const targetLevel = row + 1;
       const cost = SKILL_TREE_COSTS[row];
@@ -1138,9 +932,9 @@ function buildTreeData(
 
       nodes.push({
         key: `brA-${skill.id}-${row}`,
-        cx: cx - layout.branchOff,
-        cy: rowY(row),
-        r: layout.rBranch,
+        xPct: cx - BRANCH_OFF,
+        yPct: rowY(row),
+        isCore: false,
         iconSrc: iconSrcA,
         skillId: skill.id,
         targetLevel,
@@ -1153,27 +947,13 @@ function buildTreeData(
           ? color + "bb"
           : nA.isNext
             ? color + "66"
-            : wrongA
-              ? "#1e293b"
-              : "#1e293b55",
-        borderWidth: layout.borderWidthBranch,
+            : wrongA ? "#1e293b" : "#1e293b55",
         nodeOpacity: wrongA && !needsChoice ? 0.25 : 1,
         iconOpacity: nA.unlocked ? 1 : nA.isNext ? 0.6 : 0.25,
         iconFilter: !nA.unlocked && !nA.isNext ? "grayscale(1)" : "",
-        label: "",
         badgeLabel: nA.unlocked ? "\u2713" : fmtCost(cost),
         badgeColor: nA.unlocked ? "#bbf7d0" : nA.isNext ? "#fed7aa" : "#64748b",
-        badgeR: layout.badgeR,
-        badgeFont: layout.badgeFont,
-        glowOffset: layout.glowOffset,
-        glowStroke: layout.glowStroke,
-        pulseOffset: layout.pulseOffset,
-        pulseStroke: layout.pulseStroke,
-        action: needsChoice && nA.canAfford
-          ? "branchA"
-          : nA.isNext && nA.canAfford
-            ? "upgrade"
-            : "none",
+        action: needsChoice && nA.canAfford ? "branchA" : nA.isNext && nA.canAfford ? "upgrade" : "none",
         branchSide: 0,
       });
 
@@ -1185,9 +965,9 @@ function buildTreeData(
 
       nodes.push({
         key: `brB-${skill.id}-${row}`,
-        cx: cx + layout.branchOff,
-        cy: rowY(row),
-        r: layout.rBranch,
+        xPct: cx + BRANCH_OFF,
+        yPct: rowY(row),
+        isCore: false,
         iconSrc: iconSrcB,
         skillId: skill.id,
         targetLevel,
@@ -1200,60 +980,39 @@ function buildTreeData(
           ? color + "bb"
           : nB.isNext
             ? color + "66"
-            : wrongB
-              ? "#1e293b"
-              : "#1e293b55",
-        borderWidth: layout.borderWidthBranch,
+            : wrongB ? "#1e293b" : "#1e293b55",
         nodeOpacity: wrongB && !needsChoice ? 0.25 : 1,
         iconOpacity: nB.unlocked ? 1 : nB.isNext ? 0.6 : 0.25,
         iconFilter: !nB.unlocked && !nB.isNext ? "grayscale(1)" : "",
-        label: "",
         badgeLabel: nB.unlocked ? "\u2713" : fmtCost(cost),
         badgeColor: nB.unlocked ? "#bbf7d0" : nB.isNext ? "#fed7aa" : "#64748b",
-        badgeR: layout.badgeR,
-        badgeFont: layout.badgeFont,
-        glowOffset: layout.glowOffset,
-        glowStroke: layout.glowStroke,
-        pulseOffset: layout.pulseOffset,
-        pulseStroke: layout.pulseStroke,
-        action: needsChoice && nB.canAfford
-          ? "branchB"
-          : nB.isNext && nB.canAfford
-            ? "upgrade"
-            : "none",
+        action: needsChoice && nB.canAfford ? "branchB" : nB.isNext && nB.canAfford ? "upgrade" : "none",
         branchSide: 1,
       });
 
-      // Branch paths
+      // Branch vertical lines
       if (row < 8) {
-        const nextY = rowY(row + 1);
-        const midY = (rowY(row) + nextY) / 2;
-        const bxA = cx - layout.branchOff;
-        const bxB = cx + layout.branchOff;
-
-        paths.push({
-          d: `M ${bxA} ${rowY(row) + layout.rBranch} C ${bxA} ${midY}, ${bxA} ${midY}, ${bxA} ${nextY - layout.rBranch}`,
+        const bxA = cx - BRANCH_OFF;
+        const bxB = cx + BRANCH_OFF;
+        lines.push({
+          key: `vline-brA-${skill.id}-${row}`,
+          x1: bxA, y1: rowY(row),
+          x2: bxA, y2: rowY(row + 1),
           color,
-          strokeWidth: layout.pathStrokeWBranch,
-          opacity:
-            info.branchChosen && info.branchId === 0 && info.level > targetLevel
-              ? 0.55
-              : 0.1,
+          opacity: info.branchChosen && info.branchId === 0 && info.level > targetLevel ? 0.55 : 0.1,
         });
-        paths.push({
-          d: `M ${bxB} ${rowY(row) + layout.rBranch} C ${bxB} ${midY}, ${bxB} ${midY}, ${bxB} ${nextY - layout.rBranch}`,
+        lines.push({
+          key: `vline-brB-${skill.id}-${row}`,
+          x1: bxB, y1: rowY(row),
+          x2: bxB, y2: rowY(row + 1),
           color,
-          strokeWidth: layout.pathStrokeWBranch,
-          opacity:
-            info.branchChosen && info.branchId === 1 && info.level > targetLevel
-              ? 0.55
-              : 0.1,
+          opacity: info.branchChosen && info.branchId === 1 && info.level > targetLevel ? 0.55 : 0.1,
         });
       }
     }
   });
 
-  return { nodes, paths };
+  return { nodes, lines };
 }
 
 function computeBranchNode(
