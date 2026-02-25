@@ -293,9 +293,9 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
   }, [archetypeSkills, skills, archetype.color, cubeBalance]);
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      {/* Dark panel — fills entire slide */}
-      <div className="flex-1 min-h-0 bg-slate-900/95 border-t border-slate-700/30 flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col p-1.5 pt-0 overflow-hidden">
+      {/* Dark panel */}
+      <div className="flex-1 min-h-0 rounded-2xl border border-slate-700/50 bg-slate-900/90 flex flex-col overflow-hidden">
         {/* Archetype header */}
         <div className="flex items-center gap-3 px-4 py-2.5 border-b border-slate-700/30 flex-shrink-0">
           <div
@@ -313,7 +313,6 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
             </h2>
             <p className="text-xs text-slate-400 truncate">{archetype.description}</p>
           </div>
-          {/* Dot indicators */}
           <div className="flex gap-2 flex-shrink-0">
             {ARCHETYPE_ORDER.map((id) => {
               const isActive = id === archetypeId;
@@ -328,77 +327,77 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
           </div>
         </div>
 
-        {/* SVG tree — fills remaining panel space, scrollable */}
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-          <div className="max-w-5xl mx-auto px-2">
-            {/* Aspect-ratio container — guarantees SVG fills width */}
-            <div className="relative w-full" style={{ paddingBottom: `${(VB_H / VB_W) * 100}%` }}>
-              <svg
-                viewBox={`0 0 ${VB_W} ${VB_H}`}
-                preserveAspectRatio="xMidYMid meet"
-                className="absolute inset-0 w-full h-full"
-              >
-                <defs>
-                  <style>{`
-                    @keyframes skill-pulse {
-                      0%, 100% { opacity: 0.3; }
-                      50% { opacity: 0.8; }
-                    }
-                    .skill-node-pulse { animation: skill-pulse 2s ease-in-out infinite; }
-                  `}</style>
-                </defs>
+        {/* SVG tree — fills remaining panel space */}
+        <div className="flex-1 min-h-0 flex items-center justify-center p-2">
+          <div
+            className="relative mx-auto h-full w-auto max-w-full"
+            style={{ aspectRatio: `${VB_W} / ${VB_H}` }}
+          >
+            <svg
+              viewBox={`0 0 ${VB_W} ${VB_H}`}
+              preserveAspectRatio="xMidYMid meet"
+              className="absolute inset-0 w-full h-full"
+            >
+              <defs>
+                <style>{`
+                  @keyframes skill-pulse {
+                    0%, 100% { opacity: 0.3; }
+                    50% { opacity: 0.8; }
+                  }
+                  .skill-node-pulse { animation: skill-pulse 2s ease-in-out infinite; }
+                `}</style>
+              </defs>
 
-                {/* Skill name labels */}
-                {archetypeSkills.map((skill, colIdx) => (
-                  <g key={`hdr-${skill.id}`}>
-                    <text
-                      x={COL_X[colIdx]}
-                      y={ROW_START_Y - 7}
-                      textAnchor="middle"
-                      fill="#cbd5e1"
-                      fontSize={3.2}
-                      fontWeight="bold"
-                      fontFamily="system-ui, sans-serif"
-                    >
-                      {skill.name}
-                    </text>
-                    <text
-                      x={COL_X[colIdx]}
-                      y={ROW_START_Y - 3.5}
-                      textAnchor="middle"
-                      fill="#475569"
-                      fontSize={2.2}
-                      fontFamily="system-ui, sans-serif"
-                    >
-                      {skill.category === 'bonus' ? 'Active' : 'Passive'}
-                    </text>
-                  </g>
-                ))}
+              {/* Skill name labels */}
+              {archetypeSkills.map((skill, colIdx) => (
+                <g key={`hdr-${skill.id}`}>
+                  <text
+                    x={COL_X[colIdx]}
+                    y={ROW_START_Y - 7}
+                    textAnchor="middle"
+                    fill="#cbd5e1"
+                    fontSize={3.2}
+                    fontWeight="bold"
+                    fontFamily="system-ui, sans-serif"
+                  >
+                    {skill.name}
+                  </text>
+                  <text
+                    x={COL_X[colIdx]}
+                    y={ROW_START_Y - 3.5}
+                    textAnchor="middle"
+                    fill="#475569"
+                    fontSize={2.2}
+                    fontFamily="system-ui, sans-serif"
+                  >
+                    {skill.category === 'bonus' ? 'Active' : 'Passive'}
+                  </text>
+                </g>
+              ))}
 
-                {/* Paths */}
-                {treeData.paths.map((p, i) => (
-                  <path
-                    key={`path-${i}`}
-                    d={p.d}
-                    fill="none"
-                    stroke={p.color}
-                    strokeWidth={p.strokeWidth}
-                    strokeLinecap="round"
-                    opacity={p.opacity}
-                  />
-                ))}
+              {/* Paths */}
+              {treeData.paths.map((p, i) => (
+                <path
+                  key={`path-${i}`}
+                  d={p.d}
+                  fill="none"
+                  stroke={p.color}
+                  strokeWidth={p.strokeWidth}
+                  strokeLinecap="round"
+                  opacity={p.opacity}
+                />
+              ))}
 
-                {/* Nodes */}
-                {treeData.nodes.map((node) => (
-                  <SvgNode
-                    key={node.key}
-                    node={node}
-                    isBusy={busySkillId === node.skillId}
-                    onClick={onNodeClick}
-                  />
-                ))}
-              </svg>
-            </div>
+              {/* Nodes */}
+              {treeData.nodes.map((node) => (
+                <SvgNode
+                  key={node.key}
+                  node={node}
+                  isBusy={busySkillId === node.skillId}
+                  onClick={onNodeClick}
+                />
+              ))}
+            </svg>
           </div>
         </div>
       </div>
