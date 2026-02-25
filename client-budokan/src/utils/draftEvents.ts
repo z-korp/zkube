@@ -131,6 +131,7 @@ export interface StoredDraftPick {
   description: string;
   kind: string;
   pool: string;
+  skillId: number;
 }
 
 export type DraftNodePhase = "entry" | "mid";
@@ -155,6 +156,7 @@ const toStoredDraftPick = (skillId: number): StoredDraftPick | null => {
     description: skill.description,
     kind: skill.category === "bonus" ? "new_powerup" : "zone_modifier",
     pool: skill.category === "bonus" ? "powerup" : "world",
+    skillId,
   };
 };
 
