@@ -307,7 +307,7 @@ const ChampionCard: React.FC<{
           >
             <Trophy size={18} />
           </div>
-          <div>
+          <div className="flex flex-col">
             <span
               className={`font-['Fredericka_the_Great'] text-lg leading-tight block ${
                 tier.claimed ? "text-yellow-400/40" : "text-yellow-50"
