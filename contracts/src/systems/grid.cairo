@@ -275,7 +275,6 @@ mod grid_system {
                 }
             }
 
-
             // Update combos and award cubes
             process_lines_cleared(
                 ref run_data, ref game.combo_counter, ref game.max_combo, lines_cleared,
@@ -745,7 +744,6 @@ mod grid_system {
                 let extra_score: u16 = lines_cleared.into() * effect.bonus_score_per_line.into();
                 update_score(ref run_data, extra_score);
             }
-
 
             // Update combos
             process_lines_cleared(

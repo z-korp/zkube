@@ -203,7 +203,7 @@ const SkillTreePage: React.FC = () => {
       <PageTopBar title="SKILL TREE" onBack={goBack} cubeBalance={cubeBalance} />
 
       {/* Full remaining space — panel + swiper + arrows */}
-      <div className="flex-1 min-h-0 relative overflow-hidden">
+      <div className="flex-1 min-h-0 relative overflow-hidden bg-slate-900/95">
         <Swiper
           slidesPerView={1}
           spaceBetween={0}
