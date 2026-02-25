@@ -6,11 +6,11 @@ interface CubeIconProps {
 }
 
 const sizeMap: Record<string, string> = {
-  xs: "w-4 h-4",
-  sm: "w-5 h-5",
-  base: "w-6 h-6",
-  lg: "w-8 h-8",
-  xl: "w-10 h-10",
+  xs: "w-5 h-5",
+  sm: "w-7 h-7",
+  base: "w-8 h-8",
+  lg: "w-10 h-10",
+  xl: "w-14 h-14",
 };
 
 const CubeIcon: React.FC<CubeIconProps> = ({ className, size = "base" }) => (
