@@ -281,8 +281,8 @@ const MapPage: React.FC = () => {
   return (
     <div className="h-screen-viewport flex flex-col">
       <PageTopBar
-        title={`${zoneName} Zone`}
-        subtitle={`Level ${currentLevel}`}
+        title="WORLD MAP"
+        subtitle={`Zone ${activeZone + 1} - ${zoneName}`}
         onBack={goBack}
         rightSlot={null}
       />
