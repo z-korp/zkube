@@ -244,7 +244,7 @@ Clearing multiple lines in one move awards bonus cubes:
 ### Smart Contract Entry Points
 - `contracts/src/systems/game.cairo` - Main game logic (create, move, apply_bonus, purchase_consumable)
 - `contracts/src/systems/shop.cairo` - Permanent shop (upgrades, bag size, bridging rank)
-- `contracts/src/systems/cube_token.cairo` - ERC20 CUBE token (zCubes/ZCUBE) (mint/burn)
+- `contracts/src/systems/cube_token.cairo` - ERC20 CUBE token (zKube/ZKUBE) (mint/burn)
 - `contracts/src/systems/quest.cairo` - Daily quest system (progress, claim)
 - `contracts/src/systems/config.cairo` - Game settings management
 - `contracts/src/models/game.cairo` - Game state model (blocks, run_data, combo, over)
@@ -261,7 +261,7 @@ Clearing multiple lines in one move awards bonus cubes:
 - **FullTokenContract** - game-components ERC721 for game NFTs (deployed externally)
 
 ### Cube Token (ERC-20)
-- `contracts/src/systems/cube_token.cairo` - ERC-20 token (name="zCubes", symbol="ZCUBE", 0 decimals)
+- `contracts/src/systems/cube_token.cairo` - ERC-20 token (name="zKube", symbol="ZKUBE", 0 decimals)
 - Mint/burn controlled by MINTER_ROLE (granted to game_system, move_system, shop_system, quest_system)
 - Torii indexes balances via registered external contract
 

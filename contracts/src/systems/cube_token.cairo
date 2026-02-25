@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// zKube zCubes Token - ERC20
+// zKube Token - ERC20
 
 use starknet::ContractAddress;
 
@@ -72,7 +72,7 @@ pub mod cube_token {
     pub const MINTER_ROLE: felt252 = 'MINTER_ROLE';
 
     fn dojo_init(ref self: ContractState) {
-        self.erc20.initializer("zCubes", "ZCUBE");
+        self.erc20.initializer("zKube", "ZKUBE");
         self.accesscontrol.initializer();
 
         // Get deployer account from transaction info

@@ -5,6 +5,7 @@ import { useLerpNumber } from "@/hooks/useLerpNumber";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
 import { getCommonAssetPath } from "@/config/themes";
+import CubeIcon from "@/ui/components/CubeIcon";
 import {
   Tooltip,
   TooltipContent,
@@ -237,7 +238,7 @@ const GameHud: React.FC<GameHudProps> = ({
         </div>
 
         <div className="flex items-center gap-1 col-span-2">
-          <span className="text-base">🧊</span>
+          <CubeIcon />
           <span className="font-['Fredericka_the_Great'] text-base text-blue-300 tabular-nums">{totalCubes}</span>
         </div>
 
@@ -324,15 +325,15 @@ const GameHud: React.FC<GameHudProps> = ({
                 <div className="absolute left-0 top-full mt-1.5 z-[200] bg-slate-900 border border-slate-500 rounded-md px-3 py-2 shadow-lg whitespace-nowrap">
                   <div className="flex flex-col gap-1 text-xs text-white">
                     <div className="flex items-center gap-2">
-                      <span>🧊🧊🧊</span>
+                      <span className="inline-flex gap-0.5"><CubeIcon size="xs" /><CubeIcon size="xs" /><CubeIcon size="xs" /></span>
                       <span>≥ {cube3Threshold} moves left</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span>🧊🧊</span>
+                      <span className="inline-flex gap-0.5"><CubeIcon size="xs" /><CubeIcon size="xs" /></span>
                       <span>≥ {cube2Threshold} moves left</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span>🧊</span>
+                      <CubeIcon size="xs" />
                       <span>Complete level</span>
                     </div>
                   </div>
@@ -364,7 +365,7 @@ const GameHud: React.FC<GameHudProps> = ({
         </div>
 
         <div className="flex items-center gap-0.5">
-          <span className="text-xs">🧊</span>
+          <CubeIcon size="xs" />
           <span className={`font-['Fredericka_the_Great'] text-sm tabular-nums ${
             potentialCubes >= 3 ? "text-green-400" : potentialCubes >= 2 ? "text-yellow-400" : "text-red-400"
           }`}>+{potentialCubes}</span>

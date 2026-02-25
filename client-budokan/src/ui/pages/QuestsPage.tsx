@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useQuests } from "@/contexts/quests";
 import { useMusicPlayer } from "@/contexts/hooks";
+import CubeIcon from "@/ui/components/CubeIcon";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -184,7 +185,7 @@ const QuestCard: React.FC<{
               allClaimed ? "opacity-35" : ""
             }`}
           >
-            <span className="text-xs">🧊</span>
+            <CubeIcon size="xs" />
             <span className="font-['Fredericka_the_Great'] text-sm text-yellow-200">
               {activeTier.reward}
             </span>
@@ -251,7 +252,7 @@ const QuestCard: React.FC<{
           {isClaiming ? (
             <Loader2 size={14} className="animate-spin" />
           ) : (
-            <>Claim 🧊 {claimable.reward}</>
+            <>Claim <CubeIcon size="xs" /> {claimable.reward}</>
           )}
         </button>
       )}
@@ -328,7 +329,7 @@ const ChampionCard: React.FC<{
             tier.claimed ? "opacity-35" : ""
           }`}
         >
-          <span className="text-sm">🧊</span>
+          <CubeIcon size="sm" />
           <span className="font-['Fredericka_the_Great'] text-base text-yellow-200">
             {tier.reward}
           </span>
@@ -370,7 +371,7 @@ const ChampionCard: React.FC<{
           {isClaiming ? (
             <Loader2 size={14} className="animate-spin" />
           ) : (
-            <>CLAIM CHAMPION 🧊 {tier.reward}</>
+            <>CLAIM CHAMPION <CubeIcon size="xs" /> {tier.reward}</>
           )}
         </button>
       )}

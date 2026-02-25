@@ -1,5 +1,6 @@
 import { ChevronLeft } from "lucide-react";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
+import CubeIcon from "@/ui/components/CubeIcon";
 
 interface PageTopBarProps {
   title: string;
@@ -47,7 +48,7 @@ const PageTopBar: React.FC<PageTopBarProps> = ({
       <div className="flex items-center gap-2">
         {rightSlot}
         <div className="flex items-center gap-1.5">
-          <span className="text-lg">🧊</span>
+          <CubeIcon />
           <span className="font-['Fredericka_the_Great'] text-yellow-400 text-lg tracking-wide">
             {displayBalance.toString()}
           </span>

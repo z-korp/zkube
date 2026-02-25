@@ -19,7 +19,7 @@ contracts/
 │   ├── systems/               # Dojo systems (logic)
 │   │   ├── game.cairo         # Main game system + MinigameComponent
 │   │   ├── shop.cairo         # Permanent shop (cube economy)
-│   │   ├── cube_token.cairo   # ERC20 CUBE token (zCubes/ZCUBE)
+│   │   ├── cube_token.cairo   # ERC20 CUBE token (zKube/ZKUBE)
 │   │   ├── quest.cairo        # Daily quest system
 │   │   ├── config.cairo       # Configuration + IMinigameSettings
 │   │   └── renderer.cairo     # NFT metadata & SVG (IMinigameDetails)
@@ -237,7 +237,7 @@ All upgrades burn cubes via the ERC20 `CubeToken` contract.
 
 ### CubeToken System (`systems/cube_token.cairo`)
 
-ERC20 token for the CUBE currency (name='zCubes', symbol='ZCUBE', 0 decimals):
+ERC20 token for the CUBE currency (name='zKube', symbol='ZKUBE', 0 decimals):
 
 ```cairo
 trait ICubeToken {

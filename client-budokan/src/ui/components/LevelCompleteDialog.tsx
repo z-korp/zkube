@@ -6,6 +6,7 @@ import { Button } from "../elements/button";
 import { Check, Trophy } from "lucide-react";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import { useMusicPlayer } from "@/contexts/hooks";
+import CubeIcon from "@/ui/components/CubeIcon";
 
 interface LevelCompleteDialogProps {
   isOpen: boolean;
@@ -163,7 +164,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
                   cube <= baseCubesEarned ? "opacity-100" : "opacity-30"
                 }`}
               >
-                🧊
+                <CubeIcon size="xl" />
               </span>
             </motion.div>
           ))}
@@ -208,7 +209,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
               <div className="flex justify-between pt-1 border-t border-yellow-500/20">
                 <span className="text-slate-200 font-medium">Total</span>
                 <span className="text-yellow-400 font-bold">
-                  +{totalLevelCubes} 🧊
+                  +{totalLevelCubes} <CubeIcon size="sm" className="w-4 h-4 inline-block" />
                 </span>
               </div>
             )}

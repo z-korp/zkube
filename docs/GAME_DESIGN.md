@@ -32,7 +32,7 @@ zKube is a **Puzzle Roguelike** where players manipulate blocks on an 8x10 grid 
 - **Skill Tree** for permanent progression (levels 0-9)
 - **Draft-only Level 10** spikes for in-run power moments
 - **No shop system** (removed)
-- **CUBE Currency** (ERC-20, `zCubes`, `ZCUBE`, 0 decimals)
+- **CUBE Currency** (ERC-20, `zKube`, `ZKUBE`, 0 decimals)
 - **Constraint, Quest, and Achievement systems**
 
 Core runtime principles:
@@ -518,7 +518,7 @@ Constraint generation and boss identity model remain unchanged from prior versio
 
 ## Cube Economy
 
-**Token:** ERC-20 (`cube_token`, name="zCubes", symbol="ZCUBE", decimals=0)
+**Token:** ERC-20 (`cube_token`, name="zKube", symbol="ZKUBE", decimals=0)
 
 ### 8.1 Level Completion Rewards
 

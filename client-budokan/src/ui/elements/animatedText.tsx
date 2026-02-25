@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import "../../grid.css";
 import { ComboMessages } from "@/enums/comboEnum";
+import CubeIcon from "@/ui/components/CubeIcon";
 
 interface AnimatedTextProps {
   textEnum: string;
@@ -38,7 +39,7 @@ const AnimatedText: React.FC<AnimatedTextProps> = ({
               <span className="text-blue-300">+{pointsEarned} pts</span>
             )}
             {!!cubesEarned && (
-              <span className="text-yellow-300">+{cubesEarned} 🧊</span>
+              <span className="text-yellow-300 inline-flex items-center gap-1">+{cubesEarned} <CubeIcon size="sm" /></span>
             )}
           </div>
         )}

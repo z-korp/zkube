@@ -6,6 +6,7 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { useMemo, useCallback, useState, useEffect } from "react";
 import { shortString } from "starknet";
 import { motion } from "motion/react";
+import CubeIcon from "@/ui/components/CubeIcon";
 import {
   Check,
   Clock3,
@@ -149,7 +150,7 @@ const CompactQuestCard: React.FC<{
               allClaimed ? "opacity-35" : ""
             }`}
           >
-            <span className="text-[10px]">🧊</span>
+            <CubeIcon size="xs" />
             <span className="font-['Fredericka_the_Great'] text-xs text-yellow-200">
               {activeTier.reward}
             </span>
@@ -216,7 +217,7 @@ const CompactQuestCard: React.FC<{
           {isClaiming ? (
             <Loader2 size={12} className="animate-spin" />
           ) : (
-            <>Claim 🧊 {claimable.reward}</>
+            <>Claim <CubeIcon size="xs" /> {claimable.reward}</>
           )}
         </button>
       )}
@@ -322,7 +323,7 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
         {/* Claimable banner */}
         {claimableRewards > 0 && (
           <div className="flex items-center justify-center gap-2 mb-3 bg-yellow-500/10 border border-yellow-400/20 rounded-lg py-1.5 px-3">
-            <span className="text-sm">🧊</span>
+            <CubeIcon size="sm" />
             <span className="font-['Fredericka_the_Great'] text-lg text-yellow-200 leading-none">
               {claimableRewards}
             </span>
@@ -382,7 +383,7 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
                         finisherTier.claimed ? "opacity-35" : ""
                       }`}
                     >
-                      <span className="text-[10px]">🧊</span>
+                      <CubeIcon size="xs" />
                       <span className="font-['Fredericka_the_Great'] text-xs text-yellow-200">
                         {finisherTier.reward}
                       </span>
@@ -432,7 +433,7 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
                       `${finisherFamily.claimableTier.questId}:${finisherFamily.claimableTier.intervalId}` ? (
                         <Loader2 size={11} className="animate-spin" />
                       ) : (
-                        <>CLAIM 🧊 {finisherFamily.claimableTier.reward}</>
+                        <>CLAIM <CubeIcon size="xs" /> {finisherFamily.claimableTier.reward}</>
                       )}
                     </button>
                   )}

@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { motion, type Variants } from "motion/react";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { Flame, Gem, Layers, RotateCw, Trophy } from "lucide-react";
+import CubeIcon from "@/ui/components/CubeIcon";
 
 interface GameOverDialogProps {
   isOpen: boolean;
@@ -222,7 +223,7 @@ app.zkube.xyz`;
             <div className="flex flex-col items-center gap-1 bg-slate-800/50 px-3 py-3 rounded-lg flex-1">
               <div className="text-2xl flex gap-1.5 items-center text-yellow-400">
                 {game.totalCubes}
-                <span className="text-xl">🧊</span>
+                <CubeIcon size="lg" />
               </div>
               <div className="text-xs text-slate-400">Cubes</div>
             </div>

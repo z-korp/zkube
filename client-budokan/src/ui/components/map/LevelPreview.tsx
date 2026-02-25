@@ -6,6 +6,7 @@ import type { MapNodeData } from "@/hooks/useMapData";
 import type { Game } from "@/dojo/game/models/game";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import GameButton from "@/ui/components/shared/GameButton";
+import CubeIcon from "@/ui/components/CubeIcon";
 
 export interface LevelPreviewProps {
   node: MapNodeData;
@@ -144,7 +145,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
             <div className="flex items-center justify-between rounded-lg bg-emerald-500/15 px-3 py-2.5">
               <span className="text-emerald-200">✓ Cleared</span>
               <span className="text-lg">
-                {"🧊".repeat(stars)}
+                {Array.from({ length: stars }).map((_, i) => <CubeIcon key={i} size="sm" />)}
                 {stars === 0 && (
                   <span className="text-slate-500 text-sm">—</span>
                 )}
@@ -217,7 +218,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
                     key={cubes}
                     className="flex items-center justify-between rounded-md bg-slate-800/60 px-2 py-1 text-slate-300"
                   >
-                    <span>{"🧊".repeat(cubes)}</span>
+                    <span className="inline-flex">{Array.from({ length: cubes }).map((_, i) => <CubeIcon key={i} size="sm" />)}</span>
                     <span className="text-lg">≤ {threshold}</span>
                   </div>
                 ))}

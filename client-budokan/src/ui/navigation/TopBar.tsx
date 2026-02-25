@@ -1,4 +1,5 @@
 import { BookOpen, ScrollText, Trophy, Settings2, User } from "lucide-react";
+import CubeIcon from "@/ui/components/CubeIcon";
 
 interface TopBarProps {
   cubeBalance: bigint;
@@ -46,7 +47,7 @@ const TopBar: React.FC<TopBarProps> = ({
       </div>
 
       <div className="flex items-center gap-1.5">
-        <span className="text-lg">🧊</span>
+        <CubeIcon />
         <span className="font-['Fredericka_the_Great'] text-yellow-400 text-lg tracking-wide">
           {cubeBalance.toString()}
         </span>
