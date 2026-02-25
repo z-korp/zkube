@@ -210,8 +210,8 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
               <div className="space-y-1 pt-1">
                 <p className="mb-1 text-slate-400">Moves</p>
                 {[
-                  { cubes: 3, threshold: cube3Threshold },
-                  { cubes: 2, threshold: cube2Threshold },
+                  { cubes: 5, threshold: cube3Threshold },
+                  { cubes: 3, threshold: cube2Threshold },
                   { cubes: 1, threshold: maxMoves },
                 ].map(({ cubes, threshold }) => (
                   <div

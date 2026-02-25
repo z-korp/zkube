@@ -152,8 +152,8 @@ const QuestCard: React.FC<{
         allClaimed
           ? "bg-slate-900/50"
           : claimable
-            ? "bg-slate-900 ring-1 ring-green-500/30"
-            : "bg-slate-900"
+            ? "bg-slate-900/90 ring-1 ring-green-500/30"
+            : "bg-slate-900/90"
       }`}
     >
       {/* Header: icon, name, tier dots, reward */}
@@ -162,7 +162,7 @@ const QuestCard: React.FC<{
           <div
             className={`grid h-8 w-8 place-items-center rounded-lg flex-shrink-0 ${
               allClaimed
-                ? "bg-green-500/10 text-green-400/50"
+                ? "bg-green-500/15 text-green-400/70"
                 : claimable
                   ? "bg-green-500/15 text-green-300"
                   : "bg-white/8 text-cyan-300"
@@ -172,7 +172,7 @@ const QuestCard: React.FC<{
           </div>
           <span
             className={`font-['Fredericka_the_Great'] text-base leading-tight truncate ${
-              allClaimed ? "text-slate-500" : "text-white"
+              allClaimed ? "text-slate-400" : "text-white"
             }`}
           >
             {family.name}
@@ -182,7 +182,7 @@ const QuestCard: React.FC<{
           <TierDots tiers={family.tiers} />
           <span
             className={`inline-flex items-center gap-0.5 ${
-              allClaimed ? "opacity-35" : ""
+              allClaimed ? "opacity-50" : ""
             }`}
           >
             <CubeIcon size="xs" />
@@ -206,7 +206,7 @@ const QuestCard: React.FC<{
 
       {/* Progress / status */}
       {allClaimed ? (
-        <p className="text-xs text-green-400/50">All tiers completed</p>
+        <p className="text-xs text-green-400/70">All tiers completed</p>
       ) : isCumulative ? (
         <div className="flex items-center gap-2.5">
           <div className="h-1.5 flex-1 rounded-full bg-white/10 overflow-hidden">
@@ -290,7 +290,7 @@ const ChampionCard: React.FC<{
           ? "bg-slate-900/50"
           : canClaim
             ? "bg-gradient-to-br from-yellow-950/60 to-amber-950/40 ring-1 ring-yellow-500/25"
-            : "bg-slate-900 ring-1 ring-yellow-500/10"
+            : "bg-slate-900/90 ring-1 ring-yellow-500/10"
       }`}
     >
       {/* Header */}
@@ -299,7 +299,7 @@ const ChampionCard: React.FC<{
           <div
             className={`grid h-9 w-9 place-items-center rounded-lg flex-shrink-0 ${
               tier.claimed
-                ? "bg-yellow-500/10 text-yellow-400/40"
+                ? "bg-yellow-500/15 text-yellow-400/60"
                 : canClaim
                   ? "bg-yellow-400/20 text-yellow-200"
                   : "bg-yellow-500/10 text-yellow-300"
@@ -307,17 +307,17 @@ const ChampionCard: React.FC<{
           >
             <Trophy size={18} />
           </div>
-          <div>
+          <div className="flex flex-col gap-0.5">
             <span
-              className={`font-['Fredericka_the_Great'] text-lg leading-tight block ${
-                tier.claimed ? "text-yellow-400/40" : "text-yellow-50"
+              className={`font-['Fredericka_the_Great'] text-lg leading-tight ${
+                tier.claimed ? "text-yellow-400/60" : "text-yellow-50"
               }`}
             >
               Daily Champion
             </span>
             <span
               className={`text-xs ${
-                tier.claimed ? "text-slate-600" : "text-slate-400"
+                tier.claimed ? "text-slate-500" : "text-slate-400"
               }`}
             >
               Complete all {totalQuests} quests
@@ -326,7 +326,7 @@ const ChampionCard: React.FC<{
         </div>
         <span
           className={`inline-flex items-center gap-0.5 flex-shrink-0 ${
-            tier.claimed ? "opacity-35" : ""
+            tier.claimed ? "opacity-50" : ""
           }`}
         >
           <CubeIcon size="sm" />
@@ -342,7 +342,7 @@ const ChampionCard: React.FC<{
           <motion.div
             className={`h-full rounded-full ${
               tier.claimed
-                ? "bg-yellow-600/30"
+                ? "bg-yellow-600/50"
                 : canClaim
                   ? "bg-gradient-to-r from-green-400 to-emerald-400"
                   : "bg-gradient-to-r from-yellow-400 to-amber-300"
@@ -354,7 +354,7 @@ const ChampionCard: React.FC<{
         </div>
         <span
           className={`font-['Fredericka_the_Great'] text-base leading-none min-w-fit ${
-            tier.claimed ? "text-yellow-400/35" : "text-yellow-50"
+            tier.claimed ? "text-yellow-400/55" : "text-yellow-50"
           }`}
         >
           {totalCompleted}/{totalQuests}
@@ -377,7 +377,7 @@ const ChampionCard: React.FC<{
       )}
 
       {tier.claimed && (
-        <p className="text-center text-xs text-yellow-400/35 mt-2">
+        <p className="text-center text-xs text-yellow-400/55 mt-2">
           Champion reward claimed ✓
         </p>
       )}

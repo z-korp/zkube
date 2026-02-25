@@ -64,9 +64,9 @@ export const THEME_META: Record<ThemeId, ThemeMeta> = {
       "Dense jungle temple ruins with carved stone, calendar glyphs, and moss-covered ancient masonry",
   },
   "theme-9": {
-    name: "Pueblo",
+    name: "Tribal",
     description:
-      "Adobe desert settlement with turquoise inlays, geometric painted borders, and vast canyon skies",
+      "Earthy savanna ritual grounds with painted patterns, drums, feathers, and tribal symbols",
   },
   "theme-10": {
     name: "Inca",

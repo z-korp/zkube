@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { motion } from "motion/react";
-import { Map } from "lucide-react";
+import { Play, Eye } from "lucide-react";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -58,15 +58,15 @@ const MyGamesPage: React.FC = () => {
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
         <div className="max-w-[760px] mx-auto flex flex-col gap-3 pb-8">
           {loading ? (
-            <div className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60 text-slate-200">
+            <div className="bg-slate-900/90 rounded-xl p-4 border border-white/10 text-slate-300">
               Loading your runs...
             </div>
           ) : !account?.address ? (
-            <div className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60 text-slate-200">
+            <div className="bg-slate-900/90 rounded-xl p-4 border border-white/10 text-slate-300">
               Connect your wallet to see your game tokens.
             </div>
           ) : activeGames.length === 0 && finishedGames.length === 0 ? (
-            <div className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60 text-slate-200">
+            <div className="bg-slate-900/90 rounded-xl p-4 border border-white/10 text-slate-300">
               No games yet. Start a run and your games will appear here.
             </div>
           ) : (
@@ -75,14 +75,14 @@ const MyGamesPage: React.FC = () => {
                 <motion.section
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-slate-900/80 rounded-xl p-4 border border-emerald-500/30"
+                  className="bg-slate-900/90 rounded-xl p-4 border border-emerald-500/30"
                 >
                   <h3 className="font-['Fredericka_the_Great'] text-lg text-emerald-300 mb-3">
                     Active
                   </h3>
                   <table className="w-full text-sm table-fixed">
                     <thead>
-                      <tr className="text-left text-slate-300 border-b border-slate-600/60">
+                      <tr className="text-left text-slate-300 border-b border-slate-700/50">
                         <th className="py-2 px-2 font-['Fredericka_the_Great']">Game</th>
                         <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
                         <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
@@ -126,9 +126,9 @@ const MyGamesPage: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => navigate("map", game.token_id)}
-                                className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-emerald-500 text-black transition hover:bg-emerald-400"
+                                className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-emerald-500 text-white transition hover:bg-emerald-400"
                               >
-                                <Map size={16} />
+                                <Play size={16} fill="currentColor" />
                               </button>
                             </td>
                           </motion.tr>
@@ -143,14 +143,14 @@ const MyGamesPage: React.FC = () => {
                 <motion.section
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60"
+                  className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
                 >
                   <h3 className="font-['Fredericka_the_Great'] text-lg text-slate-400 mb-3">
                     Finished
                   </h3>
                   <table className="w-full text-sm table-fixed">
                     <thead>
-                      <tr className="text-left text-slate-300 border-b border-slate-600/60">
+                      <tr className="text-left text-slate-300 border-b border-slate-700/50">
                         <th className="py-2 px-2 font-['Fredericka_the_Great']">Game</th>
                         <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
                         <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
@@ -194,9 +194,9 @@ const MyGamesPage: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => navigate("map", game.token_id)}
-                                className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-slate-700 text-slate-100 transition hover:bg-slate-600"
+                                className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-slate-700 text-slate-300 transition hover:bg-slate-600"
                               >
-                                <Map size={16} />
+                                <Eye size={16} />
                               </button>
                             </td>
                           </motion.tr>

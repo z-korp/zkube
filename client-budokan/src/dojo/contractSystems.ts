@@ -427,7 +427,7 @@ export function setupWorld(config: Config) {
           {
             contractAddress: contract.address,
             entrypoint: "upgrade_skill",
-            calldata: [skill_id],
+            calldata: [skill_id - 1], // Contract uses 0-indexed skill IDs (0-14), client uses 1-indexed (1-15)
           },
         ]);
       } catch (error) {
@@ -446,7 +446,7 @@ export function setupWorld(config: Config) {
           {
             contractAddress: contract.address,
             entrypoint: "choose_branch",
-            calldata: [skill_id, branch_id],
+            calldata: [skill_id - 1, branch_id], // Contract uses 0-indexed skill IDs
           },
         ]);
       } catch (error) {
@@ -464,7 +464,7 @@ export function setupWorld(config: Config) {
           {
             contractAddress: contract.address,
             entrypoint: "respec_branch",
-            calldata: [skill_id],
+            calldata: [skill_id - 1], // Contract uses 0-indexed skill IDs
           },
         ]);
       } catch (error) {

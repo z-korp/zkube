@@ -52,11 +52,6 @@ export const ZoneBackground: React.FC<ZoneBackgroundProps> = ({ zone, themeId })
         }}
       />
 
-      <div className="absolute top-3 left-1/2 -translate-x-1/2 rounded-full border border-white/20 bg-black/25 px-4 py-1 text-center backdrop-blur-sm">
-        <p className="font-['Fredericka_the_Great'] text-sm text-white/85">
-          Zone {zone} - {meta.name}
-        </p>
-      </div>
     </div>
   );
 };

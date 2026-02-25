@@ -94,7 +94,7 @@ interface ModalState {
 const SkillTreePage: React.FC = () => {
   const goBack = useNavigationStore((s) => s.goBack);
   const { cubeBalance } = useCubeBalance();
-  const { skillTree } = useSkillTree();
+  const { skillTree, optimisticUpgrade, optimisticBranch, optimisticRespec } = useSkillTree();
   const { account } = useAccountCustom();
   const {
     setup: { systemCalls },
@@ -158,6 +158,7 @@ const SkillTreePage: React.FC = () => {
       try {
         setBusySkillId(skillId);
         await systemCalls.upgradeSkill({ account, skill_id: skillId });
+        optimisticUpgrade(skillId);
       } catch (e) {
         console.error("upgrade_skill failed:", e);
       } finally {
@@ -178,6 +179,7 @@ const SkillTreePage: React.FC = () => {
           skill_id: skillId,
           branch_id: branch,
         });
+        optimisticBranch(skillId, branch);
       } catch (e) {
         console.error("choose_branch failed:", e);
       } finally {
@@ -194,6 +196,7 @@ const SkillTreePage: React.FC = () => {
       try {
         setBusySkillId(skillId);
         await systemCalls.respecBranch({ account, skill_id: skillId });
+        optimisticRespec(skillId);
       } catch (e) {
         console.error("respec_branch failed:", e);
       } finally {
@@ -354,22 +357,39 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
 
       {/* ---- Skill name labels (CSS Grid) ---- */}
       <div className="shrink-0 grid grid-cols-3 text-center py-1.5 px-2">
-        {archetypeSkills.map((skill) => (
-          <div key={skill.id} className="min-w-0 px-1">
-            <div
-              className="font-bold text-slate-300 truncate"
-              style={{ fontSize: "clamp(10px, 1.6vw, 14px)" }}
-            >
-              {skill.name}
+        {archetypeSkills.map((skill) => {
+          const info = skills[skill.id - 1];
+          const lvl = info?.level ?? 0;
+          return (
+            <div key={skill.id} className="min-w-0 px-1">
+              <div
+                className="font-bold text-slate-300 truncate flex items-center justify-center gap-1"
+                style={{ fontSize: "clamp(10px, 1.6vw, 14px)" }}
+              >
+                {skill.name}
+                <span
+                  className="shrink-0 inline-flex items-center justify-center rounded-full border font-['Fredericka_the_Great']"
+                  style={{
+                    width: "clamp(16px, 2.2vw, 22px)",
+                    height: "clamp(16px, 2.2vw, 22px)",
+                    fontSize: "clamp(7px, 1vw, 10px)",
+                    borderColor: lvl > 0 ? archetype.color + '88' : '#475569',
+                    color: lvl > 0 ? archetype.color : '#64748b',
+                    backgroundColor: lvl > 0 ? archetype.color + '15' : 'transparent',
+                  }}
+                >
+                  {lvl + 1}
+                </span>
+              </div>
+              <div
+                className="text-slate-500"
+                style={{ fontSize: "clamp(8px, 1.2vw, 11px)" }}
+              >
+                {skill.category === "bonus" ? "Active" : "Passive"}
+              </div>
             </div>
-            <div
-              className="text-slate-500"
-              style={{ fontSize: "clamp(8px, 1.2vw, 11px)" }}
-            >
-              {skill.category === "bonus" ? "Active" : "Passive"}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* ---- Tree area — takes ALL remaining height ---- */}
@@ -702,7 +722,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
             <p className="text-[10px] text-slate-500 mt-0.5">
               {archetype.name} •{" "}
               {skill.category === "bonus" ? "Active Bonus" : "Passive World"} •
-              Level {currentLevel}/9
+              Level {currentLevel + 1}/10
             </p>
           </div>
         </div>
@@ -711,7 +731,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
         {currentEffect && (
           <div className="rounded-lg border border-slate-700/50 bg-slate-800/50 px-3 py-2 mb-3">
             <div className="text-[10px] font-semibold text-slate-400 mb-0.5">
-              CURRENT (Level {currentLevel})
+              CURRENT (Level {currentLevel + 1})
             </div>
             <p className="text-xs text-emerald-300">{currentEffect}</p>
           </div>
@@ -736,8 +756,8 @@ const SkillModal: React.FC<SkillModalProps> = ({
           <div className="flex items-center justify-between mb-0.5">
             <span className="text-[10px] font-semibold" style={{ color }}>
               {isUnlocked
-                ? `\u2713 LEVEL ${targetLevel}`
-                : `LEVEL ${targetLevel}`}
+                ? `\u2713 LEVEL ${targetLevel + 1}`
+                : `LEVEL ${targetLevel + 1}`}
               {isBranchRow &&
                 branchSide >= 0 &&
                 ` \u2014 ${branchSide === 0 ? skill.branchA : skill.branchB}`}
@@ -837,7 +857,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
           ) : (
             <div className="flex-1 rounded-lg px-3 py-2 text-xs text-center text-slate-500 border border-slate-800">
               <Lock size={12} className="inline mr-1 -mt-0.5" />
-              Reach level {targetLevel - 1} first
+              Reach level {targetLevel} first
             </div>
           )}
         </div>
@@ -879,7 +899,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
                       <div
                         className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${done ? "bg-emerald-900/50 text-emerald-400 border border-emerald-700/50" : "bg-slate-800 text-slate-500 border border-slate-700/40"}`}
                       >
-                        {done ? "\u2713" : fl.level}
+                        {done ? "\u2713" : fl.level + 1}
                       </div>
                     </div>
                     <div className="min-w-0 flex-1">

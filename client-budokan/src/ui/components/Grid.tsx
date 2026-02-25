@@ -47,6 +47,8 @@ interface GridProps {
   isTxProcessing: boolean;
   setIsTxProcessing: React.Dispatch<React.SetStateAction<boolean>>;
   activeBonusLevel: number;
+  levelTransitionPending: boolean;
+  onCascadeComplete?: () => void;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -63,6 +65,8 @@ const Grid: React.FC<GridProps> = ({
   isTxProcessing,
   setIsTxProcessing,
   activeBonusLevel,
+  levelTransitionPending,
+  onCascadeComplete,
 }) => {
   const {
     setup: {
@@ -140,8 +144,13 @@ const Grid: React.FC<GridProps> = ({
   // =================== Chain sync ===================
   // After state machine completes (applyData=true), wait for chain data to arrive.
   // When chain state differs from our saved baseline, sync everything to chain.
+  // Skip sync when levelTransitionPending — the chain grid is stale (old level's final state).
   useEffect(() => {
     if (!applyData) return;
+
+    // Don't apply chain data during level transitions — blocks are stale
+    // (old level's end grid until reset_grid_for_level runs in startNextLevel)
+    if (levelTransitionPending) return;
 
     // Chain data hasn't changed yet — keep waiting
     const same = deepCompareBlocks(saveGridStateblocks, initialData);
@@ -156,7 +165,13 @@ const Grid: React.FC<GridProps> = ({
     setNextLineHasBeenConsumed(false);
     setIsTxProcessing(false);
     setApplyData(false);
-  }, [applyData, initialData, nextLineData, saveGridStateblocks, setIsTxProcessing, setNextLineHasBeenConsumed]);
+
+    // If we were in CASCADE_COMPLETE, transition to WAITING now
+    if (gameStateRef.current === GameState.CASCADE_COMPLETE) {
+      gameStateRef.current = GameState.WAITING;
+      setGameState(GameState.WAITING);
+    }
+  }, [applyData, initialData, nextLineData, saveGridStateblocks, setIsTxProcessing, setNextLineHasBeenConsumed, levelTransitionPending]);
 
   // Keep grid position in store used for particles positionning
   useEffect(() => {
@@ -661,7 +676,7 @@ const Grid: React.FC<GridProps> = ({
             setAnimatedCubes(cubesFromCombo);
           }
 
-          // All animations done — wait for chain data to arrive
+          // All local cascading done — signal cascade complete
           setApplyData(true);
 
           // Reset per-move state
@@ -672,12 +687,20 @@ const Grid: React.FC<GridProps> = ({
           if (gameState === GameState.UPDATE_AFTER_BONUS) {
             selectBlock(blockBonus as Block);
             setBlockBonus(null);
-            setGameState(GameState.WAITING);
+            // Bonus: transition to CASCADE_COMPLETE, wait for chain sync
+            setIsTxProcessing(true);
+            gameStateRef.current = GameState.CASCADE_COMPLETE;
+            setGameState(GameState.CASCADE_COMPLETE);
+            onCascadeComplete?.();
           } else if (gameState === GameState.UPDATE_AFTER_MOVE) {
             // Block input until chain data syncs
             setIsTxProcessing(true);
             setcurrentMove(null);
-            setGameState(GameState.WAITING);
+            // Transition to CASCADE_COMPLETE instead of WAITING
+            // Chain sync effect will move us to WAITING once data arrives
+            gameStateRef.current = GameState.CASCADE_COMPLETE;
+            setGameState(GameState.CASCADE_COMPLETE);
+            onCascadeComplete?.();
           }
         }
         break;

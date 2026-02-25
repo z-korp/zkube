@@ -20,6 +20,7 @@ interface GameBoardProps {
   activeBonus: BonusType;
   bonusDescription: string;
   activeBonusLevel: number;
+  onCascadeComplete?: () => void;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -30,6 +31,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   activeBonus,
   bonusDescription,
   activeBonusLevel,
+  onCascadeComplete,
 }) => {
   const {
     setup: {
@@ -145,7 +147,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
             account={account}
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
-            activeBonusLevel={activeBonusLevel}          />
+            activeBonusLevel={activeBonusLevel}
+            levelTransitionPending={game.levelTransitionPending}
+            onCascadeComplete={onCascadeComplete}
+          />
           <div className="mt-1">
             <NextLine
               nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}

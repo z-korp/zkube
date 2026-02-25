@@ -96,6 +96,7 @@ describe("Grid drag interactions", () => {
     setOptimisticCombo: vi.fn(),
     setOptimisticMaxCombo: vi.fn(),
     activeBonusLevel: 0,
+    levelTransitionPending: false,
   };
 
   beforeEach(() => {

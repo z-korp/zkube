@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useCallback, useRef, useState, useEffect } from "react";
 import { useAccount } from "@starknet-react/core";
 import { useComponentValue } from "@dojoengine/react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
@@ -55,11 +55,72 @@ export const useSkillTree = () => {
 
   const component = useComponentValue(PlayerSkillTree, playerKey);
 
+  // --- Optimistic overrides ---
+  // Map of skillId (1-based) → partial SkillTreeInfo override
+  const [optimistic, setOptimistic] = useState<Map<number, Partial<SkillTreeInfo>>>(new Map());
+  // Track the last component value to detect when RECS catches up
+  const lastComponentRef = useRef(component);
+
+  // When RECS data changes (Torii indexed), clear optimistic overrides
+  useEffect(() => {
+    if (component && component !== lastComponentRef.current) {
+      lastComponentRef.current = component;
+      if (optimistic.size > 0) {
+        setOptimistic(new Map());
+      }
+    }
+  }, [component, optimistic.size]);
+
   const skillTree = useMemo((): SkillTreeState | null => {
     if (!component) return null;
     const packed = component.skill_data ? BigInt(component.skill_data) : 0n;
-    return unpackSkillTree(packed);
-  }, [component]);
+    const base = unpackSkillTree(packed);
 
-  return { skillTree, isLoading: !component && !!address };
+    // Apply optimistic overrides on top of chain data
+    if (optimistic.size > 0) {
+      const merged = base.skills.map((skill, index) => {
+        const override = optimistic.get(index + 1);
+        return override ? { ...skill, ...override } : skill;
+      });
+      return { skills: merged };
+    }
+
+    return base;
+  }, [component, optimistic]);
+
+  // Optimistic mutators — call after successful tx
+  const optimisticUpgrade = useCallback((skillId: number) => {
+    setOptimistic((prev) => {
+      const next = new Map(prev);
+      const current = skillTree?.skills[skillId - 1];
+      if (current) {
+        next.set(skillId, { level: current.level + 1 });
+      }
+      return next;
+    });
+  }, [skillTree]);
+
+  const optimisticBranch = useCallback((skillId: number, branchId: number) => {
+    setOptimistic((prev) => {
+      const next = new Map(prev);
+      next.set(skillId, { branchChosen: true, branchId });
+      return next;
+    });
+  }, []);
+
+  const optimisticRespec = useCallback((skillId: number) => {
+    setOptimistic((prev) => {
+      const next = new Map(prev);
+      next.set(skillId, { level: 4, branchChosen: false, branchId: 0 });
+      return next;
+    });
+  }, []);
+
+  return {
+    skillTree,
+    isLoading: !component && !!address,
+    optimisticUpgrade,
+    optimisticBranch,
+    optimisticRespec,
+  };
 };

@@ -77,7 +77,9 @@ const PlayScreen: React.FC = () => {
   const [bonusDescription, setBonusDescription] = useState("");
   const [isSupplyConfirmOpen, setIsSupplyConfirmOpen] = useState(false);
   const [isSupplyProcessing, setIsSupplyProcessing] = useState(false);
-
+  // Tracks whether the Grid cascade animation has finished for the current move.
+  // Level-complete detection is gated on this to prevent checking against a mid-cascade grid.
+  const [cascadeComplete, setCascadeComplete] = useState(false);
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
   const prevGameStateRef = useRef<{
     level: number;
@@ -208,6 +210,16 @@ const PlayScreen: React.FC = () => {
     prevGameOverRef.current = game?.over;
   }, [game?.over, game?.runCompleted, playSfx]);
 
+  // Cascade-complete callback from Grid → GameBoard
+  const handleCascadeComplete = useCallback(() => {
+    setCascadeComplete(true);
+  }, []);
+
+  // Reset cascadeComplete whenever the grid changes (new move started or chain synced)
+  useEffect(() => {
+    setCascadeComplete(false);
+  }, [grid]);
+
   useEffect(() => {
     if (!game) return;
     const prevState = prevGameStateRef.current;
@@ -217,7 +229,10 @@ const PlayScreen: React.FC = () => {
       levelStartTotalScoreRef.current = game.totalScore - game.levelScore;
     }
 
-    if (prevState && currentLevel > prevState.level && !game.over) {
+    // Gate on cascadeComplete: don't detect level transition until the cascade
+    // animation has fully finished. This prevents the UI from seeing the stale
+    // end-of-level grid and trying to navigate before animations are done.
+    if (prevState && currentLevel > prevState.level && !game.over && cascadeComplete) {
       if (prevState.level % 10 === 0) {
         playSfx("boss-defeat");
       } else {
@@ -257,6 +272,7 @@ const PlayScreen: React.FC = () => {
     game?.totalScore,
     game,
     playSfx,
+    cascadeComplete,
   ]);
 
   const handleSurrender = useCallback(async () => {
@@ -540,6 +556,7 @@ const PlayScreen: React.FC = () => {
               activeBonus={activeBonus}
               bonusDescription={bonusDescription}
               activeBonusLevel={activeBonusLevel}
+              onCascadeComplete={handleCascadeComplete}
             />
           </div>
         )}
@@ -554,6 +571,7 @@ const PlayScreen: React.FC = () => {
               activeBonus={activeBonus}
               bonusDescription={bonusDescription}
               activeBonusLevel={activeBonusLevel}
+              onCascadeComplete={handleCascadeComplete}
             />
           </div>
         )}

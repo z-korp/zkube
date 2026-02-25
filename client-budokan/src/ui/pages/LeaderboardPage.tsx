@@ -25,7 +25,7 @@ const LeaderboardPage: React.FC = () => {
           <motion.section
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-slate-900/90 rounded-xl p-4 border border-slate-500/70"
+            className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
           >
             <div className="flex items-center gap-2 mb-3">
               <Users size={17} className="text-cyan-300" />
@@ -43,7 +43,7 @@ const LeaderboardPage: React.FC = () => {
             ) : (
               <table className="w-full text-sm table-fixed">
                 <thead>
-                  <tr className="text-left text-slate-200 border-b border-slate-500/60">
+                  <tr className="text-left text-slate-300 border-b border-slate-700/50">
                     <th className="py-2 px-2 w-16 font-['Fredericka_the_Great']">Rank</th>
                     <th className="py-2 px-2 font-['Fredericka_the_Great']">Player</th>
                     <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>

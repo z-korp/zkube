@@ -5,7 +5,6 @@ import { useGame } from "@/hooks/useGame";
 import { useGameLevel } from "@/hooks/useGameLevel";
 import { useDraft } from "@/hooks/useDraft";
 import {
-  MID_DRAFT_NODE_IN_ZONE,
   NODES_PER_ZONE,
   TOTAL_ZONES,
   useMapData,
@@ -18,6 +17,7 @@ import {
   getMapPathTheme,
   getThemeImages,
   isValidThemeId,
+  THEME_META,
   type ThemeId,
 } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
@@ -35,6 +35,10 @@ import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
 import ZoneBackground from "@/ui/components/map/ZoneBackground";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
+import { getSkillById, getArchetypeForSkill, getSkillTier } from "@/dojo/game/types/skillData";
+import { getSkillEffectDescription } from "@/dojo/game/types/skillEffects";
+import { getSkillTierIconPath } from "@/ui/theme/ImageAssets";
+import { getSlotBySkillId } from "@/dojo/game/helpers/runDataPacking";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -163,6 +167,7 @@ const MapPage: React.FC = () => {
     kind: string;
     pool: string;
     zone: number;
+    skillId: number;
   } | null>(null);
   const pointerStartX = useRef<number | null>(null);
   const pointerId = useRef<number | null>(null);
@@ -273,11 +278,15 @@ const MapPage: React.FC = () => {
     }
   };
 
+  const activeThemeRaw = mapData.zoneThemes[activeZone] ?? "theme-1";
+  const activeThemeId: ThemeId = isValidThemeId(activeThemeRaw) ? activeThemeRaw : "theme-1";
+  const zoneName = THEME_META[activeThemeId].name;
+
   return (
     <div className="h-screen-viewport flex flex-col">
       <PageTopBar
         title="WORLD MAP"
-        subtitle={`Level ${currentLevel}`}
+        subtitle={`Zone ${activeZone + 1} - ${zoneName}`}
         onBack={goBack}
         rightSlot={null}
       />
@@ -436,9 +445,7 @@ const MapPage: React.FC = () => {
                                 node.zone,
                                 currentLevel,
                                 draftState,
-                                node.nodeInZone === MID_DRAFT_NODE_IN_ZONE
-                                  ? "mid"
-                                  : "entry",
+                                node.draftPhase ?? "entry",
                               );
 
                               if (!event) {
@@ -470,6 +477,7 @@ const MapPage: React.FC = () => {
                                   kind: pick.kind,
                                   pool: pick.pool,
                                   zone: event.zone,
+                                  skillId: pick.skillId,
                                 });
                                 return;
                               }
@@ -637,40 +645,95 @@ const MapPage: React.FC = () => {
             }
           }}
         >
-          <DialogContent className="sm:max-w-[460px] w-[95%] rounded-lg px-6 py-6">
-            <DialogTitle className="text-2xl text-center mb-2 text-emerald-300">
-              Draft Already Completed
+          <DialogContent className="sm:max-w-[400px] w-[90%] rounded-2xl border border-white/10 bg-slate-900/90 px-6 py-6">
+            <DialogTitle className="text-2xl text-center mb-4 text-emerald-300">
+              Draft Done
             </DialogTitle>
 
-            {resolvedDraftModal && (
-              <>
-                <p className="text-xs text-center text-slate-400">
-                  Zone {resolvedDraftModal.zone}
-                </p>
+            {resolvedDraftModal && (() => {
+              const skill = getSkillById(resolvedDraftModal.skillId);
+              const archetype = getArchetypeForSkill(resolvedDraftModal.skillId);
+              const slot = game ? getSlotBySkillId(game.runData, resolvedDraftModal.skillId) : undefined;
+              const rawLevel = slot?.level ?? 0;
+              const displayLevel = rawLevel + 1;
+              const tier = getSkillTier(rawLevel);
+              const effectDesc = getSkillEffectDescription(resolvedDraftModal.skillId, rawLevel);
+              const accentColor = archetype?.color ?? "#22c55e";
+              const isPassive = skill ? skill.category === "world" : false;
+              const charges = slot?.charges ?? 0;
 
-                <div className="mt-4 rounded-xl border border-emerald-400/40 bg-slate-900/80 p-4">
-                  <div className="flex flex-wrap gap-2 text-[11px]">
-                    <span className="rounded-md border border-emerald-500/40 bg-emerald-900/30 px-2 py-1 text-emerald-200">
-                      {DRAFT_POOL_LABELS[resolvedDraftModal.pool] ??
-                        resolvedDraftModal.pool}
-                    </span>
-                    <span className="rounded-md border border-purple-500/40 bg-purple-900/30 px-2 py-1 text-purple-200">
-                      {DRAFT_KIND_LABELS[resolvedDraftModal.kind] ??
-                        resolvedDraftModal.kind}
-                    </span>
+              return (
+                <div className="flex flex-col items-center gap-4">
+                  {/* Circular skill icon — matches GameActionBar style */}
+                  {skill && (
+                    <div className="relative">
+                      <div
+                        className="relative w-20 h-20 rounded-full overflow-visible flex items-center justify-center"
+                        style={
+                          isPassive
+                            ? { boxShadow: `0 0 18px ${accentColor}50, 0 0 40px ${accentColor}20` }
+                            : undefined
+                        }
+                      >
+                        <img
+                          src={getSkillTierIconPath(skill.name, tier)}
+                          alt={skill.name}
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                        {/* Ring border */}
+                        <div
+                          className="absolute inset-0 rounded-full border-[3px]"
+                          style={{ borderColor: accentColor }}
+                        />
+                      </div>
+
+                      {/* Level badge — bottom left */}
+                      <span
+                        className="absolute -bottom-1 -left-1 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold text-white z-10"
+                        style={{ backgroundColor: isPassive ? accentColor : undefined }}
+                      >
+                        {isPassive ? (
+                          <span>{displayLevel}</span>
+                        ) : (
+                          <span className="bg-indigo-500 rounded-full w-full h-full flex items-center justify-center">{displayLevel}</span>
+                        )}
+                      </span>
+
+                      {/* Charges badge — top right, bonus only */}
+                      {!isPassive && (
+                        <span
+                          className={`absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold z-10 ${
+                            charges > 0 ? "bg-yellow-500 text-white" : "bg-slate-600 text-slate-400"
+                          }`}
+                        >
+                          {charges}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Skill name + archetype */}
+                  <div className="text-center">
+                    <h3 className="font-['Fredericka_the_Great'] text-xl text-white">
+                      Skill Drafted: {skill?.name ?? "Unknown"}
+                    </h3>
+                    {archetype && (
+                      <p className="text-xs mt-1" style={{ color: accentColor }}>
+                        {archetype.name} Archetype
+                      </p>
+                    )}
                   </div>
 
-                  <h3 className="mt-3 font-['Fredericka_the_Great'] text-xl text-white">
-                    {resolvedDraftModal.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-slate-300">
-                    {resolvedDraftModal.description}
-                  </p>
+                  {/* Effect description */}
+                  <div className="w-full rounded-lg bg-slate-800/60 px-3 py-2.5">
+                    <p className="text-[11px] uppercase tracking-wider text-slate-500 mb-1">Effect</p>
+                    <p className="text-sm text-slate-200">{effectDesc}</p>
+                  </div>
                 </div>
-              </>
-            )}
+              );
+            })()}
 
-            <div className="mt-5 flex justify-center">
+            <div className="mt-2 flex justify-center">
               <Button onClick={() => setResolvedDraftModal(null)}>Close</Button>
             </div>
           </DialogContent>
