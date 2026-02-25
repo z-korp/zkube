@@ -105,19 +105,38 @@ const SkillTreePage: React.FC = () => {
   const [modal, setModal] = useState<ModalState | null>(null);
   const cubeBalanceNumber = Number(cubeBalance);
 
-  // Swipe gesture on the panel
+  // Swipe / drag gesture on the panel (touch + mouse)
   const panelRef = useRef<HTMLDivElement>(null);
-  const touchStartX = useRef(0);
+  const startX = useRef(0);
+  const dragging = useRef(false);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
+    startX.current = e.touches[0].clientX;
   }, []);
 
   const onTouchEnd = useCallback((e: React.TouchEvent) => {
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    if (Math.abs(dx) < 50) return; // ignore small swipes
+    const dx = e.changedTouches[0].clientX - startX.current;
+    if (Math.abs(dx) < 50) return;
     if (dx < 0) setActiveIndex((i) => Math.min(ARCHETYPE_ORDER.length - 1, i + 1));
     else setActiveIndex((i) => Math.max(0, i - 1));
+  }, []);
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    dragging.current = true;
+    startX.current = e.clientX;
+  }, []);
+
+  const onMouseUp = useCallback((e: React.MouseEvent) => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    const dx = e.clientX - startX.current;
+    if (Math.abs(dx) < 50) return;
+    if (dx < 0) setActiveIndex((i) => Math.min(ARCHETYPE_ORDER.length - 1, i + 1));
+    else setActiveIndex((i) => Math.max(0, i - 1));
+  }, []);
+
+  const onMouseLeave = useCallback(() => {
+    dragging.current = false;
   }, []);
 
   const skills: SkillInfo[] =
@@ -217,6 +236,9 @@ const SkillTreePage: React.FC = () => {
           className="relative w-full max-w-lg h-full rounded-2xl border border-white/10 bg-slate-900/90 backdrop-blur-sm overflow-hidden"
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
+          onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
+          onMouseLeave={onMouseLeave}
         >
           <TreeSlide
             archetypeId={ARCHETYPE_ORDER[activeIndex]}
