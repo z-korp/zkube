@@ -328,15 +328,11 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
         </div>
 
         {/* SVG tree — fills remaining panel space */}
-        <div className="flex-1 min-h-0 flex items-center justify-center p-2">
-          <div
-            className="relative mx-auto h-full w-auto max-w-full"
-            style={{ aspectRatio: `${VB_W} / ${VB_H}` }}
-          >
+        <div className="flex-1 min-h-0">
             <svg
               viewBox={`0 0 ${VB_W} ${VB_H}`}
-              preserveAspectRatio="xMidYMid meet"
-              className="absolute inset-0 w-full h-full"
+              preserveAspectRatio="none"
+              className="w-full h-full"
             >
               <defs>
                 <style>{`
@@ -398,7 +394,6 @@ const TreeSlide: React.FC<TreeSlideProps> = ({
                 />
               ))}
             </svg>
-          </div>
         </div>
       </div>
     </div>
