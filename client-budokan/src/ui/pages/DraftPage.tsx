@@ -111,7 +111,7 @@ const DraftPage: React.FC = () => {
       const currentLevel = slot?.level ?? treeInfo?.level ?? 0;
       const branchId = treeInfo?.branchId;
       const archetype = getArchetypeForSkill(skillId);
-      const nextLevel = isFullLoadout ? currentLevel + 1 : 0;
+      const nextLevel = isFullLoadout ? currentLevel + 1 : currentLevel;
       return {
         slotIndex: index as 0 | 1 | 2,
         skillId,
@@ -121,7 +121,7 @@ const DraftPage: React.FC = () => {
         archetype,
         effectDesc: getSkillEffectDescription(
           skillId,
-          isFullLoadout ? nextLevel : 0,
+          nextLevel,
           branchId,
         ),
       };
