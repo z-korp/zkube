@@ -142,7 +142,7 @@ const PlayScreen: React.FC = () => {
     if (!draftState?.active) return;
     if (gameId === null || gameId === undefined) return;
     navNavigate("draft", gameId);
-  }, [draftState?.active, game, account, gameId, navNavigate, levelCompletionData]);
+  }, [draftState?.active, game, account, gameId, navNavigate]);
 
 
   useEffect(() => {
