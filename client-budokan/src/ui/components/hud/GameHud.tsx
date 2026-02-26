@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo, useSyncExternalStore } from "react";
-import { Info } from "lucide-react";
+import { useState, useMemo, useSyncExternalStore } from "react";
 import ProgressRing from "@/ui/components/shared/ProgressRing";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import type { GameLevelData } from "@/hooks/useGameLevel";
@@ -139,25 +138,7 @@ const GameHud: React.FC<GameHudProps> = ({
   const isDesktop = useSyncExternalStore(subscribeResize, getIsDesktop, () => false);
   const ringSize = isDesktop ? RING_SIZE_DESKTOP : RING_SIZE_MOBILE;
 
-  const [movesInfoOpen, setMovesInfoOpen] = useState(false);
-  const movesInfoRef = useRef<HTMLDivElement>(null);
 
-  const closeMovesInfo = useCallback(() => setMovesInfoOpen(false), []);
-
-  useEffect(() => {
-    if (!movesInfoOpen) return;
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (movesInfoRef.current && !movesInfoRef.current.contains(e.target as Node)) {
-        closeMovesInfo();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, [movesInfoOpen, closeMovesInfo]);
 
   const animatedScore = useLerpNumber(levelScore, { duration: 300, integer: true }) ?? 0;
 
@@ -297,37 +278,7 @@ const GameHud: React.FC<GameHudProps> = ({
         {/* Row 2 right: Moves bar */}
         <div className="min-w-0">
           <div className="flex items-baseline justify-between mb-0.5">
-            <div className="relative inline-flex items-center gap-1" ref={movesInfoRef}>
-              <span className="font-['Fredericka_the_Great'] text-xs text-slate-300">Moves</span>
-              <button
-                type="button"
-                onClick={() => setMovesInfoOpen((v) => !v)}
-                onMouseEnter={() => setMovesInfoOpen(true)}
-                onMouseLeave={() => setMovesInfoOpen(false)}
-                className="inline-flex items-center justify-center text-slate-400 hover:text-slate-200 active:text-white transition-colors"
-                aria-label="Cube reward thresholds"
-              >
-                <Info size={11} />
-              </button>
-              {movesInfoOpen && (
-                <div className="absolute left-0 top-full mt-1.5 z-[200] bg-slate-900 border border-slate-500 rounded-md px-3 py-2 shadow-lg whitespace-nowrap">
-                  <div className="flex flex-col gap-1 text-xs text-white">
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex gap-0.5"><CubeIcon size="xs" /><CubeIcon size="xs" /><CubeIcon size="xs" /></span>
-                      <span>≥ {cube3Threshold} moves left</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex gap-0.5"><CubeIcon size="xs" /><CubeIcon size="xs" /></span>
-                      <span>≥ {cube2Threshold} moves left</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CubeIcon size="xs" />
-                      <span>Complete level</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <span className="font-['Fredericka_the_Great'] text-xs text-slate-300">Moves</span>
             <span className={`font-['Fredericka_the_Great'] text-xs tabular-nums ${movesTextColor}`}>
               {movesRemaining}<span className="text-slate-400">/{maxMoves}</span>
             </span>

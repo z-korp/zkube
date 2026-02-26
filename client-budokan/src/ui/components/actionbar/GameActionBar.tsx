@@ -47,7 +47,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
       </AnimatePresence>
 
       {/* Bonus buttons in a slim pill-shaped panel */}
-      <div className="max-w-[500px] mx-auto w-full flex items-center justify-center gap-[clamp(6px,2vw,12px)] bg-slate-900/80 backdrop-blur-sm border border-slate-700/60 rounded-full px-[clamp(10px,3vw,20px)] py-[clamp(4px,1vw,8px)]">
+      <div className="max-w-[280px] mx-auto flex items-center justify-center gap-[clamp(6px,2vw,12px)] bg-slate-900/80 backdrop-blur-sm border border-slate-700/60 rounded-full px-[clamp(10px,3vw,20px)] py-[clamp(4px,1vw,8px)]">
         {bonusSlots.map((slot, idx) => {
           const isPassive = slot.isPassive ?? false;
           const isActive = !isPassive && activeBonus === slot.type;

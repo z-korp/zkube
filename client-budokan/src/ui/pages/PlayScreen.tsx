@@ -503,19 +503,19 @@ const PlayScreen: React.FC = () => {
           {/* Run cubes (earned this run) */}
           {game && (
             <div className="flex items-center gap-1">
-              <span className="font-['Fredericka_the_Great'] text-blue-300 text-sm tabular-nums">
+              <span className="font-['Fredericka_the_Great'] text-blue-300 text-base tabular-nums">
                 +{game.cubesAvailable}
               </span>
-              <CubeIcon size="xs" />
+              <CubeIcon size="sm" />
             </div>
           )}
           <div className="w-px h-5 bg-slate-600" />
           {/* Wallet cubes (owned) */}
           <div className="flex items-center gap-1">
-            <CubeIcon size="sm" />
             <span className="font-['Fredericka_the_Great'] text-yellow-400 text-base tabular-nums">
               {walletBalance.toString()}
             </span>
+            <CubeIcon size="sm" />
           </div>
           <div className="w-px h-5 bg-slate-600" />
           {/* Settings gear */}
