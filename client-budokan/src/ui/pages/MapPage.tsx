@@ -4,6 +4,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useGame } from "@/hooks/useGame";
 import { useGameLevel } from "@/hooks/useGameLevel";
 import { useDraft } from "@/hooks/useDraft";
+import useAccountCustom from "@/hooks/useAccountCustom";
+import { useDojo } from "@/dojo/useDojo";
 import {
   NODES_PER_ZONE,
   TOTAL_ZONES,
@@ -139,6 +141,12 @@ const MapPage: React.FC = () => {
   );
   const { setThemeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
+  const { account } = useAccountCustom();
+  const {
+    setup: {
+      systemCalls: { startNextLevel },
+    },
+  } = useDojo();
 
   const { game, seed } = useGame({
     gameId: gameId ?? undefined,
@@ -273,9 +281,21 @@ const MapPage: React.FC = () => {
   };
 
   const handlePlay = () => {
-    if (gameId !== null) {
-      navigate("play", gameId);
+    if (gameId === null) return;
+
+    // Fire startNextLevel if the chain is waiting for it (level transition pending).
+    // Navigate immediately — PlayScreen shows "Loading grid" until the tx completes.
+    if (game?.levelTransitionPending && account) {
+      startNextLevel({
+        account,
+        game_id: game.id,
+        current_level: game.level,
+      }).catch((error: unknown) => {
+        console.error("Failed to start next level:", error);
+      });
     }
+
+    navigate("play", gameId);
   };
 
   const activeThemeRaw = mapData.zoneThemes[activeZone] ?? "theme-1";
