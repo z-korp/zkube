@@ -527,6 +527,7 @@ const PlayScreen: React.FC = () => {
           >
             <Settings size={18} />
           </button>
+        </div>
       </div>
 
       {/* ---- Settings Dialog (styled like LevelCompleteDialog) ---- */}
