@@ -248,20 +248,8 @@ const Grid: React.FC<GridProps> = ({
       return;
     }
 
-    // NON-GRID bonuses: Combo, Score — send tx directly, no block changes
-    // (Supply is handled directly from PlayScreen with a confirmation dialog)
-    if (bonus === BonusType.Combo) {
-      setIsTxProcessing(true);
-      setAnimateText(`+${activeBonusLevel + 1} combo`);
-      selectBlock(block);
-      return;
-    } else if (bonus === BonusType.Score) {
-      setIsTxProcessing(true);
-      setAnimatedPoints((activeBonusLevel + 1) * 10);
-      selectBlock(block);
-      return;
-    }
-
+    // Combo, Score, Supply are handled via confirm dialog in PlayScreen.
+    // Only grid-targeting bonuses (Harvest, Wave) reach here.
     // GRID bonuses: Harvest, Wave — modify blocks, then gravity state machine
     if (bonus === BonusType.Harvest) {
       setBlockBonus(block);

@@ -74,8 +74,8 @@ const PlayScreen: React.FC = () => {
   const [isGameLoading, setIsGameLoading] = useState(true);
   const [activeBonus, setActiveBonus] = useState<BonusType>(BonusType.None);
   const [bonusDescription, setBonusDescription] = useState("");
-  const [isSupplyConfirmOpen, setIsSupplyConfirmOpen] = useState(false);
-  const [isSupplyProcessing, setIsSupplyProcessing] = useState(false);
+  const [confirmingBonus, setConfirmingBonus] = useState<BonusType | null>(null);
+  const [isBonusProcessing, setIsBonusProcessing] = useState(false);
   // Tracks whether the Grid cascade animation has finished for the current move.
   // Level-complete detection is gated on this to prevent checking against a mid-cascade grid.
   const [cascadeComplete, setCascadeComplete] = useState(false);
@@ -321,10 +321,10 @@ const PlayScreen: React.FC = () => {
       const count = slot?.charges ?? 0;
       if (count === 0) return;
 
-      // Supply fires directly with confirmation — no grid interaction needed
-      if (type === BonusType.Supply) {
+      // Instant bonuses (no grid targeting) — confirm dialog
+      if (type === BonusType.Supply || type === BonusType.Combo || type === BonusType.Score) {
         playSfx("click");
-        setIsSupplyConfirmOpen(true);
+        setConfirmingBonus(type);
         return;
       }
 
@@ -400,28 +400,42 @@ const PlayScreen: React.FC = () => {
     setBonusDescription("");
   }, [grid]);
 
-  const supplyBonusLevel = useMemo(() => {
-    const slot = selectedBonusSlots.find((s) => s.type === BonusType.Supply);
+  const confirmingBonusLevel = useMemo(() => {
+    if (!confirmingBonus) return 0;
+    const slot = selectedBonusSlots.find((s) => s.type === confirmingBonus);
     return slot?.level ?? 0;
-  }, [selectedBonusSlots]);
+  }, [selectedBonusSlots, confirmingBonus]);
 
-  const handleSupplyConfirm = useCallback(async () => {
-    if (!account || !game) return;
-    setIsSupplyProcessing(true);
-    setIsSupplyConfirmOpen(false);
+  const getConfirmBonusDescription = useCallback((type: BonusType, level: number): string => {
+    switch (type) {
+      case BonusType.Supply:
+        return `Add ${level + 1} line${level > 0 ? "s" : ""} to the grid (no move cost).`;
+      case BonusType.Combo:
+        return `Add +${level + 1} combo to your next move.`;
+      case BonusType.Score:
+        return `Instantly add +${(level + 1) * 10} points to your score.`;
+      default:
+        return "";
+    }
+  }, []);
+
+  const handleBonusConfirm = useCallback(async () => {
+    if (!account || !game || !confirmingBonus) return;
+    setIsBonusProcessing(true);
+    setConfirmingBonus(null);
     try {
       await applyBonus({
         account: account as Account,
         game_id: game.id,
-        bonus: new Bonus(BonusType.Supply).into(),
+        bonus: new Bonus(confirmingBonus).into(),
         row_index: 0,
         block_index: 0,
       });
       playSfx("bonus-activate");
     } finally {
-      setIsSupplyProcessing(false);
+      setIsBonusProcessing(false);
     }
-  }, [account, applyBonus, game, playSfx]);
+  }, [account, applyBonus, confirmingBonus, game, playSfx]);
 
   return (
     <div className="h-screen-viewport flex flex-col">
@@ -437,28 +451,30 @@ const PlayScreen: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isSupplyConfirmOpen} onOpenChange={setIsSupplyConfirmOpen}>
+      <Dialog open={confirmingBonus !== null} onOpenChange={(open) => { if (!open) setConfirmingBonus(null); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Use Supply?</DialogTitle>
+            <DialogTitle className="text-lg font-bold">
+              Use {confirmingBonus === BonusType.Supply ? "Supply" : confirmingBonus === BonusType.Combo ? "Combo" : "Score"}?
+            </DialogTitle>
             <DialogDescription>
-              Add {supplyBonusLevel + 1} line{supplyBonusLevel > 0 ? "s" : ""} to the grid (no move cost).
+              {confirmingBonus && getConfirmBonusDescription(confirmingBonus, confirmingBonusLevel)}
             </DialogDescription>
           </DialogHeader>
           <div className="flex gap-3">
             <Button
               variant="outline"
               className="flex-1"
-              onClick={() => setIsSupplyConfirmOpen(false)}
+              onClick={() => setConfirmingBonus(null)}
             >
               Cancel
             </Button>
             <Button
               className="flex-1"
-              disabled={isSupplyProcessing}
-              onClick={handleSupplyConfirm}
+              disabled={isBonusProcessing}
+              onClick={handleBonusConfirm}
             >
-              {isSupplyProcessing ? "Applying..." : "Confirm"}
+              {isBonusProcessing ? "Applying..." : "Confirm"}
             </Button>
           </div>
         </DialogContent>
