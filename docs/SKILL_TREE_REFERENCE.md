@@ -15,7 +15,7 @@
 5. [Level Progression (5 Levels)](#level-progression-5-levels)
 6. [Charge System](#charge-system)
 7. [Cube Economy Rules](#cube-economy-rules)
-8. [Augment System (Draft & Upgrades)](#augment-system-draft--upgrades)
+8. [Draft System](#draft-system)
 9. [Domain Separation Rules](#domain-separation-rules)
 10. [Tempo — Flow & Cascades](#-tempo--flow--cascades)
     - [Combo Surge (Active)](#1%EF%B8%8F⃣-active--combo-surge)
@@ -35,9 +35,7 @@
     - [Grid Harmony (Passive)](#1%EF%B8%8F⃣2%EF%B8%8F⃣-passive--grid-harmony)
 14. [Data Packing: run_data](#data-packing-run_data)
 15. [Contract ↔ Client Interaction](#contract--client-interaction)
-16. [Gap Analysis — Contracts](#gap-analysis--contracts)
-17. [Gap Analysis — Client](#gap-analysis--client)
-18. [Migration Notes (v1 → vNext)](#migration-notes-v1--vnext)
+16. [Migration Notes (v1 → vNext)](#migration-notes-v1--vnext)
 
 ---
 
@@ -50,7 +48,6 @@
 5. **Clear cube economy**: Only Risk archetype primarily generates cubes
 6. **Skill-expressive gameplay**: Tempo = technical, Scaling = patient, Risk = greedy, Control = stabilizing
 7. **No runaway loops**: All repeatable effects are hard-capped per level
-8. **Simplified progression**: Startup draft (pick 3) → boss upgrades (level up 1) — no mid-map augments, no in-game shop
 
 ---
 
@@ -66,11 +63,6 @@
 | Max charges per skill | 3 | **3** |
 | Naming: Active skills | "Bonus Skills" | **"Active Skills"** |
 | Naming: Passive skills | "World Skills" | **"Passive Skills"** |
-| Mid-map augments | Every N levels | **Removed** |
-| In-game shop | Every 10 levels | **Removed** |
-| Consumables | 4 types | **Removed** |
-| Skill acquisition | Draft every N levels | **Startup draft (3 picks)** |
-| Skill upgrades | Draft + shop | **Boss clear rewards (10/20/30/40)** |
 
 ### Key Constants (vNext)
 
@@ -84,11 +76,6 @@
 | `NUM_ARCHETYPES` | 4 | Tempo, Scaling, Risk, Control |
 | `MAX_CHARGES_PER_SKILL` | 3 | Hard cap |
 | `CHARGE_CADENCE_BASE` | 5 | +1 charge to all actives every 5 levels cleared |
-| `UPGRADE_COST_L1` | 100 | CUBE cost for level 1 |
-| `UPGRADE_COST_L2` | 500 | CUBE cost for level 2 |
-| `UPGRADE_COST_L3` | 1000 | CUBE cost for level 3 (branch commitment) |
-| `UPGRADE_COST_L4` | 5000 | CUBE cost for level 4 |
-| `UPGRADE_COST_L5` | 10000 | CUBE cost for level 5 (capstone) |
 
 ---
 
@@ -151,7 +138,7 @@ Each archetype contains exactly **3 skills**:
 - Always active during the run
 - Scale with skill level
 - No player-triggered activation
-- All repeatable effects — no cap (uncapped)
+- All repeatable effects MUST be capped (max procs per level)
 
 ### Skill ID Layout
 
@@ -198,11 +185,11 @@ Level 5: Capstone         ─── Defining power; run-shaping effect
 
 | Level | Cost | Notes |
 |:-----:|-----:|-------|
-| 1 | 100 | Cheap — encourage trying skills |
-| 2 | 500 | Moderate |
-| 3 | 1,000 | Significant — branch commitment |
-| 4 | 5,000 | Expensive |
-| 5 | 10,000 | Premium — capstone investment |
+| 1 | `100` | Cheap — encourage trying skills |
+| 2 | `500` | Moderate |
+| 3 | `1000` | Significant — branch commitment |
+| 4 | `5000` | Expensive |
+| 5 | `10000` | Premium — capstone investment |
 
 **Respec cost**: 50% of total CUBE invested in that skill.
 
@@ -215,27 +202,26 @@ Charges fuel **Active Skills** only. Passive skills don't use charges.
 | Rule | Value |
 |------|-------|
 | Max charges per active skill | **3** |
-| Starting charges (after first draft) | **1 stack each** |
+| Starting charges on unlock | **1** |
 | Base charge cadence | **+1 to ALL active skills every 5 levels cleared** |
-| Cadence modifier (Scaling Branch B only) | Reduce cadence to every 4 → 3 → 2 levels |
+| Cadence modifier (Scaling Branch B only) | Reduce cadence to every 4 → 3 levels |
 | Charge generation from combos/score | **FORBIDDEN** (no skill may do this) |
-| Combo-based charge refill | **REMOVED** (was in v1) |
 
 ### Charge Gain Timeline (Base Cadence)
 
 | Levels Cleared | Charges Gained | Total (if started at 1) |
 |:--------------:|:--------------:|:-----------------------:|
-| 0 (after draft) | — | 1 |
+| 0 (on unlock) | — | 1 |
 | 5 | +1 | 2 |
 | 10 | +1 | 3 (capped) |
 
-### Charge Gain Timeline (Scaling Branch B — Cadence Reduced to 2)
+### Charge Gain Timeline (Scaling Branch B — Cadence Reduced to 3)
 
 | Levels Cleared | Charges Gained | Total (if started at 1) |
 |:--------------:|:--------------:|:-----------------------:|
-| 0 (after draft) | — | 1 |
-| 2 | +1 | 2 |
-| 4 | +1 | 3 (capped) |
+| 0 (on unlock) | — | 1 |
+| 3 | +1 | 2 |
+| 6 | +1 | 3 (capped) |
 
 ---
 
@@ -257,75 +243,25 @@ Charges fuel **Active Skills** only. Passive skills don't use charges.
 
 ---
 
-## Augment System (Draft & Upgrades)
+## Draft System
 
-The augment system replaces the previous draft/shop/consumable systems with a streamlined progression:
+### How Skills Enter a Run
 
-### Startup Draft (Game Creation)
+1. Before each level (or at run start), a **draft event** triggers
+2. Player sees **3 skill choices** (cards)
+3. If loadout has empty slots (< 3): **Select** adds the skill at level 1
+4. If loadout is full (3/3): **Upgrade** — selecting a skill already in loadout increases its level
 
-Before level 1 begins, the player completes a **draft phase**:
+### Reroll Mechanic
 
-1. Player sees a selection of available skills (cards)
-2. Player picks **3 skills** to form their loadout
-3. Each skill enters the loadout at **Level 1**
-4. All active skills in the loadout receive **1 charge** each
-5. Draft is **mandatory** — cannot start the run without 3 skills
+- Cost formula: `ceil(5 * 1.5^n)` where `n` = reroll count this draft
+- Cost sequence: 5, 8, 12, 18, 27, 41, ...
+- Costs CUBE (deducted from wallet)
 
-**Draft Rules:**
-- All 12 skills are available in the draft pool
-- No archetype restrictions (can pick 3 from the same archetype)
-- Reroll mechanic: `ceil(5 * 1.5^n)` CUBE cost where `n` = reroll count this draft
-- Reroll cost sequence: 5, 8, 12, 18, 27, 41, ...
-- Once 3 skills are selected, the draft phase ends and level 1 begins
+### Branch Choice
 
-### Boss Upgrade (Levels 10, 20, 30, 40)
-
-After clearing a boss level (except level 50), the player receives a **Level Up Item**:
-
-1. Player sees their current 3-skill loadout
-2. Player selects **1 skill** to upgrade (level +1)
-3. If a skill is already at **Level 5**, it **cannot be selected** for upgrade
-4. At **Level 3**, the upgrade triggers a **branch choice** (A or B) — permanent for this run
-
-**Boss Upgrade Rules:**
-- Exactly 4 upgrade opportunities per run (levels 10, 20, 30, 40)
-- Maximum achievable skill level in a single run: Level 5 (1 from draft + 4 from bosses, all on one skill)
-- Level 50 boss does NOT grant an upgrade (run ends / victory)
-- Player cannot skip the upgrade — must choose one skill
-
-### Progression Timeline
-
-```
-Game Start → Startup Draft: Pick 3 skills (all Level 1)
-                ↓
-Levels 1-9  → Play with Level 1 skills, 1 charge each
-                ↓
-Level 10 Boss → Cleared! → Level Up Item → Upgrade 1 skill to Level 2
-                ↓
-Levels 11-19 → Play with upgraded loadout
-                ↓
-Level 20 Boss → Cleared! → Level Up Item → Upgrade 1 skill to Level 3 (BRANCH CHOICE)
-                ↓
-Levels 21-29 → Play with branched skill
-                ↓
-Level 30 Boss → Cleared! → Level Up Item → Upgrade 1 skill to Level 4
-                ↓
-Levels 31-39 → Near-capstone power
-                ↓
-Level 40 Boss → Cleared! → Level Up Item → Upgrade 1 skill to Level 5 (CAPSTONE)
-                ↓
-Levels 41-50 → Full power → Level 50 Boss → Victory!
-```
-
-### What Was Removed
-
-| Feature | Status | Replacement |
-|---------|--------|-------------|
-| Mid-map augment draft | **Removed** | Startup draft + boss upgrades |
-| In-game shop (every 10 levels) | **Removed** | Boss upgrade is free |
-| Consumables (4 types) | **Removed** | Skills handle everything |
-| Combo-based charge refill | **Removed** | Cadence-only charge refill (every 5 levels) |
-| Reroll during mid-map drafts | **Removed** | Reroll only available at startup draft |
+- At level 3, player must choose Branch A or B
+- Respec possible at 50% CUBE cost
 
 ---
 
@@ -373,27 +309,25 @@ Levels 41-50 → Full power → Level 50 Boss → Victory!
 | 1 | — | Next cascade: +1 combo depth |
 | 2 | — | Next cascade: +2 combo depth |
 | 3 | A — Burst | +3 combo depth |
-| 3 | B — Flow | +2 combo depth (combo depth lasts the full level, once per level, not stackable) |
+| 3 | B — Flow | +1 combo depth for the full level (once per level, not stackable) |
 
 **Branch A — Burst** (explosive spike potential)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | +4 combo depth |
-| 5 | +5 combo depth. If combo ≥ 6 → refund 1 move |
+| 4 | +5 combo depth |
+| 5 | +7 combo depth |
 
-**Branch B — Flow** (sustained combo depth for an entire level)
+**Branch B — Flow** (sustainability for chaining players)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | +3 combo depth for the full level (once per level, not stackable) |
+| 4 | +2 combo depth for the full level (once per level, not stackable) |
 | 5 | +4 combo depth for the full level (once per level, not stackable) |
 
 **Design Notes**:
-- Burst = explosive spike potential, high immediate impact
-- Flow = one activation boosts ALL moves for the rest of the level — massive sustained value
-- Branch B "combo depth for the full level" means: after activation, every move this level gets bonus combo depth
-- "Once per level, not stackable" = using a second charge on the same level has no additional effect
+- Burst = explosive spike potential
+- Flow = sustainability for chaining players
 - No score injection, no cube generation
 - Strong synergy with natural cascades
 
@@ -407,33 +341,30 @@ Converts combo streak (`combo_counter`) into controlled bursts. Uses existing pe
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
-| 1 | — | Every 12 combo_streak gained → next move +1 combo (no cap) |
-| 2 | — | Every 10 combo_streak gained → next move +1 combo (no cap) |
-| 3 | A — Acceleration | Every 10 streak → next move +2 combo (no cap) |
-| 3 | B — Stability | Every 10 streak → next move +3 combo (no cap) |
+| 1 | — | Every 12 combo_streak gained → next move +1 combo depth (no cap) |
+| 2 | — | Every 10 combo_streak gained → next move +1 combo depth (no cap) |
+| 3 | A — Acceleration | Every 8 streak → next move +1 combo depth (no cap) |
+| 3 | B — Stability | Every 10 streak → next move +2 combo depth (no cap) |
 
-**Branch A — Acceleration** (frequent combo injections)
-
-| Level | Effect |
-|:-----:|--------|
-| 4 | Every 8 streak → next move +2 combo (no cap) |
-| 5 | Every 6 streak → next move +2 combo (no cap) |
-
-**Branch B — Stability** (larger bursts, same frequency)
+**Branch A — Acceleration** (scaling combo machine)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | Every 8 streak → next move +3 combo (no cap) |
-| 5 | Every 8 streak → next move +4 combo (no cap) |
+| 4 | Every 6 streak → next move +1 combo depth (no cap) |
+| 5 | Every 4 streak → next move +1 combo depth (no cap) |
+
+**Branch B — Stability** (controlled power)
+
+| Level | Effect |
+|:-----:|--------|
+| 4 | Every 10 streak → next move +3 combo depth (no cap) |
+| 5 | Every 10 streak → next move +4 combo depth (no cap) |
 
 **Design Notes**:
-- **No cap** on procs per level — removed `max_rhythm_procs_per_level`
-- No permanent scaling — combo_streak resets each level
+- No permanent scaling — resets each level
 - Reads existing `combo_counter` (Game model) — zero new tracking state
 - Acceleration = more frequent, moderate bursts
 - Stability = fewer, larger bursts
-
-**Implementation**: No `rhythm_procs_this_level` needed in `run_data` (removed — was 3 bits). Only needs `rhythm_streak_accumulator` to track progress toward next proc threshold (or can derive from `combo_counter % threshold`).
 
 ---
 
@@ -445,45 +376,32 @@ Rewards deep cascades. Uses **per-resolution** cascade depth (transient, not cum
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
-| 1 | — | If cascade depth ≥ 5 → +1 bonus combo depth |
-| 2 | — | If cascade depth ≥ 4 → +2 bonus combo depth |
-| 3 | A — Amplify | If cascade depth ≥ 4 → +3 bonus combo depth |
-| 3 | B — Extend | Cascade threshold reduced by 1 (easier multi-phase triggers) |
+| 1 | — | If cascade depth ≥ 5 → +1 combo depth |
+| 2 | — | If cascade depth ≥ 4 → +1 combo depth |
+| 3 | A — Amplify | If cascade depth ≥ 4 → +2 combo depth |
+| 3 | B — Extend | If cascade depth ≥ 3 → +1 combo depth |
 
 **Branch A — Amplify** (high-skill payoff for deep cascades)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | If cascade depth ≥ 4 → +4 bonus combo depth |
-| 5 | If cascade depth ≥ 3 → +5 bonus combo depth |
+| 4 | If cascade depth ≥ 4 → +3 combo depth |
+| 5 | If cascade depth ≥ 4 → +4 combo depth |
 
 **Branch B — Extend** (consistency path for smoother chaining)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | First cascade phase counts as depth 2 |
-| 5 | First two cascade phases gain +1 depth |
+| 4 | If cascade depth ≥ 2 → +1 combo depth |
+| 5 | If cascade depth ≥ 2 → +2 combo depth |
 
 **Design Notes**:
-- Amplify = high combo depth payoff for deep cascades
-- Extend = easier to trigger cascade bonuses
+- Amplify = high-skill payoff for deep cascades
+- Extend = consistency path for smoother chaining
 - Per-resolution only (cascade_depth resets every move) — no cumulative scaling
-- Removed "score per cascade phase" and "combo multiplier" from previous version — now combo depth only
 - Synergizes strongly with Combo Surge
 
 **Implementation**: Add `cascade_depth: u8` counter to `assess_game()` loop (transient local variable — NOT stored in run_data). Increment per outer loop iteration in `grid.cairo:830`.
-
----
-
-### 🟣 Tempo Archetype Summary
-
-| Skill | Role | Key Mechanic |
-|-------|------|--------------|
-| Combo Surge | High-impact spike / sustained depth | Combo depth injection |
-| Rhythm | Chain engine | Combo-streak-gated bursts (uncapped) |
-| Cascade Mastery | Depth enhancer | Per-resolution cascade reward (combo depth) |
-
-**Identity Check**: ✅ Combo manipulation · ✅ Cascade enhancement · ✅ Combo-tied move sustain · ✅ No cubes · ✅ No difficulty reduction · ✅ No grid manipulation · ✅ No score multipliers
 
 ---
 
@@ -498,30 +416,28 @@ Rewards deep cascades. Uses **per-resolution** cascade depth (transient, not cum
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
-| 1 | — | x1.5 score this move |
-| 2 | — | x2 score this move |
-| 3 | A — Amplify | x2.5 score this move |
-| 3 | B — Overflow | x2 score this move + reduce charge cadence |
+| 1 | — | x1,5 next move score |
+| 2 | — | x2 next move score |
+| 3 | A — Amplify | x2,5 next move score |
+| 3 | B — Overflow | Charge cadence: every 4 levels (was 5) |
 
 **Branch A — Amplify** (raw score power)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | x3 score this move |
-| 5 | x4 score this move |
+| 4 | x3 next move score |
+| 5 | x4 next move score |
 
 **Branch B — Overflow** (charge economy)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | Charge cadence: every 4 levels (was 5) |
+| 4 | Charge cadence: every 3 levels (was 5) |
 | 5 | Charge cadence: every 2 levels (was 5) |
 
 **Design Notes**:
-- Changed from % bonus to multipliers (x1.5, x2, x2.5, x3, x4)
 - Amplify = raw late-run score explosion
 - Overflow = more charges for all active skills (team-wide benefit)
-- Branch B cadence now goes to every 2 levels (was every 3 in previous version)
 - Branch B is the ONLY place in the entire game where charge cadence can be modified
 - No cubes, no combo, no grid manipulation
 
@@ -533,36 +449,28 @@ Rewards deep cascades. Uses **per-resolution** cascade depth (transient, not cum
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
-| 1 | — | +5 flat score at level start (per zone) |
-| 2 | — | +10 flat score at level start (per zone) |
-| 3 | A — Late Bloom | +15 flat score at level start (per zone) |
-| 3 | B — Stable Growth | +8 flat score at every level start |
+| 1 | — | +1 score at level start (once) |
+| 2 | — | +2 score at level start (once) |
+| 3 | A — Late Bloom | +3 score per zone cleared at level start (once) |
+| 3 | B — Stable Growth | +3 score at level start (once) |
 
-**Branch A — Late Bloom** (zone-based scaling — stronger in later zones)
-
-| Level | Effect |
-|:-----:|--------|
-| 4 | +20 flat score at level start (per zone) |
-| 5 | +30 flat score at level start (per zone) |
-
-**Branch B — Stable Growth** (consistent flat score every level)
+**Branch A — Late Bloom** (exponential late-run payoff)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | +12 flat score at every level start |
-| 5 | +18 flat score at every level start |
+| 4 | +5 per zone cleared at level start (once) |
+| 5 | +10 per zone cleared at level start (once) |
+
+**Branch B — Stable Growth** (consistent linear scaling)
+
+| Level | Effect |
+|:-----:|--------|
+| 4 | +5 at level start (once) |
+| 5 | +10 at level start (once) |
 
 **Design Notes**:
-- Completely redesigned from % per level cleared → flat score at level start
-- "Per zone" means the bonus amount scales by which zone (10-level block) the player is in
-  - Zone 1 (L1-10): base amount × 1
-  - Zone 2 (L11-20): base amount × 2
-  - Zone 3 (L21-30): base amount × 3
-  - Zone 4 (L31-40): base amount × 4
-  - Zone 5 (L41-50): base amount × 5
-- Branch A = zone-scaled (strong late, weak early)
-- Branch B = same flat amount every level (consistent value)
-- No multiplier — flat score injection (allowed for Scaling)
+- Late Bloom = weak early, monster late
+- Stable Growth = reliable value from level 1 (less ceiling, more floor)
 
 ---
 
@@ -572,44 +480,28 @@ Rewards deep cascades. Uses **per-resolution** cascade depth (transient, not cum
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
-| 1 | — | +5 flat score at level start + 0.2 per level cleared |
-| 2 | — | +10 flat score at level start + 0.3 per level cleared |
-| 3 | A — Deep End | +15 flat score at level start + 0.5 per level cleared |
-| 3 | B — Smooth Ramp | +8 flat score at level start + 0.3 per level cleared (from level 1) |
+| 1 | — | +1 score at level start (once) on levels ≥ 10 |
+| 2 | — | +2 score at level start (once) on levels ≥ 20 |
+| 3 | A — Deep End | +0.2 score per level cleared at level start (once) |
+| 3 | B — Smooth Ramp | +5 score at level start (once) on levels ≥ 25 |
 
-**Branch A — Deep End** (massive late-game payoff with fractional scaling)
+**Branch A — Deep End** (massive late-game spike)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | +20 flat score at level start + 0.5 per level cleared |
-| 5 | +30 flat score at level start + 1.0 per level cleared |
+| 4 | +0.3 score per level cleared at level start (once) |
+| 5 | +0.5 score per level cleared at level start (once) |
 
 **Branch B — Smooth Ramp** (always-on linear growth)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | +12 flat score at level start + 0.5 per level cleared |
-| 5 | +18 flat score at level start + 1.0 per level cleared |
+| 4 | +10 score at level start (once) on levels ≥ 30 |
+| 5 | +20 score at level start (once) on levels ≥ 40 |
 
 **Design Notes**:
-- Completely redesigned from threshold-based % to flat score + fractional per-level scaling
-- "per level cleared" = cumulative bonus grows as more levels are beaten
-  - At level 30 with +0.5 per level: bonus = base + (30 × 0.5) = base + 15
-- Deep End = higher base, same fractional rate
-- Smooth Ramp = lower base, same fractional rate, but counts from level 1 (Branch A may have late-start threshold)
-- Fractional values stored as fixed-point (multiply by 10, divide at application)
-
----
-
-### 🟡 Scaling Archetype Summary
-
-| Skill | Role | Key Mechanic |
-|-------|------|--------------|
-| Overdrive | Score burst / charge economy | Score multiplier or cadence reduction |
-| Momentum Scaling | Zone-based growth | Flat score at level start (per zone or flat) |
-| Endgame Focus | Late-run ramp | Flat score + fractional per-level scaling |
-
-**Identity Check**: ✅ Score multipliers · ✅ Per-level scaling · ✅ Late-run ramping · ✅ Charge cadence (Branch B only) · ✅ No cubes · ✅ No combo · ✅ No grid manipulation
+- Deep End = huge payoff but only if you survive to high levels
+- Smooth Ramp = consistent value at every level, lower ceiling
 
 ---
 
@@ -622,34 +514,31 @@ Rewards deep cascades. Uses **per-resolution** cascade depth (transient, not cum
 
 **ID**: 7 | **Type**: Active (consumes 1 charge) | **Domain**: Cube generation via block destruction / line injection
 
-Cubes scale with block **size** (size 2 block → +2 cubes, size 4 block → +4 cubes).
-
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
-| 1 | — | Destroy 3 random blocks → cubes = block size per block |
-| 2 | — | Destroy 5 random blocks → cubes = block size per block |
-| 3 | A — Extraction | Destroy 6 random blocks → cubes = block size × 2 per block |
-| 3 | B — Injection | Add 1 random line → +8 cubes |
+| 1 | — | Destroy 2 random blocks → Earn +1 cube per block size (eg size 2 block grants +2 cubes, size 4 block grants +4 cubes) |
+| 2 | — | Destroy 3 random blocks → Earn +1 cube per block size (eg size 2 block grants +2 cubes, size 4 block grants +4 cubes) |
+| 3 | A — Extraction | Destroy 5 random blocks → Earn +1 cube per block size (eg size 2 block grants +2 cubes, size 4 block grants +4 cubes) |
+| 3 | B — Injection | Add 1 line → +10 cubes |
 
-**Branch A — Extraction** (targeted destruction for cubes, scaled by block size)
+**Branch A — Extraction**
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | Destroy 8 random blocks → cubes = block size × 2 per block |
-| 5 | Destroy 10 random blocks → cubes = block size × 3 per block |
+| 4 | Destroy random 7 blocks → Earn +1 cube per block size (eg size 2 block grants +2 cubes, size 4 block grants +4 cubes) |
+| 5 | Destroy random 10 blocks → Earn +1 cube per block size (eg size 2 block grants +2 cubes, size 4 block grants +4 cubes) |
 
 **Branch B — Injection** (line injection with cube burst — high risk)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | Add 1 line → +12 cubes |
-| 5 | Add 2 lines → +20 cubes |
+| 4 | Add 2 lines → +20 cubes |
+| 5 | Add 3 lines → +40 cubes |
 
 **Design Notes**:
-- Extraction cubes now scale with block SIZE (size 2 → +2 cubes, size 4 → +4 cubes at L1-2; ×2 multiplier at L3A+)
-- "Random blocks" instead of "blocks of chosen size" — removes player targeting, adds volatility
+- Extraction = controlled cube farming via destruction
 - Injection = dangerous but lucrative (adding lines raises grid height = game over risk)
-- Both paths have real tradeoffs (destroying random blocks can break combos, adding lines risks game over)
+- Both paths have real tradeoffs (destroying blocks can break combos, adding lines risks game over)
 
 ---
 
@@ -659,29 +548,26 @@ Cubes scale with block **size** (size 2 block → +2 cubes, size 4 block → +4 
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
-| 1 | — | If grid ≥ 7 rows → +1 cube per clear |
-| 2 | — | If grid ≥ 7 rows → +2 cubes per clear |
-| 3 | A — Edge | If grid ≥ 8 rows → +4 cubes per clear |
-| 3 | B — Threshold | Grid height threshold reduced by 1 |
+| 1 | — | If grid ≥ 9 rows → +1 cubes per clear |
+| 2 | — | If grid ≥ 8 rows → +1 cubes per clear |
+| 3 | A — Edge | If grid ≥ 8 rows → +3 cubes per clear |
+| 3 | B — Threshold | If grid ≥ 7 rows → +1 cubes per clear |
 
 **Branch A — Edge** (maximum risk, maximum reward)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | If grid ≥ 8 rows → +6 cubes per clear |
-| 5 | If grid ≥ 8 rows → +10 cubes per clear (cap) |
+| 4 | If grid ≥ 8 rows → +5 cubes per clear |
+| 5 | If grid ≥ 8 rows → +10 cubes per clear |
 
 **Branch B — Threshold** (lower threshold, safer farming)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | If grid ≥ 6 rows → +3 cubes per clear |
-| 5 | If grid ≥ 5 rows → +4 cubes per clear |
+| 4 | If grid ≥ 6 rows → +1 cubes per clear |
+| 5 | If grid ≥ 5 rows → +1 cubes per clear |
 
 **Design Notes**:
-- Values lowered from previous version (was +2/+3/+5/+6/+8 → now +1/+2/+4/+6/+10)
-- Edge Branch A caps at +10 cubes at ≥8 rows
-- Threshold Branch B goes down to ≥5 (was ≥6)
 - Edge = play at the brink of game over for massive cube payouts
 - Threshold = reliable cube income at safer heights
 - Both require high grid = real danger of game over
@@ -690,51 +576,28 @@ Cubes scale with block **size** (size 2 block → +2 cubes, size 4 block → +4 
 
 ### 9️⃣ Passive — Gambit
 
-**ID**: 9 | **Type**: Passive | **Domain**: Risk/reward cube generation from dangerous grid states
-
-Completely redesigned from Volatility (random line injection). Gambit rewards surviving danger: when you clear a line with your grid at a dangerous height, you earn cubes. **Once per level trigger**.
+**ID**: 9 | **Type**: Passive | **Domain**: Survive danger → earn cubes
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
-| 1 | — | If grid ≥ 8 rows when you clear a line → +3 cubes (once per level) |
-| 2 | — | If grid ≥ 8 rows when you clear a line → +5 cubes (once per level) |
-| 3 | A — Daredevil | If grid ≥ 9 rows → +8 cubes (once per level) |
-| 3 | B — Opportunist | If grid ≥ 7 rows → +4 cubes (once per level) |
+| 1 | — | If grid reaches ≥ 9 rows this level and you survive → +3 cubes (once per level) |
+| 2 | — | If grid reaches ≥ 9 rows and you survive → +5 cubes (once per level) |
+| 3 | A — Survivor | If grid reaches ≥ 9 rows and you survive → +10 cubes (once per level) |
+| 3 | B — Momentum | If grid reaches ≥ 8 rows and you survive → +5 cubes (once per level) |
 
-**Branch A — Daredevil** (extreme risk for massive payout)
-
-| Level | Effect |
-|:-----:|--------|
-| 4 | If grid ≥ 9 rows → +12 cubes (once per level) |
-| 5 | If grid ≥ 9 rows → +18 cubes (once per level) |
-
-**Branch B — Opportunist** (lower threshold, more reliable)
+**Branch A — Survivor** (high frequency, moderate reward)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | If grid ≥ 7 rows → +6 cubes (once per level) |
-| 5 | If grid ≥ 6 rows → +8 cubes (once per level) |
+| 4 | If grid reaches ≥ 9 rows and you survive → +15 cubes (once per level) |
+| 5 | If grid reaches ≥ 9 rows and you survive → +30 cubes (once per level) |
 
-**Design Notes**:
-- Completely replaces Volatility (random line injection with % chance)
-- "Once per level" = the first time you clear a line at dangerous height, you earn cubes; subsequent clears at that height don't trigger again until next level
-- Needs `gambit_triggered_this_level: bool` in run_data (1 bit), reset on level advance
-- Daredevil = near-death grid state required, massive payout
-- Opportunist = more forgiving threshold, steadier income
-- Synergizes with High Stakes (both reward high-grid play)
-- No randomness — purely skill/risk based
+**Branch B — Momentum** (low frequency, high reward)
 
----
-
-### 🔴 Risk Archetype Summary
-
-| Skill | Role | Key Mechanic |
-|-------|------|--------------|
-| Harvest | Cube burst (active) | Random block destruction (size-scaled) or line injection |
-| High Stakes | Conditional cube income | Grid height threshold |
-| Gambit | Risk/reward cube burst | Clear-at-danger-height bonus (once per level) |
-
-**Identity Check**: ✅ Cube generation · ✅ Conditional rewards · ✅ Real downside · ✅ Grid height risk · ✅ No score multipliers · ✅ No constraint easing · ✅ No combo manipulation
+| Level | Effect |
+|:-----:|--------|
+| 4 | If grid reaches ≥ 7 rows and you survive → +5 cubes (once per level) |
+| 5 | If grid reaches ≥ 6 rows and you survive → +5 cubes (once per level) |
 
 ---
 
@@ -745,126 +608,82 @@ Completely redesigned from Volatility (random line injection). Gambit rewards su
 
 ### 🔟 Active — Tsunami
 
-**ID**: 10 | **Type**: Active (consumes 1 charge) | **Domain**: Targeted destruction / row clears
-
-Completely redesigned — now targets specific blocks or rows instead of always clearing bottom rows.
+**ID**: 10 | **Type**: Active (consumes 1 charge) | **Domain**: Row clears / targeted destruction
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
-| 1 | — | Destroy 4 targeted blocks |
-| 2 | — | Destroy 6 targeted blocks |
-| 3 | A — Purge | Destroy 8 targeted blocks |
-| 3 | B — Sweep | Clear 1 targeted row |
+| 1 | — | Clear 1 targeted block |
+| 2 | — | Clear 2 targeted blocks |
+| 3 | A — Wide | Clear 3 targeted blocks |
+| 3 | B — Target | Destroy 1 targeted row |
 
-**Branch A — Purge** (precision block destruction)
-
-| Level | Effect |
-|:-----:|--------|
-| 4 | Destroy 10 targeted blocks |
-| 5 | Clear all blocks of targeted size (player selects a block size, all blocks of that size are destroyed) |
-
-**Branch B — Sweep** (row-based clearing)
+**Branch A — Wide** (area clear)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | Clear 2 targeted rows |
-| 5 | Clear 3 targeted rows |
+| 4 | Clear 5 targeted blocks |
+| 5 | Clear all blocks of the targeted size (user click on a block and it clears all blocks of that size) |
 
-**Design Notes**:
-- Completely redesigned from bottom-row clearing → targeted blocks/rows
-- "Targeted blocks" = player selects specific blocks on the grid to destroy
-- Branch A capstone: "clear all blocks of targeted size" = player picks a block size (1-4), all blocks of that size are destroyed
-- Branch B: "targeted rows" = player selects which rows to clear (not always bottom)
-- Purge = surgical removal of problem blocks
-- Sweep = emergency row clearing with player choice
-- No score bonus, no cube generation — pure grid control
+**Branch B — Target** (precision destruction)
+
+| Level | Effect |
+|:-----:|--------|
+| 4 | Destroy 2 targeted rows |
+| 5 | Destroy 3 targeted rows |
 
 ---
 
 ### 1️⃣1️⃣ Passive — Structural Integrity
 
-**ID**: 11 | **Type**: Passive | **Domain**: Grid stabilization via automatic row removal at high grid height
-
-Completely redesigned from Constraint Ease. When your grid gets too high, automatically removes the bottom row(s) as a safety mechanism.
+**ID**: 11 | **Type**: Passive | **Domain**: Grid stability
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
-| 1 | — | If grid ≥ 9 rows after a move → remove 1 bottom row |
-| 2 | — | If grid ≥ 8 rows after a move → remove 1 bottom row |
-| 3 | A — Reinforced | If grid ≥ 8 rows → remove 2 bottom rows |
-| 3 | B — Sensitive | If grid ≥ 7 rows → remove 1 bottom row |
+| 1 | — | If grid height ≥ 9 → first line clear this move destroy +1 extra row |
+| 2 | — | If grid height ≥ 8 → first line clear this move destroy +1 extra row |
+| 3 | A — Aggressive | If grid height ≥ 8 → first line clear this move destroy +2 extra row |
+| 3 | B — Safe | If grid height ≥ 7 → first line clear this move destroy +1 extra row |
 
-**Branch A — Reinforced** (aggressive grid management at high height)
-
-| Level | Effect |
-|:-----:|--------|
-| 4 | If grid ≥ 8 rows → remove 2 bottom rows + constraint requirement reduced by 5% |
-| 5 | If grid ≥ 7 rows → remove 2 bottom rows + constraint requirement reduced by 10% |
-
-**Branch B — Sensitive** (earlier trigger, more frequent safety net)
+**Branch A — Aggressive** (constraint trivializer)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | If grid ≥ 6 rows → remove 1 bottom row |
-| 5 | If grid ≥ 6 rows → remove 1 bottom row + 1 free move per level |
+| 4 | If grid height ≥ 8 → first line clear this move destroy +3 extra row |
+| 5 | If grid height ≥ 8 → first line clear this move destroy +4 extra row |
 
-**Design Notes**:
-- Replaces Constraint Ease — now primarily about grid height safety
-- Automatic trigger (passive) — no player action needed
-- Reinforced = aggressive removal at high grid, with mild constraint reduction at L4-5
-- Sensitive = triggers earlier, more frequent but less removal
-- Anti-synergy with High Stakes / Gambit (removes the high grid they need) — build tension!
-- Constraint reduction only appears as a secondary bonus at L4-5 Branch A
+**Branch B — Safe** (moderate easing + move budget)
+
+| Level | Effect |
+|:-----:|--------|
+| 4 | If grid height ≥ 6 → first line clear this move destroy +1 extra row |
+| 5 | If grid height ≥ 5 → first line clear this move destroy +1 extra row |
 
 ---
 
 ### 1️⃣2️⃣ Passive — Grid Harmony
 
-**ID**: 12 | **Type**: Passive | **Domain**: Grid stabilization via automatic row removal at high grid height
-
-Replaces Grid Discipline. Provides a secondary grid-height-based row removal mechanism, complementing Structural Integrity with different triggers and thresholds.
+**ID**: 12 | **Type**: Passive | **Domain**: Grid stability
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
-| 1 | — | After clearing ≥ 2 lines in one move, if grid ≥ 8 → remove 1 extra bottom row |
-| 2 | — | After clearing ≥ 2 lines in one move, if grid ≥ 7 → remove 1 extra bottom row |
-| 3 | A — Flow State | After clearing ≥ 2 lines, if grid ≥ 7 → remove 2 extra bottom rows |
-| 3 | B — Balance | After clearing ≥ 1 line, if grid ≥ 8 → remove 1 extra bottom row |
+| 1 | — | If grid ≥ 9 → next clear removes +1 extra row |
+| 2 | — | If grid ≥ 8 → next clear removes +1 extra row |
+| 3 | A — Stabilize | If grid ≥ 8 → every clear removes +1 extra row |
+| 3 | B — Precision | If grid ≥ 8 → next clear removes +2 rows |
 
-**Branch A — Flow State** (rewards multi-line clears with aggressive grid management)
-
-| Level | Effect |
-|:-----:|--------|
-| 4 | After clearing ≥ 2 lines, if grid ≥ 6 → remove 2 extra bottom rows |
-| 5 | After clearing ≥ 2 lines, if grid ≥ 6 → remove 2 extra rows + generated lines have 20% fewer blocks |
-
-**Branch B — Balance** (any clear can trigger, more consistent)
+**Branch A — Stabilize** (easier generated lines)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | After clearing ≥ 1 line, if grid ≥ 7 → remove 1 extra bottom row |
-| 5 | After clearing ≥ 1 line, if grid ≥ 7 → remove 1 extra row + next generated line preview visible |
+| 4 | If grid ≥ 7 → every clear removes +1 extra row |
+| 5 | If grid ≥ 6 → every clear removes +1 extra row |
 
-**Design Notes**:
-- Replaces Grid Discipline (generated-line difficulty reduction)
-- Conditionally triggered: requires both a line clear AND high grid state
-- Flow State = rewards skilled play (multi-line clears) with aggressive cleanup
-- Balance = any clear can trigger, more forgiving
-- Branch A L5 capstone retains "fewer blocks in generated lines" from old Grid Discipline
-- Branch B L5 capstone retains "line preview" from old Grid Discipline
-- Different from Structural Integrity: requires an active clear (not just any move), but combo-tied
+**Branch B — Precision** (information advantage)
 
----
-
-### 🔵 Control Archetype Summary
-
-| Skill | Role | Key Mechanic |
-|-------|------|--------------|
-| Tsunami | Emergency grid control | Targeted block/row destruction |
-| Structural Integrity | Passive grid safety | Auto-remove rows at high grid height |
-| Grid Harmony | Conditional grid cleanup | Remove rows on line-clear at high grid |
-
-**Identity Check**: ✅ Grid shaping · ✅ Row clears · ✅ Targeted destruction · ✅ No cubes · ✅ No score multipliers · ✅ No combo manipulation
+| Level | Effect |
+|:-----:|--------|
+| 4 | If grid ≥ 8 → next clear removes +3 rows |
+| 5 | If grid ≥ 8 → next clear removes +4 rows |
 
 ---
 
@@ -881,9 +700,6 @@ The `run_data` field (felt252) stores the current run's skill loadout and progre
 | `gambit_triggered_this_level` | 1 | Track Gambit once-per-level trigger | ✅ Yes (reset on level advance) |
 | `combo_surge_flow_active` | 1 | Track if Combo Surge Branch B is active this level | ✅ Yes (reset on level advance) |
 | `cascade_depth` | — | Count gravity phases per move | ❌ No (transient local var) |
-
-**Fields Removed (vs previous version):**
-- `rhythm_procs_this_level` (was 3 bits) — REMOVED, no cap on Rhythm procs
 
 **Total new run_data: 2 bits → 135/252 used (117 bits still free)**
 
@@ -928,46 +744,17 @@ function getArchetype(skillId: number): 'tempo' | 'scaling' | 'risk' | 'control'
 
 ## Contract ↔ Client Interaction
 
-### Startup Draft Flow
-
-```
-Client: DraftPage (game creation)
-  → Player selects 3 skills from pool
-  → systems.ts: createGameWithDraft({ account, token_id, skill_ids: [a, b, c] })
-    → Contract: game_system.create_with_draft(token_id, skill_ids)
-      → Validate: exactly 3 skills, valid IDs (1-12)
-      → Initialize loadout: all at Level 1, active skills get 1 charge each
-      → Store in run_data
-      → Start level 1
-```
-
-### Boss Upgrade Flow
-
-```
-Client: BossUpgradePage (after boss clear)
-  → Player sees current 3 skills with levels
-  → Player selects 1 skill to upgrade
-  → If upgrading to Level 3: must also choose Branch A or B
-  → systems.ts: upgradeBossReward({ account, game_id, skill_index, branch? })
-    → Contract: game_system.boss_upgrade(game_id, skill_index, branch)
-      → Validate: boss was just cleared, skill level < 5
-      → Increment skill level
-      → If level 3: store branch choice
-      → Continue to next level
-```
-
 ### Applying an Active Skill
 
 ```
 Client (ActiveSkillButton click)
-  → systems.ts: applyActiveSkill({ account, game_id, skill_id, target_data? })
-    → Contract: game_system.apply_active_skill(game_id, skill_id, target_data)
+  → systems.ts: applyActiveSkill({ account, game_id, skill_id, row_index, line_index })
+    → Contract: game_system.apply_active_skill(game_id, skill_id, row_index, line_index)
       → Verify skill is in loadout and has charges > 0
       → Decrement charges
       → skill_effects.cairo: active_effect_for_skill(skill_id, level, branch_id)
         → Returns ActiveEffect struct
       → Apply effect (grid modification, combo add, etc.)
-      → For Combo Surge Branch B: set combo_surge_flow_active flag
 ```
 
 ### Passive Skill Resolution
@@ -977,9 +764,9 @@ Contract: During move resolution / level start / level complete
   → skill_effects.cairo: passive_effect_for_skill(skill_id, level, branch_id)
   → skill_effects.cairo: aggregate_passive_effects(run_data, branch_ids)
     → Combines effects from all passive skills in loadout
-  → Applied during move resolution (Rhythm, Cascade Mastery, High Stakes, Gambit, Structural Integrity, Grid Harmony)
-  → Applied at level start (Momentum Scaling, Endgame Focus)
-  → Applied at level complete (charge replenishment)
+  → Applied during move resolution (Rhythm, Cascade Mastery, etc.)
+  → Applied at level start (Momentum Scaling, Endgame Focus, etc.)
+  → Applied at level complete (cube rewards, etc.)
 ```
 
 ### Charge Replenishment
@@ -988,143 +775,8 @@ Contract: During move resolution / level start / level complete
 Contract: On level complete
   → Check levels_cleared % charge_cadence == 0
   → If yes: for each active skill in loadout, charges = min(charges + 1, 3)
-  → charge_cadence = 5 (base) or 4/2 if Scaling Overflow Branch B is active
+  → charge_cadence = 5 (base) or 4/3/2 if Scaling Overflow Branch B is active
 ```
-
----
-
-## Gap Analysis — Contracts
-
-### Systems to Add
-
-| System | Purpose | Effort |
-|--------|---------|--------|
-| `draft_system` | Handle startup draft: validate 3 skill selections, initialize loadout | Medium |
-| `boss_upgrade_system` | Handle boss upgrades: validate skill selection, increment level, branch choice | Medium |
-
-### Systems to Modify
-
-| System | Changes | Effort |
-|--------|---------|--------|
-| `game_system.create()` | Integrate draft phase — require 3 skill IDs, initialize loadout in run_data | Medium |
-| `game_system.move()` | Add passive skill hooks (Rhythm, Cascade Mastery, Structural Integrity, Grid Harmony) at appropriate resolution points | High |
-| `game_system.apply_bonus()` | Rename to `apply_active_skill()`. Dispatch to new skill effect functions. Handle Combo Surge Branch B (level-wide flag). Handle Tsunami targeting. Handle Harvest random block selection. | High |
-| `grid.cairo: execute_move()` | Add `cascade_depth` counter. Add Rhythm check after combo tracking. Add Cascade Mastery check after gravity loop. Add Structural Integrity check after move resolves. Add Grid Harmony check after line clear. | High |
-| `grid.cairo: assess_game()` | Track cascade depth in gravity loop (~15 lines). Apply Gambit trigger on line clear at high grid. | Medium |
-| `scoring.cairo` | Add Overdrive multiplier application. Add Momentum Scaling flat score at level start. Add Endgame Focus flat score + fractional scaling. | Medium |
-| `packing.cairo` | Add `gambit_triggered_this_level` (1 bit), `combo_surge_flow_active` (1 bit), `branch` per slot (2 bits × 3). Remove `rhythm_procs_this_level`. Update bit layout. | Medium |
-| `models/game.cairo` | Reset `gambit_triggered_this_level` and `combo_surge_flow_active` on level advance. Add boss upgrade tracking (which bosses cleared). | Low |
-| `level.cairo` | Remove in-game shop trigger at levels 10/20/30/40. Add boss upgrade trigger instead. | Low |
-| `bonus_logic.cairo` / `skill_effects.cairo` | Complete rewrite — 12 skills × 5 levels × 2 branches. New `ActiveEffect` + `PassiveEffect` structs. | High |
-
-### Systems to Remove
-
-| System | Reason |
-|--------|--------|
-| `shop_system` (in-game shop) | Replaced by boss upgrades |
-| `purchase_consumable()` | Consumables removed |
-| `consumable.cairo` types | No longer needed |
-| Mid-map draft logic | Replaced by startup draft |
-
-### New Types Required
-
-| Type | Fields | Notes |
-|------|--------|-------|
-| `DraftSelection` | `skill_ids: [u8; 3]` | Startup draft payload |
-| `BossUpgrade` | `skill_index: u8, branch: u8` | Boss upgrade payload |
-| `ActiveEffect` | `combo_depth: u8, score_multiplier: u16, blocks_to_destroy: u8, lines_to_add: u8, cubes: u16, target_mode: u8, combo_surge_flow: bool` | Comprehensive active effect struct |
-| `PassiveEffect` | `rhythm_threshold: u8, rhythm_combo: u8, cascade_threshold: u8, cascade_combo: u8, score_flat: u16, score_per_level: u16, cube_per_clear: u8, grid_threshold: u8, gambit_cubes: u8, gambit_threshold: u8, row_removal_threshold: u8, rows_to_remove: u8, constraint_reduction: u8, line_clear_min: u8, block_reduction_pct: u8, preview_lines: u8, free_moves: u8` | Comprehensive passive effect struct |
-
-### Estimated Total Contract Effort
-
-| Category | Effort |
-|----------|--------|
-| New systems (draft, boss upgrade) | **Medium** |
-| Skill effects rewrite | **High** |
-| Move resolution hooks | **High** |
-| Data packing changes | **Medium** |
-| Type cleanup (remove consumables, shop) | **Low** |
-| **Total** | **~3-4 weeks** |
-
----
-
-## Gap Analysis — Client
-
-### New Screens / Pages
-
-| Screen | Purpose | Priority |
-|--------|---------|----------|
-| `StartupDraftPage` | Pick 3 skills before run starts | **P0** (blocking) |
-| `BossUpgradePage` | Pick 1 skill to level up after boss clear | **P0** (blocking) |
-| `BranchChoicePage` (or modal) | Choose Branch A or B when upgrading to Level 3 | **P0** (blocking) |
-
-### Screens to Remove
-
-| Screen | Reason |
-|--------|--------|
-| `InGameShopPage` / shop modal | In-game shop removed |
-| Consumable UI (if any) | Consumables removed |
-| Mid-map draft UI | Mid-map augments removed |
-
-### Screens to Modify
-
-| Screen | Changes |
-|--------|---------|
-| `Play.tsx` | Remove shop trigger at boss levels. Add boss upgrade trigger. Remove consumable buttons. Update skill display (5 levels, branches). |
-| `DraftPage.tsx` | Rewrite as startup-only draft. Show all 12 skills. Pick 3 (not upgrade existing). |
-| `SkillTreePage.tsx` | 4 archetypes, 12 skills, 5 levels, branch at 3. Show upgrade costs (100/500/1K/5K/10K). |
-| `Home.tsx` | May need to show permanent skill investment / CUBE costs |
-
-### New Hooks Required
-
-| Hook | Purpose |
-|------|---------|
-| `useDraft` | Manage startup draft state (available skills, selections, reroll) |
-| `useBossUpgrade` | Manage boss upgrade flow (skill selection, branch choice) |
-| `useActiveSkillTargeting` | Handle Tsunami/Harvest targeting UI (select blocks/rows on grid) |
-
-### Data Types to Update
-
-| File | Changes |
-|------|---------|
-| `bonus.ts` | Replace with `ActiveSkill` type. Add targeting modes. |
-| `skillData.ts` | 12 skills, 4 archetypes, renamed skills (Gambit, Structural Integrity, Grid Harmony). |
-| `skillEffects.ts` | All new effect descriptions from this doc. |
-| `runDataPacking.ts` | New bit layout: `gambit_triggered_this_level`, `combo_surge_flow_active`, `branch` per slot. Remove `rhythm_procs_this_level`. |
-| `constants.ts` | All new constants (upgrade costs, charge cadence, skill IDs). |
-
-### System Calls to Update
-
-| Call | Changes |
-|------|---------|
-| `systems.ts: create()` | Add `skill_ids` parameter for startup draft |
-| `systems.ts: applyBonus()` | Rename to `applyActiveSkill()`. Add `target_data` for Tsunami/Harvest targeting. |
-| NEW: `systems.ts: bossUpgrade()` | New call for boss upgrade selection |
-| REMOVE: `systems.ts: purchaseConsumable()` | Consumables removed |
-
-### UI Components
-
-| Component | Status | Notes |
-|-----------|--------|-------|
-| `BonusButton.tsx` | **Rename** → `ActiveSkillButton.tsx` | Update for new skill IDs, targeting |
-| `SkillCard.tsx` | **New** | Draft card showing skill info, archetype color, level |
-| `BranchSelector.tsx` | **New** | Branch A/B choice UI at Level 3 |
-| `BossRewardModal.tsx` | **New** | Boss clear → upgrade selection |
-| `TargetingOverlay.tsx` | **New** | Grid overlay for Tsunami/Harvest block selection |
-| Consumable buttons | **Remove** | No longer needed |
-| Shop UI components | **Remove** | No longer needed |
-
-### Estimated Total Client Effort
-
-| Category | Effort |
-|----------|--------|
-| New pages (draft, boss upgrade, branch) | **High** |
-| Targeting UI (Tsunami/Harvest) | **Medium** |
-| Data type rewrites | **Medium** |
-| Remove shop/consumable code | **Low** |
-| Skill tree page rewrite | **Medium** |
-| System call updates | **Low** |
-| **Total** | **~3-4 weeks** |
 
 ---
 
@@ -1143,79 +795,27 @@ Contract: On level complete
 | Levels | 0-9 (display 1-10) | 1-5 |
 | Branch point | Level 5 (internal 4) | Level 3 |
 | Naming | Bonus Skills / World Skills | Active Skills / Passive Skills |
-| Mid-map augments | Every N levels | **Removed** |
-| In-game shop | Every 10 levels | **Removed** |
-| Consumables | 4 types | **Removed** |
-| Skill acquisition | Draft mid-run | **Startup draft only** |
-| Skill upgrades | Draft + shop | **Boss clear rewards** |
 
 ### Skill Name Mapping (v1 → vNext)
 
 | v1 Skill | v1 ID | vNext Equivalent | vNext ID | Notes |
 |----------|:-----:|------------------|:--------:|-------|
-| Combo | 1 | **Combo Surge** | 1 | Simplified, 5 levels, +1/+2/+3 (was +2/+3/+5). Branch B = level-wide combo depth |
+| Combo | 1 | **Combo Surge** | 1 | Simplified, 5 levels. Branch B = level-wide combo depth |
 | Score | 2 | — | — | Removed (replaced by Overdrive) |
-| Harvest | 3 | **Harvest** | 7 | Moved to Risk. Cubes scale with block SIZE. Random blocks (not chosen). |
-| Wave | 4 | **Tsunami** | 10 | Renamed, moved to Control. Targeted blocks/rows (not bottom). |
+| Harvest | 3 | **Harvest** | 7 | Moved to Risk. Cubes scale with block SIZE. Random blocks. |
+| Wave | 4 | **Tsunami** | 10 | Renamed, moved to Control. Targeted blocks/rows. |
 | Supply | 5 | — | — | Removed (line injection folded into Harvest Branch B) |
-| Tempo | 6 | **Rhythm** | 2 | Redesigned. No cap on procs. |
+| Tempo | 6 | **Rhythm** | 2 | Redesigned around combo_streak |
 | Fortune | 7 | — | — | Removed (cube gen moved to Risk passives) |
-| Surge | 8 | **Momentum Scaling** | 5 | Redesigned as flat score at level start (zone or flat) |
+| Surge | 8 | **Momentum Scaling** | 5 | Redesigned as flat score at level start |
 | Catalyst | 9 | — | — | Removed |
-| Resilience | 10 | — | — | Removed (free moves folded into Structural Integrity Branch B) |
-| Focus | 11 | **Structural Integrity** | 11 | Redesigned: auto-remove rows at high grid height |
-| Expansion | 12 | **Grid Harmony** | 12 | Redesigned: conditional row removal on line-clear at high grid |
+| Resilience | 10 | — | — | Removed |
+| Focus | 11 | **Structural Integrity** | 11 | Redesigned: extra row removal on first clear at high grid |
+| Expansion | 12 | **Grid Harmony** | 12 | Redesigned: extra row removal on clear at high grid |
 | Momentum | 13 | — | — | Removed (merged into Rhythm + Cascade Mastery) |
-| Adrenaline | 14 | **High Stakes** | 8 | Redesigned: lower values, +1/+2/+4/+6/+10 |
+| Adrenaline | 14 | **High Stakes** | 8 | Redesigned: cube-per-clear at height threshold |
 | Legacy | 15 | — | — | Removed (replaced by Endgame Focus) |
-| — | — | **Cascade Mastery** | 3 | NEW — higher thresholds (≥5, ≥4), combo depth only |
-| — | — | **Overdrive** | 4 | NEW — multipliers (x1.5-x4), Branch B cadence to every 2 |
-| — | — | **Endgame Focus** | 6 | NEW — flat score + fractional per-level scaling |
-| — | — | **Gambit** | 9 | NEW — replaces Volatility. Survive danger → earn cubes (once per level) |
-
-### Key Behavioral Changes
-
-1. **No mid-run skill acquisition** — all 3 skills picked at game start
-2. **No in-game shop** — boss clears provide free upgrades
-3. **No consumables** — skills handle everything
-4. **Charge refill is cadence-only** — no more combo-based refill
-5. **Charges filled with 1 stack after draft** — not empty
-6. **Overdrive uses multipliers** (x1.5, x2, etc.) — not % bonus
-7. **Rhythm has no proc cap** — previously had max_procs_per_level
-8. **Cascade Mastery rewards combo depth only** — removed score per phase, removed combo multiplier
-9. **Harvest targets random blocks** — not player-chosen size
-10. **Tsunami targets specific blocks/rows** — not always bottom rows
-11. **Both Control passives are about row removal at high grid** — not constraint % / generated line difficulty
-
----
-
-## Key Source Files (Reference)
-
-### Contract
-
-| File | Purpose |
-|------|---------|
-| `contracts/src/helpers/skill_effects.cairo` | ALL skill effect values — **complete rewrite needed** |
-| `contracts/src/systems/grid.cairo` | Move resolution, cascade loop, skill hooks |
-| `contracts/src/systems/game.cairo` | Game creation, apply_bonus → apply_active_skill |
-| `contracts/src/systems/shop.cairo` | **TO BE REMOVED** (in-game shop) |
-| `contracts/src/helpers/packing.cairo` | run_data bit layout |
-| `contracts/src/helpers/scoring.cairo` | Combo tracking, score updates |
-| `contracts/src/models/game.cairo` | Game state model |
-| `contracts/src/types/bonus.cairo` | Bonus enum — **rewrite as skill IDs** |
-| `contracts/src/types/consumable.cairo` | **TO BE REMOVED** |
-| `contracts/src/elements/bonuses/harvest.cairo` | Grid destruction logic (reusable for Harvest/Tsunami) |
-| `contracts/src/elements/bonuses/wave.cairo` | Row clear logic (reusable for Tsunami) |
-
-### Client
-
-| File | Purpose |
-|------|---------|
-| `client-budokan/src/dojo/game/types/skillData.ts` | Skill/archetype definitions |
-| `client-budokan/src/dojo/game/types/skillEffects.ts` | Effect descriptions |
-| `client-budokan/src/dojo/game/helpers/runDataPacking.ts` | run_data packing |
-| `client-budokan/src/dojo/game/constants.ts` | Constants |
-| `client-budokan/src/dojo/systems.ts` | System calls |
-| `client-budokan/src/ui/pages/DraftPage.tsx` | **Rewrite as startup-only draft** |
-| `client-budokan/src/ui/pages/SkillTreePage.tsx` | **Rewrite for 4 archetypes, 5 levels** |
-| `client-budokan/src/ui/components/BonusButton.tsx` | **Rename → ActiveSkillButton.tsx** |
+| — | — | **Cascade Mastery** | 3 | NEW — cascade depth reward (combo depth only) |
+| — | — | **Overdrive** | 4 | NEW — score multiplier burst / charge cadence modifier |
+| — | — | **Endgame Focus** | 6 | NEW — late-run flat score + fractional scaling |
+| — | — | **Gambit** | 9 | NEW — survive danger → earn cubes (once per level) |
