@@ -90,11 +90,20 @@ function buildZoneLayout(
     const isFirst = i === 0;
     const isLast = i === lastNode;
 
-    // Boss, entry-draft, and pre-boss nodes get centered
-    // Pre-boss centered to avoid tangling with the larger boss node
-    if (isFirst || isLast || i === lastNode - 1) {
+    // Boss and entry-draft get centered
+    if (isFirst || isLast) {
       points.push({ x: 0.5, y });
       lane = 1; // reset to center for next alternation
+      continue;
+    }
+
+    // Pre-boss node: force to an outer lane (opposite of previous) so it
+    // doesn't tangle with the large centered boss above it.
+    if (i === lastNode - 1) {
+      lane = lane === 0 ? 2 : 0; // flip to opposite outer lane
+      const xJitter = (hashToUnit(seed, zoneIndex, i, 202) - 0.5) * X_JITTER;
+      const x = clamp(LANES[lane] + xJitter, 0.14, 0.86);
+      points.push({ x, y });
       continue;
     }
 
