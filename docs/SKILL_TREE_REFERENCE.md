@@ -9,33 +9,20 @@
 ## Table of Contents
 
 1. [Design Goals](#design-goals)
-2. [System Overview](#system-overview)
-3. [Archetypes (4)](#archetypes-4)
-4. [Skill Structure](#skill-structure)
-5. [Level Progression (5 Levels)](#level-progression-5-levels)
-6. [Charge System](#charge-system)
-7. [Cube Economy Rules](#cube-economy-rules)
-8. [Draft System](#draft-system)
-9. [Domain Separation Rules](#domain-separation-rules)
-10. [Tempo — Flow & Cascades](#-tempo--flow--cascades)
-    - [Combo Surge (Active)](#1%EF%B8%8F⃣-active--combo-surge)
-    - [Rhythm (Passive)](#2%EF%B8%8F⃣-passive--rhythm)
-    - [Cascade Mastery (Passive)](#3%EF%B8%8F⃣-passive--cascade-mastery)
-11. [Scaling — Long-Run Growth](#-scaling--long-run-growth)
-    - [Overdrive (Active)](#4%EF%B8%8F⃣-active--overdrive)
-    - [Momentum Scaling (Passive)](#5%EF%B8%8F⃣-passive--momentum-scaling)
-    - [Endgame Focus (Passive)](#6%EF%B8%8F⃣-passive--endgame-focus)
-12. [Risk / Economy — Greed & Volatility](#-risk--economy--greed--volatility)
-    - [Harvest (Active)](#7%EF%B8%8F⃣-active--harvest)
-    - [High Stakes (Passive)](#8%EF%B8%8F⃣-passive--high-stakes)
-    - [Gambit (Passive)](#9%EF%B8%8F⃣-passive--gambit)
-13. [Control — Board Mastery](#-control--board-mastery)
-    - [Tsunami (Active)](#-active--tsunami)
-    - [Structural Integrity (Passive)](#1%EF%B8%8F⃣1%EF%B8%8F⃣-passive--structural-integrity)
-    - [Grid Harmony (Passive)](#1%EF%B8%8F⃣2%EF%B8%8F⃣-passive--grid-harmony)
-14. [Data Packing: run_data](#data-packing-run_data)
-15. [Contract ↔ Client Interaction](#contract--client-interaction)
-16. [Migration Notes (v1 → vNext)](#migration-notes-v1--vnext)
+2. [Systemic Changes (v1 → vNext)](#systemic-changes-v1--vnext)
+3. [System Overview](#system-overview)
+4. [Archetypes (4)](#archetypes-4)
+5. [Skill Structure](#skill-structure)
+6. [Level Progression (5 Levels)](#level-progression-5-levels)
+7. [Charge System](#charge-system)
+8. [Cube Economy Rules](#cube-economy-rules)
+9. [Draft System](#draft-system)
+10. [Domain Separation Rules](#domain-separation-rules)
+11. [Tempo — Flow & Cascades](#-tempo--flow--cascades)
+12. [Scaling — Long-Run Growth](#-scaling--long-run-growth)
+13. [Risk / Economy — Greed & Volatility](#-risk--economy--greed--volatility)
+14. [Control — Board Mastery](#-control--board-mastery)
+15. [Implementation Needs](#implementation-needs)
 
 ---
 
@@ -48,6 +35,84 @@
 5. **Clear cube economy**: Only Risk archetype primarily generates cubes
 6. **Skill-expressive gameplay**: Tempo = technical, Scaling = patient, Risk = greedy, Control = stabilizing
 7. **No runaway loops**: All repeatable effects are hard-capped per level
+
+---
+
+## Systemic Changes (v1 → vNext)
+
+### What's Changing
+
+| Area | v1 (Current) | vNext |
+|------|:---:|:---:|
+| Archetypes | 5 (Tempo, Scaling, Economy, Control, Risk) | **4** (merge Economy into Risk) |
+| Skills | 15 (5 active + 10 passive) | **12** (4 active + 8 passive) |
+| Skill levels | 10 (0-9 internal) | **5** (1-5 displayed) |
+| Branch point | Level 5 (internal 4) | **Level 3** |
+| Bonus enum | 5 values (Combo, Score, Harvest, Wave, Supply) | **12 skill IDs** (1-12) |
+| Naming | "Bonus Skills" / "World Skills" | **"Active Skills"** / **"Passive Skills"** |
+| Bonus levels | 3 (L1-L3) | **5** with branch at L3 |
+| Score bonus | +10/+20/+30 flat | **Removed** → Overdrive multiplier |
+| Supply bonus | Add 1-3 lines | **Removed** → Harvest Branch B |
+| Wave bonus | Clear 1-3 bottom rows | **Redesigned** → Tsunami (targeted blocks/rows) |
+| Harvest bonus | Destroy all blocks of chosen size | **Redesigned** → random blocks, cubes = block size |
+| Combo bonus | +1/+2/+3 combo | **Redesigned** → Combo Surge (depth, branches) |
+| Consumables | 3 types (BonusCharge, LevelUp, SwapBonus) | **Removed entirely** |
+| In-game shop | Every 10 levels | **Removed** |
+| Permanent shop | Bag size, unlock Wave/Supply, bridging | **TBD** (needs redesign) |
+| Passive skill structs | BonusEffect/WorldEffects (33+47 fields) | **New structs** (ActiveEffect + PassiveEffect) |
+| Charge refill | Combo-based + cadence | **Cadence only** (every 5 levels) |
+| Cascade tracking | Not tracked | **New** transient `cascade_depth` counter |
+| Grid height effects | Only via constraint (KeepGridBelow) | **Core mechanic** for 5+ skills |
+
+### What's Being Removed
+
+| Feature | Contract Location | Why |
+|---------|-------------------|-----|
+| `ConsumableType` enum | `types/consumable.cairo` | Consumables replaced by skills |
+| `purchase_consumable()` | `systems/game.cairo` | No more in-game shop |
+| In-game shop logic | `systems/game.cairo` (shop_purchases, last_shop_level) | Boss upgrades replace shop |
+| Score bonus (type 2) | `types/bonus.cairo` | Replaced by Overdrive |
+| Supply bonus (type 5) | `types/bonus.cairo` | Folded into Harvest Branch B |
+| `BonusEffect` / `WorldEffects` structs | `helpers/skill_effects.cairo` | Complete rewrite |
+| run_data: `combo_count`, `score_count`, `harvest_count`, `wave_count`, `supply_count` | `helpers/packing.cairo` | Replaced by per-slot charges |
+| run_data: `last_shop_level`, `shop_purchases`, `shop_level_up_bought`, `shop_swap_bought` | `helpers/packing.cairo` | Shop removed |
+| run_data: `unallocated_charges` | `helpers/packing.cairo` | No more charge pool |
+
+### What's Being Added
+
+| Feature | Purpose |
+|---------|---------|
+| `branch` per loadout slot (2 bits × 3) | Track A/B branch choice per skill |
+| `gambit_triggered_this_level` (1 bit) | Gambit once-per-level flag, reset on level advance |
+| `combo_surge_flow_active` (1 bit) | Combo Surge Branch B level-wide flag, reset on level advance |
+| `cascade_depth` (transient) | Count gravity phases per move — NOT stored in run_data |
+| Overdrive Branch B cadence modifier | Global charge cadence override (4/3/2 levels instead of 5) |
+| Grid height checks in move resolution | Structural Integrity, Grid Harmony, High Stakes, Gambit |
+| Targeted block/row selection | Tsunami and Harvest need player targeting data in contract call |
+
+### Skill Name Mapping (v1 → vNext)
+
+| v1 Skill | v1 ID | vNext Equivalent | vNext ID | Notes |
+|----------|:-----:|------------------|:--------:|-------|
+| Combo | 1 | **Combo Surge** | 1 | Branch B = level-wide combo depth |
+| Score | 2 | — | — | Removed → Overdrive |
+| Harvest | 3 | **Harvest** | 7 | Cubes scale with block SIZE. Random blocks. |
+| Wave | 4 | **Tsunami** | 10 | Targeted blocks/rows. |
+| Supply | 5 | — | — | Removed → Harvest Branch B |
+| Tempo | 6 | **Rhythm** | 2 | Redesigned around combo_streak |
+| Fortune | 7 | — | — | Removed |
+| Surge | 8 | **Momentum Scaling** | 5 | Flat score at level start |
+| Catalyst | 9 | — | — | Removed |
+| Resilience | 10 | — | — | Removed |
+| Focus | 11 | **Structural Integrity** | 11 | Extra row removal at high grid |
+| Expansion | 12 | **Grid Harmony** | 12 | Extra row removal on clear at high grid |
+| Momentum | 13 | — | — | Removed |
+| Adrenaline | 14 | **High Stakes** | 8 | Cube-per-clear at height threshold |
+| Legacy | 15 | — | — | Removed → Endgame Focus |
+| — | — | **Cascade Mastery** | 3 | NEW |
+| — | — | **Overdrive** | 4 | NEW |
+| — | — | **Endgame Focus** | 6 | NEW |
+| — | — | **Gambit** | 9 | NEW |
 
 ---
 
@@ -687,135 +752,80 @@ Rewards deep cascades. Uses **per-resolution** cascade depth (transient, not cum
 
 ---
 
-## Data Packing: run_data
+## Implementation Needs
 
-### Current State (v1): 133/252 bits used
+### Contract Changes
 
-The `run_data` field (felt252) stores the current run's skill loadout and progress. 119 bits remain free.
+#### Files to Rewrite
 
-### New Fields Required (vNext)
+| File | Current Role | What Changes |
+|------|-------------|-------------|
+| `types/bonus.cairo` | 5-value Bonus enum (Combo, Score, Harvest, Wave, Supply) | Replace with 12 skill IDs. Remove `requires_unlock()`, `bag_index()`. |
+| `helpers/skill_effects.cairo` | BonusEffect (33 fields) + WorldEffects (47 fields), match-based dispatch | Complete rewrite: 12 skills × 5 levels × 2 branches. New `ActiveEffect` + `PassiveEffect` structs. |
+| `helpers/packing.cairo` | RunData struct (195 bits). Has per-bonus counts, shop fields, unallocated_charges. | Remove: shop fields, per-bonus counts, unallocated_charges. Add: `branch` per slot (2 bits × 3), `gambit_triggered_this_level` (1 bit), `combo_surge_flow_active` (1 bit). |
 
-| Field | Bits | Purpose | Persisted? |
-|-------|------|---------|------------|
-| `gambit_triggered_this_level` | 1 | Track Gambit once-per-level trigger | ✅ Yes (reset on level advance) |
-| `combo_surge_flow_active` | 1 | Track if Combo Surge Branch B is active this level | ✅ Yes (reset on level advance) |
-| `cascade_depth` | — | Count gravity phases per move | ❌ No (transient local var) |
+#### Files to Modify
 
-**Total new run_data: 2 bits → 135/252 used (117 bits still free)**
+| File | Changes |
+|------|---------|
+| `systems/game.cairo` | `apply_bonus()` → `apply_active_skill()`. Remove `purchase_consumable()`. Add skill-specific targeting (Tsunami blocks, Harvest random). |
+| `systems/grid.cairo` | Add `cascade_depth` counter in `assess_game()` gravity loop. Add hooks: Rhythm check after combo, Cascade Mastery after gravity, Structural Integrity + Grid Harmony after line clear, High Stakes + Gambit cube awards. |
+| `helpers/scoring.cairo` | Add Overdrive multiplier application. Add Momentum Scaling / Endgame Focus flat score at level start. |
+| `models/game.cairo` | Reset `gambit_triggered_this_level`, `combo_surge_flow_active` on level advance. |
+| `helpers/level.cairo` | Remove in-game shop trigger at boss levels. |
+| `elements/bonuses/harvest.cairo` | Rewrite: random block selection instead of chosen-size destruction. Cube reward = block size. |
+| `elements/bonuses/wave.cairo` | Rewrite as Tsunami: targeted blocks (Branch A) or targeted rows (Branch B). |
 
-### vNext Loadout Slot Layout
+#### Files to Remove
 
-Skill IDs 1-12 still fit in 4 bits. Levels 1-5 fit in 3 bits (was 4). Charges 0-3 still fit in 2 bits.
+| File | Why |
+|------|-----|
+| `types/consumable.cairo` | Consumables removed entirely |
+| Shop-related logic in `systems/game.cairo` | In-game shop removed |
 
-```
-Proposed narrower layout:
-  active_slot_count: 2 bits (0-3)
-  Per slot (×3):
-    skill_id:  4 bits (0-12)
-    level:     3 bits (0-5)
-    charges:   2 bits (0-3)
-    branch:    2 bits (0=none, 1=A, 2=B)
-  = 2 + 3×(4+3+2+2) = 2 + 33 = 35 bits for loadout
-```
+### Client Changes
 
-### SkillSlot Interface (vNext)
+#### Files to Rewrite
 
-```typescript
-interface SkillSlot {
-  skillId: number;  // 1-12 (1,4,7,10 = active; rest = passive), 0 = empty
-  level: number;    // 1-5
-  charges: number;  // 0-3 (only meaningful for active skills)
-  branch: 'none' | 'A' | 'B';  // 'none' if level < 3
-}
+| File | What Changes |
+|------|-------------|
+| `dojo/game/types/bonus.ts` | Replace 5-value Bonus with 12 skill IDs + targeting modes |
+| `dojo/game/types/skillData.ts` | 12 skills, 4 archetypes, new names (Gambit, Structural Integrity, Grid Harmony) |
+| `dojo/game/types/skillEffects.ts` | All new effect descriptions matching this spec |
+| `dojo/game/helpers/runDataPacking.ts` | New bit layout: add `branch`, `gambit_triggered`, `combo_surge_flow`. Remove shop/bonus-count fields. |
+| `dojo/game/constants.ts` | New constants (upgrade costs, charge cadence, skill IDs) |
 
-function isActiveSkill(skillId: number): boolean {
-  return [1, 4, 7, 10].includes(skillId);
-}
+#### Files to Modify
 
-function getArchetype(skillId: number): 'tempo' | 'scaling' | 'risk' | 'control' {
-  if (skillId <= 3) return 'tempo';
-  if (skillId <= 6) return 'scaling';
-  if (skillId <= 9) return 'risk';
-  return 'control';
-}
-```
+| File | What Changes |
+|------|-------------|
+| `dojo/systems.ts` | `applyBonus()` → `applyActiveSkill()` with targeting data. Remove `purchaseConsumable()`. |
+| `ui/pages/DraftPage.tsx` | Update for 12 skills, 4 archetypes, branch choice at L3 |
+| `ui/pages/SkillTreePage.tsx` | 4 archetypes, 5 levels, branch at L3. Show upgrade costs. |
+| `ui/screens/Play.tsx` | Remove shop trigger at boss levels. Remove consumable buttons. Update skill display. |
+| `ui/components/BonusButton.tsx` | Rename → `ActiveSkillButton.tsx`. Add targeting mode for Tsunami/Harvest. |
 
----
+#### New Components Needed
 
-## Contract ↔ Client Interaction
+| Component | Purpose |
+|-----------|---------|
+| `TargetingOverlay.tsx` | Grid overlay for Tsunami block/row selection and Harvest display |
+| `BranchSelector.tsx` | Branch A/B choice UI when skill reaches Level 3 |
 
-### Applying an Active Skill
+### Open Questions
 
-```
-Client (ActiveSkillButton click)
-  → systems.ts: applyActiveSkill({ account, game_id, skill_id, row_index, line_index })
-    → Contract: game_system.apply_active_skill(game_id, skill_id, row_index, line_index)
-      → Verify skill is in loadout and has charges > 0
-      → Decrement charges
-      → skill_effects.cairo: active_effect_for_skill(skill_id, level, branch_id)
-        → Returns ActiveEffect struct
-      → Apply effect (grid modification, combo add, etc.)
-```
+1. **Overdrive Branch B active use**: When Branch B is selected, Overdrive's active effect is only cadence reduction (passive benefit). What happens when the player USES a charge? Does it still give x2 score (inherited from L2)? Or is the charge mechanic removed for Branch B (charges still refill but are only usable by other active skills)?
 
-### Passive Skill Resolution
+2. **Permanent shop**: Currently sells bag size, Wave/Supply unlocks, bridging rank. With Wave/Supply gone and the skill system replacing bonuses — what stays? What changes? Does the CUBE upgrade cost table (100/500/1K/5K/10K) replace the permanent shop?
 
-```
-Contract: During move resolution / level start / level complete
-  → skill_effects.cairo: passive_effect_for_skill(skill_id, level, branch_id)
-  → skill_effects.cairo: aggregate_passive_effects(run_data, branch_ids)
-    → Combines effects from all passive skills in loadout
-  → Applied during move resolution (Rhythm, Cascade Mastery, etc.)
-  → Applied at level start (Momentum Scaling, Endgame Focus, etc.)
-  → Applied at level complete (cube rewards, etc.)
-```
+3. **Skill persistence**: Are skills per-run only (start L1, upgrade via draft/boss) or do CUBE upgrade costs represent persistent out-of-run investment? This fundamentally changes the data model.
 
-### Charge Replenishment
+4. **Targeting contract interface**: Tsunami "targeted blocks/rows" and Harvest "random blocks" — what's the contract call signature? For Tsunami: array of (row, col) pairs? Row indices? For Harvest: does the contract pick random blocks (VRF/pseudo) or does the client send targets?
 
-```
-Contract: On level complete
-  → Check levels_cleared % charge_cadence == 0
-  → If yes: for each active skill in loadout, charges = min(charges + 1, 3)
-  → charge_cadence = 5 (base) or 4/3/2 if Scaling Overflow Branch B is active
-```
+5. **Grid height check timing**: Structural Integrity says "first line clear this move" and Grid Harmony says "next clear removes +1 extra row". In the move pipeline (swipe → gravity → line clear → new line insert), exactly when do these trigger? Before or after gravity resolves? Before or after scoring?
 
----
+6. **Gambit "survive"**: "If grid reaches ≥ 9 rows and you survive" — what counts as surviving? Grid reached ≥ 9 at any point during the level, and you didn't game over? Or grid was ≥ 9 and you cleared it back down?
 
-## Migration Notes (v1 → vNext)
+7. **Endgame Focus fractional values**: "+0.2 score per level cleared" — Cairo has no floats. Store as fixed-point × 10? (i.e., store 2, divide by 10 at application = 0.2). Or × 100 for more precision?
 
-### Structural Changes
-
-| Aspect | v1 | vNext |
-|--------|:---:|:---:|
-| Archetypes | 5 (Tempo, Scaling, Economy, Control, Risk) | 4 (Tempo, Scaling, Risk/Economy, Control) |
-| Economy archetype | Standalone | Merged into Risk |
-| Total skills | 15 | 12 |
-| Skill IDs | 1-15 | 1-12 |
-| Active skill IDs | 1-5 | 1, 4, 7, 10 |
-| Passive skill IDs | 6-15 | 2-3, 5-6, 8-9, 11-12 |
-| Levels | 0-9 (display 1-10) | 1-5 |
-| Branch point | Level 5 (internal 4) | Level 3 |
-| Naming | Bonus Skills / World Skills | Active Skills / Passive Skills |
-
-### Skill Name Mapping (v1 → vNext)
-
-| v1 Skill | v1 ID | vNext Equivalent | vNext ID | Notes |
-|----------|:-----:|------------------|:--------:|-------|
-| Combo | 1 | **Combo Surge** | 1 | Simplified, 5 levels. Branch B = level-wide combo depth |
-| Score | 2 | — | — | Removed (replaced by Overdrive) |
-| Harvest | 3 | **Harvest** | 7 | Moved to Risk. Cubes scale with block SIZE. Random blocks. |
-| Wave | 4 | **Tsunami** | 10 | Renamed, moved to Control. Targeted blocks/rows. |
-| Supply | 5 | — | — | Removed (line injection folded into Harvest Branch B) |
-| Tempo | 6 | **Rhythm** | 2 | Redesigned around combo_streak |
-| Fortune | 7 | — | — | Removed (cube gen moved to Risk passives) |
-| Surge | 8 | **Momentum Scaling** | 5 | Redesigned as flat score at level start |
-| Catalyst | 9 | — | — | Removed |
-| Resilience | 10 | — | — | Removed |
-| Focus | 11 | **Structural Integrity** | 11 | Redesigned: extra row removal on first clear at high grid |
-| Expansion | 12 | **Grid Harmony** | 12 | Redesigned: extra row removal on clear at high grid |
-| Momentum | 13 | — | — | Removed (merged into Rhythm + Cascade Mastery) |
-| Adrenaline | 14 | **High Stakes** | 8 | Redesigned: cube-per-clear at height threshold |
-| Legacy | 15 | — | — | Removed (replaced by Endgame Focus) |
-| — | — | **Cascade Mastery** | 3 | NEW — cascade depth reward (combo depth only) |
-| — | — | **Overdrive** | 4 | NEW — score multiplier burst / charge cadence modifier |
-| — | — | **Endgame Focus** | 6 | NEW — late-run flat score + fractional scaling |
-| — | — | **Gambit** | 9 | NEW — survive danger → earn cubes (once per level) |
+8. **Structural Integrity vs Grid Harmony overlap**: Both trigger on line clear at high grid. What's the interaction when both are in the loadout? Do they stack? Do they trigger simultaneously? Sequentially?
