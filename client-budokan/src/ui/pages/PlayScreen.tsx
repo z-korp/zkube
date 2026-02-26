@@ -25,8 +25,6 @@ import GameBoard from "@/ui/components/GameBoard";
 import GameOverDialog from "@/ui/components/GameOverDialog";
 import VictoryDialog from "@/ui/components/VictoryDialog";
 import Connect from "@/ui/components/Connect";
-import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
-import { getDraftEventForCompletedLevel } from "@/utils/draftEvents";
 import {
   Dialog,
   DialogContent,
@@ -51,11 +49,8 @@ const PlayScreen: React.FC = () => {
   const gameId = useNavigationStore((s) => s.gameId);
   const navNavigate = useNavigationStore((s) => s.navigate);
   const goBack = useNavigationStore((s) => s.goBack);
-  const setPendingPreviewLevel = useNavigationStore(
-    (s) => s.setPendingPreviewLevel,
-  );
-  const setPendingDraftEvent = useNavigationStore(
-    (s) => s.setPendingDraftEvent,
+  const setPendingLevelCompletion = useNavigationStore(
+    (s) => s.setPendingLevelCompletion,
   );
   const { themeTemplate, setThemeTemplate } = useTheme();
   const { setMusicContext, setMusicPlaylist, playSfx } = useMusicPlayer();
@@ -80,15 +75,6 @@ const PlayScreen: React.FC = () => {
   // Tracks whether the Grid cascade animation has finished for the current move.
   // Level-complete detection is gated on this to prevent checking against a mid-cascade grid.
   const [cascadeComplete, setCascadeComplete] = useState(false);
-  const [levelCompletionData, setLevelCompletionData] = useState<{
-    level: number;
-    levelMoves: number;
-    prevTotalCubes: number;
-    totalCubes: number;
-    prevTotalScore: number;
-    totalScore: number;
-    gameLevel: GameLevelData | null;
-  } | null>(null);
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
   const prevGameStateRef = useRef<{
     level: number;
@@ -155,7 +141,6 @@ const PlayScreen: React.FC = () => {
     if (!game || !account || game.over) return;
     if (!draftState?.active) return;
     if (gameId === null || gameId === undefined) return;
-    if (levelCompletionData) return; // Don't redirect while showing level-complete dialog
     navNavigate("draft", gameId);
   }, [draftState?.active, game, account, gameId, navNavigate, levelCompletionData]);
 
@@ -207,7 +192,7 @@ const PlayScreen: React.FC = () => {
       } else {
         playSfx("levelup");
       }
-      const completionData = {
+      setPendingLevelCompletion({
         level: prevState.level,
         levelMoves: prevState.levelMoves,
         prevTotalCubes: prevState.totalCubes,
@@ -215,8 +200,7 @@ const PlayScreen: React.FC = () => {
         prevTotalScore: levelStartTotalScoreRef.current,
         totalScore: game.totalScore,
         gameLevel: prevState.gameLevel,
-      };
-      setLevelCompletionData(completionData);
+      });
       levelStartTotalScoreRef.current = game.totalScore;
 
       // Fire startNextLevel in background so the next level grid is ready
@@ -230,6 +214,7 @@ const PlayScreen: React.FC = () => {
           console.error("Background startNextLevel failed:", error);
         });
       }
+      navNavigate("map");
     }
 
     prevGameStateRef.current = {
@@ -255,11 +240,6 @@ const PlayScreen: React.FC = () => {
     playSfx,
     cascadeComplete,
   ]);
-
-  const completionDraftEvent = useMemo(() => {
-    if (!levelCompletionData) return null;
-    return getDraftEventForCompletedLevel(seed, levelCompletionData.level);
-  }, [levelCompletionData, seed]);
 
   const handleSurrender = useCallback(async () => {
     if (!account || !game) return;
@@ -500,31 +480,6 @@ const PlayScreen: React.FC = () => {
         />
       )}
 
-      {levelCompletionData && (
-        <LevelCompleteDialog
-          isOpen={true}
-          onClose={() => {
-            const completedLevel = levelCompletionData.level;
-            setLevelCompletionData(null);
-
-            if (completionDraftEvent) {
-              setPendingDraftEvent(completionDraftEvent);
-              navNavigate("draft", gameId ?? undefined);
-            } else {
-              setPendingPreviewLevel(completedLevel + 1);
-              navNavigate("map");
-            }
-          }}
-          level={levelCompletionData.level}
-          levelMoves={levelCompletionData.levelMoves}
-          prevTotalCubes={levelCompletionData.prevTotalCubes}
-          totalCubes={levelCompletionData.totalCubes}
-          prevTotalScore={levelCompletionData.prevTotalScore}
-          totalScore={levelCompletionData.totalScore}
-          gameLevel={levelCompletionData.gameLevel}
-          draftWillOpen={completionDraftEvent !== null}
-        />
-      )}
 
       {game && !isGameLoading && !isGridLoading && (
         <GameHud

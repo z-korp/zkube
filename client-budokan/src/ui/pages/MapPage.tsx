@@ -26,12 +26,14 @@ import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
 import {
+  getDraftEventForCompletedLevel,
   getDraftEventForZoneNode,
   getStoredDraftPick,
   isDraftEventCompleted,
 } from "@/utils/draftEvents";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import LevelPreview from "@/ui/components/map/LevelPreview";
+import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
 import ZoneBackground from "@/ui/components/map/ZoneBackground";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
@@ -124,6 +126,12 @@ const MapPage: React.FC = () => {
   );
   const setPendingPreviewLevel = useNavigationStore(
     (state) => state.setPendingPreviewLevel,
+  );
+  const pendingLevelCompletion = useNavigationStore(
+    (state) => state.pendingLevelCompletion,
+  );
+  const setPendingLevelCompletion = useNavigationStore(
+    (state) => state.setPendingLevelCompletion,
   );
   const pendingDraftEvent = useNavigationStore(
     (state) => state.pendingDraftEvent,
@@ -221,6 +229,11 @@ const MapPage: React.FC = () => {
       }),
     [mapData.nodes],
   );
+
+  const completionDraftEvent = useMemo(() => {
+    if (!pendingLevelCompletion) return null;
+    return getDraftEventForCompletedLevel(seed, pendingLevelCompletion.level);
+  }, [pendingLevelCompletion, seed]);
 
 
   /* ---- Swipe handlers (Pointer Events for reliable mobile) ---- */
@@ -607,7 +620,7 @@ const MapPage: React.FC = () => {
         </div>
 
         {/* ---- Level preview modal ---- */}
-        {selectedNode && (
+        {selectedNode && !pendingLevelCompletion && (
           <LevelPreview
             node={selectedNode}
             game={game ?? null}
@@ -615,6 +628,33 @@ const MapPage: React.FC = () => {
             gameId={gameId}
             onPlay={handlePlay}
             onClose={() => setSelectedNode(null)}
+          />
+        )}
+
+        {/* ---- Level complete overlay ---- */}
+        {pendingLevelCompletion && (
+          <LevelCompleteDialog
+            isOpen={true}
+            onClose={() => {
+              const completedLevel = pendingLevelCompletion.level;
+
+              setPendingLevelCompletion(null);
+
+              if (completionDraftEvent) {
+                setPendingDraftEvent(completionDraftEvent);
+                navigate("draft", gameId ?? undefined);
+              } else {
+                setPendingPreviewLevel(completedLevel + 1);
+              }
+            }}
+            level={pendingLevelCompletion.level}
+            levelMoves={pendingLevelCompletion.levelMoves}
+            prevTotalCubes={pendingLevelCompletion.prevTotalCubes}
+            totalCubes={pendingLevelCompletion.totalCubes}
+            prevTotalScore={pendingLevelCompletion.prevTotalScore}
+            totalScore={pendingLevelCompletion.totalScore}
+            gameLevel={pendingLevelCompletion.gameLevel}
+            draftWillOpen={completionDraftEvent !== null}
           />
         )}
 
