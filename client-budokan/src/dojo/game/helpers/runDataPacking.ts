@@ -1,3 +1,4 @@
+import { BOSS_INTERVAL } from "@/dojo/game/constants";
 /**
  * Bit-packing helpers for efficient storage
  * Mirrors the Cairo packing.cairo implementation
@@ -196,7 +197,7 @@ export function createInitialRunData(): RunData {
  * Check if the current level is a boss level (10, 20, 30, 40, 50)
  */
 export function isBossLevel(level: number): boolean {
-  return level > 0 && level % 10 === 0;
+  return level > 0 && level % BOSS_INTERVAL === 0;
 }
 
 /**

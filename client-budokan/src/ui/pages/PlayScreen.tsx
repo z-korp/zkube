@@ -9,7 +9,7 @@ import { useDraft } from "@/hooks/useDraft";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import useViewport from "@/hooks/useViewport";
 import { useDojo } from "@/dojo/useDojo";
-import { isBonusSkill, isWorldEventSkill } from "@/dojo/game/helpers/runDataPacking";
+import { isBonusSkill, isWorldEventSkill, isBossLevel as checkBossLevel } from "@/dojo/game/helpers/runDataPacking";
 import {
   Bonus,
   BonusType,
@@ -36,9 +36,6 @@ import { Button } from "@/ui/elements/button";
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import { deriveZoneThemes, getZone } from "@/hooks/useMapData";
 
-// Module-level guard: survives unmount/remount to prevent duplicate startNextLevel calls
-// when Torii hasn't synced the cleared levelTransitionPending flag yet.
-const startNextLevelIssued = new Set<string>();
 
 const PlayScreen: React.FC = () => {
   useViewport();
@@ -71,8 +68,6 @@ const PlayScreen: React.FC = () => {
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isGameLoading, setIsGameLoading] = useState(true);
-  const [isStartingNextLevel, setIsStartingNextLevel] = useState(false);
-  const startNextLevelCalledRef = useRef(false);
   const [activeBonus, setActiveBonus] = useState<BonusType>(BonusType.None);
   const [bonusDescription, setBonusDescription] = useState("");
   const [isSupplyConfirmOpen, setIsSupplyConfirmOpen] = useState(false);
@@ -96,11 +91,9 @@ const PlayScreen: React.FC = () => {
 
   useEffect(() => {
     const level = game?.level ?? 1;
-    const isBossLevel = level > 0 && level % 10 === 0;
+    const isBossLevel = checkBossLevel(level);
     const wasBossLevel =
-      prevBossLevelRef.current != null &&
-      prevBossLevelRef.current > 0 &&
-      prevBossLevelRef.current % 10 === 0;
+      prevBossLevelRef.current != null ? checkBossLevel(prevBossLevelRef.current) : false;
 
     if (isBossLevel && prevBossLevelRef.current !== level) {
       playSfx("boss-intro");
@@ -142,7 +135,8 @@ const PlayScreen: React.FC = () => {
     else setIsConnectDialogOpen(false);
   }, [account]);
 
-  // Redirect to draft page if a draft is active (e.g. zone 1 entry draft at game creation)
+  // Redirect to draft page if a draft is active (e.g. zone 1 entry draft at game creation).
+  // Skip if the level-complete dialog is showing — navigation happens from the dialog's onClose.
   useEffect(() => {
     if (!game || !account || game.over) return;
     if (!draftState?.active) return;
@@ -150,50 +144,6 @@ const PlayScreen: React.FC = () => {
     navNavigate("draft", gameId);
   }, [draftState?.active, game, account, gameId, navNavigate]);
 
-  // Auto-trigger startNextLevel when level_transition_pending is detected
-  useEffect(() => {
-    if (!game || !account || game.over) return;
-    const key = `${game.id}-${game.level}`;
-    if (!game.levelTransitionPending) {
-      // Pending cleared (level started successfully) — clean up guards
-      startNextLevelCalledRef.current = false;
-      startNextLevelIssued.delete(key);
-      return;
-    }
-    // Module-level guard: prevents duplicate call after unmount/remount
-    if (startNextLevelIssued.has(key)) return;
-    if (startNextLevelCalledRef.current) return; // Already called this mount
-    if (isStartingNextLevel) return; // Already in progress
-
-    startNextLevelCalledRef.current = true;
-    startNextLevelIssued.add(key);
-    setIsStartingNextLevel(true);
-
-    const triggerStartNextLevel = async () => {
-      try {
-        await startNextLevel({
-          account,
-          game_id: game.id,
-          current_level: game.level,
-        });
-      } catch (error: unknown) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        if (errorMsg.includes("No level transition pending")) {
-          // Already processed — treat as success, keep guards in place
-          console.warn("startNextLevel: already processed, ignoring.");
-        } else {
-          console.error("Failed to start next level:", error);
-          // Real failure — allow retry
-          startNextLevelCalledRef.current = false;
-          startNextLevelIssued.delete(key);
-        }
-      } finally {
-        setIsStartingNextLevel(false);
-      }
-    };
-
-    triggerStartNextLevel();
-  }, [game?.levelTransitionPending, game?.id, game?.level, game?.over, account, startNextLevel, isStartingNextLevel]);
 
   useEffect(() => {
     if (prevGameOverRef.current !== undefined) {
@@ -230,10 +180,14 @@ const PlayScreen: React.FC = () => {
     }
 
     // Gate on cascadeComplete: don't detect level transition until the cascade
-    // animation has fully finished. This prevents the UI from seeing the stale
-    // end-of-level grid and trying to navigate before animations are done.
-    if (prevState && currentLevel > prevState.level && !game.over && cascadeComplete) {
-      if (prevState.level % 10 === 0) {
+    // animation has fully finished. If level changed but cascade isn't done yet,
+    // skip this run entirely (don't update prevState) so we re-detect on next run.
+    if (prevState && currentLevel > prevState.level && !game.over) {
+      if (!cascadeComplete) {
+        // Cascade still running — preserve old prevState so we re-detect later
+        return;
+      }
+      if (checkBossLevel(prevState.level)) {
         playSfx("boss-defeat");
       } else {
         playSfx("levelup");
@@ -248,6 +202,18 @@ const PlayScreen: React.FC = () => {
         gameLevel: prevState.gameLevel,
       });
       levelStartTotalScoreRef.current = game.totalScore;
+
+      // Fire startNextLevel in background so the next level grid is ready
+      // by the time the player navigates from the map.
+      if (account) {
+        startNextLevel({
+          account,
+          game_id: game.id,
+          current_level: game.level,
+        }).catch((error: unknown) => {
+          console.error("Background startNextLevel failed:", error);
+        });
+      }
       navNavigate("map");
     }
 
@@ -514,6 +480,7 @@ const PlayScreen: React.FC = () => {
         />
       )}
 
+
       {game && !isGameLoading && !isGridLoading && (
         <GameHud
           level={game.level}
@@ -541,7 +508,7 @@ const PlayScreen: React.FC = () => {
               className="h-16 w-16 animate-bounce drop-shadow-[0_0_12px_rgba(59,130,246,0.8)]"
             />
             <p className="text-lg font-semibold uppercase tracking-[0.25em] text-slate-100">
-              {isStartingNextLevel ? "Starting next level" : isGameLoading ? "Preparing game" : "Loading grid"}
+              {isGameLoading ? "Preparing game" : "Loading grid"}
             </p>
           </div>
         )}

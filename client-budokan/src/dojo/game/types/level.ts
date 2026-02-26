@@ -14,6 +14,7 @@
 import { hash } from "starknet";
 import { Difficulty, DifficultyType } from "./difficulty";
 import { Constraint } from "./constraint";
+import { BOSS_LEVELS } from "@/dojo/game/constants";
 
 /**
  * GameSettings interface matching the Cairo contract
@@ -683,7 +684,7 @@ function maybeGenerateSecondaryConstraint(
  * Check if a level is a boss level (10, 20, 30, 40, 50)
  */
 function isBossLevel(level: number): boolean {
-  return [10, 20, 30, 40, 50].includes(level);
+  return BOSS_LEVELS.includes(level as typeof BOSS_LEVELS[number]);
 }
 
 /**

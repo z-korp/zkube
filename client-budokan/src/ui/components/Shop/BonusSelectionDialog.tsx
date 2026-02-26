@@ -9,6 +9,7 @@ import {
   bonusTypeToContractValue,
 } from "@/dojo/game/types/bonus";
 import { useMusicPlayer } from "@/contexts/hooks";
+import { MAX_LOADOUT_SLOTS } from "@/dojo/game/constants";
 
 interface BonusSelectionDialogProps {
   isOpen: boolean;
@@ -83,13 +84,13 @@ const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
       if (prev.includes(type)) {
         return prev.filter((b) => b !== type);
       }
-      if (prev.length >= 3) return prev;
+      if (prev.length >= MAX_LOADOUT_SLOTS) return prev;
       return [...prev, type];
     });
   };
 
   const handleConfirm = () => {
-    if (selected.length !== 3) return;
+    if (selected.length !== MAX_LOADOUT_SLOTS) return;
     const selectedValues = selected.map((type) => bonusTypeToContractValue(type));
     onConfirm(selectedValues);
   };
@@ -144,7 +145,7 @@ const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
 
         <Button
           onClick={handleConfirm}
-          disabled={selected.length !== 3}
+          disabled={selected.length !== MAX_LOADOUT_SLOTS}
           className="w-full py-3"
         >
           Confirm Selection

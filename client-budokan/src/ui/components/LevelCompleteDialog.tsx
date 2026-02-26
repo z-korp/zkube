@@ -7,6 +7,8 @@ import { Check, Trophy } from "lucide-react";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import { useMusicPlayer } from "@/contexts/hooks";
 import CubeIcon from "@/ui/components/CubeIcon";
+import { BOSS_INTERVAL } from "@/dojo/game/constants";
+import { isBossLevel as checkBossLevel } from "@/dojo/game/helpers/runDataPacking";
 
 interface LevelCompleteDialogProps {
   isOpen: boolean;
@@ -120,8 +122,8 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   const totalLevelCubes = totalCubes - prevTotalCubes;
 
   // Boss level bonus (levels 10, 20, 30, 40, 50)
-  const isBossLevel = [10, 20, 30, 40, 50].includes(level);
-  const bossTier = Math.floor(level / 10);
+  const isBossLevel = checkBossLevel(level);
+  const bossTier = Math.floor(level / BOSS_INTERVAL);
   const bossBonus = isBossLevel ? 10 * bossTier * bossTier : 0;
 
   const extraRewardCubes = Math.max(0, totalLevelCubes - baseCubesEarned - bossBonus);
