@@ -495,16 +495,16 @@ const PlayScreen: React.FC = () => {
           >
             <ChevronLeft size={22} />
           </button>
-          <span className="font-['Fredericka_the_Great'] text-white text-base md:text-lg leading-tight">
+          <span className="font-['Fredericka_the_Great'] text-cyan-200 text-base md:text-lg leading-tight">
             Level {game?.level ?? "..."}
           </span>
           {game && (
             <>
-              <div className="w-px h-5 bg-slate-600 ml-1" />
-              <span className="font-['Fredericka_the_Great'] text-cyan-300 text-base tabular-nums">
+              <span className="text-slate-500 text-sm mx-0.5">·</span>
+              <span className="font-['Fredericka_the_Great'] text-amber-200 text-base tabular-nums">
                 {game.totalScore}
               </span>
-              <div className="w-px h-5 bg-slate-600" />
+              <span className="text-slate-500 text-sm mx-0.5">·</span>
               <div className="flex items-center gap-1">
                 <span className="font-['Fredericka_the_Great'] text-blue-300 text-base tabular-nums">
                   +{game.cubesAvailable}
@@ -517,12 +517,12 @@ const PlayScreen: React.FC = () => {
         <div className="flex items-center gap-2">
           {/* Wallet cubes (owned) */}
           <div className="flex items-center gap-1">
-            <span className="font-['Fredericka_the_Great'] text-yellow-400 text-base tabular-nums">
+            <CubeIcon size="sm" />
+            <span className="font-['Fredericka_the_Great'] text-blue-300 text-base tabular-nums">
               {walletBalance.toString()}
             </span>
-            <CubeIcon size="sm" />
           </div>
-          <div className="w-px h-5 bg-slate-600" />
+          <span className="text-slate-500 text-sm mx-0.5">·</span>
           {/* Settings gear */}
           <button
             onClick={() => setIsSettingsOpen(true)}
