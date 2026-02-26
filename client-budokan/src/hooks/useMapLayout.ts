@@ -90,8 +90,9 @@ function buildZoneLayout(
     const isFirst = i === 0;
     const isLast = i === lastNode;
 
-    // Boss and entry-draft nodes get centered
-    if (isFirst || isLast) {
+    // Boss, entry-draft, and pre-boss nodes get centered
+    // Pre-boss centered to avoid tangling with the larger boss node
+    if (isFirst || isLast || i === lastNode - 1) {
       points.push({ x: 0.5, y });
       lane = 1; // reset to center for next alternation
       continue;
