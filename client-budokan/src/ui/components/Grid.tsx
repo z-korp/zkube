@@ -232,25 +232,10 @@ const Grid: React.FC<GridProps> = ({
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent, block: Block) => {
-    e.preventDefault();
-    if (gameState !== GameState.WAITING || isTxProcessing) {
-      return;
-    }
-
-    const touch = e.touches[0];
-    handleDragStart(touch.clientX, block);
-  };
-
-  const handleMouseDown = (e: React.MouseEvent, block: Block) => {
-    e.preventDefault();
-    if (gameState !== GameState.WAITING || isTxProcessing) {
-      return;
-    }
-
+  // Shared handler for grid-targeting bonuses (Harvest, Wave)
+  const handleGridBonus = (block: Block): boolean => {
     // Combo, Score, Supply are handled via confirm dialog in PlayScreen.
     // Only grid-targeting bonuses (Harvest, Wave) reach here.
-    // GRID bonuses: Harvest, Wave — modify blocks, then gravity state machine
     if (bonus === BonusType.Harvest) {
       setBlockBonus(block);
       getBlocksSameWidth(block, blocks).forEach((b) => {
@@ -277,15 +262,36 @@ const Grid: React.FC<GridProps> = ({
         );
       });
       setBlocks(removeBlocksInRows(rows, blocks));
+    } else {
+      return false; // not a grid bonus
     }
 
-    // Grid bonuses enter gravity state machine
-    if (bonus === BonusType.Harvest || bonus === BonusType.Wave) {
-      setIsTxProcessing(true);
-      setIsMoving(true);
-      setGameState(GameState.GRAVITY_BONUS);
+    setIsTxProcessing(true);
+    setIsMoving(true);
+    setGameState(GameState.GRAVITY_BONUS);
+    return true;
+  };
+
+  const handleTouchStart = (e: React.TouchEvent, block: Block) => {
+    e.preventDefault();
+    if (gameState !== GameState.WAITING || isTxProcessing) {
       return;
     }
+
+    if (handleGridBonus(block)) return;
+
+    const touch = e.touches[0];
+    handleDragStart(touch.clientX, block);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent, block: Block) => {
+    e.preventDefault();
+    if (gameState !== GameState.WAITING || isTxProcessing) {
+      return;
+    }
+
+    if (handleGridBonus(block)) return;
+
     handleDragStart(e.clientX, block);
   };
 
