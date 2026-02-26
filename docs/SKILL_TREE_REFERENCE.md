@@ -48,10 +48,10 @@
 | Skills | 15 (5 active + 10 passive) | **12** (4 active + 8 passive) |
 | Skill levels | 10 (0-9 internal) | **5** (1-5 displayed) |
 | Branch point | Level 5 (internal 4) | **Level 3** |
-| Bonus enum | 5 values (Combo, Score, Harvest, Wave, Supply) | **12 skill IDs** (1-12) |
+| Bonus enum | 5 values (Combo, Score, Harvest, Wave, Supply) | **4 active skill IDs** (1-4) + 8 passive IDs (5-12) |
 | Naming | "Bonus Skills" / "World Skills" | **"Active Skills"** / **"Passive Skills"** |
 | Bonus levels | 3 (L1-L3) | **5** with branch at L3 |
-| Score bonus | +10/+20/+30 flat | **Removed** → Overdrive multiplier |
+| Score bonus | +10/+20/+30 flat | **Removed** → Momentum Scaling (now active charge-based score burst) |
 | Supply bonus | Add 1-3 lines | **Removed** → Harvest Branch B |
 | Wave bonus | Clear 1-3 bottom rows | **Redesigned** → Tsunami (targeted blocks/rows) |
 | Harvest bonus | Destroy all blocks of chosen size | **Redesigned** → random blocks, cubes = block size |
@@ -60,7 +60,7 @@
 | In-game shop | Every 10 levels | **Removed** |
 | Permanent shop | Bag size, unlock Wave/Supply, bridging | **GONE** — only skill tree remains for CUBE spending |
 | Passive skill structs | BonusEffect/WorldEffects (33+47 fields) | **New structs** (ActiveEffect + PassiveEffect) |
-| Charge refill | Combo-based + cadence | **Cadence only** (every 5 levels) |
+| Charge refill | Combo-based + cadence | **Cadence only** (every 5 levels, reduced by Overdrive passive) |
 | Cascade tracking | Not tracked | **New** transient `cascade_depth` counter |
 | Grid height effects | Only via constraint (KeepGridBelow) | **Core mechanic** for 5+ skills |
 
@@ -71,7 +71,7 @@
 | `ConsumableType` enum | `types/consumable.cairo` | Consumables replaced by skills |
 | `purchase_consumable()` | `systems/game.cairo` | No more in-game shop |
 | In-game shop logic | `systems/game.cairo` (shop_purchases, last_shop_level) | Boss upgrades replace shop |
-| Score bonus (type 2) | `types/bonus.cairo` | Replaced by Overdrive |
+| Score bonus (type 2) | `types/bonus.cairo` | Replaced by Momentum Scaling (now active) |
 | Supply bonus (type 5) | `types/bonus.cairo` | Folded into Harvest Branch B |
 | `BonusEffect` / `WorldEffects` structs | `helpers/skill_effects.cairo` | Complete rewrite |
 | run_data: `combo_count`, `score_count`, `harvest_count`, `wave_count`, `supply_count` | `helpers/packing.cairo` | Replaced by per-slot charges |
@@ -86,33 +86,33 @@
 | `gambit_triggered_this_level` (1 bit) | Gambit once-per-level flag, reset on level advance |
 | `combo_surge_flow_active` (1 bit) | Combo Surge Branch B level-wide flag, reset on level advance |
 | `cascade_depth` (transient) | Count gravity phases per move — NOT stored in run_data |
-| Overdrive Branch B cadence modifier | Global charge cadence override (4/3/2 levels instead of 5) |
+| Overdrive passive cadence modifier | Global charge cadence override (4/3/2/1 levels instead of 5) |
 | Grid height checks in move resolution | Structural Integrity, Grid Harmony, High Stakes, Gambit |
-| Targeted block/row selection | Tsunami and Harvest need player targeting data in contract call |
+| Targeted block/row selection | Tsunami needs player targeting data in contract call (Harvest uses random) |
 
 ### Skill Name Mapping (v1 → vNext)
 
 | v1 Skill | v1 ID | vNext Equivalent | vNext ID | Notes |
 |----------|:-----:|------------------|:--------:|-------|
-| Combo | 1 | **Combo Surge** | 1 | Branch B = level-wide combo depth |
-| Score | 2 | — | — | Removed → Overdrive |
-| Harvest | 3 | **Harvest** | 7 | Cubes scale with block SIZE. Random blocks. |
-| Wave | 4 | **Tsunami** | 10 | Targeted blocks/rows. |
+| Combo | 1 | **Combo Surge** | 1 | Active. Branch B = level-wide combo depth. |
+| Score | 2 | — | — | Removed → Momentum Scaling (now active) |
+| Harvest | 3 | **Harvest** | 3 | Active. Cubes scale with block SIZE. Random blocks. |
+| Wave | 4 | **Tsunami** | 4 | Active. Targeted blocks/rows. |
 | Supply | 5 | — | — | Removed → Harvest Branch B |
-| Tempo | 6 | **Rhythm** | 2 | Redesigned around combo_streak |
+| Tempo | 6 | **Rhythm** | 5 | Passive. Redesigned around combo_streak. |
 | Fortune | 7 | — | — | Removed |
-| Surge | 8 | **Momentum Scaling** | 5 | Flat score at level start |
+| Surge | 8 | **Momentum Scaling** | 2 | **Active** (was passive). Score burst on charge use. |
 | Catalyst | 9 | — | — | Removed |
 | Resilience | 10 | — | — | Removed |
-| Focus | 11 | **Structural Integrity** | 11 | Extra row removal at high grid |
-| Expansion | 12 | **Grid Harmony** | 12 | Extra row removal on clear at high grid |
+| Focus | 11 | **Structural Integrity** | 11 | Passive. Extra row removal at high grid. |
+| Expansion | 12 | **Grid Harmony** | 12 | Passive. Extra row removal on clear at high grid. |
 | Momentum | 13 | — | — | Removed |
-| Adrenaline | 14 | **High Stakes** | 8 | Cube-per-clear at height threshold |
+| Adrenaline | 14 | **High Stakes** | 9 | Passive. Cube-per-clear at height threshold. |
 | Legacy | 15 | — | — | Removed → Endgame Focus |
-| — | — | **Cascade Mastery** | 3 | NEW |
-| — | — | **Overdrive** | 4 | NEW |
-| — | — | **Endgame Focus** | 6 | NEW |
-| — | — | **Gambit** | 9 | NEW |
+| — | — | **Cascade Mastery** | 6 | NEW passive. |
+| — | — | **Overdrive** | 7 | **Passive** (was active). Charge cadence reduction. |
+| — | — | **Endgame Focus** | 8 | NEW passive. |
+| — | — | **Gambit** | 10 | NEW passive. |
 
 ---
 
@@ -140,7 +140,7 @@
 | `SKILLS_PER_ARCHETYPE` | 3 | 1 active + 2 passive |
 | `NUM_ARCHETYPES` | 4 | Tempo, Scaling, Risk, Control |
 | `MAX_CHARGES_PER_SKILL` | 3 | Hard cap |
-| `CHARGE_CADENCE_BASE` | 5 | +1 charge to all actives every 5 levels cleared |
+| `CHARGE_CADENCE_BASE` | 5 | +1 charge to all actives every 5 levels cleared (modified by Overdrive passive) |
 
 ---
 
@@ -159,7 +159,7 @@
 > **Identity**: Score multipliers, per-level scaling, late-run ramping. The ONLY archetype allowed to modify charge cadence.
 > **Feel**: Weak early, powerful late. Patience rewarded.
 
-**ALLOWED**: Score multipliers (%), per-level-cleared scaling, late-run ramping, charge cadence reduction (Branch B only)
+**ALLOWED**: Score multipliers (%), per-level-cleared scaling, late-run ramping, charge cadence reduction
 **FORBIDDEN**: Cube generation, move refunds, grid manipulation, combo injection
 
 ### 🔴 Risk / Economy (Red)
@@ -210,15 +210,15 @@ Each archetype contains exactly **3 skills**:
 | ID | Archetype | Type | Name |
 |:--:|-----------|------|------|
 | 1 | 🟣 Tempo | Active | **Combo Surge** |
-| 2 | 🟣 Tempo | Passive | **Rhythm** |
-| 3 | 🟣 Tempo | Passive | **Cascade Mastery** |
-| 4 | 🟡 Scaling | Active | **Overdrive** |
-| 5 | 🟡 Scaling | Passive | **Momentum Scaling** |
-| 6 | 🟡 Scaling | Passive | **Endgame Focus** |
-| 7 | 🔴 Risk | Active | **Harvest** |
-| 8 | 🔴 Risk | Passive | **High Stakes** |
-| 9 | 🔴 Risk | Passive | **Gambit** |
-| 10 | 🔵 Control | Active | **Tsunami** |
+| 2 | 🟡 Scaling | Active | **Momentum Scaling** |
+| 3 | 🔴 Risk | Active | **Harvest** |
+| 4 | 🔵 Control | Active | **Tsunami** |
+| 5 | 🟣 Tempo | Passive | **Rhythm** |
+| 6 | 🟣 Tempo | Passive | **Cascade Mastery** |
+| 7 | 🟡 Scaling | Passive | **Overdrive** |
+| 8 | 🟡 Scaling | Passive | **Endgame Focus** |
+| 9 | 🔴 Risk | Passive | **High Stakes** |
+| 10 | 🔴 Risk | Passive | **Gambit** |
 | 11 | 🔵 Control | Passive | **Structural Integrity** |
 | 12 | 🔵 Control | Passive | **Grid Harmony** |
 
@@ -252,7 +252,7 @@ Level 5: Capstone         ─── Defining power; run-shaping effect
 |:-----:|-----:|-------|
 | 1 | `100` | Cheap — encourage trying skills |
 | 2 | `500` | Moderate |
-| 3 | `1000` | Significant — branch commitment |
+| 3 | `1000` | Branch commitment |
 | 4 | `5000` | Expensive |
 | 5 | `10000` | Premium — capstone investment |
 
@@ -269,7 +269,7 @@ Charges fuel **Active Skills** only. Passive skills don't use charges.
 | Max charges per active skill | **3** |
 | Starting charges on unlock | **1** |
 | Base charge cadence | **+1 to ALL active skills every 5 levels cleared** |
-| Cadence modifier (Scaling Branch B only) | Reduce cadence to every 4 → 3 levels |
+| Cadence modifier (Overdrive passive) | Reduce cadence from 5 to 4 → 3 → 2 levels |
 | Charge generation from combos/score | **FORBIDDEN** (no skill may do this) |
 
 ### Charge Gain Timeline (Base Cadence)
@@ -310,24 +310,30 @@ Charges fuel **Active Skills** only. Passive skills don't use charges.
 
 ## Draft System
 
-### How Skills Enter a Run
+### Initial Draft (Run Start)
 
-1. Before each level (or at run start), a **draft event** triggers
-2. Player sees **3 skill choices** (cards)
-3. If loadout has empty slots (< 3): **Select** adds the skill at level 1
-4. If loadout is full (3/3): **Upgrade** — selecting a skill already in loadout increases its level
+At the beginning of each run, the player drafts their 3-skill loadout:
+
+1. Player sees **3 skill choices** (cards drawn from pool of 12 skills minus already-picked)
+2. Player **selects** one → skill enters loadout at its skill-tree level
+3. The selected card is **replaced** with a new skill from the remaining pool
+4. Player picks again. Repeat until **3 skills are drafted**
+5. Reroll mechanics available throughout (costs CUBE)
+
+### Boss Upgrades
+
+After clearing each boss level (10, 20, 30, 40, 50), the player may **upgrade one active skill's run-level by +1**.
 
 ### Reroll Mechanic
 
-- Cost formula: `ceil(5 * 1.5^n)` where `n` = reroll count this draft
-- Cost sequence: 5, 8, 12, 18, 27, 41, ...
+- Cost formula: `5 × 3^n` where `n` = reroll count this draft
+- Cost sequence: 5, 15, 45, 135, 405, ...
 - Costs CUBE (deducted from wallet)
 
 ### Branch Choice
 
-- At level 3, player must choose Branch A or B
+- At level 3 in the **skill tree** (persistent, outside runs), player must choose Branch A or B
 - Respec possible at 50% CUBE cost
-
 ---
 
 ## Domain Separation Rules
@@ -343,7 +349,7 @@ Charges fuel **Active Skills** only. Passive skills don't use charges.
 | Score multiplier (%) | ❌ | ✅ | ❌ | ❌ |
 | Per-level scaling | ❌ | ✅ | ❌ | ❌ |
 | Late-run ramping | ❌ | ✅ | ❌ | ❌ |
-| Charge cadence reduction | ❌ | ✅ (Branch B only) | ❌ | ❌ |
+| Charge cadence reduction | ❌ | ✅ (Overdrive passive) | ❌ | ❌ |
 | Cube generation | ❌ | ❌ | ✅ | ❌ |
 | Conditional cube bursts | ❌ | ❌ | ✅ | ❌ |
 | Grid height rewards | ❌ | ❌ | ✅ | ❌ |
@@ -398,9 +404,9 @@ Charges fuel **Active Skills** only. Passive skills don't use charges.
 
 ---
 
-### 2️⃣ Passive — Rhythm
+### 5️⃣ Passive — Rhythm
 
-**ID**: 2 | **Type**: Passive | **Domain**: Combo streak scaling
+**ID**: 5 | **Type**: Passive | **Domain**: Combo streak scaling
 
 Converts combo streak (`combo_counter`) into controlled bursts. Uses existing per-level cumulative combo streak — no new state needed.
 
@@ -433,9 +439,9 @@ Converts combo streak (`combo_counter`) into controlled bursts. Uses existing pe
 
 ---
 
-### 3️⃣ Passive — Cascade Mastery
+### 6️⃣ Passive — Cascade Mastery
 
-**ID**: 3 | **Type**: Passive | **Domain**: Multi-phase gravity cascades
+**ID**: 6 | **Type**: Passive | **Domain**: Multi-phase gravity cascades
 
 Rewards deep cascades. Uses **per-resolution** cascade depth (transient, not cumulative). Distinct from Rhythm which uses cumulative combo_streak.
 
@@ -475,73 +481,79 @@ Rewards deep cascades. Uses **per-resolution** cascade depth (transient, not cum
 > Weak early. Strong late.
 > **No cubes. No combo injection. Only archetype that modifies charge cadence.**
 
-### 4️⃣ Active — Overdrive
+### 2️⃣ Active — Momentum Scaling
 
-**ID**: 4 | **Type**: Active (consumes 1 charge) | **Domain**: Score multiplier burst
+**ID**: 2 | **Type**: Active (consumes 1 charge) | **Domain**: Score burst with scaling
 
-| Level | Branch | Effect |
-|:-----:|:------:|--------|
-| 1 | — | x1,5 next move score |
-| 2 | — | x2 next move score |
-| 3 | A — Amplify | x2,5 next move score |
-| 3 | B — Overflow | Charge cadence: every 4 levels (was 5) |
-
-**Branch A — Amplify** (raw score power)
-
-| Level | Effect |
-|:-----:|--------|
-| 4 | x3 next move score |
-| 5 | x4 next move score |
-
-**Branch B — Overflow** (charge economy)
-
-| Level | Effect |
-|:-----:|--------|
-| 4 | Charge cadence: every 3 levels (was 5) |
-| 5 | Charge cadence: every 2 levels (was 5) |
-
-**Design Notes**:
-- Amplify = raw late-run score explosion
-- Overflow = more charges for all active skills (team-wide benefit)
-- Branch B is the ONLY place in the entire game where charge cadence can be modified
-- No cubes, no combo, no grid manipulation
-
----
-
-### 5️⃣ Passive — Momentum Scaling
-
-**ID**: 5 | **Type**: Passive | **Domain**: Per-level score scaling
+> Formerly a passive. Now an active skill that uses charges for score injection.
+> The core identity is per-level/per-zone score scaling — the longer the run, the bigger the burst.
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
-| 1 | — | +1 score at level start (once) |
-| 2 | — | +2 score at level start (once) |
-| 3 | A — Late Bloom | +3 score per zone cleared at level start (once) |
-| 3 | B — Stable Growth | +3 score at level start (once) |
+| 1 | — | Use charge: +1 score per zone cleared this run |
+| 2 | — | Use charge: +2 score per zone cleared this run |
+| 3 | A — Late Bloom | Use charge: +3 score per zone cleared this run |
+| 3 | B — Stable Growth | Use charge: +5 flat score |
 
 **Branch A — Late Bloom** (exponential late-run payoff)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | +5 per zone cleared at level start (once) |
-| 5 | +10 per zone cleared at level start (once) |
+| 4 | Use charge: +5 score per zone cleared this run |
+| 5 | Use charge: +10 score per zone cleared this run |
 
-**Branch B — Stable Growth** (consistent linear scaling)
+**Branch B — Stable Growth** (consistent value)
 
 | Level | Effect |
 |:-----:|--------|
-| 4 | +5 at level start (once) |
-| 5 | +10 at level start (once) |
+| 4 | Use charge: +10 flat score |
+| 5 | Use charge: +20 flat score |
 
 **Design Notes**:
-- Late Bloom = weak early, monster late
-- Stable Growth = reliable value from level 1 (less ceiling, more floor)
+- Late Bloom: At zone 5 (levels 41-50), L5 gives +50 score per charge use
+- Stable Growth: Reliable value from first use, no scaling dependency
+- ⚠️ **NEEDS DESIGN REVIEW**: These values are adapted from the old passive. May need tuning for active charge-based use.
 
 ---
 
-### 6️⃣ Passive — Endgame Focus
+### 7️⃣ Passive — Overdrive
 
-**ID**: 6 | **Type**: Passive | **Domain**: Late-run ramping
+**ID**: 7 | **Type**: Passive | **Domain**: Charge cadence reduction
+
+> Formerly an active score multiplier. Now a passive that reduces the charge refill interval for ALL active skills.
+> This is the ONLY skill in the game that modifies charge cadence.
+
+| Level | Branch | Effect |
+|:-----:|:------:|--------|
+| 1 | — | Charge cadence: every 4 levels (was 5) |
+| 2 | — | Charge cadence: every 3 levels (was 5) |
+| 3 | A — Amplify | Charge cadence: every 2 levels |
+| 3 | B — Overflow | Charge cadence: every 3 levels + start run with +1 charge on all actives |
+
+**Branch A — Amplify** (maximum charge throughput)
+
+| Level | Effect |
+|:-----:|--------|
+| 4 | Charge cadence: every 2 levels + start run with +1 charge on all actives |
+| 5 | Charge cadence: every 1 level (charge every level!) |
+
+**Branch B — Overflow** (starting charges + steady cadence)
+
+| Level | Effect |
+|:-----:|--------|
+| 4 | Charge cadence: every 3 levels + start run with +2 charges on all actives |
+| 5 | Charge cadence: every 2 levels + start run with +2 charges on all actives |
+
+**Design Notes**:
+- Amplify L5 = charge every level = ~50 total charge refills across a 50-level run (absurd value)
+- Overflow = front-loaded charges + moderate cadence (less total charges, but earlier availability)
+- ⚠️ **NEEDS DESIGN REVIEW**: Cadence every 1 level (Amplify L5) may be too strong. Consider: every 2 levels + extra starting charges instead.
+
+---
+
+### 8️⃣ Passive — Endgame Focus
+
+**ID**: 8 | **Type**: Passive | **Domain**: Late-run ramping
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
@@ -567,7 +579,6 @@ Rewards deep cascades. Uses **per-resolution** cascade depth (transient, not cum
 **Design Notes**:
 - Deep End = huge payoff but only if you survive to high levels
 - Smooth Ramp = consistent value at every level, lower ceiling
-
 ---
 
 ## 🔴 RISK / ECONOMY — Greed & Volatility
@@ -575,9 +586,9 @@ Rewards deep cascades. Uses **per-resolution** cascade depth (transient, not cum
 > Primary cube generation. Must include downside.
 > **No safe passive scaling. No score multipliers. No constraint easing.**
 
-### 7️⃣ Active — Harvest
+### 3️⃣ Active — Harvest
 
-**ID**: 7 | **Type**: Active (consumes 1 charge) | **Domain**: Cube generation via block destruction / line injection
+**ID**: 3 | **Type**: Active (consumes 1 charge) | **Domain**: Cube generation via block destruction / line injection
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
@@ -607,9 +618,9 @@ Rewards deep cascades. Uses **per-resolution** cascade depth (transient, not cum
 
 ---
 
-### 8️⃣ Passive — High Stakes
+### 9️⃣ Passive — High Stakes
 
-**ID**: 8 | **Type**: Passive | **Domain**: Grid height cube rewards
+**ID**: 9 | **Type**: Passive | **Domain**: Grid height cube rewards
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
@@ -639,9 +650,9 @@ Rewards deep cascades. Uses **per-resolution** cascade depth (transient, not cum
 
 ---
 
-### 9️⃣ Passive — Gambit
+### 1️⃣0️⃣ Passive — Gambit
 
-**ID**: 9 | **Type**: Passive | **Domain**: Survive danger → earn cubes
+**ID**: 10 | **Type**: Passive | **Domain**: Survive danger → earn cubes
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
@@ -671,9 +682,9 @@ Rewards deep cascades. Uses **per-resolution** cascade depth (transient, not cum
 > Grid shaping. Stability. Constraint easing.
 > **No cubes. No combo injection. No score multipliers.**
 
-### 🔟 Active — Tsunami
+### 4️⃣ Active — Tsunami
 
-**ID**: 10 | **Type**: Active (consumes 1 charge) | **Domain**: Row clears / targeted destruction
+**ID**: 4 | **Type**: Active (consumes 1 charge) | **Domain**: Row clears / targeted destruction
 
 | Level | Branch | Effect |
 |:-----:|:------:|--------|
@@ -843,83 +854,39 @@ The codebase already has a complete skill tree, draft, and run-slot system. **Th
 
 ---
 
-### Reconciliation Needed (Doc vs Contract)
+### Reconciliation (Doc vs Contract) — RESOLVED
 
-The doc was designed as a clean-room spec. The contract already has working infrastructure that doesn't match. These discrepancies **must be resolved before implementation**.
+All structural mismatches between the doc and existing contract are now decided.
 
-#### ⚠️ 1. Level Count Mismatch
-
-| | Doc (vNext) | Contract (v1) |
-|---|:---:|:---:|
-| Levels per skill | **5** (L1-L5 displayed) | **10** (0-9 internal) |
-| Branch point | **L3** (3rd level) | **L5** (internal level 4→5) |
-| Core path | 2 levels (L1-L2) | 5 levels (0-4) |
-| Branch path | 3 levels (L3-L5) | 5 levels (5-9) |
-| Cost table | Not specified | 50/100/250/500/1K/2K/4K/8K/10K |
-
-**Options**:
-- A) **Keep 5 levels**: Change contract to 5 levels, update `SkillTreeBits::MAX_TREE_LEVEL`, adjust cost table
-- B) **Keep 10 levels**: Expand doc to 10 levels per skill (5 core + 5 branch), more granular effects
-- C) **Hybrid**: 5 doc levels map to 10 contract levels (L1→0-1, L2→2-3, L3→4-5, L4→6-7, L5→8-9)
-
-#### ⚠️ 2. Skill Count Mismatch
-
-| | Doc (vNext) | Contract (v1) |
-|---|:---:|:---:|
-| Total skills | **12** | **15** |
-| Archetypes | **4** | **5** |
-| Skills per archetype | **3** | **3** |
-| Skill ID range | 1-12 | 0-14 |
-
-**Options**:
-- A) **Reduce to 12**: Set `TOTAL_SKILLS=12`, IDs 0-11. Unused IDs 12-14 become dead slots. Adjust draft pool logic.
-- B) **Keep 15**: Add 3 more skills to fill 5th archetype. Design 3 new skills.
-- C) **Keep 15 slots, use 12**: IDs 1-12 active, 0 and 13-14 reserved. Minor waste but no structural change.
-
-#### ⚠️ 3. Bonus Skill vs World Skill Boundary
-
-Contract hardcodes: IDs 1-5 = "bonus skills" (get charges), IDs 6-15 = "world skills" (no charges).
-Doc defines: 4 active skills (Combo Surge, Overdrive, Harvest, Tsunami) + 8 passive skills.
-
-If we use 12 skills with IDs 1-12:
-- Active (charge-using): Combo Surge (1), Overdrive (4), Harvest (7), Tsunami (10)
-- **Problem**: Active IDs are 1, 4, 7, 10 — not contiguous 1-5. The `is_bonus_skill_id()` check (`skill_id >= 1 && skill_id <= 5`) breaks.
-- **Fix**: Replace hardcoded range with a lookup: `is_active_skill(id)` that checks {1, 4, 7, 10}.
-
-#### ⚠️ 4. Overdrive Passive Problem
-
-User resolved: "Move cadence reduction to a passive skill, put scoring active in its place."
-
-Current Scaling archetype has:
-- Overdrive (Active) — score multiplier + cadence reduction in Branch B
-- Momentum Scaling (Passive) — flat score bonuses
-- Endgame Focus (Passive) — late-game scaling
-
-To make cadence reduction passive, options:
-- A) **New passive**: Add "Cadence" passive to Scaling, remove one existing passive → breaks 3-per-archetype rule unless Scaling gets 4 skills
-- B) **Merge into existing passive**: Fold cadence reduction into Momentum Scaling or Endgame Focus as a branch
-- C) **Overdrive keeps both**: Active use = score multiplier. Branch B adds passive cadence reduction ALONGSIDE the active effect (no separate skill needed)
+| # | Issue | Resolution |
+|---|-------|------------|
+| 1 | **Level count** (doc: 5, contract: 10) | **5 levels.** Change contract: `MAX_TREE_LEVEL=5`, `BRANCH_POINT=3`. Cost table: 100/500/1K/5K/10K. |
+| 2 | **Skill count** (doc: 12, contract: 15) | **12 skills.** Set `TOTAL_SKILLS=12`, IDs 1-12. IDs 0 and 13-14 unused. |
+| 3 | **Active skill boundary** (contract: IDs 1-5 hardcoded) | **Actives = IDs 1-4.** Replace `is_bonus_skill_id(1..5)` with `is_active_skill(1..4)`. |
+| 4 | **Overdrive passive swap** | **Overdrive → Passive** (cadence). **Momentum Scaling → Active** (score burst on charge use). Endgame Focus stays passive. |
+| 5 | **Draft system** | **Simplified.** Single draft at run start (3 sequential picks). Boss upgrades after L10/L20/L30/L40/L50. No mid-level drafts. |
 
 ---
 
 ### What Actually Needs Changing (Corrected)
 
-Given the existing infrastructure, the real work is **much smaller** than the original "Files to Rewrite" tables suggested.
+Given the existing infrastructure, the real work is focused on **data changes** (skill definitions, effects, constants) rather than architectural rewrites.
 
 #### Contract Changes
 
 | File | Change Type | What |
 |------|:-----------:|------|
-| `types/bonus.cairo` | Modify | Update Bonus enum from 5 to match new active skill IDs. Update `is_bonus_skill_id()` to non-contiguous check. |
+| `types/bonus.cairo` | Modify | Update Bonus enum to 4 active skill IDs (1-4). Replace `is_bonus_skill_id()` with `is_active_skill()`. |
 | `helpers/skill_effects.cairo` | **Rewrite** | Replace all 15 skill effect definitions with 12 new ones (5 levels × 2 branches each). New `ActiveEffect` + `PassiveEffect` structs. |
-| `helpers/packing.cairo` | Modify | Update `SkillTreeBits` constants (TOTAL_SKILLS, MAX_TREE_LEVEL if changing to 5). Add `gambit_triggered_this_level`, `combo_surge_flow_active` to RunData. |
-| `systems/skill_tree.cairo` | Modify | Adjust level cap and branch point if changing to 5 levels. Update cost table if needed. |
-| `systems/grid.cairo` | Modify | Add `cascade_depth` counter in `assess_game()`. Add passive skill hooks after line 256: Rhythm, Cascade Mastery, SI, GH, High Stakes, Gambit. |
-| `systems/bonus.cairo` / `grid.cairo` (apply_bonus) | Modify | Update dispatch for new active skills. Wire Tsunami targeting. Make Harvest use random selection. |
-| `helpers/scoring.cairo` | Modify | Overdrive multiplier. Momentum/Endgame flat score on level start. |
+| `helpers/packing.cairo` | Modify | `SkillTreeBits`: `TOTAL_SKILLS=12`, `MAX_TREE_LEVEL=5`, `BRANCH_POINT=3`. RunData: add `gambit_triggered_this_level`, `combo_surge_flow_active`. Cost table: 100/500/1K/5K/10K. |
+| `systems/skill_tree.cairo` | Modify | Level cap 5 (was 9). Branch at level 2→3 (was 4→5). Cost table update. |
+| `systems/grid.cairo` | Modify | Add `cascade_depth` counter in `assess_game()`. Add passive skill hooks: Rhythm, Cascade Mastery, Overdrive cadence, SI, GH, High Stakes, Gambit. |
+| `systems/bonus.cairo` / `grid.cairo` | Modify | Dispatch for 4 active skills (IDs 1-4). Wire Tsunami targeting. Harvest random selection. Momentum Scaling charge-based score burst. |
+| `helpers/scoring.cairo` | Modify | Endgame Focus flat score on level start. Remove old Overdrive multiplier. |
 | `elements/bonuses/harvest.cairo` | **Rewrite** | Random block selection instead of chosen-size destruction. |
 | `elements/bonuses/wave.cairo` | **Rewrite** → `tsunami.cairo` | Targeted blocks (Branch A) or targeted rows (Branch B). |
-| `systems/draft.cairo` | Modify | Update pool size from 15 to 12. Adjust draw logic if skill IDs change. |
+| `systems/draft.cairo` | **Rewrite** | Replace zone-based system with: single start-of-run draft (3 sequential picks from pool of 12), boss upgrade events after L10/20/30/40/50. |
+| `models/draft.cairo` | Modify | Simplify `DraftState`: remove zone/trigger_level/completed_mask. Add sequential pick tracking. |
 | `models/game.cairo` | Modify | Reset `gambit_triggered_this_level`, `combo_surge_flow_active` on level advance. |
 | `types/consumable.cairo` | **Delete** | Consumables removed entirely. |
 
@@ -927,16 +894,16 @@ Given the existing infrastructure, the real work is **much smaller** than the or
 
 | File | Change Type | What |
 |------|:-----------:|------|
-| `dojo/game/types/skillData.ts` | **Rewrite** | 12 skills, 4 archetypes, new names. |
-| `dojo/game/types/skillEffects.ts` | **Rewrite** | All new effect descriptions. |
-| `dojo/game/types/bonus.ts` | Modify | Update Bonus enum to match new active skill IDs. |
-| `dojo/game/helpers/runDataPacking.ts` | Modify | Add new RunData fields. Update `isBonusSkill()` check. |
-| `dojo/game/constants.ts` | Modify | `TOTAL_SKILLS`, `MAX_SKILL_LEVEL`, `BRANCH_POINT_LEVEL`, cost table. |
-| `ui/pages/SkillTreePage.tsx` | Modify | 4 archetypes instead of 5. Update node layout if level count changes. |
-| `ui/pages/DraftPage.tsx` | Modify | 12 skills, 4 archetypes. Minor UI text changes. |
-| `ui/pages/PlayScreen.tsx` | Modify | Wire actual (row_index, col_index) for Tsunami targeting instead of hardcoded (0,0). Remove shop triggers. |
-| `ui/components/BonusButton.tsx` | Modify | Update to handle Tsunami targeting mode. |
-| `dojo/systems.ts` | Minimal | Rename `applyBonus` → `applyActiveSkill` (optional, signature unchanged). |
+| `dojo/game/types/skillData.ts` | **Rewrite** | 12 skills, 4 archetypes, new names + IDs. |
+| `dojo/game/types/skillEffects.ts` | **Rewrite** | All new effect descriptions for 5 levels × 2 branches. |
+| `dojo/game/types/bonus.ts` | Modify | Update Bonus enum to 4 active skill IDs. |
+| `dojo/game/helpers/runDataPacking.ts` | Modify | New RunData fields. Update `isBonusSkill()` → `isActiveSkill()`. Cost table: [100, 500, 1000, 5000, 10000]. |
+| `dojo/game/constants.ts` | Modify | `TOTAL_SKILLS=12`, `MAX_SKILL_LEVEL=5`, `BRANCH_POINT_LEVEL=3`. |
+| `ui/pages/SkillTreePage.tsx` | Modify | 4 archetypes. 5 levels. Branch at L3 (was L5). Update tree layout. |
+| `ui/pages/DraftPage.tsx` | **Rewrite** | New flow: 3 sequential picks at start, boss upgrade selection. No zone triggers. |
+| `ui/pages/PlayScreen.tsx` | Modify | Wire Tsunami targeting (row_index, col_index). Remove shop triggers. |
+| `ui/components/BonusButton.tsx` | Modify | Handle Tsunami targeting mode. |
+| `dojo/systems.ts` | Minimal | Rename `applyBonus` → `applyActiveSkill` (optional). |
 
 #### New Components Needed
 
@@ -946,14 +913,10 @@ Given the existing infrastructure, the real work is **much smaller** than the or
 
 ---
 
-### Follow-Up Questions (Must Resolve Before Implementation)
+### Remaining Design Work
 
-1. **Level count**: Do we keep 5 levels (change contract) or keep 10 levels (expand doc)? This affects the entire skill effects file, cost table, and UI tree layout. **Recommendation**: Keep 5 (simpler, matches doc intent), but need new cost table.
+1. **Momentum Scaling active effects**: The doc now defines Momentum Scaling as active (ID 2) with charge-based score bursts. The values (adapted from old passive) are marked `⚠️ NEEDS DESIGN REVIEW` — may need tuning for active use.
 
-2. **Overdrive cadence passive**: Which option — new 4th skill in Scaling, fold into existing passive branch, or keep as dual-purpose active (Branch B = score + cadence)? **Recommendation**: Option C (Branch B adds passive cadence alongside active score multiplier — no structural change needed).
+2. **Overdrive passive values**: Cadence reduction values (4→3→2→1) and starting charge bonuses are drafted but marked `⚠️ NEEDS DESIGN REVIEW` — cadence every 1 level (Amplify L5) may be too strong.
 
-3. **Skill ID assignment**: With 12 skills, do active skills get IDs 1-4 (contiguous, simple checks) or keep the every-3rd pattern (1, 4, 7, 10) matching archetype grouping? **Recommendation**: IDs 1-4 for actives, 5-12 for passives — cleanest for `is_active_skill()` checks.
-
-4. **Cost table for 5 levels**: Current 10-level table is 50/100/250/500/1K/2K/4K/8K/10K. What's the 5-level equivalent? Something like 100/500/2K/5K/10K? Or keep the first 5 values (50/100/250/500/1K)?
-
-5. **Draft system changes**: Does the zone-based draft (open after L0/L10/L20/L30/L40 + mid-zone) stay as-is? Or does it need adjusting for 12 skills instead of 15? (Pool gets smaller → fewer reroll options.)
+3. **Endgame Focus fractional implementation**: +0.2/0.3/0.5 score per level — implement as fixed-point ×10 (store 2/3/5, apply as `value * levels_cleared / 10`).
