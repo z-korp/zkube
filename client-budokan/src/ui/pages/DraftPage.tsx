@@ -8,7 +8,8 @@ import { useDraft } from "@/hooks/useDraft";
 import { useSkillTree } from "@/hooks/useSkillTree";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { getRerollCost } from "@/dojo/game/helpers/runDataPacking";
+import { getRerollCost, isBonusSkill } from "@/dojo/game/helpers/runDataPacking";
+import { MAX_LOADOUT_SLOTS, BRANCH_POINT_LEVEL } from "@/dojo/game/constants";
 import {
   getSkillById,
   getArchetypeForSkill,
@@ -92,12 +93,12 @@ const DraftPage: React.FC = () => {
   const runSlots = useMemo(
     () =>
       game
-        ? game.runData.slots.slice(0, 3).filter((slot) => slot.skillId > 0)
+        ? game.runData.slots.slice(0, MAX_LOADOUT_SLOTS).filter((slot) => slot.skillId > 0)
         : [],
     [game],
   );
 
-  const isFullLoadout = (game?.activeSlotCount ?? runSlots.length) >= 3;
+  const isFullLoadout = (game?.activeSlotCount ?? runSlots.length) >= MAX_LOADOUT_SLOTS;
 
   const cards = useMemo(() => {
     if (!draftState) return [];
@@ -318,7 +319,7 @@ const DraftPage: React.FC = () => {
                             {slot.level + 1}
                           </span>
                           {/* Charges badge */}
-                          {slot.skillId >= 1 && slot.skillId <= 5 && (
+                          {isBonusSkill(slot.skillId) && (
                             <span
                               className={`absolute -top-0.5 -right-0.5 flex h-[16px] w-[16px] items-center justify-center rounded-full text-[8px] font-bold ${
                                 slot.charges > 0
@@ -355,7 +356,7 @@ const DraftPage: React.FC = () => {
                 const skillName = choice.skill?.name?.toLowerCase() ?? "";
                 const tier = getSkillTier(choice.level);
                 const iconPath = getSkillTierIconPath(skillName, tier);
-                const isBranchPoint = choice.level === 4 && isFullLoadout;
+                const isBranchPoint = choice.level === BRANCH_POINT_LEVEL && isFullLoadout;
                 const accentCol = choice.archetype?.color ?? "#64748b";
                 const isPassive = choice.skill?.category === "world";
                 const displayLevel = choice.level + 1;

@@ -5,6 +5,7 @@ import { motion, type Variants } from "motion/react";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { Flame, Gem, Layers, RotateCw, Trophy } from "lucide-react";
 import CubeIcon from "@/ui/components/CubeIcon";
+import { BOSS_LEVELS, PRE_BOSS_LEVELS, LEVEL_CAP } from "@/dojo/game/constants";
 
 interface GameOverDialogProps {
   isOpen: boolean;
@@ -12,7 +13,6 @@ interface GameOverDialogProps {
   game: Game;
 }
 
-const BOSS_LEVELS = [10, 20, 30, 40, 50];
 
 const GameOverDialog: React.FC<GameOverDialogProps> = ({
   isOpen,
@@ -38,8 +38,8 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
   // Contextual subtitle based on performance
   const subtitle = useMemo(() => {
     if (isNewBestLevel && game.level > 1) return "New personal best!";
-    if ([9, 19, 29, 39, 49].includes(game.level)) return "So close to the boss...";
-    if (BOSS_LEVELS.includes(game.level) && game.level < 50) return "Fell to the boss...";
+    if ((PRE_BOSS_LEVELS as readonly number[]).includes(game.level)) return "So close to the boss...";
+    if (BOSS_LEVELS.includes(game.level as typeof BOSS_LEVELS[number]) && game.level < LEVEL_CAP) return "Fell to the boss...";
     if (game.level >= 40) return "Legendary run!";
     if (game.level >= 25) return "Incredible run!";
     if (game.level >= 10) return "Nice run!";
@@ -50,8 +50,8 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
   // Subtitle color based on sentiment
   const subtitleColor = useMemo(() => {
     if (isNewBestLevel && game.level > 1) return "text-yellow-400";
-    if ([9, 19, 29, 39, 49].includes(game.level)) return "text-orange-400";
-    if (BOSS_LEVELS.includes(game.level)) return "text-red-400";
+    if ((PRE_BOSS_LEVELS as readonly number[]).includes(game.level)) return "text-orange-400";
+    if (BOSS_LEVELS.includes(game.level as typeof BOSS_LEVELS[number])) return "text-red-400";
     if (game.level >= 25) return "text-purple-400";
     if (game.level >= 10) return "text-cyan-400";
     if (game.level >= 5) return "text-slate-300";
@@ -71,9 +71,9 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
       opener = `I just crushed Level ${level} on @zkube_game!`;
     } else if (level >= 25) {
       opener = `Level ${level} down on @zkube_game!`;
-    } else if (BOSS_LEVELS.includes(level)) {
+    } else if (BOSS_LEVELS.includes(level as typeof BOSS_LEVELS[number])) {
       opener = `Just beat the Level ${level} boss on @zkube_game!`;
-    } else if ([9, 19, 29, 39, 49].includes(level)) {
+    } else if ((PRE_BOSS_LEVELS as readonly number[]).includes(level)) {
       opener = `So close! Reached Level ${level} on @zkube_game`;
     } else if (level >= 10) {
       opener = `Made it to Level ${level} on @zkube_game!`;

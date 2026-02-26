@@ -16,6 +16,7 @@ import {
 } from "@/dojo/game/types/skillData";
 import { getSkillEffectDescription } from "@/dojo/game/types/skillEffects";
 import { SKILL_TREE_COSTS } from "@/dojo/game/helpers/runDataPacking";
+import { MAX_SKILL_LEVEL, BRANCH_POINT_LEVEL, BRANCH_SPLIT_LEVEL } from "@/dojo/game/constants";
 import { getCommonAssetPath } from "@/config/themes";
 import { getSkillTierIconPath } from "@/ui/theme/ImageAssets";
 import PageTopBar from "@/ui/navigation/PageTopBar";
@@ -151,8 +152,8 @@ const SkillTreePage: React.FC = () => {
   const handleUpgrade = useCallback(
     async (skillId: number) => {
       const info = skills[skillId - 1];
-      if (!account || !info || info.level >= 9) return;
-      if (info.level >= 4 && !info.branchChosen) return;
+      if (!account || !info || info.level >= MAX_SKILL_LEVEL) return;
+      if (info.level >= BRANCH_POINT_LEVEL && !info.branchChosen) return;
       const cost = SKILL_TREE_COSTS[info.level];
       if (cubeBalanceNumber < cost) return;
       try {
@@ -590,9 +591,9 @@ const SkillModal: React.FC<SkillModalProps> = ({
   const archetype = ARCHETYPES[skill.archetype];
   const color = archetype.color;
   const currentLevel = info.level;
-  const isBranchRow = targetLevel >= 5;
+  const isBranchRow = targetLevel >= BRANCH_SPLIT_LEVEL;
   const isForkRow = targetLevel === 5;
-  const needsChoice = isForkRow && currentLevel === 4 && !info.branchChosen;
+  const needsChoice = isForkRow && currentLevel === BRANCH_POINT_LEVEL && !info.branchChosen;
 
   const branchForDesc =
     isBranchRow && info.branchChosen
@@ -606,7 +607,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
       ? getSkillEffectDescription(
           skillId,
           currentLevel,
-          currentLevel >= 5 && info.branchChosen
+          currentLevel >= BRANCH_SPLIT_LEVEL && info.branchChosen
             ? info.branchId + 1
             : undefined,
         )
@@ -648,9 +649,9 @@ const SkillModal: React.FC<SkillModalProps> = ({
       effect: string;
       branchLabel?: string;
     }[] = [];
-    for (let lvl = targetLevel; lvl <= 9; lvl++) {
+    for (let lvl = targetLevel; lvl <= MAX_SKILL_LEVEL; lvl++) {
       const c = SKILL_TREE_COSTS[lvl - 1];
-      if (lvl < 5) {
+      if (lvl < BRANCH_SPLIT_LEVEL) {
         levels.push({
           level: lvl,
           cost: c,
@@ -959,7 +960,7 @@ function buildTreeData(
     const def = SKILLS[skill.id];
 
     /* --- core rows 0-3 --- */
-    for (let row = 0; row < 4; row++) {
+    for (let row = 0; row < BRANCH_POINT_LEVEL; row++) {
       const tl = row + 1;
       const cost = SKILL_TREE_COSTS[row];
       const unlocked = info.level >= tl;
@@ -1056,11 +1057,11 @@ function buildTreeData(
     });
 
     /* --- branch rows 4-8 --- */
-    for (let row = 4; row < 9; row++) {
+    for (let row = BRANCH_POINT_LEVEL; row < MAX_SKILL_LEVEL; row++) {
       const tl = row + 1;
       const cost = SKILL_TREE_COSTS[row];
-      const fork = row === 4;
-      const nc = fork && info.level === 4 && !info.branchChosen;
+      const fork = row === BRANCH_POINT_LEVEL;
+      const nc = fork && info.level === BRANCH_POINT_LEVEL && !info.branchChosen;
 
       for (const side of [0, 1] as const) {
         const n = computeBranchNode(info, tl, cost, cubeBalance, nc, side);
