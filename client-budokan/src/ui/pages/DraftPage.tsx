@@ -5,6 +5,7 @@ import { useNavigationStore } from "@/stores/navigationStore";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { useGame } from "@/hooks/useGame";
 import { useDraft } from "@/hooks/useDraft";
+import { useSkillTree } from "@/hooks/useSkillTree";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { getRerollCost } from "@/dojo/game/helpers/runDataPacking";
@@ -78,6 +79,7 @@ const DraftPage: React.FC = () => {
     gameId: gameId ?? undefined,
     shouldLog: false,
   });
+  const { skillTree } = useSkillTree();
 
   const [isSelecting, setIsSelecting] = useState(false);
   const [isRerolling, setIsRerolling] = useState(false);
@@ -105,8 +107,9 @@ const DraftPage: React.FC = () => {
       const slot = game?.runData.slots.find(
         (entry) => entry.skillId === skillId,
       );
-      const currentLevel = slot?.level ?? 0;
-      const branchId = undefined;
+      const treeInfo = skillTree?.skills[skillId - 1];
+      const currentLevel = slot?.level ?? treeInfo?.level ?? 0;
+      const branchId = treeInfo?.branchId;
       const archetype = getArchetypeForSkill(skillId);
       const nextLevel = isFullLoadout ? currentLevel + 1 : 0;
       return {
@@ -123,7 +126,7 @@ const DraftPage: React.FC = () => {
         ),
       };
     });
-  }, [draftState, game?.runData.slots, isFullLoadout]);
+  }, [draftState, game?.runData.slots, isFullLoadout, skillTree]);
 
   useEffect(() => {
     if (gameId === null) {
