@@ -63,7 +63,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                     disabled={isPassive || isDisabled}
                     whileHover={isPassive || isDisabled ? undefined : { scale: 1.08 }}
                     whileTap={isPassive || isDisabled ? undefined : { scale: 0.92 }}
-                    className={`relative w-11 h-11 md:w-12 md:h-12 rounded-full overflow-visible flex items-center justify-center transition-all ${
+                    className={`relative w-[clamp(44px,12vw,60px)] h-[clamp(44px,12vw,60px)] rounded-full overflow-visible flex items-center justify-center transition-all ${
                       isPassive
                         ? 'cursor-default opacity-90'
                         : isActive
@@ -83,11 +83,11 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                     />
                     {/* Level badge — bottom left */}
                     <span
-                      className="absolute -bottom-0.5 -left-0.5 text-[10px] font-bold rounded-full w-[18px] h-[18px] flex items-center justify-center text-white z-10"
+                      className="absolute -bottom-0.5 -left-0.5 text-[clamp(8px,2vw,11px)] font-bold rounded-full w-[clamp(16px,4.5vw,22px)] h-[clamp(16px,4.5vw,22px)] flex items-center justify-center text-white z-10"
                       style={{ backgroundColor: isPassive ? arcColor : undefined }}
                     >
                       {isPassive ? (
-                        <span className="text-[8px]">{slot.level}</span>
+                        <span className="text-[clamp(7px,1.6vw,9px)]">{slot.level}</span>
                       ) : (
                         <span className="bg-indigo-500 rounded-full w-full h-full flex items-center justify-center">{slot.level + 1}</span>
                       )}
@@ -95,7 +95,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                     {/* Charges badge — top right */}
                     {!isPassive && (
                       <span
-                        className={`absolute -top-0.5 -right-0.5 text-[9px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-0.5 ${
+                        className={`absolute -top-0.5 -right-0.5 text-[clamp(8px,2vw,10px)] font-bold rounded-full min-w-[clamp(16px,4.5vw,22px)] h-[clamp(16px,4.5vw,22px)] flex items-center justify-center px-0.5 ${
                           isDisabled
                             ? 'bg-slate-600 text-slate-400'
                             : 'bg-yellow-500 text-white'
