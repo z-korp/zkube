@@ -227,6 +227,7 @@ const PlayScreen: React.FC = () => {
         }).catch((error: unknown) => {
           console.error("Background startNextLevel failed:", error);
         });
+      }
     }
 
     prevGameStateRef.current = {
