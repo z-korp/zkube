@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { Account } from "starknet";
+import { ChevronLeft, Settings, Volume2, VolumeX, Flag } from "lucide-react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useGame } from "@/hooks/useGame";
 import { useGrid } from "@/hooks/useGrid";
 import { useGameLevel, type GameLevelData } from "@/hooks/useGameLevel";
 import { useDraft } from "@/hooks/useDraft";
+import { useCubeBalance } from "@/hooks/useCubeBalance";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import useViewport from "@/hooks/useViewport";
 import { useDojo } from "@/dojo/useDojo";
@@ -24,6 +26,7 @@ import GameActionBar from "@/ui/components/actionbar/GameActionBar";
 import GameBoard from "@/ui/components/GameBoard";
 import GameOverDialog from "@/ui/components/GameOverDialog";
 import VictoryDialog from "@/ui/components/VictoryDialog";
+import CubeIcon from "@/ui/components/CubeIcon";
 import Connect from "@/ui/components/Connect";
 import {
   Dialog,
@@ -33,9 +36,9 @@ import {
   DialogTitle,
 } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
+import { Slider } from "@/ui/elements/slider";
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import { deriveZoneThemes, getZone } from "@/hooks/useMapData";
-
 
 const PlayScreen: React.FC = () => {
   useViewport();
@@ -53,8 +56,9 @@ const PlayScreen: React.FC = () => {
     (s) => s.setPendingLevelCompletion,
   );
   const { themeTemplate, setThemeTemplate } = useTheme();
-  const { setMusicContext, setMusicPlaylist, playSfx } = useMusicPlayer();
+  const { setMusicContext, setMusicPlaylist, playSfx, musicVolume, effectsVolume, setMusicVolume, setEffectsVolume, isPlaying, playTheme, stopTheme } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
+  const { cubeBalance: walletBalance } = useCubeBalance();
 
   const { game, seed } = useGame({
     gameId: gameId ?? 0,
@@ -75,6 +79,7 @@ const PlayScreen: React.FC = () => {
   // Tracks whether the Grid cascade animation has finished for the current move.
   // Level-complete detection is gated on this to prevent checking against a mid-cascade grid.
   const [cascadeComplete, setCascadeComplete] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
   const prevGameStateRef = useRef<{
     level: number;
@@ -245,6 +250,7 @@ const PlayScreen: React.FC = () => {
     if (!account || !game) return;
     try {
       playSfx("click");
+      setIsSettingsOpen(false);
       await surrender({ account, game_id: game.id });
     } catch (error) {
       console.error("Surrender failed:", error);
@@ -480,14 +486,118 @@ const PlayScreen: React.FC = () => {
         />
       )}
 
+      {/* ---- Top Bar (consistent with other pages) ---- */}
+      <div className="flex items-center justify-between px-2 md:px-4 h-12 md:h-13 lg:h-14 bg-slate-900/70 backdrop-blur-sm border-b border-slate-700/50 shrink-0">
+        <div className="flex items-center gap-1">
+          <button
+            onClick={goBack}
+            className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
+          >
+            <ChevronLeft size={22} />
+          </button>
+          <span className="font-['Fredericka_the_Great'] text-white text-base md:text-lg leading-tight">
+            Level {game?.level ?? "..."}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          {/* Wallet cubes (owned) */}
+          <div className="flex items-center gap-1">
+            <CubeIcon size="sm" />
+            <span className="font-['Fredericka_the_Great'] text-yellow-400 text-base tabular-nums">
+              {walletBalance.toString()}
+            </span>
+          </div>
+          {/* Run cubes (earned this run) */}
+          {game && (
+            <div className="flex items-center gap-1">
+              <span className="font-['Fredericka_the_Great'] text-blue-300 text-sm tabular-nums">
+                +{game.cubesAvailable}
+              </span>
+              <CubeIcon size="xs" />
+            </div>
+          )}
+          {/* Settings gear */}
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
+          >
+            <Settings size={18} />
+          </button>
+        </div>
+      </div>
+
+      {/* ---- Settings Dialog (styled like LevelCompleteDialog) ---- */}
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent
+          aria-describedby={undefined}
+          className="sm:max-w-[400px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-6 py-8 font-['Fredericka_the_Great']"
+        >
+          <DialogTitle className="text-2xl text-center mb-4 text-slate-100">
+            Settings
+          </DialogTitle>
+
+          {/* Sound controls */}
+          <div className="space-y-4 mb-6">
+            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-500/20">
+              <div className="flex items-center gap-3 mb-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={() => (isPlaying ? stopTheme() : playTheme())}
+                >
+                  {isPlaying ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                </Button>
+                <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                  <span className="text-xs text-muted-foreground">Music</span>
+                  <Slider
+                    value={[musicVolume]}
+                    onValueChange={(value) => setMusicVolume(value[0])}
+                    max={1}
+                    step={0.05}
+                  />
+                </div>
+                <span className="text-xs tabular-nums text-muted-foreground w-8 text-right shrink-0">
+                  {Math.round(musicVolume * 100)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 shrink-0" />
+                <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                  <span className="text-xs text-muted-foreground">Effects</span>
+                  <Slider
+                    value={[effectsVolume]}
+                    onValueChange={(value) => setEffectsVolume(value[0])}
+                    max={1}
+                    step={0.05}
+                  />
+                </div>
+                <span className="text-xs tabular-nums text-muted-foreground w-8 text-right shrink-0">
+                  {Math.round(effectsVolume * 100)}%
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Surrender button */}
+          {game && !game.over && (
+            <Button
+              variant="destructive"
+              className="w-full py-3 text-base flex items-center justify-center gap-2"
+              onClick={handleSurrender}
+            >
+              <Flag className="h-4 w-4" />
+              Surrender Run
+            </Button>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {game && !isGameLoading && !isGridLoading && (
         <GameHud
-          level={game.level}
           levelScore={game.isOver() ? 0 : game.levelScore}
           targetScore={targetScore}
           movesRemaining={maxMoves - game.levelMoves}
-          totalCubes={game.cubesAvailable}
           combo={game.isOver() ? 0 : game.combo}
           constraintProgress={game.constraintProgress}
           constraint2Progress={game.constraint2Progress}
@@ -563,9 +673,6 @@ const PlayScreen: React.FC = () => {
           ]}
           activeBonus={activeBonus}
           bonusDescription={bonusDescription}
-          onSurrender={handleSurrender}
-          onMap={goBack}
-          isGameOver={game.over}
         />
       )}
     </div>
