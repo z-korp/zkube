@@ -119,7 +119,7 @@ const DraftPage: React.FC = () => {
         level: currentLevel,
         branchId,
         archetype,
-        effectDesc: getSkillEffectDescription(
+      effectDesc: getSkillEffectDescription(
           skillId,
           nextLevel,
           branchId,
