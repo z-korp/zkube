@@ -358,7 +358,7 @@ const DraftPage: React.FC = () => {
                 const isBranchPoint = choice.level === 4 && isFullLoadout;
                 const accentCol = choice.archetype?.color ?? "#64748b";
                 const isPassive = choice.skill?.category === "world";
-                const displayLevel = isFullLoadout ? choice.level + 1 : 0;
+                const displayLevel = choice.level + 1;
 
                 return (
                   <motion.article
