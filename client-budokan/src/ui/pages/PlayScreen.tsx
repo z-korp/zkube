@@ -498,18 +498,20 @@ const PlayScreen: React.FC = () => {
           <span className="font-['Fredericka_the_Great'] text-white text-base md:text-lg leading-tight">
             Level {game?.level ?? "..."}
           </span>
-        </div>
-        <div className="flex items-center gap-2">
           {/* Run cubes (earned this run) */}
           {game && (
-            <div className="flex items-center gap-1">
-              <span className="font-['Fredericka_the_Great'] text-blue-300 text-base tabular-nums">
-                +{game.cubesAvailable}
-              </span>
-              <CubeIcon size="sm" />
-            </div>
+            <>
+              <div className="w-px h-5 bg-slate-600 ml-1" />
+              <div className="flex items-center gap-1">
+                <span className="font-['Fredericka_the_Great'] text-blue-300 text-base tabular-nums">
+                  +{game.cubesAvailable}
+                </span>
+                <CubeIcon size="sm" />
+              </div>
+            </>
           )}
-          <div className="w-px h-5 bg-slate-600" />
+        </div>
+        <div className="flex items-center gap-2">
           {/* Wallet cubes (owned) */}
           <div className="flex items-center gap-1">
             <span className="font-['Fredericka_the_Great'] text-yellow-400 text-base tabular-nums">
@@ -525,7 +527,6 @@ const PlayScreen: React.FC = () => {
           >
             <Settings size={18} />
           </button>
-        </div>
       </div>
 
       {/* ---- Settings Dialog (styled like LevelCompleteDialog) ---- */}
