@@ -149,13 +149,15 @@ const PlayScreen: React.FC = () => {
     else setIsConnectDialogOpen(false);
   }, [account]);
 
-  // Redirect to draft page if a draft is active (e.g. zone 1 entry draft at game creation)
+  // Redirect to draft page if a draft is active (e.g. zone 1 entry draft at game creation).
+  // Skip if the level-complete dialog is showing — navigation happens from the dialog's onClose.
   useEffect(() => {
     if (!game || !account || game.over) return;
     if (!draftState?.active) return;
     if (gameId === null || gameId === undefined) return;
+    if (levelCompletionData) return; // Don't redirect while showing level-complete dialog
     navNavigate("draft", gameId);
-  }, [draftState?.active, game, account, gameId, navNavigate]);
+  }, [draftState?.active, game, account, gameId, navNavigate, levelCompletionData]);
 
 
   useEffect(() => {
