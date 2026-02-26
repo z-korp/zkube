@@ -31,7 +31,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
   bonusDescription,
 }) => {
   return (
-    <div className="w-full px-2 pb-1.5 pt-0.5 shrink-0">
+    <div className="w-full px-2 pb-2 shrink-0">
       {/* Active bonus description — floats above buttons */}
       <AnimatePresence>
         {activeBonus !== BonusType.None && bonusDescription && (
@@ -46,8 +46,8 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Bonus buttons — no panel, just a row of compact buttons */}
-      <div className="flex items-center justify-center gap-2">
+      {/* Bonus buttons in a slim pill-shaped panel */}
+      <div className="max-w-[500px] mx-auto w-full flex items-center justify-center gap-[clamp(6px,2vw,12px)] bg-slate-900/80 backdrop-blur-sm border border-slate-700/60 rounded-full px-[clamp(10px,3vw,20px)] py-[clamp(4px,1vw,8px)]">
         {bonusSlots.map((slot, idx) => {
           const isPassive = slot.isPassive ?? false;
           const isActive = !isPassive && activeBonus === slot.type;
