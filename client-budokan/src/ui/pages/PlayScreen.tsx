@@ -25,6 +25,8 @@ import GameBoard from "@/ui/components/GameBoard";
 import GameOverDialog from "@/ui/components/GameOverDialog";
 import VictoryDialog from "@/ui/components/VictoryDialog";
 import Connect from "@/ui/components/Connect";
+import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
+import { getDraftEventForCompletedLevel } from "@/utils/draftEvents";
 import {
   Dialog,
   DialogContent,
@@ -42,15 +44,18 @@ const PlayScreen: React.FC = () => {
 
   const {
     setup: {
-      systemCalls: { surrender, applyBonus },
+      systemCalls: { surrender, startNextLevel, applyBonus },
     },
   } = useDojo();
   const { account } = useAccountCustom();
   const gameId = useNavigationStore((s) => s.gameId);
   const navNavigate = useNavigationStore((s) => s.navigate);
   const goBack = useNavigationStore((s) => s.goBack);
-  const setPendingLevelCompletion = useNavigationStore(
-    (s) => s.setPendingLevelCompletion,
+  const setPendingPreviewLevel = useNavigationStore(
+    (s) => s.setPendingPreviewLevel,
+  );
+  const setPendingDraftEvent = useNavigationStore(
+    (s) => s.setPendingDraftEvent,
   );
   const { themeTemplate, setThemeTemplate } = useTheme();
   const { setMusicContext, setMusicPlaylist, playSfx } = useMusicPlayer();
@@ -75,6 +80,15 @@ const PlayScreen: React.FC = () => {
   // Tracks whether the Grid cascade animation has finished for the current move.
   // Level-complete detection is gated on this to prevent checking against a mid-cascade grid.
   const [cascadeComplete, setCascadeComplete] = useState(false);
+  const [levelCompletionData, setLevelCompletionData] = useState<{
+    level: number;
+    levelMoves: number;
+    prevTotalCubes: number;
+    totalCubes: number;
+    prevTotalScore: number;
+    totalScore: number;
+    gameLevel: GameLevelData | null;
+  } | null>(null);
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
   const prevGameStateRef = useRef<{
     level: number;
@@ -191,7 +205,7 @@ const PlayScreen: React.FC = () => {
       } else {
         playSfx("levelup");
       }
-      setPendingLevelCompletion({
+      const completionData = {
         level: prevState.level,
         levelMoves: prevState.levelMoves,
         prevTotalCubes: prevState.totalCubes,
@@ -199,9 +213,20 @@ const PlayScreen: React.FC = () => {
         prevTotalScore: levelStartTotalScoreRef.current,
         totalScore: game.totalScore,
         gameLevel: prevState.gameLevel,
-      });
+      };
+      setLevelCompletionData(completionData);
       levelStartTotalScoreRef.current = game.totalScore;
-      navNavigate("map");
+
+      // Fire startNextLevel in background so the next level grid is ready
+      // by the time the player navigates from the map.
+      if (account) {
+        startNextLevel({
+          account,
+          game_id: game.id,
+          current_level: game.level,
+        }).catch((error: unknown) => {
+          console.error("Background startNextLevel failed:", error);
+        });
     }
 
     prevGameStateRef.current = {
@@ -227,6 +252,11 @@ const PlayScreen: React.FC = () => {
     playSfx,
     cascadeComplete,
   ]);
+
+  const completionDraftEvent = useMemo(() => {
+    if (!levelCompletionData) return null;
+    return getDraftEventForCompletedLevel(seed, levelCompletionData.level);
+  }, [levelCompletionData, seed]);
 
   const handleSurrender = useCallback(async () => {
     if (!account || !game) return;
@@ -464,6 +494,32 @@ const PlayScreen: React.FC = () => {
             navNavigate("home");
           }}
           game={game}
+        />
+      )}
+
+      {levelCompletionData && (
+        <LevelCompleteDialog
+          isOpen={true}
+          onClose={() => {
+            const completedLevel = levelCompletionData.level;
+            setLevelCompletionData(null);
+
+            if (completionDraftEvent) {
+              setPendingDraftEvent(completionDraftEvent);
+              navNavigate("draft", gameId ?? undefined);
+            } else {
+              setPendingPreviewLevel(completedLevel + 1);
+              navNavigate("map");
+            }
+          }}
+          level={levelCompletionData.level}
+          levelMoves={levelCompletionData.levelMoves}
+          prevTotalCubes={levelCompletionData.prevTotalCubes}
+          totalCubes={levelCompletionData.totalCubes}
+          prevTotalScore={levelCompletionData.prevTotalScore}
+          totalScore={levelCompletionData.totalScore}
+          gameLevel={levelCompletionData.gameLevel}
+          draftWillOpen={completionDraftEvent !== null}
         />
       )}
 
