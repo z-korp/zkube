@@ -358,6 +358,7 @@ const GameHud: React.FC<GameHudProps> = ({
           <span className={`font-['Fredericka_the_Great'] text-sm tabular-nums ${
             potentialCubes >= 3 ? "text-green-400" : potentialCubes >= 2 ? "text-yellow-400" : "text-red-400"
           }`}>+{potentialCubes}</span>
+        </div>
       </div>
     </div>
   );
