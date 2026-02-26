@@ -499,14 +499,7 @@ const PlayScreen: React.FC = () => {
             Level {game?.level ?? "..."}
           </span>
         </div>
-        <div className="flex items-center gap-3">
-          {/* Wallet cubes (owned) */}
-          <div className="flex items-center gap-1">
-            <CubeIcon size="sm" />
-            <span className="font-['Fredericka_the_Great'] text-yellow-400 text-base tabular-nums">
-              {walletBalance.toString()}
-            </span>
-          </div>
+        <div className="flex items-center gap-2">
           {/* Run cubes (earned this run) */}
           {game && (
             <div className="flex items-center gap-1">
@@ -516,6 +509,15 @@ const PlayScreen: React.FC = () => {
               <CubeIcon size="xs" />
             </div>
           )}
+          <div className="w-px h-5 bg-slate-600" />
+          {/* Wallet cubes (owned) */}
+          <div className="flex items-center gap-1">
+            <CubeIcon size="sm" />
+            <span className="font-['Fredericka_the_Great'] text-yellow-400 text-base tabular-nums">
+              {walletBalance.toString()}
+            </span>
+          </div>
+          <div className="w-px h-5 bg-slate-600" />
           {/* Settings gear */}
           <button
             onClick={() => setIsSettingsOpen(true)}
@@ -609,7 +611,7 @@ const PlayScreen: React.FC = () => {
       )}
 
 
-      <div className="flex-1 flex flex-col items-center justify-end min-h-0 px-2 py-1 overflow-hidden">
+      <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-2 py-1 overflow-hidden">
         {(isGameLoading || isGridLoading) && (
           <div className="flex flex-col items-center justify-center gap-4 py-12">
             <img
