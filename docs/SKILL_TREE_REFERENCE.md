@@ -312,29 +312,48 @@ Charges fuel **Active Skills** only. Passive skills don't use charges.
 
 ### Initial Draft (Run Start)
 
-At the beginning of each run, the player drafts their 3-skill loadout:
+At the beginning of each run, the player drafts their first skill:
 
-1. Player sees **3 skill choices** (cards drawn from pool of 12 skills minus already-picked)
+1. Player sees **3 skill choices** (cards drawn from pool of 12 skills)
 2. Player **selects** one → skill enters loadout at its skill-tree level
-3. The selected card is **replaced** with a new skill from the remaining pool
-4. Player picks again. Repeat until **3 skills are drafted**
-5. Reroll mechanics available throughout (costs CUBE)
+3. Draft closes. Player starts the run with 1 skill.
+4. Reroll mechanics available (costs CUBE)
 
-### Boss Upgrades
+### Boss Drafts (After Boss Levels)
 
-After clearing each boss level (10, 20, 30, 40, 50), the player may **upgrade one active skill's run-level by +1**.
+After clearing each boss level (10, 20, 30, 40, 50), a boss draft opens:
+
+- **If loadout < 3 slots filled**: Draw from **full pool** of 12 skills. Player can:
+  - Select an **unpicked skill** → adds it to the loadout at its tree level
+  - Select a **skill already in loadout** → upgrades it by +1 run level
+- **If loadout is full (3 slots)**: Draw from **loadout skills only** (upgrade only)
+- When upgrading from **level 2 → level 3**, the **branch is randomly assigned** (not player-chosen)
+
+### Draft Pacing Summary
+
+| Event | Trigger | Pool | Action |
+|-------|---------|------|--------|
+| Initial Draft | Run start | 12 skills | Pick 1 |
+| Boss Draft 1 | Clear L10 | Full or loadout | Add or upgrade |
+| Boss Draft 2 | Clear L20 | Full or loadout | Add or upgrade |
+| Boss Draft 3 | Clear L30 | Full or loadout | Add or upgrade |
+| Boss Draft 4 | Clear L40 | Loadout only | Upgrade only |
+| Boss Draft 5 | Clear L50 | Loadout only | Upgrade only |
+
+**Max augment picks per run**: 6 (1 initial + 5 boss)
 
 ### Reroll Mechanic
 
 - Cost formula: `5 × 3^n` where `n` = reroll count this draft
 - Cost sequence: 5, 15, 45, 135, 405, ...
 - Costs CUBE (deducted from wallet)
+- Only available during initial draft (boss drafts show fixed choices)
 
 ### Branch Choice
 
 - At level 3 in the **skill tree** (persistent, outside runs), player must choose Branch A or B
-- Respec possible at 50% CUBE cost
----
+- During runs, if a boss draft upgrades a skill to level 3, branch is **randomly assigned** using the game seed
+- Respec possible at 50% CUBE cost (in skill tree, outside runs)
 
 ## Domain Separation Rules
 
@@ -864,7 +883,7 @@ All structural mismatches between the doc and existing contract are now decided.
 | 2 | **Skill count** (doc: 12, contract: 15) | **12 skills.** Set `TOTAL_SKILLS=12`, IDs 1-12. IDs 0 and 13-14 unused. |
 | 3 | **Active skill boundary** (contract: IDs 1-5 hardcoded) | **Actives = IDs 1-4.** Replace `is_bonus_skill_id(1..5)` with `is_active_skill(1..4)`. |
 | 4 | **Overdrive passive swap** | **Overdrive → Passive** (cadence). **Momentum Scaling → Active** (score burst on charge use). Endgame Focus stays passive. |
-| 5 | **Draft system** | **Simplified.** Single draft at run start (3 sequential picks). Boss upgrades after L10/L20/L30/L40/L50. No mid-level drafts. |
+| 5 | **Draft system** | **Simplified.** 1 pick at run start + 1 pick per boss clear (L10/L20/L30/L40/L50). When loadout < 3: full pool (add or upgrade). When full: upgrade only. Branch randomly assigned at level 3. |
 
 ---
 
@@ -885,7 +904,7 @@ Given the existing infrastructure, the real work is focused on **data changes** 
 | `helpers/scoring.cairo` | Modify | Endgame Focus flat score on level start. Remove old Overdrive multiplier. |
 | `elements/bonuses/harvest.cairo` | **Rewrite** | Random block selection instead of chosen-size destruction. |
 | `elements/bonuses/wave.cairo` | **Rewrite** → `tsunami.cairo` | Targeted blocks (Branch A) or targeted rows (Branch B). |
-| `systems/draft.cairo` | **Rewrite** | Replace zone-based system with: single start-of-run draft (3 sequential picks from pool of 12), boss upgrade events after L10/20/30/40/50. |
+| `systems/draft.cairo` | **Rewrite** | Replace zone-based system with: 1 pick at run start, boss drafts after L10/20/30/40/50 (full pool when loadout < 3, upgrade-only when full), random branch at L3. |
 | `models/draft.cairo` | Modify | Simplify `DraftState`: remove zone/trigger_level/completed_mask. Add sequential pick tracking. |
 | `models/game.cairo` | Modify | Reset `gambit_triggered_this_level`, `combo_surge_flow_active` on level advance. |
 | `types/consumable.cairo` | **Delete** | Consumables removed entirely. |

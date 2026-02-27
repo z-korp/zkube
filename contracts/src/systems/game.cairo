@@ -235,7 +235,7 @@ mod game_system {
                 world.write_model(@game);
             }
 
-            // Open initial draft (run start — 3 sequential picks from 12 skills)
+            // Open initial draft (run start — 1 pick from 12 skills)
             libs.draft.open_initial_draft(game_id);
         }
 

@@ -1,17 +1,19 @@
 #[starknet::interface]
 pub trait IDraftSystem<T> {
     /// Open the initial draft at run start (called from game.create).
-    /// Draws 3 skills from pool of 12 minus already-picked.
+    /// Draws 3 skills from pool of 12 — player picks 1.
     fn open_initial_draft(ref self: T, game_id: u64);
 
-    /// Open boss upgrade after clearing boss levels (10, 20, 30, 40, 50).
-    /// Only active skills in loadout are shown for +1 level upgrade.
+    /// Open boss draft after clearing boss levels (10, 20, 30, 40, 50).
+    /// If loadout < 3: draw from full pool (add new or upgrade existing).
+    /// If loadout >= 3: draw from loadout only (upgrade only).
     fn open_boss_upgrade(ref self: T, game_id: u64, completed_level: u8);
 
     /// Reroll one of the 3 choices. Cost = 5 × 3^n CUBE.
     fn reroll(ref self: T, game_id: u64, reroll_slot: u8);
 
-    /// Select a choice. For initial draft, adds skill to loadout; for boss upgrade, +1 level.
+    /// Select a choice. Adds new skill or upgrades existing one.
+    /// When upgrading level 2 → 3, branch is randomly assigned.
     fn select(ref self: T, game_id: u64, selected_slot: u8);
 }
 
@@ -23,12 +25,12 @@ mod draft_system {
     use dojo::model::ModelStorage;
     use dojo::world::WorldStorage;
     use game_components_minigame::libs::assert_token_ownership;
-    use starknet::{ContractAddress, get_caller_address};
+    use starknet::get_caller_address;
     use zkube::constants::DEFAULT_NS;
     use zkube::events::{DraftOpened, DraftRerolled, DraftSelected};
     use zkube::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait};
     use zkube::helpers::packing::{
-        RunData, RunDataHelpersTrait, RunDataPackingTrait, SkillTreeDataPackingTrait,
+        RunData, RunDataHelpersTrait, SkillTreeDataPackingTrait,
     };
     use zkube::helpers::random::RandomImpl;
     use zkube::helpers::token;
@@ -62,8 +64,8 @@ mod draft_system {
             }
 
             let picks_made = run_data.active_slot_count;
-            if picks_made >= 3 {
-                return; // All 3 skills already drafted
+            if picks_made >= 1 {
+                return; // Initial draft is 1 pick only
             }
 
             let (choice_1, choice_2, choice_3) = InternalImpl::draw_three_from_pool(
@@ -125,12 +127,18 @@ mod draft_system {
                 return;
             }
 
-            // Show only active skills currently in loadout (IDs 1-4)
-            let (choice_1, choice_2, choice_3) = InternalImpl::draw_active_skills_for_upgrade(
-                @run_data,
-            );
+            // Determine choices based on loadout state
+            let active_count = run_data.active_slot_count;
+            let (choice_1, choice_2, choice_3) = if active_count < 3 {
+                // Loadout not full: draw from full unpicked pool (add new or upgrade)
+                // Mix existing loadout skills + unpicked skills
+                InternalImpl::draw_mixed_pool(game_seed.seed, completed_level, @run_data)
+            } else {
+                // Loadout full: upgrade only — show existing loadout skills
+                InternalImpl::draw_active_skills_for_upgrade(@run_data)
+            };
 
-            // If no active skills in loadout, skip
+            // If no valid choices, skip
             if choice_1 == 0 && choice_2 == 0 && choice_3 == 0 {
                 return;
             }
@@ -262,103 +270,68 @@ mod draft_system {
             let mut game: Game = world.read_model(game_id);
             let mut run_data = game.get_run_data();
 
-            if draft.draft_type == DRAFT_TYPE_INITIAL {
-                // Initial draft: add skill to loadout
-                let mut skill_tree: PlayerSkillTree = world.read_model(player);
-                if !skill_tree.exists() {
-                    skill_tree = PlayerSkillTreeTrait::new(player);
-                }
-                let skill_data = skill_tree.get_skill_tree_data();
-                // Skill tree uses 0-indexed internally but skill_id maps directly
-                let tree_skill = skill_data.get_skill(selected_choice);
+            // Unified select logic: both initial and boss drafts
+            // Determine if skill is already in loadout
+            let existing_slot = run_data.find_skill_slot(selected_choice);
+            let is_new_skill = existing_slot == 255;
 
-                let added_slot = run_data.add_skill(selected_choice, tree_skill.level, tree_skill.branch_id);
+            // Load player skill tree for level/branch data
+            let mut skill_tree: PlayerSkillTree = world.read_model(player);
+            if !skill_tree.exists() {
+                skill_tree = PlayerSkillTreeTrait::new(player);
+            }
+            let skill_data = skill_tree.get_skill_tree_data();
+            let tree_skill = skill_data.get_skill(selected_choice);
+
+            if is_new_skill {
+                // Add new skill to loadout at tree level, tree branch
+                let added_slot = run_data.add_skill(
+                    selected_choice, tree_skill.level, tree_skill.branch_id,
+                );
                 assert!(added_slot != 255, "Failed to add skill to run loadout");
-
-                game.set_run_data(run_data);
-                world.write_model(@game);
-
-                let picks_made = draft.picks_made + 1;
-                let event_slot = draft.picks_made;
-
-                if picks_made < 3 {
-                    // More picks needed: draw new choices
-                    let game_seed: GameSeed = world.read_model(game_id);
-                    let (choice_1, choice_2, choice_3) = InternalImpl::draw_three_from_pool(
-                        game_seed.seed, picks_made, 0, @run_data,
-                    );
-
-                    draft.picks_made = picks_made;
-                    draft.choice_1 = choice_1;
-                    draft.choice_2 = choice_2;
-                    draft.choice_3 = choice_3;
-                    draft.reroll_count = 0;
-                    draft.selected_slot = selected_slot;
-                    draft.selected_choice = selected_choice;
-                    // draft stays active for the next pick
-
-                    world.write_model(@draft);
-                } else {
-                    // All 3 picks done — close draft
-                    draft.picks_made = picks_made;
-                    draft.active = false;
-                    draft.selected_slot = selected_slot;
-                    draft.selected_choice = selected_choice;
-
-                    world.write_model(@draft);
-                }
-
-                world
-                    .emit_event(
-                        @DraftSelected {
-                            game_id,
-                            player,
-                            event_slot,
-                            selected_slot,
-                            selected_choice,
-                        },
-                    );
             } else {
-                // Boss upgrade: +1 level to chosen active skill
-                let existing_slot = run_data.find_skill_slot(selected_choice);
-                assert!(existing_slot != 255, "Skill not in loadout");
-
-                // Only upgrade active skills (IDs 1-4)
-                assert!(selected_choice >= 1 && selected_choice <= 4, "Can only upgrade active skills");
-
+                // Upgrade existing skill: +1 level (capped at tree max)
                 let current_level = run_data.get_slot_level(existing_slot);
-                // Cap at the player's tree level for this skill
-                let mut skill_tree: PlayerSkillTree = world.read_model(player);
-                if !skill_tree.exists() {
-                    skill_tree = PlayerSkillTreeTrait::new(player);
-                }
-                let skill_data = skill_tree.get_skill_tree_data();
-                let tree_skill = skill_data.get_skill(selected_choice);
                 let max_level = tree_skill.level;
 
                 if current_level < max_level {
-                    run_data.set_slot_level(existing_slot, current_level + 1);
+                    let new_level = current_level + 1;
+                    run_data.set_slot_level(existing_slot, new_level);
+
+                    // When upgrading to level 3 (branch level), randomly assign branch
+                    if new_level == 3 {
+                        let game_seed: GameSeed = world.read_model(game_id);
+                        let branch_hash = InternalImpl::branch_hash(
+                            game_seed.seed, selected_choice,
+                        );
+                        let branch_u256: u256 = branch_hash.into();
+                        let random_branch: u8 = (branch_u256 % 2).try_into().unwrap();
+                        run_data.set_slot_branch(existing_slot, random_branch);
+                    }
                 }
-
-                game.set_run_data(run_data);
-                world.write_model(@game);
-
-                draft.active = false;
-                draft.selected_slot = selected_slot;
-                draft.selected_choice = selected_choice;
-                world.write_model(@draft);
-
-                world
-                    .emit_event(
-                        @DraftSelected {
-                            game_id,
-                            player,
-                            event_slot: 0,
-                            selected_slot,
-                            selected_choice,
-                        },
-                    );
             }
+
+            game.set_run_data(run_data);
+            world.write_model(@game);
+
+            // Close draft (always 1 pick per draft event)
+            let event_slot = draft.picks_made;
+            draft.picks_made = draft.picks_made + 1;
+            draft.active = false;
+            draft.selected_slot = selected_slot;
+            draft.selected_choice = selected_choice;
+            world.write_model(@draft);
+
+            world
+                .emit_event(
+                    @DraftSelected {
+                        game_id,
+                        player,
+                        event_slot,
+                        selected_slot,
+                        selected_choice,
+                    },
+                );
         }
     }
 
@@ -507,39 +480,74 @@ mod draft_system {
             (choice_1, choice_2, choice_3)
         }
 
-        /// For boss upgrade: show only active skills (IDs 1-4) currently in loadout.
-        /// Returns up to 3 choices (padded with 0 if fewer actives in loadout).
+        /// For loadout-full boss upgrade: show all skills currently in loadout.
+        /// Returns up to 3 choices (padded with 0 if fewer skills in loadout).
         fn draw_active_skills_for_upgrade(run_data: @RunData) -> (u8, u8, u8) {
-            let mut actives: Array<u8> = array![];
-            let mut slot: u8 = 0;
+            let c1 = run_data.get_slot_skill(0);
+            let c2 = run_data.get_slot_skill(1);
+            let c3 = run_data.get_slot_skill(2);
+            (c1, c2, c3)
+        }
+
+        /// For boss draft when loadout < 3: draw 3 unique choices from the
+        /// combined pool of existing loadout skills + unpicked skills.
+        /// This allows player to either add a new skill or upgrade an existing one.
+        fn draw_mixed_pool(
+            seed: felt252, completed_level: u8, run_data: @RunData,
+        ) -> (u8, u8, u8) {
+            // Build candidate pool: all 12 skills (existing ones = upgrade, new ones = add)
+            // For simplicity, draw from all 12 and let select() handle the logic.
+            // We use a hash based on seed + completed_level for determinism.
+            let state: HashState = PoseidonTrait::new();
+            let state = state.update(seed);
+            let state = state.update('BOSS_DRAFT');
+            let state = state.update(completed_level.into());
+            let h1 = state.finalize();
+
+            let h1_u256: u256 = h1.into();
+            let choice_1: u8 = (h1_u256 % TOTAL_SKILLS.into()).try_into().unwrap() + 1;
+
+            let state2: HashState = PoseidonTrait::new();
+            let state2 = state2.update(h1);
+            let state2 = state2.update('BOSS_DRAFT_2');
+            let h2 = state2.finalize();
+            let h2_u256: u256 = h2.into();
+            let mut choice_2: u8 = (h2_u256 % TOTAL_SKILLS.into()).try_into().unwrap() + 1;
+            // Ensure uniqueness
+            let mut steps: u8 = 0;
             loop {
-                if slot >= 3 {
+                if choice_2 != choice_1 || steps >= TOTAL_SKILLS {
                     break;
                 }
-                let skill_id = run_data.get_slot_skill(slot);
-                if skill_id >= 1 && skill_id <= 4 {
-                    actives.append(skill_id);
+                choice_2 = if choice_2 >= TOTAL_SKILLS { 1 } else { choice_2 + 1 };
+                steps += 1;
+            };
+
+            let state3: HashState = PoseidonTrait::new();
+            let state3 = state3.update(h2);
+            let state3 = state3.update('BOSS_DRAFT_3');
+            let h3 = state3.finalize();
+            let h3_u256: u256 = h3.into();
+            let mut choice_3: u8 = (h3_u256 % TOTAL_SKILLS.into()).try_into().unwrap() + 1;
+            steps = 0;
+            loop {
+                if (choice_3 != choice_1 && choice_3 != choice_2) || steps >= TOTAL_SKILLS {
+                    break;
                 }
-                slot += 1;
+                choice_3 = if choice_3 >= TOTAL_SKILLS { 1 } else { choice_3 + 1 };
+                steps += 1;
             };
 
-            let c1 = if actives.len() > 0 {
-                *actives.at(0)
-            } else {
-                0
-            };
-            let c2 = if actives.len() > 1 {
-                *actives.at(1)
-            } else {
-                0
-            };
-            let c3 = if actives.len() > 2 {
-                *actives.at(2)
-            } else {
-                0
-            };
+            (choice_1, choice_2, choice_3)
+        }
 
-            (c1, c2, c3)
+        /// Hash for deterministic branch assignment when upgrading to level 3.
+        fn branch_hash(seed: felt252, skill_id: u8) -> felt252 {
+            let state: HashState = PoseidonTrait::new();
+            let state = state.update(seed);
+            let state = state.update('BRANCH_RANDOM');
+            let state = state.update(skill_id.into());
+            state.finalize()
         }
     }
 }
