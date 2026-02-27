@@ -232,10 +232,10 @@ const Grid: React.FC<GridProps> = ({
     }
   };
 
-  // Shared handler for grid-targeting bonuses (Harvest, Wave)
+  // Shared handler for grid-targeting bonuses (Harvest, Tsunami)
   const handleGridBonus = (block: Block): boolean => {
     // Combo, Score, Supply are handled via confirm dialog in PlayScreen.
-    // Only grid-targeting bonuses (Harvest, Wave) reach here.
+    // Only grid-targeting bonuses (Harvest, Tsunami) reach here.
     if (bonus === BonusType.Harvest) {
       setBlockBonus(block);
       getBlocksSameWidth(block, blocks).forEach((b) => {

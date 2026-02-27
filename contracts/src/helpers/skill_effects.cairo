@@ -1,4 +1,4 @@
-use zkube::helpers::packing::{RunData, RunDataHelpersTrait, RunDataPackingTrait, SkillTreeDataPackingTrait};
+use zkube::helpers::packing::{RunData, RunDataHelpersTrait, SkillTreeDataPackingTrait};
 
 // =============================================================================
 // Skill IDs (vNext: 12 skills, 4 archetypes)

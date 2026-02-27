@@ -63,7 +63,7 @@ const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
       case BonusType.Harvest:
         return imgAssets.harvest;
       case BonusType.Tsunami:
-        return imgAssets.wave;
+        return imgAssets.tsunami;
       default:
         return "";
     }
@@ -136,7 +136,7 @@ const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
         </div>
 
         <div className="text-xs text-slate-500 text-center mb-4">
-          Wave and Supply require unlocks from the permanent shop.
+          Tsunami requires unlock from the permanent shop.
         </div>
 
         <Button

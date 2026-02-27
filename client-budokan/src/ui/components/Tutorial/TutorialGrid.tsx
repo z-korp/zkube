@@ -56,10 +56,10 @@ interface GridProps {
   ref: any;
   intermission?: boolean;
   setHighlightedScore?: (highlighted: boolean) => void;
-  setHighlightedWave?: (highlighted: boolean) => void;
+  setHighlightedHarvest?: (highlighted: boolean) => void;
   setHighlightedCombo?: (highlighted: boolean) => void;
   setDisabledScore?: (disabled: boolean) => void;
-  setDisabledWave?: (disabled: boolean) => void;
+  setDisabledHarvest?: (disabled: boolean) => void;
   setDisabledCombo?: (disabled: boolean) => void;
 }
 
@@ -78,10 +78,10 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       onUpdate,
       setDisabledCombo,
       setDisabledScore,
-      setDisabledWave,
+      setDisabledHarvest,
       setHighlightedCombo,
       setHighlightedScore,
-      setHighlightedWave,
+      setHighlightedHarvest,
     },
     ref
   ) => {
@@ -607,8 +607,8 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         if (setDisabledCombo) setDisabledCombo(true);
         if (setHighlightedScore) setHighlightedScore(false);
         if (setDisabledScore) setDisabledScore(true);
-        if (setHighlightedWave) setHighlightedWave(false);
-        if (setDisabledWave) setDisabledWave(true);
+        if (setHighlightedHarvest) setHighlightedHarvest(false);
+        if (setDisabledHarvest) setDisabledHarvest(true);
       };
 
       switch (tutorialStep) {
@@ -625,8 +625,8 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           break;
         case 5: // Harvest bonus step
           resetBonusStates();
-          if (setHighlightedWave) setHighlightedWave(true);
-          if (setDisabledWave) setDisabledWave(false);
+          if (setHighlightedHarvest) setHighlightedHarvest(true);
+          if (setDisabledHarvest) setDisabledHarvest(false);
           break;
         case 6: // Score bonus step
           resetBonusStates();

@@ -52,7 +52,7 @@ mod grid_system {
     use core::hash::HashStateTrait;
     use core::poseidon::{HashState, PoseidonTrait};
     use dojo::model::ModelStorage;
-    use dojo::world::{WorldStorage, WorldStorageTrait};
+    use dojo::world::WorldStorage;
     use zkube::constants::{self, DEFAULT_NS};
 
     // Import bonus element files for grid-modifying operations
@@ -61,12 +61,11 @@ mod grid_system {
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::controller::Controller;
     use zkube::helpers::packing::RunDataHelpersTrait;
-    use zkube::helpers::scoring;
     use zkube::helpers::scoring::{
         process_lines_cleared, saturating_add_u16, saturating_add_u8, update_score,
     };
     use zkube::helpers::skill_effects::{
-        ActiveEffect, PassiveEffect, active_effect_for_skill, get_passive_effects,
+        active_effect_for_skill, get_passive_effects,
     };
     use zkube::models::config::GameSettings;
     use zkube::models::game::{Game, GameLevel, GameSeed, GameTrait};
@@ -636,8 +635,8 @@ mod grid_system {
 
             let mut game: Game = world.read_model(game_id);
             let mut lines_cleared: u8 = 0;
-            let mut _wave_cascade: u8 = 0;
-            let points = InternalImpl::assess_game(ref game.blocks, ref lines_cleared, ref _wave_cascade);
+            let mut _cascade_depth: u8 = 0;
+            let points = InternalImpl::assess_game(ref game.blocks, ref lines_cleared, ref _cascade_depth);
 
             world.write_model(@game);
 

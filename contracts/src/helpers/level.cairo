@@ -818,19 +818,6 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         let result: u32 = base.into() * factor.into() / 100;
         result.try_into().unwrap()
     }
-
-    /// Generate random bonus type based on seed (DEPRECATED - no longer used in V3.0)
-    /// Returns: 0 = Combo, 1 = Score, 2 = Harvest
-    fn get_random_bonus_type(seed: felt252, index: u8) -> u8 {
-        let state: HashState = PoseidonTrait::new();
-        let state = state.update(seed);
-        let state = state.update(index.into());
-        let state = state.update('BONUS');
-        let hash = state.finalize();
-
-        let hash_u256: u256 = hash.into();
-        (hash_u256 % 3).try_into().unwrap()
-    }
 }
 
 #[cfg(test)]
@@ -1001,19 +988,6 @@ mod tests {
         assert!(config.points_required >= 100 && config.points_required <= 116, "Points in range");
         assert!(config.max_moves >= 55 && config.max_moves <= 65, "Moves in range");
         assert!(config.difficulty == Difficulty::Master, "Level 50 should be Master");
-    }
-
-    #[test]
-    fn test_random_bonus_distribution() {
-        // Test that we get different bonus types
-        let bonus1 = LevelGeneratorTrait::get_random_bonus_type(TEST_SEED, 0);
-        let bonus2 = LevelGeneratorTrait::get_random_bonus_type(TEST_SEED, 1);
-        let bonus3 = LevelGeneratorTrait::get_random_bonus_type(TEST_SEED, 2);
-
-        // All should be valid bonus types (0, 1, or 2)
-        assert!(bonus1 <= 2, "Bonus type should be 0-2");
-        assert!(bonus2 <= 2, "Bonus type should be 0-2");
-        assert!(bonus3 <= 2, "Bonus type should be 0-2");
     }
 
     #[test]

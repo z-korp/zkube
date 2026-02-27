@@ -201,7 +201,7 @@ export const STEP_5_GRID: MockGridState = {
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [3, 3, 3, 2, 2, 0, 2, 2], // Wave target row - NOT full (gap at 5)
+    [3, 3, 3, 2, 2, 0, 2, 2], // Harvest target row - NOT full (gap at 5)
     [2, 2, 2, 2, 2, 2, 0, 0], // Row 9: NOT full (gaps at 6-7)
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
@@ -363,8 +363,8 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     description: "Unlock powerful new bonuses in the permanent shop!",
     mobileDescription: "Unlock new bonuses",
     items: [
-      { icon: "wave", name: "Wave", desc: "Clear horizontal rows." },
-      { icon: "supply", name: "Supply", desc: "Add new lines at no move cost." },
+      { icon: "tsunami", name: "Tsunami", desc: "Clear entire horizontal rows." },
+      { icon: "supply", name: "Supply", desc: "Add new lines at no move cost. (Coming soon)" },
     ],
     footer: "Unlock these in the permanent shop with CUBE tokens!",
   },

@@ -79,9 +79,9 @@ export function defineContractComponents(world: World) {
           cube_3_percent: RecsType.Number,
           cube_2_percent: RecsType.Number,
           // Consumable Costs
-          hammer_cost: RecsType.Number,
-          wave_cost: RecsType.Number,
-          totem_cost: RecsType.Number,
+          combo_cost: RecsType.Number,
+          tsunami_cost: RecsType.Number,
+          harvest_cost: RecsType.Number,
           extra_moves_cost: RecsType.Number,
           // Reward Multiplier
           cube_multiplier_x100: RecsType.Number,

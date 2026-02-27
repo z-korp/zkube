@@ -121,15 +121,11 @@ pub mod GameSettingsDefaults {
     pub const CONSTRAINTS_ENABLED: u8 = 1; // Enabled
     pub const CONSTRAINT_START_LEVEL: u8 = 3; // Constraints start at level 3
 
-    // Constraint Distribution (VeryEasy to Master scaling) - Individual defaults
-    // constraint_lines_budgets legacy layout is preserved, but line/times fields are deprecated
-    // and no longer enforced by generation.
-    // Weighted budget system (budget min is derived from budget max)
+    // Constraint Distribution (VeryEasy to Master scaling)
+    // Budget system: budget_min derived from budget_max (70% floor)
     pub const VERYEASY_BUDGET_MAX: u8 = 0; // No regular constraints at VeryEasy
     pub const MASTER_BUDGET_MAX: u8 = 80; // Wider ceiling for endgame variety
-    // Constraint count range (DEPRECATED — constraint counts are now hardcoded per tier in
-    // level.cairo)
-    // These fields kept for packed model layout compatibility but are no longer read.
+    // Constraint chances (kept for packed model layout compatibility, zeroed out)
     pub const VERYEASY_DUAL_CHANCE: u8 = 0;
     pub const MASTER_DUAL_CHANCE: u8 = 0;
     pub const VERYEASY_SECONDARY_NO_BONUS_CHANCE: u8 = 0;

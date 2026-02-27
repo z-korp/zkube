@@ -9,6 +9,7 @@ const ImageAssets = (theme: ThemeId) => {
     score: getCommonAssetPath("bonus/score.png"),
     harvest: getCommonAssetPath("bonus/harvest.png"),
     wave: getCommonAssetPath("bonus/wave.png"),
+    tsunami: getCommonAssetPath("bonus/wave.png"), // Tsunami (renamed from Wave)
     supply: getCommonAssetPath("bonus/supply.png"),
     bridging: getCommonAssetPath("bonus/bridging.png"),
     constraintClearLines: getCommonAssetPath("constraints/constraint-clear-lines.png"),

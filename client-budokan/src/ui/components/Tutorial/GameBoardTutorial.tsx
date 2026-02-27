@@ -66,8 +66,8 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
   const [bonusDescription, setBonusDescription] = useState("");
   const [disableScore, setDisableScore] = useState(false);
   const [highlightedScore, setHighlightedScore] = useState(false);
-  const [disableWave, setDisableWave] = useState(false);
-  const [highlightedWave, setHighlightedWave] = useState(false);
+  const [disableHarvest, setDisableHarvest] = useState(false);
+  const [highlightedHarvest, setHighlightedHarvest] = useState(false);
   const [disableCombo, setDisableCombo] = useState(false);
   const [highlightedCombo, setHighlightedCombo] = useState(false);
 
@@ -89,7 +89,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
   }, [initialGrid, score, combo, maxCombo]);
   const [bonus, setBonus] = useState<BonusType>(BonusType.None);
 
-  const handleBonusWaveClick = () => {
+  const handleBonusHarvestClick = () => {
     if (harvestCount === 0) return;
     if (bonus === BonusType.Harvest) {
       setBonus(BonusType.None);
@@ -122,7 +122,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
     }
   };
 
-  const handleBonusWaveTx = useCallback(async () => {
+  const handleBonusHarvestTx = useCallback(async () => {
     setIsTxProcessing(true);
     try {
       // await applyBonus({
@@ -169,14 +169,14 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
       if (onBlockSelect) onBlockSelect(block);
 
       if (bonus === BonusType.Harvest) {
-        handleBonusWaveTx();
+        handleBonusHarvestTx();
       } else if (bonus === BonusType.Momentum) {
         handleBonusScoreTx();
       } else if (bonus === BonusType.ComboSurge) {
         handleBonusComboTx();
       }
     },
-    [bonus, handleBonusWaveTx, handleBonusScoreTx, handleBonusComboTx]
+    [bonus, handleBonusHarvestTx, handleBonusScoreTx, handleBonusComboTx]
   );
 
   useEffect(() => {
@@ -257,14 +257,14 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
               </div>
               <div className="flex flex-col items-center">
                 <BonusButton
-                  onClick={handleBonusWaveClick}
+                  onClick={handleBonusHarvestClick}
                   urlImage={imgAssets.harvest}
                   bonusCount={harvestCount}
                   tooltipText="Destroy all blocks of chosen size"
                   bonusName={BonusType.Harvest}
                   bonus={bonus}
-                  disabled={disableWave}
-                  highlighted={highlightedWave}
+                  disabled={disableHarvest}
+                  highlighted={highlightedHarvest}
                 />
               </div>
               <div className="flex flex-col w-full items-end">
@@ -349,8 +349,8 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
             ref={setBonus}
             setDisabledScore={setDisableScore}
             setHighlightedScore={setHighlightedScore}
-            setDisabledWave={setDisableWave}
-            setHighlightedWave={setHighlightedWave}
+            setDisabledHarvest={setDisableHarvest}
+            setHighlightedHarvest={setHighlightedHarvest}
             setDisabledCombo={setDisableCombo}
             setHighlightedCombo={setHighlightedCombo}
           />
