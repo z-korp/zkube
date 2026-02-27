@@ -248,15 +248,6 @@ export function getPassiveSkillSlots(runData: RunData): SkillSlot[] {
   return runData.slots.filter((slot) => slot.skillId >= 5 && slot.skillId <= 12);
 }
 
-/** @deprecated Use getActiveSkillSlots() */
-export function getBonusSlots(runData: RunData): SkillSlot[] {
-  return getActiveSkillSlots(runData);
-}
-
-/** @deprecated Use getPassiveSkillSlots() */
-export function getWorldEventSlots(runData: RunData): SkillSlot[] {
-  return getPassiveSkillSlots(runData);
-}
 
 /**
  * Check if a specific skill is in the run loadout
@@ -356,12 +347,3 @@ export function isPassiveSkill(skillId: number): boolean {
   return skillId >= 5 && skillId <= 12;
 }
 
-/** @deprecated Use isActiveSkill() */
-export function isBonusSkill(skillId: number): boolean {
-  return isActiveSkill(skillId);
-}
-
-/** @deprecated Use isPassiveSkill() */
-export function isWorldEventSkill(skillId: number): boolean {
-  return isPassiveSkill(skillId);
-}

@@ -236,7 +236,7 @@ mod game_system {
             }
 
             // Open initial draft (1 pick from pool of 12 skills)
-            libs.draft.open_initial_draft(game_id, skill_tree.skill_data);
+            libs.draft.open_initial_draft(game_id);
         }
 
         fn surrender(ref self: ContractState, game_id: u64) {

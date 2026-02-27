@@ -78,15 +78,6 @@ export class Bonus {
     ];
   }
 
-  /** @deprecated Use getActiveSkills() */
-  public static getBonuses(): Bonus[] {
-    return Bonus.getActiveSkills();
-  }
-
-  /** @deprecated Use getActiveSkills() */
-  public static getAllBonuses(): Bonus[] {
-    return Bonus.getActiveSkills();
-  }
 
   public isNone(): boolean {
     return this.value === BonusType.None;

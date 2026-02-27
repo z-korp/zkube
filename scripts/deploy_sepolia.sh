@@ -343,6 +343,7 @@ MANIFEST_CUBE_TOKEN=""
 MOVE_SYSTEM=""
 QUEST_SYSTEM=""
 SKILL_TREE_SYSTEM=""
+DRAFT_SYSTEM=""
 CUBE_TOKEN="$EXTERNAL_CUBE_TOKEN"
 if [ -f "$MANIFEST_FILE" ]; then
     GAME_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-game_system\") | .address" 2>/dev/null)
@@ -351,6 +352,7 @@ if [ -f "$MANIFEST_FILE" ]; then
     MOVE_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-move_system\") | .address" 2>/dev/null)
     QUEST_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-quest_system\") | .address" 2>/dev/null)
     SKILL_TREE_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-skill_tree_system\") | .address" 2>/dev/null)
+    DRAFT_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-draft_system\") | .address" 2>/dev/null)
 fi
 
 print_info "  External CubeToken configured at: $CUBE_TOKEN"
@@ -414,6 +416,7 @@ if [ -n "$CUBE_TOKEN" ] && [ "$CUBE_TOKEN" != "$MANIFEST_CUBE_TOKEN" ]; then
     grant_role_on_cube_token "move_system" "$MOVE_SYSTEM"
     grant_role_on_cube_token "quest_system" "$QUEST_SYSTEM"
     grant_role_on_cube_token "skill_tree_system" "$SKILL_TREE_SYSTEM"
+    grant_role_on_cube_token "draft_system" "$DRAFT_SYSTEM"
 elif [ -n "$CUBE_TOKEN" ]; then
     print_info "  External CubeToken matches world cube_token — roles already granted via tag"
 fi

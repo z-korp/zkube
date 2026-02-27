@@ -57,7 +57,6 @@ mod level_system {
     use zkube::models::game::{Game, GameLevelTrait, GameSeed, GameTrait};
     use zkube::types::constraint::ConstraintType;
     use zkube::types::level::LevelConfigTrait;
-    use zkube::models::skill_tree::PlayerSkillTree;
 
     #[storage]
     struct Storage {}
@@ -364,8 +363,7 @@ mod level_system {
                 || completed_level == 20
                 || completed_level == 30
                 || completed_level == 40 {
-                let skill_tree: PlayerSkillTree = world.read_model(player);
-                libs.draft.open_boss_upgrade(game_id, completed_level, skill_tree.skill_data);
+                libs.draft.open_boss_upgrade(game_id, completed_level);
             }
         }
 

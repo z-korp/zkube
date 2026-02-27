@@ -11,6 +11,7 @@ import {
   ARCHETYPE_ORDER,
   getSkillTier,
   getSkillsByArchetype,
+  getSkillAssetKey,
   type ArchetypeId,
   type SkillDefinition,
 } from "@/dojo/game/types/skillData";
@@ -692,7 +693,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
   const tier = getSkillTier(
     isUnlocked ? targetLevel : Math.max(0, targetLevel - 1),
   );
-  const iconSrc = getSkillTierIconPath(skill.name, tier);
+  const iconSrc = getSkillTierIconPath(getSkillAssetKey(skillId) ?? "", tier);
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
@@ -973,7 +974,7 @@ function buildTreeData(
         xPct: cx,
         yPct: rowY(row),
         isCore: true,
-        iconSrc: getSkillTierIconPath(def.name, tier),
+        iconSrc: getSkillTierIconPath(getSkillAssetKey(skill.id) ?? "", tier),
         skillId: skill.id,
         targetLevel: tl,
         unlocked,
@@ -1076,7 +1077,7 @@ function buildTreeData(
           xPct: bx,
           yPct: rowY(row),
           isCore: false,
-          iconSrc: getSkillTierIconPath(def.name, tier),
+          iconSrc: getSkillTierIconPath(getSkillAssetKey(skill.id) ?? "", tier),
           skillId: skill.id,
           targetLevel: tl,
           unlocked: n.unlocked,

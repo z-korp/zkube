@@ -196,6 +196,49 @@ export const SKILLS: Record<number, SkillDefinition> = {
 };
 
 /* ------------------------------------------------------------------ */
+/*  Asset key mapping (skill ID → icon file key)                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Maps each skill ID to the short asset key used in file names.
+ * Files are at: /assets/common/skills/skill-{key}.png (base)
+ *               /assets/common/skills/skill-{key}-t{1|2|3}.png (tiered)
+ */
+export const SKILL_ASSET_KEYS: Record<number, string> = {
+  1: "combo",       // Combo Surge
+  2: "score",       // Momentum Scaling
+  3: "harvest",     // Harvest
+  4: "wave",        // Tsunami
+  5: "tempo",       // Rhythm
+  6: "catalyst",    // Cascade Mastery
+  7: "momentum",    // Overdrive
+  8: "focus",       // Endgame Focus
+  9: "fortune",     // High Stakes
+  10: "adrenaline", // Gambit
+  11: "resilience", // Structural Integrity
+  12: "expansion",  // Grid Harmony
+};
+
+/**
+ * Get the asset file key for a skill. Returns undefined for invalid IDs.
+ */
+export function getSkillAssetKey(skillId: number): string | undefined {
+  return SKILL_ASSET_KEYS[skillId];
+}
+
+/**
+ * Decode a draft v2 choice value (1-24) into skill ID and branch info.
+ * Values 1-12: skill_id directly (add new / upgrade / branch A at L3)
+ * Values 13-24: branch B upgrade (skill_id = value - 12)
+ */
+export function decodeDraftChoice(choice: number): { skillId: number; isBranchB: boolean } {
+  if (choice > 12) {
+    return { skillId: choice - 12, isBranchB: true };
+  }
+  return { skillId: choice, isBranchB: false };
+}
+
+/* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 

@@ -11,14 +11,14 @@ import { useCubeBalance } from "@/hooks/useCubeBalance";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import useViewport from "@/hooks/useViewport";
 import { useDojo } from "@/dojo/useDojo";
-import { isBonusSkill, isWorldEventSkill, isBossLevel as checkBossLevel } from "@/dojo/game/helpers/runDataPacking";
+import { isActiveSkill, isPassiveSkill, isBossLevel as checkBossLevel } from "@/dojo/game/helpers/runDataPacking";
 import {
   Bonus,
   BonusType,
   bonusTypeFromContractValue,
   bonusTypeToContractValue,
 } from "@/dojo/game/types/bonus";
-import { getSkillName, getSkillTier, SKILLS, getArchetypeForSkill } from "@/dojo/game/types/skillData";
+import { getSkillName, getSkillTier, SKILLS, getArchetypeForSkill, getSkillAssetKey } from "@/dojo/game/types/skillData";
 import { useNavigationStore } from "@/stores/navigationStore";
 import ImageAssets, { getSkillTierIconPath } from "@/ui/theme/ImageAssets";
 import GameHud from "@/ui/components/hud/GameHud";
@@ -295,18 +295,11 @@ const PlayScreen: React.FC = () => {
 
   const getBonusIcon = useCallback(
     (type: BonusType, level: number = 0): string => {
-      const skillName = (() => {
-        switch (type) {
-          case BonusType.ComboSurge: return "combo";
-          case BonusType.Momentum: return "score";
-          case BonusType.Harvest: return "harvest";
-          case BonusType.Tsunami: return "wave";
-          default: return "";
-        }
-      })();
-      if (!skillName) return "";
+      const skillId = bonusTypeToContractValue(type);
+      const assetKey = getSkillAssetKey(skillId);
+      if (!assetKey) return "";
       const tier = getSkillTier(level);
-      return getSkillTierIconPath(skillName, tier);
+      return getSkillTierIconPath(assetKey, tier);
     },
     [],
   );
@@ -345,7 +338,7 @@ const PlayScreen: React.FC = () => {
 
     return game.runData.slots
       .map((slot, index) => ({ ...slot, index }))
-      .filter((slot) => isBonusSkill(slot.skillId) && slot.skillId > 0)
+      .filter((slot) => isActiveSkill(slot.skillId) && slot.skillId > 0)
       .map((slot) => {
         const type = bonusTypeFromContractValue(slot.skillId);
         return {
@@ -368,18 +361,18 @@ const PlayScreen: React.FC = () => {
   const passiveSlots = useMemo(() => {
     if (!game) return [];
     return game.runData.slots
-      .filter((slot) => isWorldEventSkill(slot.skillId) && slot.skillId > 0)
+      .filter((slot) => isPassiveSkill(slot.skillId) && slot.skillId > 0)
       .map((slot) => {
         const skill = SKILLS[slot.skillId];
         const archetype = getArchetypeForSkill(slot.skillId);
-        const skillName = skill?.name?.toLowerCase() ?? '';
+        const assetKey = getSkillAssetKey(slot.skillId) ?? '';
         const tier = getSkillTier(slot.level);
         return {
           type: BonusType.None,
           level: slot.level,
           count: 0,
           bagSize: 0,
-          icon: getSkillTierIconPath(skillName, tier),
+          icon: getSkillTierIconPath(assetKey, tier),
           tooltip: `${getSkillName(slot.skillId)} (Passive) - ${skill?.description ?? ''}`,
           isPassive: true as const,
           archetypeColor: archetype?.color ?? '#8b5cf6',

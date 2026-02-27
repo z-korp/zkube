@@ -8,12 +8,14 @@ import { useDraft } from "@/hooks/useDraft";
 import { useSkillTree } from "@/hooks/useSkillTree";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { getRerollCost, isBonusSkill } from "@/dojo/game/helpers/runDataPacking";
+import { getRerollCost, isActiveSkill } from "@/dojo/game/helpers/runDataPacking";
 import { MAX_LOADOUT_SLOTS, BRANCH_POINT_LEVEL } from "@/dojo/game/constants";
 import {
   getSkillById,
   getArchetypeForSkill,
   getSkillTier,
+  getSkillAssetKey,
+  decodeDraftChoice,
 } from "@/dojo/game/types/skillData";
 import {
   getSkillEffectDescription,
@@ -103,7 +105,8 @@ const DraftPage: React.FC = () => {
   const cards = useMemo(() => {
     if (!draftState) return [];
     const choices = [draftState.choice1, draftState.choice2, draftState.choice3];
-    return choices.map((skillId, index) => {
+    return choices.map((rawChoice, index) => {
+      const { skillId, isBranchB } = decodeDraftChoice(rawChoice);
       const skill = getSkillById(skillId);
       const slot = game?.runData.slots.find(
         (entry) => entry.skillId === skillId,
@@ -113,17 +116,21 @@ const DraftPage: React.FC = () => {
       const branchId = treeInfo?.branchId;
       const archetype = getArchetypeForSkill(skillId);
       const nextLevel = isFullLoadout ? currentLevel + 1 : currentLevel;
+      // For branch B choices at level 3+, show branch B effect description
+      const effectBranchId = isBranchB ? 2 : branchId;
       return {
         slotIndex: index as 0 | 1 | 2,
         skillId,
+        rawChoice,
+        isBranchB,
         skill,
         level: currentLevel,
         branchId,
         archetype,
-      effectDesc: getSkillEffectDescription(
+        effectDesc: getSkillEffectDescription(
           skillId,
           nextLevel,
-          branchId,
+          effectBranchId,
         ),
       };
     });
@@ -291,9 +298,9 @@ const DraftPage: React.FC = () => {
 
                   const skill = getSkillById(slot.skillId);
                   const arch = getArchetypeForSkill(slot.skillId);
-                  const skillName = skill?.name?.toLowerCase() ?? "";
+                  const assetKey = getSkillAssetKey(slot.skillId) ?? "";
                   const tier = getSkillTier(slot.level);
-                  const iconPath = getSkillTierIconPath(skillName, tier);
+                  const iconPath = getSkillTierIconPath(assetKey, tier);
                   const color = arch?.color ?? "#64748b";
                   const effectText = getSkillEffectDescription(slot.skillId, slot.level, undefined);
 
@@ -319,7 +326,7 @@ const DraftPage: React.FC = () => {
                             {slot.level + 1}
                           </span>
                           {/* Charges badge */}
-                          {isBonusSkill(slot.skillId) && (
+                          {isActiveSkill(slot.skillId) && (
                             <span
                               className={`absolute -top-0.5 -right-0.5 flex h-[16px] w-[16px] items-center justify-center rounded-full text-[8px] font-bold ${
                                 slot.charges > 0
@@ -353,9 +360,9 @@ const DraftPage: React.FC = () => {
               variants={containerVariants}
             >
               {cards.map((choice) => {
-                const skillName = choice.skill?.name?.toLowerCase() ?? "";
+                const assetKey = getSkillAssetKey(choice.skillId) ?? "";
                 const tier = getSkillTier(choice.level);
-                const iconPath = getSkillTierIconPath(skillName, tier);
+                const iconPath = getSkillTierIconPath(assetKey, tier);
                 const isBranchPoint = choice.level === BRANCH_POINT_LEVEL && isFullLoadout;
                 const accentCol = choice.archetype?.color ?? "#64748b";
                 const isPassive = choice.skill?.category === "world";
@@ -447,6 +454,16 @@ const DraftPage: React.FC = () => {
                         >
                           {isPassive ? "Passive" : "Active"}
                         </span>
+                        {choice.isBranchB && choice.skill && (
+                          <span className="shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-semibold border border-amber-400/30 bg-amber-900/25 text-amber-200">
+                            {choice.skill.branchB}
+                          </span>
+                        )}
+                        {!choice.isBranchB && choice.level >= BRANCH_POINT_LEVEL && choice.skill && (
+                          <span className="shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-semibold border border-slate-400/30 bg-slate-900/25 text-slate-300">
+                            {choice.skill.branchA}
+                          </span>
+                        )}
                       </div>
 
                       {/* Effect */}

@@ -1,96 +1,96 @@
-use alexandria_math::BitShift;
+use alexandria_math::fast_power::fast_power;
 use zkube::constants;
 use zkube::helpers::controller::Controller;
 
-// =============================================================================
-// Tsunami (vNext): Targeted block/row destruction.
-//
-// Branch A (Wide): Clear N targeted individual blocks.
-// Branch B (Target): Clear N targeted rows.
-// =============================================================================
+pub fn clear_targeted_row(blocks: felt252, row_index: u8) -> felt252 {
+    let base_mask = constants::ROW_SIZE - 1;
+    let exp = row_index * constants::ROW_BIT_COUNT;
+    let shift: u256 = fast_power(2_u256, exp.into());
+    let mask: u256 = base_mask.into() * shift;
+    let mut bitmap: u256 = blocks.into();
+    bitmap = bitmap & ~mask;
+    bitmap.try_into().unwrap()
+}
 
-/// Clear a single targeted visual block at (row, col).
-/// Zeroes out all cells belonging to the block at that position.
-/// Returns new blocks.
 pub fn clear_targeted_block(blocks: felt252, row: u8, col: u8) -> felt252 {
     let block_size = Controller::get_block(blocks, row, col);
     if block_size == 0 {
         return blocks;
     }
 
-    // Find the leftmost cell of this block
-    let mut leftmost: u8 = col;
+    let start_col = find_block_start(blocks, row, col, block_size);
+    zero_cells(blocks, row, start_col, block_size)
+}
+
+pub fn clear_all_of_size(blocks: felt252, row: u8, col: u8) -> felt252 {
+    let target_size = Controller::get_block(blocks, row, col);
+    if target_size == 0 {
+        return blocks;
+    }
+
+    let packed: u256 = blocks.into();
+    let block_mask: u256 = 7;
+    let mut new_packed: u256 = packed;
+
+    let mut pos: u32 = 0;
     loop {
-        if leftmost == 0 {
+        if pos >= constants::DEFAULT_GRID_WIDTH.into() * constants::DEFAULT_GRID_HEIGHT.into() {
             break;
         }
-        if Controller::get_block(blocks, row, leftmost - 1) != block_size {
-            break;
+
+        let bit_offset: u32 = pos * constants::BLOCK_BIT_COUNT.into();
+        let shift: u256 = fast_power(2_u256, bit_offset.into());
+        let cell_val: u8 = ((packed / shift) % constants::BLOCK_SIZE.into()).try_into().unwrap();
+
+        if cell_val == target_size {
+            new_packed = new_packed & ~(block_mask * shift);
         }
-        leftmost -= 1;
+
+        pos += 1;
     };
 
-    // Zero out all cells of this block
-    let mut packed: u256 = blocks.into();
-    let cell_mask: u256 = 0x7; // 3-bit mask
-    let mut i: u8 = 0;
+    new_packed.try_into().unwrap()
+}
+
+fn find_block_start(blocks: felt252, row: u8, col: u8, size: u8) -> u8 {
+    let mut start = col;
+
     loop {
-        if i >= block_size || (leftmost + i) >= 8 {
+        if start == 0 {
             break;
         }
-        let bit_pos: u32 = (row * constants::ROW_BIT_COUNT + (leftmost + i) * constants::BLOCK_BIT_COUNT).into();
-        let shift: u256 = BitShift::shl(1_u256, bit_pos.into());
-        let mask = cell_mask * shift;
-        packed = packed & ~mask;
+
+        if Controller::get_block(blocks, row, start - 1) != size {
+            break;
+        }
+
+        start -= 1;
+    };
+
+    start
+}
+
+fn zero_cells(blocks: felt252, row: u8, start_col: u8, count: u8) -> felt252 {
+    let mut packed: u256 = blocks.into();
+    let block_mask: u256 = 7;
+
+    let mut i: u8 = 0;
+    loop {
+        if i >= count {
+            break;
+        }
+
+        let bit_offset: u32 = row.into() * constants::ROW_BIT_COUNT.into()
+            + (start_col + i).into() * constants::BLOCK_BIT_COUNT.into();
+        let shift: u256 = fast_power(2_u256, bit_offset.into());
+        packed = packed & ~(block_mask * shift);
+
         i += 1;
     };
 
     packed.try_into().unwrap()
 }
 
-/// Clear all blocks of the same size as the targeted block at (row, col).
-/// Used by Tsunami Branch A Level 5.
-/// Returns new blocks.
-pub fn clear_all_of_size(blocks: felt252, row: u8, col: u8) -> felt252 {
-    let block_size = Controller::get_block(blocks, row, col);
-    if block_size == 0 {
-        return blocks;
-    }
-
-    // Clear every cell that has this value
-    let mut packed: u256 = blocks.into();
-    let modulo: u256 = constants::BLOCK_SIZE.into();
-    let block_mask: u256 = (constants::BLOCK_SIZE - 1).into();
-    let mut mask: u256 = 0;
-    let mut temp: u256 = packed;
-    let mut shift: u256 = 1;
-    loop {
-        if temp.low == 0_u128 && temp.high == 0_u128 {
-            break;
-        }
-        let cell: u8 = (temp % modulo).try_into().unwrap();
-        if cell == block_size {
-            mask = mask | (block_mask * shift);
-        }
-        temp = temp / modulo;
-        if temp.low == 0_u128 && temp.high == 0_u128 {
-            break;
-        }
-        shift = shift * modulo;
-    };
-
-    let new_blocks: u256 = packed & ~mask;
-    new_blocks.try_into().unwrap()
-}
-
-/// Clear an entire row at row_index. Zeroes all 8 blocks in that row.
-/// Returns new blocks.
 pub fn clear_row(blocks: felt252, row_index: u8) -> felt252 {
-    let base_mask = constants::ROW_SIZE - 1;
-    let exp = row_index * constants::ROW_BIT_COUNT;
-    let shift: u256 = BitShift::shl(1_u256, exp.into());
-    let mask: u256 = base_mask.into() * shift;
-    let mut bitmap: u256 = blocks.into();
-    bitmap = bitmap & ~mask;
-    bitmap.try_into().unwrap()
+    clear_targeted_row(blocks, row_index)
 }
