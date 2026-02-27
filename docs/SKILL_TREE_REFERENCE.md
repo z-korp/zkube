@@ -310,51 +310,65 @@ Charges fuel **Active Skills** only. Passive skills don't use charges.
 
 ## Draft System
 
-### Initial Draft (Run Start)
+### Unified Pool
 
-At the beginning of each run, the player drafts their first skill:
+One pool concept for all draft events. Pool entries are encoded as `u8`:
+- **1-12**: Skill ID (add new skill, or upgrade to non-branch level, or upgrade to L3 Branch A)
+- **13-24**: Branch B upgrade (skill_id = value - 12, upgrade to L3 Branch B)
 
-1. Player sees **3 skill choices** (cards drawn from pool of 12 skills)
-2. Player **selects** one → skill enters loadout at its skill-tree level
-3. Draft closes. Player starts the run with 1 skill.
-4. Reroll mechanics available (costs CUBE)
+### Pool Construction
 
-### Boss Drafts (After Boss Levels)
+For each of the 12 skills:
 
-After clearing each boss level (10, 20, 30, 40, 50), a boss draft opens:
+**If skill is NOT in loadout** (and loadout < 3):
+- 1 entry: `skill_id` — adds skill at its tree level + tree branch
 
-- **If loadout < 3 slots filled**: Draw from **full pool** of 12 skills. Player can:
-  - Select an **unpicked skill** → adds it to the loadout at its tree level
-  - Select a **skill already in loadout** → upgrades it by +1 run level
-- **If loadout is full (3 slots)**: Draw from **loadout skills only** (upgrade only)
-- When upgrading from **level 2 → level 3**, the **branch is randomly assigned** (not player-chosen)
+**If skill IS in loadout at run level R:**
+- `R >= 5` → 0 entries (maxed)
+- `R + 1 ≠ 3` → 1 entry: `skill_id` — upgrade to R+1
+- `R + 1 = 3` (branch level):
+  - Tree has branch locked → 1 entry (branch A = `skill_id`, branch B = `skill_id + 12`)
+  - Tree has NO branch locked → 2 entries (`skill_id` for A + `skill_id + 12` for B)
 
-### Draft Pacing Summary
+**Pool filtering:**
+- `loadout < 3` → all skills generate entries (add + upgrade)
+- `loadout = 3` → only loadout skills generate entries (upgrade only)
 
-| Event | Trigger | Pool | Action |
-|-------|---------|------|--------|
-| Initial Draft | Run start | 12 skills | Pick 1 |
-| Boss Draft 1 | Clear L10 | Full or loadout | Add or upgrade |
-| Boss Draft 2 | Clear L20 | Full or loadout | Add or upgrade |
-| Boss Draft 3 | Clear L30 | Full or loadout | Add or upgrade |
-| Boss Draft 4 | Clear L40 | Loadout only | Upgrade only |
-| Boss Draft 5 | Clear L50 | Loadout only | Upgrade only |
+Pool can exceed 12 entries when branch variants expand it.
 
-**Max augment picks per run**: 6 (1 initial + 5 boss)
+### Run Level Cap
+
+- **Run level caps at 5** (absolute max), regardless of tree level.
+- Starting run level = tree level. E.g., tree L3 → starts run at L3, upgradeable to L5.
+- Tree level determines starting point, NOT the ceiling.
+
+### Draft Events
+
+| Event | Trigger | Notes |
+|-------|---------|-------|
+| Initial | Run start | Loadout 0/3, pool = all 12 as "add new" |
+| Boss 1 | Clear L10 | Loadout 1/3, mixed pool |
+| Boss 2 | Clear L20 | Loadout 2/3, mixed pool |
+| Boss 3 | Clear L30 | Loadout 3/3 (likely), upgrade-only |
+| Boss 4 | Clear L40 | Upgrade-only |
+| — | Clear L50 | **No draft** — endgame/victory |
+
+**Max picks per run**: 5 (1 initial + 4 boss)
 
 ### Reroll Mechanic
 
 - Cost formula: `5 × 3^n` where `n` = reroll count this draft
 - Cost sequence: 5, 15, 45, 135, 405, ...
 - Costs CUBE (deducted from wallet)
-- Only available during initial draft (boss drafts show fixed choices)
+- Available when loadout < 3 (mixed pool)
+- **Disabled** when loadout = 3 (upgrade-only mode)
 
 ### Branch Choice
 
 - At level 3 in the **skill tree** (persistent, outside runs), player must choose Branch A or B
-- During runs, if a boss draft upgrades a skill to level 3, branch is **randomly assigned** using the game seed
+- During runs, upgrading to L3 offers both branches as **separate pool entries** — player chooses
+- If tree already has a branch locked, only that branch appears in the pool
 - Respec possible at 50% CUBE cost (in skill tree, outside runs)
-
 ## Domain Separation Rules
 
 ### Effect → Archetype Permission Matrix

@@ -57,6 +57,7 @@ mod level_system {
     use zkube::models::game::{Game, GameLevelTrait, GameSeed, GameTrait};
     use zkube::types::constraint::ConstraintType;
     use zkube::types::level::LevelConfigTrait;
+    use zkube::models::skill_tree::PlayerSkillTree;
 
     #[storage]
     struct Storage {}
@@ -357,14 +358,14 @@ mod level_system {
             let libs = GameLibsImpl::new(world);
             libs.grid.reset_grid_for_level(game_id);
 
-            // Open boss upgrade draft if a boss level was just completed
+            // Open boss draft if a boss level was just completed (L50 = endgame, no draft)
             let completed_level = next_level - 1;
             if completed_level == 10
                 || completed_level == 20
                 || completed_level == 30
-                || completed_level == 40
-                || completed_level == 50 {
-                libs.draft.open_boss_upgrade(game_id, completed_level);
+                || completed_level == 40 {
+                let skill_tree: PlayerSkillTree = world.read_model(player);
+                libs.draft.open_boss_upgrade(game_id, completed_level, skill_tree.skill_data);
             }
         }
 
