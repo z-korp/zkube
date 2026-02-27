@@ -19,7 +19,8 @@ default = "zkube_budo_v1_2_0"
 rpc_url = "https://api.cartridge.gg/x/starknet/sepolia"
 account_address = "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859"
 private_key = "0x03adb7da6671745419299c0ed6e54025e337df5b18fb7ef4f4660a48b1fd8ca2"
-world_address = "0x02e5b2210254d283d3f570dc5c4680f455add1898e42beea9e414c0d1ef67f5c"
+world_address = "0x06dab6e1d9f2dd542b6b4eaa201aef9fa69066a88e2f38e5cea28822de450369"
+# world_address will be set by deploy_sepolia.sh after migration
 # world_address will be set by deploy_sepolia.sh after migration
 
 [writers]
