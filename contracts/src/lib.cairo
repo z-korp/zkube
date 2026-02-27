@@ -23,7 +23,7 @@ mod elements {
     pub mod bonuses {
         pub mod harvest;
         pub mod interface;
-        pub mod wave;
+        pub mod tsunami;
     }
     pub mod difficulties {
         pub mod data;
@@ -78,7 +78,6 @@ pub mod helpers {
     pub mod game_libs;
     pub mod game_over;
     pub mod gravity;
-    pub mod grid_utils;
     pub mod level;
     pub mod level_check;
     pub mod math;

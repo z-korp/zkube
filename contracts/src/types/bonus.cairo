@@ -1,34 +1,24 @@
 use core::traits::Into;
 
-/// Bonus types available in the game (V3.0)
-/// Players select 3 of 5 at game start (Wave and Supply require unlock)
+/// Active skill types (vNext)
+/// 4 active skills that consume charges when used:
 ///
-/// 1. Combo   - Adds combo to next move (+1/+2/+3 at L1/L2/L3)
-/// 2. Score   - Adds direct score (+10/+20/+30 at L1/L2/L3)
-/// 3. Harvest - Destroys all blocks of chosen size, earns CUBE per block (+1/+2/+3 at L1/L2/L3)
-/// 4. Wave    - Clears horizontal lines (1/2/3 at L1/L2/L3) [locked, requires unlock]
-/// 5. Supply  - Adds new lines at no move cost (1/2/3 at L1/L2/L3) [locked, requires unlock]
+/// 1. ComboSurge  - Combo depth boost (Tempo archetype)
+/// 2. Momentum    - Score burst scaling with zone (Scaling archetype)
+/// 3. Harvest     - Random block destruction for cubes (Risk archetype)
+/// 4. Tsunami     - Targeted block/row destruction (Control archetype)
 #[derive(Drop, Copy, Serde, Introspect, PartialEq)]
 pub enum Bonus {
     None,
-    Combo, // +combo to next move (L1: +1, L2: +2, L3: +3)
-    Score, // +direct score (L1: +10, L2: +20, L3: +30)
-    Harvest, // Destroy blocks of chosen size, +CUBE/block (L1: +1, L2: +2, L3: +3)
-    Wave, // Clear lines (L1: 1, L2: 2, L3: 3) [requires unlock]
-    Supply // Add lines at no move cost (L1: 1, L2: 2, L3: 3) [requires unlock]
+    ComboSurge, // +combo depth to next cascade
+    Momentum, // Score burst (scales with zones cleared)
+    Harvest, // Destroy random blocks, earn cubes per block size
+    Tsunami, // Targeted block or row destruction
 }
 
 #[generate_trait]
 pub impl BonusImpl of BonusTrait {
-    /// Check if this bonus type requires unlocking in the permanent shop
-    fn requires_unlock(self: Bonus) -> bool {
-        match self {
-            Bonus::Wave | Bonus::Supply => true,
-            _ => false,
-        }
-    }
-
-    /// Check if this is a valid selectable bonus (not None)
+    /// Check if this is a valid selectable active skill (not None)
     fn is_selectable(self: Bonus) -> bool {
         match self {
             Bonus::None => false,
@@ -36,44 +26,28 @@ pub impl BonusImpl of BonusTrait {
         }
     }
 
-    /// Get the type code for this bonus (1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply).
-    /// This matches the encoding used in RunData slot skill_id for bonus skills.
+    /// Get the type code / skill_id for this active skill.
+    /// Matches the skill IDs used in RunData slots.
     #[inline(always)]
     fn to_type_code(self: Bonus) -> u8 {
         match self {
             Bonus::None => 0,
-            Bonus::Combo => 1,
-            Bonus::Score => 2,
+            Bonus::ComboSurge => 1,
+            Bonus::Momentum => 2,
             Bonus::Harvest => 3,
-            Bonus::Wave => 4,
-            Bonus::Supply => 5,
+            Bonus::Tsunami => 4,
         }
     }
 
-    /// Create a Bonus from a type code.
+    /// Create a Bonus from a type code / skill_id.
     #[inline(always)]
     fn from_type_code(code: u8) -> Bonus {
         match code {
-            1 => Bonus::Combo,
-            2 => Bonus::Score,
+            1 => Bonus::ComboSurge,
+            2 => Bonus::Momentum,
             3 => Bonus::Harvest,
-            4 => Bonus::Wave,
-            5 => Bonus::Supply,
+            4 => Bonus::Tsunami,
             _ => Bonus::None,
-        }
-    }
-
-    /// Get the bag index for this bonus type.
-    /// Bag indices: 0=Combo, 1=Score, 2=Harvest, 3=Wave, 4=Supply.
-    #[inline(always)]
-    fn bag_index(self: Bonus) -> u8 {
-        match self {
-            Bonus::None => 0,
-            Bonus::Combo => 0,
-            Bonus::Score => 1,
-            Bonus::Harvest => 2,
-            Bonus::Wave => 3,
-            Bonus::Supply => 4,
         }
     }
 }
@@ -83,11 +57,10 @@ impl IntoBonusFelt252 of Into<Bonus, felt252> {
     fn into(self: Bonus) -> felt252 {
         match self {
             Bonus::None => 'NONE',
-            Bonus::Combo => 'COMBO',
-            Bonus::Score => 'SCORE',
+            Bonus::ComboSurge => 'COMBO_SURGE',
+            Bonus::Momentum => 'MOMENTUM',
             Bonus::Harvest => 'HARVEST',
-            Bonus::Wave => 'WAVE',
-            Bonus::Supply => 'SUPPLY',
+            Bonus::Tsunami => 'TSUNAMI',
         }
     }
 }
@@ -97,11 +70,10 @@ impl IntoBonusU8 of Into<Bonus, u8> {
     fn into(self: Bonus) -> u8 {
         match self {
             Bonus::None => 0,
-            Bonus::Combo => 1,
-            Bonus::Score => 2,
+            Bonus::ComboSurge => 1,
+            Bonus::Momentum => 2,
             Bonus::Harvest => 3,
-            Bonus::Wave => 4,
-            Bonus::Supply => 5,
+            Bonus::Tsunami => 4,
         }
     }
 }
@@ -112,11 +84,10 @@ impl IntoU8Bonus of Into<u8, Bonus> {
         let action: felt252 = self.into();
         match action {
             0 => Bonus::None,
-            1 => Bonus::Combo,
-            2 => Bonus::Score,
+            1 => Bonus::ComboSurge,
+            2 => Bonus::Momentum,
             3 => Bonus::Harvest,
-            4 => Bonus::Wave,
-            5 => Bonus::Supply,
+            4 => Bonus::Tsunami,
             _ => Bonus::None,
         }
     }
@@ -128,16 +99,15 @@ mod tests {
 
     #[test]
     fn test_bonus_type_codes() {
-        assert!(Bonus::Combo.to_type_code() == 1, "Combo should be 1");
-        assert!(Bonus::Score.to_type_code() == 2, "Score should be 2");
+        assert!(Bonus::ComboSurge.to_type_code() == 1, "ComboSurge should be 1");
+        assert!(Bonus::Momentum.to_type_code() == 2, "Momentum should be 2");
         assert!(Bonus::Harvest.to_type_code() == 3, "Harvest should be 3");
-        assert!(Bonus::Wave.to_type_code() == 4, "Wave should be 4");
-        assert!(Bonus::Supply.to_type_code() == 5, "Supply should be 5");
+        assert!(Bonus::Tsunami.to_type_code() == 4, "Tsunami should be 4");
     }
 
     #[test]
     fn test_bonus_from_type_code_roundtrip() {
-        let codes: Array<u8> = array![0, 1, 2, 3, 4, 5];
+        let codes: Array<u8> = array![0, 1, 2, 3, 4];
         let mut i: u32 = 0;
         loop {
             if i >= codes.len() {
@@ -151,81 +121,11 @@ mod tests {
     }
 
     #[test]
-    fn test_bonus_requires_unlock() {
-        assert!(!Bonus::Combo.requires_unlock(), "Combo should not require unlock");
-        assert!(!Bonus::Score.requires_unlock(), "Score should not require unlock");
-        assert!(!Bonus::Harvest.requires_unlock(), "Harvest should not require unlock");
-        assert!(Bonus::Wave.requires_unlock(), "Wave should require unlock");
-        assert!(Bonus::Supply.requires_unlock(), "Supply should require unlock");
-    }
-
-    #[test]
-    fn test_bonus_bag_index() {
-        assert!(Bonus::Combo.bag_index() == 0, "Combo bag index should be 0");
-        assert!(Bonus::Score.bag_index() == 1, "Score bag index should be 1");
-        assert!(Bonus::Harvest.bag_index() == 2, "Harvest bag index should be 2");
-        assert!(Bonus::Wave.bag_index() == 3, "Wave bag index should be 3");
-        assert!(Bonus::Supply.bag_index() == 4, "Supply bag index should be 4");
-    }
-}
-
-#[cfg(test)]
-mod bonus_effect_tests {
-    // Local imports
-    use zkube::helpers::bonus_logic::apply_bonus_effect;
-    use super::Bonus;
-
-    #[test]
-    fn test_bonus_harvest() {
-        // Harvest clears all blocks of the same size as the target block.
-        // Target: row 2, index 4 → block at position 4 in row 2 is size 2 (010).
-        // All size-2 (010) blocks in the grid are cleared.
-        // Initial grid
-        // 000_000_000_001_000_000_000_001
-        // 000_000_010_010_000_000_000_000
-        // 010_010_000_000_100_100_100_100
-        // 001_010_010_000_011_011_011_000
-        // After Harvest on row_index=2, index=4 (targets size 010):
-        // All 010 blocks are removed → only 001, 100, 011 blocks remain
-        // 000_000_000_001_000_000_000_001
-        // 000_000_000_000_000_000_000_000
-        // 000_000_000_000_100_100_100_100
-        // 001_000_000_000_011_011_011_000
-        let bitmap: felt252 =
-            0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_001_010_010_000_011_011_011_000;
-        let blocks = apply_bonus_effect(Bonus::Harvest, bitmap, 2, 4);
-        assert_eq!(
-            blocks,
-            0b000_000_000_001_000_000_000_001_000_000_000_000_000_000_000_000_000_000_000_000_100_100_100_100_001_000_000_000_011_011_011_000,
-        );
-    }
-
-    #[test]
-    fn test_bonus_wave() {
-        // Initial grid
-        // 000_000_000_001_000_000_000_001
-        // 000_000_010_010_000_000_000_000
-        // 010_010_000_000_100_100_100_100
-        // 001_010_010_000_011_011_011_000
-        // Final grid = 0
-        // 000_000_000_001_000_000_000_001
-        // 010_010_010_010_100_100_100_100
-        // 000_000_000_000_000_000_000_000
-        let bitmap: felt252 =
-            0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_001_010_010_000_011_011_011_000;
-        let blocks = apply_bonus_effect(Bonus::Wave, bitmap, 0, 1);
-        assert_eq!(
-            blocks,
-            0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_000_000_000_000_000_000_000_000,
-        );
-    }
-
-    #[test]
-    fn test_bonus_combo_noop() {
-        // Combo is non-grid: applying it should return blocks unchanged.
-        let bitmap: felt252 =
-            0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_001_010_010_000_011_011_011_000;
-        let blocks = apply_bonus_effect(Bonus::Combo, bitmap, 0, 0);
-        assert_eq!(blocks, bitmap);
+    fn test_bonus_is_selectable() {
+        assert!(!Bonus::None.is_selectable(), "None should not be selectable");
+        assert!(Bonus::ComboSurge.is_selectable(), "ComboSurge should be selectable");
+        assert!(Bonus::Momentum.is_selectable(), "Momentum should be selectable");
+        assert!(Bonus::Harvest.is_selectable(), "Harvest should be selectable");
+        assert!(Bonus::Tsunami.is_selectable(), "Tsunami should be selectable");
     }
 }

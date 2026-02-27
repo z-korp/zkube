@@ -1,1957 +1,937 @@
-use zkube::helpers::packing::{RunData, RunDataHelpersTrait, SkillTreeDataPackingTrait};
+use zkube::helpers::packing::{RunData, RunDataHelpersTrait, RunDataPackingTrait, SkillTreeDataPackingTrait};
+
+// =============================================================================
+// Skill IDs (vNext: 12 skills, 4 archetypes)
+// =============================================================================
 
 mod SkillIds {
-    pub const COMBO: u8 = 1;
-    pub const SCORE: u8 = 2;
-    pub const HARVEST: u8 = 3;
-    pub const WAVE: u8 = 4;
-    pub const SUPPLY: u8 = 5;
-    pub const TEMPO: u8 = 6;
-    pub const FORTUNE: u8 = 7;
-    pub const SURGE: u8 = 8;
-    pub const CATALYST: u8 = 9;
-    pub const RESILIENCE: u8 = 10;
-    pub const FOCUS: u8 = 11;
-    pub const EXPANSION: u8 = 12;
-    pub const MOMENTUM: u8 = 13;
-    pub const ADRENALINE: u8 = 14;
-    pub const LEGACY: u8 = 15;
+    // Active skills (consume charges, IDs 1-4)
+    pub const COMBO_SURGE: u8 = 1;       // Tempo
+    pub const MOMENTUM_SCALING: u8 = 2;   // Scaling
+    pub const HARVEST: u8 = 3;            // Risk
+    pub const TSUNAMI: u8 = 4;            // Control
+
+    // Passive skills (always-on, IDs 5-12)
+    pub const RHYTHM: u8 = 5;             // Tempo
+    pub const CASCADE_MASTERY: u8 = 6;    // Tempo
+    pub const OVERDRIVE: u8 = 7;          // Scaling
+    pub const ENDGAME_FOCUS: u8 = 8;      // Scaling
+    pub const HIGH_STAKES: u8 = 9;        // Risk
+    pub const GAMBIT: u8 = 10;            // Risk
+    pub const STRUCTURAL_INTEGRITY: u8 = 11; // Control
+    pub const GRID_HARMONY: u8 = 12;      // Control
 }
 
 mod BranchIds {
     pub const NONE: u8 = 0;
-    pub const A: u8 = 1;
-    pub const B: u8 = 2;
+    pub const A: u8 = 0;
+    pub const B: u8 = 1;
 }
 
-const SLOT_NOT_FOUND: u8 = 255;
-const MAX_ACTIVE_SLOTS: u8 = 3;
-const MAX_SKILL_ID: u8 = 15;
-
-#[derive(Copy, Drop, Debug, Serde)]
-pub struct BonusEffect {
-    pub combo_add: u8,
-    pub score_add: u16,
-    pub cube_reward_per_block: u8,
-    pub rows_to_clear: u8,
-    pub lines_to_add: u8,
-    pub bonus_score_per_line: u8,
-    pub chance_no_consume_num: u8,
-    pub chance_no_consume_den: u8,
-    pub free_move_on_proc: u8,
-    pub score_doubles_under_moves: u8,
-    pub score_triples: bool,
-    pub harvest_adjacent: u8,
-    pub harvest_size_range: u8,
-    pub harvest_only_small: bool,
-    pub harvest_score_per_block: u8,
-    pub harvest_triggers_gravity: bool,
-    pub harvest_free_moves: u8,
-    pub wave_score_per_block: u8,
-    pub wave_free_moves: u8,
-    pub wave_combo_add: u8,
-    pub wave_chance_no_consume: bool,
-    pub wave_cube_per_row: u8,
-    pub wave_auto_add_line: bool,
-    pub supply_difficulty_reduction: u8,
-    pub supply_very_easy: bool,
-    pub supply_score_per_line: u8,
-    pub supply_cube_reward: u8,
-    pub supply_free_moves: u8,
-    pub combo_add_from_score: u8,
-    pub cube_per_use: u8,
-    pub score_div10_as_cubes: bool,
-    pub charge_all_bonus: bool,
-}
+// =============================================================================
+// ActiveEffect — returned when using an active skill charge (IDs 1-4)
+// =============================================================================
 
 #[derive(Copy, Drop, Debug, Default, Serde)]
-pub struct WorldEffects {
-    pub extra_max_moves: u16,
-    pub tempo_refund_every_n_clears: u8,
-    pub tempo_refund_score: u8,
-    pub fortune_flat_cubes: u8,
-    pub fortune_cubes_per_n_lines: u8,
-    pub fortune_lines_divisor: u8,
-    pub fortune_star_multiplier_3: u8,
-    pub fortune_star_multiplier_2: u8,
-    pub surge_score_percent: u16,
-    pub surge_per_level_percent: u8,
-    pub catalyst_threshold_reduction: u8,
-    pub catalyst_bonus_cubes: u8,
-    pub catalyst_bonus_score: u8,
-    pub catalyst_free_moves_on_combo: u8,
-    pub catalyst_double_cubes_above: u8,
-    pub catalyst_triple_cubes_above: u8,
-    pub resilience_free_moves: u8,
-    pub resilience_regen_on_clear: u8,
-    pub resilience_regen_amount: u8,
-    pub resilience_score_per_free: u8,
-    pub focus_bonus_progress: u8,
-    pub focus_score_on_progress: u8,
-    pub focus_prefill_percent: u8,
-    pub focus_cube_per_constraint: u8,
-    pub expansion_difficulty_reduction: u8,
-    pub expansion_score_per_line: u8,
-    pub expansion_guaranteed_gaps: u8,
-    pub expansion_cube_per_level: u8,
-    pub expansion_cube_per_10_lines: u8,
-    pub momentum_score_per_consec: u8,
-    pub momentum_streak_cube_threshold: u8,
-    pub momentum_streak_cubes: u8,
-    pub momentum_move_refund: u8,
-    pub momentum_combo_on_streak: u8,
-    pub momentum_streak_clear_rows: u8,
-    pub adrenaline_row_threshold: u8,
-    pub adrenaline_score_per_clear: u8,
-    pub adrenaline_cubes_per_clear: u8,
-    pub adrenaline_combo_multiplier: u8,
-    pub adrenaline_free_moves: u8,
-    pub adrenaline_free_moves_threshold: u8,
-    pub legacy_score_per_n_levels: u8,
-    pub legacy_level_divisor: u8,
-    pub legacy_cube_per_n_levels: u8,
-    pub legacy_cube_level_divisor: u8,
-    pub legacy_score_per_unique_skill: u8,
-    pub legacy_free_moves_per_10: u8,
+pub struct ActiveEffect {
+    // Combo Surge (ID 1)
+    pub combo_add: u8,              // Immediate combo depth to add
+    pub combo_surge_flow: bool,     // Branch B: set level-wide combo depth flag
+    pub combo_surge_flow_depth: u8, // Branch B: combo depth for the rest of the level
+
+    // Momentum Scaling (ID 2)
+    pub score_add: u16,             // Flat score to add
+    pub score_per_zone: u8,         // Score per zone cleared (×zones_cleared)
+
+    // Harvest (ID 3)
+    pub blocks_to_destroy: u8,      // Random blocks to destroy (Extraction)
+    pub cubes_per_block_size: bool, // true = cubes earned = sum of block sizes
+    pub lines_to_add: u8,           // Lines to inject (Injection branch B)
+    pub cubes_flat: u16,            // Flat cubes for injection
+
+    // Tsunami (ID 4)
+    pub blocks_to_clear: u8,        // Targeted blocks to clear (Branch A: Wide)
+    pub clear_by_size: bool,        // L5A: clear all blocks of targeted size
+    pub rows_to_clear: u8,          // Targeted rows to clear (Branch B: Target)
 }
 
-fn empty_bonus_effect() -> BonusEffect {
-    BonusEffect {
-        combo_add: 0,
-        score_add: 0,
-        cube_reward_per_block: 0,
-        rows_to_clear: 0,
-        lines_to_add: 0,
-        bonus_score_per_line: 0,
-        chance_no_consume_num: 0,
-        chance_no_consume_den: 0,
-        free_move_on_proc: 0,
-        score_doubles_under_moves: 0,
-        score_triples: false,
-        harvest_adjacent: 0,
-        harvest_size_range: 0,
-        harvest_only_small: false,
-        harvest_score_per_block: 0,
-        harvest_triggers_gravity: false,
-        harvest_free_moves: 0,
-        wave_score_per_block: 0,
-        wave_free_moves: 0,
-        wave_combo_add: 0,
-        wave_chance_no_consume: false,
-        wave_cube_per_row: 0,
-        wave_auto_add_line: false,
-        supply_difficulty_reduction: 0,
-        supply_very_easy: false,
-        supply_score_per_line: 0,
-        supply_cube_reward: 0,
-        supply_free_moves: 0,
-        combo_add_from_score: 0,
-        cube_per_use: 0,
-        score_div10_as_cubes: false,
-        charge_all_bonus: false,
-    }
+// =============================================================================
+// PassiveEffect — aggregated from all passive skills in loadout
+// =============================================================================
+
+#[derive(Copy, Drop, Debug, Default, Serde)]
+pub struct PassiveEffect {
+    // Rhythm (ID 5): combo_streak → combo depth
+    pub rhythm_streak_threshold: u8,  // Every N combo_streak → bonus
+    pub rhythm_combo_add: u8,         // +N combo depth per proc
+
+    // Cascade Mastery (ID 6): cascade_depth → combo depth
+    pub cascade_depth_threshold: u8,  // If cascade_depth >= N → bonus
+    pub cascade_combo_add: u8,        // +N combo depth
+
+    // Overdrive (ID 7): charge cadence reduction
+    pub overdrive_cadence: u8,        // Charge refill every N levels (0 = use default 5)
+    pub overdrive_starting_charges: u8, // Extra starting charges for all actives
+
+    // Endgame Focus (ID 8): late-run score injection
+    pub endgame_score: u16,           // Flat score at level start
+    pub endgame_min_level: u8,        // Only on levels >= this (0 = per-level scaling)
+    pub endgame_per_level_x10: u8,    // Score = (value * levels_cleared) / 10 (Branch A)
+
+    // High Stakes (ID 9): grid height → cubes per clear
+    pub high_stakes_height: u8,       // Grid height threshold (rows)
+    pub high_stakes_cubes: u8,        // Cubes per line clear when above threshold
+
+    // Gambit (ID 10): survive high grid → cubes (once per level)
+    pub gambit_height: u8,            // Grid must reach >= this height
+    pub gambit_cubes: u16,            // Cubes awarded on level complete
+
+    // Structural Integrity (ID 11): high grid → extra row removal
+    pub si_height: u8,                // Grid height threshold
+    pub si_extra_rows: u8,            // Extra rows destroyed on first line clear
+
+    // Grid Harmony (ID 12): high grid → extra row removal (every/next clear)
+    pub gh_height: u8,                // Grid height threshold
+    pub gh_extra_rows: u8,            // Extra rows removed
+    pub gh_every_clear: bool,         // true = every clear, false = next clear only
 }
 
-fn empty_world_effects() -> WorldEffects {
-    WorldEffects {
-        extra_max_moves: 0,
-        tempo_refund_every_n_clears: 0,
-        tempo_refund_score: 0,
-        fortune_flat_cubes: 0,
-        fortune_cubes_per_n_lines: 0,
-        fortune_lines_divisor: 0,
-        fortune_star_multiplier_3: 0,
-        fortune_star_multiplier_2: 0,
-        surge_score_percent: 0,
-        surge_per_level_percent: 0,
-        catalyst_threshold_reduction: 0,
-        catalyst_bonus_cubes: 0,
-        catalyst_bonus_score: 0,
-        catalyst_free_moves_on_combo: 0,
-        catalyst_double_cubes_above: 0,
-        catalyst_triple_cubes_above: 0,
-        resilience_free_moves: 0,
-        resilience_regen_on_clear: 0,
-        resilience_regen_amount: 0,
-        resilience_score_per_free: 0,
-        focus_bonus_progress: 0,
-        focus_score_on_progress: 0,
-        focus_prefill_percent: 0,
-        focus_cube_per_constraint: 0,
-        expansion_difficulty_reduction: 0,
-        expansion_score_per_line: 0,
-        expansion_guaranteed_gaps: 0,
-        expansion_cube_per_level: 0,
-        expansion_cube_per_10_lines: 0,
-        momentum_score_per_consec: 0,
-        momentum_streak_cube_threshold: 0,
-        momentum_streak_cubes: 0,
-        momentum_move_refund: 0,
-        momentum_combo_on_streak: 0,
-        momentum_streak_clear_rows: 0,
-        adrenaline_row_threshold: 0,
-        adrenaline_score_per_clear: 0,
-        adrenaline_cubes_per_clear: 0,
-        adrenaline_combo_multiplier: 0,
-        adrenaline_free_moves: 0,
-        adrenaline_free_moves_threshold: 0,
-        legacy_score_per_n_levels: 0,
-        legacy_level_divisor: 0,
-        legacy_cube_per_n_levels: 0,
-        legacy_cube_level_divisor: 0,
-        legacy_score_per_unique_skill: 0,
-        legacy_free_moves_per_10: 0,
-    }
-}
+// =============================================================================
+// Public API
+// =============================================================================
 
-fn branch_for_skill(branch_ids: Span<u8>, skill_id: u8) -> u8 {
-    if skill_id == 0 || skill_id > MAX_SKILL_ID {
-        0
-    } else {
-        let index: usize = (skill_id - 1).into();
-        if index >= branch_ids.len() {
-            0
-        } else {
-            *branch_ids[index]
-        }
-    }
-}
-
-fn merge_world_effects(mut base: WorldEffects, add: WorldEffects) -> WorldEffects {
-    base.extra_max_moves += add.extra_max_moves;
-    base.tempo_refund_every_n_clears += add.tempo_refund_every_n_clears;
-    base.tempo_refund_score += add.tempo_refund_score;
-    base.fortune_flat_cubes += add.fortune_flat_cubes;
-    base.fortune_cubes_per_n_lines += add.fortune_cubes_per_n_lines;
-    base.fortune_lines_divisor += add.fortune_lines_divisor;
-    base.fortune_star_multiplier_3 += add.fortune_star_multiplier_3;
-    base.fortune_star_multiplier_2 += add.fortune_star_multiplier_2;
-    base.surge_score_percent += add.surge_score_percent;
-    base.surge_per_level_percent += add.surge_per_level_percent;
-    base.catalyst_threshold_reduction += add.catalyst_threshold_reduction;
-    base.catalyst_bonus_cubes += add.catalyst_bonus_cubes;
-    base.catalyst_bonus_score += add.catalyst_bonus_score;
-    base.catalyst_free_moves_on_combo += add.catalyst_free_moves_on_combo;
-    base.catalyst_double_cubes_above += add.catalyst_double_cubes_above;
-    base.catalyst_triple_cubes_above += add.catalyst_triple_cubes_above;
-    base.resilience_free_moves += add.resilience_free_moves;
-    base.resilience_regen_on_clear += add.resilience_regen_on_clear;
-    base.resilience_regen_amount += add.resilience_regen_amount;
-    base.resilience_score_per_free += add.resilience_score_per_free;
-    base.focus_bonus_progress += add.focus_bonus_progress;
-    base.focus_score_on_progress += add.focus_score_on_progress;
-    base.focus_prefill_percent += add.focus_prefill_percent;
-    base.focus_cube_per_constraint += add.focus_cube_per_constraint;
-    base.expansion_difficulty_reduction += add.expansion_difficulty_reduction;
-    base.expansion_score_per_line += add.expansion_score_per_line;
-    base.expansion_guaranteed_gaps += add.expansion_guaranteed_gaps;
-    base.expansion_cube_per_level += add.expansion_cube_per_level;
-    base.expansion_cube_per_10_lines += add.expansion_cube_per_10_lines;
-    base.momentum_score_per_consec += add.momentum_score_per_consec;
-    base.momentum_streak_cube_threshold += add.momentum_streak_cube_threshold;
-    base.momentum_streak_cubes += add.momentum_streak_cubes;
-    base.momentum_move_refund += add.momentum_move_refund;
-    base.momentum_combo_on_streak += add.momentum_combo_on_streak;
-    base.momentum_streak_clear_rows += add.momentum_streak_clear_rows;
-    base.adrenaline_row_threshold += add.adrenaline_row_threshold;
-    base.adrenaline_score_per_clear += add.adrenaline_score_per_clear;
-    base.adrenaline_cubes_per_clear += add.adrenaline_cubes_per_clear;
-    base.adrenaline_combo_multiplier += add.adrenaline_combo_multiplier;
-    base.adrenaline_free_moves += add.adrenaline_free_moves;
-    base.adrenaline_free_moves_threshold += add.adrenaline_free_moves_threshold;
-    base.legacy_score_per_n_levels += add.legacy_score_per_n_levels;
-    base.legacy_level_divisor += add.legacy_level_divisor;
-    base.legacy_cube_per_n_levels += add.legacy_cube_per_n_levels;
-    base.legacy_cube_level_divisor += add.legacy_cube_level_divisor;
-    base.legacy_score_per_unique_skill += add.legacy_score_per_unique_skill;
-    base.legacy_free_moves_per_10 += add.legacy_free_moves_per_10;
-    base
-}
-
-pub fn bonus_effect_for_skill(skill_id: u8, level: u8, branch_id: u8) -> BonusEffect {
+/// Get the active effect for a skill (IDs 1-4) at a given level and branch.
+/// Level is 1-indexed (1-5). Branch: 0=A, 1=B (only matters at level >= 3).
+pub fn active_effect_for_skill(skill_id: u8, level: u8, branch_id: u8) -> ActiveEffect {
     match skill_id {
-        1 => combo_effect(level, branch_id),
-        2 => score_effect(level, branch_id),
+        1 => combo_surge_effect(level, branch_id),
+        2 => momentum_scaling_effect(level, branch_id),
         3 => harvest_effect(level, branch_id),
-        4 => wave_effect(level, branch_id),
-        5 => supply_effect(level, branch_id),
-        _ => empty_bonus_effect(),
+        4 => tsunami_effect(level, branch_id),
+        _ => Default::default(),
     }
 }
 
-pub fn combo_effect(level: u8, branch_id: u8) -> BonusEffect {
-    let mut effect = empty_bonus_effect();
-
-    match level {
-        0 => effect.combo_add = 1,
-        1 => effect.combo_add = 2,
-        2 => effect.combo_add = 3,
-        3 => effect.combo_add = 4,
-        4 => effect.combo_add = 5,
-        5 => {
-            match branch_id {
-                1 => {
-                    effect.combo_add = 6;
-                    effect.bonus_score_per_line = 1;
-                },
-                2 => {
-                    effect.combo_add = 5;
-                    effect.chance_no_consume_num = 1;
-                    effect.chance_no_consume_den = 3;
-                },
-                _ => {},
-            };
-        },
-        6 => {
-            match branch_id {
-                1 => {
-                    effect.combo_add = 7;
-                    effect.bonus_score_per_line = 2;
-                },
-                2 => {
-                    effect.combo_add = 6;
-                    effect.chance_no_consume_num = 1;
-                    effect.chance_no_consume_den = 3;
-                },
-                _ => {},
-            };
-        },
-        7 => {
-            match branch_id {
-                1 => {
-                    effect.combo_add = 8;
-                    effect.bonus_score_per_line = 3;
-                },
-                2 => {
-                    effect.combo_add = 7;
-                    effect.chance_no_consume_num = 1;
-                    effect.chance_no_consume_den = 2;
-                },
-                _ => {},
-            };
-        },
-        8 => {
-            match branch_id {
-                1 => {
-                    effect.combo_add = 9;
-                    effect.bonus_score_per_line = 4;
-                },
-                2 => {
-                    effect.combo_add = 8;
-                    effect.chance_no_consume_num = 1;
-                    effect.chance_no_consume_den = 2;
-                },
-                _ => {},
-            };
-        },
-        9 => {
-            match branch_id {
-                1 => {
-                    effect.combo_add = 10;
-                    effect.bonus_score_per_line = 5;
-                    effect.cube_per_use = 1;
-                },
-                2 => {
-                    effect.combo_add = 9;
-                    effect.chance_no_consume_num = 2;
-                    effect.chance_no_consume_den = 3;
-                    effect.free_move_on_proc = 1;
-                },
-                _ => {},
-            };
-        },
-        10 => {
-            match branch_id {
-                1 => {
-                    effect.combo_add = 12;
-                    effect.bonus_score_per_line = 6;
-                    effect.charge_all_bonus = true;
-                },
-                2 => {
-                    effect.combo_add = 10;
-                    effect.chance_no_consume_num = 1;
-                    effect.chance_no_consume_den = 1;
-                    effect.free_move_on_proc = 2;
-                },
-                _ => {},
-            };
-        },
-        _ => {},
-    }
-
-    effect
-}
-
-pub fn score_effect(level: u8, branch_id: u8) -> BonusEffect {
-    let mut effect = empty_bonus_effect();
-
-    match level {
-        0 => effect.score_add = 5,
-        1 => effect.score_add = 8,
-        2 => effect.score_add = 12,
-        3 => effect.score_add = 18,
-        4 => effect.score_add = 25,
-        5 => {
-            match branch_id {
-                1 => {
-                    effect.score_add = 30;
-                    effect.combo_add_from_score = 1;
-                },
-                2 => {
-                    effect.score_add = 30;
-                    effect.score_doubles_under_moves = 5;
-                },
-                _ => {},
-            };
-        },
-        6 => {
-            match branch_id {
-                1 => {
-                    effect.score_add = 35;
-                    effect.combo_add_from_score = 1;
-                },
-                2 => {
-                    effect.score_add = 35;
-                    effect.score_doubles_under_moves = 5;
-                },
-                _ => {},
-            };
-        },
-        7 => {
-            match branch_id {
-                1 => {
-                    effect.score_add = 40;
-                    effect.combo_add_from_score = 2;
-                },
-                2 => {
-                    effect.score_add = 42;
-                    effect.score_doubles_under_moves = 7;
-                },
-                _ => {},
-            };
-        },
-        8 => {
-            match branch_id {
-                1 => {
-                    effect.score_add = 50;
-                    effect.combo_add_from_score = 2;
-                },
-                2 => {
-                    effect.score_add = 50;
-                    effect.score_doubles_under_moves = 7;
-                },
-                _ => {},
-            };
-        },
-        9 => {
-            match branch_id {
-                1 => {
-                    effect.score_add = 60;
-                    effect.combo_add_from_score = 3;
-                    effect.cube_per_use = 1;
-                },
-                2 => {
-                    effect.score_add = 60;
-                    effect.score_doubles_under_moves = 10;
-                    effect.cube_per_use = 1;
-                },
-                _ => {},
-            };
-        },
-        10 => {
-            match branch_id {
-                1 => {
-                    effect.score_add = 80;
-                    effect.combo_add_from_score = 4;
-                    effect.score_div10_as_cubes = true;
-                },
-                2 => {
-                    effect.score_add = 80;
-                    effect.score_doubles_under_moves = 10;
-                    effect.score_triples = true;
-                    effect.cube_per_use = 2;
-                },
-                _ => {},
-            };
-        },
-        _ => {},
-    }
-
-    effect
-}
-
-pub fn harvest_effect(level: u8, branch_id: u8) -> BonusEffect {
-    let mut effect = empty_bonus_effect();
-
-    match level {
-        0 => effect.cube_reward_per_block = 1,
-        1 => {
-            effect.cube_reward_per_block = 1;
-            effect.harvest_adjacent = 2;
-        },
-        2 => effect.cube_reward_per_block = 2,
-        3 => {
-            effect.cube_reward_per_block = 2;
-            effect.harvest_adjacent = 3;
-        },
-        4 => effect.cube_reward_per_block = 3,
-        5 => {
-            match branch_id {
-                1 => {
-                    effect.cube_reward_per_block = 3;
-                    effect.harvest_size_range = 1;
-                },
-                2 => {
-                    effect.cube_reward_per_block = 4;
-                    effect.harvest_only_small = true;
-                },
-                _ => {},
-            };
-        },
-        6 => {
-            match branch_id {
-                1 => {
-                    effect.cube_reward_per_block = 4;
-                    effect.harvest_size_range = 1;
-                },
-                2 => {
-                    effect.cube_reward_per_block = 5;
-                    effect.harvest_only_small = true;
-                },
-                _ => {},
-            };
-        },
-        7 => {
-            match branch_id {
-                1 => {
-                    effect.cube_reward_per_block = 5;
-                    effect.harvest_size_range = 1;
-                },
-                2 => {
-                    effect.cube_reward_per_block = 6;
-                    effect.harvest_only_small = true;
-                    effect.harvest_score_per_block = 1;
-                },
-                _ => {},
-            };
-        },
-        8 => {
-            match branch_id {
-                1 => {
-                    effect.cube_reward_per_block = 6;
-                    effect.harvest_size_range = 1;
-                    effect.harvest_score_per_block = 1;
-                },
-                2 => {
-                    effect.cube_reward_per_block = 8;
-                    effect.harvest_only_small = true;
-                    effect.harvest_score_per_block = 2;
-                },
-                _ => {},
-            };
-        },
-        9 => {
-            match branch_id {
-                1 => {
-                    effect.cube_reward_per_block = 8;
-                    effect.harvest_size_range = 1;
-                    effect.harvest_score_per_block = 2;
-                    effect.harvest_triggers_gravity = true;
-                },
-                2 => {
-                    effect.cube_reward_per_block = 10;
-                    effect.harvest_only_small = true;
-                    effect.harvest_score_per_block = 3;
-                    effect.harvest_free_moves = 1;
-                },
-                _ => {},
-            };
-        },
-        10 => {
-            match branch_id {
-                1 => {
-                    effect.cube_reward_per_block = 10;
-                    effect.harvest_size_range = 2;
-                    effect.harvest_score_per_block = 3;
-                    effect.harvest_triggers_gravity = true;
-                },
-                2 => {
-                    effect.cube_reward_per_block = 15;
-                    effect.harvest_only_small = true;
-                    effect.harvest_score_per_block = 5;
-                    effect.harvest_free_moves = 2;
-                },
-                _ => {},
-            };
-        },
-        _ => {},
-    }
-
-    effect
-}
-
-pub fn wave_effect(level: u8, branch_id: u8) -> BonusEffect {
-    let mut effect = empty_bonus_effect();
-
-    match level {
-        0 => effect.rows_to_clear = 1,
-        1 => {
-            effect.rows_to_clear = 1;
-            effect.wave_score_per_block = 1;
-        },
-        2 => effect.rows_to_clear = 2,
-        3 => {
-            effect.rows_to_clear = 2;
-            effect.wave_score_per_block = 2;
-        },
-        4 => effect.rows_to_clear = 3,
-        5 => {
-            match branch_id {
-                1 => {
-                    effect.rows_to_clear = 3;
-                    effect.wave_score_per_block = 3;
-                },
-                2 => {
-                    effect.rows_to_clear = 2;
-                    effect.wave_free_moves = 1;
-                },
-                _ => {},
-            };
-        },
-        6 => {
-            match branch_id {
-                1 => {
-                    effect.rows_to_clear = 4;
-                    effect.wave_score_per_block = 3;
-                },
-                2 => {
-                    effect.rows_to_clear = 2;
-                    effect.wave_free_moves = 2;
-                },
-                _ => {},
-            };
-        },
-        7 => {
-            match branch_id {
-                1 => {
-                    effect.rows_to_clear = 4;
-                    effect.wave_score_per_block = 4;
-                },
-                2 => {
-                    effect.rows_to_clear = 3;
-                    effect.wave_free_moves = 2;
-                },
-                _ => {},
-            };
-        },
-        8 => {
-            match branch_id {
-                1 => {
-                    effect.rows_to_clear = 5;
-                    effect.wave_score_per_block = 5;
-                },
-                2 => {
-                    effect.rows_to_clear = 3;
-                    effect.wave_free_moves = 3;
-                },
-                _ => {},
-            };
-        },
-        9 => {
-            match branch_id {
-                1 => {
-                    effect.rows_to_clear = 5;
-                    effect.wave_score_per_block = 6;
-                    effect.wave_cube_per_row = 1;
-                },
-                2 => {
-                    effect.rows_to_clear = 4;
-                    effect.wave_free_moves = 3;
-                    effect.wave_combo_add = 1;
-                },
-                _ => {},
-            };
-        },
-        10 => {
-            match branch_id {
-                1 => {
-                    effect.rows_to_clear = 6;
-                    effect.wave_score_per_block = 8;
-                    effect.wave_cube_per_row = 2;
-                    effect.wave_auto_add_line = true;
-                },
-                2 => {
-                    effect.rows_to_clear = 5;
-                    effect.wave_free_moves = 4;
-                    effect.wave_combo_add = 2;
-                    effect.wave_chance_no_consume = true;
-                },
-                _ => {},
-            };
-        },
-        _ => {},
-    }
-
-    effect
-}
-
-pub fn supply_effect(level: u8, branch_id: u8) -> BonusEffect {
-    let mut effect = empty_bonus_effect();
-
-    match level {
-        0 => effect.lines_to_add = 1,
-        1 => {
-            effect.lines_to_add = 1;
-            effect.supply_difficulty_reduction = 1;
-        },
-        2 => effect.lines_to_add = 2,
-        3 => {
-            effect.lines_to_add = 2;
-            effect.supply_difficulty_reduction = 1;
-        },
-        4 => effect.lines_to_add = 3,
-        5 => {
-            match branch_id {
-                1 => {
-                    effect.lines_to_add = 3;
-                    effect.supply_difficulty_reduction = 2;
-                },
-                2 => {
-                    effect.lines_to_add = 3;
-                    effect.supply_score_per_line = 2;
-                },
-                _ => {},
-            };
-        },
-        6 => {
-            match branch_id {
-                1 => {
-                    effect.lines_to_add = 4;
-                    effect.supply_difficulty_reduction = 2;
-                },
-                2 => {
-                    effect.lines_to_add = 3;
-                    effect.supply_score_per_line = 3;
-                },
-                _ => {},
-            };
-        },
-        7 => {
-            match branch_id {
-                1 => {
-                    effect.lines_to_add = 4;
-                    effect.supply_difficulty_reduction = 3;
-                },
-                2 => {
-                    effect.lines_to_add = 4;
-                    effect.supply_score_per_line = 4;
-                },
-                _ => {},
-            };
-        },
-        8 => {
-            match branch_id {
-                1 => {
-                    effect.lines_to_add = 5;
-                    effect.supply_difficulty_reduction = 3;
-                },
-                2 => {
-                    effect.lines_to_add = 4;
-                    effect.supply_score_per_line = 5;
-                    effect.supply_cube_reward = 1;
-                },
-                _ => {},
-            };
-        },
-        9 => {
-            match branch_id {
-                1 => {
-                    effect.lines_to_add = 5;
-                    effect.supply_very_easy = true;
-                    effect.supply_free_moves = 1;
-                },
-                2 => {
-                    effect.lines_to_add = 5;
-                    effect.supply_score_per_line = 6;
-                    effect.supply_cube_reward = 2;
-                },
-                _ => {},
-            };
-        },
-        10 => {
-            match branch_id {
-                1 => {
-                    effect.lines_to_add = 6;
-                    effect.supply_very_easy = true;
-                    effect.supply_free_moves = 2;
-                },
-                2 => {
-                    effect.lines_to_add = 6;
-                    effect.supply_score_per_line = 8;
-                    effect.supply_cube_reward = 3;
-                },
-                _ => {},
-            };
-        },
-        _ => {},
-    }
-
-    effect
-}
-
-pub fn world_effect_for_skill(skill_id: u8, level: u8, branch_id: u8) -> WorldEffects {
+/// Get the passive effect for a single skill (IDs 5-12) at a given level and branch.
+pub fn passive_effect_for_skill(skill_id: u8, level: u8, branch_id: u8) -> PassiveEffect {
     match skill_id {
-        6 => tempo_effect(level, branch_id),
-        7 => fortune_effect(level, branch_id),
-        8 => surge_effect(level, branch_id),
-        9 => catalyst_effect(level, branch_id),
-        10 => resilience_effect(level, branch_id),
-        11 => focus_effect(level, branch_id),
-        12 => expansion_effect(level, branch_id),
-        13 => momentum_effect(level, branch_id),
-        14 => adrenaline_effect(level, branch_id),
-        15 => legacy_effect(level, branch_id),
-        _ => empty_world_effects(),
+        5 => rhythm_effect(level, branch_id),
+        6 => cascade_mastery_effect(level, branch_id),
+        7 => overdrive_effect(level, branch_id),
+        8 => endgame_focus_effect(level, branch_id),
+        9 => high_stakes_effect(level, branch_id),
+        10 => gambit_effect(level, branch_id),
+        11 => structural_integrity_effect(level, branch_id),
+        12 => grid_harmony_effect(level, branch_id),
+        _ => Default::default(),
     }
 }
 
-pub fn tempo_effect(level: u8, branch_id: u8) -> WorldEffects {
-    let mut effect = empty_world_effects();
-
-    match level {
-        0 => effect.extra_max_moves = 1,
-        1 => effect.extra_max_moves = 2,
-        2 => effect.extra_max_moves = 3,
-        3 => effect.extra_max_moves = 4,
-        4 => effect.extra_max_moves = 5,
-        5 => {
-            match branch_id {
-                1 => effect.extra_max_moves = 7,
-                2 => {
-                    effect.extra_max_moves = 5;
-                    effect.tempo_refund_every_n_clears = 3;
-                },
-                _ => {},
-            };
-        },
-        6 => {
-            match branch_id {
-                1 => effect.extra_max_moves = 9,
-                2 => {
-                    effect.extra_max_moves = 5;
-                    effect.tempo_refund_every_n_clears = 2;
-                },
-                _ => {},
-            };
-        },
-        7 => {
-            match branch_id {
-                1 => effect.extra_max_moves = 11,
-                2 => {
-                    effect.extra_max_moves = 6;
-                    effect.tempo_refund_every_n_clears = 2;
-                },
-                _ => {},
-            };
-        },
-        8 => {
-            match branch_id {
-                1 => effect.extra_max_moves = 14,
-                2 => {
-                    effect.extra_max_moves = 7;
-                    effect.tempo_refund_every_n_clears = 2;
-                    effect.tempo_refund_score = 1;
-                },
-                _ => {},
-            };
-        },
-        9 => {
-            match branch_id {
-                1 => effect.extra_max_moves = 18,
-                2 => {
-                    effect.extra_max_moves = 8;
-                    effect.tempo_refund_every_n_clears = 2;
-                    effect.tempo_refund_score = 2;
-                },
-                _ => {},
-            };
-        },
-        10 => {
-            match branch_id {
-                1 => effect.extra_max_moves = 25,
-                2 => {
-                    effect.extra_max_moves = 10;
-                    effect.tempo_refund_every_n_clears = 1;
-                    effect.tempo_refund_score = 3;
-                },
-                _ => {},
-            };
-        },
-        _ => {},
-    }
-
-    effect
-}
-
-pub fn fortune_effect(level: u8, branch_id: u8) -> WorldEffects {
-    let mut effect = empty_world_effects();
-
-    if level <= 10 {
-        effect.fortune_star_multiplier_3 = 1;
-        effect.fortune_star_multiplier_2 = 1;
-    }
-
-    match level {
-        0 => effect.fortune_flat_cubes = 1,
-        1 => effect.fortune_flat_cubes = 1,
-        2 => effect.fortune_flat_cubes = 2,
-        3 => effect.fortune_flat_cubes = 2,
-        4 => effect.fortune_flat_cubes = 3,
-        5 => {
-            match branch_id {
-                1 => {
-                    effect.fortune_flat_cubes = 4;
-                    effect.fortune_cubes_per_n_lines = 1;
-                    effect.fortune_lines_divisor = 5;
-                },
-                2 => {
-                    effect.fortune_flat_cubes = 3;
-                    effect.fortune_star_multiplier_3 = 2;
-                },
-                _ => {},
-            };
-        },
-        6 => {
-            match branch_id {
-                1 => {
-                    effect.fortune_flat_cubes = 5;
-                    effect.fortune_cubes_per_n_lines = 1;
-                    effect.fortune_lines_divisor = 4;
-                },
-                2 => {
-                    effect.fortune_flat_cubes = 4;
-                    effect.fortune_star_multiplier_3 = 2;
-                },
-                _ => {},
-            };
-        },
-        7 => {
-            match branch_id {
-                1 => {
-                    effect.fortune_flat_cubes = 6;
-                    effect.fortune_cubes_per_n_lines = 1;
-                    effect.fortune_lines_divisor = 3;
-                },
-                2 => {
-                    effect.fortune_flat_cubes = 5;
-                    effect.fortune_star_multiplier_3 = 2;
-                    effect.fortune_star_multiplier_2 = 2;
-                },
-                _ => {},
-            };
-        },
-        8 => {
-            match branch_id {
-                1 => {
-                    effect.fortune_flat_cubes = 8;
-                    effect.fortune_cubes_per_n_lines = 1;
-                    effect.fortune_lines_divisor = 3;
-                },
-                2 => {
-                    effect.fortune_flat_cubes = 6;
-                    effect.fortune_star_multiplier_3 = 2;
-                    effect.fortune_star_multiplier_2 = 2;
-                },
-                _ => {},
-            };
-        },
-        9 => {
-            match branch_id {
-                1 => {
-                    effect.fortune_flat_cubes = 10;
-                    effect.fortune_cubes_per_n_lines = 2;
-                    effect.fortune_lines_divisor = 3;
-                },
-                2 => {
-                    effect.fortune_flat_cubes = 8;
-                    effect.fortune_star_multiplier_3 = 3;
-                    effect.fortune_star_multiplier_2 = 2;
-                },
-                _ => {},
-            };
-        },
-        10 => {
-            match branch_id {
-                1 => {
-                    effect.fortune_flat_cubes = 15;
-                    effect.fortune_cubes_per_n_lines = 3;
-                    effect.fortune_lines_divisor = 2;
-                },
-                2 => {
-                    effect.fortune_flat_cubes = 12;
-                    effect.fortune_star_multiplier_3 = 4;
-                    effect.fortune_star_multiplier_2 = 3;
-                },
-                _ => {},
-            };
-        },
-        _ => {},
-    }
-
-    effect
-}
-
-pub fn surge_effect(level: u8, branch_id: u8) -> WorldEffects {
-    let mut effect = empty_world_effects();
-
-    match level {
-        0 => effect.surge_score_percent = 5,
-        1 => effect.surge_score_percent = 8,
-        2 => effect.surge_score_percent = 12,
-        3 => effect.surge_score_percent = 16,
-        4 => effect.surge_score_percent = 20,
-        5 => {
-            match branch_id {
-                1 => effect.surge_score_percent = 25,
-                2 => {
-                    effect.surge_score_percent = 20;
-                    effect.surge_per_level_percent = 2;
-                },
-                _ => {},
-            };
-        },
-        6 => {
-            match branch_id {
-                1 => effect.surge_score_percent = 30,
-                2 => {
-                    effect.surge_score_percent = 20;
-                    effect.surge_per_level_percent = 3;
-                },
-                _ => {},
-            };
-        },
-        7 => {
-            match branch_id {
-                1 => effect.surge_score_percent = 35,
-                2 => {
-                    effect.surge_score_percent = 20;
-                    effect.surge_per_level_percent = 4;
-                },
-                _ => {},
-            };
-        },
-        8 => {
-            match branch_id {
-                1 => effect.surge_score_percent = 40,
-                2 => {
-                    effect.surge_score_percent = 22;
-                    effect.surge_per_level_percent = 5;
-                },
-                _ => {},
-            };
-        },
-        9 => {
-            match branch_id {
-                1 => effect.surge_score_percent = 50,
-                2 => {
-                    effect.surge_score_percent = 25;
-                    effect.surge_per_level_percent = 6;
-                },
-                _ => {},
-            };
-        },
-        10 => {
-            match branch_id {
-                1 => effect.surge_score_percent = 75,
-                2 => {
-                    effect.surge_score_percent = 30;
-                    effect.surge_per_level_percent = 8;
-                },
-                _ => {},
-            };
-        },
-        _ => {},
-    }
-
-    effect
-}
-
-pub fn catalyst_effect(level: u8, branch_id: u8) -> WorldEffects {
-    let mut effect = empty_world_effects();
-
-    match level {
-        0 => effect.catalyst_threshold_reduction = 1,
-        1 => effect.catalyst_threshold_reduction = 1,
-        2 => {
-            effect.catalyst_threshold_reduction = 1;
-            effect.catalyst_bonus_cubes = 1;
-        },
-        3 => {
-            effect.catalyst_threshold_reduction = 1;
-            effect.catalyst_bonus_cubes = 1;
-        },
-        4 => effect.catalyst_threshold_reduction = 2,
-        5 => {
-            match branch_id {
-                1 => {
-                    effect.catalyst_threshold_reduction = 2;
-                    effect.catalyst_bonus_cubes = 2;
-                },
-                2 => {
-                    effect.catalyst_threshold_reduction = 2;
-                    effect.catalyst_bonus_score = 1;
-                },
-                _ => {},
-            };
-        },
-        6 => {
-            match branch_id {
-                1 => {
-                    effect.catalyst_threshold_reduction = 2;
-                    effect.catalyst_bonus_cubes = 3;
-                },
-                2 => {
-                    effect.catalyst_threshold_reduction = 2;
-                    effect.catalyst_bonus_score = 2;
-                },
-                _ => {},
-            };
-        },
-        7 => {
-            match branch_id {
-                1 => {
-                    effect.catalyst_threshold_reduction = 3;
-                    effect.catalyst_bonus_cubes = 3;
-                },
-                2 => {
-                    effect.catalyst_threshold_reduction = 2;
-                    effect.catalyst_bonus_score = 3;
-                },
-                _ => {},
-            };
-        },
-        8 => {
-            match branch_id {
-                1 => {
-                    effect.catalyst_threshold_reduction = 3;
-                    effect.catalyst_bonus_cubes = 4;
-                },
-                2 => {
-                    effect.catalyst_threshold_reduction = 3;
-                    effect.catalyst_bonus_score = 4;
-                },
-                _ => {},
-            };
-        },
-        9 => {
-            match branch_id {
-                1 => {
-                    effect.catalyst_threshold_reduction = 3;
-                    effect.catalyst_bonus_cubes = 5;
-                    effect.catalyst_double_cubes_above = 6;
-                },
-                2 => {
-                    effect.catalyst_threshold_reduction = 3;
-                    effect.catalyst_bonus_score = 5;
-                    effect.catalyst_free_moves_on_combo = 1;
-                },
-                _ => {},
-            };
-        },
-        10 => {
-            match branch_id {
-                1 => {
-                    effect.catalyst_threshold_reduction = 4;
-                    effect.catalyst_bonus_cubes = 7;
-                    effect.catalyst_triple_cubes_above = 5;
-                },
-                2 => {
-                    effect.catalyst_threshold_reduction = 4;
-                    effect.catalyst_bonus_score = 7;
-                    effect.catalyst_free_moves_on_combo = 2;
-                },
-                _ => {},
-            };
-        },
-        _ => {},
-    }
-
-    effect
-}
-
-pub fn resilience_effect(level: u8, branch_id: u8) -> WorldEffects {
-    let mut effect = empty_world_effects();
-
-    match level {
-        0 => effect.resilience_free_moves = 1,
-        1 => effect.resilience_free_moves = 1,
-        2 => effect.resilience_free_moves = 2,
-        3 => effect.resilience_free_moves = 2,
-        4 => effect.resilience_free_moves = 3,
-        5 => {
-            match branch_id {
-                1 => effect.resilience_free_moves = 4,
-                2 => {
-                    effect.resilience_free_moves = 3;
-                    effect.resilience_regen_on_clear = 3;
-                    effect.resilience_regen_amount = 1;
-                },
-                _ => {},
-            };
-        },
-        6 => {
-            match branch_id {
-                1 => effect.resilience_free_moves = 5,
-                2 => {
-                    effect.resilience_free_moves = 3;
-                    effect.resilience_regen_on_clear = 2;
-                    effect.resilience_regen_amount = 1;
-                },
-                _ => {},
-            };
-        },
-        7 => {
-            match branch_id {
-                1 => effect.resilience_free_moves = 6,
-                2 => {
-                    effect.resilience_free_moves = 4;
-                    effect.resilience_regen_on_clear = 2;
-                    effect.resilience_regen_amount = 1;
-                },
-                _ => {},
-            };
-        },
-        8 => {
-            match branch_id {
-                1 => effect.resilience_free_moves = 7,
-                2 => {
-                    effect.resilience_free_moves = 4;
-                    effect.resilience_regen_on_clear = 1;
-                    effect.resilience_regen_amount = 1;
-                },
-                _ => {},
-            };
-        },
-        9 => {
-            match branch_id {
-                1 => effect.resilience_free_moves = 9,
-                2 => {
-                    effect.resilience_free_moves = 5;
-                    effect.resilience_regen_on_clear = 1;
-                    effect.resilience_regen_amount = 1;
-                    effect.resilience_score_per_free = 1;
-                },
-                _ => {},
-            };
-        },
-        10 => {
-            match branch_id {
-                1 => effect.resilience_free_moves = 12,
-                2 => {
-                    effect.resilience_free_moves = 6;
-                    effect.resilience_regen_on_clear = 1;
-                    effect.resilience_regen_amount = 2;
-                    effect.resilience_score_per_free = 2;
-                },
-                _ => {},
-            };
-        },
-        _ => {},
-    }
-
-    effect
-}
-
-pub fn focus_effect(level: u8, branch_id: u8) -> WorldEffects {
-    let mut effect = empty_world_effects();
-
-    match level {
-        0 => effect.focus_bonus_progress = 1,
-        1 => effect.focus_bonus_progress = 1,
-        2 => {
-            effect.focus_bonus_progress = 1;
-            effect.focus_score_on_progress = 1;
-        },
-        3 => effect.focus_bonus_progress = 2,
-        4 => {
-            effect.focus_bonus_progress = 2;
-            effect.focus_score_on_progress = 2;
-        },
-        5 => {
-            match branch_id {
-                1 => {
-                    effect.focus_bonus_progress = 3;
-                    effect.focus_score_on_progress = 3;
-                },
-                2 => {
-                    effect.focus_bonus_progress = 2;
-                    effect.focus_prefill_percent = 25;
-                },
-                _ => {},
-            };
-        },
-        6 => {
-            match branch_id {
-                1 => {
-                    effect.focus_bonus_progress = 3;
-                    effect.focus_score_on_progress = 4;
-                },
-                2 => {
-                    effect.focus_bonus_progress = 2;
-                    effect.focus_prefill_percent = 30;
-                },
-                _ => {},
-            };
-        },
-        7 => {
-            match branch_id {
-                1 => {
-                    effect.focus_bonus_progress = 4;
-                    effect.focus_score_on_progress = 5;
-                },
-                2 => {
-                    effect.focus_bonus_progress = 3;
-                    effect.focus_prefill_percent = 35;
-                },
-                _ => {},
-            };
-        },
-        8 => {
-            match branch_id {
-                1 => {
-                    effect.focus_bonus_progress = 4;
-                    effect.focus_score_on_progress = 6;
-                },
-                2 => {
-                    effect.focus_bonus_progress = 3;
-                    effect.focus_prefill_percent = 40;
-                },
-                _ => {},
-            };
-        },
-        9 => {
-            match branch_id {
-                1 => {
-                    effect.focus_bonus_progress = 5;
-                    effect.focus_score_on_progress = 8;
-                    effect.focus_cube_per_constraint = 1;
-                },
-                2 => {
-                    effect.focus_bonus_progress = 4;
-                    effect.focus_prefill_percent = 50;
-                    effect.focus_cube_per_constraint = 1;
-                },
-                _ => {},
-            };
-        },
-        10 => {
-            match branch_id {
-                1 => {
-                    effect.focus_bonus_progress = 6;
-                    effect.focus_score_on_progress = 10;
-                    effect.focus_cube_per_constraint = 2;
-                },
-                2 => {
-                    effect.focus_bonus_progress = 5;
-                    effect.focus_prefill_percent = 60;
-                    effect.focus_cube_per_constraint = 2;
-                },
-                _ => {},
-            };
-        },
-        _ => {},
-    }
-
-    effect
-}
-
-pub fn expansion_effect(level: u8, branch_id: u8) -> WorldEffects {
-    let mut effect = empty_world_effects();
-
-    match level {
-        0 => effect.expansion_difficulty_reduction = 1,
-        1 => effect.expansion_difficulty_reduction = 1,
-        2 => {
-            effect.expansion_difficulty_reduction = 1;
-            effect.expansion_score_per_line = 1;
-        },
-        3 => effect.expansion_difficulty_reduction = 2,
-        4 => {
-            effect.expansion_difficulty_reduction = 2;
-            effect.expansion_score_per_line = 1;
-        },
-        5 => {
-            match branch_id {
-                1 => effect.expansion_difficulty_reduction = 3,
-                2 => {
-                    effect.expansion_difficulty_reduction = 2;
-                    effect.expansion_guaranteed_gaps = 1;
-                },
-                _ => {},
-            };
-        },
-        6 => {
-            match branch_id {
-                1 => {
-                    effect.expansion_difficulty_reduction = 3;
-                    effect.expansion_score_per_line = 2;
-                },
-                2 => {
-                    effect.expansion_difficulty_reduction = 2;
-                    effect.expansion_guaranteed_gaps = 2;
-                },
-                _ => {},
-            };
-        },
-        7 => {
-            match branch_id {
-                1 => effect.expansion_difficulty_reduction = 4,
-                2 => {
-                    effect.expansion_difficulty_reduction = 3;
-                    effect.expansion_guaranteed_gaps = 2;
-                },
-                _ => {},
-            };
-        },
-        8 => {
-            match branch_id {
-                1 => {
-                    effect.expansion_difficulty_reduction = 4;
-                    effect.expansion_score_per_line = 3;
-                },
-                2 => {
-                    effect.expansion_difficulty_reduction = 3;
-                    effect.expansion_guaranteed_gaps = 2;
-                    effect.expansion_cube_per_10_lines = 1;
-                },
-                _ => {},
-            };
-        },
-        9 => {
-            match branch_id {
-                1 => {
-                    effect.expansion_difficulty_reduction = 5;
-                    effect.expansion_score_per_line = 4;
-                    effect.expansion_cube_per_level = 1;
-                },
-                2 => {
-                    effect.expansion_difficulty_reduction = 3;
-                    effect.expansion_guaranteed_gaps = 3;
-                    effect.expansion_cube_per_10_lines = 2;
-                },
-                _ => {},
-            };
-        },
-        10 => {
-            match branch_id {
-                1 => {
-                    effect.expansion_difficulty_reduction = 6;
-                    effect.expansion_score_per_line = 5;
-                    effect.expansion_cube_per_level = 2;
-                },
-                2 => {
-                    effect.expansion_difficulty_reduction = 4;
-                    effect.expansion_guaranteed_gaps = 4;
-                    effect.expansion_cube_per_10_lines = 3;
-                },
-                _ => {},
-            };
-        },
-        _ => {},
-    }
-
-    effect
-}
-
-pub fn momentum_effect(level: u8, branch_id: u8) -> WorldEffects {
-    let mut effect = empty_world_effects();
-
-    match level {
-        0 => effect.momentum_score_per_consec = 1,
-        1 => effect.momentum_score_per_consec = 1,
-        2 => effect.momentum_score_per_consec = 2,
-        3 => effect.momentum_score_per_consec = 2,
-        4 => effect.momentum_score_per_consec = 3,
-        5 => {
-            match branch_id {
-                1 => {
-                    effect.momentum_score_per_consec = 4;
-                    effect.momentum_streak_cube_threshold = 3;
-                    effect.momentum_streak_cubes = 1;
-                },
-                2 => {
-                    effect.momentum_score_per_consec = 3;
-                    effect.momentum_move_refund = 1;
-                },
-                _ => {},
-            };
-        },
-        6 => {
-            match branch_id {
-                1 => {
-                    effect.momentum_score_per_consec = 5;
-                    effect.momentum_streak_cube_threshold = 3;
-                    effect.momentum_streak_cubes = 1;
-                },
-                2 => {
-                    effect.momentum_score_per_consec = 4;
-                    effect.momentum_move_refund = 1;
-                },
-                _ => {},
-            };
-        },
-        7 => {
-            match branch_id {
-                1 => {
-                    effect.momentum_score_per_consec = 6;
-                    effect.momentum_streak_cube_threshold = 3;
-                    effect.momentum_streak_cubes = 2;
-                },
-                2 => {
-                    effect.momentum_score_per_consec = 5;
-                    effect.momentum_move_refund = 1;
-                    effect.momentum_combo_on_streak = 1;
-                },
-                _ => {},
-            };
-        },
-        8 => {
-            match branch_id {
-                1 => {
-                    effect.momentum_score_per_consec = 8;
-                    effect.momentum_streak_cube_threshold = 3;
-                    effect.momentum_streak_cubes = 2;
-                },
-                2 => {
-                    effect.momentum_score_per_consec = 6;
-                    effect.momentum_move_refund = 2;
-                    effect.momentum_combo_on_streak = 1;
-                },
-                _ => {},
-            };
-        },
-        9 => {
-            match branch_id {
-                1 => {
-                    effect.momentum_score_per_consec = 10;
-                    effect.momentum_streak_cube_threshold = 3;
-                    effect.momentum_streak_cubes = 3;
-                    effect.momentum_streak_clear_rows = 1;
-                },
-                2 => {
-                    effect.momentum_score_per_consec = 8;
-                    effect.momentum_move_refund = 2;
-                    effect.momentum_combo_on_streak = 2;
-                },
-                _ => {},
-            };
-        },
-        10 => {
-            match branch_id {
-                1 => {
-                    effect.momentum_score_per_consec = 12;
-                    effect.momentum_streak_cube_threshold = 3;
-                    effect.momentum_streak_cubes = 4;
-                    effect.momentum_streak_clear_rows = 2;
-                },
-                2 => {
-                    effect.momentum_score_per_consec = 10;
-                    effect.momentum_move_refund = 3;
-                    effect.momentum_combo_on_streak = 3;
-                },
-                _ => {},
-            };
-        },
-        _ => {},
-    }
-
-    effect
-}
-
-pub fn adrenaline_effect(level: u8, branch_id: u8) -> WorldEffects {
-    let mut effect = empty_world_effects();
-
-    match level {
-        0 => {
-            effect.adrenaline_row_threshold = 7;
-            effect.adrenaline_score_per_clear = 2;
-        },
-        1 => {
-            effect.adrenaline_row_threshold = 7;
-            effect.adrenaline_score_per_clear = 3;
-        },
-        2 => {
-            effect.adrenaline_row_threshold = 7;
-            effect.adrenaline_score_per_clear = 4;
-        },
-        3 => {
-            effect.adrenaline_row_threshold = 7;
-            effect.adrenaline_score_per_clear = 5;
-        },
-        4 => {
-            effect.adrenaline_row_threshold = 7;
-            effect.adrenaline_score_per_clear = 6;
-            effect.adrenaline_cubes_per_clear = 1;
-        },
-        5 => {
-            match branch_id {
-                1 => {
-                    effect.adrenaline_row_threshold = 7;
-                    effect.adrenaline_score_per_clear = 8;
-                    effect.adrenaline_cubes_per_clear = 2;
-                },
-                2 => {
-                    effect.adrenaline_row_threshold = 8;
-                    effect.adrenaline_score_per_clear = 6;
-                    effect.adrenaline_combo_multiplier = 2;
-                },
-                _ => {},
-            };
-        },
-        6 => {
-            match branch_id {
-                1 => {
-                    effect.adrenaline_row_threshold = 7;
-                    effect.adrenaline_score_per_clear = 10;
-                    effect.adrenaline_cubes_per_clear = 2;
-                },
-                2 => {
-                    effect.adrenaline_row_threshold = 8;
-                    effect.adrenaline_score_per_clear = 7;
-                    effect.adrenaline_combo_multiplier = 2;
-                },
-                _ => {},
-            };
-        },
-        7 => {
-            match branch_id {
-                1 => {
-                    effect.adrenaline_row_threshold = 7;
-                    effect.adrenaline_score_per_clear = 12;
-                    effect.adrenaline_cubes_per_clear = 3;
-                },
-                2 => {
-                    effect.adrenaline_row_threshold = 7;
-                    effect.adrenaline_score_per_clear = 8;
-                    effect.adrenaline_combo_multiplier = 2;
-                },
-                _ => {},
-            };
-        },
-        8 => {
-            match branch_id {
-                1 => {
-                    effect.adrenaline_row_threshold = 7;
-                    effect.adrenaline_score_per_clear = 15;
-                    effect.adrenaline_cubes_per_clear = 3;
-                },
-                2 => {
-                    effect.adrenaline_row_threshold = 7;
-                    effect.adrenaline_score_per_clear = 10;
-                    effect.adrenaline_combo_multiplier = 2;
-                    effect.adrenaline_free_moves = 1;
-                    effect.adrenaline_free_moves_threshold = 7;
-                },
-                _ => {},
-            };
-        },
-        9 => {
-            match branch_id {
-                1 => {
-                    effect.adrenaline_row_threshold = 7;
-                    effect.adrenaline_score_per_clear = 20;
-                    effect.adrenaline_cubes_per_clear = 4;
-                    effect.adrenaline_free_moves = 1;
-                    effect.adrenaline_free_moves_threshold = 8;
-                },
-                2 => {
-                    effect.adrenaline_row_threshold = 7;
-                    effect.adrenaline_score_per_clear = 12;
-                    effect.adrenaline_combo_multiplier = 3;
-                    effect.adrenaline_free_moves = 2;
-                    effect.adrenaline_free_moves_threshold = 7;
-                },
-                _ => {},
-            };
-        },
-        10 => {
-            match branch_id {
-                1 => {
-                    effect.adrenaline_row_threshold = 7;
-                    effect.adrenaline_score_per_clear = 25;
-                    effect.adrenaline_cubes_per_clear = 6;
-                    effect.adrenaline_free_moves = 2;
-                    effect.adrenaline_free_moves_threshold = 8;
-                },
-                2 => {
-                    effect.adrenaline_row_threshold = 7;
-                    effect.adrenaline_score_per_clear = 15;
-                    effect.adrenaline_combo_multiplier = 4;
-                    effect.adrenaline_free_moves = 3;
-                    effect.adrenaline_free_moves_threshold = 7;
-                },
-                _ => {},
-            };
-        },
-        _ => {},
-    }
-
-    effect
-}
-
-pub fn legacy_effect(level: u8, branch_id: u8) -> WorldEffects {
-    let mut effect = empty_world_effects();
-
-    match level {
-        0 => {
-            effect.legacy_score_per_n_levels = 1;
-            effect.legacy_level_divisor = 5;
-        },
-        1 => {
-            effect.legacy_score_per_n_levels = 1;
-            effect.legacy_level_divisor = 4;
-        },
-        2 => {
-            effect.legacy_score_per_n_levels = 1;
-            effect.legacy_level_divisor = 3;
-        },
-        3 => {
-            effect.legacy_score_per_n_levels = 2;
-            effect.legacy_level_divisor = 3;
-        },
-        4 => {
-            effect.legacy_score_per_n_levels = 2;
-            effect.legacy_level_divisor = 3;
-            effect.legacy_cube_per_n_levels = 1;
-            effect.legacy_cube_level_divisor = 10;
-        },
-        5 => {
-            match branch_id {
-                1 => {
-                    effect.legacy_score_per_n_levels = 3;
-                    effect.legacy_level_divisor = 3;
-                    effect.legacy_cube_per_n_levels = 1;
-                    effect.legacy_cube_level_divisor = 5;
-                },
-                2 => {
-                    effect.legacy_score_per_n_levels = 2;
-                    effect.legacy_level_divisor = 3;
-                    effect.legacy_score_per_unique_skill = 1;
-                },
-                _ => {},
-            };
-        },
-        6 => {
-            match branch_id {
-                1 => {
-                    effect.legacy_score_per_n_levels = 3;
-                    effect.legacy_level_divisor = 3;
-                    effect.legacy_cube_per_n_levels = 2;
-                    effect.legacy_cube_level_divisor = 5;
-                },
-                2 => {
-                    effect.legacy_score_per_n_levels = 2;
-                    effect.legacy_level_divisor = 3;
-                    effect.legacy_score_per_unique_skill = 1;
-                },
-                _ => {},
-            };
-        },
-        7 => {
-            match branch_id {
-                1 => {
-                    effect.legacy_score_per_n_levels = 4;
-                    effect.legacy_level_divisor = 3;
-                    effect.legacy_cube_per_n_levels = 2;
-                    effect.legacy_cube_level_divisor = 5;
-                },
-                2 => {
-                    effect.legacy_score_per_n_levels = 3;
-                    effect.legacy_level_divisor = 3;
-                    effect.legacy_score_per_unique_skill = 2;
-                },
-                _ => {},
-            };
-        },
-        8 => {
-            match branch_id {
-                1 => {
-                    effect.legacy_score_per_n_levels = 5;
-                    effect.legacy_level_divisor = 3;
-                    effect.legacy_cube_per_n_levels = 3;
-                    effect.legacy_cube_level_divisor = 5;
-                },
-                2 => {
-                    effect.legacy_score_per_n_levels = 3;
-                    effect.legacy_level_divisor = 3;
-                    effect.legacy_score_per_unique_skill = 2;
-                    effect.legacy_free_moves_per_10 = 1;
-                },
-                _ => {},
-            };
-        },
-        9 => {
-            match branch_id {
-                1 => {
-                    effect.legacy_score_per_n_levels = 6;
-                    effect.legacy_level_divisor = 2;
-                    effect.legacy_cube_per_n_levels = 4;
-                    effect.legacy_cube_level_divisor = 5;
-                    effect.legacy_free_moves_per_10 = 1;
-                },
-                2 => {
-                    effect.legacy_score_per_n_levels = 4;
-                    effect.legacy_level_divisor = 3;
-                    effect.legacy_score_per_unique_skill = 3;
-                    effect.legacy_free_moves_per_10 = 2;
-                },
-                _ => {},
-            };
-        },
-        10 => {
-            match branch_id {
-                1 => {
-                    effect.legacy_score_per_n_levels = 8;
-                    effect.legacy_level_divisor = 2;
-                    effect.legacy_cube_per_n_levels = 6;
-                    effect.legacy_cube_level_divisor = 5;
-                    effect.legacy_free_moves_per_10 = 2;
-                },
-                2 => {
-                    effect.legacy_score_per_n_levels = 5;
-                    effect.legacy_level_divisor = 3;
-                    effect.legacy_score_per_unique_skill = 4;
-                    effect.legacy_free_moves_per_10 = 3;
-                },
-                _ => {},
-            };
-        },
-        _ => {},
-    }
-
-    effect
-}
-
-pub fn extract_world_skill_effect(run_data: @RunData, skill_id: u8, branch_id: u8) -> WorldEffects {
-    if skill_id < 6 || skill_id > 15 {
-        return empty_world_effects();
-    }
-
-    let slot = run_data.find_skill_slot(skill_id);
-    if slot == SLOT_NOT_FOUND {
-        return empty_world_effects();
-    }
-
-    let level = run_data.get_slot_level(slot);
-    world_effect_for_skill(skill_id, level, branch_id)
-}
-
-pub fn get_tempo_effect(run_data: @RunData, branch_id: u8) -> WorldEffects {
-    extract_world_skill_effect(run_data, 6, branch_id)
-}
-
-pub fn get_fortune_effect(run_data: @RunData, branch_id: u8) -> WorldEffects {
-    extract_world_skill_effect(run_data, 7, branch_id)
-}
-
-pub fn get_surge_effect(run_data: @RunData, branch_id: u8) -> WorldEffects {
-    extract_world_skill_effect(run_data, 8, branch_id)
-}
-
-pub fn get_catalyst_effect(run_data: @RunData, branch_id: u8) -> WorldEffects {
-    extract_world_skill_effect(run_data, 9, branch_id)
-}
-
-pub fn get_resilience_effect(run_data: @RunData, branch_id: u8) -> WorldEffects {
-    extract_world_skill_effect(run_data, 10, branch_id)
-}
-
-pub fn get_focus_effect(run_data: @RunData, branch_id: u8) -> WorldEffects {
-    extract_world_skill_effect(run_data, 11, branch_id)
-}
-
-pub fn get_expansion_effect(run_data: @RunData, branch_id: u8) -> WorldEffects {
-    extract_world_skill_effect(run_data, 12, branch_id)
-}
-
-pub fn get_momentum_effect(run_data: @RunData, branch_id: u8) -> WorldEffects {
-    extract_world_skill_effect(run_data, 13, branch_id)
-}
-
-pub fn get_adrenaline_effect(run_data: @RunData, branch_id: u8) -> WorldEffects {
-    extract_world_skill_effect(run_data, 14, branch_id)
-}
-
-pub fn get_legacy_effect(run_data: @RunData, branch_id: u8) -> WorldEffects {
-    extract_world_skill_effect(run_data, 15, branch_id)
-}
-
-pub fn get_world_effects(run_data: @RunData, branch_ids: Span<u8>) -> WorldEffects {
-    aggregate_world_effects(run_data, branch_ids)
-}
-
-pub fn aggregate_world_effects(run_data: @RunData, branch_ids: Span<u8>) -> WorldEffects {
-    let mut combined = empty_world_effects();
-
-    let mut slot_count = *run_data.active_slot_count;
-    if slot_count > MAX_ACTIVE_SLOTS {
-        slot_count = MAX_ACTIVE_SLOTS;
-    }
-
+/// Aggregate all passive effects from all passive skills in the run loadout.
+pub fn get_passive_effects(run_data: @RunData) -> PassiveEffect {
+    let mut result: PassiveEffect = Default::default();
+    let slot_count = *run_data.active_slot_count;
     let mut slot: u8 = 0;
+
     loop {
-        if slot >= slot_count {
+        if slot >= 3 || slot >= slot_count {
             break;
         }
 
         let skill_id = run_data.get_slot_skill(slot);
-        if skill_id >= 6 && skill_id <= 15 {
-            let level = run_data.get_slot_level(slot);
-            let branch_id = branch_for_skill(branch_ids, skill_id);
-            let skill_effect = world_effect_for_skill(skill_id, level, branch_id);
-            combined = merge_world_effects(combined, skill_effect);
+        let level = run_data.get_slot_level(slot);
+        let branch = run_data.get_slot_branch(slot);
+
+        if skill_id >= 5 && skill_id <= 12 && level > 0 {
+            let pe = passive_effect_for_skill(skill_id, level, branch);
+            result = merge_passive_effects(result, pe);
         }
 
         slot += 1;
-    }
+    };
 
-    combined
+    result
+}
+
+/// Get branch_id for a skill from the player's packed skill_data.
+/// Returns 0 (Branch A) if skill not found or below branch point.
+pub fn get_branch_id_for_skill(skill_data: felt252, skill_id: u8) -> u8 {
+    let tree = SkillTreeDataPackingTrait::unpack(skill_data);
+    let info = tree.get_skill(skill_id);
+    info.branch_id
+}
+
+// =============================================================================
+// Merge helper
+// =============================================================================
+
+fn merge_passive_effects(mut base: PassiveEffect, add: PassiveEffect) -> PassiveEffect {
+    // Rhythm: take whichever is set (only one Rhythm per run)
+    if add.rhythm_streak_threshold > 0 {
+        base.rhythm_streak_threshold = add.rhythm_streak_threshold;
+        base.rhythm_combo_add = add.rhythm_combo_add;
+    }
+    // Cascade Mastery: take whichever is set
+    if add.cascade_depth_threshold > 0 {
+        base.cascade_depth_threshold = add.cascade_depth_threshold;
+        base.cascade_combo_add = add.cascade_combo_add;
+    }
+    // Overdrive: take whichever is set (only one Overdrive per run)
+    if add.overdrive_cadence > 0 {
+        base.overdrive_cadence = add.overdrive_cadence;
+        base.overdrive_starting_charges = add.overdrive_starting_charges;
+    }
+    // Endgame Focus: take whichever is set
+    if add.endgame_score > 0 || add.endgame_per_level_x10 > 0 {
+        base.endgame_score = add.endgame_score;
+        base.endgame_min_level = add.endgame_min_level;
+        base.endgame_per_level_x10 = add.endgame_per_level_x10;
+    }
+    // High Stakes: take whichever is set
+    if add.high_stakes_height > 0 {
+        base.high_stakes_height = add.high_stakes_height;
+        base.high_stakes_cubes = add.high_stakes_cubes;
+    }
+    // Gambit: take whichever is set
+    if add.gambit_height > 0 {
+        base.gambit_height = add.gambit_height;
+        base.gambit_cubes = add.gambit_cubes;
+    }
+    // Structural Integrity: take whichever is set
+    if add.si_height > 0 {
+        base.si_height = add.si_height;
+        base.si_extra_rows = add.si_extra_rows;
+    }
+    // Grid Harmony: take whichever is set
+    if add.gh_height > 0 {
+        base.gh_height = add.gh_height;
+        base.gh_extra_rows = add.gh_extra_rows;
+        base.gh_every_clear = add.gh_every_clear;
+    }
+    base
+}
+
+// =============================================================================
+// Active Skill Effect Tables (IDs 1-4)
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// ID 1: Combo Surge (Tempo)
+// Branch A: Burst (explosive spike)
+// Branch B: Flow (level-wide combo depth, once per level)
+// -----------------------------------------------------------------------------
+fn combo_surge_effect(level: u8, branch_id: u8) -> ActiveEffect {
+    let mut e: ActiveEffect = Default::default();
+    match level {
+        1 => { e.combo_add = 1; },
+        2 => { e.combo_add = 2; },
+        3 => {
+            if branch_id == 0 {
+                // A — Burst: +3
+                e.combo_add = 3;
+            } else {
+                // B — Flow: +1 for the full level
+                e.combo_surge_flow = true;
+                e.combo_surge_flow_depth = 1;
+            }
+        },
+        4 => {
+            if branch_id == 0 {
+                e.combo_add = 5;
+            } else {
+                e.combo_surge_flow = true;
+                e.combo_surge_flow_depth = 2;
+            }
+        },
+        5 => {
+            if branch_id == 0 {
+                e.combo_add = 7;
+            } else {
+                e.combo_surge_flow = true;
+                e.combo_surge_flow_depth = 4;
+            }
+        },
+        _ => {},
+    }
+    e
+}
+
+// -----------------------------------------------------------------------------
+// ID 2: Momentum Scaling (Scaling)
+// Branch A: Late Bloom (score per zone cleared)
+// Branch B: Stable Growth (flat score)
+// -----------------------------------------------------------------------------
+fn momentum_scaling_effect(level: u8, branch_id: u8) -> ActiveEffect {
+    let mut e: ActiveEffect = Default::default();
+    match level {
+        1 => { e.score_per_zone = 1; },
+        2 => { e.score_per_zone = 2; },
+        3 => {
+            if branch_id == 0 {
+                // A — Late Bloom: +3 per zone
+                e.score_per_zone = 3;
+            } else {
+                // B — Stable Growth: +5 flat
+                e.score_add = 5;
+            }
+        },
+        4 => {
+            if branch_id == 0 {
+                e.score_per_zone = 5;
+            } else {
+                e.score_add = 10;
+            }
+        },
+        5 => {
+            if branch_id == 0 {
+                e.score_per_zone = 10;
+            } else {
+                e.score_add = 20;
+            }
+        },
+        _ => {},
+    }
+    e
+}
+
+// -----------------------------------------------------------------------------
+// ID 3: Harvest (Risk)
+// Branch A: Extraction (random blocks, cubes = block sizes)
+// Branch B: Injection (add lines + flat cubes)
+// -----------------------------------------------------------------------------
+fn harvest_effect(level: u8, branch_id: u8) -> ActiveEffect {
+    let mut e: ActiveEffect = Default::default();
+    e.cubes_per_block_size = true; // Always true for extraction
+    match level {
+        1 => { e.blocks_to_destroy = 2; },
+        2 => { e.blocks_to_destroy = 3; },
+        3 => {
+            if branch_id == 0 {
+                // A — Extraction: 5 blocks
+                e.blocks_to_destroy = 5;
+            } else {
+                // B — Injection: 1 line, +10 cubes
+                e.blocks_to_destroy = 0;
+                e.cubes_per_block_size = false;
+                e.lines_to_add = 1;
+                e.cubes_flat = 10;
+            }
+        },
+        4 => {
+            if branch_id == 0 {
+                e.blocks_to_destroy = 7;
+            } else {
+                e.blocks_to_destroy = 0;
+                e.cubes_per_block_size = false;
+                e.lines_to_add = 2;
+                e.cubes_flat = 20;
+            }
+        },
+        5 => {
+            if branch_id == 0 {
+                e.blocks_to_destroy = 10;
+            } else {
+                e.blocks_to_destroy = 0;
+                e.cubes_per_block_size = false;
+                e.lines_to_add = 3;
+                e.cubes_flat = 40;
+            }
+        },
+        _ => {},
+    }
+    e
+}
+
+// -----------------------------------------------------------------------------
+// ID 4: Tsunami (Control)
+// Branch A: Wide (clear N targeted blocks; L5 = clear all of targeted size)
+// Branch B: Target (clear N targeted rows)
+// -----------------------------------------------------------------------------
+fn tsunami_effect(level: u8, branch_id: u8) -> ActiveEffect {
+    let mut e: ActiveEffect = Default::default();
+    match level {
+        1 => { e.blocks_to_clear = 1; },
+        2 => { e.blocks_to_clear = 2; },
+        3 => {
+            if branch_id == 0 {
+                // A — Wide: 3 blocks
+                e.blocks_to_clear = 3;
+            } else {
+                // B — Target: 1 row
+                e.rows_to_clear = 1;
+            }
+        },
+        4 => {
+            if branch_id == 0 {
+                e.blocks_to_clear = 5;
+            } else {
+                e.rows_to_clear = 2;
+            }
+        },
+        5 => {
+            if branch_id == 0 {
+                // Clear all blocks of targeted size
+                e.clear_by_size = true;
+            } else {
+                e.rows_to_clear = 3;
+            }
+        },
+        _ => {},
+    }
+    e
+}
+
+// =============================================================================
+// Passive Skill Effect Tables (IDs 5-12)
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// ID 5: Rhythm (Tempo)
+// Branch A: Acceleration (lower threshold)
+// Branch B: Stability (higher combo_add per proc)
+// -----------------------------------------------------------------------------
+fn rhythm_effect(level: u8, branch_id: u8) -> PassiveEffect {
+    let mut e: PassiveEffect = Default::default();
+    match level {
+        1 => { e.rhythm_streak_threshold = 12; e.rhythm_combo_add = 1; },
+        2 => { e.rhythm_streak_threshold = 10; e.rhythm_combo_add = 1; },
+        3 => {
+            if branch_id == 0 {
+                // A — Acceleration: every 8 → +1
+                e.rhythm_streak_threshold = 8;
+                e.rhythm_combo_add = 1;
+            } else {
+                // B — Stability: every 10 → +2
+                e.rhythm_streak_threshold = 10;
+                e.rhythm_combo_add = 2;
+            }
+        },
+        4 => {
+            if branch_id == 0 {
+                e.rhythm_streak_threshold = 6;
+                e.rhythm_combo_add = 1;
+            } else {
+                e.rhythm_streak_threshold = 10;
+                e.rhythm_combo_add = 3;
+            }
+        },
+        5 => {
+            if branch_id == 0 {
+                e.rhythm_streak_threshold = 4;
+                e.rhythm_combo_add = 1;
+            } else {
+                e.rhythm_streak_threshold = 10;
+                e.rhythm_combo_add = 4;
+            }
+        },
+        _ => {},
+    }
+    e
+}
+
+// -----------------------------------------------------------------------------
+// ID 6: Cascade Mastery (Tempo)
+// Branch A: Amplify (high depth threshold, big combo)
+// Branch B: Extend (low depth threshold, moderate combo)
+// -----------------------------------------------------------------------------
+fn cascade_mastery_effect(level: u8, branch_id: u8) -> PassiveEffect {
+    let mut e: PassiveEffect = Default::default();
+    match level {
+        1 => { e.cascade_depth_threshold = 5; e.cascade_combo_add = 1; },
+        2 => { e.cascade_depth_threshold = 4; e.cascade_combo_add = 1; },
+        3 => {
+            if branch_id == 0 {
+                // A — Amplify: depth >= 4 → +2
+                e.cascade_depth_threshold = 4;
+                e.cascade_combo_add = 2;
+            } else {
+                // B — Extend: depth >= 3 → +1
+                e.cascade_depth_threshold = 3;
+                e.cascade_combo_add = 1;
+            }
+        },
+        4 => {
+            if branch_id == 0 {
+                e.cascade_depth_threshold = 4;
+                e.cascade_combo_add = 3;
+            } else {
+                e.cascade_depth_threshold = 2;
+                e.cascade_combo_add = 1;
+            }
+        },
+        5 => {
+            if branch_id == 0 {
+                e.cascade_depth_threshold = 4;
+                e.cascade_combo_add = 4;
+            } else {
+                e.cascade_depth_threshold = 2;
+                e.cascade_combo_add = 2;
+            }
+        },
+        _ => {},
+    }
+    e
+}
+
+// -----------------------------------------------------------------------------
+// ID 7: Overdrive (Scaling)
+// Branch A: Amplify (maximum charge throughput)
+// Branch B: Overflow (starting charges + steady cadence)
+// -----------------------------------------------------------------------------
+fn overdrive_effect(level: u8, branch_id: u8) -> PassiveEffect {
+    let mut e: PassiveEffect = Default::default();
+    match level {
+        1 => { e.overdrive_cadence = 4; e.overdrive_starting_charges = 0; },
+        2 => { e.overdrive_cadence = 3; e.overdrive_starting_charges = 0; },
+        3 => {
+            if branch_id == 0 {
+                // A — Amplify: cadence 2
+                e.overdrive_cadence = 2;
+                e.overdrive_starting_charges = 0;
+            } else {
+                // B — Overflow: cadence 3, +1 starting
+                e.overdrive_cadence = 3;
+                e.overdrive_starting_charges = 1;
+            }
+        },
+        4 => {
+            if branch_id == 0 {
+                e.overdrive_cadence = 2;
+                e.overdrive_starting_charges = 1;
+            } else {
+                e.overdrive_cadence = 3;
+                e.overdrive_starting_charges = 2;
+            }
+        },
+        5 => {
+            if branch_id == 0 {
+                // Cadence every 1 level!
+                e.overdrive_cadence = 1;
+                e.overdrive_starting_charges = 0;
+            } else {
+                e.overdrive_cadence = 2;
+                e.overdrive_starting_charges = 2;
+            }
+        },
+        _ => {},
+    }
+    e
+}
+
+// -----------------------------------------------------------------------------
+// ID 8: Endgame Focus (Scaling)
+// Branch A: Deep End (per-level scaling: +X score per level cleared)
+// Branch B: Smooth Ramp (flat score above level threshold)
+// -----------------------------------------------------------------------------
+fn endgame_focus_effect(level: u8, branch_id: u8) -> PassiveEffect {
+    let mut e: PassiveEffect = Default::default();
+    match level {
+        1 => {
+            // +1 score at level start on levels >= 10
+            e.endgame_score = 1;
+            e.endgame_min_level = 10;
+        },
+        2 => {
+            // +2 score on levels >= 20
+            e.endgame_score = 2;
+            e.endgame_min_level = 20;
+        },
+        3 => {
+            if branch_id == 0 {
+                // A — Deep End: +0.2 per level cleared (stored as x10 = 2)
+                e.endgame_per_level_x10 = 2;
+                e.endgame_min_level = 0; // always active
+            } else {
+                // B — Smooth Ramp: +5 on levels >= 25
+                e.endgame_score = 5;
+                e.endgame_min_level = 25;
+            }
+        },
+        4 => {
+            if branch_id == 0 {
+                e.endgame_per_level_x10 = 3;
+                e.endgame_min_level = 0;
+            } else {
+                e.endgame_score = 10;
+                e.endgame_min_level = 30;
+            }
+        },
+        5 => {
+            if branch_id == 0 {
+                e.endgame_per_level_x10 = 5;
+                e.endgame_min_level = 0;
+            } else {
+                e.endgame_score = 20;
+                e.endgame_min_level = 40;
+            }
+        },
+        _ => {},
+    }
+    e
+}
+
+// -----------------------------------------------------------------------------
+// ID 9: High Stakes (Risk)
+// Branch A: Edge (high threshold, high cubes)
+// Branch B: Threshold (lower threshold, moderate cubes)
+// -----------------------------------------------------------------------------
+fn high_stakes_effect(level: u8, branch_id: u8) -> PassiveEffect {
+    let mut e: PassiveEffect = Default::default();
+    match level {
+        1 => { e.high_stakes_height = 9; e.high_stakes_cubes = 1; },
+        2 => { e.high_stakes_height = 8; e.high_stakes_cubes = 1; },
+        3 => {
+            if branch_id == 0 {
+                // A — Edge: height >= 8, +3 cubes
+                e.high_stakes_height = 8;
+                e.high_stakes_cubes = 3;
+            } else {
+                // B — Threshold: height >= 7, +1 cube
+                e.high_stakes_height = 7;
+                e.high_stakes_cubes = 1;
+            }
+        },
+        4 => {
+            if branch_id == 0 {
+                e.high_stakes_height = 8;
+                e.high_stakes_cubes = 5;
+            } else {
+                e.high_stakes_height = 6;
+                e.high_stakes_cubes = 1;
+            }
+        },
+        5 => {
+            if branch_id == 0 {
+                e.high_stakes_height = 8;
+                e.high_stakes_cubes = 10;
+            } else {
+                e.high_stakes_height = 5;
+                e.high_stakes_cubes = 1;
+            }
+        },
+        _ => {},
+    }
+    e
+}
+
+// -----------------------------------------------------------------------------
+// ID 10: Gambit (Risk)
+// Branch A: Survivor (high threshold, high cubes)
+// Branch B: Momentum (lower threshold, moderate cubes)
+// -----------------------------------------------------------------------------
+fn gambit_effect(level: u8, branch_id: u8) -> PassiveEffect {
+    let mut e: PassiveEffect = Default::default();
+    match level {
+        1 => { e.gambit_height = 9; e.gambit_cubes = 3; },
+        2 => { e.gambit_height = 9; e.gambit_cubes = 5; },
+        3 => {
+            if branch_id == 0 {
+                // A — Survivor: height >= 9, +10 cubes
+                e.gambit_height = 9;
+                e.gambit_cubes = 10;
+            } else {
+                // B — Momentum: height >= 8, +5 cubes
+                e.gambit_height = 8;
+                e.gambit_cubes = 5;
+            }
+        },
+        4 => {
+            if branch_id == 0 {
+                e.gambit_height = 9;
+                e.gambit_cubes = 15;
+            } else {
+                e.gambit_height = 7;
+                e.gambit_cubes = 5;
+            }
+        },
+        5 => {
+            if branch_id == 0 {
+                e.gambit_height = 9;
+                e.gambit_cubes = 30;
+            } else {
+                e.gambit_height = 6;
+                e.gambit_cubes = 5;
+            }
+        },
+        _ => {},
+    }
+    e
+}
+
+// -----------------------------------------------------------------------------
+// ID 11: Structural Integrity (Control)
+// Branch A: Aggressive (high threshold, many extra rows)
+// Branch B: Safe (lower threshold, +1 extra row)
+// -----------------------------------------------------------------------------
+fn structural_integrity_effect(level: u8, branch_id: u8) -> PassiveEffect {
+    let mut e: PassiveEffect = Default::default();
+    match level {
+        1 => { e.si_height = 9; e.si_extra_rows = 1; },
+        2 => { e.si_height = 8; e.si_extra_rows = 1; },
+        3 => {
+            if branch_id == 0 {
+                // A — Aggressive: height >= 8, +2 extra rows
+                e.si_height = 8;
+                e.si_extra_rows = 2;
+            } else {
+                // B — Safe: height >= 7, +1 extra row
+                e.si_height = 7;
+                e.si_extra_rows = 1;
+            }
+        },
+        4 => {
+            if branch_id == 0 {
+                e.si_height = 8;
+                e.si_extra_rows = 3;
+            } else {
+                e.si_height = 6;
+                e.si_extra_rows = 1;
+            }
+        },
+        5 => {
+            if branch_id == 0 {
+                e.si_height = 8;
+                e.si_extra_rows = 4;
+            } else {
+                e.si_height = 5;
+                e.si_extra_rows = 1;
+            }
+        },
+        _ => {},
+    }
+    e
+}
+
+// -----------------------------------------------------------------------------
+// ID 12: Grid Harmony (Control)
+// Branch A: Stabilize (every clear, lower threshold at higher levels)
+// Branch B: Precision (next clear only, more rows removed)
+// -----------------------------------------------------------------------------
+fn grid_harmony_effect(level: u8, branch_id: u8) -> PassiveEffect {
+    let mut e: PassiveEffect = Default::default();
+    match level {
+        1 => { e.gh_height = 9; e.gh_extra_rows = 1; e.gh_every_clear = false; },
+        2 => { e.gh_height = 8; e.gh_extra_rows = 1; e.gh_every_clear = false; },
+        3 => {
+            if branch_id == 0 {
+                // A — Stabilize: height >= 8, every clear +1
+                e.gh_height = 8;
+                e.gh_extra_rows = 1;
+                e.gh_every_clear = true;
+            } else {
+                // B — Precision: height >= 8, next clear +2
+                e.gh_height = 8;
+                e.gh_extra_rows = 2;
+                e.gh_every_clear = false;
+            }
+        },
+        4 => {
+            if branch_id == 0 {
+                e.gh_height = 7;
+                e.gh_extra_rows = 1;
+                e.gh_every_clear = true;
+            } else {
+                e.gh_height = 8;
+                e.gh_extra_rows = 3;
+                e.gh_every_clear = false;
+            }
+        },
+        5 => {
+            if branch_id == 0 {
+                e.gh_height = 6;
+                e.gh_extra_rows = 1;
+                e.gh_every_clear = true;
+            } else {
+                e.gh_height = 8;
+                e.gh_extra_rows = 4;
+                e.gh_every_clear = false;
+            }
+        },
+        _ => {},
+    }
+    e
 }
 
 
-/// Get the skill_effects branch_id (0=none, 1=A, 2=B) for a run_data skill_id (1-15).
-/// Converts from SkillTreeData (0-indexed, branch_id 0=A/1=B) to skill_effects convention.
-pub fn get_branch_id_for_skill(skill_data: felt252, run_data_skill_id: u8) -> u8 {
-    if run_data_skill_id == 0 || run_data_skill_id > MAX_SKILL_ID {
-        return 0;
-    }
-    let tree_data = SkillTreeDataPackingTrait::unpack(skill_data);
-    let tree_skill_id = run_data_skill_id - 1; // Convert to 0-indexed
-    let info = tree_data.get_skill(tree_skill_id);
-    if info.branch_chosen {
-        info.branch_id + 1 // SkillTreeData: 0=A,1=B -> skill_effects: 1=A,2=B
-    } else {
-        0
-    }
-}
+#[cfg(test)]
+mod tests {
+    use super::{
+        ActiveEffect, PassiveEffect, SkillIds, active_effect_for_skill,
+        get_branch_id_for_skill, get_passive_effects, passive_effect_for_skill,
+    };
+    use zkube::helpers::packing::{
+        RunData, RunDataHelpersTrait, RunDataPackingTrait, SkillInfo,
+        SkillTreeDataPackingTrait,
+    };
 
-/// Build an Array<u8> of branch_ids (0=none, 1=A, 2=B) for all 15 skills from skill_data.
-/// Index i corresponds to skill_id i+1 (0-indexed array for 1-indexed skill IDs).
-pub fn build_branch_ids(skill_data: felt252) -> Array<u8> {
-    let tree_data = SkillTreeDataPackingTrait::unpack(skill_data);
-    let mut ids = ArrayTrait::new();
-    let mut i: u8 = 0;
-    loop {
-        if i >= 15 {
-            break;
-        }
-        let info = tree_data.get_skill(i);
-        if info.branch_chosen {
-            ids.append(info.branch_id + 1);
-        } else {
-            ids.append(0);
-        }
-        i += 1;
+    // =========================================================================
+    // Active skills — grouped by archetype
+    // =========================================================================
+
+    #[test]
+    fn test_tempo_skills() {
+        // --- ComboSurge L1 ---
+        let e = active_effect_for_skill(SkillIds::COMBO_SURGE, 1, 0);
+        assert!(e.combo_add == 1, "ComboSurge L1 should add 1 combo");
+        assert!(!e.combo_surge_flow, "L1 should not have flow");
+
+        // --- ComboSurge Branch A L5 ---
+        let e = active_effect_for_skill(SkillIds::COMBO_SURGE, 5, 0);
+        assert!(e.combo_add == 7, "ComboSurge L5A should add 7 combo");
+        assert!(!e.combo_surge_flow, "Branch A should not have flow");
+
+        // --- ComboSurge Branch B L3 ---
+        let e = active_effect_for_skill(SkillIds::COMBO_SURGE, 3, 1);
+        assert!(e.combo_surge_flow, "Branch B L3 should set flow");
+        assert!(e.combo_surge_flow_depth == 1, "Flow depth should be 1");
+
+        // --- Rhythm L1 (passive) ---
+        let e = passive_effect_for_skill(SkillIds::RHYTHM, 1, 0);
+        assert!(e.rhythm_streak_threshold == 12, "Rhythm L1 threshold should be 12");
+        assert!(e.rhythm_combo_add == 1, "Rhythm L1 combo_add should be 1");
     }
-    ids
+
+    #[test]
+    fn test_scaling_skills() {
+        // --- Momentum L1 ---
+        let e = active_effect_for_skill(SkillIds::MOMENTUM_SCALING, 1, 0);
+        assert!(e.score_per_zone == 1, "Momentum L1 should have score_per_zone=1");
+
+        // --- Overdrive L1 ---
+        let e = passive_effect_for_skill(SkillIds::OVERDRIVE, 1, 0);
+        assert!(e.overdrive_cadence == 4, "Overdrive L1 cadence should be 4");
+        assert!(e.overdrive_starting_charges == 0, "Overdrive L1 should have 0 starting charges");
+
+        // --- Overdrive Branch A L5 ---
+        let e = passive_effect_for_skill(SkillIds::OVERDRIVE, 5, 0);
+        assert!(e.overdrive_cadence == 1, "Overdrive L5A cadence should be 1 (every level)");
+
+        // --- Overdrive Branch B L5 ---
+        let e = passive_effect_for_skill(SkillIds::OVERDRIVE, 5, 1);
+        assert!(e.overdrive_cadence == 2, "Overdrive L5B cadence should be 2");
+        assert!(e.overdrive_starting_charges == 2, "Overdrive L5B should have 2 starting charges");
+
+        // --- Endgame Focus L1 ---
+        let e = passive_effect_for_skill(SkillIds::ENDGAME_FOCUS, 1, 0);
+        assert!(e.endgame_score == 1, "Endgame L1 score should be 1");
+        assert!(e.endgame_min_level == 10, "Endgame L1 min_level should be 10");
+
+        // --- Endgame Focus Branch A L3 (Deep End) ---
+        let e = passive_effect_for_skill(SkillIds::ENDGAME_FOCUS, 3, 0);
+        assert!(e.endgame_per_level_x10 == 2, "Deep End L3 should be 2 (=0.2 per level)");
+        assert!(e.endgame_min_level == 0, "Deep End should have min_level 0");
+    }
+
+    #[test]
+    fn test_risk_skills() {
+        // --- Gambit L1 ---
+        let e = passive_effect_for_skill(SkillIds::GAMBIT, 1, 0);
+        assert!(e.gambit_height == 9, "Gambit L1 height should be 9");
+        assert!(e.gambit_cubes == 3, "Gambit L1 cubes should be 3");
+
+        // --- Gambit Branch B L5 (Momentum) ---
+        let e = passive_effect_for_skill(SkillIds::GAMBIT, 5, 1);
+        assert!(e.gambit_height == 6, "Gambit L5B height should be 6");
+        assert!(e.gambit_cubes == 5, "Gambit L5B cubes should be 5");
+
+        // --- High Stakes L1 ---
+        let e = passive_effect_for_skill(SkillIds::HIGH_STAKES, 1, 0);
+        assert!(e.high_stakes_height == 9, "HS L1 height should be 9");
+        assert!(e.high_stakes_cubes == 1, "HS L1 cubes should be 1");
+    }
+
+    #[test]
+    fn test_control_skills() {
+        // --- Harvest L1 ---
+        let e = active_effect_for_skill(SkillIds::HARVEST, 1, 0);
+        assert!(e.blocks_to_destroy == 2, "Harvest L1 should destroy 2 blocks");
+        assert!(e.cubes_per_block_size, "Harvest L1 should earn cubes per block size");
+
+        // --- Harvest Branch B L3 (Injection) ---
+        let e = active_effect_for_skill(SkillIds::HARVEST, 3, 1);
+        assert!(e.lines_to_add == 1, "Injection L3B should add 1 line");
+        assert!(e.cubes_flat == 10, "Injection L3B should give 10 flat cubes");
+
+        // --- Tsunami L1 ---
+        let e = active_effect_for_skill(SkillIds::TSUNAMI, 1, 0);
+        assert!(e.blocks_to_clear == 1, "Tsunami L1 should clear 1 block");
+        assert!(e.rows_to_clear == 0, "Tsunami L1 should not clear rows");
+
+        // --- Tsunami Branch B L3 (Row Clear) ---
+        let e = active_effect_for_skill(SkillIds::TSUNAMI, 3, 1);
+        assert!(e.rows_to_clear == 1, "Tsunami L3B should clear 1 row");
+        assert!(e.blocks_to_clear == 0, "Tsunami L3B should not clear individual blocks");
+
+        // --- Structural Integrity L1 ---
+        let e = passive_effect_for_skill(SkillIds::STRUCTURAL_INTEGRITY, 1, 0);
+        assert!(e.si_height == 9, "SI L1 height should be 9");
+        assert!(e.si_extra_rows == 1, "SI L1 extra_rows should be 1");
+
+        // --- Grid Harmony L1 ---
+        let e = passive_effect_for_skill(SkillIds::GRID_HARMONY, 1, 0);
+        assert!(e.gh_height == 9, "GH L1 height should be 9");
+        assert!(e.gh_extra_rows == 1, "GH L1 extra_rows should be 1");
+        assert!(!e.gh_every_clear, "GH L1 should not be every_clear");
+    }
+
+    #[test]
+    fn test_unknown_active_returns_default() {
+        let e = active_effect_for_skill(99, 3, 0);
+        assert!(e.combo_add == 0, "Unknown skill should return default");
+        assert!(e.score_add == 0, "Unknown skill should return default");
+    }
+
+    // =========================================================================
+    // Aggregation tests
+    // =========================================================================
+
+    #[test]
+    fn test_get_passive_effects() {
+        // --- Empty loadout ---
+        let data = RunDataPackingTrait::new();
+        let passives = get_passive_effects(@data);
+        assert!(passives.rhythm_streak_threshold == 0, "Empty loadout should have no rhythm");
+        assert!(passives.overdrive_cadence == 0, "Empty loadout should have no overdrive");
+        assert!(passives.gambit_height == 0, "Empty loadout should have no gambit");
+
+        // --- Single passive (Overdrive L2) ---
+        let mut data = RunDataPackingTrait::new();
+        data.add_skill(7, 2, 0);
+        let passives = get_passive_effects(@data);
+        assert!(passives.overdrive_cadence == 3, "Should pick up Overdrive L2 cadence=3");
+
+        // --- Active skills ignored ---
+        let mut data = RunDataPackingTrait::new();
+        data.add_skill(1, 3, 0);
+        let passives = get_passive_effects(@data);
+        assert!(passives.rhythm_streak_threshold == 0, "Active should not affect passives");
+        assert!(passives.overdrive_cadence == 0, "Active should not affect passives");
+
+        // --- Multiple passives ---
+        let mut data = RunDataPackingTrait::new();
+        data.add_skill(5, 1, 0);
+        data.add_skill(10, 2, 0);
+        data.add_skill(7, 1, 0);
+        let passives = get_passive_effects(@data);
+        assert!(passives.rhythm_streak_threshold == 12, "Should have Rhythm L1");
+        assert!(passives.gambit_height == 9, "Should have Gambit L2 height=9");
+        assert!(passives.gambit_cubes == 5, "Should have Gambit L2 cubes=5");
+        assert!(passives.overdrive_cadence == 4, "Should have Overdrive L1 cadence=4");
+    }
+
+    // =========================================================================
+    // Branch ID lookup
+    // =========================================================================
+
+    #[test]
+    fn test_get_branch_id_for_skill() {
+        let mut tree = SkillTreeDataPackingTrait::new();
+        tree.set_skill(3, SkillInfo { level: 4, branch_chosen: true, branch_id: 1 });
+        tree.set_skill(7, SkillInfo { level: 5, branch_chosen: true, branch_id: 0 });
+        let packed = tree.pack();
+
+        assert!(get_branch_id_for_skill(packed, 3) == 1, "Skill 3 should be branch B");
+        assert!(get_branch_id_for_skill(packed, 7) == 0, "Skill 7 should be branch A");
+        assert!(get_branch_id_for_skill(packed, 1) == 0, "Unset skill should be branch 0");
+    }
 }

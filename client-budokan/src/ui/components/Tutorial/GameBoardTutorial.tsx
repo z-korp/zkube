@@ -102,22 +102,22 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
 
   const handleBonusScoreClick = () => {
     if (scoreCount === 0) return;
-    if (bonus === BonusType.Score) {
+    if (bonus === BonusType.Momentum) {
       setBonus(BonusType.None);
       setBonusDescription("");
     } else {
-      setBonus(BonusType.Score);
+      setBonus(BonusType.Momentum);
       setBonusDescription("Select a block size to harvest");
     }
   };
 
   const handleBonusComboClick = () => {
     if (comboCount === 0) return;
-    if (bonus === BonusType.Combo) {
+    if (bonus === BonusType.ComboSurge) {
       setBonus(BonusType.None);
       setBonusDescription("");
     } else {
-      setBonus(BonusType.Combo);
+      setBonus(BonusType.ComboSurge);
       setBonusDescription("Select a block for combo bonus");
     }
   };
@@ -141,7 +141,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
     try {
       // await applyBonus({
       //   account: account as Account,
-      //   bonus: new Bonus(BonusType.Combo).into(),
+      //   bonus: new Bonus(BonusType.ComboSurge).into(),
       //   row_index: ROWS - rowIndex - 1,
       //   block_index: colIndex,
       // });
@@ -155,7 +155,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
     try {
       // await applyBonus({
       //   account: account as Account,
-      //   bonus: new Bonus(BonusType.Score).into(),
+      //   bonus: new Bonus(BonusType.Momentum).into(),
       //   row_index: ROWS - rowIndex - 1,
       //   block_index: colIndex,
       // });
@@ -170,9 +170,9 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
 
       if (bonus === BonusType.Harvest) {
         handleBonusWaveTx();
-      } else if (bonus === BonusType.Score) {
+      } else if (bonus === BonusType.Momentum) {
         handleBonusScoreTx();
-      } else if (bonus === BonusType.Combo) {
+      } else if (bonus === BonusType.ComboSurge) {
         handleBonusComboTx();
       }
     },
@@ -249,7 +249,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
                   urlImage={imgAssets.combo}
                   bonusCount={comboCount}
                   tooltipText="Add combo to next move"
-                  bonusName={BonusType.Combo}
+                  bonusName={BonusType.ComboSurge}
                   bonus={bonus}
                   disabled={disableCombo}
                   highlighted={highlightedCombo}
@@ -273,7 +273,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
                   urlImage={imgAssets.score}
                   bonusCount={scoreCount}
                   tooltipText="Add bonus score"
-                  bonusName={BonusType.Score}
+                  bonusName={BonusType.Momentum}
                   bonus={bonus}
                   disabled={disableScore}
                   highlighted={highlightedScore}

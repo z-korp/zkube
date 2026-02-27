@@ -136,16 +136,9 @@ export interface StoredDraftPick {
 
 export type DraftNodePhase = "entry" | "mid";
 
-const getDraftPickForSlot = (selectedPicks: bigint, slot: number): number => {
-  if (slot < 0 || slot >= 10) return 0;
-  const shift = BigInt(slot * 8);
-  return Number((selectedPicks >> shift) & 0xffn);
-};
-
-const isDraftSlotCompleted = (completedMask: number, slot: number): boolean => {
-  if (slot < 0 || slot >= 16) return false;
-  return (completedMask & (1 << slot)) !== 0;
-};
+// vNext: completedMask/selectedPicks removed from DraftState.
+// Draft completion is now tracked by draftState.active + picksMade.
+// These helpers are kept for backward compatibility with MapPage.
 
 const toStoredDraftPick = (skillId: number): StoredDraftPick | null => {
   const skill = getSkillById(skillId);
@@ -162,25 +155,22 @@ const toStoredDraftPick = (skillId: number): StoredDraftPick | null => {
 
 export const isDraftEventCompleted = (
   draftState: DraftStateData | null,
-  event: PendingDraftEvent,
+  _event: PendingDraftEvent,
 ): boolean => {
   if (!draftState) return false;
-  const slot = getDraftEventSlot(event);
-  return isDraftSlotCompleted(draftState.completedMask, slot);
+  // vNext: draft is completed when it is no longer active
+  return !draftState.active;
 };
 
 export const getStoredDraftPick = (
   draftState: DraftStateData | null,
-  event: PendingDraftEvent,
+  _event: PendingDraftEvent,
 ): StoredDraftPick | null => {
   if (!draftState) return null;
-  const slot = getDraftEventSlot(event);
-  if (!isDraftSlotCompleted(draftState.completedMask, slot)) {
-    return null;
-  }
-
-  const code = getDraftPickForSlot(draftState.selectedPicks, slot);
-  return toStoredDraftPick(code);
+  // vNext: return the last selected choice if draft is completed
+  if (draftState.active) return null;
+  if (draftState.selectedChoice === 0) return null;
+  return toStoredDraftPick(draftState.selectedChoice);
 };
 
 export const getDraftEventForZoneNode = (

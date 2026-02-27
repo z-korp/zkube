@@ -1,5 +1,4 @@
 use alexandria_math::BitShift;
-use alexandria_math::fast_power::fast_power;
 use core::hash::HashStateTrait;
 use core::num::traits::zero::Zero;
 use core::poseidon::{HashState, PoseidonTrait};
@@ -163,34 +162,22 @@ pub impl GameImpl of GameTrait {
         self.get_run_data().total_cubes
     }
 
-    /// Get combo bonus count from inventory
+    /// Get charges for slot 0
     #[inline(always)]
-    fn get_combo_count(self: Game) -> u8 {
-        self.get_run_data().get_bonus_charges(1)
+    fn get_slot_0_charges(self: Game) -> u8 {
+        self.get_run_data().get_active_charges(0)
     }
 
-    /// Get score bonus count from inventory
+    /// Get charges for slot 1
     #[inline(always)]
-    fn get_score_count(self: Game) -> u8 {
-        self.get_run_data().get_bonus_charges(2)
+    fn get_slot_1_charges(self: Game) -> u8 {
+        self.get_run_data().get_active_charges(1)
     }
 
-    /// Get harvest bonus count from inventory
+    /// Get charges for slot 2
     #[inline(always)]
-    fn get_harvest_count(self: Game) -> u8 {
-        self.get_run_data().get_bonus_charges(3)
-    }
-
-    /// Get wave bonus count from inventory
-    #[inline(always)]
-    fn get_wave_count(self: Game) -> u8 {
-        self.get_run_data().get_bonus_charges(4)
-    }
-
-    /// Get supply bonus count from inventory
-    #[inline(always)]
-    fn get_supply_count(self: Game) -> u8 {
-        self.get_run_data().get_bonus_charges(5)
+    fn get_slot_2_charges(self: Game) -> u8 {
+        self.get_run_data().get_active_charges(2)
     }
 
     /// Check if bonus was used this level (for NoBonusUsed constraint)
@@ -217,11 +204,11 @@ pub impl GameImpl of GameTrait {
         self.get_run_data().constraint_3_progress
     }
 
-    /// Get the level for a given bonus skill id
-    /// @param bonus_type: 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
-    fn get_bonus_level(self: Game, bonus_type: u8) -> u8 {
+    /// Get the run-level for a given slot
+    /// @param slot: 0, 1, or 2
+    fn get_active_level(self: Game, slot: u8) -> u8 {
         let run_data = self.get_run_data();
-        run_data.get_bonus_level(bonus_type)
+        run_data.get_active_level(slot)
     }
 
     /// Get total score (cumulative across all levels)
@@ -235,7 +222,7 @@ pub impl GameImpl of GameTrait {
     fn assess_over(ref self: Game) {
         let exp: u256 = (constants::DEFAULT_GRID_HEIGHT.into() - 1)
             * constants::ROW_BIT_COUNT.into();
-        let div: u256 = fast_power(2, exp) - 1;
+        let div: u256 = BitShift::shl(1_u256, exp) - 1;
         self.over = self.blocks.into() / div > 0;
     }
 
@@ -360,7 +347,8 @@ pub impl GameAssert of AssertTrait {
     #[inline(always)]
     fn assert_bonus_available(self: Game, bonus: Bonus) {
         let run_data = self.get_run_data();
-        let count = run_data.get_bonus_charges(bonus.to_type_code());
+        let skill_id = bonus.to_type_code();
+        let count = run_data.get_active_charges(skill_id);
         assert!(count > 0, "Game {} bonus is not available", self.game_id);
     }
 }

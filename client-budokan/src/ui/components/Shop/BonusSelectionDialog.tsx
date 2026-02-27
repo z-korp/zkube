@@ -21,11 +21,10 @@ interface BonusSelectionDialogProps {
 }
 
 const ALL_BONUSES: BonusType[] = [
-  BonusType.Combo,
-  BonusType.Score,
+  BonusType.ComboSurge,
+  BonusType.Momentum,
   BonusType.Harvest,
-  BonusType.Wave,
-  BonusType.Supply,
+  BonusType.Tsunami,
 ];
 
 const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
@@ -34,7 +33,7 @@ const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
   onConfirm,
   shrinkUnlocked,
   shuffleUnlocked,
-  initialSelection = [BonusType.Combo, BonusType.Harvest, BonusType.Score],
+  initialSelection = [BonusType.ComboSurge, BonusType.Harvest, BonusType.Momentum],
 }) => {
   const { themeTemplate } = useTheme();
   const { playSfx } = useMusicPlayer();
@@ -49,25 +48,22 @@ const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
   }, [isOpen, initialSelection]);
 
   const unlockedMap = useMemo(() => ({
-    [BonusType.Combo]: true,
-    [BonusType.Score]: true,
+    [BonusType.ComboSurge]: true,
+    [BonusType.Momentum]: true,
     [BonusType.Harvest]: true,
-    [BonusType.Wave]: shrinkUnlocked,
-    [BonusType.Supply]: shuffleUnlocked,
+    [BonusType.Tsunami]: shrinkUnlocked,
   }), [shrinkUnlocked, shuffleUnlocked]);
 
   const getBonusIcon = (type: BonusType): string => {
     switch (type) {
-      case BonusType.Combo:
+      case BonusType.ComboSurge:
         return imgAssets.combo;
-      case BonusType.Score:
+      case BonusType.Momentum:
         return imgAssets.score;
       case BonusType.Harvest:
         return imgAssets.harvest;
-      case BonusType.Wave:
+      case BonusType.Tsunami:
         return imgAssets.wave;
-      case BonusType.Supply:
-        return imgAssets.supply;
       default:
         return "";
     }

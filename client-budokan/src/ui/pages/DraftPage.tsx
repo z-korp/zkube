@@ -419,11 +419,11 @@ const DraftPage: React.FC = () => {
                             className="max-w-[220px] bg-slate-800 border border-amber-500/30 text-slate-100 px-3 py-2"
                             side="right"
                           >
-                            <p className="font-semibold text-xs text-amber-300">Branch Point at Lv5</p>
+                            <p className="font-semibold text-xs text-amber-300">Branch Point at Lv{BRANCH_POINT_LEVEL}</p>
                             {choice.skill && (
                               <div className="mt-1 text-[10px] text-slate-300 space-y-0.5">
-                                <p>A: {choice.skill.branchA} — {getSkillEffectDescription(choice.skillId, 5, 1)}</p>
-                                <p>B: {choice.skill.branchB} — {getSkillEffectDescription(choice.skillId, 5, 2)}</p>
+                                <p>A: {choice.skill.branchA} — {getSkillEffectDescription(choice.skillId, BRANCH_POINT_LEVEL + 1, 1)}</p>
+                                <p>B: {choice.skill.branchB} — {getSkillEffectDescription(choice.skillId, BRANCH_POINT_LEVEL + 1, 2)}</p>
                               </div>
                             )}
                           </TooltipContent>

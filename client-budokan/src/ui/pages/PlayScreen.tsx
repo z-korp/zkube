@@ -275,14 +275,12 @@ const PlayScreen: React.FC = () => {
     switch (type) {
       case BonusType.Harvest:
         return "Select a block size to harvest";
-      case BonusType.Score:
+      case BonusType.Momentum:
         return "Apply instant score bonus";
-      case BonusType.Combo:
+      case BonusType.ComboSurge:
         return "Apply combo bonus";
-      case BonusType.Wave:
+      case BonusType.Tsunami:
         return "Select rows to clear";
-      case BonusType.Supply:
-        return "Add a new line for free";
       default:
         return "";
     }
@@ -299,11 +297,10 @@ const PlayScreen: React.FC = () => {
     (type: BonusType, level: number = 0): string => {
       const skillName = (() => {
         switch (type) {
-          case BonusType.Combo: return "combo";
-          case BonusType.Score: return "score";
+          case BonusType.ComboSurge: return "combo";
+          case BonusType.Momentum: return "score";
           case BonusType.Harvest: return "harvest";
-          case BonusType.Wave: return "wave";
-          case BonusType.Supply: return "supply";
+          case BonusType.Tsunami: return "wave";
           default: return "";
         }
       })();
@@ -322,7 +319,7 @@ const PlayScreen: React.FC = () => {
       if (count === 0) return;
 
       // Instant bonuses (no grid targeting) — confirm dialog
-      if (type === BonusType.Supply || type === BonusType.Combo || type === BonusType.Score) {
+      if (type === BonusType.ComboSurge || type === BonusType.Momentum) {
         playSfx("click");
         setConfirmingBonus(type);
         return;
@@ -408,11 +405,9 @@ const PlayScreen: React.FC = () => {
 
   const getConfirmBonusDescription = useCallback((type: BonusType, level: number): string => {
     switch (type) {
-      case BonusType.Supply:
-        return `Add ${level + 1} line${level > 0 ? "s" : ""} to the grid (no move cost).`;
-      case BonusType.Combo:
+      case BonusType.ComboSurge:
         return `Add +${level + 1} combo to your next move.`;
-      case BonusType.Score:
+      case BonusType.Momentum:
         return `Instantly add +${(level + 1) * 10} points to your score.`;
       default:
         return "";
@@ -455,7 +450,7 @@ const PlayScreen: React.FC = () => {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
-              Use {confirmingBonus === BonusType.Supply ? "Supply" : confirmingBonus === BonusType.Combo ? "Combo" : "Score"}?
+              Use {confirmingBonus === BonusType.ComboSurge ? "Combo" : "Score"}?
             </DialogTitle>
             <DialogDescription>
               {confirmingBonus && getConfirmBonusDescription(confirmingBonus, confirmingBonusLevel)}

@@ -92,12 +92,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
     async (block: Block) => {
       if (activeBonus === BonusType.Harvest) {
         handleBonusTx(BonusType.Harvest, block.y, block.x);
-      } else if (activeBonus === BonusType.Score) {
-        handleBonusTx(BonusType.Score, block.y, block.x);
-      } else if (activeBonus === BonusType.Combo) {
-        handleBonusTx(BonusType.Combo, block.y, block.x);
-      } else if (activeBonus === BonusType.Wave) {
-        handleBonusTx(BonusType.Wave, block.y, block.x);
+      } else if (activeBonus === BonusType.Momentum) {
+        handleBonusTx(BonusType.Momentum, block.y, block.x);
+      } else if (activeBonus === BonusType.ComboSurge) {
+        handleBonusTx(BonusType.ComboSurge, block.y, block.x);
+      } else if (activeBonus === BonusType.Tsunami) {
+        handleBonusTx(BonusType.Tsunami, block.y, block.x);
       } else if (activeBonus === BonusType.None) {
         // No bonus selected
       }

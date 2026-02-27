@@ -289,7 +289,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
             gridPosition.top + b.y * gridSize
           );
         });
-      } else if (bonus === BonusType.Score) {
+      } else if (bonus === BonusType.Momentum) {
         setBlocks((prevBlocks) => {
           const updatedBlocks = removeBlocksSameWidth(block, prevBlocks);
           return updatedBlocks;
@@ -301,7 +301,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
             gridPosition.top + b.y * gridSize
           );
         });
-      } else if (bonus === BonusType.Combo) {
+      } else if (bonus === BonusType.ComboSurge) {
         setBlocks((prevBlocks) => {
           const updatedBlocks = removeBlockId(block, prevBlocks);
           return updatedBlocks;

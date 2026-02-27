@@ -4,7 +4,8 @@
 //! - Block swipes (Controller)
 //! - Gravity and line clearing
 //! - Line creation and insertion
-//! - All bonus implementations
+//! - All active skill implementations
+//! - Passive skill hooks during move resolution
 //!
 //! Other systems call this via dispatcher to avoid importing heavy dependencies.
 
@@ -31,7 +32,7 @@ pub trait IGridSystem<T> {
         skill_data: felt252,
     ) -> (u8, bool);
 
-    /// Apply a bonus effect to the grid.
+    /// Apply an active skill effect to the grid.
     /// Returns lines_cleared
     fn apply_bonus(
         ref self: T, game_id: u64, bonus: Bonus, row_index: u8, col_index: u8, skill_data: felt252,
@@ -47,16 +48,16 @@ pub trait IGridSystem<T> {
 
 #[dojo::contract]
 mod grid_system {
-    use alexandria_math::fast_power::fast_power;
+    use alexandria_math::BitShift;
     use core::hash::HashStateTrait;
     use core::poseidon::{HashState, PoseidonTrait};
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
     use zkube::constants::{self, DEFAULT_NS};
 
-    // Import bonus implementations (only grid-modifying bonuses need element files)
+    // Import bonus element files for grid-modifying operations
     use zkube::elements::bonuses::harvest;
-    use zkube::elements::bonuses::wave;
+    use zkube::elements::bonuses::tsunami;
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::controller::Controller;
     use zkube::helpers::packing::RunDataHelpersTrait;
@@ -64,11 +65,11 @@ mod grid_system {
     use zkube::helpers::scoring::{
         process_lines_cleared, saturating_add_u16, saturating_add_u8, update_score,
     };
+    use zkube::helpers::skill_effects::{
+        ActiveEffect, PassiveEffect, active_effect_for_skill, get_passive_effects,
+    };
     use zkube::models::config::GameSettings;
     use zkube::models::game::{Game, GameLevel, GameSeed, GameTrait};
-    use zkube::systems::skill_effects::{
-        ISkillEffectsSystemDispatcher, ISkillEffectsSystemDispatcherTrait,
-    };
     use zkube::types::bonus::{Bonus, BonusTrait};
     use zkube::types::constraint::{
         ConstraintContext, LevelConstraint, LevelConstraintTrait, any_needs_break_blocks,
@@ -96,21 +97,20 @@ mod grid_system {
             game.next_row = Controller::create_line(level_seed, difficulty, settings);
 
             // Fill grid until it has at least 4 rows of blocks
-            let div: u256 = fast_power(2_u256, 4 * constants::ROW_BIT_COUNT.into()) - 1;
+            let div: u256 = BitShift::shl(1_u256, 4 * constants::ROW_BIT_COUNT.into()) - 1;
             loop {
                 if game.blocks.into() / div > 0 {
                     break;
                 }
-                // Insert the next_row and generate a new one
                 let new_seed = InternalImpl::generate_seed(game.blocks, base_seed.level_seed, 1);
                 let new_next_row = Controller::create_line(new_seed, difficulty, settings);
                 game.blocks = Controller::add_line(game.blocks, game.next_row);
                 game.next_row = new_next_row;
 
-                // Apply gravity and clear any lines
                 let mut counter: u8 = 0;
-                InternalImpl::assess_game(ref game.blocks, ref counter);
-            }
+                let mut _cascade: u8 = 0;
+                InternalImpl::assess_game(ref game.blocks, ref counter, ref _cascade);
+            };
 
             world.write_model(@game);
         }
@@ -133,12 +133,11 @@ mod grid_system {
             game.next_row = Controller::create_line(level_seed, difficulty, settings);
 
             // Fill grid until it has at least 4 rows of blocks
-            let div: u256 = fast_power(2_u256, 4 * constants::ROW_BIT_COUNT.into()) - 1;
+            let div: u256 = BitShift::shl(1_u256, 4 * constants::ROW_BIT_COUNT.into()) - 1;
             loop {
                 if game.blocks.into() / div > 0 {
                     break;
                 }
-                // Insert the next_row and generate a new one
                 let new_seed = InternalImpl::generate_seed(
                     game.blocks, base_seed.level_seed, current_level,
                 );
@@ -146,10 +145,10 @@ mod grid_system {
                 game.blocks = Controller::add_line(game.blocks, game.next_row);
                 game.next_row = new_next_row;
 
-                // Apply gravity and clear any lines
                 let mut counter: u8 = 0;
-                InternalImpl::assess_game(ref game.blocks, ref counter);
-            }
+                let mut _cascade: u8 = 0;
+                InternalImpl::assess_game(ref game.blocks, ref counter, ref _cascade);
+            };
 
             world.write_model(@game);
         }
@@ -170,12 +169,9 @@ mod grid_system {
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
 
             let mut run_data = game.get_run_data();
-            let (skill_effects_addr, _) = world.dns(@"skill_effects_system").unwrap();
-            let skill_effects_dispatcher = ISkillEffectsSystemDispatcher {
-                contract_address: skill_effects_addr,
-            };
-            let world_effects = skill_effects_dispatcher
-                .get_world_effects(game.run_data, skill_data);
+
+            // Get aggregated passive effects from all passive skills in loadout
+            let passives = get_passive_effects(@run_data);
 
             // Validate move limit
             assert!(run_data.level_moves.into() < game_level.max_moves, "Move limit exceeded");
@@ -207,10 +203,13 @@ mod grid_system {
             } else {
                 0
             };
-            let blocks_before = if track_break_blocks {
-                game.blocks
+            let (break_count_before, break_added_count) = if track_break_blocks {
+                (
+                    InternalImpl::count_blocks_of_size(game.blocks, break_target_size),
+                    InternalImpl::count_blocks_of_size_in_row(game.next_row, break_target_size),
+                )
             } else {
-                0
+                (0_u8, 0_u8)
             };
 
             // Perform the swipe
@@ -224,9 +223,12 @@ mod grid_system {
                 game.blocks, row_index, start_index, direction, count,
             );
 
-            // Assess and score (gravity + line clearing)
+            // Assess and score (gravity + line clearing) with cascade depth tracking
             let mut lines_cleared: u8 = 0;
-            let points = InternalImpl::assess_game(ref new_blocks, ref lines_cleared);
+            let mut cascade_depth: u8 = 0;
+            let points = InternalImpl::assess_game(
+                ref new_blocks, ref lines_cleared, ref cascade_depth,
+            );
             update_score(ref run_data, points);
 
             // Check grid full
@@ -251,169 +253,158 @@ mod grid_system {
             new_blocks = new_blocks_after_insert;
 
             // Assess again after new line
-            let more_points = InternalImpl::assess_game(ref new_blocks, ref lines_cleared);
+            let mut cascade_depth_2: u8 = 0;
+            let more_points = InternalImpl::assess_game(
+                ref new_blocks, ref lines_cleared, ref cascade_depth_2,
+            );
             update_score(ref run_data, more_points);
+            // Use the max cascade depth from both phases
+            if cascade_depth_2 > cascade_depth {
+                cascade_depth = cascade_depth_2;
+            }
 
-            if world_effects.surge_score_percent > 0 {
-                let total_points_u32: u32 = points.into() + more_points.into();
-                if total_points_u32 > 0 {
-                    let mut total_pct = world_effects.surge_score_percent;
-                    if world_effects.surge_per_level_percent > 0 && run_data.current_level > 1 {
-                        let level_scale: u16 = world_effects.surge_per_level_percent.into()
-                            * (run_data.current_level - 1).into();
-                        total_pct += level_scale;
-                    }
-                    let surge_bonus_u32: u32 = (total_points_u32 * total_pct.into()) / 100;
-                    if surge_bonus_u32 > 0 {
-                        let surge_bonus: u16 = if surge_bonus_u32 > 65535_u32 {
-                            65535_u16
-                        } else {
-                            surge_bonus_u32.try_into().unwrap()
-                        };
-                        update_score(ref run_data, surge_bonus);
+            // === PASSIVE SKILL HOOKS ===
+
+            // Combo Surge Flow (Branch B): add combo depth for the level
+            if run_data.combo_surge_flow_active {
+                // Flow adds combo depth to every move for the rest of the level
+                // The flow_depth was set when the charge was used — look it up from the active effect
+                let cs_slot = run_data.find_skill_slot(1); // Combo Surge = skill ID 1
+                if cs_slot != 255 {
+                    let cs_level = run_data.get_slot_level(cs_slot);
+                    let cs_branch = run_data.get_slot_branch(cs_slot);
+                    let cs_effect = active_effect_for_skill(1, cs_level, cs_branch);
+                    if cs_effect.combo_surge_flow_depth > 0 {
+                        game
+                            .combo_counter =
+                                saturating_add_u8(
+                                    game.combo_counter, cs_effect.combo_surge_flow_depth,
+                                );
                     }
                 }
             }
 
-            // Update combos and award cubes
+            // Rhythm (ID 5): combo_streak → combo depth
+            if passives.rhythm_streak_threshold > 0 && game.combo_counter > 0 {
+                let rhythm_procs = game.combo_counter / passives.rhythm_streak_threshold;
+                if rhythm_procs > 0 {
+                    let rhythm_combo = rhythm_procs * passives.rhythm_combo_add;
+                    game.combo_counter = saturating_add_u8(game.combo_counter, rhythm_combo);
+                }
+            }
+
+            // Cascade Mastery (ID 6): cascade_depth → combo depth
+            if passives.cascade_depth_threshold > 0
+                && cascade_depth >= passives.cascade_depth_threshold {
+                game
+                    .combo_counter =
+                        saturating_add_u8(game.combo_counter, passives.cascade_combo_add);
+            }
+
+            // Update combos and award cube bonuses for multi-line clears
             process_lines_cleared(
                 ref run_data, ref game.combo_counter, ref game.max_combo, lines_cleared,
             );
 
-            if world_effects.catalyst_threshold_reduction > 0
-                || world_effects.catalyst_bonus_cubes > 0
-                || world_effects.catalyst_bonus_score > 0
-                || world_effects.catalyst_free_moves_on_combo > 0 {
-                let effective_lines = saturating_add_u8(
-                    lines_cleared, world_effects.catalyst_threshold_reduction,
-                );
-
-                // Combo-cube payouts are removed globally.
-                // Catalyst can still add explicit cubes/score/free-moves as bounded effects.
-
-                if effective_lines > 1 && world_effects.catalyst_bonus_cubes > 0 {
-                    run_data
-                        .total_cubes =
-                            saturating_add_u16(
-                                run_data.total_cubes, world_effects.catalyst_bonus_cubes.into(),
-                            );
-                }
-
-                if effective_lines > 0 && world_effects.catalyst_bonus_score > 0 {
-                    let catalyst_bonus_score: u16 = effective_lines.into()
-                        * world_effects.catalyst_bonus_score.into();
-                    update_score(ref run_data, catalyst_bonus_score);
-                }
-
-                if effective_lines > 1 && world_effects.catalyst_free_moves_on_combo > 0 {
-                    run_data
-                        .free_moves =
-                            scoring::saturating_add_u8_capped(
-                                run_data.free_moves, world_effects.catalyst_free_moves_on_combo, 15,
-                            );
-                }
-            }
-
-            // Count destroyed blocks of target size if tracking BreakBlocks
-            let blocks_destroyed_of_target_size = if track_break_blocks {
-                InternalImpl::count_blocks_of_size_diff(
-                    blocks_before, new_blocks, break_target_size,
-                )
-            } else {
-                0
-            };
-
-            // Compute highest occupied row AFTER the move resolves (post-gravity, post-line-clear)
-            let highest_row_after = if new_blocks == 0 {
+            // Compute grid height once — recompute only when grid is modified below
+            let mut current_height: u8 = if new_blocks == 0 {
                 0
             } else {
                 InternalImpl::highest_occupied_row(new_blocks)
             };
 
-            if world_effects.resilience_regen_on_clear > 0
-                && lines_cleared >= world_effects.resilience_regen_on_clear {
-                run_data
-                    .free_moves =
-                        scoring::saturating_add_u8_capped(
-                            run_data.free_moves, world_effects.resilience_regen_amount, 15,
-                        );
-            }
-
-            if lines_cleared > 0 {
-                if world_effects.momentum_score_per_consec > 0 {
-                    update_score(ref run_data, world_effects.momentum_score_per_consec.into());
-                }
-
-                if world_effects.momentum_streak_cube_threshold > 0
-                    && lines_cleared >= world_effects.momentum_streak_cube_threshold
-                    && world_effects.momentum_streak_cubes > 0 {
-                    run_data
-                        .total_cubes =
-                            saturating_add_u16(
-                                run_data.total_cubes, world_effects.momentum_streak_cubes.into(),
-                            );
-                }
-
-                if world_effects.momentum_move_refund > 0 {
-                    run_data
-                        .free_moves =
-                            scoring::saturating_add_u8_capped(
-                                run_data.free_moves, world_effects.momentum_move_refund, 15,
-                            );
-                }
-
-                if world_effects.momentum_combo_on_streak > 0 {
-                    game
-                        .combo_counter =
-                            saturating_add_u8(
-                                game.combo_counter, world_effects.momentum_combo_on_streak,
-                            );
-                }
-            }
-
-            if world_effects.adrenaline_row_threshold > 0
-                && highest_row_after >= world_effects.adrenaline_row_threshold
+            // High Stakes (ID 9): grid height → cubes per clear
+            if passives.high_stakes_height > 0
+                && current_height >= passives.high_stakes_height
                 && lines_cleared > 0 {
-                if world_effects.adrenaline_score_per_clear > 0 {
-                    let adrenaline_score: u16 = lines_cleared.into()
-                        * world_effects.adrenaline_score_per_clear.into();
-                    update_score(ref run_data, adrenaline_score);
-                }
-
-                if world_effects.adrenaline_cubes_per_clear > 0 {
-                    let adrenaline_cubes: u16 = lines_cleared.into()
-                        * world_effects.adrenaline_cubes_per_clear.into();
-                    run_data
-                        .total_cubes = saturating_add_u16(run_data.total_cubes, adrenaline_cubes);
-                }
-
-                if world_effects.adrenaline_combo_multiplier > 1 {
-                    let extra_combo_u16: u16 = lines_cleared.into()
-                        * (world_effects.adrenaline_combo_multiplier - 1).into();
-                    let extra_combo: u8 = if extra_combo_u16 > 255_u16 {
-                        255_u8
-                    } else {
-                        extra_combo_u16.try_into().unwrap()
-                    };
-                    game.combo_counter = saturating_add_u8(game.combo_counter, extra_combo);
-                }
-
-                if world_effects.adrenaline_free_moves > 0
-                    && lines_cleared >= world_effects.adrenaline_free_moves_threshold {
-                    run_data
-                        .free_moves =
-                            scoring::saturating_add_u8_capped(
-                                run_data.free_moves, world_effects.adrenaline_free_moves, 15,
-                            );
-                }
+                let hs_cubes: u16 = lines_cleared.into() * passives.high_stakes_cubes.into();
+                run_data.total_cubes = saturating_add_u16(run_data.total_cubes, hs_cubes);
             }
 
-            // Build ConstraintContext
+            // Gambit (ID 10): track if grid reached threshold height
+            if passives.gambit_height > 0
+                && !run_data.gambit_triggered_this_level
+                && current_height >= passives.gambit_height {
+                run_data.gambit_triggered_this_level = true;
+            }
+
+            // Structural Integrity (ID 11): high grid → extra row removal on first line clear
+            if passives.si_height > 0
+                && current_height >= passives.si_height
+                && lines_cleared > 0 {
+                // Remove extra rows from the bottom
+                let mut extra: u8 = 0;
+                loop {
+                    if extra >= passives.si_extra_rows {
+                        break;
+                    }
+                    // Clear bottom row (row 0) and apply gravity
+                    new_blocks = tsunami::clear_row(new_blocks, 0);
+                    let mut si_counter: u8 = 0;
+                    let mut _si_cascade: u8 = 0;
+                    InternalImpl::assess_game(ref new_blocks, ref si_counter, ref _si_cascade);
+                    extra += 1;
+                };
+                // Grid was modified by SI — recompute height
+                current_height = if new_blocks == 0 {
+                    0
+                } else {
+                    InternalImpl::highest_occupied_row(new_blocks)
+                };
+            }
+
+            // Grid Harmony (ID 12): high grid → extra row removal
+            // current_height already accounts for SI modifications
+            if passives.gh_height > 0
+                && current_height >= passives.gh_height
+                && lines_cleared > 0 {
+                let gh_rows = if passives.gh_every_clear {
+                    // Every clear: apply for each line cleared
+                    lines_cleared * passives.gh_extra_rows
+                } else {
+                    // Next clear only: apply once
+                    passives.gh_extra_rows
+                };
+                let mut extra: u8 = 0;
+                loop {
+                    if extra >= gh_rows {
+                        break;
+                    }
+                    new_blocks = tsunami::clear_row(new_blocks, 0);
+                    let mut gh_counter: u8 = 0;
+                    let mut _gh_cascade: u8 = 0;
+                    InternalImpl::assess_game(ref new_blocks, ref gh_counter, ref _gh_cascade);
+                    extra += 1;
+                };
+                // Grid was modified by GH — recompute height
+                current_height = if new_blocks == 0 {
+                    0
+                } else {
+                    InternalImpl::highest_occupied_row(new_blocks)
+                };
+            }
+
+            // Count destroyed blocks of target size using total count approach
+            // Positional diff is wrong because blocks shift (gravity, new line insertion)
+            let blocks_destroyed_of_target_size = if track_break_blocks {
+                let count_after = InternalImpl::count_blocks_of_size(
+                    new_blocks, break_target_size,
+                );
+                let total_available: u8 = break_count_before + break_added_count;
+                if total_available > count_after {
+                    total_available - count_after
+                } else {
+                    0
+                }
+            } else {
+                0
+            };
+
             let ctx = ConstraintContext {
                 lines_cleared,
                 combo_counter: game.combo_counter,
                 highest_row_before,
-                highest_row_after,
+                highest_row_after: current_height,
                 grid_is_empty: new_blocks == 0,
                 blocks_destroyed_of_target_size,
             };
@@ -432,16 +423,9 @@ mod grid_system {
             // Increment level moves (or consume free move)
             if run_data.free_moves > 0 {
                 run_data.free_moves -= 1;
-                if world_effects.resilience_score_per_free > 0 {
-                    update_score(ref run_data, world_effects.resilience_score_per_free.into());
-                }
             } else {
                 run_data.level_moves += 1;
             }
-
-            // Charge rewards are handled in level_system at level completion:
-            // - cadence source (every 5 levels)
-            // - highest combo-tier source (once per level)
 
             // If grid is empty after all that, add another line
             if new_blocks == 0 {
@@ -483,267 +467,127 @@ mod grid_system {
 
             let mut run_data = game.get_run_data();
 
-            // Check bonus availability
-            let available = run_data.get_bonus_charges(bonus.to_type_code()) > 0;
-            assert!(available, "Bonus not available");
+            // Get skill_id from bonus enum
+            let skill_id = bonus.to_type_code();
 
-            // Get bonus level
-            let bonus_type_u8 = bonus.to_type_code();
-            let bonus_level = run_data.get_bonus_level(bonus_type_u8);
-            let (skill_effects_addr, _) = world.dns(@"skill_effects_system").unwrap();
-            let skill_effects_dispatcher = ISkillEffectsSystemDispatcher {
-                contract_address: skill_effects_addr,
-            };
-            let branch_id = skill_effects_dispatcher.get_branch_id(skill_data, bonus_type_u8);
-            let effect = skill_effects_dispatcher
-                .get_bonus_effect(bonus_type_u8, bonus_level, branch_id);
+            // Check availability
+            let available = run_data.get_active_charges(skill_id) > 0;
+            assert!(available, "Active skill not available");
 
-            // Apply bonus effect
+            // Get effect for this skill at its run level and branch
+            let skill_level = run_data.get_active_level(skill_id);
+            let branch_id = run_data.get_active_branch(skill_id);
+            let effect = active_effect_for_skill(skill_id, skill_level, branch_id);
+
             let mut new_blocks = game.blocks;
             let mut new_next_row = game.next_row;
 
             match bonus {
-                Bonus::Combo => {
-                    game.combo_counter = saturating_add_u8(game.combo_counter, effect.combo_add);
-
-                    if effect.combo_add_from_score > 0 {
+                Bonus::ComboSurge => {
+                    if effect.combo_surge_flow {
+                        // Branch B: set level-wide flag (combo depth applied every move)
+                        if !run_data.combo_surge_flow_active {
+                            run_data.combo_surge_flow_active = true;
+                        }
+                        // Also apply immediately this move
                         game
                             .combo_counter =
-                                saturating_add_u8(game.combo_counter, effect.combo_add_from_score);
-                    }
-
-                    if effect.cube_per_use > 0 {
-                        run_data
-                            .total_cubes =
-                                saturating_add_u16(
-                                    run_data.total_cubes, effect.cube_per_use.into(),
+                                saturating_add_u8(
+                                    game.combo_counter, effect.combo_surge_flow_depth,
                                 );
+                    } else {
+                        // Branch A: immediate combo add
+                        game.combo_counter = saturating_add_u8(game.combo_counter, effect.combo_add);
                     }
                 },
-                Bonus::Score => {
+                Bonus::Momentum => {
+                    // Score burst: either per-zone or flat
                     let mut score: u16 = effect.score_add;
-
-                    if effect.score_doubles_under_moves > 0 {
-                        let moves_remaining: u16 = game_level.max_moves
-                            - run_data.level_moves.into();
-                        if moves_remaining <= effect.score_doubles_under_moves.into() {
-                            if effect.score_triples {
-                                score *= 3;
-                            } else {
-                                score *= 2;
-                            }
-                        }
+                    if effect.score_per_zone > 0 {
+                        // Zone = ceil(current_level / 10)
+                        let zones_cleared: u16 = if run_data.current_level == 0 {
+                            0
+                        } else {
+                            ((run_data.current_level - 1) / 10 + 1).into()
+                        };
+                        score += effect.score_per_zone.into() * zones_cleared;
                     }
-
                     update_score(ref run_data, score);
-
-                    if effect.combo_add_from_score > 0 {
-                        game
-                            .combo_counter =
-                                saturating_add_u8(game.combo_counter, effect.combo_add_from_score);
-                    }
-
-                    if effect.cube_per_use > 0 {
-                        run_data
-                            .total_cubes =
-                                saturating_add_u16(
-                                    run_data.total_cubes, effect.cube_per_use.into(),
-                                );
-                    }
-
-                    if effect.score_div10_as_cubes {
-                        let cube_bonus: u16 = score / 10;
-                        run_data.total_cubes = saturating_add_u16(run_data.total_cubes, cube_bonus);
-                    }
                 },
                 Bonus::Harvest => {
-                    let blocks_destroyed = harvest::count_blocks_of_size(
-                        game.blocks, row_index, col_index,
-                    );
-                    let cube_reward: u16 = blocks_destroyed.into()
-                        * effect.cube_reward_per_block.into();
-                    run_data.total_cubes = saturating_add_u16(run_data.total_cubes, cube_reward);
-
-                    if effect.harvest_score_per_block > 0 {
-                        let score_bonus: u16 = blocks_destroyed.into()
-                            * effect.harvest_score_per_block.into();
-                        update_score(ref run_data, score_bonus);
-                    }
-
-                    if effect.harvest_free_moves > 0 {
-                        run_data
-                            .free_moves =
-                                scoring::saturating_add_u8_capped(
-                                    run_data.free_moves, effect.harvest_free_moves, 15,
-                                );
-                    }
-
-                    new_blocks = harvest::BonusImpl::apply(game.blocks, row_index, col_index);
-                },
-                Bonus::Wave => {
-                    let rows_to_clear = effect.rows_to_clear;
-                    let mut wave_blocks_cleared: u8 = 0;
-                    new_blocks = game.blocks;
-                    let mut i: u8 = 0;
-                    loop {
-                        if i >= rows_to_clear {
-                            break;
-                        }
-                        let target_row = if row_index + i < constants::DEFAULT_GRID_HEIGHT {
-                            row_index + i
-                        } else {
-                            break;
-                        };
-                        wave_blocks_cleared +=
-                            InternalImpl::count_non_empty_blocks_in_row(new_blocks, target_row);
-                        new_blocks = wave::BonusImpl::apply(new_blocks, target_row, 0);
-                        i += 1;
-                    }
-
-                    if effect.wave_score_per_block > 0 && wave_blocks_cleared > 0 {
-                        let score_bonus: u16 = wave_blocks_cleared.into()
-                            * effect.wave_score_per_block.into();
-                        update_score(ref run_data, score_bonus);
-                    }
-
-                    if effect.wave_free_moves > 0 {
-                        run_data
-                            .free_moves =
-                                scoring::saturating_add_u8_capped(
-                                    run_data.free_moves, effect.wave_free_moves, 15,
-                                );
-                    }
-
-                    if effect.wave_combo_add > 0 {
-                        game
-                            .combo_counter =
-                                saturating_add_u8(game.combo_counter, effect.wave_combo_add);
-                    }
-
-                    if effect.wave_cube_per_row > 0 {
-                        let cube_bonus: u16 = rows_to_clear.into()
-                            * effect.wave_cube_per_row.into();
-                        run_data.total_cubes = saturating_add_u16(run_data.total_cubes, cube_bonus);
-                    }
-
-                    if effect.wave_auto_add_line {
+                    if effect.lines_to_add > 0 {
+                        // Branch B: Injection — add lines + flat cubes
                         let difficulty: Difficulty = game_level.difficulty.into();
-                        let new_seed = InternalImpl::generate_seed(
-                            new_blocks, base_seed.seed, run_data.current_level,
-                        );
-                        let new_row = Controller::create_line(new_seed, difficulty, settings);
-                        new_blocks = Controller::add_line(new_blocks, new_next_row);
-                        new_next_row = new_row;
-                    }
-                },
-                Bonus::Supply => {
-                    let lines_to_add = effect.lines_to_add;
-                    let difficulty: Difficulty = game_level.difficulty.into();
-                    let mut i: u8 = 0;
-                    loop {
-                        if i >= lines_to_add {
-                            break;
-                        }
-                        let new_seed = InternalImpl::generate_seed(
-                            new_blocks, base_seed.seed, run_data.current_level,
-                        );
-                        let new_row = Controller::create_line(new_seed, difficulty, settings);
-                        new_blocks = Controller::add_line(new_blocks, new_next_row);
-                        new_next_row = new_row;
-                        i += 1;
-                    }
-
-                    if effect.supply_score_per_line > 0 {
-                        let score_bonus: u16 = lines_to_add.into()
-                            * effect.supply_score_per_line.into();
-                        update_score(ref run_data, score_bonus);
-                    }
-
-                    if effect.supply_cube_reward > 0 {
+                        let mut i: u8 = 0;
+                        loop {
+                            if i >= effect.lines_to_add {
+                                break;
+                            }
+                            let new_seed = InternalImpl::generate_seed(
+                                new_blocks, base_seed.seed, run_data.current_level,
+                            );
+                            let new_row = Controller::create_line(new_seed, difficulty, settings);
+                            new_blocks = Controller::add_line(new_blocks, new_next_row);
+                            new_next_row = new_row;
+                            i += 1;
+                        };
                         run_data
                             .total_cubes =
-                                saturating_add_u16(
-                                    run_data.total_cubes, effect.supply_cube_reward.into(),
-                                );
-                    }
-
-                    if effect.supply_free_moves > 0 {
+                                saturating_add_u16(run_data.total_cubes, effect.cubes_flat);
+                    } else if effect.blocks_to_destroy > 0 {
+                        // Branch A: Extraction — destroy random blocks
+                        let harvest_seed_state = PoseidonTrait::new()
+                            .update(base_seed.seed)
+                            .update('HARVEST')
+                            .update(run_data.level_moves.into())
+                            .finalize();
+                        let (harvested_blocks, cubes_earned) = harvest::harvest_random_blocks(
+                            new_blocks, harvest_seed_state, effect.blocks_to_destroy,
+                        );
+                        new_blocks = harvested_blocks;
                         run_data
-                            .free_moves =
-                                scoring::saturating_add_u8_capped(
-                                    run_data.free_moves, effect.supply_free_moves, 15,
-                                );
+                            .total_cubes = saturating_add_u16(run_data.total_cubes, cubes_earned);
+                    }
+                },
+                Bonus::Tsunami => {
+                    if effect.clear_by_size {
+                        // Branch A L5: clear all blocks of targeted size
+                        new_blocks = tsunami::clear_all_of_size(new_blocks, row_index, col_index);
+                    } else if effect.rows_to_clear > 0 {
+                        // Branch B: clear targeted rows
+                        let mut i: u8 = 0;
+                        loop {
+                            if i >= effect.rows_to_clear {
+                                break;
+                            }
+                            let target_row = if row_index + i < constants::DEFAULT_GRID_HEIGHT {
+                                row_index + i
+                            } else {
+                                break;
+                            };
+                            new_blocks = tsunami::clear_row(new_blocks, target_row);
+                            i += 1;
+                        };
+                    } else if effect.blocks_to_clear > 0 {
+                        // Branch A: clear N targeted blocks
+                        // For now, clear the block at (row_index, col_index) — UI sends multiple calls
+                        new_blocks = tsunami::clear_targeted_block(new_blocks, row_index, col_index);
                     }
                 },
                 Bonus::None => {},
             }
 
-            let should_consume_charge = if effect.chance_no_consume_num > 0
-                && effect.chance_no_consume_den > 0 {
-                if effect.chance_no_consume_num >= effect.chance_no_consume_den {
-                    false
-                } else {
-                    let rng_state = PoseidonTrait::new()
-                        .update(base_seed.seed)
-                        .update(run_data.level_moves.into())
-                        .update(bonus_type_u8.into())
-                        .finalize();
-                    let rng_val: u256 = rng_state.into();
-                    let roll: u8 = (rng_val % effect.chance_no_consume_den.into())
-                        .try_into()
-                        .unwrap();
-                    roll >= effect.chance_no_consume_num
-                }
-            } else if effect.wave_chance_no_consume {
-                let rng_state = PoseidonTrait::new()
-                    .update(base_seed.seed)
-                    .update(run_data.level_moves.into())
-                    .update(4_felt252)
-                    .finalize();
-                let rng_val: u256 = rng_state.into();
-                (rng_val % 2_u256) != 0_u256
-            } else {
-                true
-            };
-
-            if should_consume_charge {
-                run_data.use_bonus_charge(bonus_type_u8);
-            }
-
-            if !should_consume_charge && effect.free_move_on_proc > 0 {
-                run_data
-                    .free_moves =
-                        scoring::saturating_add_u8_capped(
-                            run_data.free_moves, effect.free_move_on_proc, 15,
-                        );
-            }
-
-            if effect.charge_all_bonus {
-                let mut slot: u8 = 0;
-                loop {
-                    if slot >= run_data.active_slot_count || slot >= 3 {
-                        break;
-                    }
-                    let sid = run_data.get_slot_skill(slot);
-                    if sid >= 1 && sid <= 5 {
-                        run_data.add_bonus_charge(sid);
-                    }
-                    slot += 1;
-                };
-            }
+            // Consume charge
+            run_data.use_active_charge(skill_id);
 
             // Mark bonus used
             run_data.bonus_used_this_level = true;
 
             // Assess game (gravity + line clearing)
             let mut lines_cleared: u8 = 0;
-            let points = InternalImpl::assess_game(ref new_blocks, ref lines_cleared);
-            update_score(ref run_data, points);
-
-            if effect.bonus_score_per_line > 0 && lines_cleared > 0 {
-                let extra_score: u16 = lines_cleared.into() * effect.bonus_score_per_line.into();
-                update_score(ref run_data, extra_score);
-            }
+            let mut _bonus_cascade: u8 = 0;
+            let bonus_points = InternalImpl::assess_game(ref new_blocks, ref lines_cleared, ref _bonus_cascade);
+            update_score(ref run_data, bonus_points);
 
             // Update combos
             process_lines_cleared(
@@ -792,7 +636,8 @@ mod grid_system {
 
             let mut game: Game = world.read_model(game_id);
             let mut lines_cleared: u8 = 0;
-            let points = InternalImpl::assess_game(ref game.blocks, ref lines_cleared);
+            let mut _wave_cascade: u8 = 0;
+            let points = InternalImpl::assess_game(ref game.blocks, ref lines_cleared, ref _wave_cascade);
 
             world.write_model(@game);
 
@@ -802,8 +647,10 @@ mod grid_system {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        /// Apply gravity and assess lines until stable.
-        fn assess_game(ref blocks: felt252, ref counter: u8) -> u16 {
+        /// Apply gravity and assess lines until stable, tracking cascade depth.
+        fn assess_game(
+            ref blocks: felt252, ref counter: u8, ref cascade_depth: u8,
+        ) -> u16 {
             let mut points = 0;
             let mut upper_blocks = 0;
             loop {
@@ -814,12 +661,13 @@ mod grid_system {
                     }
                     inner_blocks = blocks;
                     blocks = Controller::apply_gravity(blocks);
-                }
+                };
                 blocks = Controller::assess_lines(blocks, ref counter, ref points, true);
                 if upper_blocks == blocks {
                     break points;
                 }
                 upper_blocks = blocks;
+                cascade_depth += 1;
             }
         }
 
@@ -828,8 +676,7 @@ mod grid_system {
         fn is_grid_full(blocks: felt252) -> bool {
             let exp: u256 = (constants::DEFAULT_GRID_HEIGHT.into() - 1)
                 * constants::ROW_BIT_COUNT.into();
-            let div: u256 = fast_power(2, exp) - 1;
-            blocks.into() / div > 0
+            BitShift::shr(blocks.into(), exp) > 0
         }
 
         /// Insert a new line at the bottom.
@@ -857,8 +704,6 @@ mod grid_system {
             state.finalize()
         }
 
-        // apply_bonus_effect removed - dispatch logic is now inline in apply_bonus()
-
         /// Compute the highest occupied row index (0 = bottom, 9 = top).
         /// Returns 0 if grid is empty.
         fn highest_occupied_row(blocks: felt252) -> u8 {
@@ -870,7 +715,7 @@ mod grid_system {
             let mut row: u8 = constants::DEFAULT_GRID_HEIGHT - 1; // Start from top (row 9)
             loop {
                 let shift: u256 = row.into() * constants::ROW_BIT_COUNT.into();
-                let row_bits = (blocks_u256 / fast_power(2_u256, shift)) & row_mask;
+                let row_bits = BitShift::shr(blocks_u256, shift) & row_mask;
                 if row_bits > 0 {
                     break row;
                 }
@@ -881,14 +726,12 @@ mod grid_system {
             }
         }
 
-        /// Count blocks of a specific size that were destroyed between two grid states.
-        /// Compares blocks_before and blocks_after, counting blocks of target_size
-        /// that exist in before but not in after.
-        fn count_blocks_of_size_diff(
-            blocks_before: felt252, blocks_after: felt252, target_size: u8,
-        ) -> u8 {
-            let before_u256: u256 = blocks_before.into();
-            let after_u256: u256 = blocks_after.into();
+        /// Count total blocks of a specific size in the entire grid.
+        fn count_blocks_of_size(blocks: felt252, target_size: u8) -> u8 {
+            let blocks_u256: u256 = blocks.into();
+            if blocks_u256 == 0 {
+                return 0;
+            }
             let block_mask: u256 = 0x7; // 3-bit mask for one block
             let total_blocks: u8 = constants::DEFAULT_GRID_HEIGHT
                 * constants::DEFAULT_GRID_WIDTH; // 80
@@ -899,15 +742,32 @@ mod grid_system {
                     break;
                 }
                 let shift: u256 = (i.into()) * constants::BLOCK_BIT_COUNT.into();
-                let divisor = fast_power(2_u256, shift);
-                let before_val: u8 = ((before_u256 / divisor) & block_mask).try_into().unwrap();
-                let after_val: u8 = ((after_u256 / divisor) & block_mask).try_into().unwrap();
-                // Block was present before and gone after, and matches target size
-                if before_val == target_size && after_val == 0 {
+                let val: u8 = (BitShift::shr(blocks_u256, shift) & block_mask).try_into().unwrap();
+                if val == target_size {
                     count += 1;
                 }
                 i += 1;
-            }
+            };
+            count
+        }
+
+        /// Count blocks of a specific size in a single row (u32, 8 blocks × 3 bits).
+        fn count_blocks_of_size_in_row(row: u32, target_size: u8) -> u8 {
+            let row_u256: u256 = row.into();
+            let block_mask: u256 = 0x7;
+            let mut count: u8 = 0;
+            let mut col: u8 = 0;
+            loop {
+                if col >= constants::DEFAULT_GRID_WIDTH {
+                    break;
+                }
+                let shift: u256 = col.into() * constants::BLOCK_BIT_COUNT.into();
+                let val: u8 = (BitShift::shr(row_u256, shift) & block_mask).try_into().unwrap();
+                if val == target_size {
+                    count += 1;
+                }
+                col += 1;
+            };
             count
         }
 
@@ -927,14 +787,14 @@ mod grid_system {
 
                 let idx: u8 = row * constants::DEFAULT_GRID_WIDTH + col;
                 let shift: u256 = idx.into() * constants::BLOCK_BIT_COUNT.into();
-                let val: u8 = ((blocks_u256 / fast_power(2_u256, shift)) & 0x7_u256)
+                let val: u8 = (BitShift::shr(blocks_u256, shift) & 0x7_u256)
                     .try_into()
                     .unwrap();
                 if val > 0 {
                     count += 1;
                 }
                 col += 1;
-            }
+            };
 
             count
         }

@@ -23,10 +23,7 @@ pub trait IConfigSystem<T> {
         // Cube Thresholds
         cube_3_percent: u8,
         cube_2_percent: u8,
-        // Consumable Costs
-        combo_cost: u8,
-        score_cost: u8,
-        harvest_cost: u8,
+        // Difficulty Progression (non-linear tier thresholds)
         // Difficulty Progression (non-linear tier thresholds)
         tier_1_threshold: u8,
         tier_2_threshold: u8,
@@ -259,10 +256,7 @@ mod config_system {
             // Cube Thresholds
             cube_3_percent: u8,
             cube_2_percent: u8,
-            // Consumable Costs
-            combo_cost: u8,
-            score_cost: u8,
-            harvest_cost: u8,
+            // Difficulty Progression (non-linear tier thresholds)
             // Difficulty Progression (non-linear tier thresholds)
             tier_1_threshold: u8,
             tier_2_threshold: u8,
@@ -357,10 +351,7 @@ mod config_system {
                 // Cube Thresholds
                 cube_3_percent,
                 cube_2_percent,
-                // Consumable Costs
-                combo_cost,
-                score_cost,
-                harvest_cost,
+                // Difficulty Progression (non-linear tier thresholds)
                 // Difficulty Progression (non-linear tier thresholds)
                 tier_1_threshold,
                 tier_2_threshold,
@@ -696,10 +687,7 @@ mod config_system {
             GameSetting {
                 name: "2-Cube Threshold", value: format!("{}%", game_settings.cube_2_percent),
             },
-            // Consumable Costs
-            GameSetting { name: "Combo Cost", value: format!("{}", game_settings.combo_cost) },
-            GameSetting { name: "Score Cost", value: format!("{}", game_settings.score_cost) },
-            GameSetting { name: "Harvest Cost", value: format!("{}", game_settings.harvest_cost) },
+            // Difficulty Progression (non-linear tier thresholds)
             // Difficulty Progression (non-linear tier thresholds)
             GameSetting {
                 name: "VeryEasy", value: format!("Levels 1-{}", game_settings.tier_1_threshold - 1),

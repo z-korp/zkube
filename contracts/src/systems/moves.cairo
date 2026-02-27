@@ -20,10 +20,13 @@ mod move_system {
     use starknet::{get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
     use zkube::elements::tasks::{clearer, combo, combo_streak};
-    use zkube::helpers::config::ConfigUtilsTrait;
+
     use zkube::helpers::game_libs::{
-        GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
+        GameLibsImpl, IAchievementSystemDispatcher, IAchievementSystemDispatcherTrait,
+        IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait, IQuestSystemDispatcher,
+        IQuestSystemDispatcherTrait,
     };
+    use zkube::constants::DEFAULT_SETTINGS::is_default_settings;
     use zkube::helpers::{game_over, level_check, token};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
     use zkube::models::skill_tree::PlayerSkillTree;
@@ -75,173 +78,106 @@ mod move_system {
                 .grid
                 .execute_move(game_id, row_index, start_index, final_index, skill_tree.skill_data);
 
-            // Get settings for quest tracking
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+            // Get settings_id directly from token_dispatcher (already resolved at line 47)
+            // Avoids full ConfigUtilsTrait::get_game_settings chain (DNS lookup + model read)
+            let settings_id = token_dispatcher.settings_id(game_id);
 
-            // Track quest progress for lines cleared and combos
-            if lines_cleared > 0 {
-                libs
-                    .track_quest(
-                        player,
-                        clearer::LineClearer::identifier(),
-                        lines_cleared.into(),
-                        settings.settings_id,
-                    );
+            // Hoist default-settings check and Option unwraps once (saves 19x redundant checks)
+            // Quest and achievement tracking only applies to default settings games
+            if is_default_settings(settings_id) {
+                // Extract raw dispatchers once — avoids repeated Option checks per call
+                let quest_dispatcher: Option<IQuestSystemDispatcher> = libs.quest;
+                let achievement_dispatcher: Option<IAchievementSystemDispatcher> = libs.achievement;
 
-                // Track achievement progress for lines cleared (cumulative)
-                libs
-                    .track_achievement(
-                        player,
-                        clearer::LineClearer::identifier(),
-                        lines_cleared.into(),
-                        settings.settings_id,
-                    );
+                // --- Lines cleared tracking ---
+                if lines_cleared > 0 {
+                    if let Option::Some(quest) = quest_dispatcher {
+                        quest.progress(player, clearer::LineClearer::identifier(), lines_cleared.into());
+                        if lines_cleared >= 4 {
+                            quest.progress(player, combo::ComboFour::identifier(), 1);
+                        }
+                        if lines_cleared >= 5 {
+                            quest.progress(player, combo::ComboFive::identifier(), 1);
+                        }
+                        if lines_cleared >= 6 {
+                            quest.progress(player, combo::ComboSix::identifier(), 1);
+                        }
+                    }
 
-                // Achievement combo flow tracking (3+ combos)
-                if lines_cleared >= 2 {
-                    libs
-                        .track_achievement(
-                            player, combo::ComboTwo::identifier(), 1, settings.settings_id,
-                        );
-                }
-                if lines_cleared >= 3 {
-                    libs
-                        .track_achievement(
-                            player, combo::ComboThree::identifier(), 1, settings.settings_id,
-                        );
-                }
-                if lines_cleared >= 4 {
-                    libs
-                        .track_achievement(
-                            player, combo::ComboFour::identifier(), 1, settings.settings_id,
-                        );
-                }
-                if lines_cleared >= 5 {
-                    libs
-                        .track_achievement(
-                            player, combo::ComboFive::identifier(), 1, settings.settings_id,
-                        );
-                }
-                if lines_cleared >= 6 {
-                    libs
-                        .track_achievement(
-                            player, combo::ComboSix::identifier(), 1, settings.settings_id,
-                        );
-                }
-                if lines_cleared >= 7 {
-                    libs
-                        .track_achievement(
-                            player, combo::ComboSeven::identifier(), 1, settings.settings_id,
-                        );
-                }
-                if lines_cleared >= 8 {
-                    libs
-                        .track_achievement(
-                            player, combo::ComboEight::identifier(), 1, settings.settings_id,
-                        );
-                }
-                if lines_cleared >= 9 {
-                    libs
-                        .track_achievement(
-                            player, combo::ComboNine::identifier(), 1, settings.settings_id,
-                        );
+                    if let Option::Some(achievement) = achievement_dispatcher {
+                        achievement.progress(player, clearer::LineClearer::identifier(), lines_cleared.into());
+                        if lines_cleared >= 2 {
+                            achievement.progress(player, combo::ComboTwo::identifier(), 1);
+                        }
+                        if lines_cleared >= 3 {
+                            achievement.progress(player, combo::ComboThree::identifier(), 1);
+                        }
+                        if lines_cleared >= 4 {
+                            achievement.progress(player, combo::ComboFour::identifier(), 1);
+                        }
+                        if lines_cleared >= 5 {
+                            achievement.progress(player, combo::ComboFive::identifier(), 1);
+                        }
+                        if lines_cleared >= 6 {
+                            achievement.progress(player, combo::ComboSix::identifier(), 1);
+                        }
+                        if lines_cleared >= 7 {
+                            achievement.progress(player, combo::ComboSeven::identifier(), 1);
+                        }
+                        if lines_cleared >= 8 {
+                            achievement.progress(player, combo::ComboEight::identifier(), 1);
+                        }
+                        if lines_cleared >= 9 {
+                            achievement.progress(player, combo::ComboNine::identifier(), 1);
+                        }
+                    }
                 }
 
-                // Quest combo tracking (4/5/6 thresholds)
-                if lines_cleared >= 4 {
-                    libs
-                        .track_quest(
-                            player, combo::ComboFour::identifier(), 1, settings.settings_id,
-                        );
+                // Re-read game for combo streak tracking
+                let game: Game = world.read_model(game_id);
+
+                // --- Combo streak tracking ---
+                if let Option::Some(quest) = quest_dispatcher {
+                    if game.combo_counter >= 15 {
+                        quest.progress(player, combo_streak::ComboStreakFifteen::identifier(), 1);
+                    }
+                    if game.combo_counter >= 20 {
+                        quest.progress(player, combo_streak::ComboStreakTwenty::identifier(), 1);
+                    }
+                    if game.combo_counter >= 25 {
+                        quest.progress(player, combo_streak::ComboStreakTwentyFive::identifier(), 1);
+                    }
                 }
-                if lines_cleared >= 5 {
-                    libs
-                        .track_quest(
-                            player, combo::ComboFive::identifier(), 1, settings.settings_id,
-                        );
-                }
-                if lines_cleared >= 6 {
-                    libs
-                        .track_quest(
-                            player, combo::ComboSix::identifier(), 1, settings.settings_id,
-                        );
+
+                if let Option::Some(achievement) = achievement_dispatcher {
+                    if game.combo_counter >= 15 {
+                        achievement.progress(player, combo_streak::ComboStreakFifteen::identifier(), 1);
+                    }
+                    if game.combo_counter >= 50 {
+                        achievement.progress(player, combo_streak::ComboStreakFifty::identifier(), 1);
+                    }
+                    if game.combo_counter >= 100 {
+                        achievement.progress(player, combo_streak::ComboStreakHundred::identifier(), 1);
+                    }
                 }
             }
 
-            // Re-read game after grid_system modified it
+            // Re-read game after grid_system modified it (needed for level/game-over checks)
             let game: Game = world.read_model(game_id);
-
-            // Track combo streak quest progress
-            if game.combo_counter >= 15 {
-                libs
-                    .track_quest(
-                        player,
-                        combo_streak::ComboStreakFifteen::identifier(),
-                        1,
-                        settings.settings_id,
-                    );
-                libs
-                    .track_achievement(
-                        player,
-                        combo_streak::ComboStreakFifteen::identifier(),
-                        1,
-                        settings.settings_id,
-                    );
-            }
-            if game.combo_counter >= 20 {
-                libs
-                    .track_quest(
-                        player,
-                        combo_streak::ComboStreakTwenty::identifier(),
-                        1,
-                        settings.settings_id,
-                    );
-            }
-            if game.combo_counter >= 25 {
-                libs
-                    .track_quest(
-                        player,
-                        combo_streak::ComboStreakTwentyFive::identifier(),
-                        1,
-                        settings.settings_id,
-                    );
-            }
-            if game.combo_counter >= 50 {
-                libs
-                    .track_achievement(
-                        player,
-                        combo_streak::ComboStreakFifty::identifier(),
-                        1,
-                        settings.settings_id,
-                    );
-            }
-            if game.combo_counter >= 100 {
-                libs
-                    .track_achievement(
-                        player,
-                        combo_streak::ComboStreakHundred::identifier(),
-                        1,
-                        settings.settings_id,
-                    );
-            }
             let game_level: GameLevel = world.read_model(game_id);
             let run_data = game.get_run_data();
 
-            // Check for level completion using lightweight check
+            // Check for level completion
             let is_complete = level_check::is_level_complete(@game_level, @run_data);
 
             if is_complete {
-                // Level complete - call level_system via GameLibs
-                let _completed_level = run_data.current_level;
                 libs.level.finalize_level(game_id, skill_tree.skill_data);
             } else if is_grid_full {
-                // Grid full - game over
                 let mut updated_game: Game = world.read_model(game_id);
                 updated_game.over = true;
                 world.write_model(@updated_game);
                 game_over::handle_game_over(ref world, updated_game, player);
             } else {
-                // Check for failure (move limit exceeded)
                 let is_failed = level_check::is_level_failed(@game_level, @run_data);
                 if is_failed {
                     let mut updated_game: Game = world.read_model(game_id);
@@ -250,7 +186,6 @@ mod move_system {
                     game_over::handle_game_over(ref world, updated_game, player);
                 }
             }
-
             post_action(token_address, game_id);
         }
     }

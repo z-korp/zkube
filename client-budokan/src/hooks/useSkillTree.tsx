@@ -4,6 +4,7 @@ import { useComponentValue } from "@dojoengine/react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import type { Entity } from "@dojoengine/recs";
 import { useDojo } from "@/dojo/useDojo";
+import { TOTAL_SKILLS, BRANCH_POINT_LEVEL } from "@/dojo/game/constants";
 
 export interface SkillTreeInfo {
   level: number;
@@ -24,7 +25,8 @@ const normalizeEntityId = (entityId: string): Entity => {
 const unpackSkillTree = (packed: bigint): SkillTreeState => {
   const skills: SkillTreeInfo[] = [];
 
-  for (let index = 0; index < 15; index += 1) {
+  // Unpack skills 1-12 (skip index 0 which is reserved)
+  for (let index = 1; index <= TOTAL_SKILLS; index += 1) {
     const shift = BigInt(index * 6);
     const chunk = (packed >> shift) & 0x3fn;
     skills.push({
@@ -111,7 +113,7 @@ export const useSkillTree = () => {
   const optimisticRespec = useCallback((skillId: number) => {
     setOptimistic((prev) => {
       const next = new Map(prev);
-      next.set(skillId, { level: 4, branchChosen: false, branchId: 0 });
+      next.set(skillId, { level: BRANCH_POINT_LEVEL, branchChosen: false, branchId: 0 });
       return next;
     });
   }, []);

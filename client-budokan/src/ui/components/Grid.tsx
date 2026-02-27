@@ -246,7 +246,7 @@ const Grid: React.FC<GridProps> = ({
         );
       });
       setBlocks(removeBlocksSameWidth(block, blocks));
-    } else if (bonus === BonusType.Wave) {
+    } else if (bonus === BonusType.Tsunami) {
       setBlockBonus(block);
       const rowCount = activeBonusLevel + 1;
       const rows: number[] = [];

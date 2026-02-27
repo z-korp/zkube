@@ -16,7 +16,7 @@ import {
 } from "@/dojo/game/types/skillData";
 import { getSkillEffectDescription } from "@/dojo/game/types/skillEffects";
 import { SKILL_TREE_COSTS } from "@/dojo/game/helpers/runDataPacking";
-import { MAX_SKILL_LEVEL, BRANCH_POINT_LEVEL, BRANCH_SPLIT_LEVEL } from "@/dojo/game/constants";
+import { MAX_SKILL_LEVEL, BRANCH_POINT_LEVEL, BRANCH_SPLIT_LEVEL, TOTAL_SKILLS } from "@/dojo/game/constants";
 import { getCommonAssetPath } from "@/config/themes";
 import { getSkillTierIconPath } from "@/ui/theme/ImageAssets";
 import PageTopBar from "@/ui/navigation/PageTopBar";
@@ -142,7 +142,7 @@ const SkillTreePage: React.FC = () => {
 
   const skills: SkillInfo[] =
     skillTree?.skills ??
-    Array.from({ length: 15 }, () => ({
+    Array.from({ length: TOTAL_SKILLS }, () => ({
       level: 0,
       branchChosen: false,
       branchId: 0,
@@ -592,7 +592,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
   const color = archetype.color;
   const currentLevel = info.level;
   const isBranchRow = targetLevel >= BRANCH_SPLIT_LEVEL;
-  const isForkRow = targetLevel === 5;
+  const isForkRow = targetLevel === BRANCH_POINT_LEVEL + 1;
   const needsChoice = isForkRow && currentLevel === BRANCH_POINT_LEVEL && !info.branchChosen;
 
   const branchForDesc =
@@ -723,7 +723,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
             <p className="text-[10px] text-slate-500 mt-0.5">
               {archetype.name} •{" "}
               {skill.category === "bonus" ? "Active Bonus" : "Passive World"} •
-              Level {currentLevel + 1}/10
+              Level {currentLevel + 1}/{MAX_SKILL_LEVEL}
             </p>
           </div>
         </div>
@@ -887,7 +887,7 @@ const SkillModal: React.FC<SkillModalProps> = ({
                   fl.level === targetLevel &&
                   !fl.branchLabel?.startsWith("B");
                 const done = (() => {
-                  if (fl.level < 5) return currentLevel >= fl.level;
+                  if (fl.level < BRANCH_SPLIT_LEVEL) return currentLevel >= fl.level;
                   if (!info.branchChosen) return false;
                   return currentLevel >= fl.level;
                 })();
@@ -1014,9 +1014,9 @@ function buildTreeData(
 
     /* --- fork (row 3 → 4) T-shape --- */
     const midY = (rowY(3) + rowY(4)) / 2;
-    const lA = info.branchChosen && info.branchId === 0 && info.level > 4;
-    const lB = info.branchChosen && info.branchId === 1 && info.level > 4;
-    const lG = !info.branchChosen && info.level > 4;
+    const lA = info.branchChosen && info.branchId === 0 && info.level > BRANCH_POINT_LEVEL + 1;
+    const lB = info.branchChosen && info.branchId === 1 && info.level > BRANCH_POINT_LEVEL + 1;
+    const lG = !info.branchChosen && info.level > BRANCH_POINT_LEVEL + 1;
     const fk = lA || lB || lG;
 
     lines.push({
@@ -1110,7 +1110,7 @@ function buildTreeData(
           branchSide: side,
         });
 
-        if (row < 8) {
+        if (row < MAX_SKILL_LEVEL - 1) {
           lines.push({
             key: `vb${side}-${skill.id}-${row}`,
             x1: bx,

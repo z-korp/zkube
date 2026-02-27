@@ -32,10 +32,7 @@ pub struct GameSettings {
     // === Cube Thresholds ===
     pub cube_3_percent: u8, // 3 cubes if moves <= X% of max (default: 40)
     pub cube_2_percent: u8, // 2 cubes if moves <= X% of max (default: 70)
-    // === Consumable Costs ===
-    pub combo_cost: u8, // Cost in cubes (default: 5)
-    pub score_cost: u8, // Cost in cubes (default: 5)
-    pub harvest_cost: u8, // Cost in cubes (default: 5)
+    // === Difficulty Progression (non-linear tier thresholds) ===
     // === Difficulty Progression (non-linear tier thresholds) ===
     // Each threshold is the level at which that difficulty tier begins
     // Tier 0 (VeryEasy) is always level 1
@@ -107,10 +104,7 @@ pub mod GameSettingsDefaults {
     pub const CUBE_3_PERCENT: u8 = 40;
     pub const CUBE_2_PERCENT: u8 = 70;
 
-    // Consumable Costs
-    pub const COMBO_COST: u8 = 5;
-    pub const SCORE_COST: u8 = 5;
-    pub const HARVEST_COST: u8 = 5;
+    // Difficulty Progression (non-linear tier thresholds)
 
     // Difficulty Progression (non-linear tier thresholds)
     // VeryEasy: 1-3, Easy: 4-7, Medium: 8-11, MediumHard: 12-17
@@ -227,10 +221,7 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             // Cube Thresholds
             cube_3_percent: GameSettingsDefaults::CUBE_3_PERCENT,
             cube_2_percent: GameSettingsDefaults::CUBE_2_PERCENT,
-            // Consumable Costs
-            combo_cost: GameSettingsDefaults::COMBO_COST,
-            score_cost: GameSettingsDefaults::SCORE_COST,
-            harvest_cost: GameSettingsDefaults::HARVEST_COST,
+            // Difficulty Progression (non-linear tier thresholds)
             // Difficulty Progression (non-linear tier thresholds)
             tier_1_threshold: GameSettingsDefaults::TIER_1_THRESHOLD,
             tier_2_threshold: GameSettingsDefaults::TIER_2_THRESHOLD,
@@ -328,15 +319,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         }
     }
 
-    /// Get consumable cost by type (0=Combo, 1=Score, 2=Harvest)
-    fn get_consumable_cost(self: GameSettings, consumable_type: u8) -> u8 {
-        match consumable_type {
-            0 => self.combo_cost,
-            1 => self.score_cost,
-            2 => self.harvest_cost,
-            _ => 0,
-        }
-    }
 
     /// Unpack constraint_lines_budgets field
     /// Returns (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
@@ -690,10 +672,7 @@ mod tests {
         // Cube Thresholds
         assert!(settings.cube_3_percent == 40, "Cube 3 percent should be 40");
         assert!(settings.cube_2_percent == 70, "Cube 2 percent should be 70");
-        // Consumable Costs
-        assert!(settings.combo_cost == 5, "Combo cost should be 5");
-        assert!(settings.score_cost == 5, "Score cost should be 5");
-        assert!(settings.harvest_cost == 5, "Harvest cost should be 5");
+        // Difficulty Progression (non-linear tier thresholds)
         // Difficulty Progression (non-linear tier thresholds)
         assert!(settings.tier_1_threshold == 4, "Tier 1 (Easy) should start at level 4");
         assert!(settings.tier_2_threshold == 8, "Tier 2 (Medium) should start at level 8");
@@ -716,15 +695,6 @@ mod tests {
         assert!(settings.level_cap == 50, "Level cap should be 50");
     }
 
-    #[test]
-    fn test_get_consumable_cost() {
-        let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-
-        assert!(settings.get_consumable_cost(0) == 5, "Combo should cost 5");
-        assert!(settings.get_consumable_cost(1) == 5, "Score should cost 5");
-        assert!(settings.get_consumable_cost(2) == 5, "Harvest should cost 5");
-        assert!(settings.get_consumable_cost(3) == 0, "Invalid consumable type should return 0");
-    }
 
     #[test]
     fn test_exists() {

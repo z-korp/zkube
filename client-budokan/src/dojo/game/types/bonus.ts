@@ -3,27 +3,29 @@ import ImageAssets from "@/ui/theme/ImageAssets";
 const theme = "theme-1";
 const imgAssets = ImageAssets(theme);
 
+/**
+ * vNext Bonus enum — 4 active skill types.
+ * Contract values: None=0, ComboSurge=1, Momentum=2, Harvest=3, Tsunami=4
+ */
 export enum BonusType {
   None = "None",
-  Combo = "Combo",
-  Score = "Score",
+  ComboSurge = "ComboSurge",
+  Momentum = "Momentum",
   Harvest = "Harvest",
-  Wave = "Wave",
-  Supply = "Supply",
+  Tsunami = "Tsunami",
 }
 
 /**
- * Contract uses these values for selected bonuses:
- * 0 = None, 1 = Combo, 2 = Score, 3 = Harvest, 4 = Wave, 5 = Supply
+ * Contract uses these values for active skills:
+ * 0 = None, 1 = ComboSurge, 2 = Momentum, 3 = Harvest, 4 = Tsunami
  */
 export function bonusTypeFromContractValue(value: number): BonusType {
   switch (value) {
     case 0: return BonusType.None;
-    case 1: return BonusType.Combo;
-    case 2: return BonusType.Score;
+    case 1: return BonusType.ComboSurge;
+    case 2: return BonusType.Momentum;
     case 3: return BonusType.Harvest;
-    case 4: return BonusType.Wave;
-    case 5: return BonusType.Supply;
+    case 4: return BonusType.Tsunami;
     default: return BonusType.None;
   }
 }
@@ -34,11 +36,10 @@ export function bonusTypeFromContractValue(value: number): BonusType {
 export function bonusTypeToContractValue(type: BonusType): number {
   switch (type) {
     case BonusType.None: return 0;
-    case BonusType.Combo: return 1;
-    case BonusType.Score: return 2;
+    case BonusType.ComboSurge: return 1;
+    case BonusType.Momentum: return 2;
     case BonusType.Harvest: return 3;
-    case BonusType.Wave: return 4;
-    case BonusType.Supply: return 5;
+    case BonusType.Tsunami: return 4;
     default: return 0;
   }
 }
@@ -59,31 +60,32 @@ export class Bonus {
   }
 
   /**
-   * Create a Bonus from contract's selected bonus value (0-5)
+   * Create a Bonus from contract's active skill value (0-4)
    */
   public static fromContractValue(value: number): Bonus {
     return new Bonus(bonusTypeFromContractValue(value));
   }
 
-  public static getBonuses(): Bonus[] {
+  /**
+   * Get the 4 active skill types (for UI selection)
+   */
+  public static getActiveSkills(): Bonus[] {
     return [
-      new Bonus(BonusType.Combo),
-      new Bonus(BonusType.Score),
+      new Bonus(BonusType.ComboSurge),
+      new Bonus(BonusType.Momentum),
       new Bonus(BonusType.Harvest),
+      new Bonus(BonusType.Tsunami),
     ];
   }
 
-  /**
-   * Get all available bonuses
-   */
+  /** @deprecated Use getActiveSkills() */
+  public static getBonuses(): Bonus[] {
+    return Bonus.getActiveSkills();
+  }
+
+  /** @deprecated Use getActiveSkills() */
   public static getAllBonuses(): Bonus[] {
-    return [
-      new Bonus(BonusType.Combo),
-      new Bonus(BonusType.Score),
-      new Bonus(BonusType.Harvest),
-      new Bonus(BonusType.Wave),
-      new Bonus(BonusType.Supply),
-    ];
+    return Bonus.getActiveSkills();
   }
 
   public isNone(): boolean {
@@ -92,16 +94,14 @@ export class Bonus {
 
   public getIcon(): string {
     switch (this.value) {
-      case BonusType.Combo:
+      case BonusType.ComboSurge:
         return imgAssets.combo;
-      case BonusType.Score:
+      case BonusType.Momentum:
         return imgAssets.score;
       case BonusType.Harvest:
         return imgAssets.harvest;
-      case BonusType.Wave:
+      case BonusType.Tsunami:
         return imgAssets.wave;
-      case BonusType.Supply:
-        return imgAssets.supply;
       default:
         return "";
     }
@@ -109,16 +109,14 @@ export class Bonus {
 
   public getDescription(): string {
     switch (this.value) {
-      case BonusType.Combo:
-        return "Add combo to next move";
-      case BonusType.Score:
-        return "Add instant score";
+      case BonusType.ComboSurge:
+        return "Add combo depth to next move";
+      case BonusType.Momentum:
+        return "Add score burst based on zones cleared";
       case BonusType.Harvest:
-        return "Destroy all blocks of one size, earn cubes per block";
-      case BonusType.Wave:
-        return "Clear entire horizontal rows";
-      case BonusType.Supply:
-        return "Add new lines without spending a move";
+        return "Destroy random blocks, earn cubes per block size";
+      case BonusType.Tsunami:
+        return "Clear targeted blocks or entire rows";
       default:
         return "";
     }
@@ -126,38 +124,33 @@ export class Bonus {
 
   public getName(): string {
     switch (this.value) {
-      case BonusType.Combo:
-        return "Combo";
-      case BonusType.Score:
-        return "Score";
+      case BonusType.ComboSurge:
+        return "Combo Surge";
+      case BonusType.Momentum:
+        return "Momentum";
       case BonusType.Harvest:
         return "Harvest";
-      case BonusType.Wave:
-        return "Wave";
-      case BonusType.Supply:
-        return "Supply";
+      case BonusType.Tsunami:
+        return "Tsunami";
       default:
         return "";
     }
   }
 
   /**
-   * Get the exact effect string for a given bonus level (0-indexed: 0=L1, 1=L2, 2=L3).
-   * All formulas match the contract: grid.cairo lines 328-381.
+   * Get a generic effect description. For level-specific effects,
+   * use the skill_effects system which has branch-aware values.
    */
-  public getEffect(level: number = 0): string {
-    const n = level + 1; // contract formula: bonus_level + 1
+  public getEffect(_level: number = 0): string {
     switch (this.value) {
-      case BonusType.Combo:
-        return `+${n} combo to next move`;
-      case BonusType.Score:
-        return `+${n * 10} score`;
+      case BonusType.ComboSurge:
+        return "Add combo depth";
+      case BonusType.Momentum:
+        return "Add score";
       case BonusType.Harvest:
-        return `+${n} cube per block destroyed`;
-      case BonusType.Wave:
-        return `Clear ${n} row${n > 1 ? "s" : ""}`;
-      case BonusType.Supply:
-        return `Add ${n} line${n > 1 ? "s" : ""} (no move cost)`;
+        return "Destroy blocks → earn cubes";
+      case BonusType.Tsunami:
+        return "Clear blocks/rows";
       default:
         return "";
     }
@@ -166,19 +159,16 @@ export class Bonus {
   /**
    * Short effect for compact UI (action bar tooltips).
    */
-  public getEffectShort(level: number = 0): string {
-    const n = level + 1;
+  public getEffectShort(_level: number = 0): string {
     switch (this.value) {
-      case BonusType.Combo:
-        return `+${n} combo`;
-      case BonusType.Score:
-        return `+${n * 10} pts`;
+      case BonusType.ComboSurge:
+        return "combo";
+      case BonusType.Momentum:
+        return "score";
       case BonusType.Harvest:
-        return `+${n} cube/block`;
-      case BonusType.Wave:
-        return `${n} row${n > 1 ? "s" : ""}`;
-      case BonusType.Supply:
-        return `${n} free line${n > 1 ? "s" : ""}`;
+        return "harvest";
+      case BonusType.Tsunami:
+        return "clear";
       default:
         return "";
     }
@@ -186,10 +176,10 @@ export class Bonus {
 
   /**
    * Get effect comparison string showing current → next level.
-   * Returns null if already at max level (2).
+   * vNext: levels are 1-5, branch-dependent. Generic preview only.
    */
   public getUpgradePreview(currentLevel: number): string | null {
-    if (currentLevel >= 2) return null;
+    if (currentLevel >= 5) return null;
     const current = this.getEffectShort(currentLevel);
     const next = this.getEffectShort(currentLevel + 1);
     return `${current} → ${next}`;

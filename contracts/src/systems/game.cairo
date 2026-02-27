@@ -235,8 +235,8 @@ mod game_system {
                 world.write_model(@game);
             }
 
-            // Open zone 1 entry draft (completed_level=0 means game just created)
-            libs.draft.maybe_open_after_level(game_id, 0, player);
+            // Open initial draft (run start — 3 sequential picks from 12 skills)
+            libs.draft.open_initial_draft(game_id);
         }
 
         fn surrender(ref self: ContractState, game_id: u64) {
@@ -290,9 +290,9 @@ mod game_system {
                 run_data.level_moves,
                 game.combo_counter,
                 game.max_combo,
-                run_data.get_bonus_charges(1),
-                run_data.get_bonus_charges(2),
-                run_data.get_bonus_charges(3),
+                run_data.get_active_charges(0),
+                run_data.get_active_charges(1),
+                run_data.get_active_charges(2),
                 run_data.total_cubes,
                 game.over,
             )

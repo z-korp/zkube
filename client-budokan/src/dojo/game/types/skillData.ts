@@ -1,266 +1,248 @@
+/**
+ * vNext Skill Data — 12 skills across 4 archetypes.
+ *
+ * Mirrors the Cairo skill_effects.cairo definitions.
+ * Authoritative spec: docs/SKILL_TREE_REFERENCE.md
+ */
+
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
+export type ArchetypeId = "tempo" | "scaling" | "risk" | "control";
+
 export interface SkillDefinition {
+  /** 1-indexed skill ID matching Cairo constants */
   id: number;
+  /** Display name */
   name: string;
-  category: "bonus" | "world";
+  /** Which archetype this skill belongs to */
   archetype: ArchetypeId;
+  /** "bonus" = active (uses charges), "world" = passive (always-on) */
+  category: "bonus" | "world";
+  /** One-line description */
   description: string;
+  /** Branch A display name */
   branchA: string;
+  /** Branch B display name */
   branchB: string;
 }
 
-export type ArchetypeId = "tempo" | "economy" | "control" | "risk" | "scaling";
-
 export interface ArchetypeDefinition {
-  id: ArchetypeId;
   name: string;
   color: string;
   description: string;
-  /** The bonus skill ID that anchors this archetype */
-  bonusSkillId: number;
-  /** All 3 skill IDs in this archetype (bonus + 2 world) */
-  skillIds: [number, number, number];
+  skills: number[];
 }
 
-export const SKILLS: Record<number, SkillDefinition> = {
-  // --- Tempo Archetype (Combo, Tempo, Momentum) ---
-  1: {
-    id: 1,
-    name: "Combo",
-    category: "bonus",
-    archetype: "tempo",
-    description: "Turn amplifier for combo depth",
-    branchA: "Burst",
-    branchB: "Sustain",
-  },
-  6: {
-    id: 6,
-    name: "Tempo",
-    category: "world",
-    archetype: "tempo",
-    description: "Move flow and refunds",
-    branchA: "Allegro",
-    branchB: "Adagio",
-  },
-  13: {
-    id: 13,
-    name: "Momentum",
-    category: "world",
-    archetype: "tempo",
-    description: "Consecutive clear value",
-    branchA: "Snowball",
-    branchB: "Perpetual Motion",
-  },
-  // --- Scaling Archetype (Score, Surge, Legacy) ---
-  2: {
-    id: 2,
-    name: "Score",
-    category: "bonus",
-    archetype: "scaling",
-    description: "Direct score injection",
-    branchA: "Chain",
-    branchB: "Finisher",
-  },
-  8: {
-    id: 8,
-    name: "Surge",
-    category: "world",
-    archetype: "scaling",
-    description: "Score multiplier (hard capped)",
-    branchA: "Chain Lightning",
-    branchB: "Power Surge",
-  },
-  15: {
-    id: 15,
-    name: "Legacy",
-    category: "world",
-    archetype: "scaling",
-    description: "Linear long-run scaling",
-    branchA: "Dynasty",
-    branchB: "Heritage",
-  },
-  // --- Economy Archetype (Harvest, Fortune, Catalyst) ---
-  3: {
-    id: 3,
-    name: "Harvest",
-    category: "bonus",
-    archetype: "economy",
-    description: "Targeted block destruction and cube gain",
-    branchA: "Control",
-    branchB: "Economy",
-  },
-  7: {
-    id: 7,
-    name: "Fortune",
-    category: "world",
-    archetype: "economy",
-    description: "Level and clear cube amplification",
-    branchA: "Midas Touch",
-    branchB: "Lucky Strike",
-  },
-  9: {
-    id: 9,
-    name: "Catalyst",
-    category: "world",
-    archetype: "economy",
-    description: "Combo threshold and reward tuning",
-    branchA: "Amplifier",
-    branchB: "Resonance",
-  },
-  // --- Control Archetype (Wave, Focus, Expansion) ---
-  4: {
-    id: 4,
-    name: "Wave",
-    category: "bonus",
-    archetype: "control",
-    description: "Row clear reset tool",
-    branchA: "Tsunami",
-    branchB: "Ripple",
-  },
-  11: {
-    id: 11,
-    name: "Focus",
-    category: "world",
-    archetype: "control",
-    description: "Constraint acceleration",
-    branchA: "Clarity",
-    branchB: "Insight",
-  },
-  12: {
-    id: 12,
-    name: "Expansion",
-    category: "world",
-    archetype: "control",
-    description: "Easier generated lines",
-    branchA: "Foundation",
-    branchB: "Scaffold",
-  },
-  // --- Risk Archetype (Supply, Adrenaline, Resilience) ---
-  5: {
-    id: 5,
-    name: "Supply",
-    category: "bonus",
-    archetype: "risk",
-    description: "Line injection and board shaping",
-    branchA: "Builder",
-    branchB: "Pressure",
-  },
-  14: {
-    id: 14,
-    name: "Adrenaline",
-    category: "world",
-    archetype: "risk",
-    description: "High-grid risk reward",
-    branchA: "Last Stand",
-    branchB: "Second Wind",
-  },
-  10: {
-    id: 10,
-    name: "Resilience",
-    category: "world",
-    archetype: "risk",
-    description: "Free-move safety budget",
-    branchA: "Fortress",
-    branchB: "Flexibility",
-  },
-};
+/* ------------------------------------------------------------------ */
+/*  Archetypes                                                         */
+/* ------------------------------------------------------------------ */
 
 export const ARCHETYPES: Record<ArchetypeId, ArchetypeDefinition> = {
   tempo: {
-    id: "tempo",
     name: "Tempo",
-    color: "#9B59B6",
-    description: "Move flow and chain pacing",
-    bonusSkillId: 1,
-    skillIds: [1, 6, 13],
+    color: "#a855f7", // purple
+    description: "Combo depth, cascade amplification, rhythm mastery",
+    skills: [1, 5, 6],
   },
   scaling: {
-    id: "scaling",
     name: "Scaling",
-    color: "#F1C40F",
-    description: "Late-run growth",
-    bonusSkillId: 2,
-    skillIds: [2, 8, 15],
-  },
-  economy: {
-    id: "economy",
-    name: "Economy",
-    color: "#1ABC9C",
-    description: "Cube amplification",
-    bonusSkillId: 3,
-    skillIds: [3, 7, 9],
-  },
-  control: {
-    id: "control",
-    name: "Control",
-    color: "#3498DB",
-    description: "Board and constraint control",
-    bonusSkillId: 4,
-    skillIds: [4, 11, 12],
+    color: "#eab308", // yellow
+    description: "Score multipliers, per-level scaling, late-run ramping",
+    skills: [2, 7, 8],
   },
   risk: {
-    id: "risk",
     name: "Risk",
-    color: "#E74C3C",
-    description: "High-pressure burst",
-    bonusSkillId: 5,
-    skillIds: [5, 14, 10],
+    color: "#ef4444", // red
+    description: "Cube generation, conditional bursts, grid height rewards",
+    skills: [3, 9, 10],
+  },
+  control: {
+    name: "Control",
+    color: "#3b82f6", // blue
+    description: "Row clears, targeted destruction, grid shaping",
+    skills: [4, 11, 12],
   },
 };
 
-export const ARCHETYPE_ORDER: ArchetypeId[] = ["tempo", "scaling", "economy", "control", "risk"];
+export const ARCHETYPE_ORDER: ArchetypeId[] = [
+  "tempo",
+  "scaling",
+  "risk",
+  "control",
+];
 
-export function getSkillName(skillId: number): string {
-  return SKILLS[skillId]?.name ?? `Skill ${skillId}`;
+/* ------------------------------------------------------------------ */
+/*  Skills (12 total: 4 active + 8 passive)                           */
+/* ------------------------------------------------------------------ */
+
+export const SKILLS: Record<number, SkillDefinition> = {
+  // ── Tempo ──────────────────────────────────────────────────────────
+  1: {
+    id: 1,
+    name: "Combo Surge",
+    archetype: "tempo",
+    category: "bonus",
+    description: "Add combo depth to your next cascade",
+    branchA: "Burst",
+    branchB: "Flow",
+  },
+  5: {
+    id: 5,
+    name: "Rhythm",
+    archetype: "tempo",
+    category: "world",
+    description: "Combo streak grants bonus combo depth",
+    branchA: "Acceleration",
+    branchB: "Stability",
+  },
+  6: {
+    id: 6,
+    name: "Cascade Mastery",
+    archetype: "tempo",
+    category: "world",
+    description: "Deep cascades grant bonus combo depth",
+    branchA: "Amplify",
+    branchB: "Extend",
+  },
+
+  // ── Scaling ────────────────────────────────────────────────────────
+  2: {
+    id: 2,
+    name: "Momentum Scaling",
+    archetype: "scaling",
+    category: "bonus",
+    description: "Score burst that scales with zones cleared",
+    branchA: "Late Bloom",
+    branchB: "Stable Growth",
+  },
+  7: {
+    id: 7,
+    name: "Overdrive",
+    archetype: "scaling",
+    category: "world",
+    description: "Reduce charge refill cadence for all active skills",
+    branchA: "Amplify",
+    branchB: "Overflow",
+  },
+  8: {
+    id: 8,
+    name: "Endgame Focus",
+    archetype: "scaling",
+    category: "world",
+    description: "Bonus score at level start on later levels",
+    branchA: "Deep End",
+    branchB: "Smooth Ramp",
+  },
+
+  // ── Risk ───────────────────────────────────────────────────────────
+  3: {
+    id: 3,
+    name: "Harvest",
+    archetype: "risk",
+    category: "bonus",
+    description: "Destroy random blocks, earn cubes per block size",
+    branchA: "Extraction",
+    branchB: "Injection",
+  },
+  9: {
+    id: 9,
+    name: "High Stakes",
+    archetype: "risk",
+    category: "world",
+    description: "Earn cubes per line clear when grid is high",
+    branchA: "Edge",
+    branchB: "Threshold",
+  },
+  10: {
+    id: 10,
+    name: "Gambit",
+    archetype: "risk",
+    category: "world",
+    description: "Survive dangerous grid height to earn cubes",
+    branchA: "Survivor",
+    branchB: "Momentum",
+  },
+
+  // ── Control ────────────────────────────────────────────────────────
+  4: {
+    id: 4,
+    name: "Tsunami",
+    archetype: "control",
+    category: "bonus",
+    description: "Clear targeted blocks or entire rows",
+    branchA: "Wide",
+    branchB: "Target",
+  },
+  11: {
+    id: 11,
+    name: "Structural Integrity",
+    archetype: "control",
+    category: "world",
+    description: "Extra row removal when grid is dangerously high",
+    branchA: "Aggressive",
+    branchB: "Safe",
+  },
+  12: {
+    id: 12,
+    name: "Grid Harmony",
+    archetype: "control",
+    category: "world",
+    description: "Extra row removal on line clear at high grid",
+    branchA: "Stabilize",
+    branchB: "Precision",
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Get a skill definition by ID. Returns undefined for invalid IDs.
+ */
+export function getSkillById(id: number): SkillDefinition | undefined {
+  return SKILLS[id];
 }
 
-export function getSkillById(skillId: number): SkillDefinition | undefined {
-  return SKILLS[skillId];
-}
-
-export function getBonusSkills(): SkillDefinition[] {
-  return Object.values(SKILLS).filter((skill) => skill.category === "bonus");
-}
-
-export function getWorldEventSkills(): SkillDefinition[] {
-  return Object.values(SKILLS).filter((skill) => skill.category === "world");
-}
-
-export function getSkillsByArchetype(archetypeId: ArchetypeId): SkillDefinition[] {
-  const archetype = ARCHETYPES[archetypeId];
-  return archetype.skillIds.map((id) => SKILLS[id]);
-}
-
-export function getArchetypeForSkill(skillId: number): ArchetypeDefinition | undefined {
+/**
+ * Get the archetype definition for a skill ID.
+ */
+export function getArchetypeForSkill(
+  skillId: number,
+): ArchetypeDefinition | undefined {
   const skill = SKILLS[skillId];
   if (!skill) return undefined;
   return ARCHETYPES[skill.archetype];
 }
 
 /**
- * Get the tier (1-3) for a given skill level (0-9).
- * T1: levels 0-3 (muted icon)
- * T2: levels 4-6 (vibrant icon)
- * T3: levels 7-9 (golden icon)
+ * Get all skills belonging to an archetype, ordered by ID.
  */
-export function getSkillTier(level: number): 1 | 2 | 3 {
-  if (level <= 3) return 1;
-  if (level <= 6) return 2;
-  return 3;
+export function getSkillsByArchetype(
+  archetype: ArchetypeId,
+): SkillDefinition[] {
+  return ARCHETYPES[archetype].skills
+    .map((id) => SKILLS[id])
+    .filter((s): s is SkillDefinition => s !== undefined);
 }
 
 /**
- * Get the icon filename for a skill at a given tier.
- * Example: getSkillIconFilename(1, 2) => "skill-combo-t2.png"
+ * Get a skill's display name. Returns "Unknown" for invalid IDs.
  */
-export function getSkillIconFilename(skillId: number): string {
-  const skill = SKILLS[skillId];
-  if (!skill) return "";
-  return `skill-${skill.name.toLowerCase()}.png`;
+export function getSkillName(skillId: number): string {
+  return SKILLS[skillId]?.name ?? "Unknown";
 }
 
-export function getSkillTierIconFilename(skillId: number, level: number): string {
-  const skill = SKILLS[skillId];
-  if (!skill) return "";
-  const tier = getSkillTier(level);
-  return `skill-${skill.name.toLowerCase()}-t${tier}.png`;
+/**
+ * Map a skill level (1-5) to a visual tier for icon selection.
+ * - Level 0-1: Tier 1 (basic)
+ * - Level 2-3: Tier 2 (enhanced)
+ * - Level 4-5: Tier 3 (capstone)
+ */
+export function getSkillTier(level: number): 1 | 2 | 3 {
+  if (level <= 1) return 1;
+  if (level <= 3) return 2;
+  return 3;
 }

@@ -31,6 +31,10 @@ pub trait ILevelSystem<T> {
     fn insert_line_if_empty(ref self: T, game_id: u64);
 }
 
+/// Default charge cadence: +1 charge to all actives every N levels.
+/// Overdrive passive can reduce this from 5 to 4/3/2/1.
+const CHARGE_CADENCE_BASE: u8 = 5;
+
 #[dojo::contract]
 mod level_system {
     use dojo::event::EventStorage;
@@ -67,11 +71,6 @@ mod level_system {
             let base_seed: GameSeed = world.read_model(game_id);
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
             let player = get_caller_address();
-            let run_data = game.get_run_data();
-            let branch_ids_arr = skill_effects::build_branch_ids(skill_data);
-            let world_effects = skill_effects::aggregate_world_effects(
-                @run_data, branch_ids_arr.span(),
-            );
 
             // Generate level 1 config using level_seed (at creation, level_seed = seed)
             let level_config = LevelGeneratorTrait::generate(base_seed.level_seed, 1, settings);
@@ -84,83 +83,31 @@ mod level_system {
                 || level_config.constraint_3.constraint_type == ConstraintType::NoBonusUsed;
 
             // Write level config to GameLevel model
-            let mut game_level = GameLevelTrait::from_level_config(game_id, level_config);
-            if world_effects.extra_max_moves > 0 {
-                game_level
-                    .max_moves =
-                        saturating_add_u16(game_level.max_moves, world_effects.extra_max_moves);
-            }
-            if world_effects.expansion_difficulty_reduction > 0 {
-                game_level
-                    .difficulty =
-                        if game_level.difficulty > world_effects.expansion_difficulty_reduction {
-                            game_level.difficulty - world_effects.expansion_difficulty_reduction
-                        } else {
-                            0
-                        };
-            }
+            let game_level = GameLevelTrait::from_level_config(game_id, level_config);
             world.write_model(@game_level);
 
+            // --- vNext: Apply Endgame Focus score at level start ---
             let mut run_data_updated = game.get_run_data();
-            if world_effects.resilience_free_moves > 0 {
+            let passives = skill_effects::get_passive_effects(@run_data_updated);
+            let endgame_score = InternalImpl::calculate_endgame_score(
+                @passives, run_data_updated.current_level,
+            );
+            if endgame_score > 0 {
                 run_data_updated
-                    .free_moves =
-                        if world_effects.resilience_free_moves > 15 {
-                            15
-                        } else {
-                            world_effects.resilience_free_moves
-                        };
-            }
-
-            if world_effects.legacy_free_moves_per_10 > 0 {
-                let bonus_free: u16 = world_effects.legacy_free_moves_per_10.into()
-                    * (run_data_updated.current_level / 10).into();
-                let total_free: u16 = run_data_updated.free_moves.into() + bonus_free;
-                run_data_updated
-                    .free_moves = if total_free > 15 {
-                        15
+                    .level_score = if endgame_score > 255 {
+                        255
                     } else {
-                        total_free.try_into().unwrap()
+                        endgame_score.try_into().unwrap()
                     };
             }
 
-            if world_effects.focus_prefill_percent > 0 {
-                let req1 = level_config.constraint.required_count;
-                if req1 > 0 {
-                    run_data_updated
-                        .constraint_progress =
-                            (req1.into() * world_effects.focus_prefill_percent.into() / 100_u16)
-                        .try_into()
-                        .unwrap();
-                }
+            // Reset per-level flags
+            run_data_updated.gambit_triggered_this_level = false;
+            run_data_updated.combo_surge_flow_active = false;
 
-                let req2 = level_config.constraint_2.required_count;
-                if req2 > 0 {
-                    run_data_updated
-                        .constraint_2_progress =
-                            (req2.into() * world_effects.focus_prefill_percent.into() / 100_u16)
-                        .try_into()
-                        .unwrap();
-                }
-
-                let req3 = level_config.constraint_3.required_count;
-                if req3 > 0 {
-                    run_data_updated
-                        .constraint_3_progress =
-                            (req3.into() * world_effects.focus_prefill_percent.into() / 100_u16)
-                        .try_into()
-                        .unwrap();
-                }
-            }
-
-            if world_effects.legacy_cube_per_n_levels > 0
-                && world_effects.legacy_cube_level_divisor > 0 {
-                let levels_completed: u8 = run_data_updated.current_level
-                    / world_effects.legacy_cube_level_divisor;
-                let legacy_cubes: u16 = world_effects.legacy_cube_per_n_levels.into()
-                    * levels_completed.into();
-                run_data_updated
-                    .total_cubes = saturating_add_u16(run_data_updated.total_cubes, legacy_cubes);
+            // Apply Overdrive starting charges (only on level 1 / game start)
+            if passives.overdrive_starting_charges > 0 {
+                run_data_updated.award_all_active_charges(passives.overdrive_starting_charges);
             }
 
             game.set_run_data(run_data_updated);
@@ -199,13 +146,11 @@ mod level_system {
             let final_score = pre_complete_data.level_score;
             let final_moves = pre_complete_data.level_moves;
             let pre_total_score = pre_complete_data.total_score;
-            let level_max_combo = game.max_combo;
-            let branch_ids_arr = skill_effects::build_branch_ids(skill_data);
-            let world_effects = skill_effects::aggregate_world_effects(
-                @pre_complete_data, branch_ids_arr.span(),
-            );
 
             let player = get_caller_address();
+
+            // --- vNext: Get passive effects for Gambit cube award ---
+            let passives = skill_effects::get_passive_effects(@pre_complete_data);
 
             // Calculate level rewards using LevelGeneratorTrait
             let level_config = LevelGeneratorTrait::generate(
@@ -218,51 +163,34 @@ mod level_system {
                 1 => 1,
                 _ => 0,
             };
-            let bonuses: u8 = 0; // V3.0: No bonus rewards from level completion
+            let bonuses: u8 = 0; // vNext: No bonus rewards from level completion
             let boss_bonus = BossLevel::get_boss_cube_bonus(completed_level);
             let is_victory = completed_level >= 50;
 
-            let base_level_cubes: u16 = cubes.into() + boss_bonus;
-            let mut fortune_cubes: u16 = world_effects.fortune_flat_cubes.into();
-            let pre_mult_total: u32 = base_level_cubes.into() + fortune_cubes.into();
-            if stars >= 3 && world_effects.fortune_star_multiplier_3 > 0 {
-                let multiplied_total: u32 = pre_mult_total
-                    * world_effects.fortune_star_multiplier_3.into();
-                let extra_total: u32 = if multiplied_total > base_level_cubes.into() {
-                    multiplied_total - base_level_cubes.into()
-                } else {
-                    0
-                };
-                fortune_cubes =
-                    if extra_total > 65535 {
-                        65535
-                    } else {
-                        extra_total.try_into().unwrap()
-                    };
-            } else if stars >= 2 && world_effects.fortune_star_multiplier_2 > 0 {
-                let multiplied_total: u32 = pre_mult_total
-                    * world_effects.fortune_star_multiplier_2.into();
-                let extra_total: u32 = if multiplied_total > base_level_cubes.into() {
-                    multiplied_total - base_level_cubes.into()
-                } else {
-                    0
-                };
-                fortune_cubes =
-                    if extra_total > 65535 {
-                        65535
-                    } else {
-                        extra_total.try_into().unwrap()
-                    };
+            // --- vNext: Gambit cube award (once per level, on level complete) ---
+            // If gambit_triggered_this_level is set (grid reached >= gambit_height during this
+            // level),
+            // and the player survived (completing the level = survived), award gambit cubes.
+            let mut gambit_cubes: u16 = 0;
+            if pre_complete_data.gambit_triggered_this_level && passives.gambit_cubes > 0 {
+                gambit_cubes = passives.gambit_cubes;
             }
-            let boss_bonus_with_fortune = saturating_add_u16(boss_bonus, fortune_cubes);
 
             // Record stars for this level (star tier is 0-3)
             game.set_level_stars(completed_level, stars);
 
             // Update run_data (no grid changes - that's done via grid_system)
+            // boss_bonus passed directly (no fortune multipliers in vNext)
             let (cubes_final, _bonuses_final, is_victory_final) = game
-                .complete_level_data(cubes, bonuses, boss_bonus_with_fortune, is_victory);
-            let bonuses_earned: u8 = 0; // V3.0: No bonus rewards from level completion
+                .complete_level_data(cubes, bonuses, boss_bonus, is_victory);
+            let bonuses_earned: u8 = 0; // vNext: No bonus rewards from level completion
+
+            // Add gambit cubes to total (after complete_level_data which already advanced level)
+            if gambit_cubes > 0 {
+                let mut run_data_post = game.get_run_data();
+                run_data_post.total_cubes = saturating_add_u16(run_data_post.total_cubes, gambit_cubes);
+                game.set_run_data(run_data_post);
+            }
 
             // Emit level completed
             world
@@ -314,17 +242,19 @@ mod level_system {
                 let mut run_data_updated = game.get_run_data();
                 run_data_updated.level_transition_pending = true;
 
-                // --- Charge Distribution on Level Complete ---
-                // Source A: deterministic cadence (every 5 levels)
-                if completed_level % 5 == 0 {
-                    run_data_updated.award_all_active_bonus_charges(1);
+                // --- vNext: Charge Distribution on Level Complete ---
+                // Overdrive-aware cadence: every N levels (default 5, reduced by Overdrive passive)
+                let cadence = if passives.overdrive_cadence > 0 {
+                    passives.overdrive_cadence
+                } else {
+                    super::CHARGE_CADENCE_BASE
+                };
+                if cadence > 0 && completed_level % cadence == 0 {
+                    run_data_updated.award_all_active_charges(1);
                 }
 
-                // Source B: highest combo tier reached this level (once per level)
-                let combo_charge_bonus = InternalImpl::combo_charge_bonus(level_max_combo);
-                if combo_charge_bonus > 0 {
-                    run_data_updated.award_all_active_bonus_charges(combo_charge_bonus);
-                }
+                // NOTE: combo_charge_bonus is REMOVED in vNext.
+                // Charges from combos are FORBIDDEN per design spec.
 
                 game.set_run_data(run_data_updated);
             }
@@ -347,11 +277,6 @@ mod level_system {
             let base_seed: GameSeed = world.read_model(game_id);
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
             let player = get_caller_address();
-            let skill_tree: PlayerSkillTree = world.read_model(player);
-            let branch_ids_arr = skill_effects::build_branch_ids(skill_tree.skill_data);
-            let world_effects = skill_effects::aggregate_world_effects(
-                @run_data, branch_ids_arr.span(),
-            );
 
             // current_level was already incremented by complete_level_data() in finalize_level
             let next_level = run_data.current_level;
@@ -384,95 +309,30 @@ mod level_system {
                 .constraint_type == ConstraintType::NoBonusUsed
                 || next_level_config.constraint_2.constraint_type == ConstraintType::NoBonusUsed
                 || next_level_config.constraint_3.constraint_type == ConstraintType::NoBonusUsed;
-            let mut game_level = GameLevelTrait::from_level_config(game_id, next_level_config);
-            if world_effects.extra_max_moves > 0 {
-                game_level
-                    .max_moves =
-                        saturating_add_u16(game_level.max_moves, world_effects.extra_max_moves);
-            }
-            if world_effects.expansion_difficulty_reduction > 0 {
-                game_level
-                    .difficulty =
-                        if game_level.difficulty > world_effects.expansion_difficulty_reduction {
-                            game_level.difficulty - world_effects.expansion_difficulty_reduction
-                        } else {
-                            0
-                        };
-            }
+            let game_level = GameLevelTrait::from_level_config(game_id, next_level_config);
             world.write_model(@game_level);
 
             let mut run_data_updated = game.get_run_data();
             run_data_updated.no_bonus_constraint = has_no_bonus;
             run_data_updated.level_transition_pending = false; // Clear pending flag
 
-            if world_effects.resilience_free_moves > 0 {
-                run_data_updated
-                    .free_moves =
-                        if world_effects.resilience_free_moves > 15 {
-                            15
-                        } else {
-                            world_effects.resilience_free_moves
-                        };
-            }
+            // --- vNext: Reset per-level flags ---
+            run_data_updated.gambit_triggered_this_level = false;
+            run_data_updated.combo_surge_flow_active = false;
 
-            if world_effects.legacy_free_moves_per_10 > 0 {
-                let bonus_free: u16 = world_effects.legacy_free_moves_per_10.into()
-                    * (run_data_updated.current_level / 10).into();
-                let total_free: u16 = run_data_updated.free_moves.into() + bonus_free;
+            // --- vNext: Apply Endgame Focus score at level start ---
+            let passives = skill_effects::get_passive_effects(@run_data_updated);
+            let endgame_score = InternalImpl::calculate_endgame_score(
+                @passives, next_level,
+            );
+            if endgame_score > 0 {
+                // level_score was already reset to 0 by complete_level_data
                 run_data_updated
-                    .free_moves = if total_free > 15 {
-                        15
+                    .level_score = if endgame_score > 255 {
+                        255
                     } else {
-                        total_free.try_into().unwrap()
+                        endgame_score.try_into().unwrap()
                     };
-            }
-
-            if world_effects.focus_prefill_percent > 0 {
-                let req1 = next_level_config.constraint.required_count;
-                if req1 > 0 {
-                    run_data_updated
-                        .constraint_progress =
-                            (req1.into() * world_effects.focus_prefill_percent.into() / 100_u16)
-                        .try_into()
-                        .unwrap();
-                }
-
-                let req2 = next_level_config.constraint_2.required_count;
-                if req2 > 0 {
-                    run_data_updated
-                        .constraint_2_progress =
-                            (req2.into() * world_effects.focus_prefill_percent.into() / 100_u16)
-                        .try_into()
-                        .unwrap();
-                }
-
-                let req3 = next_level_config.constraint_3.required_count;
-                if req3 > 0 {
-                    run_data_updated
-                        .constraint_3_progress =
-                            (req3.into() * world_effects.focus_prefill_percent.into() / 100_u16)
-                        .try_into()
-                        .unwrap();
-                }
-            }
-
-            if world_effects.expansion_cube_per_level > 0 {
-                run_data_updated
-                    .total_cubes =
-                        saturating_add_u16(
-                            run_data_updated.total_cubes,
-                            world_effects.expansion_cube_per_level.into(),
-                        );
-            }
-
-            if world_effects.legacy_cube_per_n_levels > 0
-                && world_effects.legacy_cube_level_divisor > 0 {
-                let levels_completed: u8 = run_data_updated.current_level
-                    / world_effects.legacy_cube_level_divisor;
-                let legacy_cubes: u16 = world_effects.legacy_cube_per_n_levels.into()
-                    * levels_completed.into();
-                run_data_updated
-                    .total_cubes = saturating_add_u16(run_data_updated.total_cubes, legacy_cubes);
             }
 
             game.set_run_data(run_data_updated);
@@ -498,9 +358,15 @@ mod level_system {
             let libs = GameLibsImpl::new(world);
             libs.grid.reset_grid_for_level(game_id);
 
-            // Open draft if applicable (completed_level = next_level - 1)
+            // Open boss upgrade draft if a boss level was just completed
             let completed_level = next_level - 1;
-            libs.draft.maybe_open_after_level(game_id, completed_level, player);
+            if completed_level == 10
+                || completed_level == 20
+                || completed_level == 30
+                || completed_level == 40
+                || completed_level == 50 {
+                libs.draft.open_boss_upgrade(game_id, completed_level);
+            }
         }
 
         fn insert_line_if_empty(ref self: ContractState, game_id: u64) {
@@ -518,20 +384,35 @@ mod level_system {
             libs.grid.insert_line_if_empty(game_id);
         }
     }
-    // V5: charges are granted by cadence and highest combo tier only
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        fn combo_charge_bonus(max_combo_depth: u8) -> u8 {
-            if max_combo_depth >= 8 {
-                3
-            } else if max_combo_depth >= 6 {
-                2
-            } else if max_combo_depth >= 4 {
-                1
-            } else {
-                0
+        /// Calculate Endgame Focus score injection at level start.
+        /// Two modes:
+        ///   - Branch A (Deep End): endgame_per_level_x10 > 0 → score = value × levels_cleared / 10
+        ///   - Branch B (Smooth Ramp): endgame_score > 0 && current_level >= min_level → flat score
+        fn calculate_endgame_score(
+            passives: @skill_effects::PassiveEffect, current_level: u8,
+        ) -> u16 {
+            let per_level_x10 = *passives.endgame_per_level_x10;
+            if per_level_x10 > 0 {
+                // Branch A: +X per level cleared (fractional, stored as ×10)
+                // levels_cleared = current_level - 1 (level 1 means 0 levels cleared)
+                let levels_cleared: u16 = if current_level > 1 {
+                    (current_level - 1).into()
+                } else {
+                    0
+                };
+                return (per_level_x10.into() * levels_cleared) / 10;
             }
+
+            let flat_score = *passives.endgame_score;
+            let min_level = *passives.endgame_min_level;
+            if flat_score > 0 && current_level >= min_level {
+                return flat_score;
+            }
+
+            0
         }
     }
 }

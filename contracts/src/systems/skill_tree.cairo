@@ -1,14 +1,14 @@
 #[starknet::interface]
 pub trait ISkillTreeSystem<T> {
-    /// Upgrade a skill's level (works for both core path 0-4 and branch path 5-9).
+    /// Upgrade a skill's level. Pre-branch: 0→1, 1→2. Post-branch: 3→4, 4→5.
     /// Burns cubes from player's wallet via CubeToken.
     fn upgrade_skill(ref self: T, skill_id: u8);
 
-    /// Choose a branch at level 4->5 (branch: 0=A, 1=B).
-    /// Also upgrades to level 5. Burns cubes.
+    /// Choose a branch at level 2→3 (branch: 0=A, 1=B).
+    /// Also upgrades to level 3. Burns cubes.
     fn choose_branch(ref self: T, skill_id: u8, branch: u8);
 
-    /// Respec a branch (costs 50% of branch investment, resets to level 4).
+    /// Respec a branch (costs 50% of total investment, resets to level 2).
     fn respec_branch(ref self: T, skill_id: u8);
 
     /// Read skill tree data for a player.
@@ -29,7 +29,7 @@ mod skill_tree_system {
     #[abi(embed_v0)]
     impl SkillTreeSystemImpl of super::ISkillTreeSystem<ContractState> {
         fn upgrade_skill(ref self: ContractState, skill_id: u8) {
-            assert!(skill_id < 15, "Invalid skill_id");
+            assert!(skill_id >= 1 && skill_id <= 12, "Invalid skill_id");
 
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let player = get_caller_address();
@@ -42,9 +42,9 @@ mod skill_tree_system {
             let mut data = tree.get_skill_tree_data();
             let mut skill = data.get_skill(skill_id);
 
-            assert!(skill.level < 9, "Skill already at max level");
+            assert!(skill.level < 5, "Skill already at max level");
 
-            if skill.level >= 4 {
+            if skill.level >= 2 {
                 assert!(skill.branch_chosen, "Branch must be chosen before upgrading");
             }
 
@@ -58,7 +58,7 @@ mod skill_tree_system {
         }
 
         fn choose_branch(ref self: ContractState, skill_id: u8, branch: u8) {
-            assert!(skill_id < 15, "Invalid skill_id");
+            assert!(skill_id >= 1 && skill_id <= 12, "Invalid skill_id");
             assert!(branch <= 1, "Invalid branch");
 
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
@@ -72,7 +72,7 @@ mod skill_tree_system {
             let mut data = tree.get_skill_tree_data();
             let mut skill = data.get_skill(skill_id);
 
-            assert!(skill.level == 4, "Skill must be at branch point level");
+            assert!(skill.level == 2, "Skill must be at branch point level");
             assert!(!skill.branch_chosen, "Branch already chosen");
 
             let cost: u16 = SkillTreeHelpersTrait::skill_upgrade_cost(skill.level);
@@ -80,7 +80,7 @@ mod skill_tree_system {
 
             skill.branch_chosen = true;
             skill.branch_id = branch;
-            skill.level = 5;
+            skill.level = 3;
 
             data.set_skill(skill_id, skill);
             tree.set_skill_tree_data(data);
@@ -88,7 +88,7 @@ mod skill_tree_system {
         }
 
         fn respec_branch(ref self: ContractState, skill_id: u8) {
-            assert!(skill_id < 15, "Invalid skill_id");
+            assert!(skill_id >= 1 && skill_id <= 12, "Invalid skill_id");
 
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let player = get_caller_address();
@@ -102,12 +102,12 @@ mod skill_tree_system {
             let mut skill = data.get_skill(skill_id);
 
             assert!(skill.branch_chosen, "Branch not chosen");
-            assert!(skill.level >= 5, "No branch levels to respec");
+            assert!(skill.level >= 3, "No branch levels to respec");
 
             let cost: u16 = SkillTreeHelpersTrait::branch_respec_cost(skill.level);
             InternalImpl::burn_cubes(ref world, player, cost);
 
-            skill.level = 4;
+            skill.level = 2;
             skill.branch_chosen = false;
             skill.branch_id = 0;
 
@@ -119,7 +119,7 @@ mod skill_tree_system {
         fn get_skill_info(
             self: @ContractState, player: ContractAddress, skill_id: u8,
         ) -> (u8, bool, u8) {
-            assert!(skill_id < 15, "Invalid skill_id");
+            assert!(skill_id >= 1 && skill_id <= 12, "Invalid skill_id");
 
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let tree: PlayerSkillTree = world.read_model(player);
