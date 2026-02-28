@@ -114,7 +114,7 @@ const DraftPage: React.FC = () => {
       const currentLevel = slot?.level ?? treeInfo?.level ?? 0;
       const branchId = treeInfo?.branchId;
       const archetype = getArchetypeForSkill(skillId);
-      const nextLevel = isFullLoadout ? currentLevel + 1 : currentLevel;
+      const nextLevel = isFullLoadout ? currentLevel + 1 : Math.max(1, currentLevel);
       const treeHasBranch = treeInfo?.branchChosen ?? false;
       const effectBranchId = isBranchB
         ? 2
