@@ -167,10 +167,10 @@ export const getStoredDraftPick = (
   _event: PendingDraftEvent,
 ): StoredDraftPick | null => {
   if (!draftState) return null;
-  // vNext: return the last selected choice if draft is completed
+  // vNext: selected choice is no longer stored in DraftState.
+  // Draft completion is tracked via draftState.active only.
   if (draftState.active) return null;
-  if (draftState.selectedChoice === 0) return null;
-  return toStoredDraftPick(draftState.selectedChoice);
+  return null;
 };
 
 export const getDraftEventForZoneNode = (

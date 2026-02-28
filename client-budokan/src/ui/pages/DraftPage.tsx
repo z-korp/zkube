@@ -11,15 +11,14 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { getRerollCost, isActiveSkill } from "@/dojo/game/helpers/runDataPacking";
 import { MAX_LOADOUT_SLOTS, BRANCH_POINT_LEVEL } from "@/dojo/game/constants";
 import {
+  ARCHETYPES,
   getSkillById,
   getArchetypeForSkill,
   getSkillTier,
   getSkillAssetKey,
   decodeDraftChoice,
-} from "@/dojo/game/types/skillData";
-import {
   getSkillEffectDescription,
-} from "@/dojo/game/types/skillEffects";
+} from "@/dojo/game/types/skillData";
 import { showToast } from "@/utils/toast";
 import { getSkillTierIconPath } from "@/ui/theme/ImageAssets";
 import PageTopBar from "@/ui/navigation/PageTopBar";
@@ -116,8 +115,7 @@ const DraftPage: React.FC = () => {
       const branchId = treeInfo?.branchId;
       const archetype = getArchetypeForSkill(skillId);
       const nextLevel = isFullLoadout ? currentLevel + 1 : currentLevel;
-      // For branch B choices at level 3+, show branch B effect description
-      const effectBranchId = isBranchB ? 2 : branchId;
+      const effectBranchId = isBranchB ? 2 : branchId === 1 ? 2 : 0;
       return {
         slotIndex: index as 0 | 1 | 2,
         skillId,
@@ -367,6 +365,10 @@ const DraftPage: React.FC = () => {
                 const accentCol = choice.archetype?.color ?? "#64748b";
                 const isPassive = choice.skill?.category === "world";
                 const displayLevel = choice.level + 1;
+                const archetypeColor = choice.skill
+                  ? ARCHETYPES[choice.skill.archetype].color
+                  : accentCol;
+                const genericDesc = choice.skill?.description ?? "";
 
                 return (
                   <motion.article
@@ -454,6 +456,18 @@ const DraftPage: React.FC = () => {
                         >
                           {isPassive ? "Passive" : "Active"}
                         </span>
+                        {choice.skill && (
+                          <span
+                            className="shrink-0 rounded-full border px-1.5 py-0.5 text-[8px] font-semibold"
+                            style={{
+                              color: archetypeColor,
+                              borderColor: `${archetypeColor}66`,
+                              backgroundColor: `${archetypeColor}1f`,
+                            }}
+                          >
+                            {ARCHETYPES[choice.skill.archetype].name}
+                          </span>
+                        )}
                         {choice.isBranchB && choice.skill && (
                           <span className="shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-semibold border border-amber-400/30 bg-amber-900/25 text-amber-200">
                             {choice.skill.branchB}
@@ -467,8 +481,11 @@ const DraftPage: React.FC = () => {
                       </div>
 
                       {/* Effect */}
-                      <p className="mt-0.5 text-[11px] text-slate-300 leading-snug line-clamp-2">
+                      <p className="mt-0.5 text-[11px] text-slate-100 leading-snug line-clamp-2">
                         {choice.effectDesc}
+                      </p>
+                      <p className="mt-0.5 text-[10px] text-slate-400 leading-snug line-clamp-1">
+                        {genericDesc}
                       </p>
 
                       {/* Upgrade comparison */}
