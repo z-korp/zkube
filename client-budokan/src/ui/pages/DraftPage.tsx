@@ -451,7 +451,7 @@ const DraftPage: React.FC = () => {
                     <div className="relative flex-1 flex flex-col justify-center py-2.5 pr-1 min-w-0">
                       {/* Name + badges */}
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <h3 className="font-['Fredericka_the_Great'] text-base leading-tight text-white truncate">
+                        <h3 className="font-['Fredericka_the_Great'] text-sm leading-tight text-white">
                           {choice.skill?.name ?? `Skill ${choice.skillId}`}
                         </h3>
                         <span
@@ -491,13 +491,13 @@ const DraftPage: React.FC = () => {
                       <p className="mt-0.5 text-[11px] text-slate-100 leading-snug">
                         {choice.effectDesc}
                       </p>
-                      <p className="mt-0.5 text-[10px] text-slate-400 leading-snug line-clamp-1">
+                      <p className="mt-0.5 text-[10px] text-slate-400 leading-snug">
                         {genericDesc}
                       </p>
 
                       {/* Upgrade comparison */}
                       {isFullLoadout && choice.level > 0 && (
-                        <p className="mt-0.5 text-[9px] text-slate-500 truncate">
+                        <p className="mt-0.5 text-[9px] text-slate-500">
                           Current: {getSkillEffectDescription(choice.skillId, choice.level, choice.branchId)}
                         </p>
                       )}
