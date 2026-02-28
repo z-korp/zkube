@@ -9,13 +9,13 @@ import {
   SKILLS,
   ARCHETYPES,
   ARCHETYPE_ORDER,
+  getSkillEffectDescription,
   getSkillTier,
   getSkillsByArchetype,
   getSkillAssetKey,
   type ArchetypeId,
   type SkillDefinition,
 } from "@/dojo/game/types/skillData";
-import { getSkillEffectDescription } from "@/dojo/game/types/skillEffects";
 import { SKILL_TREE_COSTS } from "@/dojo/game/helpers/runDataPacking";
 import { MAX_SKILL_LEVEL, BRANCH_POINT_LEVEL, BRANCH_SPLIT_LEVEL, TOTAL_SKILLS } from "@/dojo/game/constants";
 import { getCommonAssetPath } from "@/config/themes";

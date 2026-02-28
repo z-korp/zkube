@@ -1,10 +1,8 @@
-import { Bonus } from "./bonus";
-
 /**
  * vNext Skill Data — 12 skills across 4 archetypes.
  *
  * Mirrors the Cairo skill_effects.cairo definitions.
- * Authoritative spec: docs/SKILL_TREE_REFERENCE.md
+ * Authoritative source: contracts/src/helpers/skill_effects.cairo (CONTRACT IS LAW)
  */
 
 /* ------------------------------------------------------------------ */
@@ -288,255 +286,197 @@ interface BranchSkillDescription {
   branchB: BranchSkillLevelMap;
 }
 
-const WORLD_SKILL_EFFECTS: Record<number, BranchSkillDescription> = {
-  6: {
+const SKILL_EFFECTS: Record<number, BranchSkillDescription> = {
+  1: {
     base: {
-      0: "+1 move",
-      1: "+2 moves",
-      2: "+3 moves",
-      3: "+4 moves",
-      4: "+5 moves",
+      1: "+1 combo depth",
+      2: "+2 combo depth",
     },
     branchA: {
-      5: "+7 moves",
-      6: "+9 moves",
-      7: "+11 moves",
-      8: "+14 moves",
-      9: "+18 moves",
-      10: "+25 moves",
+      3: "+3 combo depth",
+      4: "+5 combo depth",
+      5: "+7 combo depth",
     },
     branchB: {
-      5: "+5 moves, refund 1 move every 3 line clears",
-      6: "+5 moves, refund 1 move every 2 line clears",
-      7: "+6 moves, refund 1 move every 2 line clears",
-      8: "+7 moves, refund 1 move every 2 line clears, +1 score on refund",
-      9: "+8 moves, refund 1 move every 2 line clears, +2 score on refund",
-      10: "+10 moves, refund 1 move every line clear, +3 score on refund",
+      3: "+1 combo depth for the full level",
+      4: "+2 combo depth for the full level",
+      5: "+4 combo depth for the full level",
+    },
+  },
+  2: {
+    base: {
+      1: "+1 score per zone cleared",
+      2: "+2 score per zone cleared",
+    },
+    branchA: {
+      3: "+3 score per zone cleared",
+      4: "+5 score per zone cleared",
+      5: "+10 score per zone cleared",
+    },
+    branchB: {
+      3: "+5 flat score",
+      4: "+10 flat score",
+      5: "+20 flat score",
+    },
+  },
+  3: {
+    base: {
+      1: "Destroy 2 random blocks -> cubes per block size",
+      2: "Destroy 3 random blocks -> cubes per block size",
+    },
+    branchA: {
+      3: "Destroy 5 random blocks -> cubes per block size",
+      4: "Destroy 7 random blocks -> cubes per block size",
+      5: "Destroy 10 random blocks -> cubes per block size",
+    },
+    branchB: {
+      3: "Add 1 line -> +10 cubes",
+      4: "Add 2 lines -> +20 cubes",
+      5: "Add 3 lines -> +40 cubes",
+    },
+  },
+  4: {
+    base: {
+      1: "Clear 1 targeted block",
+      2: "Clear 2 targeted blocks",
+    },
+    branchA: {
+      3: "Clear 3 targeted blocks",
+      4: "Clear 5 targeted blocks",
+      5: "Clear all blocks of targeted size",
+    },
+    branchB: {
+      3: "Destroy 1 targeted row",
+      4: "Destroy 2 targeted rows",
+      5: "Destroy 3 targeted rows",
+    },
+  },
+  5: {
+    base: {
+      1: "Every 12 combo streak -> +1 combo depth",
+      2: "Every 10 combo streak -> +1 combo depth",
+    },
+    branchA: {
+      3: "Every 8 streak -> +1 combo depth",
+      4: "Every 6 streak -> +1 combo depth",
+      5: "Every 4 streak -> +1 combo depth",
+    },
+    branchB: {
+      3: "Every 10 streak -> +2 combo depth",
+      4: "Every 10 streak -> +3 combo depth",
+      5: "Every 10 streak -> +4 combo depth",
+    },
+  },
+  6: {
+    base: {
+      1: "Cascade depth >= 5 -> +1 combo depth",
+      2: "Cascade depth >= 4 -> +1 combo depth",
+    },
+    branchA: {
+      3: "Cascade depth >= 4 -> +2 combo depth",
+      4: "Cascade depth >= 4 -> +3 combo depth",
+      5: "Cascade depth >= 4 -> +4 combo depth",
+    },
+    branchB: {
+      3: "Cascade depth >= 3 -> +1 combo depth",
+      4: "Cascade depth >= 2 -> +1 combo depth",
+      5: "Cascade depth >= 2 -> +2 combo depth",
     },
   },
   7: {
     base: {
-      0: "+1 cube on level complete",
-      1: "+1 cube on level complete",
-      2: "+2 cubes on level complete",
-      3: "+2 cubes on level complete",
-      4: "+3 cubes on level complete",
+      1: "Charge cadence: every 4 levels",
+      2: "Charge cadence: every 3 levels",
     },
     branchA: {
-      5: "+4 cubes on level complete, +1 cube per 5 lines",
-      6: "+5 cubes on level complete, +1 cube per 4 lines",
-      7: "+6 cubes on level complete, +1 cube per 3 lines",
-      8: "+8 cubes on level complete, +1 cube per 3 lines",
-      9: "+10 cubes on level complete, +2 cubes per 3 lines",
-      10: "+15 cubes on level complete, +3 cubes per 2 lines",
+      3: "Charge cadence: every 2 levels",
+      4: "Charge cadence: every 2 levels + start with +1 charge",
+      5: "Charge cadence: every 1 level",
     },
     branchB: {
-      5: "+3 cubes on level complete, 3-star reward x2",
-      6: "+4 cubes on level complete, 3-star reward x2",
-      7: "+5 cubes on level complete, 3-star reward x2, 2-star reward x2",
-      8: "+6 cubes on level complete, 3-star reward x2, 2-star reward x2",
-      9: "+8 cubes on level complete, 3-star reward x3, 2-star reward x2",
-      10: "+12 cubes on level complete, 3-star reward x4, 2-star reward x3",
+      3: "Charge cadence: every 3 levels + start with +1 charge",
+      4: "Charge cadence: every 3 levels + start with +2 charges",
+      5: "Charge cadence: every 2 levels + start with +2 charges",
     },
   },
   8: {
     base: {
-      0: "+5% score on all points earned",
-      1: "+8% score on all points earned",
-      2: "+12% score on all points earned",
-      3: "+16% score on all points earned",
-      4: "+20% score on all points earned",
+      1: "+1 score at level start (levels >= 10)",
+      2: "+2 score at level start (levels >= 20)",
     },
     branchA: {
-      5: "+25% score on all points earned",
-      6: "+30% score on all points earned",
-      7: "+35% score on all points earned",
-      8: "+40% score on all points earned",
-      9: "+50% score on all points earned",
-      10: "+75% score on all points earned",
+      3: "+0.2 score per level cleared at level start",
+      4: "+0.3 score per level cleared at level start",
+      5: "+0.5 score per level cleared at level start",
     },
     branchB: {
-      5: "+20% base score, +2% score per level",
-      6: "+20% base score, +3% score per level",
-      7: "+20% base score, +4% score per level",
-      8: "+22% base score, +5% score per level",
-      9: "+25% base score, +6% score per level",
-      10: "+30% base score, +8% score per level",
+      3: "+5 score at level start (levels >= 25)",
+      4: "+10 score at level start (levels >= 30)",
+      5: "+20 score at level start (levels >= 40)",
     },
   },
   9: {
     base: {
-      0: "-1 combo threshold",
-      1: "-1 combo threshold",
-      2: "-1 combo threshold, +1 cube per combo",
-      3: "-1 combo threshold, +1 cube per combo",
-      4: "-2 combo threshold",
+      1: "Grid >= 9 rows -> +1 cube per clear",
+      2: "Grid >= 8 rows -> +1 cube per clear",
     },
     branchA: {
-      5: "-2 combo threshold, +2 cubes per combo",
-      6: "-2 combo threshold, +3 cubes per combo",
-      7: "-3 combo threshold, +3 cubes per combo",
-      8: "-3 combo threshold, +4 cubes per combo",
-      9: "-3 combo threshold, +5 cubes per combo, double cubes above 6 lines",
-      10: "-4 combo threshold, +7 cubes per combo, triple cubes above 5 lines",
+      3: "Grid >= 8 rows -> +3 cubes per clear",
+      4: "Grid >= 8 rows -> +5 cubes per clear",
+      5: "Grid >= 8 rows -> +10 cubes per clear",
     },
     branchB: {
-      5: "-2 combo threshold, +1 score per line",
-      6: "-2 combo threshold, +2 score per line",
-      7: "-2 combo threshold, +3 score per line",
-      8: "-3 combo threshold, +4 score per line",
-      9: "-3 combo threshold, +5 score per line, +1 free move per combo",
-      10: "-4 combo threshold, +7 score per line, +2 free moves per combo",
+      3: "Grid >= 7 rows -> +1 cube per clear",
+      4: "Grid >= 6 rows -> +1 cube per clear",
+      5: "Grid >= 5 rows -> +1 cube per clear",
     },
   },
   10: {
     base: {
-      0: "Start each level with 1 free move",
-      1: "Start each level with 1 free move",
-      2: "Start each level with 2 free moves",
-      3: "Start each level with 2 free moves",
-      4: "Start each level with 3 free moves",
+      1: "Grid reaches >= 9 rows & survive -> +3 cubes (once/level)",
+      2: "Grid reaches >= 9 rows & survive -> +5 cubes (once/level)",
     },
     branchA: {
-      5: "Start each level with 4 free moves",
-      6: "Start each level with 5 free moves",
-      7: "Start each level with 6 free moves",
-      8: "Start each level with 7 free moves",
-      9: "Start each level with 9 free moves",
-      10: "Start each level with 12 free moves",
+      3: "Grid >= 9 rows & survive -> +10 cubes (once/level)",
+      4: "Grid >= 9 rows & survive -> +15 cubes (once/level)",
+      5: "Grid >= 9 rows & survive -> +30 cubes (once/level)",
     },
     branchB: {
-      5: "Start each level with 3 free moves, regen 1 every 3 line clears",
-      6: "Start each level with 3 free moves, regen 1 every 2 line clears",
-      7: "Start each level with 4 free moves, regen 1 every 2 line clears",
-      8: "Start each level with 4 free moves, regen 1 every line clear",
-      9: "Start each level with 5 free moves, regen 1 every line clear, +1 score per free move",
-      10: "Start each level with 6 free moves, regen 2 every line clear, +2 score per free move",
+      3: "Grid >= 8 rows & survive -> +5 cubes (once/level)",
+      4: "Grid >= 7 rows & survive -> +5 cubes (once/level)",
+      5: "Grid >= 6 rows & survive -> +5 cubes (once/level)",
     },
   },
   11: {
     base: {
-      0: "+1 bonus progress",
-      1: "+1 bonus progress",
-      2: "+1 bonus progress, +1 score on progress",
-      3: "+2 bonus progress",
-      4: "+2 bonus progress, +2 score on progress",
+      1: "Grid >= 9 -> first clear destroys +1 extra row",
+      2: "Grid >= 8 -> first clear destroys +1 extra row",
     },
     branchA: {
-      5: "+3 bonus progress, +3 score on progress",
-      6: "+3 bonus progress, +4 score on progress",
-      7: "+4 bonus progress, +5 score on progress",
-      8: "+4 bonus progress, +6 score on progress",
-      9: "+5 bonus progress, +8 score on progress, +1 cube per constraint",
-      10: "+6 bonus progress, +10 score on progress, +2 cubes per constraint",
+      3: "Grid >= 8 -> first clear destroys +2 extra rows",
+      4: "Grid >= 8 -> first clear destroys +3 extra rows",
+      5: "Grid >= 8 -> first clear destroys +4 extra rows",
     },
     branchB: {
-      5: "+2 bonus progress, 25% constraint prefill",
-      6: "+2 bonus progress, 30% constraint prefill",
-      7: "+3 bonus progress, 35% constraint prefill",
-      8: "+3 bonus progress, 40% constraint prefill",
-      9: "+4 bonus progress, 50% constraint prefill, +1 cube per constraint",
-      10: "+5 bonus progress, 60% constraint prefill, +2 cubes per constraint",
+      3: "Grid >= 7 -> first clear destroys +1 extra row",
+      4: "Grid >= 6 -> first clear destroys +1 extra row",
+      5: "Grid >= 5 -> first clear destroys +1 extra row",
     },
   },
   12: {
     base: {
-      0: "-1 difficulty tier",
-      1: "-1 difficulty tier",
-      2: "-1 difficulty tier, +1 score per line",
-      3: "-2 difficulty tiers",
-      4: "-2 difficulty tiers, +1 score per line",
+      1: "Grid >= 9 -> next clear removes +1 extra row",
+      2: "Grid >= 8 -> next clear removes +1 extra row",
     },
     branchA: {
-      5: "-3 difficulty tiers",
-      6: "-3 difficulty tiers, +2 score per line",
-      7: "-4 difficulty tiers",
-      8: "-4 difficulty tiers, +3 score per line",
-      9: "-5 difficulty tiers, +4 score per line, +1 cube per level",
-      10: "-6 difficulty tiers, +5 score per line, +2 cubes per level",
+      3: "Grid >= 8 -> every clear removes +1 extra row",
+      4: "Grid >= 7 -> every clear removes +1 extra row",
+      5: "Grid >= 6 -> every clear removes +1 extra row",
     },
     branchB: {
-      5: "-2 difficulty tiers, +1 guaranteed gap",
-      6: "-2 difficulty tiers, +2 guaranteed gaps",
-      7: "-3 difficulty tiers, +2 guaranteed gaps",
-      8: "-3 difficulty tiers, +2 guaranteed gaps, +1 cube per 10 lines",
-      9: "-3 difficulty tiers, +3 guaranteed gaps, +2 cubes per 10 lines",
-      10: "-4 difficulty tiers, +4 guaranteed gaps, +3 cubes per 10 lines",
-    },
-  },
-  13: {
-    base: {
-      0: "+1 score per consecutive clear",
-      1: "+1 score per consecutive clear",
-      2: "+2 score per consecutive clear",
-      3: "+2 score per consecutive clear",
-      4: "+3 score per consecutive clear",
-    },
-    branchA: {
-      5: "+4 score per consecutive clear, +1 cube on 3+ line clears",
-      6: "+5 score per consecutive clear, +1 cube per 3+ line clears",
-      7: "+6 score per consecutive clear, +2 cubes per 3+ line clears",
-      8: "+8 score per consecutive clear, +2 cubes per 3+ line clears",
-      9: "+10 score per consecutive clear, +3 cubes per 3+ line clears, clear 1 row",
-      10: "+12 score per consecutive clear, +4 cubes per 3+ line clears, clear 2 rows",
-    },
-    branchB: {
-      5: "+3 score per consecutive clear, +1 move refund",
-      6: "+4 score per consecutive clear, +1 move refund",
-      7: "+5 score per consecutive clear, +1 move refund, +1 combo on streak",
-      8: "+6 score per consecutive clear, +2 move refunds, +1 combo on streak",
-      9: "+8 score per consecutive clear, +2 move refunds, +2 combo on streak",
-      10: "+10 score per consecutive clear, +3 move refunds, +3 combo on streak",
-    },
-  },
-  14: {
-    base: {
-      0: "When grid height >= 7: +2 score per clear",
-      1: "When grid height >= 7: +3 score per clear",
-      2: "When grid height >= 7: +4 score per clear",
-      3: "When grid height >= 7: +5 score per clear",
-      4: "When grid height >= 7: +6 score per clear, +1 cube per clear",
-    },
-    branchA: {
-      5: "When grid height >= 7: +8 score per clear, +2 cubes per clear",
-      6: "When grid height >= 7: +10 score per clear, +2 cubes per clear",
-      7: "When grid height >= 7: +12 score per clear, +3 cubes per clear",
-      8: "When grid height >= 7: +15 score per clear, +3 cubes per clear",
-      9: "When grid height >= 7: +20 score per clear, +4 cubes per clear, +1 free move on 8+ lines",
-      10: "When grid height >= 7: +25 score per clear, +6 cubes per clear, +2 free moves on 8+ lines",
-    },
-    branchB: {
-      5: "When grid height >= 8: +6 score per clear, combo x2",
-      6: "When grid height >= 8: +7 score per clear, combo x2",
-      7: "When grid height >= 7: +8 score per clear, combo x2",
-      8: "When grid height >= 7: +10 score per clear, combo x2, +1 free move on 7+ lines",
-      9: "When grid height >= 7: +12 score per clear, combo x3, +2 free moves on 7+ lines",
-      10: "When grid height >= 7: +15 score per clear, combo x4, +3 free moves on 7+ lines",
-    },
-  },
-  15: {
-    base: {
-      0: "+1 score per 5 levels completed",
-      1: "+1 score per 4 levels completed",
-      2: "+1 score per 3 levels completed",
-      3: "+2 score per 3 levels completed",
-      4: "+2 score per 3 levels completed, +1 cube per 10 levels",
-    },
-    branchA: {
-      5: "+3 score per 3 levels completed, +1 cube per 5 levels",
-      6: "+3 score per 3 levels completed, +2 cubes per 5 levels",
-      7: "+4 score per 3 levels completed, +2 cubes per 5 levels",
-      8: "+5 score per 3 levels completed, +3 cubes per 5 levels",
-      9: "+6 score per 2 levels completed, +4 cubes per 5 levels, +1 free move per 10 levels",
-      10: "+8 score per 2 levels completed, +6 cubes per 5 levels, +2 free moves per 10 levels",
-    },
-    branchB: {
-      5: "+2 score per 3 levels completed, +1 score per unique skill",
-      6: "+2 score per 3 levels completed, +1 score per unique skill",
-      7: "+3 score per 3 levels completed, +2 score per unique skill",
-      8: "+3 score per 3 levels completed, +2 score per unique skill, +1 free move per 10 levels",
-      9: "+4 score per 3 levels completed, +3 score per unique skill, +2 free moves per 10 levels",
-      10: "+5 score per 3 levels completed, +4 score per unique skill, +3 free moves per 10 levels",
+      3: "Grid >= 8 -> next clear removes +2 extra rows",
+      4: "Grid >= 8 -> next clear removes +3 extra rows",
+      5: "Grid >= 8 -> next clear removes +4 extra rows",
     },
   },
 };
@@ -552,14 +492,12 @@ export function getSkillEffectDescription(
   level: number,
   branchId?: number,
 ): string {
-  if (skillId >= 1 && skillId <= 5) {
-    return Bonus.fromContractValue(skillId).getEffect(level);
-  }
+  if (level <= 0) return "Not learned";
 
-  const table = WORLD_SKILL_EFFECTS[skillId];
+  const table = SKILL_EFFECTS[skillId];
   if (!table) return "Unknown skill";
 
-  if (level < 5) {
+  if (level < 3) {
     return table.base[level] ?? "";
   }
 
@@ -573,7 +511,7 @@ export function getSkillEffectDescription(
 
   const branchA = table.branchA[level] ?? "";
   const branchB = table.branchB[level] ?? "";
-  return `Branch A: ${branchA} | Branch B: ${branchB}`;
+  return `A: ${branchA} | B: ${branchB}`;
 }
 
 /**

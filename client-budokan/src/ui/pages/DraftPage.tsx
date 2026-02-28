@@ -115,7 +115,14 @@ const DraftPage: React.FC = () => {
       const branchId = treeInfo?.branchId;
       const archetype = getArchetypeForSkill(skillId);
       const nextLevel = isFullLoadout ? currentLevel + 1 : currentLevel;
-      const effectBranchId = isBranchB ? 2 : branchId === 1 ? 2 : 0;
+      const treeHasBranch = treeInfo?.branchChosen ?? false;
+      const effectBranchId = isBranchB
+        ? 2
+        : treeHasBranch
+          ? treeInfo!.branchId === 0
+            ? 1
+            : 2
+          : 0;
       return {
         slotIndex: index as 0 | 1 | 2,
         skillId,
@@ -481,7 +488,7 @@ const DraftPage: React.FC = () => {
                       </div>
 
                       {/* Effect */}
-                      <p className="mt-0.5 text-[11px] text-slate-100 leading-snug line-clamp-2">
+                      <p className="mt-0.5 text-[11px] text-slate-100 leading-snug">
                         {choice.effectDesc}
                       </p>
                       <p className="mt-0.5 text-[10px] text-slate-400 leading-snug line-clamp-1">
