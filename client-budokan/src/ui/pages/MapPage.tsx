@@ -37,8 +37,12 @@ import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
 import ZoneBackground from "@/ui/components/map/ZoneBackground";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
-import { getSkillById, getArchetypeForSkill, getSkillTier } from "@/dojo/game/types/skillData";
-import { getSkillEffectDescription } from "@/dojo/game/types/skillEffects";
+import {
+  getSkillById,
+  getArchetypeForSkill,
+  getSkillTier,
+  getSkillEffectDescription,
+} from "@/dojo/game/types/skillData";
 import { getSkillTierIconPath } from "@/ui/theme/ImageAssets";
 import { getSlotBySkillId } from "@/dojo/game/helpers/runDataPacking";
 
@@ -61,19 +65,6 @@ const STATE_COLORS: Record<
   visited: { fill: "#1e3a2f", border: "#4ade80", alpha: 0.85, text: "#bbf7d0" },
 };
 
-const DRAFT_KIND_LABELS: Record<string, string> = {
-  new_powerup: "New Powerup",
-  upgrade_powerup: "Upgrade",
-  zone_modifier: "Zone Modifier",
-  risk_contract: "Risk Contract",
-  relic: "Relic",
-};
-
-const DRAFT_POOL_LABELS: Record<string, string> = {
-  powerup: "Powerup Pool",
-  upgrade: "Upgrade Pool",
-  world: "World Pool",
-};
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -466,7 +457,6 @@ const MapPage: React.FC = () => {
                                 node.zone,
                                 currentLevel,
                                 draftState,
-                                node.draftPhase ?? "entry",
                               );
 
                               if (!event) {

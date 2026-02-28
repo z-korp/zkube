@@ -8,8 +8,7 @@ import {
 import { THEME_IDS, type ThemeId } from "@/config/themes";
 import type { DraftStateData } from "@/hooks/useDraft";
 import {
-  getDraftEventsForZone,
-  getZoneMicroDraftTriggerLevel,
+  getDraftEventForZone,
   isDraftEventCompleted,
 } from "@/utils/draftEvents";
 
@@ -26,7 +25,6 @@ export interface MapNodeData {
   zone: number;
   nodeInZone: number;
   type: NodeType;
-  draftPhase: "entry" | "mid" | null;
   contractLevel: number | null;
   displayLabel: string;
   state: NodeState;
@@ -47,7 +45,11 @@ export interface UseMapDataParams {
   draftState?: DraftStateData | null;
 }
 
-export const NODES_PER_ZONE = 12;
+/**
+ * vNext: 11 nodes per zone (no mid-zone draft)
+ * Sequence: entry_draft, L1, L2, ..., L9, boss
+ */
+export const NODES_PER_ZONE = 11;
 export const TOTAL_ZONES = 5;
 export const GAMEPLAY_LEVELS = 50;
 const LEVELS_PER_ZONE = 10;
@@ -58,47 +60,38 @@ function poseidon(values: bigint[]): bigint {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Build the ordered 12-node sequence for a single zone.             */
+/*  Build the ordered 11-node sequence for a single zone.             */
 /*                                                                    */
-/*  Sequence: entry_draft, L1 … Ln, mid_draft, L(n+1) … L9, boss     */
-/*  The mid_draft appears AFTER the level whose completion triggers    */
-/*  the draft (getZoneMicroDraftTriggerLevel).                        */
+/*  Sequence: entry_draft, L1 … L9, boss                             */
 /* ------------------------------------------------------------------ */
 
 interface RawNode {
   type: NodeType;
-  draftPhase: "entry" | "mid" | null;
   contractLevel: number | null;
 }
 
-function buildZoneSequence(seed: bigint, zone: number): RawNode[] {
+function buildZoneSequence(_seed: bigint, zone: number): RawNode[] {
   const zoneStart = (zone - 1) * LEVELS_PER_ZONE + 1; // e.g. 1, 11, 21…
   const bossLevel = zone * LEVELS_PER_ZONE; // e.g. 10, 20, 30…
-  const midTrigger = getZoneMicroDraftTriggerLevel(seed, zone);
 
   const nodes: RawNode[] = [];
 
   // Entry draft — always first
-  nodes.push({ type: "draft", draftPhase: "entry", contractLevel: null });
+  nodes.push({ type: "draft", contractLevel: null });
 
-  // 9 regular levels (zoneStart to zoneStart+8) interleaved with mid-draft
+  // 9 regular levels (zoneStart to zoneStart+8)
   for (let level = zoneStart; level < bossLevel; level++) {
-    nodes.push({ type: "classic", draftPhase: null, contractLevel: level });
-
-    // Mid-draft appears AFTER the trigger level
-    if (level === midTrigger) {
-      nodes.push({ type: "draft", draftPhase: "mid", contractLevel: null });
-    }
+    nodes.push({ type: "classic", contractLevel: level });
   }
 
   // Boss — always last
-  nodes.push({ type: "boss", draftPhase: null, contractLevel: bossLevel });
+  nodes.push({ type: "boss", contractLevel: bossLevel });
 
   return nodes;
 }
 
 /* ------------------------------------------------------------------ */
-/*  Convert contract level → global node index (needs seed now).      */
+/*  Convert contract level → global node index.                       */
 /* ------------------------------------------------------------------ */
 
 export function contractLevelToNodeIndex(
@@ -143,34 +136,17 @@ function getNodeState(
 ): NodeState {
   const zoneEndLevel = node.zone * LEVELS_PER_ZONE;
 
-  // --- Draft nodes ---
+  // --- Draft nodes (entry only in vNext) ---
   if (node.type === "draft") {
     const zoneStartLevel = (node.zone - 1) * LEVELS_PER_ZONE + 1;
 
-    if (node.draftPhase === "entry") {
-      // Entry draft: unlocks when player reaches this zone
-      const unlockLevel = node.zone === 1 ? 1 : zoneStartLevel;
-      if (currentLevel < unlockLevel) return "locked";
-      if (currentLevel > zoneEndLevel) return "visited";
-
-      const events = getDraftEventsForZone(seed, node.zone);
-      const entryEvent = events.find(
-        (e) => e.type === "post_level_1" || e.type === "post_boss",
-      );
-      if (entryEvent && isDraftEventCompleted(draftState ?? null, entryEvent)) {
-        return "visited";
-      }
-      return "available";
-    }
-
-    // Mid draft: triggers when completed_level == trigger, so player is at trigger+1
-    const trigger = getZoneMicroDraftTriggerLevel(seed, node.zone);
-    if (currentLevel <= trigger) return "locked";
+    // Entry draft: unlocks when player reaches this zone
+    const unlockLevel = node.zone === 1 ? 1 : zoneStartLevel;
+    if (currentLevel < unlockLevel) return "locked";
     if (currentLevel > zoneEndLevel) return "visited";
 
-    const events = getDraftEventsForZone(seed, node.zone);
-    const midEvent = events.find((e) => e.type === "zone_micro");
-    if (midEvent && isDraftEventCompleted(draftState ?? null, midEvent)) {
+    const entryEvent = getDraftEventForZone(seed, node.zone);
+    if (isDraftEventCompleted(draftState ?? null, entryEvent)) {
       return "visited";
     }
     return "available";
@@ -183,16 +159,11 @@ function getNodeState(
     return "cleared";
   }
 
-  // Level 1 special case: locked until entry draft for zone 1 is done
+  // Level 1 of zone: locked until entry draft is done
   if (node.contractLevel === (node.zone - 1) * LEVELS_PER_ZONE + 1) {
-    // Check if entry draft for this zone is completed
-    const events = getDraftEventsForZone(seed, node.zone);
-    const entryEvent = events.find(
-      (e) => e.type === "post_level_1" || e.type === "post_boss",
-    );
+    const entryEvent = getDraftEventForZone(seed, node.zone);
 
-    if (!entryEvent || !isDraftEventCompleted(draftState ?? null, entryEvent)) {
-      // Entry draft not done yet — this level is locked
+    if (!isDraftEventCompleted(draftState ?? null, entryEvent)) {
       if (node.contractLevel !== null && node.contractLevel >= currentLevel) {
         return "locked";
       }
@@ -205,29 +176,13 @@ function getNodeState(
   }
 
   if (node.contractLevel !== null && node.contractLevel === currentLevel) {
-    // Check if the previous sequential node (draft or level) is done
-    // For the first level in zone: entry draft must be completed
+    // First level in zone: entry draft must be completed
     const zoneFirstLevel = (node.zone - 1) * LEVELS_PER_ZONE + 1;
     if (node.contractLevel === zoneFirstLevel) {
-      const events = getDraftEventsForZone(seed, node.zone);
-      const entryEvent = events.find(
-        (e) => e.type === "post_level_1" || e.type === "post_boss",
-      );
-      if (entryEvent && isDraftEventCompleted(draftState ?? null, entryEvent)) {
+      const entryEvent = getDraftEventForZone(seed, node.zone);
+      if (isDraftEventCompleted(draftState ?? null, entryEvent)) {
         return "current";
       }
-      return "locked";
-    }
-
-    // For levels right after mid-draft: mid-draft must be completed
-    const trigger = getZoneMicroDraftTriggerLevel(seed, node.zone);
-    if (node.contractLevel === trigger + 1) {
-      const events = getDraftEventsForZone(seed, node.zone);
-      const midEvent = events.find((e) => e.type === "zone_micro");
-      if (midEvent && isDraftEventCompleted(draftState ?? null, midEvent)) {
-        return "current";
-      }
-      // If mid-draft not completed, draft is the "current" node, level after it is locked
       return "locked";
     }
 
@@ -292,7 +247,6 @@ export function generateMapData({
         zone: z,
         nodeInZone: i,
         type: raw.type,
-        draftPhase: raw.draftPhase,
         contractLevel: raw.contractLevel,
         displayLabel,
       });

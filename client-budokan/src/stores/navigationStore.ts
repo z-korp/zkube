@@ -23,7 +23,7 @@ export interface PendingLevelCompletion {
   gameLevel: GameLevelData | null;
 }
 
-export type DraftEventType = "post_level_1" | "post_boss" | "zone_micro";
+export type DraftEventType = "post_level_1" | "post_boss";
 
 export interface PendingDraftEvent {
   type: DraftEventType;

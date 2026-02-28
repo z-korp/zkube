@@ -151,13 +151,14 @@ export function defineContractComponents(world: World) {
         {
           game_id: RecsType.Number,
           seed: RecsType.BigInt,
+          level_seed: RecsType.BigInt,
           vrf_enabled: RecsType.Boolean,
         },
         {
           metadata: {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "GameSeed",
-            types: ["u64", "felt252", "bool"],
+            types: ["u64", "felt252", "felt252", "bool"],
             customTypes: [],
           },
         }
