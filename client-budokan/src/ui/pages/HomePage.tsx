@@ -176,8 +176,14 @@ const HomePage: React.FC = () => {
               />
 
               <NavButton
-                label="LEADERBOARD"
+                label="DAILY CHALLENGE"
                 variant="blue"
+                onClick={() => navigate("dailychallenge")}
+              />
+
+              <NavButton
+                label="LEADERBOARD"
+                variant="purple"
                 onClick={() => navigate("leaderboard")}
               />
             </>

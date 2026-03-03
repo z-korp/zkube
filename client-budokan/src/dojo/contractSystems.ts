@@ -76,6 +76,79 @@ export interface SkillTreeRespec extends Signer {
   skill_id: number;
 }
 
+export interface AddCustomGameSettings extends Signer {
+  name: string;
+  description: string;
+  difficulty: number;
+  base_moves: number;
+  max_moves: number;
+  base_ratio_x100: number;
+  max_ratio_x100: number;
+  cube_3_percent: number;
+  cube_2_percent: number;
+  tier_1_threshold: number;
+  tier_2_threshold: number;
+  tier_3_threshold: number;
+  tier_4_threshold: number;
+  tier_5_threshold: number;
+  tier_6_threshold: number;
+  tier_7_threshold: number;
+  constraints_enabled: number;
+  constraint_start_level: number;
+  constraint_lines_budgets: string;
+  constraint_chances: number;
+  veryeasy_size1_weight: number;
+  veryeasy_size2_weight: number;
+  veryeasy_size3_weight: number;
+  veryeasy_size4_weight: number;
+  veryeasy_size5_weight: number;
+  master_size1_weight: number;
+  master_size2_weight: number;
+  master_size3_weight: number;
+  master_size4_weight: number;
+  master_size5_weight: number;
+  early_variance_percent: number;
+  mid_variance_percent: number;
+  late_variance_percent: number;
+  early_level_threshold: number;
+  mid_level_threshold: number;
+  level_cap: number;
+  draft_picks: number;
+  draft_pool_mask: number;
+  draft_fixed_level: number;
+  boss_upgrades_enabled: number;
+  reroll_base_cost: number;
+  starting_charges: number;
+}
+
+export interface CreateDailyChallenge extends Signer {
+  settings_id: number;
+  ranking_metric: number;
+  prize_amount_low: string;
+  prize_amount_high: string;
+}
+
+export interface RegisterEntry extends Signer {
+  challenge_id: number;
+}
+
+export interface SubmitResult extends Signer {
+  challenge_id: number;
+  game_id: number;
+}
+
+export interface SettleChallenge extends Signer {
+  challenge_id: number;
+}
+
+export interface ClaimPrize extends Signer {
+  challenge_id: number;
+}
+
+export interface WithdrawUnclaimed extends Signer {
+  challenge_id: number;
+}
+
 export type IWorld = ReturnType<typeof setupWorld>;
 
 // Build VRF request_random call using Source::Salt for deterministic, game-state-derived randomness.
@@ -481,10 +554,247 @@ export function setupWorld(config: Config) {
     };
   }
 
+  function configSystem() {
+    const contract_name = "config_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      console.warn(`Contract ${contract_name} not found in manifest - config system disabled`);
+      return null;
+    }
+
+    const add_custom_game_settings = async ({
+      account,
+      name,
+      description,
+      difficulty,
+      base_moves,
+      max_moves,
+      base_ratio_x100,
+      max_ratio_x100,
+      cube_3_percent,
+      cube_2_percent,
+      tier_1_threshold,
+      tier_2_threshold,
+      tier_3_threshold,
+      tier_4_threshold,
+      tier_5_threshold,
+      tier_6_threshold,
+      tier_7_threshold,
+      constraints_enabled,
+      constraint_start_level,
+      constraint_lines_budgets,
+      constraint_chances,
+      veryeasy_size1_weight,
+      veryeasy_size2_weight,
+      veryeasy_size3_weight,
+      veryeasy_size4_weight,
+      veryeasy_size5_weight,
+      master_size1_weight,
+      master_size2_weight,
+      master_size3_weight,
+      master_size4_weight,
+      master_size5_weight,
+      early_variance_percent,
+      mid_variance_percent,
+      late_variance_percent,
+      early_level_threshold,
+      mid_level_threshold,
+      level_cap,
+      draft_picks,
+      draft_pool_mask,
+      draft_fixed_level,
+      boss_upgrades_enabled,
+      reroll_base_cost,
+      starting_charges,
+    }: AddCustomGameSettings) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "add_custom_game_settings",
+            calldata: CallData.compile([
+              stringToFelt(name),
+              description,
+              difficulty,
+              base_moves,
+              max_moves,
+              base_ratio_x100,
+              max_ratio_x100,
+              cube_3_percent,
+              cube_2_percent,
+              tier_1_threshold,
+              tier_2_threshold,
+              tier_3_threshold,
+              tier_4_threshold,
+              tier_5_threshold,
+              tier_6_threshold,
+              tier_7_threshold,
+              constraints_enabled,
+              constraint_start_level,
+              constraint_lines_budgets,
+              constraint_chances,
+              veryeasy_size1_weight,
+              veryeasy_size2_weight,
+              veryeasy_size3_weight,
+              veryeasy_size4_weight,
+              veryeasy_size5_weight,
+              master_size1_weight,
+              master_size2_weight,
+              master_size3_weight,
+              master_size4_weight,
+              master_size5_weight,
+              early_variance_percent,
+              mid_variance_percent,
+              late_variance_percent,
+              early_level_threshold,
+              mid_level_threshold,
+              level_cap,
+              draft_picks,
+              draft_pool_mask,
+              draft_fixed_level,
+              boss_upgrades_enabled,
+              reroll_base_cost,
+              starting_charges,
+            ]),
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing add_custom_game_settings:", error);
+        throw error;
+      }
+    };
+
+    return {
+      address: contract.address,
+      add_custom_game_settings,
+    };
+  }
+
+  function daily_challenge() {
+    const contract_name = "daily_challenge_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      console.warn(`Contract ${contract_name} not found in manifest - daily challenge disabled`);
+      return null;
+    }
+
+    const create_daily_challenge = async ({
+      account,
+      settings_id,
+      ranking_metric,
+      prize_amount_low,
+      prize_amount_high,
+    }: CreateDailyChallenge) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "create_daily_challenge",
+            calldata: [settings_id, ranking_metric, prize_amount_low, prize_amount_high],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing create_daily_challenge:", error);
+        throw error;
+      }
+    };
+
+    const register_entry = async ({ account, challenge_id }: RegisterEntry) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "register_entry",
+            calldata: [challenge_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing register_entry:", error);
+        throw error;
+      }
+    };
+
+    const submit_result = async ({ account, challenge_id, game_id }: SubmitResult) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "submit_result",
+            calldata: [challenge_id, game_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing submit_result:", error);
+        throw error;
+      }
+    };
+
+    const settle_challenge = async ({ account, challenge_id }: SettleChallenge) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "settle_challenge",
+            calldata: [challenge_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing settle_challenge:", error);
+        throw error;
+      }
+    };
+
+    const claim_prize = async ({ account, challenge_id }: ClaimPrize) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "claim_prize",
+            calldata: [challenge_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing claim_prize:", error);
+        throw error;
+      }
+    };
+
+    const withdraw_unclaimed = async ({ account, challenge_id }: WithdrawUnclaimed) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "withdraw_unclaimed",
+            calldata: [challenge_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing withdraw_unclaimed:", error);
+        throw error;
+      }
+    };
+
+    return {
+      address: contract.address,
+      create_daily_challenge,
+      register_entry,
+      submit_result,
+      settle_challenge,
+      claim_prize,
+      withdraw_unclaimed,
+    };
+  }
+
   return {
     game: game(),
     quest: quest(),
     draft: draft(),
     skill_tree: skill_tree(),
+    config: configSystem(),
+    daily_challenge: daily_challenge(),
   };
 }

@@ -43,6 +43,10 @@ export async function setup({ ...config }: Config) {
     `${namespace}-GameLevel`,
     `${namespace}-DraftState`,
     `${namespace}-PlayerSkillTree`,
+    `${namespace}-DailyChallenge`,
+    `${namespace}-DailyEntry`,
+    `${namespace}-DailyLeaderboard`,
+    `${namespace}-GameChallenge`,
   ] as `${string}-${string}`[];
   const modelsToWatch = [
     `${namespace}-Game`,
@@ -51,6 +55,10 @@ export async function setup({ ...config }: Config) {
     `${namespace}-DraftState`,
     `${namespace}-GameSettingsMetadata`,
     `${namespace}-PlayerSkillTree`,
+    `${namespace}-DailyChallenge`,
+    `${namespace}-DailyEntry`,
+    `${namespace}-DailyLeaderboard`,
+    `${namespace}-GameChallenge`,
   ];
 
   log.info("Starting entity sync", {

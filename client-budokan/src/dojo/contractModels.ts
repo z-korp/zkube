@@ -78,13 +78,6 @@ export function defineContractComponents(world: World) {
           // Cube Thresholds
           cube_3_percent: RecsType.Number,
           cube_2_percent: RecsType.Number,
-          // Consumable Costs
-          combo_cost: RecsType.Number,
-          tsunami_cost: RecsType.Number,
-          harvest_cost: RecsType.Number,
-          extra_moves_cost: RecsType.Number,
-          // Reward Multiplier
-          cube_multiplier_x100: RecsType.Number,
           // Difficulty Tier Thresholds (non-linear)
           tier_1_threshold: RecsType.Number,
           tier_2_threshold: RecsType.Number,
@@ -119,6 +112,13 @@ export function defineContractComponents(world: World) {
           mid_level_threshold: RecsType.Number,
           // Level Cap
           level_cap: RecsType.Number,
+          // Draft Settings
+          draft_picks: RecsType.Number,
+          draft_pool_mask: RecsType.Number,
+          draft_fixed_level: RecsType.Number,
+          boss_upgrades_enabled: RecsType.Number,
+          reroll_base_cost: RecsType.Number,
+          starting_charges: RecsType.Number,
         },
         {
           metadata: {
@@ -129,8 +129,6 @@ export function defineContractComponents(world: World) {
               "u8",   // mode
               "u16", "u16", "u16", "u16",  // level scaling
               "u8", "u8",  // cube thresholds
-              "u8", "u8", "u8", "u8",  // consumable costs
-              "u16",  // cube_multiplier_x100
               "u8", "u8", "u8", "u8", "u8", "u8", "u8",  // tier thresholds (7)
               "u8", "u8",  // constraint settings
               "u64",  // constraint_lines_budgets (packed)
@@ -140,6 +138,12 @@ export function defineContractComponents(world: World) {
               "u8", "u8", "u8",  // variance
               "u8", "u8",  // level thresholds
               "u8",  // level_cap
+              "u8",   // draft_picks
+              "u16",  // draft_pool_mask
+              "u8",   // draft_fixed_level
+              "u8",   // boss_upgrades_enabled
+              "u8",   // reroll_base_cost
+              "u8",   // starting_charges
             ],
           },
         }
@@ -281,6 +285,121 @@ export function defineContractComponents(world: World) {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "PlayerMeta",
             types: ["ContractAddress", "felt252", "u8"],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+
+    DailyChallenge: (() => {
+      return defineComponent(
+        world,
+        {
+          challenge_id: RecsType.Number,
+          settings_id: RecsType.Number,
+          seed: RecsType.BigInt,
+          start_time: RecsType.Number,
+          end_time: RecsType.Number,
+          ranking_metric: RecsType.Number,
+          total_entries: RecsType.Number,
+          prize_pool: RecsType.BigInt,
+          settled: RecsType.Boolean,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "DailyChallenge",
+            types: [
+              "u32",           // challenge_id
+              "u32",           // settings_id
+              "felt252",       // seed
+              "u64",           // start_time
+              "u64",           // end_time
+              "u8",            // ranking_metric
+              "u32",           // total_entries
+              "u256",          // prize_pool
+              "bool",          // settled
+            ],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+    DailyEntry: (() => {
+      return defineComponent(
+        world,
+        {
+          challenge_id: RecsType.Number,
+          player: RecsType.BigInt,
+          attempts: RecsType.Number,
+          best_score: RecsType.Number,
+          best_level: RecsType.Number,
+          best_cubes: RecsType.Number,
+          best_game_id: RecsType.Number,
+          rank: RecsType.Number,
+          prize_amount: RecsType.BigInt,
+          claimed: RecsType.Boolean,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "DailyEntry",
+            types: [
+              "u32",               // challenge_id
+              "ContractAddress",   // player
+              "u32",               // attempts
+              "u16",               // best_score
+              "u8",                // best_level
+              "u16",               // best_cubes
+              "u64",               // best_game_id
+              "u32",               // rank
+              "u256",              // prize_amount
+              "bool",              // claimed
+            ],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+    DailyLeaderboard: (() => {
+      return defineComponent(
+        world,
+        {
+          challenge_id: RecsType.Number,
+          rank: RecsType.Number,
+          player: RecsType.BigInt,
+          value: RecsType.Number,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "DailyLeaderboard",
+            types: [
+              "u32",               // challenge_id
+              "u32",               // rank
+              "ContractAddress",   // player
+              "u32",               // value
+            ],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+    GameChallenge: (() => {
+      return defineComponent(
+        world,
+        {
+          game_id: RecsType.Number,
+          challenge_id: RecsType.Number,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "GameChallenge",
+            types: [
+              "u64",   // game_id
+              "u32",   // challenge_id
+            ],
             customTypes: [],
           },
         }

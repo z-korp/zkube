@@ -47,11 +47,6 @@ export interface GameSettings {
   // Cube Thresholds
   cube3Percent: number;
   cube2Percent: number;
-  // Consumable Costs
-  comboCost: number;
-  tsunamiCost: number;
-  harvestCost: number;
-  extraMovesCost: number;
   // Difficulty Progression (tier thresholds)
   tier1Threshold: number;  // Easy starts
   tier2Threshold: number;  // Medium starts
@@ -98,6 +93,13 @@ export interface GameSettings {
   midLevelThreshold: number;
   // Level Cap
   levelCap: number;
+  // Draft Settings
+  draftPicks: number;
+  draftPoolMask: number;
+  draftFixedLevel: number;
+  bossUpgradesEnabled: boolean;
+  rerollBaseCost: number;
+  startingCharges: number;
 }
 
 /**
@@ -115,11 +117,6 @@ export const DEFAULT_SETTINGS: GameSettings = {
   // Cube Thresholds
   cube3Percent: 40,
   cube2Percent: 70,
-  // Consumable Costs
-  comboCost: 5,
-  tsunamiCost: 5,
-  harvestCost: 5,
-  extraMovesCost: 10,
   // Difficulty Progression (non-linear tier thresholds)
   tier1Threshold: 4,   // Easy starts at level 4
   tier2Threshold: 8,   // Medium starts at level 8
@@ -167,6 +164,13 @@ export const DEFAULT_SETTINGS: GameSettings = {
   midLevelThreshold: 25,
   // Level Cap
   levelCap: 50,
+  // Draft Settings
+  draftPicks: 3,
+  draftPoolMask: 0x3F7,
+  draftFixedLevel: 0,
+  bossUpgradesEnabled: true,
+  rerollBaseCost: 5,
+  startingCharges: 1,
 };
 
 export interface LevelConfig {
@@ -943,10 +947,6 @@ export function parseGameSettings(raw: any): GameSettings {
     maxRatioX100: raw.max_ratio_x100 ?? DEFAULT_SETTINGS.maxRatioX100,
     cube3Percent: raw.cube_3_percent ?? DEFAULT_SETTINGS.cube3Percent,
     cube2Percent: raw.cube_2_percent ?? DEFAULT_SETTINGS.cube2Percent,
-    comboCost: raw.combo_cost ?? DEFAULT_SETTINGS.comboCost,
-    tsunamiCost: raw.tsunami_cost ?? DEFAULT_SETTINGS.tsunamiCost,
-    harvestCost: raw.harvest_cost ?? DEFAULT_SETTINGS.harvestCost,
-    extraMovesCost: raw.extra_moves_cost ?? DEFAULT_SETTINGS.extraMovesCost,
     // Difficulty tier thresholds
     tier1Threshold: raw.tier_1_threshold ?? DEFAULT_SETTINGS.tier1Threshold,
     tier2Threshold: raw.tier_2_threshold ?? DEFAULT_SETTINGS.tier2Threshold,
@@ -998,5 +998,15 @@ export function parseGameSettings(raw: any): GameSettings {
     midLevelThreshold:
       raw.mid_level_threshold ?? DEFAULT_SETTINGS.midLevelThreshold,
     levelCap: raw.level_cap ?? DEFAULT_SETTINGS.levelCap,
+    // Draft Settings
+    draftPicks: raw.draft_picks ?? DEFAULT_SETTINGS.draftPicks,
+    draftPoolMask: raw.draft_pool_mask ?? DEFAULT_SETTINGS.draftPoolMask,
+    draftFixedLevel: raw.draft_fixed_level ?? DEFAULT_SETTINGS.draftFixedLevel,
+    bossUpgradesEnabled:
+      raw.boss_upgrades_enabled !== undefined
+        ? raw.boss_upgrades_enabled !== 0
+        : DEFAULT_SETTINGS.bossUpgradesEnabled,
+    rerollBaseCost: raw.reroll_base_cost ?? DEFAULT_SETTINGS.rerollBaseCost,
+    startingCharges: raw.starting_charges ?? DEFAULT_SETTINGS.startingCharges,
   };
 }

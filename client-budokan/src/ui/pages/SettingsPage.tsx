@@ -4,6 +4,7 @@ import {
   Check,
   Copy,
   Palette,
+  Settings2,
   UserRound,
 } from "lucide-react";
 import { useDisconnect } from "@starknet-react/core";
@@ -26,6 +27,7 @@ const toPercent = (value: number): number => Math.round(value * 100);
 
 const SettingsPage: React.FC = () => {
   const goBack = useNavigationStore((state) => state.goBack);
+  const navigate = useNavigationStore((s) => s.navigate);
   const { account } = useAccountCustom();
   const { username } = useControllerUsername();
   const { disconnect } = useDisconnect();
@@ -155,6 +157,28 @@ const SettingsPage: React.FC = () => {
                 );
               })}
             </div>
+          </motion.section>
+
+          <motion.section
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: 0.06 }}
+            className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Settings2 size={18} className="text-cyan-300" />
+              <h2 className="font-['Fredericka_the_Great'] text-lg text-white tracking-wide">
+                GAME PRESETS
+              </h2>
+            </div>
+            <p className="text-sm text-slate-400 mb-3">
+              Create and manage custom game settings presets for daily challenges.
+            </p>
+            <GameButton
+              label="MANAGE PRESETS"
+              variant="secondary"
+              onClick={() => navigate("settingspresets")}
+            />
           </motion.section>
 
           <motion.section

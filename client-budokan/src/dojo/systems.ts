@@ -356,6 +356,104 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
+  const addCustomGameSettings = async ({
+    account,
+    ...props
+  }: SystemTypes.AddCustomGameSettings) => {
+    if (!client.config) {
+      throw new Error("Config system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.config!.add_custom_game_settings({ account, ...props }),
+      "Game settings created.",
+    );
+  };
+
+  const createDailyChallenge = async ({
+    account,
+    ...props
+  }: SystemTypes.CreateDailyChallenge) => {
+    if (!client.daily_challenge) {
+      throw new Error("Daily challenge system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.daily_challenge!.create_daily_challenge({ account, ...props }),
+      "Daily challenge created.",
+    );
+  };
+
+  const registerEntry = async ({
+    account,
+    ...props
+  }: SystemTypes.RegisterEntry) => {
+    if (!client.daily_challenge) {
+      throw new Error("Daily challenge system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.daily_challenge!.register_entry({ account, ...props }),
+      "Entry registered.",
+    );
+  };
+
+  const submitResult = async ({
+    account,
+    ...props
+  }: SystemTypes.SubmitResult) => {
+    if (!client.daily_challenge) {
+      throw new Error("Daily challenge system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.daily_challenge!.submit_result({ account, ...props }),
+      "Result submitted.",
+    );
+  };
+
+  const settleChallenge = async ({
+    account,
+    ...props
+  }: SystemTypes.SettleChallenge) => {
+    if (!client.daily_challenge) {
+      throw new Error("Daily challenge system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.daily_challenge!.settle_challenge({ account, ...props }),
+      "Challenge settled.",
+    );
+  };
+
+  const claimPrize = async ({
+    account,
+    ...props
+  }: SystemTypes.ClaimPrize) => {
+    if (!client.daily_challenge) {
+      throw new Error("Daily challenge system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.daily_challenge!.claim_prize({ account, ...props }),
+      "Prize claimed!",
+    );
+  };
+
+  const withdrawUnclaimed = async ({
+    account,
+    ...props
+  }: SystemTypes.WithdrawUnclaimed) => {
+    if (!client.daily_challenge) {
+      throw new Error("Daily challenge system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.daily_challenge!.withdraw_unclaimed({ account, ...props }),
+      "Unclaimed prizes withdrawn.",
+    );
+  };
+
   return {
     // play
     freeMint,
@@ -371,5 +469,12 @@ export function systems({ client }: { client: IWorld }) {
     upgradeSkill,
     chooseBranch,
     respecBranch,
+    addCustomGameSettings,
+    createDailyChallenge,
+    registerEntry,
+    submitResult,
+    settleChallenge,
+    claimPrize,
+    withdrawUnclaimed,
   };
 }
