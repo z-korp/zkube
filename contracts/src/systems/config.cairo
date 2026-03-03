@@ -58,6 +58,13 @@ pub trait IConfigSystem<T> {
         mid_level_threshold: u8,
         // Level Cap
         level_cap: u8,
+        // Draft Settings
+        draft_picks: u8,
+        draft_pool_mask: u16,
+        draft_fixed_level: u8,
+        boss_upgrades_enabled: u8,
+        reroll_base_cost: u8,
+        starting_charges: u8,
     ) -> u32;
 
     fn get_game_settings(self: @T, settings_id: u32) -> GameSettings;
@@ -291,6 +298,13 @@ mod config_system {
             mid_level_threshold: u8,
             // Level Cap
             level_cap: u8,
+            // Draft Settings
+            draft_picks: u8,
+            draft_pool_mask: u16,
+            draft_fixed_level: u8,
+            boss_upgrades_enabled: u8,
+            reroll_base_cost: u8,
+            starting_charges: u8,
         ) -> u32 {
             // Validate input
             assert(difficulty != Difficulty::None, 'Invalid difficulty');
@@ -329,6 +343,12 @@ mod config_system {
                     early_level_threshold,
                     mid_level_threshold,
                     level_cap,
+                    draft_picks,
+                    draft_pool_mask,
+                    draft_fixed_level,
+                    boss_upgrades_enabled,
+                    reroll_base_cost,
+                    starting_charges,
                 );
 
             // Get the world dispatcher
@@ -386,6 +406,13 @@ mod config_system {
                 mid_level_threshold,
                 // Level Cap
                 level_cap,
+                // Draft Settings
+                draft_picks,
+                draft_pool_mask,
+                draft_fixed_level,
+                boss_upgrades_enabled,
+                reroll_base_cost,
+                starting_charges,
             };
 
             // Create metadata
@@ -533,6 +560,13 @@ mod config_system {
             early_level_threshold: u8,
             mid_level_threshold: u8,
             level_cap: u8,
+            // Draft settings
+            draft_picks: u8,
+            draft_pool_mask: u16,
+            draft_fixed_level: u8,
+            boss_upgrades_enabled: u8,
+            reroll_base_cost: u8,
+            starting_charges: u8,
         ) {
             // Validate moves
             assert!(base_moves > 0, "Base moves must be positive");
@@ -636,6 +670,16 @@ mod config_system {
             // Validate level cap
             assert!(level_cap > 0, "Level cap must be positive");
             assert!(mid_level_threshold <= level_cap, "Mid threshold must be <= level cap");
+
+            // Validate draft settings
+            assert!(draft_picks <= 3, "draft_picks must be 0-3");
+            assert!(
+                draft_pool_mask > 0 || draft_picks == 0,
+                "draft_pool_mask cannot be 0 when draft_picks > 0",
+            );
+            assert!(draft_fixed_level <= 5, "draft_fixed_level must be 0-5");
+            assert!(boss_upgrades_enabled <= 1, "boss_upgrades_enabled must be 0 or 1");
+            assert!(starting_charges <= 3, "starting_charges must be 0-3");
         }
     }
 
@@ -843,6 +887,29 @@ mod config_system {
             },
             // Level Cap
             GameSetting { name: "Level Cap", value: format!("{}", game_settings.level_cap) },
+            // Draft Settings
+            GameSetting { name: "Draft Picks", value: format!("{}", game_settings.draft_picks) },
+            GameSetting {
+                name: "Draft Pool Mask",
+                value: format!("0x{:x}", game_settings.draft_pool_mask),
+            },
+            GameSetting {
+                name: "Draft Fixed Level", value: format!("{}", game_settings.draft_fixed_level),
+            },
+            GameSetting {
+                name: "Boss Upgrades",
+                value: if game_settings.boss_upgrades_enabled != 0 {
+                    "Enabled"
+                } else {
+                    "Disabled"
+                },
+            },
+            GameSetting {
+                name: "Reroll Base Cost", value: format!("{}", game_settings.reroll_base_cost),
+            },
+            GameSetting {
+                name: "Starting Charges", value: format!("{}", game_settings.starting_charges),
+            },
         ]
             .span()
     }

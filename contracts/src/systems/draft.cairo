@@ -17,6 +17,7 @@ mod draft_system {
     use starknet::get_caller_address;
     use zkube::constants::DEFAULT_NS;
     use zkube::events::{DraftOpened, DraftRerolled, DraftSelected};
+    use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait};
     use zkube::helpers::packing::{RunData, RunDataHelpersTrait, SkillTreeDataPackingTrait};
     use zkube::helpers::random::RandomImpl;
@@ -39,6 +40,13 @@ mod draft_system {
         fn open_initial_draft(ref self: ContractState, game_id: u64) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+
+            // If draft_picks == 0, skip draft entirely
+            if settings.draft_picks == 0 {
+                return;
+            }
+
             let game: Game = world.read_model(game_id);
             assert!(game.game_id == game_id, "Game not found");
             assert!(!game.over, "Game is over");
@@ -54,7 +62,7 @@ mod draft_system {
             assert!(!draft.active, "Draft already active");
             assert!(draft.picks_made == 0, "Initial draft already completed");
 
-            let pool = InternalImpl::build_initial_pool(@run_data);
+            let pool = InternalImpl::build_initial_pool(@run_data, settings.draft_pool_mask);
             assert!(pool.len() >= 3, "Insufficient draft pool");
 
             let (choice_1, choice_2, choice_3) = InternalImpl::draw_three_initial(
@@ -91,6 +99,12 @@ mod draft_system {
         fn open_boss_upgrade(ref self: ContractState, game_id: u64, completed_level: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+
+            // If boss upgrades are disabled, skip entirely
+            if settings.boss_upgrades_enabled == 0 {
+                return;
+            }
             let game: Game = world.read_model(game_id);
             assert!(game.game_id == game_id, "Game not found");
             assert!(!game.over, "Game is over");
@@ -159,6 +173,9 @@ mod draft_system {
             let token_address = token::get_token_address(world);
             assert_token_ownership(token_address, game_id);
 
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+            assert!(settings.reroll_base_cost > 0, "Rerolls disabled");
+
             let game: Game = world.read_model(game_id);
             assert!(game.game_id == game_id, "Game not found");
             let run_data = game.get_run_data();
@@ -170,7 +187,7 @@ mod draft_system {
             assert!(draft.phase == PHASE_INITIAL_DRAFT, "Reroll only available in initial draft");
             assert!(reroll_slot < 3, "Invalid reroll slot");
 
-            let reroll_cost = InternalImpl::reroll_cost(draft.reroll_count);
+            let reroll_cost = InternalImpl::reroll_cost(draft.reroll_count, settings.reroll_base_cost.into());
             let libs = GameLibsImpl::new(world);
             let player = get_caller_address();
             libs.cube.burn(player, reroll_cost.into());
@@ -181,7 +198,7 @@ mod draft_system {
             );
             let reroll_seed = RandomImpl::from_vrf_enabled(game_seed.vrf_enabled, vrf_salt).seed;
 
-            let pool = InternalImpl::build_initial_pool(@run_data);
+            let pool = InternalImpl::build_initial_pool(@run_data, settings.draft_pool_mask);
             let mut exclude_1: u8 = 0;
             let mut exclude_2: u8 = 0;
 
@@ -244,6 +261,8 @@ mod draft_system {
             assert!(game.game_id == game_id, "Game not found");
             let mut run_data = game.get_run_data();
 
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+
             let event_slot = draft.picks_made;
 
             if draft.phase == PHASE_INITIAL_DRAFT {
@@ -254,14 +273,19 @@ mod draft_system {
 
                 let skill_data = skill_tree.get_skill_tree_data();
                 let tree_skill = skill_data.get_skill(selected_choice);
-                let skill_slot = run_data.add_skill(selected_choice, tree_skill.level, tree_skill.branch_id);
+                let effective_level = if settings.draft_fixed_level > 0 {
+                    settings.draft_fixed_level
+                } else {
+                    tree_skill.level
+                };
+                let skill_slot = run_data.add_skill(selected_choice, effective_level, tree_skill.branch_id);
                 assert!(skill_slot != 255, "Failed to add skill to run loadout");
 
-                if draft.picks_made < 2 {
+                if draft.picks_made < (settings.draft_picks - 1) {
                     draft.picks_made += 1;
                     draft.reroll_count = 0;
 
-                    let pool = InternalImpl::build_initial_pool(@run_data);
+                    let pool = InternalImpl::build_initial_pool(@run_data, settings.draft_pool_mask);
                     assert!(pool.len() >= 3, "Insufficient draft pool");
 
                     let (choice_1, choice_2, choice_3) = InternalImpl::draw_three_initial(
@@ -272,11 +296,11 @@ mod draft_system {
                     draft.choice_3 = choice_3;
                 } else {
                     draft.active = false;
-                    draft.picks_made = 3;
+                    draft.picks_made = settings.draft_picks;
                     draft.choice_1 = 0;
                     draft.choice_2 = 0;
                     draft.choice_3 = 0;
-                    run_data.award_all_active_charges(1);
+                    run_data.award_all_active_charges(settings.starting_charges);
                 }
             } else {
                 assert!(draft.phase == PHASE_BOSS_UPGRADE, "Invalid draft phase");
@@ -326,8 +350,8 @@ mod draft_system {
             }
         }
 
-        fn reroll_cost(reroll_count: u8) -> u16 {
-            let mut cost: u16 = 5;
+        fn reroll_cost(reroll_count: u8, base_cost: u16) -> u16 {
+            let mut cost: u16 = base_cost;
             let mut i: u8 = 0;
             loop {
                 if i >= reroll_count {
@@ -349,14 +373,16 @@ mod draft_system {
             }
         }
 
-        fn build_initial_pool(run_data: @RunData) -> Array<u8> {
+        fn build_initial_pool(run_data: @RunData, pool_mask: u16) -> Array<u8> {
             let mut pool: Array<u8> = array![];
             let mut skill_id: u8 = 1;
             loop {
                 if skill_id > MAX_SKILL_ID {
                     break;
                 }
-                if !run_data.has_skill(skill_id) {
+                // Include skill only if not already in loadout AND allowed by pool_mask
+                let bit: u16 = Self::pow2_u16(skill_id - 1);
+                if !run_data.has_skill(skill_id) && (pool_mask & bit) != 0 {
                     pool.append(skill_id);
                 }
                 skill_id += 1;
@@ -441,6 +467,20 @@ mod draft_system {
             let hash_u256: u256 = hash.into();
             (hash_u256 % len.into()).try_into().unwrap()
         }
+
+        /// Power of 2 for u16 (used for pool_mask bit checking)
+        fn pow2_u16(exp: u8) -> u16 {
+            let mut result: u16 = 1;
+            let mut i: u8 = 0;
+            loop {
+                if i >= exp {
+                    break;
+                }
+                result = result * 2;
+                i += 1;
+            };
+            result
+        }
     }
 }
 
@@ -456,14 +496,28 @@ mod draft_tests {
     const MAX_SKILL_ID: u8 = 12;
     const ACTIVE_SKILL_MAX_ID: u8 = 4;
 
-    fn build_initial_pool(run_data: @RunData) -> Array<u8> {
+    fn pow2_u16(exp: u8) -> u16 {
+        let mut result: u16 = 1;
+        let mut i: u8 = 0;
+        loop {
+            if i >= exp {
+                break;
+            }
+            result = result * 2;
+            i += 1;
+        };
+        result
+    }
+
+    fn build_initial_pool(run_data: @RunData, pool_mask: u16) -> Array<u8> {
         let mut pool: Array<u8> = array![];
         let mut skill_id: u8 = 1;
         loop {
             if skill_id > MAX_SKILL_ID {
                 break;
             }
-            if !run_data.has_skill(skill_id) {
+            let bit: u16 = pow2_u16(skill_id - 1);
+            if !run_data.has_skill(skill_id) && (pool_mask & bit) != 0 {
                 pool.append(skill_id);
             }
             skill_id += 1;
@@ -544,8 +598,8 @@ mod draft_tests {
         next_skill_in_pool(pool, start, exclude_1, exclude_2)
     }
 
-    fn reroll_cost(reroll_count: u8) -> u16 {
-        let mut cost: u16 = 5;
+    fn reroll_cost(reroll_count: u8, base_cost: u16) -> u16 {
+        let mut cost: u16 = base_cost;
         let mut i: u8 = 0;
         loop {
             if i >= reroll_count {
@@ -565,7 +619,7 @@ mod draft_tests {
     fn test_build_initial_pool_empty_loadout() {
         // Empty loadout should give all 12 skills
         let run_data = RunDataPackingTrait::new();
-        let pool = build_initial_pool(@run_data);
+        let pool = build_initial_pool(@run_data, 0xFFF);
         assert!(pool.len() == 12, "Empty loadout should yield pool of 12");
         // Verify all skills 1-12 are present
         let mut i: u32 = 0;
@@ -583,7 +637,7 @@ mod draft_tests {
         // Loadout with skill 3 should exclude it from pool
         let mut run_data = RunDataPackingTrait::new();
         run_data.add_skill(3, 1, 0); // Add Harvest at level 1, branch A
-        let pool = build_initial_pool(@run_data);
+        let pool = build_initial_pool(@run_data, 0xFFF);
         assert!(pool.len() == 11, "Pool should have 11 entries (12 - 1 in loadout)");
         // Verify skill 3 is not in pool
         let mut i: u32 = 0;
@@ -603,7 +657,7 @@ mod draft_tests {
         run_data.add_skill(1, 1, 0); // ComboSurge
         run_data.add_skill(5, 1, 0); // Rhythm
         run_data.add_skill(9, 1, 0); // High Stakes
-        let pool = build_initial_pool(@run_data);
+        let pool = build_initial_pool(@run_data, 0xFFF);
         assert!(pool.len() == 9, "Pool should have 9 entries (12 - 3 in loadout)");
         // Verify none of 1, 5, 9 are in pool
         let mut i: u32 = 0;
@@ -725,14 +779,13 @@ mod draft_tests {
 
     #[test]
     fn test_reroll_cost_sequence() {
-        assert!(reroll_cost(0) == 5, "First reroll should cost 5");
-        assert!(reroll_cost(1) == 15, "Second reroll should cost 15");
-        assert!(reroll_cost(2) == 45, "Third reroll should cost 45");
-        assert!(reroll_cost(3) == 135, "Fourth reroll should cost 135");
-        assert!(reroll_cost(4) == 405, "Fifth reroll should cost 405");
-        assert!(reroll_cost(5) == 1215, "Sixth reroll should cost 1215");
+        assert!(reroll_cost(0, 5) == 5, "First reroll should cost 5");
+        assert!(reroll_cost(1, 5) == 15, "Second reroll should cost 15");
+        assert!(reroll_cost(2, 5) == 45, "Third reroll should cost 45");
+        assert!(reroll_cost(3, 5) == 135, "Fourth reroll should cost 135");
+        assert!(reroll_cost(4, 5) == 405, "Fifth reroll should cost 405");
+        assert!(reroll_cost(5, 5) == 1215, "Sixth reroll should cost 1215");
     }
-
     #[test]
     fn test_draft_index_deterministic() {
         // Same inputs should produce same output
@@ -758,7 +811,7 @@ mod draft_tests {
         let seed: felt252 = 'full_draft_flow';
 
         // Pick 1: pool has all 12 skills
-        let pool1 = build_initial_pool(@run_data);
+        let pool1 = build_initial_pool(@run_data, 0xFFF);
         assert!(pool1.len() == 12, "Initial pool should have 12");
         let (c1, c2, c3) = draw_three(pool1.span(), seed, 0, 0);
         assert!(c1 != c2 && c1 != c3 && c2 != c3, "Picks 1 all unique");
@@ -766,7 +819,7 @@ mod draft_tests {
         run_data.add_skill(c1, 1, 0);
 
         // Pick 2: pool has 11 skills
-        let pool2 = build_initial_pool(@run_data);
+        let pool2 = build_initial_pool(@run_data, 0xFFF);
         assert!(pool2.len() == 11, "Pool after 1 pick should have 11");
         let (d1, d2, d3) = draw_three(pool2.span(), seed, 1, 0);
         assert!(d1 != d2 && d1 != d3 && d2 != d3, "Picks 2 all unique");
@@ -775,7 +828,7 @@ mod draft_tests {
         run_data.add_skill(d1, 1, 0);
 
         // Pick 3: pool has 10 skills
-        let pool3 = build_initial_pool(@run_data);
+        let pool3 = build_initial_pool(@run_data, 0xFFF);
         assert!(pool3.len() == 10, "Pool after 2 picks should have 10");
         let (e1, e2, e3) = draw_three(pool3.span(), seed, 2, 0);
         assert!(e1 != e2 && e1 != e3 && e2 != e3, "Picks 3 all unique");

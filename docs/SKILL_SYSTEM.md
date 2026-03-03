@@ -1,6 +1,6 @@
 # zKube Skill System Reference
 
-> **Status:** Implemented
+> **Status:** Implemented (Control archetype disabled — code present but excluded from draft pool)
 > **Source of Truth:** `contracts/src/helpers/skill_effects.cairo`
 > **Principle:** CONTRACT IS LAW — all values in this document are derived from the deployed contract code.
 
@@ -44,15 +44,15 @@
 | 1 | Tempo (Purple) | Active | Combo Surge |
 | 2 | Scaling (Yellow) | Active | Momentum |
 | 3 | Risk (Red) | Active | Harvest |
-| 4 | Control (Blue) | Active | Tsunami |
+| 4 | ~~Control (Blue)~~ | Active | Tsunami *(disabled)* |
 | 5 | Tempo | Passive | Rhythm |
 | 6 | Tempo | Passive | Cascade Mastery |
 | 7 | Scaling | Passive | Overdrive |
 | 8 | Scaling | Passive | Endgame Focus |
 | 9 | Risk | Passive | High Stakes |
 | 10 | Risk | Passive | Gambit |
-| 11 | Control | Passive | Structural Integrity |
-| 12 | Control | Passive | Grid Harmony |
+| 11 | ~~Control~~ | Passive | Structural Integrity *(disabled)* |
+| 12 | ~~Control~~ | Passive | Grid Harmony *(disabled)* |
 
 ---
 
@@ -120,13 +120,14 @@ Charges fuel **active skills only**. Passive skills do not use charges.
 **Allowed:** Cube generation, conditional cube bursts, grid height rewards, line injection, block destruction
 **Forbidden:** Safe passive scaling, score multipliers, constraint easing
 
-### Control (Blue)
+### Control (Blue) — DISABLED
+
+> **Status:** Disabled in default settings. Control archetype skills (4, 11, 12) are excluded from the draft pool via `DRAFT_POOL_MASK = 0x3F7`. Effect code remains in contracts but these skills cannot be drafted in default-settings games. Can be re-enabled via custom `GameSettings` with `draft_pool_mask = 0xFFF`.
 
 > Row clears, targeted destruction, grid shaping, stability.
 
 **Allowed:** Row clears, targeted block destruction, grid shaping, extra row removal
 **Forbidden:** Score multipliers, cube generation, combo manipulation
-
 ---
 
 ## Tempo Archetype (Purple)
@@ -306,7 +307,9 @@ Charges fuel **active skills only**. Passive skills do not use charges.
 
 ---
 
-## Control Archetype (Blue)
+## Control Archetype (Blue) — DISABLED
+
+> **Status:** Disabled in default settings. Skills 4, 11, 12 are excluded from the draft pool. Effect code remains for potential re-enablement via custom GameSettings.
 
 ### Skill 4: Tsunami (Active)
 

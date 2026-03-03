@@ -89,7 +89,14 @@ pub struct GameSettings {
     pub early_level_threshold: u8, // End of "early" levels (default: 5)
     pub mid_level_threshold: u8, // End of "mid" levels (default: 25)
     // === Level Cap ===
-    pub level_cap: u8 // Max level for scaling (default: 50)
+    pub level_cap: u8, // Max level for scaling (default: 50)
+    // === Draft Settings ===
+    pub draft_picks: u8, // Number of skills to draft (0=no draft, 1-3, default: 3)
+    pub draft_pool_mask: u16, // Bitmask of allowed skill IDs (bits 0-11 = skills 1-12, default: 0x3F7 = no Control)
+    pub draft_fixed_level: u8, // 0=use player's tree level, 1-5=override all skills to this level (default: 0)
+    pub boss_upgrades_enabled: u8, // 0/1 — can boss clears upgrade active skills? (default: 1)
+    pub reroll_base_cost: u8, // 0=rerolls disabled, N=base cost with 3x escalation (default: 5)
+    pub starting_charges: u8, // Charges given to all actives after final draft pick (default: 1)
 }
 
 /// Default values for GameSettings
@@ -187,6 +194,14 @@ pub mod GameSettingsDefaults {
 
     // Level Cap
     pub const LEVEL_CAP: u8 = 50; // Max level for scaling
+
+    // Draft Settings
+    pub const DRAFT_PICKS: u8 = 3; // Draft 3 skills
+    pub const DRAFT_POOL_MASK: u16 = 0x3F7; // Skills 1-3, 5-10 enabled (Control archetype disabled: 4, 11, 12)
+    pub const DRAFT_FIXED_LEVEL: u8 = 0; // Use player's tree level
+    pub const BOSS_UPGRADES_ENABLED: u8 = 1; // Boss upgrades on
+    pub const REROLL_BASE_COST: u8 = 5; // 5 CUBE base reroll cost
+    pub const STARTING_CHARGES: u8 = 1; // 1 starting charge per active
 }
 
 #[generate_trait]
@@ -252,6 +267,13 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             mid_level_threshold: GameSettingsDefaults::MID_LEVEL_THRESHOLD,
             // Level Cap
             level_cap: GameSettingsDefaults::LEVEL_CAP,
+            // Draft Settings
+            draft_picks: GameSettingsDefaults::DRAFT_PICKS,
+            draft_pool_mask: GameSettingsDefaults::DRAFT_POOL_MASK,
+            draft_fixed_level: GameSettingsDefaults::DRAFT_FIXED_LEVEL,
+            boss_upgrades_enabled: GameSettingsDefaults::BOSS_UPGRADES_ENABLED,
+            reroll_base_cost: GameSettingsDefaults::REROLL_BASE_COST,
+            starting_charges: GameSettingsDefaults::STARTING_CHARGES,
         }
     }
 
@@ -549,6 +571,23 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             return false;
         }
 
+        // Draft settings
+        if self.draft_picks > 3 {
+            return false;
+        }
+        if self.draft_pool_mask == 0 && self.draft_picks > 0 {
+            return false; // Can't draft from empty pool
+        }
+        if self.draft_fixed_level > 5 {
+            return false;
+        }
+        if self.boss_upgrades_enabled > 1 {
+            return false;
+        }
+        if self.starting_charges > 3 {
+            return false;
+        }
+
         true
     }
 
@@ -627,6 +666,16 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             + self.master_size4_weight.into()
             + self.master_size5_weight.into();
         assert!(master_total > 0, "master block weights must have at least one non-zero");
+
+        // Draft settings
+        assert!(self.draft_picks <= 3, "draft_picks must be 0-3");
+        assert!(
+            self.draft_pool_mask > 0 || self.draft_picks == 0,
+            "draft_pool_mask cannot be 0 when draft_picks > 0",
+        );
+        assert!(self.draft_fixed_level <= 5, "draft_fixed_level must be 0-5");
+        assert!(self.boss_upgrades_enabled <= 1, "boss_upgrades_enabled must be 0 or 1");
+        assert!(self.starting_charges <= 3, "starting_charges must be 0-3");
     }
 
     /// Linear interpolation helper
@@ -653,7 +702,7 @@ pub impl GameSettingsImpl of GameSettingsTrait {
 #[cfg(test)]
 mod tests {
     use zkube::types::difficulty::Difficulty;
-    use super::{GameSettings, GameSettingsDefaults, GameSettingsTrait};
+    use super::GameSettingsTrait;
 
     #[test]
     fn test_new_with_defaults() {
