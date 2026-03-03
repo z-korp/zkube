@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "contracts",
+    "packages/ticket",
     # packages kept for reference but not built:
     # "packages/game_erc721",
     # "packages/token",

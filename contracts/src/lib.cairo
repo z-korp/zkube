@@ -7,6 +7,7 @@ pub mod models {
     pub mod game;
     pub mod player;
     pub mod skill_tree;
+    pub mod daily;
 }
 
 pub mod types {
@@ -17,6 +18,7 @@ pub mod types {
     pub mod difficulty;
     pub mod level;
     pub mod width;
+    pub mod daily;
 }
 
 mod elements {
@@ -72,6 +74,7 @@ pub mod helpers {
     pub mod boss;
     pub mod config;
     pub mod controller;
+    pub mod daily;
     pub mod dispatchers;
     pub mod encoding;
     pub mod game_helpers;
@@ -82,6 +85,7 @@ pub mod helpers {
     pub mod level_check;
     pub mod math;
     pub mod packer;
+    pub mod prize;
     pub mod packing;
     pub mod random;
     pub mod renderer;
@@ -105,4 +109,5 @@ pub mod systems {
 
     pub mod skill_effects;
     pub mod skill_tree;
+    pub mod daily_challenge;
 }

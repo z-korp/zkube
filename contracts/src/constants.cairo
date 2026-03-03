@@ -34,6 +34,18 @@ pub fn SETTINGS_MODEL() -> ByteArray {
     "GameSettings"
 }
 
+// DAILY CHALLENGE
+pub mod DAILY_CHALLENGE {
+    /// Daily challenge settings IDs range: 100-109
+    pub const MIN_SETTINGS_ID: u32 = 100;
+    pub const MAX_SETTINGS_ID: u32 = 109;
+
+    /// Check if a settings_id is a daily challenge preset
+    pub fn is_daily_challenge_settings(settings_id: u32) -> bool {
+        settings_id >= MIN_SETTINGS_ID && settings_id <= MAX_SETTINGS_ID
+    }
+}
+
 // SETTINGS
 pub mod DEFAULT_SETTINGS {
     use starknet::ContractAddress;
@@ -63,5 +75,34 @@ pub mod DEFAULT_SETTINGS {
             created_by: creator_address,
             created_at: current_timestamp,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::DAILY_CHALLENGE;
+    use super::DEFAULT_SETTINGS;
+
+    #[test]
+    fn test_is_daily_challenge_settings() {
+        // Valid range: 100-109
+        assert!(DAILY_CHALLENGE::is_daily_challenge_settings(100), "100 is daily");
+        assert!(DAILY_CHALLENGE::is_daily_challenge_settings(105), "105 is daily");
+        assert!(DAILY_CHALLENGE::is_daily_challenge_settings(109), "109 is daily");
+    }
+
+    #[test]
+    fn test_not_daily_challenge_settings() {
+        assert!(!DAILY_CHALLENGE::is_daily_challenge_settings(0), "0 is not daily");
+        assert!(!DAILY_CHALLENGE::is_daily_challenge_settings(1), "1 is not daily");
+        assert!(!DAILY_CHALLENGE::is_daily_challenge_settings(99), "99 is not daily");
+        assert!(!DAILY_CHALLENGE::is_daily_challenge_settings(110), "110 is not daily");
+    }
+
+    #[test]
+    fn test_is_default_settings() {
+        assert!(DEFAULT_SETTINGS::is_default_settings(0), "0 is default");
+        assert!(!DEFAULT_SETTINGS::is_default_settings(1), "1 is not default");
+        assert!(!DEFAULT_SETTINGS::is_default_settings(100), "100 is not default");
     }
 }

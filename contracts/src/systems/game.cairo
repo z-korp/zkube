@@ -35,6 +35,7 @@ mod game_system {
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
+    use zkube::constants::DAILY_CHALLENGE;
     use zkube::elements::tasks::grinder;
     use zkube::events::StartGame;
     use zkube::helpers::config::ConfigUtilsTrait;
@@ -49,6 +50,10 @@ mod game_system {
     use zkube::models::game::{Game, GameAssert, GameSeed, GameTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::models::skill_tree::PlayerSkillTree;
+    use zkube::models::daily::{DailyChallenge, DailyEntry, DailyEntryTrait, GameChallenge};
+    use zkube::systems::daily_challenge::{
+        IDailyChallengeSystemDispatcher, IDailyChallengeSystemDispatcherTrait,
+    };
 
     component!(path: MinigameComponent, storage: minigame, event: MinigameEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -169,30 +174,57 @@ mod game_system {
             let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
             self.validate_start_conditions(game_id, @token_metadata, token_address);
 
-            // Generate seed: use VRF if vrf_address is set, otherwise pseudo-random
-            // Salt = game_id for create (unique per game, matches client request_random)
-            let vrf_addr = self.vrf_address.read();
-            let vrf_enabled = !vrf_addr.is_zero();
-            let random = if vrf_addr.is_zero() {
-                RandomImpl::new_pseudo_random()
-            } else {
-                RandomImpl::new_vrf(game_id.into())
-            };
-            let timestamp = get_block_timestamp();
-
             // Get game settings (selected via token settings_id)
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+
+            // Generate seed: daily challenge uses shared seed, otherwise VRF/pseudo-random
+            let (seed, vrf_enabled) = if DAILY_CHALLENGE::is_daily_challenge_settings(
+                settings.settings_id,
+            ) {
+                // Daily challenge: use the challenge's shared seed for determinism
+                let daily_system_addr = world
+                    .dns_address(@"daily_challenge_system")
+                    .expect('DailyChallengeSystem not in DNS');
+                let daily = IDailyChallengeSystemDispatcher {
+                    contract_address: daily_system_addr,
+                };
+                let challenge_id = daily.get_current_challenge();
+                assert!(challenge_id > 0, "No active daily challenge");
+                let challenge: DailyChallenge = world.read_model(challenge_id);
+
+                // Verify player has registered for this challenge
+                let player_check = get_caller_address();
+                let entry: DailyEntry = world.read_model((challenge_id, player_check));
+                assert!(entry.exists(), "Must register for daily challenge first");
+
+                // Store game-to-challenge mapping
+                let game_challenge = GameChallenge { game_id, challenge_id };
+                world.write_model(@game_challenge);
+
+                (challenge.seed, false)
+            } else {
+                // Normal game: use VRF if available, otherwise pseudo-random
+                let vrf_addr = self.vrf_address.read();
+                let vrf_on = !vrf_addr.is_zero();
+                let random = if vrf_addr.is_zero() {
+                    RandomImpl::new_pseudo_random()
+                } else {
+                    RandomImpl::new_vrf(game_id.into())
+                };
+                (random.seed, vrf_on)
+            };
+            let timestamp = get_block_timestamp();
 
             // Create empty game shell (grid will be initialized via dispatcher)
             let mut game = GameTrait::new_empty(game_id, timestamp);
 
             // Store the seed separately
             let game_seed = GameSeed {
-                game_id, seed: random.seed, level_seed: random.seed, vrf_enabled,
+                game_id, seed, level_seed: seed, vrf_enabled,
             };
             world.write_model(@game_seed);
 
-            let draft_state: DraftState = DraftStateTrait::new(game_id, random.seed);
+            let draft_state: DraftState = DraftStateTrait::new(game_id, seed);
             world.write_model(@draft_state);
 
             // Initialize or update player meta
