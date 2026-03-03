@@ -72,12 +72,12 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
 
 #[cfg(test)]
 mod tests {
-    use starknet::contract_address_const;
-    use super::{PlayerMeta, PlayerMetaTrait};
+    use starknet::ContractAddress;
+    use super::PlayerMetaTrait;
 
     #[test]
     fn test_player_meta_new() {
-        let player = contract_address_const::<'PLAYER'>();
+        let player: ContractAddress = 'PLAYER'.try_into().unwrap();
         let meta = PlayerMetaTrait::new(player);
 
         assert!(meta.player == player, "Player should match");
@@ -90,7 +90,7 @@ mod tests {
 
     #[test]
     fn test_update_best_level() {
-        let player = contract_address_const::<'PLAYER'>();
+        let player: ContractAddress = 'PLAYER'.try_into().unwrap();
         let mut meta = PlayerMetaTrait::new(player);
 
         meta.update_best_level(10);
@@ -105,7 +105,7 @@ mod tests {
 
     #[test]
     fn test_increment_runs() {
-        let player = contract_address_const::<'PLAYER'>();
+        let player: ContractAddress = 'PLAYER'.try_into().unwrap();
         let mut meta = PlayerMetaTrait::new(player);
 
         meta.increment_runs();

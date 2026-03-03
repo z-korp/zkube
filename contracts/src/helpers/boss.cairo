@@ -209,7 +209,7 @@ pub fn generate_boss_constraints(
 
 #[cfg(test)]
 mod tests {
-    use zkube::types::constraint::{ConstraintType, LevelConstraintTrait};
+    use zkube::types::constraint::ConstraintType;
     use zkube::types::difficulty::Difficulty;
     use super::{
         derive_boss_id, difficulty_to_tier, generate_boss_constraint, generate_boss_constraints,

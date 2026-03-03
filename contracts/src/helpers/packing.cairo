@@ -997,8 +997,8 @@ pub impl SkillTreeHelpers of SkillTreeHelpersTrait {
 mod tests {
     use super::{
         MetaData, MetaDataPacking, MetaDataPackingTrait, RunData, RunDataPacking,
-        RunDataHelpers, RunDataHelpersTrait, RunDataPackingTrait, SkillInfo, SkillTreeData,
-        SkillTreeDataPacking, SkillTreeDataPackingTrait, SkillTreeHelpers, SkillTreeHelpersTrait,
+        RunDataHelpers, RunDataHelpersTrait, RunDataPackingTrait, SkillInfo,
+        SkillTreeDataPacking, SkillTreeDataPackingTrait, SkillTreeHelpers,
     };
 
     #[test]

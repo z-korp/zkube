@@ -358,7 +358,7 @@ impl U8IntoConstraintType of Into<u8, ConstraintType> {
 #[cfg(test)]
 mod tests {
     use super::{
-        ConstraintContext, ConstraintContextTrait, ConstraintType, LevelConstraint,
+        ConstraintContext, ConstraintContextTrait, ConstraintType,
         LevelConstraintTrait,
     };
 

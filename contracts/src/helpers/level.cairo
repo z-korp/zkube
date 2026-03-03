@@ -822,10 +822,10 @@ pub impl LevelGenerator of LevelGeneratorTrait {
 
 #[cfg(test)]
 mod tests {
-    use zkube::models::config::{GameSettings, GameSettingsTrait};
+    use zkube::models::config::GameSettingsTrait;
     use zkube::types::constraint::ConstraintType;
     use zkube::types::difficulty::Difficulty;
-    use super::{LevelConstants, LevelGenerator, LevelGeneratorTrait};
+    use super::{LevelGenerator, LevelGeneratorTrait};
 
     const TEST_SEED: felt252 = 'TEST_SEED_12345';
     const DIFFERENT_SEED: felt252 = 'DIFFERENT_SEED';

@@ -109,7 +109,7 @@ mod game_system {
                     Option::Some((addr, _)) => addr,
                     Option::None => {
                         // Use zero address as fallback - can be updated later
-                        starknet::contract_address_const::<0>()
+                        core::num::traits::Zero::zero()
                     },
                 }
             },
