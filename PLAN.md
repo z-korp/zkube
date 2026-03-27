@@ -1,289 +1,205 @@
-# Daily Challenge Implementation Plan
+# zKube Cairo Contracts Assessment + Embeddable Standard Migration Plan
 
 ## Overview
-
-Add a daily challenge gamemode where all players compete on the same puzzle (shared seed + fixed settings). Players burn a **zTicket** (ERC1155) to enter each attempt. zTickets are purchased for 100 LORDS or 1000 CUBEs — LORDS go to protocol treasury, CUBEs are burned. Prize pools are funded by admin with a fixed LORDS amount per challenge, distributed to top performers via power-law curve.
+This plan delivers a full assessment of zKube contracts against `cartridge-gg/nums` and `djizus/athanor@game-jam-viii`, then maps a migration path to the embeddable game standard used by Athanor on Sepolia. The assessment is intentionally blunt: zKube has strong game logic and packaging depth, but architecture cohesion and standard alignment are behind current reference practice.
 
 ## Goals
-
-- One daily challenge per day with a shared VRF seed — all players see identical block sequences
-- **zTicket** ERC1155 token — transferable entry ticket, purchasable with LORDS or CUBEs
-- On-chain leaderboard with flexible ranking (score, level reached, or CUBEs earned)
-- Fixed prize pool per challenge (admin-funded), distributed to top N players
-- Unlimited attempts per player (each burns 1 zTicket)
-- Reuse existing `GameSettings` system for challenge presets
+- Provide an evidence-based, no-sugarcoat comparative assessment (1–5 ratings) across structure, dependencies, Dojo patterns, Cairo practices, security, gas, tests, embeddable standard, and code quality.
+- Define a concrete migration plan to adopt the embeddable game standard pattern proven in Athanor while preserving zKube game mechanics.
+- Prioritize correctness/security fixes and reduce migration risk via phased serial+parallel execution.
 
 ## Non-Goals
-
-- Tournament brackets or elimination rounds (future feature)
-- Cross-day streaks or multi-day challenges
-- Automated challenge creation (admin/keeper creates daily)
-- Frontend implementation (contract-only in this plan, frontend is a separate workstream)
-- Dynamic ticket pricing (fixed per config, admin-changeable)
+- No code implementation in this phase.
+- No frontend redesign scope beyond interface compatibility notes.
+- No backward-compatible migration requirement (fresh world is accepted by decision).
 
 ## Assumptions and Constraints
-
-- LORDS ERC20 already deployed on Starknet (external contract)
-- VRF available on Sepolia/Mainnet (pseudo-random fallback on Slot)
-- 10 settings presets will be created via existing `add_custom_game_settings()` using IDs 100-109
-- Challenge period: fixed 24h, midnight-to-midnight UTC
-- zTicket price: 100 LORDS or 1000 CUBEs (configurable by admin)
-- Prize pool: fixed LORDS amount deposited by admin at challenge creation
+- zKube current stack: Dojo `1.8.0`, Cairo `2.13.1` (`/home/djizus/projects/zkube/Scarb.toml:13,28`).
+- Athanor reference uses Dojo `1.8.0`, Cairo `2.15.1`, and `game_components_embeddable_game_standard` (`/tmp/athanor/Scarb.toml`, `/tmp/athanor/contracts/Scarb.toml:14`).
+- Existing zKube prod namespace is `zkube_budo_v1_2_0` (`/home/djizus/projects/zkube/dojo_sepolia.toml:16`).
+- User decisions locked:
+  - Breaking changes are allowed; fresh world migration is acceptable.
+  - Execute deeper refactor first (security/gas/test quality), then embeddable migration.
+  - Migration strictness requires explicit parity-vs-adaptation analysis (captured below).
 
 ## Requirements
 
 ### Functional
-
-- **zTicket contract**: Standalone ERC1155 with `purchase_with_lords()` and `purchase_with_cubes()` functions
-- **Challenge creation**: Admin creates a daily challenge specifying settings_id, ranking metric, and prize pool amount (deposits LORDS)
-- **Registration**: Player burns 1 zTicket to enter an attempt
-- **Gameplay**: Player creates a game tied to the daily challenge (receives the shared seed)
-- **Leaderboard**: On-chain model tracks each player's best result per challenge
-- **Ranking metrics**: Score, level reached, or CUBEs earned — selectable per challenge
-- **Prize distribution**: Top N players can claim their share after the challenge ends
-- **Prize curve**: N = ceil(total_entries / 4), with a steep top-heavy distribution
+- Produce comparative ratings with concrete file/line evidence.
+- Identify exact embeddable standard deltas between zKube and Athanor.
+- Deliver phased migration plan with dependencies, outputs, validation, and rollback strategy.
 
 ### Non-Functional
-
-- zTicket is a standard ERC1155 — transferable, tradeable, visible in wallets
-- LORDS from ticket sales go to protocol treasury (not prize pool)
-- CUBEs used for ticket purchase are burned (deflationary)
-- Minimal gas overhead — leaderboard updates only when a player beats their own best
-- Challenge state must be queryable via Torii for frontend
+- Security-first recommendations with explicit risk ranking.
+- Migration must be incrementally testable on Slot and Sepolia.
+- Plan must include executable verification commands and success criteria.
 
 ## Technical Design
 
-### Token Architecture
-
-```
-┌─────────────────────────────────────────────────────┐
-│                   zTicket (ERC1155)                   │
-│                                                       │
-│  purchase_with_lords(amount)                          │
-│    └─ Transfer LORDS from player → treasury           │
-│    └─ Mint zTicket(token_id=1) to player              │
-│                                                       │
-│  purchase_with_cubes(amount)                          │
-│    └─ Burn CUBEs from player via CubeToken            │
-│    └─ Mint zTicket(token_id=1) to player              │
-│                                                       │
-│  Standard ERC1155: transfer, balanceOf, etc.          │
-│  Admin: set_lords_price, set_cube_price,              │
-│         set_treasury_address                          │
-└─────────────────────────────────────────────────────┘
-```
-
 ### Data Model
+Current zKube model landscape is rich but fragmented across many writer systems.
 
-#### zTicket Contract (standalone ERC1155)
+- zKube models include game runtime + meta + daily challenge models (`/home/djizus/projects/zkube/contracts/src/models/*.cairo`).
+- Writer permissions are broad (e.g., `Game`, `GameLevel`, `DailyEntry` writable by multiple systems) (`/home/djizus/projects/zkube/dojo_sepolia.toml:28-30,74-75`).
+- Athanor pattern centralizes mutable game state via typed `Store` and narrower contract responsibility (`/tmp/athanor/contracts/src/store.cairo`, `/tmp/athanor/dojo_sepolia.toml:15-20`).
 
-```cairo
-// Standalone contract (NOT inside Dojo world)
-// Uses OpenZeppelin ERC1155 component
-//
-// Token ID 1 = zTicket (fungible within ERC1155)
-//
-// Storage:
-//   lords_token: ContractAddress       // LORDS ERC20 address
-//   cube_token: ContractAddress        // CubeToken address
-//   treasury: ContractAddress          // Protocol treasury (receives LORDS)
-//   lords_price: u256                  // Price per ticket in LORDS (default: 100e18)
-//   cube_price: u256                   // Price per ticket in CUBEs (default: 1000)
-//   daily_system: ContractAddress      // Daily challenge system (can burn tickets)
-```
+Target direction:
+- Preserve zKube domain models, but reduce write surface per model.
+- Introduce stricter ownership boundaries aligned with embeddable minigame lifecycle hooks.
 
-#### DailyChallenge (new Dojo model)
+### API Design
+Current zKube:
+- `game_system` exposes gameplay core but does not uniformly wrap action lifecycle around an embeddable-standard pre/post adapter (`/home/djizus/projects/zkube/contracts/src/systems/game.cairo`).
 
-```cairo
-#[dojo::model]
-pub struct DailyChallenge {
-    #[key]
-    pub challenge_id: u32,          // Sequential ID
-    pub settings_id: u32,           // GameSettings ID (100-109)
-    pub seed: felt252,              // VRF seed — shared by all players
-    pub start_time: u64,            // UTC timestamp (midnight)
-    pub end_time: u64,              // start_time + 86400
-    pub ranking_metric: u8,         // 0=score, 1=level, 2=cubes_earned
-    pub total_entries: u32,         // Total entry count (incremented per attempt)
-    pub prize_pool: u256,           // Fixed LORDS amount deposited by admin
-    pub settled: bool,              // True once prize distribution is finalized
-}
-```
+Reference (Athanor):
+- `Play` embeds `IMinigameTokenData` and wraps every action with `before()`/`after()` hooks (`/tmp/athanor/contracts/src/systems/play.cairo:107-140,142+`).
+- `Setup` embeds settings extension interfaces (`IMinigameSettings`, `IMinigameSettingsDetails`) (`/tmp/athanor/contracts/src/systems/setup.cairo:18-23,120-177`).
 
-#### DailyEntry (new Dojo model)
-
-```cairo
-#[dojo::model]
-pub struct DailyEntry {
-    #[key]
-    pub challenge_id: u32,
-    #[key]
-    pub player: ContractAddress,
-    pub attempts: u32,              // Number of attempts by this player
-    pub best_score: u16,            // Best score achieved
-    pub best_level: u8,             // Best level reached
-    pub best_cubes: u16,            // Best CUBEs earned in a single run
-    pub best_game_id: u64,          // Game ID of the best run (for verification)
-    pub rank: u32,                  // Final rank (set during settlement)
-    pub prize_amount: u256,         // LORDS prize (set during settlement)
-    pub claimed: bool,              // Whether prize has been claimed
-}
-```
-
-#### DailyLeaderboard (new Dojo model — top N tracking)
-
-```cairo
-#[dojo::model]
-pub struct DailyLeaderboard {
-    #[key]
-    pub challenge_id: u32,
-    #[key]
-    pub rank: u32,                  // 1-indexed rank
-    pub player: ContractAddress,    // Player at this rank
-    pub value: u32,                 // Ranking metric value (score, level, or cubes)
-}
-```
-
-### Ranking Metric Enum
-
-```cairo
-pub enum RankingMetric {
-    Score,      // 0 — highest total_score from run_data
-    Level,      // 1 — highest level reached
-    CubesEarned // 2 — highest CUBEs earned in a single run
-}
-```
-
-### Prize Distribution Formula
-
-**N = ceil(total_entries / 4)** — number of winners scales with participation.
-
-Distribution uses a power-law curve where the top rank gets the most:
-
-```
-share(rank) = (N - rank + 1)^1.5
-total_shares = sum(share(1..N))
-prize(rank) = pool * share(rank) / total_shares
-```
-
-Example with 100 entries, 50 LORDS prize pool (N=25):
-
-| Rank | Share | % of Pool | Prize |
-|------|-------|-----------|-------|
-| 1 | 25^1.5 = 125.0 | ~18.3% | 9.15 LORDS |
-| 2 | 24^1.5 = 117.6 | ~17.2% | 8.60 LORDS |
-| 3 | 23^1.5 = 110.3 | ~16.1% | 8.05 LORDS |
-| 5 | 21^1.5 = 96.2 | ~14.1% | 7.05 LORDS |
-| 10 | 16^1.5 = 64.0 | ~9.4% | 4.70 LORDS |
-| 25 | 1^1.5 = 1.0 | ~0.1% | 0.07 LORDS |
-
-Small example (4 entries, 20 LORDS, N=1): winner takes all.
-
-The exponent 1.5 creates a top-heavy but not winner-take-all distribution. The contract uses integer-scaled math (multiply by 1e18 before dividing).
-
-### System Interface
-
-```cairo
-#[starknet::interface]
-trait IDailyChallengeSystem {
-    // === Admin ===
-    fn create_daily_challenge(
-        ref self: TContractState,
-        settings_id: u32,
-        ranking_metric: u8,
-        prize_amount: u256,         // LORDS to deposit as prize pool
-    );
-    fn settle_challenge(ref self: TContractState, challenge_id: u32);
-
-    // === Player ===
-    fn register_entry(ref self: TContractState, challenge_id: u32);
-    // Burns 1 zTicket from caller, increments attempts
-    fn submit_result(ref self: TContractState, challenge_id: u32, game_id: u64);
-    fn claim_prize(ref self: TContractState, challenge_id: u32);
-
-    // === Views ===
-    fn get_current_challenge(self: @TContractState) -> u32;
-    fn get_player_entry(self: @TContractState, challenge_id: u32, player: ContractAddress) -> DailyEntry;
-}
-```
-
-### Game Flow
-
-```
-Admin: create_daily_challenge(settings_id=103, ranking=Score, prize=50_LORDS)
-  └─ VRF generates shared seed
-  └─ Admin transfers prize_amount LORDS to contract
-  └─ Stores DailyChallenge model
-
-Player: purchase_with_lords(5)  [on zTicket contract]
-  └─ Transfers 500 LORDS (5 × 100) from player → treasury
-  └─ Mints 5 zTickets to player
-
-Player: register_entry(challenge_id)  [on daily_challenge_system]
-  └─ Burns 1 zTicket from player
-  └─ Increments total_entries, creates/updates DailyEntry
-
-Player: create(game_id)  [existing game_system]
-  └─ Game detects daily challenge context (token settings_id matches)
-  └─ Uses challenge seed instead of VRF (all players get same blocks)
-  └─ Game plays normally through move/bonus/surrender flow
-
-Player: submit_result(challenge_id, game_id)
-  └─ Reads game's final run_data (score, level, cubes)
-  └─ If better than player's best → update DailyEntry
-  └─ Update DailyLeaderboard (insert-sort into top N)
-
-[After 24h]
-
-Admin: settle_challenge(challenge_id)
-  └─ Calculates N = ceil(total_entries / 4)
-  └─ Computes prize amounts for ranks 1..N using power-law
-  └─ Writes prize_amount + rank to each winner's DailyEntry
-  └─ Marks challenge as settled
-
-Winner: claim_prize(challenge_id)
-  └─ Transfers LORDS from contract to winner
-  └─ Marks claimed=true
-```
+Target direction:
+- zKube game-facing APIs keep gameplay semantics but enforce standard lifecycle wrappers across all state-mutating entrypoints.
 
 ### Architecture
 
-```
-┌───────────────────────────────────────────────────────────────┐
-│                     zTicket (ERC1155)                          │
-│  purchase_with_lords() ──► LORDS → treasury, mint ticket       │
-│  purchase_with_cubes() ──► burn CUBEs, mint ticket             │
-└──────────────┬────────────────────────────────────────────────┘
-               │ burn 1 ticket
-               ▼
-┌───────────────────────────────────────────────────────────────┐
-│                    DAILY CHALLENGE SYSTEM                      │
-│                                                               │
-│  create_daily_challenge() ──► DailyChallenge model            │
-│                           ──► Admin deposits LORDS prize pool │
-│                                                               │
-│  register_entry() ──► Burns 1 zTicket from player             │
-│                   ──► DailyEntry model (attempts++)           │
-│                                                               │
-│  [Player plays game via existing game_system]                 │
-│  [Game uses challenge seed for deterministic blocks]          │
-│                                                               │
-│  submit_result() ──► Read Game.run_data                       │
-│                  ──► Update DailyEntry (best scores)          │
-│                  ──► Update DailyLeaderboard (top N)          │
-│                                                               │
-│  settle_challenge() ──► Compute prizes (power-law curve)      │
-│                     ──► Write prize amounts to entries         │
-│                                                               │
-│  claim_prize() ──► Transfer LORDS to winner                   │
-└──────────┬──────────────┬──────────────┬──────────────────────┘
-           │              │              │
-           ▼              ▼              ▼
-     ┌──────────┐  ┌────────────┐  ┌──────────────┐
-     │CubeToken │  │ LORDS ERC20│  │ Game System  │
-     │(burn)    │  │ (transfer) │  │ (existing)   │
-     └──────────┘  └────────────┘  └──────────────┘
-```
+Comparative snapshot:
+
+1) **Athanor (reference for embeddable standard)**
+- `Play` contract embeds `MinigameComponent` + `SRC5` + gameplay component (`/tmp/athanor/contracts/src/systems/play.cairo:39-48`).
+- `dojo_init` initializes embeddable metadata + settings linkage + token address (`/tmp/athanor/contracts/src/systems/play.cairo:71-105`).
+- `Setup` contract embeds settings extension, owns settings lifecycle (`/tmp/athanor/contracts/src/systems/setup.cairo:37-43,63-118`).
+
+2) **Nums (reference for productionized dependency hygiene + ecosystem integration)**
+- Heavy external-contract/event/model registration and rich integration footprint (`/tmp/nums/contracts/Scarb.toml:13-46`).
+- Strong multi-system deployment choreography (`/tmp/nums/dojo_sepolia.toml:16-27`).
+
+3) **zKube current**
+- Feature-rich but highly coupled systems and broad writers config (`/home/djizus/projects/zkube/dojo_sepolia.toml:26-77`).
+- Uses legacy `game_components_minigame` package path, not embeddable-standard package used by Athanor (`/home/djizus/projects/zkube/contracts/Scarb.toml:30` vs `/tmp/athanor/contracts/Scarb.toml:14`).
+
+### Embeddable Strictness Analysis (Parity vs Adaptation)
+
+#### Does embeddable standard conflict with CUBE token or quests?
+Short answer: **no fundamental conflict**. The embeddable standard primarily governs game-session token lifecycle + settings interfaces. zKube’s CUBE and quest systems are orthogonal and can coexist.
+
+Concrete evidence:
+- CUBE minting is already gated by settings policy, not by minigame standard internals (`/home/djizus/projects/zkube/contracts/src/helpers/game_over.cairo:36-43`, `/home/djizus/projects/zkube/contracts/src/constants.cairo:55-62`).
+- Quest progression is emitted from move/game flows and also gated by default settings (`/home/djizus/projects/zkube/contracts/src/systems/moves.cairo:85-163`, `/home/djizus/projects/zkube/contracts/src/helpers/game_libs.cairo:81-107`).
+- Quest rewards mint CUBE via `cube_token` dispatcher (`/home/djizus/projects/zkube/contracts/src/systems/quest.cairo:125-131`).
+- Cube minter authorization is role-based and independent from minigame settings extension (`/home/djizus/projects/zkube/contracts/src/systems/cube_token.cairo:72-155`).
+
+What actually changes under embeddable migration:
+- lifecycle wrappers become stricter and must be applied uniformly to mutating actions (Athanor-style `before/after`) (`/tmp/athanor/contracts/src/systems/play.cairo:142+`).
+- settings extension implementation moves toward a dedicated Setup boundary (`/tmp/athanor/contracts/src/systems/setup.cairo:120-177`).
+
+#### Option A — Strict Athanor-style parity
+
+**What it entails**
+- Mirror Athanor architecture: minimal Play + Setup with embeddable interfaces as first-class contract boundary.
+- Keep side systems (cube/quest/achievement/daily) as auxiliary systems called from Play lifecycle-safe points.
+
+**Pros**
+- Fastest path to known-good embeddable shape (lower ambiguity).
+- Cleaner integration surface for external tooling expecting embeddable conventions.
+- Easier future onboarding: references map 1:1 to Athanor patterns.
+
+**Cons**
+- Forces zKube logic reshuffling that may feel artificial (zKube has materially more side systems).
+- Higher short-term refactor churn in game flow modules.
+- Potentially larger diff blast radius if done too aggressively.
+
+**CUBE/Quest impact**
+- No inherent breakage.
+- Needed adaptations are operational: ensure CUBE mint/reward hooks execute in correct post-action lifecycle windows and preserve settings gating semantics.
+
+#### Option B — Adapted embeddable compliance (recommended for zKube)
+
+**What it entails**
+- Implement required embeddable interfaces and lifecycle guarantees, but preserve zKube domain decomposition and side-system topology.
+- Keep CUBE/quest gates as-is conceptually (default-settings-only), while moving lifecycle enforcement and setup ownership to embeddable-aligned modules.
+
+**Pros**
+- Lower gameplay regression risk for cube economy + quest progression.
+- Preserves existing business logic where it is already correct.
+- Better fit for zKube’s richer system graph (daily challenge + cube economy + achievements).
+
+**Cons**
+- Less “textbook parity”; maintainers must document where zKube intentionally diverges from Athanor structure.
+- Requires stronger internal standards/testing to avoid architecture drift.
+
+**CUBE/Quest impact**
+- Minimal behavioral delta if tests lock current semantics:
+  - default settings mint cubes and track quests,
+  - daily challenge settings do not mint baseline cubes,
+  - quest claims still mint CUBE rewards.
+
+Conclusion: **No standard-level incompatibility with CUBE/quests**. Risk is implementation discipline, not conceptual conflict.
+
+### UX Flow (if applicable)
+Not in direct scope. Required compatibility note: frontend system calls will need entrypoint/path alignment once pre/post wrappers and setup split are finalized.
+
+---
+
+## Assessment Summary (Brutally Honest)
+
+### Ratings (1 = poor, 5 = excellent)
+
+| Dimension | zKube | Nums | Athanor | Honest Take |
+|---|---:|---:|---:|---|
+| 1. Project Structure & Organization | 3 | 4 | 4 | zKube is feature-rich but sprawling; Athanor is cleaner and easier to reason about. |
+| 2. Scarb.toml & Dependency Hygiene | 3 | 4 | 4 | zKube works, but dependency strategy is less modern than Athanor embeddable path. |
+| 3. Dojo Patterns | 3 | 4 | 5 | zKube uses Dojo correctly but with broad writers and less lifecycle discipline than Athanor. |
+| 4. Cairo Best Practices | 3 | 4 | 4 | zKube has strong modeling + tests in places, but too many large files and brittle conversions. |
+| 5. Security | 2 | 4 | 4 | zKube has avoidable risk: broad write surface + unwrap/expect patterns + config exposure. |
+| 6. Gas Optimization | 4 | 4 | 4 | zKube bit-packing is strong; architecture-level savings still available. |
+| 7. Test Coverage | 3 | 4 | 3 | zKube has many unit tests inline, but weak system-level integration harness structure. |
+| 8. Embeddable Game Standard Alignment | 2 | 2 | 5 | zKube is not on the same standard as Athanor’s Sepolia pattern yet. |
+| 9. Code Quality / Maintainability | 3 | 4 | 4 | zKube is capable but harder to maintain due to size/coupling hotspots. |
+
+### Evidence by Dimension
+
+1) **Project Structure & Organization (zKube = 3/5)**
+- Strength: clear domain separation exists (`systems/`, `models/`, `helpers/`, `types/`, `elements/`).
+- Weakness: oversized hotspots increase cognitive load (e.g., config + controller files are very large); operational complexity leaks into system files.
+- Evidence: `game.cairo` integrates daily challenge, VRF/pseudo-random, lifecycle, quests, achievements in one path (`/home/djizus/projects/zkube/contracts/src/systems/game.cairo:167-260`).
+- Better in Athanor: tighter split Play vs Setup (`/tmp/athanor/contracts/src/systems/play.cairo`, `/tmp/athanor/contracts/src/systems/setup.cairo`).
+
+2) **Scarb.toml & Dependencies (zKube = 3/5)**
+- Strength: workspace-managed versions and explicit dependency map (`/home/djizus/projects/zkube/Scarb.toml:15-57`).
+- Weakness: still anchored to `game_components_minigame` instead of embeddable standard package used by Athanor (`/home/djizus/projects/zkube/contracts/Scarb.toml:30` vs `/tmp/athanor/contracts/Scarb.toml:14`).
+- Additional risk: hardcoded machine-local script paths in contract scripts (`/home/djizus/projects/zkube/contracts/Scarb.toml:15-16`).
+
+3) **Dojo Patterns (zKube = 3/5)**
+- Strength: proper `#[dojo::contract]`, model storage, event emission.
+- Weakness: writer permissions are too broad for core models/events, making state authority diffuse (`/home/djizus/projects/zkube/dojo_sepolia.toml:26-77`).
+- Better in Athanor: namespace-level writer/owner discipline (`/tmp/athanor/dojo_sepolia.toml:15-20`).
+
+4) **Cairo Best Practices (zKube = 3/5)**
+- Strength: robust config model validation patterns and typed traits.
+- Weakness: recurring `unwrap/expect` on infra-dependent lookups and conversions (e.g., DNS and conversion points) increases panic coupling.
+- Evidence: DNS unwraps in init flows (`/home/djizus/projects/zkube/contracts/src/systems/game.cairo:106`, `/home/djizus/projects/zkube/contracts/src/systems/config.cairo:153`), daily challenge `expect` (`/home/djizus/projects/zkube/contracts/src/systems/game.cairo:185-187`).
+
+5) **Security (zKube = 2/5)**
+- Critical issue: secrets checked into env config (`/home/djizus/projects/zkube/dojo_sepolia.toml:20-21`, `/home/djizus/projects/zkube/dojo_slot.toml:20-21`).
+- Risk issue: broad model writer matrix increases blast radius for logic bugs (`/home/djizus/projects/zkube/dojo_sepolia.toml:28-30,74-75`).
+- Better in Athanor: narrower ownership/writer profile and cleaner trust boundaries (`/tmp/athanor/dojo_sepolia.toml:15-23`).
+
+6) **Gas Optimization (zKube = 4/5)**
+- Strong: aggressive bit-packing and compact game state are good optimization choices.
+- Weakness: runtime architectural overhead from cross-system writes/dispatch can still be tightened.
+- Comparative: Athanor also packs aggressively and centralizes store access, reducing repeated world access patterns (`/tmp/athanor/contracts/src/store.cairo`).
+
+7) **Test Coverage (zKube = 3/5)**
+- Fact check: zKube has substantial unit tests embedded in modules (`#[test]` across 17 files), but lacks a coherent dedicated integration test module structure under `contracts/src/tests/`.
+- Evidence: no `src/tests` directory in current tree; tests are distributed inline.
+- Better in refs: Nums includes explicit test module pathing + broader ecosystem contract validation pressure.
+
+8) **Embeddable Game Standard (zKube = 2/5)**
+- zKube currently uses `game_components_minigame`, not embeddable-standard package.
+- Athanor uses `game_components_embeddable_game_standard` and implements both token-data + settings extension interfaces directly in system contracts (`/tmp/athanor/contracts/src/systems/play.cairo:23-24,107-140`; `/tmp/athanor/contracts/src/systems/setup.cairo:18-23,120-177`).
+- This is the biggest migration gap.
+
+9) **Code Quality (zKube = 3/5)**
+- High feature throughput, but maintainability suffers from coupled concerns and large module footprints.
+- Multiple duplicated comments / config noise indicate hygiene debt (e.g., repeated comments in config interface parameters and env comment duplication).
 
 ---
 
@@ -291,185 +207,146 @@ Winner: claim_prize(challenge_id)
 
 ### Serial Dependencies (Must Complete First)
 
-#### Phase 0: Data Models & Types
+These tasks create foundations that other work depends on. Complete in order.
 
+#### Phase 0: Security + Baseline Lock
 **Prerequisite for:** All subsequent phases
 
 | Task | Description | Output |
 |------|-------------|--------|
-| 0.1 | Create `DailyChallenge` Dojo model in `contracts/src/models/daily.cairo` | New model file with struct + traits |
-| 0.2 | Create `DailyEntry` Dojo model (compound key: challenge_id + player) | Model in same file |
-| 0.3 | Create `DailyLeaderboard` Dojo model (compound key: challenge_id + rank) | Model in same file |
-| 0.4 | Create `RankingMetric` enum in `contracts/src/types/daily.cairo` | New type file |
-| 0.5 | Register new models and types in `contracts/src/lib.cairo` | Updated module tree |
-| 0.6 | `scarb build` passes with new models | Clean build |
+| 0.1 | Remove plaintext private keys/account secrets from `dojo_*.toml`; move to secure env/keystore references. | Secret-free deployment configs + rotation checklist |
+| 0.2 | Freeze baseline: capture current system interfaces, model schemas, and world writer matrix snapshot. | Migration baseline artifact (`docs/migration/baseline.md`) |
+| 0.3 | Enforce clean-break migration policy in deployment/runbook artifacts (fresh world). | Signed-off decision in Decision Log |
+| 0.4 | Add migration test matrix (Slot + Sepolia) and pass/fail criteria before refactor. | `docs/migration/test-matrix.md` |
+
+#### Phase 1: Deep Refactor Foundation (Security/Quality/Gas)
+**Prerequisite for:** Phase 2 and all downstream workstreams
+
+| Task | Description | Output |
+|------|-------------|--------|
+| 1.1 | Harden Dojo permissions: reduce model/event writer scope to least privilege before architecture changes. | Hardened `dojo_*.toml` writer matrix |
+| 1.2 | Remove/replace panic-heavy `unwrap/expect` on DNS and migration-sensitive paths with explicit assertions and fallback handling. | Safer init/runtime error paths |
+| 1.3 | Add dedicated system-level integration tests for run lifecycle + cube/quest/daily invariants. | New `contracts/src/tests/` suite |
+| 1.4 | Apply low-risk gas/coupling cleanups (dispatcher reuse, redundant model read reductions, helper extraction). | Measurable gas/maintainability uplift |
+
+#### Phase 2: Embeddable Standard Foundation
+**Prerequisite for:** Workstreams A/B/C
+
+| Task | Description | Output |
+|------|-------------|--------|
+| 2.1 | Introduce `game_components_embeddable_game_standard` dependency and update package graph. | Updated root/contracts `Scarb.toml` |
+| 2.2 | Create/adjust zKube Setup-like system to own settings extension implementation (`IMinigameSettings`, details). | New/updated setup-config boundary |
+| 2.3 | Define and document canonical lifecycle wrapper contract behavior (`pre_action`, ownership, `post_action`) for all gameplay writes. | Interface contract spec |
+| 2.4 | Update Dojo init ordering and init args schema for Play/Setup relationship (Athanor pattern). | Updated `dojo_sepolia.toml` / `dojo_slot.toml` migration sections |
 
 ---
 
 ### Parallel Workstreams
 
-#### Workstream A: zTicket ERC1155 Contract
+These workstreams can be executed independently after Phase 2.
 
-**Dependencies:** Phase 0
-**Can parallelize with:** Workstreams B, C, D
-
-| Task | Description | Output |
-|------|-------------|--------|
-| A.1 | Create standalone ERC1155 contract using OpenZeppelin components at `packages/ticket/` | New package with Scarb.toml, src/lib.cairo |
-| A.2 | Implement `purchase_with_lords(amount: u256)` — transfer LORDS to treasury, mint tickets | Purchase function with ERC20 transfer_from |
-| A.3 | Implement `purchase_with_cubes(amount: u256)` — burn CUBEs via CubeToken, mint tickets | Purchase function with CUBE burn |
-| A.4 | Admin functions: `set_lords_price`, `set_cube_price`, `set_treasury` | Configurable pricing |
-| A.5 | Add `burn_from(account, amount)` callable by daily_challenge_system | Authorized burn for entry consumption |
-| A.6 | Write unit tests for purchase, burn, transfer, admin functions | Test coverage |
-| A.7 | Add to workspace Scarb.toml, verify `scarb build` | Integrated in workspace |
-
-#### Workstream B: Core Challenge System
-
-**Dependencies:** Phase 0
-**Can parallelize with:** Workstreams A, C, D
+#### Workstream A: Play System Standardization
+**Dependencies:** Phase 2
+**Can parallelize with:** Workstreams B, C
 
 | Task | Description | Output |
 |------|-------------|--------|
-| B.1 | Create `contracts/src/systems/daily_challenge.cairo` with trait + impl | New system file |
-| B.2 | Implement `create_daily_challenge()` — admin-only, VRF seed, LORDS deposit, stores model | Challenge creation with prize pool |
-| B.3 | Implement `register_entry()` — burns 1 zTicket, increments entries, creates/updates DailyEntry | Entry registration |
-| B.4 | Implement `submit_result()` — read game run_data, update best scores, update leaderboard | Result submission + leaderboard |
-| B.5 | Implement prize calculation helper — power-law curve with integer math (u256) | Pure function: `calculate_prize(rank, n_winners, total_pool) -> u256` |
-| B.6 | Implement `settle_challenge()` — admin calls after 24h, computes and writes prizes | Settlement logic |
-| B.7 | Implement `claim_prize()` — transfer LORDS from contract to winner | Prize claiming |
-| B.8 | Implement view functions (`get_current_challenge`, `get_player_entry`) | Read-only views |
+| A.1 | Refactor `game_system` to embed/align with embeddable-standard minigame interfaces (token data compatibility). | Standardized Play contract surface |
+| A.2 | Wrap every mutating gameplay entrypoint in unified before/after lifecycle guard. | Lifecycle wrapper coverage report |
+| A.3 | Split non-core concerns (daily challenge, rewards side-effects) behind explicit internal adapters to reduce contract body coupling. | Smaller, focused gameplay modules |
 
-#### Workstream C: Game System Integration
-
-**Dependencies:** Phase 0
-**Can parallelize with:** Workstreams A, B, D
+#### Workstream B: Dojo Permissions + State Authority Hardening
+**Dependencies:** Phase 2
+**Can parallelize with:** Workstreams A, C
 
 | Task | Description | Output |
 |------|-------------|--------|
-| C.1 | Add daily challenge seed injection to `game_system::create()` — detect challenge context via settings_id | Modified game creation to use challenge seed |
-| C.2 | Add game-over hook to auto-submit result to daily challenge system | When game ends, check if it's a daily challenge game and update entry |
-| C.3 | Add entry validation — ensure player has registered (has DailyEntry with attempts > 0) before creating challenge game | Assert check in create flow |
-| C.4 | Verify `is_default_settings` gate prevents CUBE minting for challenge games | Confirm existing behavior |
+| B.1 | Reduce writer lists for `Game`, `GameLevel`, `DailyEntry`, `DailyLeaderboard` to least privilege. | Hardened `dojo_*.toml` writer matrix |
+| B.2 | Replace panic-prone DNS `unwrap/expect` paths with explicit failures and migration-time assertions. | Deterministic error paths |
+| B.3 | Add authorization invariants doc + tests for all privileged init/admin methods. | `docs/security/authz-matrix.md` + tests |
 
-#### Workstream D: Settings Presets
-
-**Dependencies:** Phase 0
-**Can parallelize with:** Workstreams A, B, C
+#### Workstream C: Testing + Correctness Uplift
+**Dependencies:** Phase 2
+**Can parallelize with:** Workstreams A, B
 
 | Task | Description | Output |
 |------|-------------|--------|
-| D.1 | Design 10 diverse settings presets with different draft configs, difficulty, constraints | 10 preset specifications |
-| D.2 | Create deployment script to register presets as GameSettings IDs 100-109 | Script in `scripts/` |
-| D.3 | Test each preset generates valid, playable games | Manual or scripted verification |
+| C.1 | Add dedicated integration test module tree (`contracts/src/tests/`) for full run lifecycle (create/move/bonus/surrender/daily challenge). | New integration test suite |
+| C.2 | Add migration contract-compat tests validating token-data and settings interfaces expected by embeddable standard. | Compatibility test suite |
+| C.3 | Add regression tests around daily challenge registration gating + game-challenge mapping. | Edge-case coverage for challenge mode |
 
 ---
 
 ### Merge Phase
 
-#### Phase N: Integration & Testing
+After parallel workstreams complete, these tasks integrate the work.
 
-**Dependencies:** Workstreams A, B, C, D
+#### Phase N: End-to-End Migration Integration
+**Dependencies:** Workstreams A, B, C
 
 | Task | Description | Output |
 |------|-------------|--------|
-| N.1 | Wire zTicket contract address into daily_challenge_system config | System reads ticket contract address |
-| N.2 | Wire daily_challenge_system into dojo config (writers, permissions) | Updated `dojo_*.toml` files |
-| N.3 | Deploy zTicket contract and register with Torii as external contract | Torii indexes ticket balances |
-| N.4 | Write integration tests: full flow (purchase ticket → create challenge → register → play → submit → settle → claim) | Test file `contracts/src/tests/test_daily_challenge.cairo` |
-| N.5 | Write unit tests for prize calculation (edge cases: 1 entry, 4 entries, 100 entries, N=1) | Test cases |
-| N.6 | Test leaderboard updates (insert, replace, ranking correctness, all 3 metrics) | Unit tests |
-| N.7 | Test zTicket purchase with LORDS and CUBEs, insufficient balance, unauthorized burn | zTicket tests |
-| N.8 | `scarb build && scarb test` — all green | Clean build + all tests pass |
-| N.9 | Deploy to Slot and verify full flow manually | Working on Slot |
+| N.1 | Integrate refactored Play + Setup deployment order and init args in all active profiles (slot/sepolia/mainnet if applicable). | Unified migration config |
+| N.2 | Run full build/test/deploy dry run on Slot; validate deterministic behavior and model/indexing health. | Slot validation report |
+| N.3 | Execute Sepolia staging migration and compare runtime behavior vs baseline metrics. | Sepolia staging report |
+| N.4 | Publish migration runbook (rollback and emergency switches). | `docs/migration/runbook.md` |
 
 ---
 
 ## Testing and Validation
 
-### Unit Tests
-- **zTicket**: purchase with LORDS, purchase with CUBEs, transfer, burn, admin price changes
-- **Prize calculation**: 1 entry (winner takes all), 4 entries (N=1), 12 entries (N=3), 100 entries (N=25), 1000 entries (N=250)
-- **Leaderboard**: insert first entry, update best, multiple players, ranking order, all 3 metric types
-- **Entry**: burn ticket, insufficient tickets, double registration (should increment attempts)
-
-### Integration Tests
-- Full lifecycle: purchase ticket → create challenge → register → play → submit → settle → claim
-- Multiple players competing on same seed produce identical block sequences
-- Player beats own best (entry update)
-- Claim after settlement, claim before settlement (should fail)
-- Re-registration (second attempt, burns another ticket)
-
-### Edge Cases
-- 0 entries after 24h (settle with no winners — admin reclaims pool?)
-- 1 entry (sole winner gets 100%)
-- Player submits result for wrong challenge
-- Player submits game that isn't over yet
-- Challenge already settled (can't register)
-- Double claim attempt
-- Ticket purchased, challenge ends before player uses it (ticket not lost — usable next day)
-
----
+- Unit: maintain current inline tests, plus add missing integration tests under `contracts/src/tests/`.
+- Integration: run complete game lifecycle including daily challenge path.
+- Standard compliance: verify token-data + settings extension behavior against Athanor-style contract expectations.
+- Security tests: permissions, admin pathways, unauthorized caller attempts.
 
 ## Rollout and Migration
 
-1. Deploy zTicket ERC1155 contract
-2. Deploy new Dojo models and daily_challenge_system to Slot
-3. Create 10 settings presets (GameSettings IDs 100-109)
-4. Test full daily challenge flow on Slot
-5. Deploy to Sepolia for public testing
-6. Deploy to Mainnet
+1. **Pre-migration hardening:** remove secrets from repo, reduce writer blast radius.
+2. **Deep refactor release:** security/gas/testing improvements landed first.
+3. **Foundation release:** dependency + interface alignment for embeddable standard.
+4. **Behavior release:** lifecycle wrappers and system split for embeddable compliance.
+5. **Staging:** Slot then Sepolia verification.
+5. **Production rollout:** **clean-break fresh world migration** (decision locked).
 
-**Rollback plan:** Daily challenge is fully additive — no changes to existing game logic. zTickets remain in wallets even if challenge system is paused. Can be disabled by simply not creating new challenges.
+Rollback:
+- Keep previous deployment manifest and profile configs pinned.
+- Revert to previous Play/Setup contracts and writer matrix if post-deploy checks fail.
 
 ## Verification Checklist
 
-- [ ] `scarb build` — zero errors, zero warnings
-- [ ] `scarb test` — all tests pass including new daily challenge tests
-- [ ] zTicket: `purchase_with_lords(1)` transfers 100 LORDS to treasury, mints 1 ticket
-- [ ] zTicket: `purchase_with_cubes(1)` burns 1000 CUBEs, mints 1 ticket
-- [ ] zTicket: transferable between players
-- [ ] Register: burns exactly 1 zTicket from caller
-- [ ] Prize calculation: `calculate_prize(1, 25, 50e18)` returns correct share
-- [ ] Seed determinism: two games with same challenge_id produce identical block sequences
-- [ ] Leaderboard: correctly ranked by selected metric
-- [ ] Settlement: prizes computed and written to entries, sum ≤ prize_pool
-- [ ] Claim: LORDS transferred from contract to winner, marked claimed
+- [ ] `scarb build` passes at workspace root.
+- [ ] `scarb test` passes including new integration tests.
+- [ ] `sozo migrate -P slot` succeeds with updated init ordering.
+- [ ] `sozo migrate -P sepolia` succeeds in staging environment.
+- [ ] zKube Play contract exposes expected token-data interface outputs (score/game_over parity).
+- [ ] settings extension methods (`settings_exist`, details) behave as expected after migration.
+- [ ] writer permissions are least-privilege and do not block expected events/models.
+- [ ] daily challenge flow still works under lifecycle wrappers.
+- [ ] no credentials/private keys remain in tracked config files.
 
 ## Risk Assessment
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
-| LORDS token interface mismatch | Low | High | Verify standard ERC20 interface before building |
-| Prize calculation overflow with large pools | Low | High | Use u256 for all prize math, test with max values |
-| Same player submitting another player's game_id | Med | High | Verify game ownership via token contract |
-| Admin forgets to settle (prizes locked) | Med | Med | Add emergency withdrawal after grace period |
-| Gas cost of leaderboard maintenance too high | Low | Med | Cap leaderboard size, only update if player would enter top N |
-| VRF unavailable on Slot | Low | Low | Fallback to pseudo-random (already supported) |
-| zTicket price manipulation (front-run admin price change) | Low | Med | Price changes take effect next purchase, no retroactive impact |
-| Unclaimed prizes accumulate in contract | Med | Low | Add admin sweep after 30-day grace period |
+| Embeddable standard package/API drift vs current zKube dependencies | Med | High | Pin exact versions, introduce compatibility shim layer during transition |
+| Breaking world/schema changes during migration | Med | High | Decide policy upfront (compat vs clean break), run Slot + Sepolia rehearsals |
+| State authority bugs from writer matrix reduction | Med | Med | Incremental permission tightening + integration tests per model/event |
+| Daily challenge regressions after lifecycle refactor | Med | High | Dedicated challenge regression suite + staged rollout |
+| Team velocity drop due to large refactor breadth | High | Med | Phase-gate workstreams; isolate security and standardization first |
+| Secret exposure operational incident | High (current) | High | Immediate key rotation + repo scrub + secret scanning gate |
 
 ## Open Questions
 
-- [ ] Max leaderboard size cap? (e.g., top 250 max even if N > 250)
-- [ ] Grace period for claiming prizes before unclaimed funds are swept?
-- [ ] Should settings presets be immutable once created, or admin-editable?
-- [ ] Frontend scope: full daily challenge UI (lobby, leaderboard, claim) — separate plan needed
-- [ ] Should zTicket have multiple token IDs for different ticket tiers, or just token_id=1?
-- [ ] What happens to prize pool if 0 entries? Admin reclaims, or rolls over to next day?
+- [ ] Do we choose strict Athanor parity architecture, or adapted embeddable compliance preserving more zKube decomposition? (Technical recommendation: adapted compliance)
 
 ## Decision Log
 
 | Decision | Rationale | Alternatives Considered |
 |----------|-----------|------------------------|
-| zTicket ERC1155 for entry | Decouples purchase from entry, transferable/tradeable, clean UX | Direct LORDS payment (rejected: less flexible, no gifting/trading) |
-| Standalone ERC1155 contract | Reusable, registerable with Torii for balance tracking, standard interface | Inside Dojo world (rejected: harder to integrate with wallets/marketplaces) |
-| LORDS to treasury, not prize pool | Clean revenue separation, prize pool is admin-controlled | LORDS to pool (rejected: pool size unpredictable, hard to market fixed prizes) |
-| CUBEs burned on ticket purchase | Deflationary mechanic, CUBEs stay as in-game economy | CUBEs to treasury (rejected: CUBEs aren't monetary) |
-| Fixed prize pool per challenge | Predictable rewards, admin controls economics | Dynamic from entries (rejected: unpredictable, chicken-and-egg problem) |
-| Reuse GameSettings for presets | Avoids new model, presets already work with draft system | New DailyPreset model (rejected: duplicates GameSettings) |
-| Power-law 1.5 exponent | Top-heavy but not winner-take-all, rewards top ~25% | Linear split (too flat), winner-take-all (too harsh) |
-| Challenge-only ranking_metric | Ranking is per-challenge, not per-settings | Adding to GameSettings (rejected: overloads settings model) |
-| Admin-created challenges | Predictable ops, can curate preset selection | Lazy creation (rejected: first player bears gas + VRF cost) |
-| Manual claim for prizes | Simpler contract, no automated settlement needed | Auto-distribute (rejected: unbounded gas for many winners) |
-| Fixed 24h UTC period | Simple, predictable, no timezone confusion | Configurable (rejected: unnecessary complexity for v1) |
-| Transferable zTicket | Can be gifted, traded, creates secondary market | Soulbound (rejected: limits flexibility, less fun) |
+| Use Athanor as canonical embeddable migration reference | It is actively using embeddable standard on Sepolia with clear Play/Setup split | Infer standard from docs only (rejected: too ambiguous) |
+| Keep zKube gameplay domain models, refactor architecture around them | Preserves product mechanics while improving compliance/security | Full rewrite (rejected: unnecessary risk/time) |
+| Prioritize security + deployment hygiene before interface refactor | Current checked-in secrets and broad writers are immediate risk | Interface-first (rejected: leaves avoidable operational risk) |
+| Phase work into serial foundation + parallel streams | Reduces blocking and allows incremental validation | Big-bang refactor (rejected: high blast radius) |
+| Backward compatibility policy = clean-break fresh world | User explicitly accepted breaking changes for cleaner architecture | Schema-preserving upgrade (deprioritized) |
+| Execution order = deep refactor first, then embeddable migration | User priority and risk reduction for safer migration | Fastest-standardization-first (rejected) |

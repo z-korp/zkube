@@ -18,7 +18,7 @@ default = "zkube_budo_v1_1_0"
 [env]
 rpc_url = "https://api.cartridge.gg/x/budokan-matth/katana"
 account_address = "0x84ba12e8c22f8572b5836fcc0f887d4ba7e07acfcc6287e214c3e3eca21b91"
-private_key = "0x1611a78f4aeb0f4611aed25ecf879edcae7fcf4e3c4edf1272a933aa0c396f7"
+# private_key: use DOJO_PRIVATE_KEY env var or --keystore flag
 world_address = "0x079a36feddf1856076a253d9f6f268ee977f52e8f18b4729a64d63bdaab93331"
 
 [writers]

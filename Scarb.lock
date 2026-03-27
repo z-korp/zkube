@@ -84,7 +84,7 @@ dependencies = [
 [[package]]
 name = "game_components_metagame"
 version = "1.5.1"
-source = "git+https://github.com/Provable-Games/game-components?tag=v2.13.1#960c84aae59239763a2a2a339e0c649b0527f07d"
+source = "git+https://github.com/Provable-Games/game-components?rev=960c84aae59239763a2a2a339e0c649b0527f07d#960c84aae59239763a2a2a339e0c649b0527f07d"
 dependencies = [
  "game_components_minigame",
  "game_components_token",
@@ -97,7 +97,7 @@ dependencies = [
 [[package]]
 name = "game_components_minigame"
 version = "1.5.1"
-source = "git+https://github.com/Provable-Games/game-components?tag=v2.13.1#960c84aae59239763a2a2a339e0c649b0527f07d"
+source = "git+https://github.com/Provable-Games/game-components?rev=960c84aae59239763a2a2a339e0c649b0527f07d#960c84aae59239763a2a2a339e0c649b0527f07d"
 dependencies = [
  "game_components_metagame",
  "game_components_token",
@@ -110,7 +110,7 @@ dependencies = [
 [[package]]
 name = "game_components_test_starknet"
 version = "1.5.1"
-source = "git+https://github.com/Provable-Games/game-components?tag=v2.13.1#960c84aae59239763a2a2a339e0c649b0527f07d"
+source = "git+https://github.com/Provable-Games/game-components?rev=960c84aae59239763a2a2a339e0c649b0527f07d#960c84aae59239763a2a2a339e0c649b0527f07d"
 dependencies = [
  "game_components_metagame",
  "game_components_minigame",
@@ -124,7 +124,7 @@ dependencies = [
 [[package]]
 name = "game_components_token"
 version = "1.5.1"
-source = "git+https://github.com/Provable-Games/game-components?tag=v2.13.1#960c84aae59239763a2a2a339e0c649b0527f07d"
+source = "git+https://github.com/Provable-Games/game-components?rev=960c84aae59239763a2a2a339e0c649b0527f07d#960c84aae59239763a2a2a339e0c649b0527f07d"
 dependencies = [
  "game_components_metagame",
  "game_components_minigame",
@@ -138,7 +138,7 @@ dependencies = [
 [[package]]
 name = "game_components_utils"
 version = "1.5.1"
-source = "git+https://github.com/Provable-Games/game-components?tag=v2.13.1#960c84aae59239763a2a2a339e0c649b0527f07d"
+source = "git+https://github.com/Provable-Games/game-components?rev=960c84aae59239763a2a2a339e0c649b0527f07d#960c84aae59239763a2a2a339e0c649b0527f07d"
 dependencies = [
  "alexandria_encoding",
  "game_components_metagame",
