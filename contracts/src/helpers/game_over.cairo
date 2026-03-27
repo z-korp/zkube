@@ -5,21 +5,23 @@ use dojo::event::EventStorage;
 use dojo::model::ModelStorage;
 use dojo::world::WorldStorage;
 use starknet::{ContractAddress, get_block_timestamp};
-use zkube::constants::DEFAULT_SETTINGS::is_default_settings;
 use zkube::constants::DAILY_CHALLENGE::is_daily_challenge_settings;
 use zkube::events::RunEnded;
 use zkube::helpers::config::ConfigUtilsTrait;
 use zkube::helpers::daily;
-use zkube::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait};
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
 use zkube::models::daily::{DailyChallenge, DailyEntry, DailyEntryTrait, GameChallenge};
-use zkube::types::daily::RankingMetric;
 
-/// Handle game over: update player meta, mint cubes, emit event.
+/// Handle game over: update player meta, emit event, submit daily result.
 /// Used by game_system (surrender) and move_system (level failed/game over).
 pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAddress) {
     let run_data = game.get_run_data();
+    let capped_score: u16 = if run_data.total_score > 65535 {
+        65535
+    } else {
+        run_data.total_score.try_into().unwrap()
+    };
 
     // Update player meta with best level
     let mut player_meta: PlayerMeta = world.read_model(player);
@@ -28,20 +30,9 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
     }
     player_meta.update_best_level(run_data.current_level);
 
-    // Get game settings for default check
-    let settings = ConfigUtilsTrait::get_game_settings(world, game.game_id);
-
-    let base_cubes: u16 = run_data.total_cubes;
-
-    // Only mint cubes and update stats for games using default settings
-    let libs = GameLibsImpl::new(world);
-    if is_default_settings(settings.settings_id) {
-        if base_cubes > 0 {
-            libs.cube.mint(player, base_cubes.into());
-            player_meta.add_cubes_earned(base_cubes.into());
-        }
-    }
     world.write_model(@player_meta);
+
+    let settings = ConfigUtilsTrait::get_game_settings(world, game.game_id);
 
     // Emit run ended event
     world
@@ -51,7 +42,8 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
                 player,
                 final_level: run_data.current_level,
                 final_score: run_data.total_score,
-                total_cubes: run_data.total_cubes,
+                endless_depth: run_data.endless_depth,
+                zone_id: run_data.zone_id,
                 started_at: game.started_at,
                 ended_at: get_block_timestamp(),
             },
@@ -66,10 +58,16 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
                 game_challenge.challenge_id,
                 game.game_id,
                 player,
-                run_data.total_score,
+                capped_score,
                 run_data.current_level,
-                run_data.total_cubes,
+                run_data.endless_depth,
+                0,
             );
+
+            // Participation star for completing a daily challenge game.
+            // handle_game_over is called only once the run is over.
+            player_meta.increment_daily_stars();
+            world.write_model(@player_meta);
         }
     }
 }
@@ -84,6 +82,7 @@ fn auto_submit_daily_result(
     player: ContractAddress,
     total_score: u16,
     current_level: u8,
+    endless_depth: u8,
     total_cubes: u16,
 ) {
     let challenge: DailyChallenge = world.read_model(challenge_id);
@@ -96,25 +95,17 @@ fn auto_submit_daily_result(
         return; // Player hasn't registered, skip
     }
 
-    // Determine the ranking value based on challenge metric
-    let metric: RankingMetric = challenge.ranking_metric.into();
-    let ranking_value: u32 = match metric {
-        RankingMetric::Score => total_score.into(),
-        RankingMetric::Level => current_level.into(),
-        RankingMetric::CubesEarned => total_cubes.into(),
-    };
+    // Composite ranking: depth dominates, score breaks ties.
+    let ranking_value: u32 = endless_depth.into() * 65536 + total_score.into();
 
     // Check if this beats the player's current best
-    let current_best: u32 = match metric {
-        RankingMetric::Score => entry.best_score.into(),
-        RankingMetric::Level => entry.best_level.into(),
-        RankingMetric::CubesEarned => entry.best_cubes.into(),
-    };
+    let current_best: u32 = entry.best_depth.into() * 65536 + entry.best_score.into();
 
     if ranking_value > current_best {
         // Update entry with new bests
         entry.best_score = total_score;
         entry.best_level = current_level;
+        entry.best_depth = endless_depth;
         entry.best_cubes = total_cubes;
         entry.best_game_id = game_id;
         world.write_model(@entry);

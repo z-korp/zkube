@@ -15,7 +15,6 @@ import { createLogger } from "@/utils/logger";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
-// Helper to delay execution
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const SESSION_ERROR_PATTERNS = [
@@ -45,7 +44,6 @@ function clearSessionAndReload() {
   window.location.reload();
 }
 
-// Maximum retries for pre-confirmed transaction waiting
 const MAX_RETRIES = 5;
 const RETRY_DELAY_MS = 500;
 const POLL_INTERVAL_MS = 275;
@@ -53,11 +51,6 @@ const POLL_INTERVAL_MS = 275;
 export function systems({ client }: { client: IWorld }) {
   const log = createLogger("dojo/systems");
 
-  /**
-   * Wait for a transaction to reach PRE_CONFIRMED status (or better).
-   * Uses Starknet's new pre-confirmation feature for faster feedback.
-   * Retries on failure with exponential backoff.
-   */
   const waitForPreConfirmedTransaction = async (
     account: Account,
     txHash: string,
@@ -89,7 +82,6 @@ export function systems({ client }: { client: IWorld }) {
     action: () => Promise<{ transaction_hash: string }>,
     successMessage: string,
   ): Promise<{ transaction_hash: string; events: any[] }> => {
-    // Generate a unique ID for this transaction attempt
     const toastId = `tx-${Date.now()}`;
 
     try {
@@ -101,7 +93,6 @@ export function systems({ client }: { client: IWorld }) {
         });
       }
 
-      // Execute the transaction
       const { transaction_hash } = await action();
       log.debug("Transaction submitted", {
         transaction_hash,
@@ -118,7 +109,6 @@ export function systems({ client }: { client: IWorld }) {
         });
       }
 
-      // Wait for pre-confirmed status (faster than full L2 confirmation)
       const receipt = await waitForPreConfirmedTransaction(
         account,
         transaction_hash,
@@ -152,7 +142,6 @@ export function systems({ client }: { client: IWorld }) {
         throw new Error("Transaction reverted");
       }
 
-      // Notify success using same toastId
       notify(successMessage, receipt, toastId);
       return { transaction_hash, events };
     } catch (error) {
@@ -194,21 +183,17 @@ export function systems({ client }: { client: IWorld }) {
     );
     log.info("freeMint transaction", { transaction_hash });
 
-    // Try to extract token_id from Transfer event (ERC721)
-    // Transfer event has 5 keys: [selector, from, to, token_id_low, token_id_high]
     const transferEvent = events.find(
       (event: any) => event.keys?.length === 5 && event.data?.length === 0,
     );
 
     let game_id = 0;
     if (transferEvent) {
-      // token_id is in keys[3] (low) and keys[4] (high) for u256
       const tokenIdLow = BigInt(transferEvent.keys[3] || "0");
       const tokenIdHigh = BigInt(transferEvent.keys[4] || "0");
       game_id = Number(tokenIdLow + (tokenIdHigh << 128n));
       log.info("freeMint game_id extracted from transfer", { game_id });
     } else {
-      // Fallback: try TokenMetadata event with data.length === 11
       const tokenMetadataEvent = events.find(
         (event: any) => event.data.length === 11,
       );
@@ -237,6 +222,19 @@ export function systems({ client }: { client: IWorld }) {
     log.info("create success");
   };
 
+  const createRun = async ({ account, ...props }: SystemTypes.CreateRun) => {
+    log.debug("createRun params", {
+      game_id: props.game_id,
+      zone_id: props.zone_id,
+    });
+    await handleTransaction(
+      account,
+      () => client.game.createRun({ account, ...props }),
+      "Run has been created.",
+    );
+    log.info("createRun success");
+  };
+
   const surrender = async ({ account, ...props }: SystemTypes.Surrender) => {
     await handleTransaction(
       account,
@@ -247,8 +245,8 @@ export function systems({ client }: { client: IWorld }) {
 
   const move = async ({ account, ...props }: SystemTypes.Move) => {
     log.debug("move", { account: account.address, ...props });
-    const setMoveComplete = useMoveStore.getState().setMoveComplete; //  Zustand
-    setMoveComplete(false); // Reset before transaction
+    const setMoveComplete = useMoveStore.getState().setMoveComplete;
+    setMoveComplete(false);
 
     try {
       await handleTransaction(
@@ -264,8 +262,8 @@ export function systems({ client }: { client: IWorld }) {
   };
 
   const applyBonus = async ({ account, ...props }: SystemTypes.BonusTx) => {
-    const setMoveComplete = useMoveStore.getState().setMoveComplete; //  Zustand
-    setMoveComplete(false); // Reset before transaction
+    const setMoveComplete = useMoveStore.getState().setMoveComplete;
+    setMoveComplete(false);
     try {
       await handleTransaction(
         account,
@@ -279,17 +277,6 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
-  const startNextLevel = async ({
-    account,
-    ...props
-  }: SystemTypes.StartNextLevel) => {
-    await handleTransaction(
-      account,
-      () => client.game.startNextLevel({ account, ...props }),
-      "Next level started.",
-    );
-  };
-
   const claimQuest = async ({ account, ...props }: SystemTypes.ClaimQuest) => {
     if (!client.quest) {
       throw new Error("Quest system not available");
@@ -298,61 +285,6 @@ export function systems({ client }: { client: IWorld }) {
       account,
       () => client.quest!.claim({ account, ...props }),
       "Quest reward claimed!",
-    );
-  };
-
-  const rerollDraft = async ({
-    account,
-    ...props
-  }: SystemTypes.DraftReroll) => {
-    await handleTransaction(
-      account,
-      () => client.draft.reroll({ account, ...props }),
-      "Draft rerolled.",
-    );
-  };
-
-  const selectDraft = async ({
-    account,
-    ...props
-  }: SystemTypes.DraftSelect) => {
-    await handleTransaction(
-      account,
-      () => client.draft.select({ account, ...props }),
-      "Draft choice selected.",
-    );
-  };
-
-  const upgradeSkill = async ({
-    account,
-    ...props
-  }: SystemTypes.SkillTreeUpgrade) => {
-    await handleTransaction(
-      account,
-      () => client.skill_tree.upgrade_skill({ account, ...props }),
-      "Skill upgraded.",
-    );
-  };
-
-  const chooseBranch = async ({
-    account,
-    ...props
-  }: SystemTypes.SkillTreeChooseBranch) => {
-    await handleTransaction(
-      account,
-      () => client.skill_tree.choose_branch({ account, ...props }),
-      "Branch selected.",
-    );
-  };
-
-  const respecBranch = async ({
-    account,
-    ...props
-  }: SystemTypes.SkillTreeRespec) => {
-    await handleTransaction(
-      account,
-      () => client.skill_tree.respec_branch({ account, ...props }),
-      "Branch reset.",
     );
   };
 
@@ -455,20 +387,13 @@ export function systems({ client }: { client: IWorld }) {
   };
 
   return {
-    // play
     freeMint,
     create,
+    createRun,
     surrender,
     move,
     applyBonus,
-    startNextLevel,
-    // quests
     claimQuest,
-    rerollDraft,
-    selectDraft,
-    upgradeSkill,
-    chooseBranch,
-    respecBranch,
     addCustomGameSettings,
     createDailyChallenge,
     registerEntry,

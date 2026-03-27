@@ -3,9 +3,7 @@ import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useGame } from "@/hooks/useGame";
 import { useGameLevel } from "@/hooks/useGameLevel";
-import { useDraft } from "@/hooks/useDraft";
-import useAccountCustom from "@/hooks/useAccountCustom";
-import { useDojo } from "@/dojo/useDojo";
+
 import {
   NODES_PER_ZONE,
   TOTAL_ZONES,
@@ -27,24 +25,13 @@ import { useMusicPlayer } from "@/contexts/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
 import {
   getDraftEventForCompletedLevel,
-  getDraftEventForZoneNode,
-  getStoredDraftPick,
-  isDraftEventCompleted,
 } from "@/utils/draftEvents";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import LevelPreview from "@/ui/components/map/LevelPreview";
 import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
 import ZoneBackground from "@/ui/components/map/ZoneBackground";
-import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
-import { Button } from "@/ui/elements/button";
-import {
-  getSkillById,
-  getArchetypeForSkill,
-  getSkillTier,
-  getSkillEffectDescription,
-} from "@/dojo/game/types/skillData";
-import { getSkillTierIconPath } from "@/ui/theme/ImageAssets";
-import { getSlotBySkillId } from "@/dojo/game/helpers/runDataPacking";
+
+
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -124,32 +111,19 @@ const MapPage: React.FC = () => {
   const setPendingLevelCompletion = useNavigationStore(
     (state) => state.setPendingLevelCompletion,
   );
-  const pendingDraftEvent = useNavigationStore(
-    (state) => state.pendingDraftEvent,
-  );
-  const setPendingDraftEvent = useNavigationStore(
-    (state) => state.setPendingDraftEvent,
-  );
   const { setThemeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
-  const { account } = useAccountCustom();
-  const {
-    setup: {
-      systemCalls: { startNextLevel },
-    },
-  } = useDojo();
 
   const { game, seed } = useGame({
     gameId: gameId ?? undefined,
     shouldLog: false,
   });
-  const draftState = useDraft({ gameId: gameId ?? undefined });
   const gameLevel = useGameLevel({ gameId: game?.id });
 
   // GameSeed.seed is now stable (never overwritten). level_seed holds per-level VRF.
 
   const currentLevel = game?.level ?? 1;
-  const mapData = useMapData({ seed, currentLevel, draftState });
+  const mapData = useMapData({ seed, currentLevel });
   const zoneLayouts = useMapLayout({
     seed,
     totalZones: TOTAL_ZONES,
@@ -160,14 +134,6 @@ const MapPage: React.FC = () => {
     Math.max(0, mapData.currentZone - 1),
   );
   const [selectedNode, setSelectedNode] = useState<MapNodeData | null>(null);
-  const [resolvedDraftModal, setResolvedDraftModal] = useState<{
-    title: string;
-    description: string;
-    kind: string;
-    pool: string;
-    zone: number;
-    skillId: number;
-  } | null>(null);
   const pointerStartX = useRef<number | null>(null);
   const pointerId = useRef<number | null>(null);
 
@@ -178,18 +144,6 @@ const MapPage: React.FC = () => {
   useEffect(() => {
     setMusicPlaylist(["main", "level"]);
   }, [setMusicPlaylist]);
-
-  useEffect(() => {
-    if (gameId === null) return;
-    if (!pendingDraftEvent) return;
-
-    if (isDraftEventCompleted(draftState, pendingDraftEvent)) {
-      setPendingDraftEvent(null);
-      return;
-    }
-
-    navigate("draft", gameId);
-  }, [draftState, gameId, navigate, pendingDraftEvent, setPendingDraftEvent]);
 
   // Only switch theme/music when the player's current zone changes (zone cleared),
   // NOT when swiping between zones on the map.
@@ -274,19 +228,6 @@ const MapPage: React.FC = () => {
 
   const handlePlay = () => {
     if (gameId === null) return;
-
-    // Fire startNextLevel if the chain is waiting for it (level transition pending).
-    // Navigate immediately — PlayScreen shows "Loading grid" until the tx completes.
-    if (game?.levelTransitionPending && account) {
-      startNextLevel({
-        account,
-        game_id: game.id,
-        current_level: game.level,
-      }).catch((error: unknown) => {
-        console.error("Failed to start next level:", error);
-      });
-    }
-
     navigate("play", gameId);
   };
 
@@ -443,61 +384,6 @@ const MapPage: React.FC = () => {
                               return;
                             }
 
-                            if (node.type === "draft") {
-                              if (gameId === null) {
-                                showToast({
-                                  message: "No active run found.",
-                                  type: "error",
-                                });
-                                return;
-                              }
-
-                              const event = getDraftEventForZoneNode(
-                                seed,
-                                node.zone,
-                                currentLevel,
-                                draftState,
-                              );
-
-                              if (!event) {
-                                showToast({
-                                  message:
-                                    "No unlocked draft in this zone yet.",
-                                  type: "error",
-                                });
-                                return;
-                              }
-
-                              if (
-                                isDraftEventCompleted(draftState, event)
-                              ) {
-                                const pick = getStoredDraftPick(draftState, event);
-
-                                if (!pick) {
-                                  showToast({
-                                    message:
-                                      "Draft completed, but no saved choice found.",
-                                    type: "error",
-                                  });
-                                  return;
-                                }
-
-                                setResolvedDraftModal({
-                                  title: pick.title,
-                                  description: pick.description,
-                                  kind: pick.kind,
-                                  pool: pick.pool,
-                                  zone: event.zone,
-                                  skillId: pick.skillId,
-                                });
-                                return;
-                              }
-
-                              setPendingDraftEvent(event);
-                              navigate("draft", gameId);
-                              return;
-                            }
-
                             if (canOpenPreview(node)) {
                               setSelectedNode(node);
                             }
@@ -627,20 +513,11 @@ const MapPage: React.FC = () => {
             isOpen={true}
             onClose={() => {
               const completedLevel = pendingLevelCompletion.level;
-
               setPendingLevelCompletion(null);
-
-              if (completionDraftEvent) {
-                setPendingDraftEvent(completionDraftEvent);
-                navigate("draft", gameId ?? undefined);
-              } else {
-                setPendingPreviewLevel(completedLevel + 1);
-              }
+              setPendingPreviewLevel(completedLevel + 1);
             }}
             level={pendingLevelCompletion.level}
             levelMoves={pendingLevelCompletion.levelMoves}
-            prevTotalCubes={pendingLevelCompletion.prevTotalCubes}
-            totalCubes={pendingLevelCompletion.totalCubes}
             prevTotalScore={pendingLevelCompletion.prevTotalScore}
             totalScore={pendingLevelCompletion.totalScore}
             gameLevel={pendingLevelCompletion.gameLevel}
@@ -649,107 +526,6 @@ const MapPage: React.FC = () => {
         )}
 
 
-        <Dialog
-          open={resolvedDraftModal !== null}
-          onOpenChange={(open) => {
-            if (!open) {
-              setResolvedDraftModal(null);
-            }
-          }}
-        >
-          <DialogContent className="sm:max-w-[400px] w-[90%] rounded-2xl border border-white/10 bg-slate-900/90 px-6 py-6">
-            <DialogTitle className="text-2xl text-center mb-4 text-emerald-300">
-              Draft Done
-            </DialogTitle>
-
-            {resolvedDraftModal && (() => {
-              const skill = getSkillById(resolvedDraftModal.skillId);
-              const archetype = getArchetypeForSkill(resolvedDraftModal.skillId);
-              const slot = game ? getSlotBySkillId(game.runData, resolvedDraftModal.skillId) : undefined;
-              const rawLevel = slot?.level ?? 0;
-              const displayLevel = rawLevel + 1;
-              const tier = getSkillTier(rawLevel);
-              const effectDesc = getSkillEffectDescription(resolvedDraftModal.skillId, rawLevel);
-              const accentColor = archetype?.color ?? "#22c55e";
-              const isPassive = skill ? skill.category === "world" : false;
-              const charges = slot?.charges ?? 0;
-
-              return (
-                <div className="flex flex-col items-center gap-4">
-                  {/* Circular skill icon — matches GameActionBar style */}
-                  {skill && (
-                    <div className="relative">
-                      <div
-                        className="relative w-20 h-20 rounded-full overflow-visible flex items-center justify-center"
-                        style={
-                          isPassive
-                            ? { boxShadow: `0 0 18px ${accentColor}50, 0 0 40px ${accentColor}20` }
-                            : undefined
-                        }
-                      >
-                        <img
-                          src={getSkillTierIconPath(skill.name, tier)}
-                          alt={skill.name}
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                        {/* Ring border */}
-                        <div
-                          className="absolute inset-0 rounded-full border-[3px]"
-                          style={{ borderColor: accentColor }}
-                        />
-                      </div>
-
-                      {/* Level badge — bottom left */}
-                      <span
-                        className="absolute -bottom-1 -left-1 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold text-white z-10"
-                        style={{ backgroundColor: isPassive ? accentColor : undefined }}
-                      >
-                        {isPassive ? (
-                          <span>{displayLevel}</span>
-                        ) : (
-                          <span className="bg-indigo-500 rounded-full w-full h-full flex items-center justify-center">{displayLevel}</span>
-                        )}
-                      </span>
-
-                      {/* Charges badge — top right, bonus only */}
-                      {!isPassive && (
-                        <span
-                          className={`absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold z-10 ${
-                            charges > 0 ? "bg-yellow-500 text-white" : "bg-slate-600 text-slate-400"
-                          }`}
-                        >
-                          {charges}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Skill name + archetype */}
-                  <div className="text-center">
-                    <h3 className="font-['Fredericka_the_Great'] text-xl text-white">
-                      Skill Drafted: {skill?.name ?? "Unknown"}
-                    </h3>
-                    {archetype && (
-                      <p className="text-xs mt-1" style={{ color: accentColor }}>
-                        {archetype.name} Archetype
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Effect description */}
-                  <div className="w-full rounded-lg bg-slate-800/60 px-3 py-2.5">
-                    <p className="text-[11px] uppercase tracking-wider text-slate-500 mb-1">Effect</p>
-                    <p className="text-sm text-slate-200">{effectDesc}</p>
-                  </div>
-                </div>
-              );
-            })()}
-
-            <div className="mt-2 flex justify-center">
-              <Button onClick={() => setResolvedDraftModal(null)}>Close</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );

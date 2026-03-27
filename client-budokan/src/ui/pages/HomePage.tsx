@@ -7,7 +7,6 @@ import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { loadThemeTemplate } from "@/config/themes";
-import { useCubeBalance } from "@/hooks/useCubeBalance";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
@@ -40,7 +39,6 @@ const HomePage: React.FC = () => {
   const { username } = useControllerUsername();
   const { themeTemplate, setThemeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
-  const { cubeBalance } = useCubeBalance();
   const navigate = useNavigationStore((s) => s.navigate);
   const { questFamilies } = useQuests();
   const imgAssets = ImageAssets(themeTemplate);
@@ -124,7 +122,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="h-screen-viewport flex flex-col">
       <TopBar
-        cubeBalance={cubeBalance}
+        cubeBalance={0n}
         onTutorial={() => navigate("tutorial")}
         onQuests={() => navigate("quests")}
         onTrophies={handleTrophies}
@@ -167,12 +165,6 @@ const HomePage: React.FC = () => {
                 variant="purple"
                 onClick={() => navigate("mygames")}
                 badge={activeGames.length > 0 ? activeGames.length : undefined}
-              />
-
-              <NavButton
-                label="SKILL TREE"
-                variant="green"
-                onClick={() => navigate("skilltree")}
               />
 
               <NavButton

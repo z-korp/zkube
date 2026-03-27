@@ -23,7 +23,6 @@ mod renderer_systems {
     use game_components_embeddable_game_standard::minigame::structs::GameDetail;
     use zkube::constants::DEFAULT_NS;
     use zkube::helpers::encoding::bytes_base64_encode;
-    use zkube::helpers::packing::RunDataHelpersTrait;
     use zkube::helpers::renderer as renderer_helper;
     use zkube::models::game::{Game, GameTrait};
 
@@ -87,8 +86,7 @@ mod renderer_systems {
                 .append(GameDetail { name: 'SCORE', value: run_data.total_score.into() });
 
             // Cubes
-            details
-                .append(GameDetail { name: 'CUBES', value: run_data.total_cubes.into() });
+            details.append(GameDetail { name: 'CUBES', value: 0 });
 
             details.span()
         }
@@ -200,18 +198,23 @@ mod renderer_systems {
             let game: Game = world.read_model(game_id);
             let run_data = game.get_run_data();
             let player_name = _get_player_name(world, game_id);
+            let capped_score: u16 = if run_data.total_score > 65535 {
+                65535
+            } else {
+                run_data.total_score.try_into().unwrap()
+            };
 
             renderer_helper::create_metadata(
                 game_id,
                 player_name,
                 game.over,
-                run_data.total_score,
+                capped_score,
                 run_data.level_moves.into(),
                 game.combo_counter.into(),
                 game.max_combo,
-                run_data.get_active_charges(1),
-                run_data.get_active_charges(2),
-                run_data.get_active_charges(3),
+                0,
+                0,
+                0,
             )
         }
 
@@ -240,9 +243,9 @@ mod renderer_systems {
             let _score = format!("{}", run_data.total_score);
             let _combo = format!("{}", game.combo_counter);
             let _max_combo = format!("{}", game.max_combo);
-            let _combo_bonus = format!("{}", run_data.get_active_charges(1));
-            let _score_bonus = format!("{}", run_data.get_active_charges(2));
-            let _harvest_bonus = format!("{}", run_data.get_active_charges(3));
+            let _combo_bonus = format!("{}", 0);
+            let _score_bonus = format!("{}", 0);
+            let _harvest_bonus = format!("{}", 0);
             let _level = format!("{}", run_data.current_level);
 
             let mut elements = array![
@@ -350,8 +353,7 @@ mod renderer_systems {
             details
                 .append(GameDetail { name: 'SCORE', value: run_data.total_score.into() });
 
-            details
-                .append(GameDetail { name: 'CUBES', value: run_data.total_cubes.into() });
+            details.append(GameDetail { name: 'CUBES', value: 0 });
 
             details.span()
         }

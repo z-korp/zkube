@@ -4,9 +4,7 @@ use core::num::traits::zero::Zero;
 use core::poseidon::{HashState, PoseidonTrait};
 use core::traits::Into;
 use zkube::constants;
-use zkube::helpers::packing::{RunData, RunDataHelpersTrait, RunDataPackingTrait};
-use zkube::helpers::scoring::saturating_add_u16;
-use zkube::types::bonus::{Bonus, BonusTrait};
+use zkube::helpers::packing::{RunData, RunDataPackingTrait};
 
 /// Game model for the level-based system
 /// All run progress is packed into run_data for efficient storage
@@ -28,8 +26,8 @@ pub struct Game {
     // ----------------------------------------
     // Level system (bit-packed run progress)
     // ----------------------------------------
-    pub run_data: felt252, // Bit-packed: level, score, moves, bonuses, stars, etc.
-    pub level_stars: felt252, // 2 bits per level × 50 levels = 100 bits
+    pub run_data: felt252, // Bit-packed: level/score/moves + zone/endless state
+    pub level_stars: felt252, // 2 bits per level × 10 levels = 20 bits used
     // ----------------------------------------
     // Timestamps
     // ----------------------------------------
@@ -47,7 +45,7 @@ pub struct GameSeed {
     #[key]
     pub game_id: u64,
     pub seed: felt252, // Original VRF seed — set once at game creation, NEVER changes
-    pub level_seed: felt252, // Per-level VRF seed — updated each start_next_level
+    pub level_seed: felt252, // Per-level seed — updated on each level advance
     pub vrf_enabled: bool,
 }
 
@@ -110,8 +108,8 @@ pub impl GameLevelImpl of GameLevelTrait {
 pub impl GameImpl of GameTrait {
     /// Create an empty game shell (no grid initialization)
     /// Grid should be initialized separately via grid_system.initialize_grid()
-    fn new_empty(game_id: u64, started_at: u64) -> Game {
-        let run_data = RunDataPackingTrait::new();
+    fn new_empty(game_id: u64, started_at: u64, zone_id: u8, mutator_mask: u8) -> Game {
+        let run_data = RunDataPackingTrait::new(zone_id, mutator_mask);
 
         Game {
             game_id,
@@ -156,36 +154,6 @@ pub impl GameImpl of GameTrait {
         self.get_run_data().level_moves
     }
 
-    /// Get total cubes
-    #[inline(always)]
-    fn get_total_cubes(self: Game) -> u16 {
-        self.get_run_data().total_cubes
-    }
-
-    /// Get charges for slot 0
-    #[inline(always)]
-    fn get_slot_0_charges(self: Game) -> u8 {
-        self.get_run_data().get_active_charges(0)
-    }
-
-    /// Get charges for slot 1
-    #[inline(always)]
-    fn get_slot_1_charges(self: Game) -> u8 {
-        self.get_run_data().get_active_charges(1)
-    }
-
-    /// Get charges for slot 2
-    #[inline(always)]
-    fn get_slot_2_charges(self: Game) -> u8 {
-        self.get_run_data().get_active_charges(2)
-    }
-
-    /// Check if bonus was used this level (for NoBonusUsed constraint)
-    #[inline(always)]
-    fn is_bonus_used_this_level(self: Game) -> bool {
-        self.get_run_data().bonus_used_this_level
-    }
-
     /// Get constraint progress (primary constraint)
     #[inline(always)]
     fn get_constraint_progress(self: Game) -> u8 {
@@ -198,22 +166,9 @@ pub impl GameImpl of GameTrait {
         self.get_run_data().constraint_2_progress
     }
 
-    /// Get constraint_3 progress (tertiary constraint)
-    #[inline(always)]
-    fn get_constraint_3_progress(self: Game) -> u8 {
-        self.get_run_data().constraint_3_progress
-    }
-
-    /// Get the run-level for a given slot
-    /// @param slot: 0, 1, or 2
-    fn get_active_level(self: Game, slot: u8) -> u8 {
-        let run_data = self.get_run_data();
-        run_data.get_active_level(slot)
-    }
-
     /// Get total score (cumulative across all levels)
     #[inline(always)]
-    fn get_total_score(self: Game) -> u16 {
+    fn get_total_score(self: Game) -> u32 {
         self.get_run_data().total_score
     }
 
@@ -236,53 +191,10 @@ pub impl GameImpl of GameTrait {
         state.finalize()
     }
 
-    /// Complete the current level and advance to next (run_data only, no grid changes)
-    /// Grid should be reset separately via grid_system.reset_grid_for_level()
-    /// Returns (cubes_earned, bonuses_to_award, is_victory)
-    fn complete_level_data(
-        ref self: Game, cubes: u8, bonuses: u8, boss_bonus: u16, is_victory: bool,
-    ) -> (u8, u8, bool) {
-        let mut run_data = self.get_run_data();
-
-        // Add cubes to total
-        run_data.total_cubes = saturating_add_u16(run_data.total_cubes, cubes.into());
-
-        // Boss cube bonus
-        if boss_bonus > 0 {
-            run_data.total_cubes = saturating_add_u16(run_data.total_cubes, boss_bonus);
-        }
-
-        if is_victory {
-            // Mark run as completed (victory!)
-            run_data.run_completed = true;
-            self.set_run_data(run_data);
-            return (cubes, bonuses, true);
-        }
-
-        // Advance to next level
-        run_data.current_level += 1;
-
-        // Reset per-level state
-        run_data.level_score = 0;
-        run_data.level_moves = 0;
-        run_data.constraint_progress = 0;
-        run_data.constraint_2_progress = 0;
-        run_data.constraint_3_progress = 0;
-        run_data.bonus_used_this_level = false;
-
-        // Reset per-level combos
-        self.combo_counter = 0;
-        self.max_combo = 0;
-
-        self.set_run_data(run_data);
-
-        (cubes, bonuses, false)
-    }
-
     /// Get stars earned for a specific level (1-indexed, returns 0-3)
     /// Each level uses 2 bits: level 1 at bits 0-1, level 2 at bits 2-3, etc.
     fn get_level_stars(self: Game, level: u8) -> u8 {
-        assert!(level >= 1 && level <= 50, "Level must be 1-50");
+        assert!(level >= 1 && level <= 10, "Level must be 1-10");
         let shift: u32 = ((level - 1) * 2).into();
         let data: u256 = self.level_stars.into();
         (BitShift::shr(data, shift.into()) & 0x3_u256).try_into().unwrap()
@@ -290,7 +202,7 @@ pub impl GameImpl of GameTrait {
 
     /// Set stars earned for a specific level (1-indexed, value 0-3)
     fn set_level_stars(ref self: Game, level: u8, stars: u8) {
-        assert!(level >= 1 && level <= 50, "Level must be 1-50");
+        assert!(level >= 1 && level <= 10, "Level must be 1-10");
         assert!(stars <= 3, "Stars must be 0-3");
         let shift: u32 = ((level - 1) * 2).into();
         let mut data: u256 = self.level_stars.into();
@@ -342,13 +254,5 @@ pub impl GameAssert of AssertTrait {
     #[inline(always)]
     fn assert_is_over(self: Game) {
         assert!(self.over || self.is_zero(), "Game {} is not over", self.game_id);
-    }
-
-    #[inline(always)]
-    fn assert_bonus_available(self: Game, bonus: Bonus) {
-        let run_data = self.get_run_data();
-        let skill_id = bonus.to_type_code();
-        let count = run_data.get_active_charges(skill_id);
-        assert!(count > 0, "Game {} bonus is not available", self.game_id);
     }
 }

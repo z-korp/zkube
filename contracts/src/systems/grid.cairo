@@ -55,21 +55,14 @@ mod grid_system {
     use dojo::world::WorldStorage;
     use zkube::constants::{self, DEFAULT_NS};
 
-    // Import bonus element files for grid-modifying operations
-    use zkube::elements::bonuses::harvest;
-    use zkube::elements::bonuses::tsunami;
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::controller::Controller;
-    use zkube::helpers::packing::RunDataHelpersTrait;
     use zkube::helpers::scoring::{
-        process_lines_cleared, saturating_add_u16, saturating_add_u8, update_score,
-    };
-    use zkube::helpers::skill_effects::{
-        active_effect_for_skill, get_passive_effects,
+        process_lines_cleared, update_score,
     };
     use zkube::models::config::GameSettings;
     use zkube::models::game::{Game, GameLevel, GameSeed, GameTrait};
-    use zkube::types::bonus::{Bonus, BonusTrait};
+    use zkube::types::bonus::Bonus;
     use zkube::types::constraint::{
         ConstraintContext, LevelConstraint, LevelConstraintTrait, any_needs_break_blocks,
         get_break_blocks_target_size,
@@ -169,9 +162,6 @@ mod grid_system {
 
             let mut run_data = game.get_run_data();
 
-            // Get aggregated passive effects from all passive skills in loadout
-            let passives = get_passive_effects(@run_data);
-
             // Validate move limit
             assert!(run_data.level_moves.into() < game_level.max_moves, "Move limit exceeded");
 
@@ -186,11 +176,7 @@ mod grid_system {
                 value: game_level.constraint2_value,
                 required_count: game_level.constraint2_count,
             };
-            let constraint_3 = LevelConstraint {
-                constraint_type: game_level.constraint3_type.into(),
-                value: game_level.constraint3_value,
-                required_count: game_level.constraint3_count,
-            };
+            let constraint_3 = LevelConstraintTrait::none();
 
             // Compute highest occupied row BEFORE the move (for FillAndClear constraint)
             let highest_row_before = InternalImpl::highest_occupied_row(game.blocks);
@@ -262,44 +248,6 @@ mod grid_system {
                 cascade_depth = cascade_depth_2;
             }
 
-            // === PASSIVE SKILL HOOKS ===
-
-            // Combo Surge Flow (Branch B): add combo depth for the level
-            if run_data.combo_surge_flow_active {
-                // Flow adds combo depth to every move for the rest of the level
-                // The flow_depth was set when the charge was used — look it up from the active effect
-                let cs_slot = run_data.find_skill_slot(1); // Combo Surge = skill ID 1
-                if cs_slot != 255 {
-                    let cs_level = run_data.get_slot_level(cs_slot);
-                    let cs_branch = run_data.get_slot_branch(cs_slot);
-                    let cs_effect = active_effect_for_skill(1, cs_level, cs_branch);
-                    if cs_effect.combo_surge_flow_depth > 0 {
-                        game
-                            .combo_counter =
-                                saturating_add_u8(
-                                    game.combo_counter, cs_effect.combo_surge_flow_depth,
-                                );
-                    }
-                }
-            }
-
-            // Rhythm (ID 5): combo_streak → combo depth
-            if passives.rhythm_streak_threshold > 0 && game.combo_counter > 0 {
-                let rhythm_procs = game.combo_counter / passives.rhythm_streak_threshold;
-                if rhythm_procs > 0 {
-                    let rhythm_combo = rhythm_procs * passives.rhythm_combo_add;
-                    game.combo_counter = saturating_add_u8(game.combo_counter, rhythm_combo);
-                }
-            }
-
-            // Cascade Mastery (ID 6): cascade_depth → combo depth
-            if passives.cascade_depth_threshold > 0
-                && cascade_depth >= passives.cascade_depth_threshold {
-                game
-                    .combo_counter =
-                        saturating_add_u8(game.combo_counter, passives.cascade_combo_add);
-            }
-
             // Update combos and award cube bonuses for multi-line clears
             process_lines_cleared(
                 ref run_data, ref game.combo_counter, ref game.max_combo, lines_cleared,
@@ -311,77 +259,6 @@ mod grid_system {
             } else {
                 InternalImpl::highest_occupied_row(new_blocks)
             };
-
-            // High Stakes (ID 9): grid height → cubes per clear
-            if passives.high_stakes_height > 0
-                && current_height >= passives.high_stakes_height
-                && lines_cleared > 0 {
-                let hs_cubes: u16 = lines_cleared.into() * passives.high_stakes_cubes.into();
-                run_data.total_cubes = saturating_add_u16(run_data.total_cubes, hs_cubes);
-            }
-
-            // Gambit (ID 10): track if grid reached threshold height
-            if passives.gambit_height > 0
-                && !run_data.gambit_triggered_this_level
-                && current_height >= passives.gambit_height {
-                run_data.gambit_triggered_this_level = true;
-            }
-
-            // Structural Integrity (ID 11): high grid → extra row removal on first line clear
-            if passives.si_height > 0
-                && current_height >= passives.si_height
-                && lines_cleared > 0 {
-                // Remove extra rows from the bottom
-                let mut extra: u8 = 0;
-                loop {
-                    if extra >= passives.si_extra_rows {
-                        break;
-                    }
-                    // Clear bottom row (row 0) and apply gravity
-                    new_blocks = tsunami::clear_row(new_blocks, 0);
-                    let mut si_counter: u8 = 0;
-                    let mut _si_cascade: u8 = 0;
-                    InternalImpl::assess_game(ref new_blocks, ref si_counter, ref _si_cascade);
-                    extra += 1;
-                };
-                // Grid was modified by SI — recompute height
-                current_height = if new_blocks == 0 {
-                    0
-                } else {
-                    InternalImpl::highest_occupied_row(new_blocks)
-                };
-            }
-
-            // Grid Harmony (ID 12): high grid → extra row removal
-            // current_height already accounts for SI modifications
-            if passives.gh_height > 0
-                && current_height >= passives.gh_height
-                && lines_cleared > 0 {
-                let gh_rows = if passives.gh_every_clear {
-                    // Every clear: apply for each line cleared
-                    lines_cleared * passives.gh_extra_rows
-                } else {
-                    // Next clear only: apply once
-                    passives.gh_extra_rows
-                };
-                let mut extra: u8 = 0;
-                loop {
-                    if extra >= gh_rows {
-                        break;
-                    }
-                    new_blocks = tsunami::clear_row(new_blocks, 0);
-                    let mut gh_counter: u8 = 0;
-                    let mut _gh_cascade: u8 = 0;
-                    InternalImpl::assess_game(ref new_blocks, ref gh_counter, ref _gh_cascade);
-                    extra += 1;
-                };
-                // Grid was modified by GH — recompute height
-                current_height = if new_blocks == 0 {
-                    0
-                } else {
-                    InternalImpl::highest_occupied_row(new_blocks)
-                };
-            }
 
             // Count destroyed blocks of target size using total count approach
             // Positional diff is wrong because blocks shift (gravity, new line insertion)
@@ -415,16 +292,9 @@ mod grid_system {
             run_data
                 .constraint_2_progress = constraint_2
                 .update_progress(run_data.constraint_2_progress, ctx);
-            run_data
-                .constraint_3_progress = constraint_3
-                .update_progress(run_data.constraint_3_progress, ctx);
 
-            // Increment level moves (or consume free move)
-            if run_data.free_moves > 0 {
-                run_data.free_moves -= 1;
-            } else {
-                run_data.level_moves += 1;
-            }
+            // Increment level moves
+            run_data.level_moves += 1;
 
             // If grid is empty after all that, add another line
             if new_blocks == 0 {
@@ -457,148 +327,12 @@ mod grid_system {
             col_index: u8,
             skill_data: felt252,
         ) -> u8 {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-
-            let mut game: Game = world.read_model(game_id);
-            let base_seed: GameSeed = world.read_model(game_id);
-            let game_level: GameLevel = world.read_model(game_id);
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-
-            let mut run_data = game.get_run_data();
-
-            // Get skill_id from bonus enum
-            let skill_id = bonus.to_type_code();
-
-            // Check availability
-            let available = run_data.get_active_charges(skill_id) > 0;
-            assert!(available, "Active skill not available");
-
-            // Get effect for this skill at its run level and branch
-            let skill_level = run_data.get_active_level(skill_id);
-            let branch_id = run_data.get_active_branch(skill_id);
-            let effect = active_effect_for_skill(skill_id, skill_level, branch_id);
-
-            let mut new_blocks = game.blocks;
-            let mut new_next_row = game.next_row;
-
-            match bonus {
-                Bonus::ComboSurge => {
-                    if effect.combo_surge_flow {
-                        // Branch B: set level-wide flag (combo depth applied every move)
-                        if !run_data.combo_surge_flow_active {
-                            run_data.combo_surge_flow_active = true;
-                        }
-                        // Also apply immediately this move
-                        game
-                            .combo_counter =
-                                saturating_add_u8(
-                                    game.combo_counter, effect.combo_surge_flow_depth,
-                                );
-                    } else {
-                        // Branch A: immediate combo add
-                        game.combo_counter = saturating_add_u8(game.combo_counter, effect.combo_add);
-                    }
-                },
-                Bonus::Momentum => {
-                    // Score burst: either per-zone or flat
-                    let mut score: u16 = effect.score_add;
-                    if effect.score_per_zone > 0 {
-                        // Zone = ceil(current_level / 10)
-                        let zones_cleared: u16 = if run_data.current_level == 0 {
-                            0
-                        } else {
-                            ((run_data.current_level - 1) / 10 + 1).into()
-                        };
-                        score += effect.score_per_zone.into() * zones_cleared;
-                    }
-                    update_score(ref run_data, score);
-                },
-                Bonus::Harvest => {
-                    if effect.lines_to_add > 0 {
-                        // Branch B: Injection — add lines + flat cubes
-                        let difficulty: Difficulty = game_level.difficulty.into();
-                        let mut i: u8 = 0;
-                        loop {
-                            if i >= effect.lines_to_add {
-                                break;
-                            }
-                            let new_seed = InternalImpl::generate_seed(
-                                new_blocks, base_seed.seed, run_data.current_level,
-                            );
-                            let new_row = Controller::create_line(new_seed, difficulty, settings);
-                            new_blocks = Controller::add_line(new_blocks, new_next_row);
-                            new_next_row = new_row;
-                            i += 1;
-                        };
-                        run_data
-                            .total_cubes =
-                                saturating_add_u16(run_data.total_cubes, effect.cubes_flat);
-                    } else if effect.blocks_to_destroy > 0 {
-                        // Branch A: Extraction — destroy random blocks
-                        let harvest_seed_state = PoseidonTrait::new()
-                            .update(base_seed.seed)
-                            .update('HARVEST')
-                            .update(run_data.level_moves.into())
-                            .finalize();
-                        let (harvested_blocks, cubes_earned) = harvest::harvest_random_blocks(
-                            new_blocks, harvest_seed_state, effect.blocks_to_destroy,
-                        );
-                        new_blocks = harvested_blocks;
-                        run_data
-                            .total_cubes = saturating_add_u16(run_data.total_cubes, cubes_earned);
-                    }
-                },
-                Bonus::Tsunami => {
-                    if effect.clear_by_size {
-                        // Branch A L5: clear all blocks of targeted size
-                        new_blocks = tsunami::clear_all_of_size(new_blocks, row_index, col_index);
-                    } else if effect.rows_to_clear > 0 {
-                        // Branch B: clear targeted rows
-                        let mut i: u8 = 0;
-                        loop {
-                            if i >= effect.rows_to_clear {
-                                break;
-                            }
-                            let target_row = if row_index + i < constants::DEFAULT_GRID_HEIGHT {
-                                row_index + i
-                            } else {
-                                break;
-                            };
-                            new_blocks = tsunami::clear_row(new_blocks, target_row);
-                            i += 1;
-                        };
-                    } else if effect.blocks_to_clear > 0 {
-                        // Branch A: clear N targeted blocks
-                        // For now, clear the block at (row_index, col_index) — UI sends multiple calls
-                        new_blocks = tsunami::clear_targeted_block(new_blocks, row_index, col_index);
-                    }
-                },
-                Bonus::None => {},
-            }
-
-            // Consume charge
-            run_data.use_active_charge(skill_id);
-
-            // Mark bonus used
-            run_data.bonus_used_this_level = true;
-
-            // Assess game (gravity + line clearing)
-            let mut lines_cleared: u8 = 0;
-            let mut _bonus_cascade: u8 = 0;
-            let bonus_points = InternalImpl::assess_game(ref new_blocks, ref lines_cleared, ref _bonus_cascade);
-            update_score(ref run_data, bonus_points);
-
-            // Update combos
-            process_lines_cleared(
-                ref run_data, ref game.combo_counter, ref game.max_combo, lines_cleared,
-            );
-
-            game.blocks = new_blocks;
-            game.next_row = new_next_row;
-            game.set_run_data(run_data);
-            world.write_model(@game);
-
-            lines_cleared
+            let _ = game_id;
+            let _ = bonus;
+            let _ = row_index;
+            let _ = col_index;
+            let _ = skill_data;
+            0
         }
 
         fn insert_line_if_empty(ref self: ContractState, game_id: u64) {

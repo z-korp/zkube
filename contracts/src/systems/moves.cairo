@@ -27,7 +27,6 @@ mod move_system {
     };
     use zkube::helpers::{game_over, level_check, token};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
-    use zkube::models::skill_tree::PlayerSkillTree;
 
     #[storage]
     struct Storage {}
@@ -55,13 +54,6 @@ mod move_system {
             assert_token_ownership(token_address, token_id_felt);
             game.assert_not_over();
 
-            // Cannot move while level transition is pending (must call start_next_level first)
-            let run_data_check = game.get_run_data();
-            assert!(
-                !run_data_check.level_transition_pending,
-                "Level transition pending - call start_next_level first",
-            );
-
             // Validate move indices (grid is 10 rows x 8 columns)
             assert!(row_index < 10, "Invalid row_index: must be < 10");
             assert!(start_index < 8, "Invalid start_index: must be < 8");
@@ -70,12 +62,11 @@ mod move_system {
             // Initialize GameLibs once for all dispatcher calls
             let libs = GameLibsImpl::new(world);
             let player = get_caller_address();
-            let skill_tree: PlayerSkillTree = world.read_model(player);
 
             // Execute move via grid_system dispatcher (contains Controller logic)
             let (_lines_cleared, is_grid_full) = libs
                 .grid
-                .execute_move(game_id, row_index, start_index, final_index, skill_tree.skill_data);
+                .execute_move(game_id, row_index, start_index, final_index, 0);
 
             // Re-read game after grid_system modified it (needed for level/game-over checks)
             let game: Game = world.read_model(game_id);
@@ -86,7 +77,7 @@ mod move_system {
             let is_complete = level_check::is_level_complete(@game_level, @run_data);
 
             if is_complete {
-                libs.level.finalize_level(game_id, skill_tree.skill_data);
+                libs.level.finalize_level(game_id, 0);
             } else if is_grid_full {
                 let mut updated_game: Game = world.read_model(game_id);
                 updated_game.over = true;

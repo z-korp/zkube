@@ -236,7 +236,7 @@ type ConnectorConfig = {
 
 const getConfig = (): ConnectorConfig => {
   const deployType = (VITE_PUBLIC_DEPLOY_TYPE as DeployType) || "mainnet";
-  const namespace = VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_2_0";
+  const namespace = VITE_PUBLIC_NAMESPACE || "zkube_jc_sepolia_v1";
   const manifest = getManifest(deployType);
 
   switch (deployType) {

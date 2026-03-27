@@ -8,6 +8,8 @@ pub enum RankingMetric {
     Level,
     /// Highest CUBEs earned in a single run
     CubesEarned,
+    /// Composite ranking value: (endless_depth << 16) | total_score
+    Composite,
 }
 
 pub impl RankingMetricIntoU8 of Into<RankingMetric, u8> {
@@ -16,6 +18,7 @@ pub impl RankingMetricIntoU8 of Into<RankingMetric, u8> {
             RankingMetric::Score => 0,
             RankingMetric::Level => 1,
             RankingMetric::CubesEarned => 2,
+            RankingMetric::Composite => 3,
         }
     }
 }
@@ -26,6 +29,7 @@ pub impl U8IntoRankingMetric of Into<u8, RankingMetric> {
             0 => RankingMetric::Score,
             1 => RankingMetric::Level,
             2 => RankingMetric::CubesEarned,
+            3 => RankingMetric::Composite,
             _ => panic!("Invalid RankingMetric value: {}", self),
         }
     }
@@ -40,9 +44,11 @@ mod tests {
         let score: u8 = RankingMetric::Score.into();
         let level: u8 = RankingMetric::Level.into();
         let cubes: u8 = RankingMetric::CubesEarned.into();
+        let composite: u8 = RankingMetric::Composite.into();
         assert!(score == 0, "Score should be 0");
         assert!(level == 1, "Level should be 1");
         assert!(cubes == 2, "CubesEarned should be 2");
+        assert!(composite == 3, "Composite should be 3");
     }
 
     #[test]
@@ -50,14 +56,19 @@ mod tests {
         let score: RankingMetric = 0_u8.into();
         let level: RankingMetric = 1_u8.into();
         let cubes: RankingMetric = 2_u8.into();
+        let composite: RankingMetric = 3_u8.into();
         assert!(score == RankingMetric::Score, "0 should be Score");
         assert!(level == RankingMetric::Level, "1 should be Level");
         assert!(cubes == RankingMetric::CubesEarned, "2 should be CubesEarned");
+        assert!(composite == RankingMetric::Composite, "3 should be Composite");
     }
 
     #[test]
     fn test_ranking_metric_roundtrip() {
-        let metrics = array![RankingMetric::Score, RankingMetric::Level, RankingMetric::CubesEarned];
+        let metrics = array![
+            RankingMetric::Score, RankingMetric::Level, RankingMetric::CubesEarned,
+            RankingMetric::Composite,
+        ];
         let mut i: u32 = 0;
         while i < metrics.len() {
             let metric = *metrics.at(i);
@@ -69,8 +80,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected: "Invalid RankingMetric value: 3")]
+    #[should_panic(expected: "Invalid RankingMetric value: 4")]
     fn test_invalid_ranking_metric_panics() {
-        let _metric: RankingMetric = 3_u8.into();
+        let _metric: RankingMetric = 4_u8.into();
     }
 }

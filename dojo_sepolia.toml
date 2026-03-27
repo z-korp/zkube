@@ -13,7 +13,7 @@ github = "https://github.com/z-korp/zkube"
 telegram = "https://t.me/dojoengine"
 
 [namespace]
-default = "zkube_budo_v1_2_0"
+default = "zkube_jc_sepolia_v1"
 
 [env]
 rpc_url = "https://api.cartridge.gg/x/starknet/sepolia"
@@ -25,47 +25,47 @@ world_address = "0x06dab6e1d9f2dd542b6b4eaa201aef9fa69066a88e2f38e5cea28822de450
 
 [writers]
 # Models
-"zkube_budo_v1_2_0-Game" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system", "zkube_budo_v1_2_0-grid_system", "zkube_budo_v1_2_0-draft_system"]
-"zkube_budo_v1_2_0-GameSeed" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-level_system"]
-"zkube_budo_v1_2_0-GameLevel" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system"]
-"zkube_budo_v1_2_0-GameCounter" = ["zkube_budo_v1_2_0-game_system"]
-"zkube_budo_v1_2_0-GameMetadata" = ["zkube_budo_v1_2_0-game_system"]
-"zkube_budo_v1_2_0-TokenMetadata" = ["zkube_budo_v1_2_0-game_system"]
-"zkube_budo_v1_2_0-PlayerMeta" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system"]
-"zkube_budo_v1_2_0-GameSettings" = ["zkube_budo_v1_2_0-config_system"]
-"zkube_budo_v1_2_0-GameSettingsMetadata" = ["zkube_budo_v1_2_0-config_system"]
-"zkube_budo_v1_2_0-PlayerSkillTree" = ["zkube_budo_v1_2_0-skill_tree_system"]
-"zkube_budo_v1_2_0-DraftState" = ["zkube_budo_v1_2_0-draft_system", "zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system"]
+"zkube_jc_sepolia_v1-Game" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system", "zkube_jc_sepolia_v1-bonus_system", "zkube_jc_sepolia_v1-level_system", "zkube_jc_sepolia_v1-grid_system", "zkube_jc_sepolia_v1-draft_system"]
+"zkube_jc_sepolia_v1-GameSeed" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-level_system"]
+"zkube_jc_sepolia_v1-GameLevel" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system", "zkube_jc_sepolia_v1-bonus_system", "zkube_jc_sepolia_v1-level_system"]
+"zkube_jc_sepolia_v1-GameCounter" = ["zkube_jc_sepolia_v1-game_system"]
+"zkube_jc_sepolia_v1-GameMetadata" = ["zkube_jc_sepolia_v1-game_system"]
+"zkube_jc_sepolia_v1-TokenMetadata" = ["zkube_jc_sepolia_v1-game_system"]
+"zkube_jc_sepolia_v1-PlayerMeta" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system"]
+"zkube_jc_sepolia_v1-GameSettings" = ["zkube_jc_sepolia_v1-config_system"]
+"zkube_jc_sepolia_v1-GameSettingsMetadata" = ["zkube_jc_sepolia_v1-config_system"]
+"zkube_jc_sepolia_v1-PlayerSkillTree" = ["zkube_jc_sepolia_v1-skill_tree_system"]
+"zkube_jc_sepolia_v1-DraftState" = ["zkube_jc_sepolia_v1-draft_system", "zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system", "zkube_jc_sepolia_v1-bonus_system", "zkube_jc_sepolia_v1-level_system"]
 # Events
-"zkube_budo_v1_2_0-StartGame" = ["zkube_budo_v1_2_0-game_system"]
-"zkube_budo_v1_2_0-UseBonus" = ["zkube_budo_v1_2_0-bonus_system"]
-"zkube_budo_v1_2_0-LevelStarted" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system"]
-"zkube_budo_v1_2_0-LevelCompleted" = ["zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system"]
-"zkube_budo_v1_2_0-RunEnded" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system"]
-"zkube_budo_v1_2_0-RunCompleted" = ["zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system"]
-"zkube_budo_v1_2_0-ConstraintProgress" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_jc_sepolia_v1-StartGame" = ["zkube_jc_sepolia_v1-game_system"]
+"zkube_jc_sepolia_v1-UseBonus" = ["zkube_jc_sepolia_v1-bonus_system"]
+"zkube_jc_sepolia_v1-LevelStarted" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system", "zkube_jc_sepolia_v1-bonus_system", "zkube_jc_sepolia_v1-level_system"]
+"zkube_jc_sepolia_v1-LevelCompleted" = ["zkube_jc_sepolia_v1-move_system", "zkube_jc_sepolia_v1-bonus_system", "zkube_jc_sepolia_v1-level_system"]
+"zkube_jc_sepolia_v1-RunEnded" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system"]
+"zkube_jc_sepolia_v1-RunCompleted" = ["zkube_jc_sepolia_v1-move_system", "zkube_jc_sepolia_v1-bonus_system", "zkube_jc_sepolia_v1-level_system"]
+"zkube_jc_sepolia_v1-ConstraintProgress" = ["zkube_jc_sepolia_v1-game_system"]
 # Draft system events
-"zkube_budo_v1_2_0-DraftOpened" = ["zkube_budo_v1_2_0-draft_system"]
-"zkube_budo_v1_2_0-DraftRerolled" = ["zkube_budo_v1_2_0-draft_system"]
-"zkube_budo_v1_2_0-DraftSelected" = ["zkube_budo_v1_2_0-draft_system"]
+"zkube_jc_sepolia_v1-DraftOpened" = ["zkube_jc_sepolia_v1-draft_system"]
+"zkube_jc_sepolia_v1-DraftRerolled" = ["zkube_jc_sepolia_v1-draft_system"]
+"zkube_jc_sepolia_v1-DraftSelected" = ["zkube_jc_sepolia_v1-draft_system"]
 # Daily Challenge system models
-"zkube_budo_v1_2_0-DailyChallenge" = ["zkube_budo_v1_2_0-daily_challenge_system"]
-"zkube_budo_v1_2_0-DailyEntry" = ["zkube_budo_v1_2_0-daily_challenge_system", "zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system"]
-"zkube_budo_v1_2_0-DailyLeaderboard" = ["zkube_budo_v1_2_0-daily_challenge_system", "zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system"]
-"zkube_budo_v1_2_0-GameChallenge" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_jc_sepolia_v1-DailyChallenge" = ["zkube_jc_sepolia_v1-daily_challenge_system"]
+"zkube_jc_sepolia_v1-DailyEntry" = ["zkube_jc_sepolia_v1-daily_challenge_system", "zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system"]
+"zkube_jc_sepolia_v1-DailyLeaderboard" = ["zkube_jc_sepolia_v1-daily_challenge_system", "zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system"]
+"zkube_jc_sepolia_v1-GameChallenge" = ["zkube_jc_sepolia_v1-game_system"]
 
 [init_call_args]
-"zkube_budo_v1_2_0-game_system" = [
+"zkube_jc_sepolia_v1-game_system" = [
     "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",  # creator_address (account)
     "0x045a74be8647d39de23b2b73e98862f6b663164fd8f985cfd80eaa6be495f8ba",  # denshokan_address (will be updated by deploy_sepolia.sh)
     "1",  # renderer_address: Option::None
     "0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f",  # vrf_address: Cartridge VRF (for sepolia/mainnet)
 ]
-"zkube_budo_v1_2_0-config_system" = [
+"zkube_jc_sepolia_v1-config_system" = [
     "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",  # account address
     "0x75577c7909a6cc844eb4e51c9af205df9d2a67834c1c7a3870c092de0a14229",
 ]
-"zkube_budo_v1_2_0-daily_challenge_system" = [
+"zkube_jc_sepolia_v1-daily_challenge_system" = [
     "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",  # admin_address (account)
     "0x0",  # ticket_address (zTicket ERC1155 - set after deployment)
     "0x0",  # lords_address (LORDS ERC20 - set after deployment)

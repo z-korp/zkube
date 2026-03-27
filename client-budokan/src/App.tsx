@@ -16,8 +16,6 @@ import SettingsPage from "@/ui/pages/SettingsPage";
 import MyGamesPage from "@/ui/pages/MyGamesPage";
 import LeaderboardPage from "@/ui/pages/LeaderboardPage";
 import TutorialPage from "@/ui/pages/TutorialPage";
-import DraftPage from "@/ui/pages/DraftPage";
-import SkillTreePage from "@/ui/pages/SkillTreePage";
 import DailyChallengePage from "@/ui/pages/DailyChallengePage";
 import SettingsPresetsPage from "@/ui/pages/SettingsPresetsPage";
 
@@ -30,8 +28,6 @@ const pageComponents: Record<PageId, React.ReactNode> = {
   settings: <SettingsPage />,
   mygames: <MyGamesPage />,
   tutorial: <TutorialPage />,
-  draft: <DraftPage />,
-  skilltree: <SkillTreePage />,
   dailychallenge: <DailyChallengePage />,
   settingspresets: <SettingsPresetsPage />,
 };

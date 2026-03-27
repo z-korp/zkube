@@ -63,6 +63,15 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
         self.set_meta_data(meta);
     }
 
+    /// Increment lifetime daily participation stars.
+    fn increment_daily_stars(ref self: PlayerMeta) {
+        let mut meta = self.get_meta_data();
+        if meta.daily_stars < 65535 {
+            meta.daily_stars += 1;
+        }
+        self.set_meta_data(meta);
+    }
+
 
     /// Check if player exists (has played at least once)
     fn exists(self: PlayerMeta) -> bool {
@@ -86,6 +95,7 @@ mod tests {
         let data = meta.get_meta_data();
         assert!(data.total_runs == 0, "Should have 0 runs");
         assert!(data.total_cubes_earned == 0, "Should have 0 cubes earned");
+        assert!(data.daily_stars == 0, "Should have 0 daily stars");
     }
 
     #[test]
@@ -116,6 +126,17 @@ mod tests {
         meta.increment_runs();
         let data = meta.get_meta_data();
         assert!(data.total_runs == 3, "Should have 3 runs");
+    }
+
+    #[test]
+    fn test_increment_daily_stars() {
+        let player: ContractAddress = 'PLAYER'.try_into().unwrap();
+        let mut meta = PlayerMetaTrait::new(player);
+
+        meta.increment_daily_stars();
+        meta.increment_daily_stars();
+        let data = meta.get_meta_data();
+        assert!(data.daily_stars == 2, "Should have 2 daily stars");
     }
     // Note: Cube balance tests removed - cube balance is now managed by ERC1155 CubeToken contract
 }

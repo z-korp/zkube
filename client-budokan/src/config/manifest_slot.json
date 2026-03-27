@@ -38,7 +38,7 @@
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
       ],
-      "tag": "zkube_budo_v1_2_0-config_system",
+      "tag": "zkube_jc_sepolia_v1-config_system",
       "selector": "0xebe42c5440f35cc9a3742fb773019f34101eae85c5e314bcebd749b6ec84f0",
       "systems": [
         "dojo_init",
@@ -51,7 +51,7 @@
       "address": "0x7d32552ad10d747865b32ba4abb55dbaa2710b4a72c6e1b25bf6c545f9b70a4",
       "class_hash": "0x4abf774595afdff1b6de35572dfe3eb40be23c6188630c4b6e012e6398b6a13",
       "init_calldata": [],
-      "tag": "zkube_budo_v1_2_0-cube_token",
+      "tag": "zkube_jc_sepolia_v1-cube_token",
       "selector": "0x58ce743cd328aa3800df3c962d39156cf1c6fcffeae123925c693902472043b",
       "systems": [
         "dojo_init",
@@ -77,7 +77,7 @@
         "0x02271f1bb4d75604b1c82a708c544ac851f430416cd409aa322327874fe5f918",
         "1"
       ],
-      "tag": "zkube_budo_v1_2_0-game_system",
+      "tag": "zkube_jc_sepolia_v1-game_system",
       "selector": "0x1756a4d7c5611311eb6d0f10d4af74095e327cf1030b89590ffb4e92d25b26c",
       "systems": [
         "dojo_init",
@@ -93,7 +93,7 @@
       "address": "0x2e49e05b141b5979a9d7d45c694448b19fd58aaeb51cc069dad58acbebee4a1",
       "class_hash": "0x45337036f48d56fc1b35a1539adb263515fbbd93c47dcdf187e74ee51f119e0",
       "init_calldata": [],
-      "tag": "zkube_budo_v1_2_0-quest_system",
+      "tag": "zkube_jc_sepolia_v1-quest_system",
       "selector": "0x436c9e32f41800b6e41f7a2132179a85ad4fbbcd73cf2db6bcb4b65fd2071e",
       "systems": [
         "dojo_init",
@@ -109,7 +109,7 @@
       "address": "0x39f336c3cc2de2f69a1c27da3fb4eef67f6ef910eeb09b1acbfc9fff728f9f9",
       "class_hash": "0x6453a892963f3081e27f6d93151ede540f261122df37a2e2f54daf9aa57cfa1",
       "init_calldata": [],
-      "tag": "zkube_budo_v1_2_0-renderer_systems",
+      "tag": "zkube_jc_sepolia_v1-renderer_systems",
       "selector": "0x35d5ac8794cc2cf3e12c42d4ac579e7a5dc26a70c26e32c599915d2d39586cf",
       "systems": [
         "upgrade"
@@ -119,7 +119,7 @@
       "address": "0x23a1f9d7275c4a6d23197f58040e1d30a5861184b591d4c85a5fe56965571fb",
       "class_hash": "0x52bd7f31becf832682e0f21afef6566d0bb8a8655442253214f7cae5e0d9dc",
       "init_calldata": [],
-      "tag": "zkube_budo_v1_2_0-shop_system",
+      "tag": "zkube_jc_sepolia_v1-shop_system",
       "selector": "0x456e9ac1689ce0bf6afd29733b144d9ef8e7db5c0df5ec0dc79ed1ea22579a0",
       "systems": [
         "upgrade_starting_bonus",
@@ -161,7 +161,7 @@
         }
       ],
       "class_hash": "0x84c35142a3dc9f93f6c9b7b654dd668d864a972d69f65c3eeda4700cba3c16",
-      "tag": "zkube_budo_v1_2_0-AchievementAdvancement",
+      "tag": "zkube_jc_sepolia_v1-AchievementAdvancement",
       "selector": "0x5f50dab4ae39dc621d1903558bd3c025f6407bc72d92914b407288febc3098f"
     },
     {
@@ -178,7 +178,7 @@
         }
       ],
       "class_hash": "0x72fd35a8c00be26e41ec7f14acdf86496257f61d4d7390405296ba246cd4479",
-      "tag": "zkube_budo_v1_2_0-AchievementAssociation",
+      "tag": "zkube_jc_sepolia_v1-AchievementAssociation",
       "selector": "0x6569296f9c2050270727bf2e3ce3a363171e169920bbcb51f26439dde6808ff"
     },
     {
@@ -205,7 +205,7 @@
         }
       ],
       "class_hash": "0x7fb19877a9bd8d61f7f03d4b56452b80ebbc2e828c15604f97e2602eec2a97f",
-      "tag": "zkube_budo_v1_2_0-AchievementCompletion",
+      "tag": "zkube_jc_sepolia_v1-AchievementCompletion",
       "selector": "0x8f33d31427d21b03e715b395c586087de27a96884f3f0e184ed13f5c68303f"
     },
     {
@@ -237,7 +237,7 @@
         }
       ],
       "class_hash": "0x303b6cb6458240c2bb0bd2ad2363744a5320d8bbff0cc75a6d6f5e2d8ff1874",
-      "tag": "zkube_budo_v1_2_0-AchievementDefinition",
+      "tag": "zkube_jc_sepolia_v1-AchievementDefinition",
       "selector": "0x4335d8a8f4bb2c48e7c547485b6f72e9f8d34437ab71a57c30f04bb604effed"
     },
     {
@@ -284,7 +284,7 @@
         }
       ],
       "class_hash": "0x1eb503cf1b0cd4e65e6df68a1a51f4cedf364fc59859e02e070cbbcc18522ae",
-      "tag": "zkube_budo_v1_2_0-Game",
+      "tag": "zkube_jc_sepolia_v1-Game",
       "selector": "0x32e0585e8074a4c0264a61e3f5d610e990985d9d32194c1b8bdcf9e00a619ad"
     },
     {
@@ -301,7 +301,7 @@
         }
       ],
       "class_hash": "0x46cac2d8bf16970afe21dc376ba0ababb99339a89d1c294c5bd0a18374c6b53",
-      "tag": "zkube_budo_v1_2_0-GameSeed",
+      "tag": "zkube_jc_sepolia_v1-GameSeed",
       "selector": "0x5e155330954a8b2ebc46d774a5ac2d374692bafa8e2461c74d8e4aae7458a22"
     },
     {
@@ -508,7 +508,7 @@
         }
       ],
       "class_hash": "0x5ad610e3563d04e513bf03aa4f5289732ce5c1bc30b538b8befe4fe7ef3177e",
-      "tag": "zkube_budo_v1_2_0-GameSettings",
+      "tag": "zkube_jc_sepolia_v1-GameSettings",
       "selector": "0x1c245917b09d68b08ceb4972426ebba162f36b31404a63dc180496cdc6777b"
     },
     {
@@ -540,7 +540,7 @@
         }
       ],
       "class_hash": "0x4932c13fe0aaddb6a590dd83913a460bd2e713acabf9dd07dcc143f652815ab",
-      "tag": "zkube_budo_v1_2_0-GameSettingsMetadata",
+      "tag": "zkube_jc_sepolia_v1-GameSettingsMetadata",
       "selector": "0x2ee961dac07326a2ec70644bf2ad0f4e2c76a3a5b9f03b0c599c654b6fd6e32"
     },
     {
@@ -562,7 +562,7 @@
         }
       ],
       "class_hash": "0x54a6929c75e54955b81f36f9d28d77fcf7c1688e4841ed453137aa8f757a168",
-      "tag": "zkube_budo_v1_2_0-PlayerMeta",
+      "tag": "zkube_jc_sepolia_v1-PlayerMeta",
       "selector": "0x631ad5f961c9bc59af421f721602d568d38327dc491a69bc9229fa7a9bbf699"
     },
     {
@@ -599,7 +599,7 @@
         }
       ],
       "class_hash": "0x79df0493c5022d0e85cefa85adeb6f030781c1e3e0643dbaaa2bb380c1b14c8",
-      "tag": "zkube_budo_v1_2_0-QuestAdvancement",
+      "tag": "zkube_jc_sepolia_v1-QuestAdvancement",
       "selector": "0x3c9f37f13afa4c786508eacdabab4e89daeea7780bfa0f9d9bbc7d5bc6a8d2f"
     },
     {
@@ -616,7 +616,7 @@
         }
       ],
       "class_hash": "0x21f771d93e80b5da7bc98c8488640ca07ee066ae633c663737466ee5c868f85",
-      "tag": "zkube_budo_v1_2_0-QuestAssociation",
+      "tag": "zkube_jc_sepolia_v1-QuestAssociation",
       "selector": "0x77b333766bb17d2f92da3b3774a23181992112439cdef9fbc9644e98274675a"
     },
     {
@@ -653,7 +653,7 @@
         }
       ],
       "class_hash": "0x500750514442ea487dfd38397a6ba3636823e581a3be187e41ab278d6bf5545",
-      "tag": "zkube_budo_v1_2_0-QuestCompletion",
+      "tag": "zkube_jc_sepolia_v1-QuestCompletion",
       "selector": "0x580be40181fb9d6f150a1be3552d43a8776f4fa5ea65d0909f3fce557faf2ea"
     },
     {
@@ -670,7 +670,7 @@
         }
       ],
       "class_hash": "0x3e1d5e0de0a7a397eea9bc41240eb8128563aae019691b888d3d69fa6868dd0",
-      "tag": "zkube_budo_v1_2_0-QuestCondition",
+      "tag": "zkube_jc_sepolia_v1-QuestCondition",
       "selector": "0x4ee45990d1add453154b3bf20d01dddd3d65c1d91030f86c82b31b5c69b4192"
     },
     {
@@ -717,7 +717,7 @@
         }
       ],
       "class_hash": "0x6f2fb5c1a81ea8b2ea53313caa4f4b670c2992d20de2940b6d83c165489d85f",
-      "tag": "zkube_budo_v1_2_0-QuestDefinition",
+      "tag": "zkube_jc_sepolia_v1-QuestDefinition",
       "selector": "0x51230d4889e1ab86653670897d266a874a04dbf8033b0c99b083f1a021955f"
     }
   ],
@@ -741,7 +741,7 @@
         }
       ],
       "class_hash": "0x2021c0a4b7662bc2d97d620c7ec30ae5f3b0f65164c181ff90d32f8f3f5a1ff",
-      "tag": "zkube_budo_v1_2_0-AchievementClaimed",
+      "tag": "zkube_jc_sepolia_v1-AchievementClaimed",
       "selector": "0x24531cb59cbc403a9b66e9d0e74fcaabeacfdb626e986023a532e244775d5b6"
     },
     {
@@ -763,7 +763,7 @@
         }
       ],
       "class_hash": "0x3e8128b802f64044ae6e20f73a5339e8b0b46eb132ee21c71875b2bcfda207d",
-      "tag": "zkube_budo_v1_2_0-AchievementCompleted",
+      "tag": "zkube_jc_sepolia_v1-AchievementCompleted",
       "selector": "0x517446fb0dd73b610f3af6161cbe3f5f3b0a34108538d4e79e0ae5123dd6f7f"
     },
     {
@@ -790,7 +790,7 @@
         }
       ],
       "class_hash": "0x2718ba808acc3fc3d3bc9a35f6e5661a01f4cbd28183bbb7f8c3718519a32c0",
-      "tag": "zkube_budo_v1_2_0-ConstraintProgress",
+      "tag": "zkube_jc_sepolia_v1-ConstraintProgress",
       "selector": "0x353bf174f35f86ea87568181261d084bde41c365a7d78454eeb7015f9f58988"
     },
     {
@@ -822,7 +822,7 @@
         }
       ],
       "class_hash": "0x31ab30357b97742a93830a36f90a86d51b33e7cd20dd494a9751244a85edff9",
-      "tag": "zkube_budo_v1_2_0-ConsumablePurchased",
+      "tag": "zkube_jc_sepolia_v1-ConsumablePurchased",
       "selector": "0x6735939232284480d9ef5a27efe714fbcaba2d65885f5309083dc29f0320ad1"
     },
     {
@@ -869,7 +869,7 @@
         }
       ],
       "class_hash": "0x10dc3c8bdaf287bd281502fc26a2200fa9a9f40c49ab39b8a13d10f9de3c3b7",
-      "tag": "zkube_budo_v1_2_0-LevelCompleted",
+      "tag": "zkube_jc_sepolia_v1-LevelCompleted",
       "selector": "0x7a28711b6febc8ff460cd133f74e6fe89c19af7615608b64eb3aaf3e290647b"
     },
     {
@@ -916,7 +916,7 @@
         }
       ],
       "class_hash": "0x16b58c1184a1308c1d911f1cb1b7f03ebe84b97387378194ee7b72b67a2ebbb",
-      "tag": "zkube_budo_v1_2_0-LevelStarted",
+      "tag": "zkube_jc_sepolia_v1-LevelStarted",
       "selector": "0x1253fbd361d7ea8f1af4785316aaeea4348f393df3c4e456fcc1f4114c44834"
     },
     {
@@ -943,7 +943,7 @@
         }
       ],
       "class_hash": "0x27d1f7bd54e50a1b2ff2e5700aae8282ee2e1535decef7d374a2789a29ba644",
-      "tag": "zkube_budo_v1_2_0-QuestClaimed",
+      "tag": "zkube_jc_sepolia_v1-QuestClaimed",
       "selector": "0x4e4ff4442098ad33c41fa97c066eb7e2aa5b95e6d9b7437df1aef55022d5bb7"
     },
     {
@@ -970,7 +970,7 @@
         }
       ],
       "class_hash": "0x784d071ca2f51df425805af354f1427503bf695c1f3f19ef7c0df83a791e813",
-      "tag": "zkube_budo_v1_2_0-QuestCompleted",
+      "tag": "zkube_jc_sepolia_v1-QuestCompleted",
       "selector": "0x5e9eeae36a38eed46a45b80d89d8bb08c831680a38fc39c1905bd78b3512d5d"
     },
     {
@@ -992,7 +992,7 @@
         }
       ],
       "class_hash": "0x27425e3ec283e7ae9345fc0f1bcf3f049bf3df78f7430a4565d6fef3f8c752a",
-      "tag": "zkube_budo_v1_2_0-QuestCreation",
+      "tag": "zkube_jc_sepolia_v1-QuestCreation",
       "selector": "0x586c85d4dc6b70c432642b2e7de2d6e42a62f0ee5a205722921d913711d4615"
     },
     {
@@ -1019,7 +1019,7 @@
         }
       ],
       "class_hash": "0x5b774cbca3f13015a55df518a2b1644704df86e9528fd14a895a8ff34d1a4b2",
-      "tag": "zkube_budo_v1_2_0-QuestProgression",
+      "tag": "zkube_jc_sepolia_v1-QuestProgression",
       "selector": "0x5831e312e637814f5743a7fc8d740a43c33149af647acd8464344c323502a7c"
     },
     {
@@ -1046,7 +1046,7 @@
         }
       ],
       "class_hash": "0x5fcd3abe70d50464efb8803319d5b72d6a2f22ea1571b9d652d1c1eaf792ad1",
-      "tag": "zkube_budo_v1_2_0-QuestUnlocked",
+      "tag": "zkube_jc_sepolia_v1-QuestUnlocked",
       "selector": "0x61ce648751042546c61011c452c841b08d59a2a141ddbe63f02ca9a784982f2"
     },
     {
@@ -1083,7 +1083,7 @@
         }
       ],
       "class_hash": "0x3511cd31575e6467fc6bd20f109e38547a0b2150259a964d4128b99b2c8ffd4",
-      "tag": "zkube_budo_v1_2_0-RunCompleted",
+      "tag": "zkube_jc_sepolia_v1-RunCompleted",
       "selector": "0x4375f21330a54aeb3a57d49847814855a7e393ee30850a569c3a2c7364c68a2"
     },
     {
@@ -1125,7 +1125,7 @@
         }
       ],
       "class_hash": "0x61e64ae3081b8bdb8f75850b35220f354183362cc8cccc299aa8148f07d923c",
-      "tag": "zkube_budo_v1_2_0-RunEnded",
+      "tag": "zkube_jc_sepolia_v1-RunEnded",
       "selector": "0x1f8ccfae938e3b2021e434fb6752e0c96aee7551c7c5443082fb9cdb24ebfdb"
     },
     {
@@ -1147,7 +1147,7 @@
         }
       ],
       "class_hash": "0x452bc36b4e6031acf60c68896ac99f49cdb7931ae65d1a7760aa4b90c799e8b",
-      "tag": "zkube_budo_v1_2_0-StartGame",
+      "tag": "zkube_jc_sepolia_v1-StartGame",
       "selector": "0x6b4eb5c0f93990f0c55025d03b1c5a4bd40739561a4763c419ad34f05228e2"
     },
     {
@@ -1214,7 +1214,7 @@
         }
       ],
       "class_hash": "0x29674252693d6b2c1bd4bab4cd55c709fa89af50729c6a5e20048a876120bb9",
-      "tag": "zkube_budo_v1_2_0-TrophyCreation",
+      "tag": "zkube_jc_sepolia_v1-TrophyCreation",
       "selector": "0x4ad9912eefa6bc5b44c8471f24c961d48bbe8b16a52a3fccd59b9d70b35d426"
     },
     {
@@ -1241,7 +1241,7 @@
         }
       ],
       "class_hash": "0x4ff45751962a028dcd18736077eeb9608f4c340354d8269a2627d4a72e44225",
-      "tag": "zkube_budo_v1_2_0-TrophyProgression",
+      "tag": "zkube_jc_sepolia_v1-TrophyProgression",
       "selector": "0x1b2e61a8d6969160fd083d585334f7fba04e9fd12836cea84f5d1dcac67c701"
     },
     {
@@ -1268,7 +1268,7 @@
         }
       ],
       "class_hash": "0x153deea0e45a65874455b76d57ee51b081acee1c5b357afbe56a842c9743b2e",
-      "tag": "zkube_budo_v1_2_0-UseBonus",
+      "tag": "zkube_jc_sepolia_v1-UseBonus",
       "selector": "0x12d7603e18f9fa369a823a5096714451ba28a0f67a4b7736a2d26e2e4777c13"
     }
   ],

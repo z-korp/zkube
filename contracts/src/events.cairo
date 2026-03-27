@@ -50,7 +50,7 @@ pub struct LevelCompleted {
     pub cubes: u8,
     pub moves_used: u16,
     pub score: u16,
-    pub total_score: u16,
+    pub total_score: u32,
     pub bonuses_earned: u8,
 }
 
@@ -63,8 +63,9 @@ pub struct RunEnded {
     #[key]
     pub player: ContractAddress,
     pub final_level: u8,
-    pub final_score: u16,
-    pub total_cubes: u16,
+    pub final_score: u32,
+    pub endless_depth: u8,
+    pub zone_id: u8,
     pub started_at: u64,
     pub ended_at: u64,
 }
@@ -77,7 +78,7 @@ pub struct RunCompleted {
     pub game_id: u64,
     #[key]
     pub player: ContractAddress,
-    pub final_score: u16,
+    pub final_score: u32,
     pub total_cubes: u16,
     pub started_at: u64,
     pub completed_at: u64,

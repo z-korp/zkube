@@ -31,7 +31,7 @@ pub fn is_level_complete(game_level: @GameLevel, run_data: @RunData) -> bool {
         value: *game_level.constraint_value,
         required_count: *game_level.constraint_count,
     };
-    if !constraint.is_satisfied(*run_data.constraint_progress, *run_data.bonus_used_this_level) {
+    if !constraint.is_satisfied(*run_data.constraint_progress, false) {
         return false;
     }
 
@@ -41,19 +41,7 @@ pub fn is_level_complete(game_level: @GameLevel, run_data: @RunData) -> bool {
         value: *game_level.constraint2_value,
         required_count: *game_level.constraint2_count,
     };
-    if !constraint_2
-        .is_satisfied(*run_data.constraint_2_progress, *run_data.bonus_used_this_level) {
-        return false;
-    }
-
-    // Check tertiary constraint
-    let constraint_3 = LevelConstraint {
-        constraint_type: (*game_level.constraint3_type).into(),
-        value: *game_level.constraint3_value,
-        required_count: *game_level.constraint3_count,
-    };
-    if !constraint_3
-        .is_satisfied(*run_data.constraint_3_progress, *run_data.bonus_used_this_level) {
+    if !constraint_2.is_satisfied(*run_data.constraint_2_progress, false) {
         return false;
     }
 

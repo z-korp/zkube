@@ -7,10 +7,17 @@ pub trait IDailyChallengeSystem<T> {
 
     /// Create a new daily challenge (admin only)
     /// @param settings_id: GameSettings ID for this challenge (100-109)
-    /// @param ranking_metric: 0=Score, 1=Level, 2=CubesEarned
+    /// @param ranking_metric: legacy field (0=Score,1=Level,2=Cubes,3=Composite). Stored as Composite.
+    /// @param zone_id: Fixed zone for this daily challenge
+    /// @param mutator_id: Fixed mutator for this daily challenge
     /// @param prize_amount: LORDS to deposit as prize pool
     fn create_daily_challenge(
-        ref self: T, settings_id: u32, ranking_metric: u8, prize_amount: u256,
+        ref self: T,
+        settings_id: u32,
+        ranking_metric: u8,
+        zone_id: u8,
+        mutator_id: u8,
+        prize_amount: u256,
     );
 
     /// Settle a completed challenge -- compute prizes for top N players (admin only)
@@ -115,7 +122,12 @@ mod daily_challenge_system {
     #[abi(embed_v0)]
     impl DailyChallengeImpl of super::IDailyChallengeSystem<ContractState> {
         fn create_daily_challenge(
-            ref self: ContractState, settings_id: u32, ranking_metric: u8, prize_amount: u256,
+            ref self: ContractState,
+            settings_id: u32,
+            ranking_metric: u8,
+            zone_id: u8,
+            mutator_id: u8,
+            prize_amount: u256,
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let caller = get_caller_address();
@@ -131,7 +143,10 @@ mod daily_challenge_system {
             );
 
             // Validate ranking metric (panics on invalid value)
+            // NOTE: ranking is now always composite (depth then score),
+            // but we keep this field for backward compatibility.
             let _metric: RankingMetric = ranking_metric.into();
+            let composite_metric: u8 = RankingMetric::Composite.into();
 
             // Assign challenge ID
             let challenge_id = self.next_challenge_id.read();
@@ -162,7 +177,9 @@ mod daily_challenge_system {
                 seed,
                 start_time,
                 end_time,
-                ranking_metric,
+                ranking_metric: composite_metric,
+                zone_id,
+                mutator_id,
                 total_entries: 0,
                 prize_pool: prize_amount,
                 settled: false,
@@ -327,29 +344,26 @@ mod daily_challenge_system {
 
             // Extract metrics from game run_data
             let run_data = game.get_run_data();
-            let score = run_data.total_score;
-            let level = run_data.current_level;
-            let cubes = run_data.total_cubes;
-
-            // Determine the ranking value based on challenge metric
-            let metric: RankingMetric = challenge.ranking_metric.into();
-            let ranking_value: u32 = match metric {
-                RankingMetric::Score => score.into(),
-                RankingMetric::Level => level.into(),
-                RankingMetric::CubesEarned => cubes.into(),
+            let score: u16 = if run_data.total_score > 65535 {
+                65535
+            } else {
+                run_data.total_score.try_into().unwrap()
             };
+            let level = run_data.current_level;
+            let depth = run_data.endless_depth;
+            let cubes: u16 = 0;
+
+            // Composite ranking: depth dominates, score breaks ties.
+            let ranking_value: u32 = depth.into() * 65536 + score.into();
 
             // Check if this beats the player's current best
-            let current_best: u32 = match metric {
-                RankingMetric::Score => entry.best_score.into(),
-                RankingMetric::Level => entry.best_level.into(),
-                RankingMetric::CubesEarned => entry.best_cubes.into(),
-            };
+            let current_best: u32 = entry.best_depth.into() * 65536 + entry.best_score.into();
 
             if ranking_value > current_best {
                 // Update entry with new bests
                 entry.best_score = score;
                 entry.best_level = level;
+                entry.best_depth = depth;
                 entry.best_cubes = cubes;
                 entry.best_game_id = game_id;
                 world.write_model(@entry);

@@ -44,28 +44,24 @@ mod LevelConstants {
 }
 
 /// Boss level constants and helpers
-/// Boss levels occur at 10, 20, 30, 40, 50 with seeded dual constraints at max budget
+/// Zone mode has a single boss at level 10.
 pub mod BossLevel {
     /// Check if a level is a boss level
     pub fn is_boss_level(level: u8) -> bool {
-        level == 10 || level == 20 || level == 30 || level == 40 || level == 50
+        level == 10
     }
 
-    /// Get boss tier (1-5) for a boss level
+    /// Get boss tier (1) for a boss level
     /// Returns 0 if not a boss level
     pub fn get_boss_tier(level: u8) -> u8 {
         match level {
             10 => 1,
-            20 => 2,
-            30 => 3,
-            40 => 4,
-            50 => 5,
             _ => 0,
         }
     }
 
     /// Get boss cube bonus for completing a boss level.
-    /// Formula: 10 * boss_index^2 where boss_index is 1..5 for levels 10/20/30/40/50.
+    /// Formula: 10 * boss_index^2 where boss_index is 1 for level 10.
     pub fn get_boss_cube_bonus(level: u8) -> u16 {
         let tier = get_boss_tier(level);
         if tier == 0 {
@@ -85,45 +81,50 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         // Derive a level-specific seed for deterministic variance
         let level_seed = Self::derive_level_seed(seed, level);
 
-        // Get level cap from settings (or use default if 0)
-        let level_cap = settings.get_level_cap();
+        let zone_level_cap: u8 = 10;
+        let is_endless = level > zone_level_cap;
 
-        // Cap level for calculations (survival mode after cap)
-        let calc_level = if level > level_cap {
-            level_cap
+        let (points_required, max_moves, difficulty) = if !is_endless {
+            // Zone progression (1-10): same generation model, but 10-level cap.
+            let calc_level = if level > zone_level_cap {
+                zone_level_cap
+            } else {
+                level
+            };
+
+            let base_moves = Self::calculate_base_moves_with_cap(
+                calc_level, settings.base_moves, settings.max_moves, zone_level_cap,
+            );
+            let ratio_x100 = Self::calculate_ratio_with_cap(
+                calc_level, settings.base_ratio_x100, settings.max_ratio_x100, zone_level_cap,
+            );
+            let base_points: u16 = ((base_moves.into() * ratio_x100.into()) / 100_u32)
+                .try_into()
+                .unwrap();
+
+            let variance_percent = settings.get_variance_percent(calc_level);
+            let variance_factor = Self::calculate_variance_factor(level_seed, variance_percent.into());
+
+            (
+                Self::apply_factor(base_points, variance_factor),
+                Self::apply_factor(base_moves, variance_factor),
+                settings.get_difficulty_for_level(calc_level),
+            )
         } else {
-            level
+            // Endless (11+): fixed moves at max_moves, ratio escalates by +10 per depth.
+            let endless_depth: u16 = (level - zone_level_cap).into();
+            let endless_ratio_x100: u16 = settings.max_ratio_x100 + (endless_depth * 10);
+            let endless_points: u16 = ((settings.max_moves.into() * endless_ratio_x100.into())
+                / 100_u32)
+                .try_into()
+                .unwrap();
+
+            (endless_points, settings.max_moves, Difficulty::Master)
         };
 
-        // 1. Calculate base moves using settings
-        let base_moves = Self::calculate_base_moves_with_settings(
-            calc_level, settings.base_moves, settings.max_moves,
-        );
-
-        // 2. Calculate ratio for this level using settings
-        let ratio_x100 = Self::calculate_ratio_with_settings(
-            calc_level, settings.base_ratio_x100, settings.max_ratio_x100,
-        );
-
-        // 3. Calculate base points from moves × ratio
-        let base_points: u16 = ((base_moves.into() * ratio_x100.into()) / 100_u32)
-            .try_into()
-            .unwrap();
-
-        // 4. Get variance percent based on level tier (using settings)
-        let variance_percent = settings.get_variance_percent(calc_level);
-
-        // 5. Apply CORRELATED variance (same factor for both)
-        let variance_factor = Self::calculate_variance_factor(level_seed, variance_percent.into());
-        let points_required = Self::apply_factor(base_points, variance_factor);
-        let max_moves = Self::apply_factor(base_moves, variance_factor);
-
-        // Calculate cube thresholds using settings
+        // Thresholds remain percentage-based from max_moves for star evaluation.
         let cube_3_threshold = max_moves * settings.cube_3_percent.into() / 100;
         let cube_2_threshold = max_moves * settings.cube_2_percent.into() / 100;
-
-        // Get difficulty from settings
-        let difficulty = settings.get_difficulty_for_level(calc_level);
 
         // Generate constraints: use boss identity system for boss levels, otherwise normal
         // generation Respect constraints_enabled setting for both boss and regular levels
@@ -134,7 +135,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
                 LevelConstraintTrait::none(),
             )
         } else if BossLevel::is_boss_level(level) {
-            // Boss levels use the boss identity system with budget_max
+            // Boss level uses the boss identity system with budget_max
             let boss_id = boss::derive_boss_id(level_seed);
             let (_min_lines, _max_lines, _budget_min, budget_max, _min_times) = settings
                 .get_constraint_params_for_difficulty(difficulty);
@@ -142,13 +143,9 @@ pub impl LevelGenerator of LevelGeneratorTrait {
                 boss_id, level, level_seed, budget_max,
             );
 
-            // Level 10/20/30: dual constraints (c3 = None)
-            // Level 40/50: triple constraints (all three active)
-            if level >= 40 {
-                (c1, c2, c3)
-            } else {
-                (c1, c2, LevelConstraintTrait::none())
-            }
+            // Zone boss is always dual at level 10.
+            let _ = c3;
+            (c1, c2, LevelConstraintTrait::none())
         } else {
             // Regular levels: deterministic count-based constraint generation
             Self::generate_constraints_with_settings(
@@ -317,45 +314,43 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     }
 
     /// Select a constraint type using budget-weighted probabilities.
-    /// Returns one of ComboLines / BreakBlocks / Fill / ComboStreak.
+    /// Returns one of ComboLines / BreakBlocks / ComboStreak.
     fn select_constraint_type(seed: felt252, budget: u8) -> ConstraintType {
         let seed_u256: u256 = seed.into();
         let roll: u8 = ((seed_u256 / 10000) % 100).try_into().unwrap();
 
         // Get cumulative thresholds for this budget.
-        let (clear_lines_w, break_blocks_w, fill_w) = Self::get_type_weights_from_budget(budget);
-        // ComboStreak = remainder (100 - combo_lines - break - fill)
+        let (clear_lines_w, break_blocks_w) = Self::get_type_weights_from_budget(budget);
+        // ComboStreak = remainder (100 - combo_lines - break)
 
         if roll < clear_lines_w {
             ConstraintType::ComboLines
         } else if roll < clear_lines_w + break_blocks_w {
             ConstraintType::BreakBlocks
-        } else if roll < clear_lines_w + break_blocks_w + fill_w {
-            ConstraintType::FillAndClear
         } else {
             ConstraintType::ComboStreak
         }
     }
 
     /// Get type selection weights from budget.
-    /// Returns (combo_lines, break_blocks, fill). ComboStreak = 100 - sum.
-    fn get_type_weights_from_budget(budget: u8) -> (u8, u8, u8) {
+    /// Returns (combo_lines, break_blocks). ComboStreak = 100 - sum.
+    fn get_type_weights_from_budget(budget: u8) -> (u8, u8) {
         if budget <= 5 {
-            (38, 38, 0)
+            (38, 38)
         } else if budget <= 9 {
-            (34, 34, 4)
+            (34, 34)
         } else if budget <= 14 {
-            (31, 31, 8)
+            (31, 31)
         } else if budget <= 20 {
-            (29, 29, 12)
+            (29, 29)
         } else if budget <= 26 {
-            (28, 28, 14)
+            (28, 28)
         } else if budget <= 32 {
-            (27, 27, 16)
+            (27, 27)
         } else if budget <= 38 {
-            (26, 26, 18)
+            (26, 26)
         } else {
-            (25, 25, 20)
+            (25, 25)
         }
     }
 
@@ -725,13 +720,12 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         }
     }
 
-    /// Cycle to next regular constraint type (ComboLines -> BreakBlocks -> Fill -> ComboStreak ->
+    /// Cycle to next regular constraint type (ComboLines -> BreakBlocks -> ComboStreak ->
     /// ComboLines)
     fn next_regular_type(t: ConstraintType) -> ConstraintType {
         match t {
             ConstraintType::ComboLines => ConstraintType::BreakBlocks,
-            ConstraintType::BreakBlocks => ConstraintType::FillAndClear,
-            ConstraintType::FillAndClear => ConstraintType::ComboStreak,
+            ConstraintType::BreakBlocks => ConstraintType::ComboStreak,
             ConstraintType::ComboStreak => ConstraintType::ComboLines,
             _ => ConstraintType::ComboLines // Fallback for boss-only types
         }
@@ -759,12 +753,30 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     /// Linear scaling from base_moves at level 1 to max_moves at level 50
     #[inline(always)]
     fn calculate_base_moves_with_settings(level: u8, base_moves: u16, max_moves: u16) -> u16 {
+        Self::calculate_base_moves_with_cap(level, base_moves, max_moves, LevelConstants::LEVEL_CAP)
+    }
+
+    /// Calculate base moves with a custom level cap.
+    #[inline(always)]
+    fn calculate_base_moves_with_cap(
+        level: u8, base_moves: u16, max_moves: u16, level_cap: u8,
+    ) -> u16 {
         if level <= 1 {
             return base_moves;
         }
 
+        if level_cap <= 1 {
+            return max_moves;
+        }
+
+        let clamped_level = if level > level_cap {
+            level_cap
+        } else {
+            level
+        };
         let range = max_moves - base_moves;
-        let progress: u32 = (level.into() - 1) * range.into() / 49;
+        let denominator: u32 = (level_cap - 1).into();
+        let progress: u32 = (clamped_level.into() - 1) * range.into() / denominator;
         base_moves + progress.try_into().unwrap()
     }
 
@@ -781,12 +793,32 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     /// Linear scaling from base_ratio at level 1 to max_ratio at level 50
     #[inline(always)]
     fn calculate_ratio_with_settings(level: u8, base_ratio_x100: u16, max_ratio_x100: u16) -> u16 {
+        Self::calculate_ratio_with_cap(
+            level, base_ratio_x100, max_ratio_x100, LevelConstants::LEVEL_CAP,
+        )
+    }
+
+    /// Calculate ratio with custom settings and a custom level cap.
+    #[inline(always)]
+    fn calculate_ratio_with_cap(
+        level: u8, base_ratio_x100: u16, max_ratio_x100: u16, level_cap: u8,
+    ) -> u16 {
         if level <= 1 {
             return base_ratio_x100;
         }
 
+        if level_cap <= 1 {
+            return max_ratio_x100;
+        }
+
+        let clamped_level = if level > level_cap {
+            level_cap
+        } else {
+            level
+        };
         let range = max_ratio_x100 - base_ratio_x100;
-        let progress: u32 = (level.into() - 1) * range.into() / 49;
+        let denominator: u32 = (level_cap - 1).into();
+        let progress: u32 = (clamped_level.into() - 1) * range.into() / denominator;
         base_ratio_x100 + progress.try_into().unwrap()
     }
 
@@ -875,16 +907,16 @@ mod tests {
 
     #[test]
     fn test_correlated_variance() {
-        // Test that variance is correlated (ratio stays approximately constant)
+        // Test that zone-mode variance is correlated (ratio stays approximately constant).
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 10, settings);
 
-        // Base at level 50: moves = 60, ratio_x100 = 180, points = 60 × 1.80 = 108
+        // Base at level 10 (zone cap): moves = 60, ratio_x100 = 180, points = 60 × 1.80 = 108
         // With variance (±5%), both should scale together maintaining the ratio
         // Ratio should be approximately: points_required * 100 / max_moves
         let actual_ratio = config.points_required.into() * 100_u32 / config.max_moves.into();
 
-        // The ratio should be close to the base ratio for level 50 (~180)
+        // The ratio should be close to the base zone-cap ratio (~180)
         // Allow for rounding errors
         assert!(actual_ratio >= 165 && actual_ratio <= 195, "Ratio should be approximately 180");
     }
@@ -892,8 +924,10 @@ mod tests {
     #[test]
     fn test_different_seeds_different_configs() {
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
-        let config2 = LevelGeneratorTrait::generate(DIFFERENT_SEED, 25, settings);
+        // Endless levels are seed-independent by design; use a zone level where variance/constraints
+        // are seeded.
+        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 9, settings);
+        let config2 = LevelGeneratorTrait::generate(DIFFERENT_SEED, 9, settings);
 
         // At least one of points or moves should differ (very high probability)
         let points_differ = config1.points_required != config2.points_required;
@@ -966,13 +1000,13 @@ mod tests {
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         let config = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
 
-        // Level 25: base_moves~40, ratio~1.30, base_points~52
-        // With ±5% variance: moves ~38-42, points ~49-55
-        // With non-linear progression: Level 25 is VeryHard (tier 5, starts at level 25)
+        // Endless mode (11+): fixed moves=max_moves, Master difficulty,
+        // ratio increases by +10 per level depth over level 10.
+        // Level 25 => depth 15 => ratio_x100=330 => points=60*3.30=198.
         assert!(config.level == 25, "Level should be 25");
-        assert!(config.points_required >= 47 && config.points_required <= 57, "Points in range");
-        assert!(config.max_moves >= 36 && config.max_moves <= 44, "Moves in range");
-        assert!(config.difficulty == Difficulty::VeryHard, "Level 25 should be VeryHard");
+        assert!(config.points_required == 198, "Endless level 25 points should be deterministic");
+        assert!(config.max_moves == 60, "Endless levels should use max_moves");
+        assert!(config.difficulty == Difficulty::Master, "Endless levels should be Master");
         assert!(config.cube_3_threshold < config.cube_2_threshold, "Cube thresholds ordered");
         assert!(config.cube_2_threshold < config.max_moves, "2-cube threshold < max");
     }
@@ -982,12 +1016,11 @@ mod tests {
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
 
-        // Level 50 (max): base_moves=60, ratio=1.80, base_points=108
-        // With ±5% variance: moves ~57-63, points ~103-113
+        // Endless level 50 => depth 40 => ratio_x100=580 => points=60*5.80=348.
         assert!(config.level == 50, "Level should be 50");
-        assert!(config.points_required >= 100 && config.points_required <= 116, "Points in range");
-        assert!(config.max_moves >= 55 && config.max_moves <= 65, "Moves in range");
-        assert!(config.difficulty == Difficulty::Master, "Level 50 should be Master");
+        assert!(config.points_required == 348, "Endless level 50 points should be deterministic");
+        assert!(config.max_moves == 60, "Endless levels should use max_moves");
+        assert!(config.difficulty == Difficulty::Master, "Endless levels should be Master");
     }
 
     #[test]

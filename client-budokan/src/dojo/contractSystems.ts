@@ -23,6 +23,11 @@ export interface Create extends Signer {
   token_id: number;
 }
 
+export interface CreateRun extends Signer {
+  game_id: number;
+  zone_id: number;
+}
+
 export interface FreeMint extends Signer {
   name: string;
   settingsId: number;
@@ -42,38 +47,9 @@ export interface BonusTx extends Signer {
   block_index: number;
 }
 
-export interface StartNextLevel extends Signer {
-  game_id: number;
-  current_level: number; // Current level (for VRF salt)
-}
-
 export interface ClaimQuest extends Signer {
   quest_id: string; // felt252 encoded quest ID
   interval_id: number; // Current interval ID for the quest
-}
-
-export interface DraftReroll extends Signer {
-  game_id: number;
-  reroll_slot: number;
-  current_count?: number;
-}
-
-export interface DraftSelect extends Signer {
-  game_id: number;
-  selected_slot: number;
-}
-
-export interface SkillTreeUpgrade extends Signer {
-  skill_id: number;
-}
-
-export interface SkillTreeChooseBranch extends Signer {
-  skill_id: number;
-  branch_id: number;
-}
-
-export interface SkillTreeRespec extends Signer {
-  skill_id: number;
 }
 
 export interface AddCustomGameSettings extends Signer {
@@ -192,14 +168,6 @@ export function setupWorld(config: Config) {
     );
     if (!bonus_contract) {
       throw new Error(`Contract ${bonus_contract_name} not found in manifest`);
-    }
-
-    const level_contract_name = "level_system";
-    const level_contract = config.manifest.contracts.find(
-      (c: Manifest["contracts"][number]) => c.tag.includes(level_contract_name),
-    );
-    if (!level_contract) {
-      throw new Error(`Contract ${level_contract_name} not found in manifest`);
     }
 
     const free_mint = async ({ account, name, settingsId = 0 }: FreeMint) => {
@@ -322,43 +290,36 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const startNextLevel = async ({
-      account,
-      game_id,
-      current_level,
-    }: StartNextLevel) => {
+    const createRun = async ({ account, game_id, zone_id }: CreateRun) => {
       try {
         if (isSlotMode) {
-          // On Slot, no VRF - call start_next_level directly
           return await account.execute([
             {
-              contractAddress: level_contract.address,
-              entrypoint: "start_next_level",
-              calldata: [game_id],
+              contractAddress: contract.address,
+              entrypoint: "create_run",
+              calldata: [game_id, zone_id],
             },
           ]);
         }
 
-        // On Sepolia/Mainnet, include VRF request
-        // Salt = poseidon(game_id, current_level) matching the contract
         return await account.execute([
           buildVrfRequestCall(
-            level_contract.address,
+            contract.address,
             BigInt(
               hash.computePoseidonHashOnElements([
                 BigInt(game_id),
-                BigInt(current_level),
+                BigInt(zone_id),
               ]),
             ),
           ),
           {
-            contractAddress: level_contract.address,
-            entrypoint: "start_next_level",
-            calldata: [game_id],
+            contractAddress: contract.address,
+            entrypoint: "create_run",
+            calldata: [game_id, zone_id],
           },
         ]);
       } catch (error) {
-        console.error("Error executing startNextLevel:", error);
+        console.error("Error executing createRun:", error);
         throw error;
       }
     };
@@ -367,10 +328,10 @@ export function setupWorld(config: Config) {
       address: contract.address,
       free_mint,
       create,
+      createRun,
       surrender,
       move,
       bonus,
-      startNextLevel,
     };
   }
 
@@ -404,153 +365,6 @@ export function setupWorld(config: Config) {
     return {
       address: contract.address,
       claim,
-    };
-  }
-
-  function draft() {
-    const contract_name = "draft_system";
-    const contract = config.manifest.contracts.find(
-      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
-    );
-    if (!contract) {
-      throw new Error(`Contract ${contract_name} not found in manifest`);
-    }
-
-    const reroll = async ({
-      account,
-      game_id,
-      reroll_slot,
-      current_count,
-    }: DraftReroll) => {
-      try {
-        const rerollCount = current_count ?? 0;
-        if (isSlotMode) {
-          return await account.execute([
-            {
-              contractAddress: contract.address,
-              entrypoint: "reroll",
-              calldata: [game_id, reroll_slot],
-            },
-          ]);
-        }
-
-        return await account.execute([
-          buildVrfRequestCall(
-            contract.address,
-            BigInt(
-              hash.computePoseidonHashOnElements([
-                BigInt(game_id),
-                BigInt(rerollCount),
-              ]),
-            ),
-          ),
-          {
-            contractAddress: contract.address,
-            entrypoint: "reroll",
-            calldata: [game_id, reroll_slot],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing draft reroll:", error);
-        throw error;
-      }
-    };
-
-    const select = async ({
-      account,
-      game_id,
-      selected_slot,
-    }: DraftSelect) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "select",
-            calldata: [game_id, selected_slot],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing draft select:", error);
-        throw error;
-      }
-    };
-
-    return {
-      address: contract.address,
-      reroll,
-      select,
-    };
-  }
-
-  function skill_tree() {
-    const contract_name = "skill_tree_system";
-    const contract = config.manifest.contracts.find(
-      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
-    );
-    if (!contract) {
-      throw new Error(`Contract ${contract_name} not found in manifest`);
-    }
-
-    const upgrade_skill = async ({
-      account,
-      skill_id,
-    }: SkillTreeUpgrade) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "upgrade_skill",
-            calldata: [skill_id], // Contract uses 1-indexed skill IDs (1-12)
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing upgrade_skill:", error);
-        throw error;
-      }
-    };
-
-    const choose_branch = async ({
-      account,
-      skill_id,
-      branch_id,
-    }: SkillTreeChooseBranch) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "choose_branch",
-            calldata: [skill_id, branch_id], // Contract uses 1-indexed skill IDs
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing choose_branch:", error);
-        throw error;
-      }
-    };
-
-    const respec_branch = async ({
-      account,
-      skill_id,
-    }: SkillTreeRespec) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "respec_branch",
-            calldata: [skill_id], // Contract uses 1-indexed skill IDs
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing respec_branch:", error);
-        throw error;
-      }
-    };
-
-    return {
-      address: contract.address,
-      upgrade_skill,
-      choose_branch,
-      respec_branch,
     };
   }
 
@@ -792,8 +606,6 @@ export function setupWorld(config: Config) {
   return {
     game: game(),
     quest: quest(),
-    draft: draft(),
-    skill_tree: skill_tree(),
     config: configSystem(),
     daily_challenge: daily_challenge(),
   };

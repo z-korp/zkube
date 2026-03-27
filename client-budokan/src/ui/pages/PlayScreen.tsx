@@ -6,27 +6,21 @@ import { useMusicPlayer } from "@/contexts/hooks";
 import { useGame } from "@/hooks/useGame";
 import { useGrid } from "@/hooks/useGrid";
 import { useGameLevel, type GameLevelData } from "@/hooks/useGameLevel";
-import { useDraft } from "@/hooks/useDraft";
-import { useCubeBalance } from "@/hooks/useCubeBalance";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import useViewport from "@/hooks/useViewport";
 import { useDojo } from "@/dojo/useDojo";
-import { isActiveSkill, isPassiveSkill, isBossLevel as checkBossLevel } from "@/dojo/game/helpers/runDataPacking";
+import { isBossLevel as checkBossLevel } from "@/dojo/game/helpers/runDataPacking";
 import {
   Bonus,
   BonusType,
-  bonusTypeFromContractValue,
-  bonusTypeToContractValue,
 } from "@/dojo/game/types/bonus";
-import { getSkillName, getSkillTier, SKILLS, getArchetypeForSkill, getSkillAssetKey } from "@/dojo/game/types/skillData";
 import { useNavigationStore } from "@/stores/navigationStore";
-import ImageAssets, { getSkillTierIconPath } from "@/ui/theme/ImageAssets";
+import ImageAssets from "@/ui/theme/ImageAssets";
 import GameHud from "@/ui/components/hud/GameHud";
 import GameActionBar from "@/ui/components/actionbar/GameActionBar";
 import GameBoard from "@/ui/components/GameBoard";
 import GameOverDialog from "@/ui/components/GameOverDialog";
 import VictoryDialog from "@/ui/components/VictoryDialog";
-import CubeIcon from "@/ui/components/CubeIcon";
 import Connect from "@/ui/components/Connect";
 import {
   Dialog,
@@ -45,7 +39,7 @@ const PlayScreen: React.FC = () => {
 
   const {
     setup: {
-      systemCalls: { surrender, startNextLevel, applyBonus },
+      systemCalls: { surrender, applyBonus },
     },
   } = useDojo();
   const { account } = useAccountCustom();
@@ -58,7 +52,6 @@ const PlayScreen: React.FC = () => {
   const { themeTemplate, setThemeTemplate } = useTheme();
   const { setMusicContext, setMusicPlaylist, playSfx, musicVolume, effectsVolume, setMusicVolume, setEffectsVolume, isPlaying, playTheme, stopTheme } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
-  const { cubeBalance: walletBalance } = useCubeBalance();
 
   const { game, seed } = useGame({
     gameId: gameId ?? 0,
@@ -66,7 +59,6 @@ const PlayScreen: React.FC = () => {
   });
   const grid = useGrid({ gameId: game?.id ?? 0, shouldLog: true });
   const gameLevel = useGameLevel({ gameId: game?.id });
-  const draftState = useDraft({ gameId: gameId ?? undefined });
 
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
@@ -86,8 +78,6 @@ const PlayScreen: React.FC = () => {
     levelScore: number;
     levelMoves: number;
     constraintProgress: number;
-    bonusUsedThisLevel: boolean;
-    totalCubes: number;
     totalScore: number;
     gameLevel: GameLevelData | null;
   } | null>(null);
@@ -140,20 +130,10 @@ const PlayScreen: React.FC = () => {
     else setIsConnectDialogOpen(false);
   }, [account]);
 
-  // Redirect to draft page if a draft is active (e.g. zone 1 entry draft at game creation).
-  // Skip if the level-complete dialog is showing — navigation happens from the dialog's onClose.
-  useEffect(() => {
-    if (!game || !account || game.over) return;
-    if (!draftState?.active) return;
-    if (gameId === null || gameId === undefined) return;
-    navNavigate("draft", gameId);
-  }, [draftState?.active, game, account, gameId, navNavigate]);
-
-
   useEffect(() => {
     if (prevGameOverRef.current !== undefined) {
       if (!prevGameOverRef.current && game?.over) {
-        if (game.runCompleted) {
+        if (game.zoneCleared) {
           playSfx("victory");
           setIsVictoryOpen(true);
         } else {
@@ -200,25 +180,12 @@ const PlayScreen: React.FC = () => {
       setPendingLevelCompletion({
         level: prevState.level,
         levelMoves: prevState.levelMoves,
-        prevTotalCubes: prevState.totalCubes,
-        totalCubes: game.totalCubes,
         prevTotalScore: levelStartTotalScoreRef.current,
         totalScore: game.totalScore,
         gameLevel: prevState.gameLevel,
       });
       levelStartTotalScoreRef.current = game.totalScore;
 
-      // Fire startNextLevel in background so the next level grid is ready
-      // by the time the player navigates from the map.
-      if (account) {
-        startNextLevel({
-          account,
-          game_id: game.id,
-          current_level: game.level,
-        }).catch((error: unknown) => {
-          console.error("Background startNextLevel failed:", error);
-        });
-      }
       navNavigate("map");
     }
 
@@ -227,8 +194,6 @@ const PlayScreen: React.FC = () => {
       levelScore: game.levelScore,
       levelMoves: game.levelMoves,
       constraintProgress: game.constraintProgress,
-      bonusUsedThisLevel: game.bonusUsedThisLevel,
-      totalCubes: game.totalCubes,
       totalScore: game.totalScore,
       gameLevel,
     };
@@ -237,9 +202,7 @@ const PlayScreen: React.FC = () => {
     game?.levelScore,
     game?.levelMoves,
     game?.constraintProgress,
-    game?.bonusUsedThisLevel,
     game?.over,
-    game?.totalCubes,
     game?.totalScore,
     game,
     playSfx,
@@ -267,7 +230,7 @@ const PlayScreen: React.FC = () => {
   const maxMoves = gameLevel?.maxMoves ?? levelConfig?.maxMoves ?? 0;
 
   const isGridLoading =
-    !!game && !game.isOver() && (!grid || grid.length === 0 || game.levelTransitionPending);
+    !!game && !game.isOver() && (!grid || grid.length === 0);
 
   const isGameOn = game && !game.over;
 
@@ -293,25 +256,8 @@ const PlayScreen: React.FC = () => {
     [],
   );
 
-  const getBonusIcon = useCallback(
-    (type: BonusType, level: number = 0): string => {
-      const skillId = bonusTypeToContractValue(type);
-      const assetKey = getSkillAssetKey(skillId);
-      if (!assetKey) return "";
-      const tier = getSkillTier(level);
-      return getSkillTierIconPath(assetKey, tier);
-    },
-    [],
-  );
-
   const handleBonusSelect = useCallback(
     (type: BonusType) => {
-      const skillId = bonusTypeToContractValue(type);
-      const slot = game?.runData.slots.find((entry) => entry.skillId === skillId);
-      const count = slot?.charges ?? 0;
-      if (count === 0) return;
-
-      // Instant bonuses (no grid targeting) — confirm dialog
       if (type === BonusType.ComboSurge || type === BonusType.Momentum) {
         playSfx("click");
         setConfirmingBonus(type);
@@ -327,58 +273,33 @@ const PlayScreen: React.FC = () => {
         playSfx("click");
         playSfx("equip");
         setActiveBonus(type);
-        setBonusDescription(`${getSkillName(skillId)}: ${getBonusDescription(type)}`);
+        setBonusDescription(getBonusDescription(type));
       }
     },
-    [activeBonus, game?.runData.slots, getBonusDescription, playSfx],
+    [activeBonus, getBonusDescription, playSfx],
   );
 
-  const selectedBonusSlots = useMemo(() => {
-    if (!game) return [];
+  // TODO: Zone redesign — bonus/passive slots will be sourced from new zone system
+  const selectedBonusSlots: Array<{
+    slot: number;
+    type: BonusType;
+    level: number;
+    count: number;
+    bagSize: number;
+    icon: string;
+    tooltip: string;
+  }> = [];
 
-    return game.runData.slots
-      .map((slot, index) => ({ ...slot, index }))
-      .filter((slot) => isActiveSkill(slot.skillId) && slot.skillId > 0)
-      .map((slot) => {
-        const type = bonusTypeFromContractValue(slot.skillId);
-        return {
-          slot: slot.index,
-          type,
-          level: slot.level,
-          count: slot.charges,
-          bagSize: slot.charges,
-          icon: getBonusIcon(type, slot.level),
-          tooltip: `${getSkillName(slot.skillId)} - ${getBonusTooltip(type, slot.level)}`,
-        };
-      });
-  }, [
-    game,
-    game?.runData.slots,
-    getBonusIcon,
-    getBonusTooltip,
-  ]);
-
-  const passiveSlots = useMemo(() => {
-    if (!game) return [];
-    return game.runData.slots
-      .filter((slot) => isPassiveSkill(slot.skillId) && slot.skillId > 0)
-      .map((slot) => {
-        const skill = SKILLS[slot.skillId];
-        const archetype = getArchetypeForSkill(slot.skillId);
-        const assetKey = getSkillAssetKey(slot.skillId) ?? '';
-        const tier = getSkillTier(slot.level);
-        return {
-          type: BonusType.None,
-          level: slot.level,
-          count: 0,
-          bagSize: 0,
-          icon: getSkillTierIconPath(assetKey, tier),
-          tooltip: `${getSkillName(slot.skillId)} (Passive) - ${skill?.description ?? ''}`,
-          isPassive: true as const,
-          archetypeColor: archetype?.color ?? '#8b5cf6',
-        };
-      });
-  }, [game?.runData.slots]);
+  const passiveSlots: Array<{
+    type: BonusType;
+    level: number;
+    count: number;
+    bagSize: number;
+    icon: string;
+    tooltip: string;
+    isPassive: true;
+    archetypeColor: string;
+  }> = [];
 
   const activeBonusLevel = useMemo(() => {
     const slot = selectedBonusSlots.find((s) => s.type === activeBonus);
@@ -508,26 +429,10 @@ const PlayScreen: React.FC = () => {
               <span className="font-['Fredericka_the_Great'] text-amber-200 text-base tabular-nums">
                 {game.totalScore}
               </span>
-              <span className="text-slate-500 text-sm mx-0.5">·</span>
-              <div className="flex items-center gap-1">
-                <span className="font-['Fredericka_the_Great'] text-blue-300 text-base tabular-nums">
-                  +{game.cubesAvailable}
-                </span>
-                <CubeIcon size="sm" />
-              </div>
             </>
           )}
         </div>
         <div className="flex items-center gap-2">
-          {/* Wallet cubes (owned) */}
-          <div className="flex items-center gap-1">
-            <CubeIcon size="sm" />
-            <span className="font-['Fredericka_the_Great'] text-blue-300 text-base tabular-nums">
-              {walletBalance.toString()}
-            </span>
-          </div>
-          <span className="text-slate-500 text-sm mx-0.5">·</span>
-          {/* Settings gear */}
           <button
             onClick={() => setIsSettingsOpen(true)}
             className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
@@ -612,8 +517,8 @@ const PlayScreen: React.FC = () => {
           combo={game.isOver() ? 0 : game.combo}
           constraintProgress={game.constraintProgress}
           constraint2Progress={game.constraint2Progress}
-          constraint3Progress={game.runData.constraint3Progress}
-          bonusUsedThisLevel={game.bonusUsedThisLevel}
+          constraint3Progress={0}
+          bonusUsedThisLevel={false}
           gameLevel={gameLevel}
           maxMoves={maxMoves}
         />

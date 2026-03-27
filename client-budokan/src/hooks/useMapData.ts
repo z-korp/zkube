@@ -6,11 +6,7 @@ import {
   type Level,
 } from "@/dojo/game/types/level";
 import { THEME_IDS, type ThemeId } from "@/config/themes";
-import type { DraftStateData } from "@/hooks/useDraft";
-import {
-  getDraftEventForZone,
-  isDraftEventCompleted,
-} from "@/utils/draftEvents";
+
 
 export type NodeType = "classic" | "draft" | "boss";
 export type NodeState =
@@ -42,7 +38,6 @@ export interface MapData {
 export interface UseMapDataParams {
   seed: bigint;
   currentLevel: number;
-  draftState?: DraftStateData | null;
 }
 
 /**
@@ -131,61 +126,26 @@ function getNodeState(
   node: Omit<MapNodeData, "state" | "levelConfig" | "zoneTheme">,
   currentLevel: number,
   currentNodeIndex: number,
-  seed: bigint,
-  draftState?: DraftStateData | null,
 ): NodeState {
-  const zoneEndLevel = node.zone * LEVELS_PER_ZONE;
-
-  // --- Draft nodes (entry only in vNext) ---
   if (node.type === "draft") {
+    const zoneEndLevel = node.zone * LEVELS_PER_ZONE;
     const zoneStartLevel = (node.zone - 1) * LEVELS_PER_ZONE + 1;
 
-    // Entry draft: unlocks when player reaches this zone
     const unlockLevel = node.zone === 1 ? 1 : zoneStartLevel;
     if (currentLevel < unlockLevel) return "locked";
     if (currentLevel > zoneEndLevel) return "visited";
-
-    const entryEvent = getDraftEventForZone(seed, node.zone);
-    if (isDraftEventCompleted(draftState ?? null, entryEvent)) {
-      return "visited";
-    }
     return "available";
   }
 
-  // --- Classic + Boss nodes ---
-
-  // Already cleared levels
   if (node.contractLevel !== null && node.contractLevel < currentLevel) {
     return "cleared";
   }
 
-  // Level 1 of zone: locked until entry draft is done
-  if (node.contractLevel === (node.zone - 1) * LEVELS_PER_ZONE + 1) {
-    const entryEvent = getDraftEventForZone(seed, node.zone);
-
-    if (!isDraftEventCompleted(draftState ?? null, entryEvent)) {
-      if (node.contractLevel !== null && node.contractLevel >= currentLevel) {
-        return "locked";
-      }
-    }
-  }
-
-  // Current level
   if (node.nodeIndex === currentNodeIndex) {
     return "current";
   }
 
   if (node.contractLevel !== null && node.contractLevel === currentLevel) {
-    // First level in zone: entry draft must be completed
-    const zoneFirstLevel = (node.zone - 1) * LEVELS_PER_ZONE + 1;
-    if (node.contractLevel === zoneFirstLevel) {
-      const entryEvent = getDraftEventForZone(seed, node.zone);
-      if (isDraftEventCompleted(draftState ?? null, entryEvent)) {
-        return "current";
-      }
-      return "locked";
-    }
-
     return "current";
   }
 
@@ -220,7 +180,6 @@ export function deriveZoneThemes(seed: bigint): ThemeId[] {
 export function generateMapData({
   seed,
   currentLevel,
-  draftState,
 }: UseMapDataParams): MapData {
   const clampedLevel = Math.max(1, Math.min(GAMEPLAY_LEVELS, currentLevel));
   const zoneThemes = deriveZoneThemes(seed);
@@ -261,7 +220,7 @@ export function generateMapData({
         ? generateLevelConfig(seed, node.contractLevel, DEFAULT_SETTINGS)
         : null;
 
-    const state = getNodeState(node, clampedLevel, currentNodeIndex, seed, draftState);
+    const state = getNodeState(node, clampedLevel, currentNodeIndex);
 
     return {
       ...node,
@@ -279,9 +238,9 @@ export function generateMapData({
   };
 }
 
-export function useMapData({ seed, currentLevel, draftState }: UseMapDataParams): MapData {
+export function useMapData({ seed, currentLevel }: UseMapDataParams): MapData {
   return useMemo(
-    () => generateMapData({ seed, currentLevel, draftState }),
-    [seed, currentLevel, draftState],
+    () => generateMapData({ seed, currentLevel }),
+    [seed, currentLevel],
   );
 }

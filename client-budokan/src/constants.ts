@@ -1,7 +1,7 @@
 import type { QuestFamilyConfig, QuestFamilyId } from "./types/questFamily";
 
 // Namespace from environment variable
-export const NAMESPACE = import.meta.env.VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_2_0";
+export const NAMESPACE = import.meta.env.VITE_PUBLIC_NAMESPACE || "zkube_jc_sepolia_v1";
 
 /**
  * Quest Reward Overrides

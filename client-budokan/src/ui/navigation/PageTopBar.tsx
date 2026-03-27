@@ -1,12 +1,9 @@
 import { ChevronLeft } from "lucide-react";
-import { useCubeBalance } from "@/hooks/useCubeBalance";
-import CubeIcon from "@/ui/components/CubeIcon";
 
 interface PageTopBarProps {
   title: string;
   subtitle?: string;
   onBack: () => void;
-  cubeBalance?: bigint;
   rightSlot?: React.ReactNode;
 }
 
@@ -14,12 +11,8 @@ const PageTopBar: React.FC<PageTopBarProps> = ({
   title,
   subtitle,
   onBack,
-  cubeBalance: cubeBalanceOverride,
   rightSlot,
 }) => {
-  const { cubeBalance: walletBalance } = useCubeBalance();
-  const displayBalance = cubeBalanceOverride ?? walletBalance;
-
   return (
     <div className="flex items-center justify-between px-2 md:px-4 h-12 md:h-13 lg:h-14 bg-slate-900/70 backdrop-blur-sm border-b border-slate-700/50">
       <div className="flex items-center gap-1">
@@ -47,12 +40,6 @@ const PageTopBar: React.FC<PageTopBarProps> = ({
 
       <div className="flex items-center gap-2">
         {rightSlot}
-        <div className="flex items-center gap-1.5">
-          <CubeIcon />
-          <span className="font-['Fredericka_the_Great'] text-yellow-400 text-lg tracking-wide">
-            {displayBalance.toString()}
-          </span>
-        </div>
       </div>
     </div>
   );

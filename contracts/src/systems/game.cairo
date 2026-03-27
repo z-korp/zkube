@@ -3,6 +3,10 @@ pub trait IGameSystem<T> {
     /// Create a new game
     /// @param game_id: NFT token ID for this game
     fn create(ref self: T, game_id: u64);
+    /// Create a new game with explicit zone selection
+    /// @param game_id: NFT token ID for this game
+    /// @param zone_id: zone identifier (0-15)
+    fn create_run(ref self: T, game_id: u64, zone_id: u8);
     /// Surrender the current run (game over)
     fn surrender(ref self: T, game_id: u64);
     /// Get player name from token
@@ -10,8 +14,8 @@ pub trait IGameSystem<T> {
     /// Get current level score
     fn get_score(self: @T, game_id: u64) -> u16;
     /// Get game data for UI
-    /// Returns: (level, level_score, level_moves, combo, max_combo, combo_bonus, score_bonus,
-    /// harvest_bonus, total_cubes, over)
+    /// Returns: (level, level_score, level_moves, combo, max_combo, reserved, reserved,
+    /// reserved, reserved, over)
     fn get_game_data(self: @T, game_id: u64) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool);
 }
 
@@ -39,16 +43,12 @@ mod game_system {
     use zkube::events::StartGame;
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::game_libs::{
-        GameLibsImpl, IDraftSystemDispatcherTrait, IGridSystemDispatcherTrait,
-        ILevelSystemDispatcherTrait,
+        GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
     };
     use zkube::helpers::game_over;
-    use zkube::helpers::packing::RunDataHelpersTrait;
     use zkube::helpers::random::RandomImpl;
-    use zkube::models::draft::{DraftState, DraftStateTrait};
     use zkube::models::game::{Game, GameAssert, GameSeed, GameTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
-    use zkube::models::skill_tree::PlayerSkillTree;
     use zkube::models::daily::{DailyChallenge, DailyEntry, DailyEntryTrait, GameChallenge};
     use zkube::systems::daily_challenge::{
         IDailyChallengeSystemDispatcher, IDailyChallengeSystemDispatcherTrait,
@@ -205,104 +205,11 @@ mod game_system {
     #[abi(embed_v0)]
     impl GameSystemImpl of super::IGameSystem<ContractState> {
         fn create(ref self: ContractState, game_id: u64) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            self.create_run(game_id, 0);
+        }
 
-            let token_address = self.token_address();
-            let token_id_felt: felt252 = game_id.into();
-            pre_action(token_address, token_id_felt);
-
-            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
-            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(token_id_felt);
-            self.validate_start_conditions(game_id, @token_metadata, token_address);
-
-            // Get game settings (selected via token settings_id)
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-
-            // Generate seed: daily challenge uses shared seed, otherwise VRF/pseudo-random
-            let (seed, vrf_enabled) = if DAILY_CHALLENGE::is_daily_challenge_settings(
-                settings.settings_id,
-            ) {
-                // Daily challenge: use the challenge's shared seed for determinism
-                let daily_system_addr = world
-                    .dns_address(@"daily_challenge_system")
-                    .expect('DailyChallengeSystem not in DNS');
-                let daily = IDailyChallengeSystemDispatcher {
-                    contract_address: daily_system_addr,
-                };
-                let challenge_id = daily.get_current_challenge();
-                assert!(challenge_id > 0, "No active daily challenge");
-                let challenge: DailyChallenge = world.read_model(challenge_id);
-
-                // Verify player has registered for this challenge
-                let player_check = get_caller_address();
-                let entry: DailyEntry = world.read_model((challenge_id, player_check));
-                assert!(entry.exists(), "Must register for daily challenge first");
-
-                // Store game-to-challenge mapping
-                let game_challenge = GameChallenge { game_id, challenge_id };
-                world.write_model(@game_challenge);
-
-                (challenge.seed, false)
-            } else {
-                // Normal game: use VRF if available, otherwise pseudo-random
-                let vrf_addr = self.vrf_address.read();
-                let vrf_on = !vrf_addr.is_zero();
-                let random = if vrf_addr.is_zero() {
-                    RandomImpl::new_pseudo_random()
-                } else {
-                    RandomImpl::new_vrf(game_id.into())
-                };
-                (random.seed, vrf_on)
-            };
-            let timestamp = get_block_timestamp();
-
-            // Create empty game shell (grid will be initialized via dispatcher)
-            let mut game = GameTrait::new_empty(game_id, timestamp);
-
-            // Store the seed separately
-            let game_seed = GameSeed {
-                game_id, seed, level_seed: seed, vrf_enabled,
-            };
-            world.write_model(@game_seed);
-
-            let draft_state: DraftState = DraftStateTrait::new(game_id, seed);
-            world.write_model(@draft_state);
-
-            // Initialize or update player meta
-            let player = get_caller_address();
-            let skill_tree: PlayerSkillTree = world.read_model(player);
-            let mut player_meta: PlayerMeta = world.read_model(player);
-            if !player_meta.exists() {
-                player_meta = PlayerMetaTrait::new(player);
-            }
-            // Initialize GameLibs once for all dispatcher calls
-            let libs = GameLibsImpl::new(world);
-
-            world.write_model(@game);
-
-            player_meta.increment_runs();
-            world.write_model(@player_meta);
-
-            post_action(token_address, token_id_felt);
-
-            // Emit start game event
-            world.emit_event(@StartGame { player, timestamp, game_id });
-
-            // Initialize level 1 and grid via GameLibs dispatchers
-            let has_no_bonus = libs.level.initialize_level(game_id, skill_tree.skill_data);
-            libs.grid.initialize_grid(game_id);
-
-            // Update run_data with no_bonus_constraint flag if needed
-            if has_no_bonus {
-                let mut game: Game = world.read_model(game_id);
-                let mut run_data = game.get_run_data();
-                run_data.no_bonus_constraint = true;
-                game.set_run_data(run_data);
-                world.write_model(@game);
-            }
-
-            // Open initial draft (1 pick from pool of 12 skills)
-            libs.draft.open_initial_draft(game_id);
+        fn create_run(ref self: ContractState, game_id: u64, zone_id: u8) {
+            InternalImpl::create_game(ref self, game_id, zone_id);
         }
 
         fn surrender(ref self: ContractState, game_id: u64) {
@@ -358,10 +265,10 @@ mod game_system {
                 run_data.level_moves,
                 game.combo_counter,
                 game.max_combo,
-                run_data.get_active_charges(0),
-                run_data.get_active_charges(1),
-                run_data.get_active_charges(2),
-                run_data.total_cubes,
+                0,
+                0,
+                0,
+                0,
                 game.over,
             )
         }
@@ -369,6 +276,99 @@ mod game_system {
 
     #[generate_trait]
     pub impl InternalImpl of InternalTrait {
+        fn create_game(ref self: ContractState, game_id: u64, zone_id: u8) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+
+            let token_address = self.token_address();
+            let token_id_felt: felt252 = game_id.into();
+            pre_action(token_address, token_id_felt);
+
+            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(token_id_felt);
+            self.validate_start_conditions(game_id, @token_metadata, token_address);
+
+            // Get game settings (selected via token settings_id)
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+
+            // Generate seed: daily challenge uses shared seed, otherwise VRF/pseudo-random
+            let (seed, vrf_enabled) = if DAILY_CHALLENGE::is_daily_challenge_settings(
+                settings.settings_id,
+            ) {
+                // Daily challenge: use the challenge's shared seed for determinism
+                let daily_system_addr = world
+                    .dns_address(@"daily_challenge_system")
+                    .expect('DailyChallengeSystem not in DNS');
+                let daily = IDailyChallengeSystemDispatcher {
+                    contract_address: daily_system_addr,
+                };
+                let challenge_id = daily.get_current_challenge();
+                assert!(challenge_id > 0, "No active daily challenge");
+                let challenge: DailyChallenge = world.read_model(challenge_id);
+
+                // Verify player has registered for this challenge
+                let player_check = get_caller_address();
+                let entry: DailyEntry = world.read_model((challenge_id, player_check));
+                assert!(entry.exists(), "Must register for daily challenge first");
+
+                // Store game-to-challenge mapping
+                let game_challenge = GameChallenge { game_id, challenge_id };
+                world.write_model(@game_challenge);
+
+                (challenge.seed, false)
+            } else {
+                // Normal game: use VRF if available, otherwise pseudo-random
+                let vrf_addr = self.vrf_address.read();
+                let vrf_on = !vrf_addr.is_zero();
+                let random = if vrf_addr.is_zero() {
+                    RandomImpl::new_pseudo_random()
+                } else {
+                    RandomImpl::new_vrf(game_id.into())
+                };
+                (random.seed, vrf_on)
+            };
+            let seed_u256: u256 = seed.into();
+            let mutator_id: u8 = (seed_u256 % 3).try_into().unwrap();
+            let mutator_mask: u8 = match mutator_id {
+                0 => 1,
+                1 => 2,
+                _ => 4,
+            };
+
+            let timestamp = get_block_timestamp();
+
+            // Create empty game shell (grid will be initialized via dispatcher)
+            let game = GameTrait::new_empty(game_id, timestamp, zone_id, mutator_mask);
+
+            // Store the seed separately
+            let game_seed = GameSeed {
+                game_id, seed, level_seed: seed, vrf_enabled,
+            };
+            world.write_model(@game_seed);
+
+            // Initialize or update player meta
+            let player = get_caller_address();
+            let mut player_meta: PlayerMeta = world.read_model(player);
+            if !player_meta.exists() {
+                player_meta = PlayerMetaTrait::new(player);
+            }
+            // Initialize GameLibs once for all dispatcher calls
+            let libs = GameLibsImpl::new(world);
+
+            world.write_model(@game);
+
+            player_meta.increment_runs();
+            world.write_model(@player_meta);
+
+            post_action(token_address, token_id_felt);
+
+            // Emit start game event
+            world.emit_event(@StartGame { player, timestamp, game_id });
+
+            // Initialize level 1 and grid via GameLibs dispatchers
+            libs.level.initialize_level(game_id, 0);
+            libs.grid.initialize_grid(game_id);
+        }
+
         #[inline(always)]
         fn validate_start_conditions(
             self: @ContractState,

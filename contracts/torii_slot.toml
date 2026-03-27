@@ -4,7 +4,7 @@ rpc = "https://api.cartridge.gg/x/zkube-djizus-slot/katana"
 [indexing]
 pending = true
 transactions = true
-namespaces = ["zkube_budo_v1_2_0"]
+namespaces = ["zkube_jc_sepolia_v1"]
 contracts = [
   "erc721:0x02271f1bb4d75604b1c82a708c544ac851f430416cd409aa322327874fe5f918",
   "erc20:0x4a26e3f67dae6f4049f80a418b2c11cbf3b88f5e15c11fd3ecbd6608b31b8bd",
@@ -16,5 +16,5 @@ raw = true
 
 [sql]
 historical = [
-  "zkube_budo_v1_2_0-TrophyProgression",
+  "zkube_jc_sepolia_v1-TrophyProgression",
 ]
