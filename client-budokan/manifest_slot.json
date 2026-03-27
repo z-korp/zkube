@@ -1,8 +1,8 @@
 {
   "world": {
-    "class_hash": "0x613551abceb2b37073b1149bb862ea70cf029981ce1ca47e9dd7c7ab97cb65d",
-    "address": "0x54b04ebd35f35e18579f2a404c4ca85a89d7b9e85c98bd70e8a28b32ff5b964",
-    "seed": "zkube_cube_economy_v2",
+    "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
+    "address": "0x173c998f2d8999a3d236b682f319b6970b46f55ae3514a9ba534b73207b670d",
+    "seed": "zkube_jc_slot_v3",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,13 +33,24 @@
   },
   "contracts": [
     {
-      "address": "0x1e99eedaea7a996b25191210c8dc433dc095fe4dc3c925d49d9406eaf1a5485",
-      "class_hash": "0x140145933af696c950fab34371f803d349a6eabfa3e29045f50fb61f5c2b8fa",
+      "address": "0x279204aef4ae1fe4c317243032e70b6fa73a5529b5f2eccc72cc2f2d0f4c06b",
+      "class_hash": "0x7e8dc3e36f02447bed2b641a219bec264d13b5b5ce162792121b05261d48b29",
+      "init_calldata": [],
+      "tag": "zkube_jc_sepolia_v1-achievement_system",
+      "selector": "0x53805e9903f163c6b4b7f6cc60108c0b5ba0b1ed933d1debf12a322e7f847",
+      "systems": [
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x63334f95d7a5a33ee54a0e2f730b1ed2ce0bd5eac5d917fd4d639e278136d16",
+      "class_hash": "0x287b9ec245e25c29b784f1b1ea3e37e99e28fefc5f7fe0821aa5f63f1869903",
       "init_calldata": [
-        "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
+        "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
+        "0x0"
       ],
       "tag": "zkube_jc_sepolia_v1-config_system",
-      "selector": "0xebe42c5440f35cc9a3742fb773019f34101eae85c5e314bcebd749b6ec84f0",
+      "selector": "0x43436d294c5110f06ab8ffb55c22fc03888ca54f180cb2a81401aeb102154b4",
       "systems": [
         "dojo_init",
         "add_game_settings",
@@ -48,84 +59,116 @@
       ]
     },
     {
-      "address": "0x59376db794d75d9956727e0417e71ff5b4eaf598687121b3a2943c1b4c60e39",
-      "class_hash": "0x4d0f4823a2157c4bb96b5408a635843be008a4cba5e16d916a6e328e1a25489",
-      "init_calldata": [],
-      "tag": "zkube_jc_sepolia_v1-cube_token",
-      "selector": "0x58ce743cd328aa3800df3c962d39156cf1c6fcffeae123925c693902472043b",
+      "address": "0xc635e1f1a52c32ba35384e8343307d2358f08ee54e228d4f82368c5b6a3b5c",
+      "class_hash": "0x791b3d3fced27c7aff75c69f33e58e6a5f69fe6c2f2039463fb027855550392",
+      "init_calldata": [
+        "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
+        "0x0",
+        "0x0"
+      ],
+      "tag": "zkube_jc_sepolia_v1-daily_challenge_system",
+      "selector": "0x162ff2e9bb394d99b2c4d42dd0c76530e3fa472956fcf200f01d8c5c9439a94",
       "systems": [
         "dojo_init",
-        "mint",
-        "burn",
-        "grant_minter_roles",
-        "mint_dev",
-        "register_external_contract",
-        "upgrade",
-        "safe_transfer_from",
-        "safe_batch_transfer_from",
-        "set_approval_for_all",
-        "grant_role",
-        "revoke_role",
-        "renounce_role"
+        "create_daily_challenge",
+        "settle_challenge",
+        "withdraw_unclaimed",
+        "register_entry",
+        "submit_result",
+        "claim_prize",
+        "upgrade"
       ]
     },
     {
-      "address": "0x64f5f9b14a333f07174c1420d6645d8eb3f0523a28f63cf7ba30e349bf606ae",
-      "class_hash": "0x128a319411be5e67fac4e1e38fadf6f2c2f3d83c3deeab39b3007998e3748e7",
+      "address": "0x505cf49aa4ac9f3e3bd329dcebdfbd0f72fe6d7ff132d7d0a21149db92be541",
+      "class_hash": "0x5eb37cf1cffa446b7c4e8f05e3828ea8302d5f00c2d33732f9f1a0149a542ed",
       "init_calldata": [
-        "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
-        "0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",
-        "1"
+        "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
+        "0x0",
+        "1",
+        "0x0"
       ],
       "tag": "zkube_jc_sepolia_v1-game_system",
-      "selector": "0x1756a4d7c5611311eb6d0f10d4af74095e327cf1030b89590ffb4e92d25b26c",
+      "selector": "0x24342bfa3523624647e86df31167aceb33ce3a0473508775699e6368607647e",
       "systems": [
         "dojo_init",
         "create",
-        "create_with_cubes",
+        "create_run",
         "surrender",
-        "move",
-        "apply_bonus",
-        "purchase_consumable",
         "upgrade"
       ]
     },
     {
-      "address": "0x453781979b7241228afaa37ac3c453487e73c33af6171b544082665643ba3d6",
-      "class_hash": "0x1fa97da05ce36e081b549f8b29687e1e14ddc015c5272a4cbc29eb1de1450eb",
+      "address": "0x67ac69cc1716f21e206e4c569d9dc45ec649812911b4a5cdcefe84aee26eb82",
+      "class_hash": "0x308b3c3c11bf6e409cd44fa473eb322083979e2555cf33172e2ddbc76e29685",
       "init_calldata": [],
-      "tag": "zkube_jc_sepolia_v1-quest_system",
-      "selector": "0x436c9e32f41800b6e41f7a2132179a85ad4fbbcd73cf2db6bcb4b65fd2071e",
+      "tag": "zkube_jc_sepolia_v1-grid_system",
+      "selector": "0x464c2f608f7324220554f13229d5f14cf148f430415b879856203e9b6dbc3d4",
       "systems": [
-        "dojo_init",
-        "on_quest_unlock",
-        "on_quest_complete",
-        "on_quest_claim",
-        "claim",
-        "progress",
+        "initialize_grid",
+        "reset_grid_for_level",
+        "execute_move",
+        "apply_bonus",
+        "insert_line_if_empty",
+        "assess_grid",
         "upgrade"
       ]
     },
     {
-      "address": "0x1134d2828d81a302803aa2d9b49f2b71ee94ccdcf299b2c095211adb838b84c",
-      "class_hash": "0x7bbf9d5ff80826b9478d12817309da48e73829947f92b307ec7a53b8941631a",
+      "address": "0x4af3e031c2ebd684424681c4046ac0a2aa8867a737e763da69147b733632db4",
+      "class_hash": "0x2eb9cdb0dbc6627e1fe3cb467ec5cfaaef2d0a1b1c998183f1e7f27eb79fdb3",
+      "init_calldata": [],
+      "tag": "zkube_jc_sepolia_v1-level_system",
+      "selector": "0x33b3b3102d929fb9cbc17885ff894cbf4a01055819b277379d62c0b49d9de4f",
+      "systems": [
+        "initialize_level",
+        "finalize_level",
+        "start_next_level",
+        "insert_line_if_empty",
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x561c6dc7c85e767f30285d62428dc17e2134b1c5b15b72021b77626dddd37cc",
+      "class_hash": "0x4093e599f55b3c18c3cc12f9155f83c2215994dbabf642874d45c39a28dbb9d",
+      "init_calldata": [],
+      "tag": "zkube_jc_sepolia_v1-move_system",
+      "selector": "0x5e1069363565a194f3fa083b852430e104bec263626c42a4338365b3f03c696",
+      "systems": [
+        "move",
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x29d7f4dfb756d161758e231ceb2bdd2c3d567e3cb2337d9ad5475f9367b3c45",
+      "class_hash": "0x2c47afe40e52049587850ada49062ae72f85c1913b536e4575bdcae478c7bb1",
+      "init_calldata": [],
+      "tag": "zkube_jc_sepolia_v1-mutator_system",
+      "selector": "0x4bd95d69041cbdac2843e0a08536c3c4d2c2e56e6095abdd2c95279c5f2ad4",
+      "systems": [
+        "register_mutator",
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x3c76c90b090d6ae7069775be9af3a9e9c3b40891ed6d19dc0fc31be79ceb72c",
+      "class_hash": "0x1e6f9df1dd8704f4a928e81731b0027c17c52fea25f681ede3acd78fa6ea8f9",
       "init_calldata": [],
       "tag": "zkube_jc_sepolia_v1-renderer_systems",
-      "selector": "0x35d5ac8794cc2cf3e12c42d4ac579e7a5dc26a70c26e32c599915d2d39586cf",
+      "selector": "0x60a4652b2620654947e38ccf23c7d63252be81078b331b6221e72376ac0cd89",
       "systems": [
         "upgrade"
       ]
     },
     {
-      "address": "0x371450998538496aa5577c52ced6595628cbf59e51145ce1bbdbe7cf25ecd9d",
-      "class_hash": "0x7afd58d6a6524eb910f9a5514fa29657480dbb92055b240de0d7ed2f46de06",
+      "address": "0x3f015667f1db8c55234847ccf89b5358c6d38496def314204debeade28cbc49",
+      "class_hash": "0x4778d1745c153956ff6ec6ea6ff977c35fe31a743732a135ce959a5df2cf8a9",
       "init_calldata": [],
-      "tag": "zkube_jc_sepolia_v1-shop_system",
-      "selector": "0x456e9ac1689ce0bf6afd29733b144d9ef8e7db5c0df5ec0dc79ed1ea22579a0",
+      "tag": "zkube_jc_sepolia_v1-zone_system",
+      "selector": "0x37abea40d3befdb3cd989c5b0e03f90acb1eb663910a1a3be0cfe5160aa87ca",
       "systems": [
-        "upgrade_starting_bonus",
-        "upgrade_bag_size",
-        "upgrade_bridging_rank",
+        "register_zone",
+        "set_zone_enabled",
         "upgrade"
       ]
     }
@@ -135,110 +178,153 @@
     {
       "members": [
         {
-          "name": "player_id",
-          "type": "core::felt252",
+          "name": "challenge_id",
+          "type": "core::integer::u32",
           "key": true
         },
         {
-          "name": "achievement_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "task_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "count",
-          "type": "core::integer::u128",
+          "name": "settings_id",
+          "type": "core::integer::u32",
           "key": false
         },
         {
-          "name": "timestamp",
-          "type": "core::integer::u64",
+          "name": "seed",
+          "type": "core::felt252",
           "key": false
-        }
-      ],
-      "class_hash": "0x1b93d2931ce14c6c25c1b4f3d78ff88f1d9d9a867ff8e4b76f697a370425cb3",
-      "tag": "zkube_jc_sepolia_v1-AchievementAdvancement",
-      "selector": "0x5f50dab4ae39dc621d1903558bd3c025f6407bc72d92914b407288febc3098f"
-    },
-    {
-      "members": [
-        {
-          "name": "task_id",
-          "type": "core::felt252",
-          "key": true
         },
         {
-          "name": "achievements",
-          "type": "core::array::Array::<core::felt252>",
-          "key": false
-        }
-      ],
-      "class_hash": "0x6969588e5989757eb797b61bf2d430d4e6c935bb7023000769576fa49d8d1b1",
-      "tag": "zkube_jc_sepolia_v1-AchievementAssociation",
-      "selector": "0x6569296f9c2050270727bf2e3ce3a363171e169920bbcb51f26439dde6808ff"
-    },
-    {
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "achievement_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "timestamp",
+          "name": "start_time",
           "type": "core::integer::u64",
           "key": false
         },
         {
-          "name": "unclaimed",
+          "name": "end_time",
+          "type": "core::integer::u64",
+          "key": false
+        },
+        {
+          "name": "ranking_metric",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "mutator_id",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "total_entries",
+          "type": "core::integer::u32",
+          "key": false
+        },
+        {
+          "name": "prize_pool",
+          "type": "core::integer::u256",
+          "key": false
+        },
+        {
+          "name": "settled",
           "type": "core::bool",
           "key": false
         }
       ],
-      "class_hash": "0x7b5b83ccc288a92f3ee2bd812c8fb84536a9e26d1742a8648036d19966030a5",
-      "tag": "zkube_jc_sepolia_v1-AchievementCompletion",
-      "selector": "0x8f33d31427d21b03e715b395c586087de27a96884f3f0e184ed13f5c68303f"
+      "class_hash": "0x32c31c2c96ceeac5e5497ba14bb829372076599a86c0943f38406c5da9777bc",
+      "tag": "zkube_jc_sepolia_v1-DailyChallenge",
+      "selector": "0x71d21fc0793e230b8abafc032acfcd93285f54b07145e70886f1c46683c9b4"
     },
     {
       "members": [
         {
-          "name": "id",
-          "type": "core::felt252",
+          "name": "challenge_id",
+          "type": "core::integer::u32",
           "key": true
         },
         {
-          "name": "rewarder",
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
+          "name": "attempts",
+          "type": "core::integer::u32",
+          "key": false
+        },
+        {
+          "name": "best_score",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "best_level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "best_depth",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "best_cubes",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "best_game_id",
+          "type": "core::integer::u64",
+          "key": false
+        },
+        {
+          "name": "rank",
+          "type": "core::integer::u32",
+          "key": false
+        },
+        {
+          "name": "prize_amount",
+          "type": "core::integer::u256",
+          "key": false
+        },
+        {
+          "name": "claimed",
+          "type": "core::bool",
+          "key": false
+        }
+      ],
+      "class_hash": "0x3d6a78dbac4368c69a89a570423db211b8b29caf20107a1a9de3b7f5b0adbef",
+      "tag": "zkube_jc_sepolia_v1-DailyEntry",
+      "selector": "0x6a2976607564c4aaf31da78efbb5c2b91407851c8cf039e35ee7388d7911781"
+    },
+    {
+      "members": [
+        {
+          "name": "challenge_id",
+          "type": "core::integer::u32",
+          "key": true
+        },
+        {
+          "name": "rank",
+          "type": "core::integer::u32",
+          "key": true
+        },
+        {
+          "name": "player",
           "type": "core::starknet::contract_address::ContractAddress",
           "key": false
         },
         {
-          "name": "start",
-          "type": "core::integer::u64",
-          "key": false
-        },
-        {
-          "name": "end",
-          "type": "core::integer::u64",
-          "key": false
-        },
-        {
-          "name": "tasks",
-          "type": "core::array::Span::<achievement::types::task::Task>",
+          "name": "value",
+          "type": "core::integer::u32",
           "key": false
         }
       ],
-      "class_hash": "0x6c6a9c45913331fa4e602135926cf9a622b60d2abb04381c37e0ba79861f11d",
-      "tag": "zkube_jc_sepolia_v1-AchievementDefinition",
-      "selector": "0x4335d8a8f4bb2c48e7c547485b6f72e9f8d34437ab71a57c30f04bb604effed"
+      "class_hash": "0x3dc38b56b27dc2d2de610e04a88c19d5a807542e9c7ee816c69a7dab7bd2f7e",
+      "tag": "zkube_jc_sepolia_v1-DailyLeaderboard",
+      "selector": "0x5623669ecd520ae5d61d667975e07307f91a904ce45fa1ef9f3bc0065c679f9"
     },
     {
       "members": [
@@ -273,6 +359,11 @@
           "key": false
         },
         {
+          "name": "level_stars",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
           "name": "started_at",
           "type": "core::integer::u64",
           "key": false
@@ -283,9 +374,113 @@
           "key": false
         }
       ],
-      "class_hash": "0x15fd12716e5410c02f08aa9ee5d7b923fa238f8891e84d9c121a4cabbe08cad",
+      "class_hash": "0x50e221717b399e0ad38f65b33179c7777bb81926d00bd7433a3f0b8726bd045",
       "tag": "zkube_jc_sepolia_v1-Game",
-      "selector": "0x32e0585e8074a4c0264a61e3f5d610e990985d9d32194c1b8bdcf9e00a619ad"
+      "selector": "0x49a8aeec514259fd522dcbc166acf7697ab80514b61692259c8e30ef3d05ca9"
+    },
+    {
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "challenge_id",
+          "type": "core::integer::u32",
+          "key": false
+        }
+      ],
+      "class_hash": "0x4e3ee33d5453d75cfa8f917349ad6c9cfd84bc5f8bae2f07e01268a9ea999b7",
+      "tag": "zkube_jc_sepolia_v1-GameChallenge",
+      "selector": "0xf7f63eb90fe026e06ef9846de2535d263a27381bf74a093e202aee1356b115"
+    },
+    {
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "points_required",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "max_moves",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "difficulty",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint_type",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint_value",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint_count",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint2_type",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint2_value",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint2_count",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint3_type",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint3_value",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint3_count",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "cube_3_threshold",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "cube_2_threshold",
+          "type": "core::integer::u16",
+          "key": false
+        }
+      ],
+      "class_hash": "0x558ad2fb062104b0be67d68a2aad1c838dc799f09eac2413c5e411c49521e3b",
+      "tag": "zkube_jc_sepolia_v1-GameLevel",
+      "selector": "0x4802e12abba71de70f11d387a90a2639e65ad0480c7fd4e36dfce75ab2de42a"
     },
     {
       "members": [
@@ -298,11 +493,21 @@
           "name": "seed",
           "type": "core::felt252",
           "key": false
+        },
+        {
+          "name": "level_seed",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
+          "name": "vrf_enabled",
+          "type": "core::bool",
+          "key": false
         }
       ],
-      "class_hash": "0x8adf8d1fd0e24a779e9e84754ea243a8ceff9892916022ad39e14131771e76",
+      "class_hash": "0x796103e7ec905e1f23d9782481ee923d82455ff8d5aef4d9ad3fff108efef4d",
       "tag": "zkube_jc_sepolia_v1-GameSeed",
-      "selector": "0x5e155330954a8b2ebc46d774a5ac2d374692bafa8e2461c74d8e4aae7458a22"
+      "selector": "0xce36c8785559820b9d7e5ea1341af2bdacbdd76a26cccaacce6d6497a53a45"
     },
     {
       "members": [
@@ -344,31 +549,6 @@
         {
           "name": "cube_2_percent",
           "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "hammer_cost",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "wave_cost",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "totem_cost",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "extra_moves_cost",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "cube_multiplier_x100",
-          "type": "core::integer::u16",
           "key": false
         },
         {
@@ -505,11 +685,41 @@
           "name": "level_cap",
           "type": "core::integer::u8",
           "key": false
+        },
+        {
+          "name": "draft_picks",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "draft_pool_mask",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "draft_fixed_level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "boss_upgrades_enabled",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "reroll_base_cost",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "starting_charges",
+          "type": "core::integer::u8",
+          "key": false
         }
       ],
-      "class_hash": "0x7a21acb0ceffc597bf690ad1b38f119509abf7c3c303a72f5b3a207abcbefbd",
+      "class_hash": "0x6d1cdd4c75e2a400c4508160edfa44e0292516ddabe80afa3c6166c44ca5c90",
       "tag": "zkube_jc_sepolia_v1-GameSettings",
-      "selector": "0x1c245917b09d68b08ceb4972426ebba162f36b31404a63dc180496cdc6777b"
+      "selector": "0x451f1c5cc1065b109244ae3f5f349ddf535168edb8745ec55680f11c3277694"
     },
     {
       "members": [
@@ -539,9 +749,61 @@
           "key": false
         }
       ],
-      "class_hash": "0x558a959ed374bc02bfa32534ad780bb71f57850abc504dbfdd04ae98e6cb3de",
+      "class_hash": "0x4932c13fe0aaddb6a590dd83913a460bd2e713acabf9dd07dcc143f652815ab",
       "tag": "zkube_jc_sepolia_v1-GameSettingsMetadata",
-      "selector": "0x2ee961dac07326a2ec70644bf2ad0f4e2c76a3a5b9f03b0c599c654b6fd6e32"
+      "selector": "0x5bf339ac1f2491500f370305deda40a571ca4e62f3ded16e29d62e5b1674359"
+    },
+    {
+      "members": [
+        {
+          "name": "mutator_id",
+          "type": "core::integer::u8",
+          "key": true
+        },
+        {
+          "name": "name",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "moves_modifier_encoded",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "ratio_modifier_encoded",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "difficulty_offset_encoded",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "combo_score_mult_x100",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "star_threshold_modifier_encoded",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "endless_ramp_mult_x100",
+          "type": "core::integer::u16",
+          "key": false
+        }
+      ],
+      "class_hash": "0x72b5fa4f713cb7df1ffa1b4a0090d29863086ab6a2c55383ba6d69ae96fcf4d",
+      "tag": "zkube_jc_sepolia_v1-MutatorDef",
+      "selector": "0x84d1b50bbb2663e8756ae97948fa72b621cbffd9e0808d9cda5956c5b8650d"
     },
     {
       "members": [
@@ -561,211 +823,49 @@
           "key": false
         }
       ],
-      "class_hash": "0x77ec576f2aead481e77727f117ca65eeb1aa0ffae116bd46d19ad26f788605f",
+      "class_hash": "0x54a6929c75e54955b81f36f9d28d77fcf7c1688e4841ed453137aa8f757a168",
       "tag": "zkube_jc_sepolia_v1-PlayerMeta",
-      "selector": "0x631ad5f961c9bc59af421f721602d568d38327dc491a69bc9229fa7a9bbf699"
+      "selector": "0x7bf33b3a84d760294c36b9b86f4558c5c9d8df8e71745867be88243049a41e1"
     },
     {
       "members": [
         {
-          "name": "player_id",
-          "type": "core::felt252",
+          "name": "zone_id",
+          "type": "core::integer::u8",
           "key": true
         },
         {
-          "name": "quest_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "task_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "interval_id",
-          "type": "core::integer::u64",
-          "key": true
-        },
-        {
-          "name": "count",
-          "type": "core::integer::u128",
-          "key": false
-        },
-        {
-          "name": "timestamp",
-          "type": "core::integer::u64",
-          "key": false
-        }
-      ],
-      "class_hash": "0x1b7639a1fba364aafc237cbf77bca9345cf30402674290214e09d85a17803fe",
-      "tag": "zkube_jc_sepolia_v1-QuestAdvancement",
-      "selector": "0x3c9f37f13afa4c786508eacdabab4e89daeea7780bfa0f9d9bbc7d5bc6a8d2f"
-    },
-    {
-      "members": [
-        {
-          "name": "task_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "quests",
-          "type": "core::array::Array::<core::felt252>",
-          "key": false
-        }
-      ],
-      "class_hash": "0x5c91fe66069e109c3e541c7d9ac41a2125396fc9093125ac4b242c52342b8d8",
-      "tag": "zkube_jc_sepolia_v1-QuestAssociation",
-      "selector": "0x77b333766bb17d2f92da3b3774a23181992112439cdef9fbc9644e98274675a"
-    },
-    {
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "quest_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "interval_id",
-          "type": "core::integer::u64",
-          "key": true
-        },
-        {
-          "name": "timestamp",
-          "type": "core::integer::u64",
-          "key": false
-        },
-        {
-          "name": "unclaimed",
-          "type": "core::bool",
-          "key": false
-        },
-        {
-          "name": "lock_count",
+          "name": "settings_id",
           "type": "core::integer::u32",
           "key": false
-        }
-      ],
-      "class_hash": "0x742c586dd683f8f55b9c6e7c1bb228b1adeb81dd78786358fc6ca4a3f553209",
-      "tag": "zkube_jc_sepolia_v1-QuestCompletion",
-      "selector": "0x580be40181fb9d6f150a1be3552d43a8776f4fa5ea65d0909f3fce557faf2ea"
-    },
-    {
-      "members": [
+        },
         {
-          "name": "quest_id",
+          "name": "theme_id",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "name",
           "type": "core::felt252",
-          "key": true
+          "key": false
         },
         {
-          "name": "quests",
-          "type": "core::array::Array::<core::felt252>",
+          "name": "mutator_count",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "enabled",
+          "type": "core::bool",
           "key": false
         }
       ],
-      "class_hash": "0x3e13df6331114bdc190e8924d9d6329498c29971c0a347378469904c216d3be",
-      "tag": "zkube_jc_sepolia_v1-QuestCondition",
-      "selector": "0x4ee45990d1add453154b3bf20d01dddd3d65c1d91030f86c82b31b5c69b4192"
-    },
-    {
-      "members": [
-        {
-          "name": "id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "rewarder",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "key": false
-        },
-        {
-          "name": "start",
-          "type": "core::integer::u64",
-          "key": false
-        },
-        {
-          "name": "end",
-          "type": "core::integer::u64",
-          "key": false
-        },
-        {
-          "name": "duration",
-          "type": "core::integer::u64",
-          "key": false
-        },
-        {
-          "name": "interval",
-          "type": "core::integer::u64",
-          "key": false
-        },
-        {
-          "name": "tasks",
-          "type": "core::array::Span::<quest::types::task::Task>",
-          "key": false
-        },
-        {
-          "name": "conditions",
-          "type": "core::array::Span::<core::felt252>",
-          "key": false
-        }
-      ],
-      "class_hash": "0x3edb92531c36a3a546994e1612de4dd6c43c09aeaf265c8889e61b85d92b071",
-      "tag": "zkube_jc_sepolia_v1-QuestDefinition",
-      "selector": "0x51230d4889e1ab86653670897d266a874a04dbf8033b0c99b083f1a021955f"
+      "class_hash": "0x15b659cd56f22b3e23b228f57d224c667681b056d01a0bddfc446b49c55b0e9",
+      "tag": "zkube_jc_sepolia_v1-ZoneConfig",
+      "selector": "0x434712678cf3be5e812b8eb81b59b05989f58c610fb2141c6ea4fd971f78f21"
     }
   ],
   "events": [
-    {
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "achievement_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64",
-          "key": false
-        }
-      ],
-      "class_hash": "0x3ca9aa05af8ef4c94e5213e7ba413e05fd28a7641b7060f896f06c4c6993e00",
-      "tag": "zkube_jc_sepolia_v1-AchievementClaimed",
-      "selector": "0x24531cb59cbc403a9b66e9d0e74fcaabeacfdb626e986023a532e244775d5b6"
-    },
-    {
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "achievement_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64",
-          "key": false
-        }
-      ],
-      "class_hash": "0x7862bab5e54ec6aa89c4a0ef6f39ca01a6440434b08d4fdd8098ee6e920e9a6",
-      "tag": "zkube_jc_sepolia_v1-AchievementCompleted",
-      "selector": "0x517446fb0dd73b610f3af6161cbe3f5f3b0a34108538d4e79e0ae5123dd6f7f"
-    },
     {
       "members": [
         {
@@ -789,9 +889,9 @@
           "key": false
         }
       ],
-      "class_hash": "0x14e0f308f5d33475364f43b0477b929481642395f306d03334f4dee9de72184",
+      "class_hash": "0x5a928d7b39a1327de1c0661a06f88c4ae76b739b11dc104ed0bd5b710e8ab96",
       "tag": "zkube_jc_sepolia_v1-ConstraintProgress",
-      "selector": "0x353bf174f35f86ea87568181261d084bde41c365a7d78454eeb7015f9f58988"
+      "selector": "0x22376a88c3194f82daaa363ce6de364ae4e4883157b746126005af10e46b189"
     },
     {
       "members": [
@@ -806,24 +906,113 @@
           "key": true
         },
         {
-          "name": "consumable",
-          "type": "zkube::types::consumable::ConsumableType",
+          "name": "event_slot",
+          "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "cost",
-          "type": "core::integer::u16",
+          "name": "event_type",
+          "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "cubes_remaining",
-          "type": "core::integer::u16",
+          "name": "trigger_level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "zone",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "choice_1",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "choice_2",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "choice_3",
+          "type": "core::integer::u8",
           "key": false
         }
       ],
-      "class_hash": "0x1572376dc08bd1a45d439fc311b68d6e3a52144c0d0df4a3b204bbafc32216c",
-      "tag": "zkube_jc_sepolia_v1-ConsumablePurchased",
-      "selector": "0x6735939232284480d9ef5a27efe714fbcaba2d65885f5309083dc29f0320ad1"
+      "class_hash": "0x229f10c38b5df576e3dcdc28466adbc29fa88abdfa23669f32cb52fe1d11563",
+      "tag": "zkube_jc_sepolia_v1-DraftOpened",
+      "selector": "0x20f73f71d8dfd2c4b9c04dc1530bc8e590d8b57397b9accacc614e835f9994c"
+    },
+    {
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
+          "name": "event_slot",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "reroll_slot",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "reroll_cost",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "new_choice",
+          "type": "core::integer::u8",
+          "key": false
+        }
+      ],
+      "class_hash": "0x343ab27a10f0957c96bd6b57f608f26cdac671cc86bbc58d7e6eac53ded534c",
+      "tag": "zkube_jc_sepolia_v1-DraftRerolled",
+      "selector": "0x486ef093401934b94f937fbb07b7b51349d4194c7433fabdf42f6330d6a67ec"
+    },
+    {
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
+          "name": "event_slot",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "selected_slot",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "selected_choice",
+          "type": "core::integer::u8",
+          "key": false
+        }
+      ],
+      "class_hash": "0x77668f6ae5e63f72a49fcedcf58239e20d4f2ba8fdc26ade851ec32002f5227",
+      "tag": "zkube_jc_sepolia_v1-DraftSelected",
+      "selector": "0x3935387d4f64f75e1179d3e6ba408dcd8e8244147f913008c1a7e7bd2f65e8f"
     },
     {
       "members": [
@@ -859,7 +1048,7 @@
         },
         {
           "name": "total_score",
-          "type": "core::integer::u16",
+          "type": "core::integer::u32",
           "key": false
         },
         {
@@ -868,9 +1057,9 @@
           "key": false
         }
       ],
-      "class_hash": "0x3949b945ca7d2e86ada1ab22570d1ccfc72dfa01c78c08326090b3877783c4d",
+      "class_hash": "0x6003c69040322cec5cec71346c9db61fbf96961d546dee6324c3c2c446d9d27",
       "tag": "zkube_jc_sepolia_v1-LevelCompleted",
-      "selector": "0x7a28711b6febc8ff460cd133f74e6fe89c19af7615608b64eb3aaf3e290647b"
+      "selector": "0x3ff95274d9ed00ac5e6bf656b6dcd12d50c77c693fe55c80cd300aa0cad4b83"
     },
     {
       "members": [
@@ -915,139 +1104,9 @@
           "key": false
         }
       ],
-      "class_hash": "0x5114250b21f87e84856525b62764196537e982b227ca5e367a614469c34f3e",
+      "class_hash": "0x7042ccb608038b0c0ce0777298673cfd3cb3990842d813cc05933801c2b0f7a",
       "tag": "zkube_jc_sepolia_v1-LevelStarted",
-      "selector": "0x1253fbd361d7ea8f1af4785316aaeea4348f393df3c4e456fcc1f4114c44834"
-    },
-    {
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "quest_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "interval_id",
-          "type": "core::integer::u64",
-          "key": true
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64",
-          "key": false
-        }
-      ],
-      "class_hash": "0x193f0bd07f5db75d3417b8be2e996b9bc71eb163e46fb0fd09c93b95fd93f0c",
-      "tag": "zkube_jc_sepolia_v1-QuestClaimed",
-      "selector": "0x4e4ff4442098ad33c41fa97c066eb7e2aa5b95e6d9b7437df1aef55022d5bb7"
-    },
-    {
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "quest_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "interval_id",
-          "type": "core::integer::u64",
-          "key": true
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64",
-          "key": false
-        }
-      ],
-      "class_hash": "0x78fb571e43ab4457b6f1b9a27378bfa20aa2b45ea858117511e39f424c3ca1b",
-      "tag": "zkube_jc_sepolia_v1-QuestCompleted",
-      "selector": "0x5e9eeae36a38eed46a45b80d89d8bb08c831680a38fc39c1905bd78b3512d5d"
-    },
-    {
-      "members": [
-        {
-          "name": "id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "definition",
-          "type": "quest::models::index::QuestDefinition",
-          "key": false
-        },
-        {
-          "name": "metadata",
-          "type": "core::byte_array::ByteArray",
-          "key": false
-        }
-      ],
-      "class_hash": "0x3887943e3f8a828e25560b36cad9b496e750e5a448bc1f33d0bb938e06676ab",
-      "tag": "zkube_jc_sepolia_v1-QuestCreation",
-      "selector": "0x586c85d4dc6b70c432642b2e7de2d6e42a62f0ee5a205722921d913711d4615"
-    },
-    {
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "task_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "count",
-          "type": "core::integer::u128",
-          "key": false
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64",
-          "key": false
-        }
-      ],
-      "class_hash": "0x479e00ca41dd2cc4ce832a501fd504d21f5931e2b2fd37145f87a76b093d81",
-      "tag": "zkube_jc_sepolia_v1-QuestProgression",
-      "selector": "0x5831e312e637814f5743a7fc8d740a43c33149af647acd8464344c323502a7c"
-    },
-    {
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "quest_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "interval_id",
-          "type": "core::integer::u64",
-          "key": true
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64",
-          "key": false
-        }
-      ],
-      "class_hash": "0x4323e58925dd9a9d34b95a5051f39876ed0ad489ec9288e326c8920a2b89f2",
-      "tag": "zkube_jc_sepolia_v1-QuestUnlocked",
-      "selector": "0x61ce648751042546c61011c452c841b08d59a2a141ddbe63f02ca9a784982f2"
+      "selector": "0xacdf353d0db712b7ef3aa7a967a476607e84f660cf4b108f8f7f34fce988a"
     },
     {
       "members": [
@@ -1063,7 +1122,7 @@
         },
         {
           "name": "final_score",
-          "type": "core::integer::u16",
+          "type": "core::integer::u32",
           "key": false
         },
         {
@@ -1082,9 +1141,9 @@
           "key": false
         }
       ],
-      "class_hash": "0x435106ef4a4da972de83a4449d416c2bc84d17cbedec46eab98820e00193809",
+      "class_hash": "0x1f9e2bab206465b3a7450cf8af41e7bada78c846c8c0ddb7f2063e62e62072c",
       "tag": "zkube_jc_sepolia_v1-RunCompleted",
-      "selector": "0x4375f21330a54aeb3a57d49847814855a7e393ee30850a569c3a2c7364c68a2"
+      "selector": "0x2b63049a1a82d2b15f001f000b86b7a4d2db394a4518b157e3dfad10505980a"
     },
     {
       "members": [
@@ -1105,12 +1164,17 @@
         },
         {
           "name": "final_score",
-          "type": "core::integer::u16",
+          "type": "core::integer::u32",
           "key": false
         },
         {
-          "name": "total_cubes",
-          "type": "core::integer::u16",
+          "name": "endless_depth",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8",
           "key": false
         },
         {
@@ -1124,9 +1188,9 @@
           "key": false
         }
       ],
-      "class_hash": "0x427e3a905d653c51c466c44d6445909951371354869c7d5c8ff545ccf3480b7",
+      "class_hash": "0x2a7eac113f9053af531571ecdd420687d135e0a9a29861b6dff5c015bc56efe",
       "tag": "zkube_jc_sepolia_v1-RunEnded",
-      "selector": "0x1f8ccfae938e3b2021e434fb6752e0c96aee7551c7c5443082fb9cdb24ebfdb"
+      "selector": "0xc24a23cbe1c08669380caa51245845361b840fe9190e5c4f285491c8402321"
     },
     {
       "members": [
@@ -1146,103 +1210,9 @@
           "key": false
         }
       ],
-      "class_hash": "0x6933cee333bcece7dcf0db77afab3002e77715c5b036085c3d19f1aea03ac70",
+      "class_hash": "0x452bc36b4e6031acf60c68896ac99f49cdb7931ae65d1a7760aa4b90c799e8b",
       "tag": "zkube_jc_sepolia_v1-StartGame",
-      "selector": "0x6b4eb5c0f93990f0c55025d03b1c5a4bd40739561a4763c419ad34f05228e2"
-    },
-    {
-      "members": [
-        {
-          "name": "id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "hidden",
-          "type": "core::bool",
-          "key": false
-        },
-        {
-          "name": "index",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "points",
-          "type": "core::integer::u16",
-          "key": false
-        },
-        {
-          "name": "start",
-          "type": "core::integer::u64",
-          "key": false
-        },
-        {
-          "name": "end",
-          "type": "core::integer::u64",
-          "key": false
-        },
-        {
-          "name": "group",
-          "type": "core::felt252",
-          "key": false
-        },
-        {
-          "name": "icon",
-          "type": "core::felt252",
-          "key": false
-        },
-        {
-          "name": "title",
-          "type": "core::felt252",
-          "key": false
-        },
-        {
-          "name": "description",
-          "type": "core::byte_array::ByteArray",
-          "key": false
-        },
-        {
-          "name": "tasks",
-          "type": "core::array::Span::<achievement::types::task::Task>",
-          "key": false
-        },
-        {
-          "name": "data",
-          "type": "core::byte_array::ByteArray",
-          "key": false
-        }
-      ],
-      "class_hash": "0x706834e9ed630a715e2727c7ed3706c2f92d46f93568c4082f7030023947cf0",
-      "tag": "zkube_jc_sepolia_v1-TrophyCreation",
-      "selector": "0x4ad9912eefa6bc5b44c8471f24c961d48bbe8b16a52a3fccd59b9d70b35d426"
-    },
-    {
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "task_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "count",
-          "type": "core::integer::u128",
-          "key": false
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64",
-          "key": false
-        }
-      ],
-      "class_hash": "0x313c566ceee5bdcaed4accfedc707b6b5a02feb96f9448a18bfa97bf43811e4",
-      "tag": "zkube_jc_sepolia_v1-TrophyProgression",
-      "selector": "0x1b2e61a8d6969160fd083d585334f7fba04e9fd12836cea84f5d1dcac67c701"
+      "selector": "0x5645693f1abe3a7a03e8210da26b1a26ab92ea1f19d7dd3e8da77b2063700d6"
     },
     {
       "members": [
@@ -1267,423 +1237,13 @@
           "key": false
         }
       ],
-      "class_hash": "0x29d59b27c571521b248ff4bd211dffe096fee8043eda160c4e5de358b578288",
+      "class_hash": "0x4e8b59dd16a16f2c2d6f8aba7e4bdd4c1d2d7aaf9642b9075b876cfc4e78250",
       "tag": "zkube_jc_sepolia_v1-UseBonus",
-      "selector": "0x12d7603e18f9fa369a823a5096714451ba28a0f67a4b7736a2d26e2e4777c13"
+      "selector": "0x5b4a3b1b32cc734384eabd3ea25f4535ca75706c9dcf03e26f70e3bd84a2814"
     }
   ],
   "external_contracts": [],
   "abis": [
-    {
-      "type": "struct",
-      "name": "achievement::events::index::AchievementClaimed",
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "achievement_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "achievement::events::index::AchievementClaimedValue",
-      "members": [
-        {
-          "name": "time",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "achievement::events::index::AchievementCompleted",
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "achievement_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "achievement::events::index::AchievementCompletedValue",
-      "members": [
-        {
-          "name": "time",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "achievement::events::index::TrophyCreation",
-      "members": [
-        {
-          "name": "id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "hidden",
-          "type": "core::bool"
-        },
-        {
-          "name": "index",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "points",
-          "type": "core::integer::u16"
-        },
-        {
-          "name": "start",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "end",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "group",
-          "type": "core::felt252"
-        },
-        {
-          "name": "icon",
-          "type": "core::felt252"
-        },
-        {
-          "name": "title",
-          "type": "core::felt252"
-        },
-        {
-          "name": "description",
-          "type": "core::byte_array::ByteArray"
-        },
-        {
-          "name": "tasks",
-          "type": "core::array::Span::<achievement::types::task::Task>"
-        },
-        {
-          "name": "data",
-          "type": "core::byte_array::ByteArray"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "achievement::events::index::TrophyCreationValue",
-      "members": [
-        {
-          "name": "hidden",
-          "type": "core::bool"
-        },
-        {
-          "name": "index",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "points",
-          "type": "core::integer::u16"
-        },
-        {
-          "name": "start",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "end",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "group",
-          "type": "core::felt252"
-        },
-        {
-          "name": "icon",
-          "type": "core::felt252"
-        },
-        {
-          "name": "title",
-          "type": "core::felt252"
-        },
-        {
-          "name": "description",
-          "type": "core::byte_array::ByteArray"
-        },
-        {
-          "name": "tasks",
-          "type": "core::array::Span::<achievement::types::task::Task>"
-        },
-        {
-          "name": "data",
-          "type": "core::byte_array::ByteArray"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "achievement::events::index::TrophyProgression",
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "task_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "count",
-          "type": "core::integer::u128"
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "achievement::events::index::TrophyProgressionValue",
-      "members": [
-        {
-          "name": "count",
-          "type": "core::integer::u128"
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "achievement::events::index::e_AchievementClaimed::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "achievement::events::index::e_AchievementCompleted::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "achievement::events::index::e_TrophyCreation::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "achievement::events::index::e_TrophyProgression::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "struct",
-      "name": "achievement::models::index::AchievementAdvancement",
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "achievement_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "task_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "count",
-          "type": "core::integer::u128"
-        },
-        {
-          "name": "timestamp",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "achievement::models::index::AchievementAdvancementValue",
-      "members": [
-        {
-          "name": "count",
-          "type": "core::integer::u128"
-        },
-        {
-          "name": "timestamp",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "achievement::models::index::AchievementAssociation",
-      "members": [
-        {
-          "name": "task_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "achievements",
-          "type": "core::array::Array::<core::felt252>"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "achievement::models::index::AchievementAssociationValue",
-      "members": [
-        {
-          "name": "achievements",
-          "type": "core::array::Array::<core::felt252>"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "achievement::models::index::AchievementCompletion",
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "achievement_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "timestamp",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "unclaimed",
-          "type": "core::bool"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "achievement::models::index::AchievementCompletionValue",
-      "members": [
-        {
-          "name": "timestamp",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "unclaimed",
-          "type": "core::bool"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "achievement::models::index::AchievementDefinition",
-      "members": [
-        {
-          "name": "id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "rewarder",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "start",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "end",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "tasks",
-          "type": "core::array::Span::<achievement::types::task::Task>"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "achievement::models::index::AchievementDefinitionValue",
-      "members": [
-        {
-          "name": "rewarder",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "start",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "end",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "tasks",
-          "type": "core::array::Span::<achievement::types::task::Task>"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "achievement::models::index::m_AchievementAdvancement::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "achievement::models::index::m_AchievementAssociation::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "achievement::models::index::m_AchievementCompletion::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "achievement::models::index::m_AchievementDefinition::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "struct",
-      "name": "achievement::types::task::Task",
-      "members": [
-        {
-          "name": "id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "total",
-          "type": "core::integer::u128"
-        },
-        {
-          "name": "description",
-          "type": "core::byte_array::ByteArray"
-        }
-      ]
-    },
     {
       "type": "constructor",
       "name": "constructor",
@@ -1696,16 +1256,6 @@
         {
           "name": "snapshot",
           "type": "@core::array::Array::<(core::felt252, dojo::meta::introspect::Ty)>"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "core::array::Span::<achievement::types::task::Task>",
-      "members": [
-        {
-          "name": "snapshot",
-          "type": "@core::array::Array::<achievement::types::task::Task>"
         }
       ]
     },
@@ -1731,16 +1281,6 @@
     },
     {
       "type": "struct",
-      "name": "core::array::Span::<core::integer::u256>",
-      "members": [
-        {
-          "name": "snapshot",
-          "type": "@core::array::Array::<core::integer::u256>"
-        }
-      ]
-    },
-    {
-      "type": "struct",
       "name": "core::array::Span::<core::integer::u32>",
       "members": [
         {
@@ -1756,16 +1296,6 @@
         {
           "name": "snapshot",
           "type": "@core::array::Array::<core::integer::u8>"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "core::array::Span::<core::starknet::contract_address::ContractAddress>",
-      "members": [
-        {
-          "name": "snapshot",
-          "type": "@core::array::Array::<core::starknet::contract_address::ContractAddress>"
         }
       ]
     },
@@ -1821,41 +1351,31 @@
     },
     {
       "type": "struct",
-      "name": "core::array::Span::<game_components_metagame::extensions::context::structs::GameContext>",
+      "name": "core::array::Span::<game_components_interfaces::structs::metagame::GameContext>",
       "members": [
         {
           "name": "snapshot",
-          "type": "@core::array::Array::<game_components_metagame::extensions::context::structs::GameContext>"
+          "type": "@core::array::Array::<game_components_interfaces::structs::metagame::GameContext>"
         }
       ]
     },
     {
       "type": "struct",
-      "name": "core::array::Span::<game_components_minigame::extensions::settings::structs::GameSetting>",
+      "name": "core::array::Span::<game_components_interfaces::structs::minigame::GameDetail>",
       "members": [
         {
           "name": "snapshot",
-          "type": "@core::array::Array::<game_components_minigame::extensions::settings::structs::GameSetting>"
+          "type": "@core::array::Array::<game_components_interfaces::structs::minigame::GameDetail>"
         }
       ]
     },
     {
       "type": "struct",
-      "name": "core::array::Span::<game_components_minigame::structs::GameDetail>",
+      "name": "core::array::Span::<game_components_interfaces::structs::minigame::GameSetting>",
       "members": [
         {
           "name": "snapshot",
-          "type": "@core::array::Array::<game_components_minigame::structs::GameDetail>"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "core::array::Span::<quest::types::task::Task>",
-      "members": [
-        {
-          "name": "snapshot",
-          "type": "@core::array::Array::<quest::types::task::Task>"
+          "type": "@core::array::Array::<game_components_interfaces::structs::minigame::GameSetting>"
         }
       ]
     },
@@ -1902,20 +1422,6 @@
         {
           "name": "high",
           "type": "core::integer::u128"
-        }
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "core::option::Option::<core::array::Span::<core::integer::u32>>",
-      "variants": [
-        {
-          "name": "Some",
-          "type": "core::array::Span::<core::integer::u32>"
-        },
-        {
-          "name": "None",
-          "type": "()"
         }
       ]
     },
@@ -1991,11 +1497,11 @@
     },
     {
       "type": "enum",
-      "name": "core::option::Option::<game_components_metagame::extensions::context::structs::GameContextDetails>",
+      "name": "core::option::Option::<game_components_interfaces::structs::metagame::GameContextDetails>",
       "variants": [
         {
           "name": "Some",
-          "type": "game_components_metagame::extensions::context::structs::GameContextDetails"
+          "type": "game_components_interfaces::structs::metagame::GameContextDetails"
         },
         {
           "name": "None",
@@ -3709,126 +3215,20 @@
       "state_mutability": "view"
     },
     {
-      "type": "struct",
-      "name": "game_components_metagame::extensions::context::structs::GameContext",
-      "members": [
-        {
-          "name": "name",
-          "type": "core::byte_array::ByteArray"
-        },
-        {
-          "name": "value",
-          "type": "core::byte_array::ByteArray"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "game_components_metagame::extensions::context::structs::GameContextDetails",
-      "members": [
-        {
-          "name": "name",
-          "type": "core::byte_array::ByteArray"
-        },
-        {
-          "name": "description",
-          "type": "core::byte_array::ByteArray"
-        },
-        {
-          "name": "id",
-          "type": "core::option::Option::<core::integer::u32>"
-        },
-        {
-          "name": "context",
-          "type": "core::array::Span::<game_components_metagame::extensions::context::structs::GameContext>"
-        }
-      ]
-    },
-    {
-      "type": "interface",
-      "name": "game_components_minigame::extensions::settings::interface::IMinigameSettings",
-      "items": [
-        {
-          "type": "function",
-          "name": "settings_exist",
-          "inputs": [
-            {
-              "name": "settings_id",
-              "type": "core::integer::u32"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::bool"
-            }
-          ],
-          "state_mutability": "view"
-        }
-      ]
-    },
-    {
-      "type": "interface",
-      "name": "game_components_minigame::extensions::settings::interface::IMinigameSettingsDetails",
-      "items": [
-        {
-          "type": "function",
-          "name": "settings_details",
-          "inputs": [
-            {
-              "name": "settings_id",
-              "type": "core::integer::u32"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "game_components_minigame::extensions::settings::structs::GameSettingDetails"
-            }
-          ],
-          "state_mutability": "view"
-        }
-      ]
-    },
-    {
       "type": "event",
-      "name": "game_components_minigame::extensions::settings::settings::SettingsComponent::Event",
+      "name": "game_components_embeddable_game_standard::minigame::extensions::settings::settings::SettingsComponent::Event",
       "kind": "enum",
       "variants": []
     },
     {
-      "type": "struct",
-      "name": "game_components_minigame::extensions::settings::structs::GameSetting",
-      "members": [
-        {
-          "name": "name",
-          "type": "core::byte_array::ByteArray"
-        },
-        {
-          "name": "value",
-          "type": "core::byte_array::ByteArray"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "game_components_minigame::extensions::settings::structs::GameSettingDetails",
-      "members": [
-        {
-          "name": "name",
-          "type": "core::byte_array::ByteArray"
-        },
-        {
-          "name": "description",
-          "type": "core::byte_array::ByteArray"
-        },
-        {
-          "name": "settings",
-          "type": "core::array::Span::<game_components_minigame::extensions::settings::structs::GameSetting>"
-        }
-      ]
+      "type": "event",
+      "name": "game_components_embeddable_game_standard::minigame::minigame_component::MinigameComponent::Event",
+      "kind": "enum",
+      "variants": []
     },
     {
       "type": "interface",
-      "name": "game_components_minigame::interface::IMinigame",
+      "name": "game_components_interfaces::minigame::core::IMinigame",
       "items": [
         {
           "type": "function",
@@ -3884,12 +3284,12 @@
               "type": "core::option::Option::<core::integer::u64>"
             },
             {
-              "name": "objective_ids",
-              "type": "core::option::Option::<core::array::Span::<core::integer::u32>>"
+              "name": "objective_id",
+              "type": "core::option::Option::<core::integer::u32>"
             },
             {
               "name": "context",
-              "type": "core::option::Option::<game_components_metagame::extensions::context::structs::GameContextDetails>"
+              "type": "core::option::Option::<game_components_interfaces::structs::metagame::GameContextDetails>"
             },
             {
               "name": "client_url",
@@ -3900,17 +3300,49 @@
               "type": "core::option::Option::<core::starknet::contract_address::ContractAddress>"
             },
             {
+              "name": "skills_address",
+              "type": "core::option::Option::<core::starknet::contract_address::ContractAddress>"
+            },
+            {
               "name": "to",
               "type": "core::starknet::contract_address::ContractAddress"
             },
             {
               "name": "soulbound",
               "type": "core::bool"
+            },
+            {
+              "name": "paymaster",
+              "type": "core::bool"
+            },
+            {
+              "name": "salt",
+              "type": "core::integer::u16"
+            },
+            {
+              "name": "metadata",
+              "type": "core::integer::u16"
             }
           ],
           "outputs": [
             {
-              "type": "core::integer::u64"
+              "type": "core::felt252"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "mint_game_batch",
+          "inputs": [
+            {
+              "name": "mints",
+              "type": "core::array::Array::<game_components_interfaces::structs::minigame::MintGameParams>"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::array::Array::<core::felt252>"
             }
           ],
           "state_mutability": "view"
@@ -3919,7 +3351,7 @@
     },
     {
       "type": "interface",
-      "name": "game_components_minigame::interface::IMinigameDetails",
+      "name": "game_components_interfaces::minigame::core::IMinigameDetails",
       "items": [
         {
           "type": "function",
@@ -3927,7 +3359,7 @@
           "inputs": [
             {
               "name": "token_id",
-              "type": "core::integer::u64"
+              "type": "core::felt252"
             }
           ],
           "outputs": [
@@ -3943,7 +3375,7 @@
           "inputs": [
             {
               "name": "token_id",
-              "type": "core::integer::u64"
+              "type": "core::felt252"
             }
           ],
           "outputs": [
@@ -3959,12 +3391,60 @@
           "inputs": [
             {
               "name": "token_id",
-              "type": "core::integer::u64"
+              "type": "core::felt252"
             }
           ],
           "outputs": [
             {
-              "type": "core::array::Span::<game_components_minigame::structs::GameDetail>"
+              "type": "core::array::Span::<game_components_interfaces::structs::minigame::GameDetail>"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "token_name_batch",
+          "inputs": [
+            {
+              "name": "token_ids",
+              "type": "core::array::Span::<core::felt252>"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::array::Array::<core::byte_array::ByteArray>"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "token_description_batch",
+          "inputs": [
+            {
+              "name": "token_ids",
+              "type": "core::array::Span::<core::felt252>"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::array::Array::<core::byte_array::ByteArray>"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "game_details_batch",
+          "inputs": [
+            {
+              "name": "token_ids",
+              "type": "core::array::Span::<core::felt252>"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::array::Array::<core::array::Span::<game_components_interfaces::structs::minigame::GameDetail>>"
             }
           ],
           "state_mutability": "view"
@@ -3973,7 +3453,7 @@
     },
     {
       "type": "interface",
-      "name": "game_components_minigame::interface::IMinigameDetailsSVG",
+      "name": "game_components_interfaces::minigame::core::IMinigameDetailsSVG",
       "items": [
         {
           "type": "function",
@@ -3981,7 +3461,7 @@
           "inputs": [
             {
               "name": "token_id",
-              "type": "core::integer::u64"
+              "type": "core::felt252"
             }
           ],
           "outputs": [
@@ -3995,7 +3475,7 @@
     },
     {
       "type": "interface",
-      "name": "game_components_minigame::interface::IMinigameTokenData",
+      "name": "game_components_interfaces::minigame::core::IMinigameTokenData",
       "items": [
         {
           "type": "function",
@@ -4003,12 +3483,12 @@
           "inputs": [
             {
               "name": "token_id",
-              "type": "core::integer::u64"
+              "type": "core::felt252"
             }
           ],
           "outputs": [
             {
-              "type": "core::integer::u32"
+              "type": "core::integer::u64"
             }
           ],
           "state_mutability": "view"
@@ -4019,7 +3499,7 @@
           "inputs": [
             {
               "name": "token_id",
-              "type": "core::integer::u64"
+              "type": "core::felt252"
             }
           ],
           "outputs": [
@@ -4028,236 +3508,269 @@
             }
           ],
           "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "score_batch",
+          "inputs": [
+            {
+              "name": "token_ids",
+              "type": "core::array::Span::<core::felt252>"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::array::Array::<core::integer::u64>"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "game_over_batch",
+          "inputs": [
+            {
+              "name": "token_ids",
+              "type": "core::array::Span::<core::felt252>"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::array::Array::<core::bool>"
+            }
+          ],
+          "state_mutability": "view"
         }
       ]
     },
     {
-      "type": "event",
-      "name": "game_components_minigame::minigame::MinigameComponent::Event",
-      "kind": "enum",
-      "variants": []
+      "type": "interface",
+      "name": "game_components_interfaces::minigame::settings::IMinigameSettings",
+      "items": [
+        {
+          "type": "function",
+          "name": "settings_exist",
+          "inputs": [
+            {
+              "name": "settings_id",
+              "type": "core::integer::u32"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::bool"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "settings_exist_batch",
+          "inputs": [
+            {
+              "name": "settings_ids",
+              "type": "core::array::Span::<core::integer::u32>"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::array::Array::<core::bool>"
+            }
+          ],
+          "state_mutability": "view"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "game_components_interfaces::minigame::settings::IMinigameSettingsDetails",
+      "items": [
+        {
+          "type": "function",
+          "name": "settings_count",
+          "inputs": [],
+          "outputs": [
+            {
+              "type": "core::integer::u32"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "settings_details",
+          "inputs": [
+            {
+              "name": "settings_id",
+              "type": "core::integer::u32"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "game_components_interfaces::structs::minigame::GameSettingDetails"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "settings_details_batch",
+          "inputs": [
+            {
+              "name": "settings_ids",
+              "type": "core::array::Span::<core::integer::u32>"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::array::Array::<game_components_interfaces::structs::minigame::GameSettingDetails>"
+            }
+          ],
+          "state_mutability": "view"
+        }
+      ]
     },
     {
       "type": "struct",
-      "name": "game_components_minigame::structs::GameDetail",
+      "name": "game_components_interfaces::structs::metagame::GameContext",
+      "members": [
+        {
+          "name": "name",
+          "type": "core::felt252"
+        },
+        {
+          "name": "value",
+          "type": "core::felt252"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "game_components_interfaces::structs::metagame::GameContextDetails",
       "members": [
         {
           "name": "name",
           "type": "core::byte_array::ByteArray"
         },
         {
-          "name": "value",
+          "name": "description",
           "type": "core::byte_array::ByteArray"
+        },
+        {
+          "name": "id",
+          "type": "core::option::Option::<core::integer::u32>"
+        },
+        {
+          "name": "context",
+          "type": "core::array::Span::<game_components_interfaces::structs::metagame::GameContext>"
         }
       ]
     },
     {
-      "type": "event",
-      "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::Event",
-      "kind": "enum",
-      "variants": [
-        {
-          "name": "RoleGranted",
-          "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGranted",
-          "kind": "nested"
-        },
-        {
-          "name": "RoleGrantedWithDelay",
-          "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGrantedWithDelay",
-          "kind": "nested"
-        },
-        {
-          "name": "RoleRevoked",
-          "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleRevoked",
-          "kind": "nested"
-        },
-        {
-          "name": "RoleAdminChanged",
-          "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleAdminChanged",
-          "kind": "nested"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleAdminChanged",
-      "kind": "struct",
+      "type": "struct",
+      "name": "game_components_interfaces::structs::minigame::GameDetail",
       "members": [
         {
-          "name": "role",
-          "type": "core::felt252",
-          "kind": "data"
+          "name": "name",
+          "type": "core::felt252"
         },
         {
-          "name": "previous_admin_role",
-          "type": "core::felt252",
-          "kind": "data"
-        },
-        {
-          "name": "new_admin_role",
-          "type": "core::felt252",
-          "kind": "data"
+          "name": "value",
+          "type": "core::felt252"
         }
       ]
     },
     {
-      "type": "event",
-      "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGranted",
-      "kind": "struct",
+      "type": "struct",
+      "name": "game_components_interfaces::structs::minigame::GameSetting",
       "members": [
         {
-          "name": "role",
-          "type": "core::felt252",
-          "kind": "data"
+          "name": "name",
+          "type": "core::felt252"
         },
         {
-          "name": "account",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "data"
-        },
-        {
-          "name": "sender",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "data"
+          "name": "value",
+          "type": "core::felt252"
         }
       ]
     },
     {
-      "type": "event",
-      "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGrantedWithDelay",
-      "kind": "struct",
+      "type": "struct",
+      "name": "game_components_interfaces::structs::minigame::GameSettingDetails",
       "members": [
         {
-          "name": "role",
-          "type": "core::felt252",
-          "kind": "data"
+          "name": "name",
+          "type": "core::byte_array::ByteArray"
         },
         {
-          "name": "account",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "data"
+          "name": "description",
+          "type": "core::byte_array::ByteArray"
         },
         {
-          "name": "sender",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "data"
-        },
-        {
-          "name": "delay",
-          "type": "core::integer::u64",
-          "kind": "data"
+          "name": "settings",
+          "type": "core::array::Span::<game_components_interfaces::structs::minigame::GameSetting>"
         }
       ]
     },
     {
-      "type": "event",
-      "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleRevoked",
-      "kind": "struct",
+      "type": "struct",
+      "name": "game_components_interfaces::structs::minigame::MintGameParams",
       "members": [
         {
-          "name": "role",
-          "type": "core::felt252",
-          "kind": "data"
+          "name": "player_name",
+          "type": "core::option::Option::<core::felt252>"
         },
         {
-          "name": "account",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "data"
+          "name": "settings_id",
+          "type": "core::option::Option::<core::integer::u32>"
         },
         {
-          "name": "sender",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "data"
-        }
-      ]
-    },
-    {
-      "type": "interface",
-      "name": "openzeppelin_interfaces::access::accesscontrol::IAccessControl",
-      "items": [
-        {
-          "type": "function",
-          "name": "has_role",
-          "inputs": [
-            {
-              "name": "role",
-              "type": "core::felt252"
-            },
-            {
-              "name": "account",
-              "type": "core::starknet::contract_address::ContractAddress"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::bool"
-            }
-          ],
-          "state_mutability": "view"
+          "name": "start",
+          "type": "core::option::Option::<core::integer::u64>"
         },
         {
-          "type": "function",
-          "name": "get_role_admin",
-          "inputs": [
-            {
-              "name": "role",
-              "type": "core::felt252"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::felt252"
-            }
-          ],
-          "state_mutability": "view"
+          "name": "end",
+          "type": "core::option::Option::<core::integer::u64>"
         },
         {
-          "type": "function",
-          "name": "grant_role",
-          "inputs": [
-            {
-              "name": "role",
-              "type": "core::felt252"
-            },
-            {
-              "name": "account",
-              "type": "core::starknet::contract_address::ContractAddress"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
+          "name": "objective_id",
+          "type": "core::option::Option::<core::integer::u32>"
         },
         {
-          "type": "function",
-          "name": "revoke_role",
-          "inputs": [
-            {
-              "name": "role",
-              "type": "core::felt252"
-            },
-            {
-              "name": "account",
-              "type": "core::starknet::contract_address::ContractAddress"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
+          "name": "context",
+          "type": "core::option::Option::<game_components_interfaces::structs::metagame::GameContextDetails>"
         },
         {
-          "type": "function",
-          "name": "renounce_role",
-          "inputs": [
-            {
-              "name": "role",
-              "type": "core::felt252"
-            },
-            {
-              "name": "account",
-              "type": "core::starknet::contract_address::ContractAddress"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
+          "name": "client_url",
+          "type": "core::option::Option::<core::byte_array::ByteArray>"
+        },
+        {
+          "name": "renderer_address",
+          "type": "core::option::Option::<core::starknet::contract_address::ContractAddress>"
+        },
+        {
+          "name": "skills_address",
+          "type": "core::option::Option::<core::starknet::contract_address::ContractAddress>"
+        },
+        {
+          "name": "to",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "soulbound",
+          "type": "core::bool"
+        },
+        {
+          "name": "paymaster",
+          "type": "core::bool"
+        },
+        {
+          "name": "salt",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "metadata",
+          "type": "core::integer::u16"
         }
       ]
     },
@@ -4284,811 +3797,10 @@
       ]
     },
     {
-      "type": "interface",
-      "name": "openzeppelin_interfaces::token::erc1155::IERC1155",
-      "items": [
-        {
-          "type": "function",
-          "name": "balance_of",
-          "inputs": [
-            {
-              "name": "account",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "token_id",
-              "type": "core::integer::u256"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::integer::u256"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "balance_of_batch",
-          "inputs": [
-            {
-              "name": "accounts",
-              "type": "core::array::Span::<core::starknet::contract_address::ContractAddress>"
-            },
-            {
-              "name": "token_ids",
-              "type": "core::array::Span::<core::integer::u256>"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::array::Span::<core::integer::u256>"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "safe_transfer_from",
-          "inputs": [
-            {
-              "name": "from",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "to",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "token_id",
-              "type": "core::integer::u256"
-            },
-            {
-              "name": "value",
-              "type": "core::integer::u256"
-            },
-            {
-              "name": "data",
-              "type": "core::array::Span::<core::felt252>"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "safe_batch_transfer_from",
-          "inputs": [
-            {
-              "name": "from",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "to",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "token_ids",
-              "type": "core::array::Span::<core::integer::u256>"
-            },
-            {
-              "name": "values",
-              "type": "core::array::Span::<core::integer::u256>"
-            },
-            {
-              "name": "data",
-              "type": "core::array::Span::<core::felt252>"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "is_approved_for_all",
-          "inputs": [
-            {
-              "name": "owner",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "operator",
-              "type": "core::starknet::contract_address::ContractAddress"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::bool"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "set_approval_for_all",
-          "inputs": [
-            {
-              "name": "operator",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "approved",
-              "type": "core::bool"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        }
-      ]
-    },
-    {
       "type": "event",
       "name": "openzeppelin_introspection::src5::SRC5Component::Event",
       "kind": "enum",
       "variants": []
-    },
-    {
-      "type": "event",
-      "name": "openzeppelin_token::erc1155::erc1155::ERC1155Component::ApprovalForAll",
-      "kind": "struct",
-      "members": [
-        {
-          "name": "owner",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
-        {
-          "name": "operator",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
-        {
-          "name": "approved",
-          "type": "core::bool",
-          "kind": "data"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "openzeppelin_token::erc1155::erc1155::ERC1155Component::Event",
-      "kind": "enum",
-      "variants": [
-        {
-          "name": "TransferSingle",
-          "type": "openzeppelin_token::erc1155::erc1155::ERC1155Component::TransferSingle",
-          "kind": "nested"
-        },
-        {
-          "name": "TransferBatch",
-          "type": "openzeppelin_token::erc1155::erc1155::ERC1155Component::TransferBatch",
-          "kind": "nested"
-        },
-        {
-          "name": "ApprovalForAll",
-          "type": "openzeppelin_token::erc1155::erc1155::ERC1155Component::ApprovalForAll",
-          "kind": "nested"
-        },
-        {
-          "name": "URI",
-          "type": "openzeppelin_token::erc1155::erc1155::ERC1155Component::URI",
-          "kind": "nested"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "openzeppelin_token::erc1155::erc1155::ERC1155Component::TransferBatch",
-      "kind": "struct",
-      "members": [
-        {
-          "name": "operator",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
-        {
-          "name": "from",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
-        {
-          "name": "to",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
-        {
-          "name": "ids",
-          "type": "core::array::Span::<core::integer::u256>",
-          "kind": "data"
-        },
-        {
-          "name": "values",
-          "type": "core::array::Span::<core::integer::u256>",
-          "kind": "data"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "openzeppelin_token::erc1155::erc1155::ERC1155Component::TransferSingle",
-      "kind": "struct",
-      "members": [
-        {
-          "name": "operator",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
-        {
-          "name": "from",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
-        {
-          "name": "to",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
-        {
-          "name": "id",
-          "type": "core::integer::u256",
-          "kind": "data"
-        },
-        {
-          "name": "value",
-          "type": "core::integer::u256",
-          "kind": "data"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "openzeppelin_token::erc1155::erc1155::ERC1155Component::URI",
-      "kind": "struct",
-      "members": [
-        {
-          "name": "value",
-          "type": "core::byte_array::ByteArray",
-          "kind": "data"
-        },
-        {
-          "name": "id",
-          "type": "core::integer::u256",
-          "kind": "key"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "quest::components::questable::QuestableComponent::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "struct",
-      "name": "quest::events::index::QuestClaimed",
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "quest_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "interval_id",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::events::index::QuestClaimedValue",
-      "members": [
-        {
-          "name": "time",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::events::index::QuestCompleted",
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "quest_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "interval_id",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::events::index::QuestCompletedValue",
-      "members": [
-        {
-          "name": "time",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::events::index::QuestCreation",
-      "members": [
-        {
-          "name": "id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "definition",
-          "type": "quest::models::index::QuestDefinition"
-        },
-        {
-          "name": "metadata",
-          "type": "core::byte_array::ByteArray"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::events::index::QuestCreationValue",
-      "members": [
-        {
-          "name": "definition",
-          "type": "quest::models::index::QuestDefinition"
-        },
-        {
-          "name": "metadata",
-          "type": "core::byte_array::ByteArray"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::events::index::QuestProgression",
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "task_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "count",
-          "type": "core::integer::u128"
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::events::index::QuestProgressionValue",
-      "members": [
-        {
-          "name": "count",
-          "type": "core::integer::u128"
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::events::index::QuestUnlocked",
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "quest_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "interval_id",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "time",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::events::index::QuestUnlockedValue",
-      "members": [
-        {
-          "name": "time",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "quest::events::index::e_QuestClaimed::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "quest::events::index::e_QuestCompleted::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "quest::events::index::e_QuestCreation::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "quest::events::index::e_QuestProgression::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "quest::events::index::e_QuestUnlocked::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "interface",
-      "name": "quest::interfaces::IQuestRewarder",
-      "items": [
-        {
-          "type": "function",
-          "name": "on_quest_unlock",
-          "inputs": [
-            {
-              "name": "player",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "quest_id",
-              "type": "core::felt252"
-            },
-            {
-              "name": "interval_id",
-              "type": "core::integer::u64"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "on_quest_complete",
-          "inputs": [
-            {
-              "name": "player",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "quest_id",
-              "type": "core::felt252"
-            },
-            {
-              "name": "interval_id",
-              "type": "core::integer::u64"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "on_quest_claim",
-          "inputs": [
-            {
-              "name": "player",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "quest_id",
-              "type": "core::felt252"
-            },
-            {
-              "name": "interval_id",
-              "type": "core::integer::u64"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::models::index::QuestAdvancement",
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "quest_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "task_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "interval_id",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "count",
-          "type": "core::integer::u128"
-        },
-        {
-          "name": "timestamp",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::models::index::QuestAdvancementValue",
-      "members": [
-        {
-          "name": "count",
-          "type": "core::integer::u128"
-        },
-        {
-          "name": "timestamp",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::models::index::QuestAssociation",
-      "members": [
-        {
-          "name": "task_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "quests",
-          "type": "core::array::Array::<core::felt252>"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::models::index::QuestAssociationValue",
-      "members": [
-        {
-          "name": "quests",
-          "type": "core::array::Array::<core::felt252>"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::models::index::QuestCompletion",
-      "members": [
-        {
-          "name": "player_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "quest_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "interval_id",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "timestamp",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "unclaimed",
-          "type": "core::bool"
-        },
-        {
-          "name": "lock_count",
-          "type": "core::integer::u32"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::models::index::QuestCompletionValue",
-      "members": [
-        {
-          "name": "timestamp",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "unclaimed",
-          "type": "core::bool"
-        },
-        {
-          "name": "lock_count",
-          "type": "core::integer::u32"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::models::index::QuestCondition",
-      "members": [
-        {
-          "name": "quest_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "quests",
-          "type": "core::array::Array::<core::felt252>"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::models::index::QuestConditionValue",
-      "members": [
-        {
-          "name": "quests",
-          "type": "core::array::Array::<core::felt252>"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::models::index::QuestDefinition",
-      "members": [
-        {
-          "name": "id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "rewarder",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "start",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "end",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "duration",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "interval",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "tasks",
-          "type": "core::array::Span::<quest::types::task::Task>"
-        },
-        {
-          "name": "conditions",
-          "type": "core::array::Span::<core::felt252>"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "quest::models::index::QuestDefinitionValue",
-      "members": [
-        {
-          "name": "rewarder",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "start",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "end",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "duration",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "interval",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "tasks",
-          "type": "core::array::Span::<quest::types::task::Task>"
-        },
-        {
-          "name": "conditions",
-          "type": "core::array::Span::<core::felt252>"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "quest::models::index::m_QuestAdvancement::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "quest::models::index::m_QuestAssociation::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "quest::models::index::m_QuestCompletion::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "quest::models::index::m_QuestCondition::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "quest::models::index::m_QuestDefinition::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "struct",
-      "name": "quest::types::task::Task",
-      "members": [
-        {
-          "name": "id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "total",
-          "type": "core::integer::u128"
-        },
-        {
-          "name": "description",
-          "type": "core::byte_array::ByteArray"
-        }
-      ]
-    },
-    {
-      "type": "function",
-      "name": "register_external_contract",
-      "inputs": [],
-      "outputs": [],
-      "state_mutability": "external"
     },
     {
       "type": "struct",
@@ -5132,7 +3844,7 @@
     },
     {
       "type": "struct",
-      "name": "zkube::events::ConsumablePurchased",
+      "name": "zkube::events::DraftOpened",
       "members": [
         {
           "name": "game_id",
@@ -5143,34 +3855,162 @@
           "type": "core::starknet::contract_address::ContractAddress"
         },
         {
-          "name": "consumable",
-          "type": "zkube::types::consumable::ConsumableType"
+          "name": "event_slot",
+          "type": "core::integer::u8"
         },
         {
-          "name": "cost",
-          "type": "core::integer::u16"
+          "name": "event_type",
+          "type": "core::integer::u8"
         },
         {
-          "name": "cubes_remaining",
-          "type": "core::integer::u16"
+          "name": "trigger_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "zone",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_1",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_2",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_3",
+          "type": "core::integer::u8"
         }
       ]
     },
     {
       "type": "struct",
-      "name": "zkube::events::ConsumablePurchasedValue",
+      "name": "zkube::events::DraftOpenedValue",
       "members": [
         {
-          "name": "consumable",
-          "type": "zkube::types::consumable::ConsumableType"
+          "name": "event_slot",
+          "type": "core::integer::u8"
         },
         {
-          "name": "cost",
+          "name": "event_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "trigger_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "zone",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_1",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_2",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "choice_3",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::DraftRerolled",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "event_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "reroll_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "reroll_cost",
           "type": "core::integer::u16"
         },
         {
-          "name": "cubes_remaining",
+          "name": "new_choice",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::DraftRerolledValue",
+      "members": [
+        {
+          "name": "event_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "reroll_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "reroll_cost",
           "type": "core::integer::u16"
+        },
+        {
+          "name": "new_choice",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::DraftSelected",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "event_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "selected_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "selected_choice",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::DraftSelectedValue",
+      "members": [
+        {
+          "name": "event_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "selected_slot",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "selected_choice",
+          "type": "core::integer::u8"
         }
       ]
     },
@@ -5204,7 +4044,7 @@
         },
         {
           "name": "total_score",
-          "type": "core::integer::u16"
+          "type": "core::integer::u32"
         },
         {
           "name": "bonuses_earned",
@@ -5234,7 +4074,7 @@
         },
         {
           "name": "total_score",
-          "type": "core::integer::u16"
+          "type": "core::integer::u32"
         },
         {
           "name": "bonuses_earned",
@@ -5324,7 +4164,7 @@
         },
         {
           "name": "final_score",
-          "type": "core::integer::u16"
+          "type": "core::integer::u32"
         },
         {
           "name": "total_cubes",
@@ -5346,7 +4186,7 @@
       "members": [
         {
           "name": "final_score",
-          "type": "core::integer::u16"
+          "type": "core::integer::u32"
         },
         {
           "name": "total_cubes",
@@ -5380,11 +4220,15 @@
         },
         {
           "name": "final_score",
-          "type": "core::integer::u16"
+          "type": "core::integer::u32"
         },
         {
-          "name": "total_cubes",
-          "type": "core::integer::u16"
+          "name": "endless_depth",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8"
         },
         {
           "name": "started_at",
@@ -5406,11 +4250,15 @@
         },
         {
           "name": "final_score",
-          "type": "core::integer::u16"
+          "type": "core::integer::u32"
         },
         {
-          "name": "total_cubes",
-          "type": "core::integer::u16"
+          "name": "endless_depth",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8"
         },
         {
           "name": "started_at",
@@ -5502,7 +4350,19 @@
     },
     {
       "type": "event",
-      "name": "zkube::events::e_ConsumablePurchased::Event",
+      "name": "zkube::events::e_DraftOpened::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::events::e_DraftRerolled::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::events::e_DraftSelected::Event",
       "kind": "enum",
       "variants": []
     },
@@ -5577,26 +4437,6 @@
         {
           "name": "cube_2_percent",
           "type": "core::integer::u8"
-        },
-        {
-          "name": "hammer_cost",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "wave_cost",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "totem_cost",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "extra_moves_cost",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "cube_multiplier_x100",
-          "type": "core::integer::u16"
         },
         {
           "name": "tier_1_threshold",
@@ -5704,6 +4544,30 @@
         },
         {
           "name": "level_cap",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "draft_picks",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "draft_pool_mask",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "draft_fixed_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "boss_upgrades_enabled",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "reroll_base_cost",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "starting_charges",
           "type": "core::integer::u8"
         }
       ]
@@ -5789,26 +4653,6 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "hammer_cost",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "wave_cost",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "totem_cost",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "extra_moves_cost",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "cube_multiplier_x100",
-          "type": "core::integer::u16"
-        },
-        {
           "name": "tier_1_threshold",
           "type": "core::integer::u8"
         },
@@ -5915,6 +4759,30 @@
         {
           "name": "level_cap",
           "type": "core::integer::u8"
+        },
+        {
+          "name": "draft_picks",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "draft_pool_mask",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "draft_fixed_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "boss_upgrades_enabled",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "reroll_base_cost",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "starting_charges",
+          "type": "core::integer::u8"
         }
       ]
     },
@@ -5927,6 +4795,278 @@
     {
       "type": "event",
       "name": "zkube::models::config::m_GameSettingsMetadata::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::daily::DailyChallenge",
+      "members": [
+        {
+          "name": "challenge_id",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "settings_id",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "seed",
+          "type": "core::felt252"
+        },
+        {
+          "name": "start_time",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "end_time",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "ranking_metric",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "mutator_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "total_entries",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "prize_pool",
+          "type": "core::integer::u256"
+        },
+        {
+          "name": "settled",
+          "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::daily::DailyChallengeValue",
+      "members": [
+        {
+          "name": "settings_id",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "seed",
+          "type": "core::felt252"
+        },
+        {
+          "name": "start_time",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "end_time",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "ranking_metric",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "mutator_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "total_entries",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "prize_pool",
+          "type": "core::integer::u256"
+        },
+        {
+          "name": "settled",
+          "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::daily::DailyEntry",
+      "members": [
+        {
+          "name": "challenge_id",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "attempts",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "best_score",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "best_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "best_depth",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "best_cubes",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "best_game_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "rank",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "prize_amount",
+          "type": "core::integer::u256"
+        },
+        {
+          "name": "claimed",
+          "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::daily::DailyEntryValue",
+      "members": [
+        {
+          "name": "attempts",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "best_score",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "best_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "best_depth",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "best_cubes",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "best_game_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "rank",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "prize_amount",
+          "type": "core::integer::u256"
+        },
+        {
+          "name": "claimed",
+          "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::daily::DailyLeaderboard",
+      "members": [
+        {
+          "name": "challenge_id",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "rank",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "value",
+          "type": "core::integer::u32"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::daily::DailyLeaderboardValue",
+      "members": [
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "value",
+          "type": "core::integer::u32"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::daily::GameChallenge",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "challenge_id",
+          "type": "core::integer::u32"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::daily::GameChallengeValue",
+      "members": [
+        {
+          "name": "challenge_id",
+          "type": "core::integer::u32"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::daily::m_DailyChallenge::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::daily::m_DailyEntry::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::daily::m_DailyLeaderboard::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::daily::m_GameChallenge::Event",
       "kind": "enum",
       "variants": []
     },
@@ -5959,12 +5099,152 @@
           "type": "core::felt252"
         },
         {
+          "name": "level_stars",
+          "type": "core::felt252"
+        },
+        {
           "name": "started_at",
           "type": "core::integer::u64"
         },
         {
           "name": "over",
           "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::game::GameLevel",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "points_required",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "max_moves",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "difficulty",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint2_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint2_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint2_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "cube_3_threshold",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "cube_2_threshold",
+          "type": "core::integer::u16"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::game::GameLevelValue",
+      "members": [
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "points_required",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "max_moves",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "difficulty",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint2_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint2_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint2_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "cube_3_threshold",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "cube_2_threshold",
+          "type": "core::integer::u16"
         }
       ]
     },
@@ -5979,6 +5259,14 @@
         {
           "name": "seed",
           "type": "core::felt252"
+        },
+        {
+          "name": "level_seed",
+          "type": "core::felt252"
+        },
+        {
+          "name": "vrf_enabled",
+          "type": "core::bool"
         }
       ]
     },
@@ -5989,6 +5277,14 @@
         {
           "name": "seed",
           "type": "core::felt252"
+        },
+        {
+          "name": "level_seed",
+          "type": "core::felt252"
+        },
+        {
+          "name": "vrf_enabled",
+          "type": "core::bool"
         }
       ]
     },
@@ -6017,6 +5313,10 @@
           "type": "core::felt252"
         },
         {
+          "name": "level_stars",
+          "type": "core::felt252"
+        },
+        {
           "name": "started_at",
           "type": "core::integer::u64"
         },
@@ -6034,7 +5334,99 @@
     },
     {
       "type": "event",
+      "name": "zkube::models::game::m_GameLevel::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
       "name": "zkube::models::game::m_GameSeed::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::mutator::MutatorDef",
+      "members": [
+        {
+          "name": "mutator_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "name",
+          "type": "core::felt252"
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "moves_modifier_encoded",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "ratio_modifier_encoded",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "difficulty_offset_encoded",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "combo_score_mult_x100",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "star_threshold_modifier_encoded",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "endless_ramp_mult_x100",
+          "type": "core::integer::u16"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::mutator::MutatorDefValue",
+      "members": [
+        {
+          "name": "name",
+          "type": "core::felt252"
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "moves_modifier_encoded",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "ratio_modifier_encoded",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "difficulty_offset_encoded",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "combo_score_mult_x100",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "star_threshold_modifier_encoded",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "endless_ramp_mult_x100",
+          "type": "core::integer::u16"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::mutator::m_MutatorDef::Event",
       "kind": "enum",
       "variants": []
     },
@@ -6075,6 +5467,85 @@
       "name": "zkube::models::player::m_PlayerMeta::Event",
       "kind": "enum",
       "variants": []
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::zone::ZoneConfig",
+      "members": [
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "settings_id",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "theme_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "name",
+          "type": "core::felt252"
+        },
+        {
+          "name": "mutator_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "enabled",
+          "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::zone::ZoneConfigValue",
+      "members": [
+        {
+          "name": "settings_id",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "theme_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "name",
+          "type": "core::felt252"
+        },
+        {
+          "name": "mutator_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "enabled",
+          "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::zone::m_ZoneConfig::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::systems::achievement::achievement_system::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
+        }
+      ]
     },
     {
       "type": "interface",
@@ -6143,26 +5614,6 @@
             {
               "name": "cube_2_percent",
               "type": "core::integer::u8"
-            },
-            {
-              "name": "hammer_cost",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "wave_cost",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "totem_cost",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "extra_moves_cost",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "cube_multiplier_x100",
-              "type": "core::integer::u16"
             },
             {
               "name": "tier_1_threshold",
@@ -6271,6 +5722,30 @@
             {
               "name": "level_cap",
               "type": "core::integer::u8"
+            },
+            {
+              "name": "draft_picks",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "draft_pool_mask",
+              "type": "core::integer::u16"
+            },
+            {
+              "name": "draft_fixed_level",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "boss_upgrades_enabled",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "reroll_base_cost",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "starting_charges",
+              "type": "core::integer::u8"
             }
           ],
           "outputs": [
@@ -6327,6 +5802,17 @@
             }
           ],
           "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "get_cube_token_address",
+          "inputs": [],
+          "outputs": [
+            {
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ],
+          "state_mutability": "view"
         }
       ]
     },
@@ -6352,7 +5838,7 @@
         },
         {
           "name": "SettingsEvent",
-          "type": "game_components_minigame::extensions::settings::settings::SettingsComponent::Event",
+          "type": "game_components_embeddable_game_standard::minigame::extensions::settings::settings::SettingsComponent::Event",
           "kind": "flat"
         },
         {
@@ -6391,18 +5877,30 @@
     },
     {
       "type": "interface",
-      "name": "zkube::systems::cube_token::ICubeToken",
+      "name": "zkube::systems::daily_challenge::IDailyChallengeSystem",
       "items": [
         {
           "type": "function",
-          "name": "mint",
+          "name": "create_daily_challenge",
           "inputs": [
             {
-              "name": "recipient",
-              "type": "core::starknet::contract_address::ContractAddress"
+              "name": "settings_id",
+              "type": "core::integer::u32"
             },
             {
-              "name": "amount",
+              "name": "ranking_metric",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "zone_id",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "mutator_id",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "prize_amount",
               "type": "core::integer::u256"
             }
           ],
@@ -6411,15 +5909,11 @@
         },
         {
           "type": "function",
-          "name": "burn",
+          "name": "settle_challenge",
           "inputs": [
             {
-              "name": "account",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "amount",
-              "type": "core::integer::u256"
+              "name": "challenge_id",
+              "type": "core::integer::u32"
             }
           ],
           "outputs": [],
@@ -6427,63 +5921,83 @@
         },
         {
           "type": "function",
-          "name": "balance_of_cubes",
+          "name": "withdraw_unclaimed",
           "inputs": [
             {
-              "name": "account",
-              "type": "core::starknet::contract_address::ContractAddress"
+              "name": "challenge_id",
+              "type": "core::integer::u32"
             }
           ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "register_entry",
+          "inputs": [
+            {
+              "name": "challenge_id",
+              "type": "core::integer::u32"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "submit_result",
+          "inputs": [
+            {
+              "name": "challenge_id",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "claim_prize",
+          "inputs": [
+            {
+              "name": "challenge_id",
+              "type": "core::integer::u32"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "get_current_challenge",
+          "inputs": [],
           "outputs": [
             {
-              "type": "core::integer::u256"
+              "type": "core::integer::u32"
             }
           ],
           "state_mutability": "view"
         },
         {
           "type": "function",
-          "name": "grant_minter_roles",
-          "inputs": [],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "mint_dev",
+          "name": "get_player_entry",
           "inputs": [
             {
-              "name": "amount",
-              "type": "core::integer::u256"
+              "name": "challenge_id",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "player",
+              "type": "core::starknet::contract_address::ContractAddress"
             }
           ],
-          "outputs": [],
-          "state_mutability": "external"
-        }
-      ]
-    },
-    {
-      "type": "interface",
-      "name": "zkube::systems::cube_token::IERC1155Metadata",
-      "items": [
-        {
-          "type": "function",
-          "name": "name",
-          "inputs": [],
           "outputs": [
             {
-              "type": "core::byte_array::ByteArray"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "symbol",
-          "inputs": [],
-          "outputs": [
-            {
-              "type": "core::byte_array::ByteArray"
+              "type": "zkube::models::daily::DailyEntry"
             }
           ],
           "state_mutability": "view"
@@ -6492,7 +6006,7 @@
     },
     {
       "type": "event",
-      "name": "zkube::systems::cube_token::cube_token::Event",
+      "name": "zkube::systems::daily_challenge::daily_challenge_system::Event",
       "kind": "enum",
       "variants": [
         {
@@ -6504,21 +6018,6 @@
           "name": "WorldProviderEvent",
           "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
           "kind": "nested"
-        },
-        {
-          "name": "ERC1155Event",
-          "type": "openzeppelin_token::erc1155::erc1155::ERC1155Component::Event",
-          "kind": "flat"
-        },
-        {
-          "name": "SRC5Event",
-          "type": "openzeppelin_introspection::src5::SRC5Component::Event",
-          "kind": "flat"
-        },
-        {
-          "name": "AccessControlEvent",
-          "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::Event",
-          "kind": "flat"
         }
       ]
     },
@@ -6540,15 +6039,15 @@
         },
         {
           "type": "function",
-          "name": "create_with_cubes",
+          "name": "create_run",
           "inputs": [
             {
               "name": "game_id",
               "type": "core::integer::u64"
             },
             {
-              "name": "cubes_amount",
-              "type": "core::integer::u16"
+              "name": "zone_id",
+              "type": "core::integer::u8"
             }
           ],
           "outputs": [],
@@ -6561,70 +6060,6 @@
             {
               "name": "game_id",
               "type": "core::integer::u64"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "move",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::integer::u64"
-            },
-            {
-              "name": "row_index",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "start_index",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "final_index",
-              "type": "core::integer::u8"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "apply_bonus",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::integer::u64"
-            },
-            {
-              "name": "bonus",
-              "type": "zkube::types::bonus::Bonus"
-            },
-            {
-              "name": "row_index",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "line_index",
-              "type": "core::integer::u8"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "purchase_consumable",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::integer::u64"
-            },
-            {
-              "name": "consumable",
-              "type": "zkube::types::consumable::ConsumableType"
             }
           ],
           "outputs": [],
@@ -6677,22 +6112,6 @@
             }
           ],
           "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "get_shop_data",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::integer::u64"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "(core::integer::u16, core::integer::u16, core::integer::u16)"
-            }
-          ],
-          "state_mutability": "view"
         }
       ]
     },
@@ -6713,7 +6132,7 @@
         },
         {
           "name": "MinigameEvent",
-          "type": "game_components_minigame::minigame::MinigameComponent::Event",
+          "type": "game_components_embeddable_game_standard::minigame::minigame_component::MinigameComponent::Event",
           "kind": "flat"
         },
         {
@@ -6725,18 +6144,14 @@
     },
     {
       "type": "interface",
-      "name": "zkube::systems::quest::IQuestSystem",
+      "name": "zkube::systems::grid::IGridSystem",
       "items": [
         {
           "type": "function",
-          "name": "claim",
+          "name": "initialize_grid",
           "inputs": [
             {
-              "name": "quest_id",
-              "type": "core::felt252"
-            },
-            {
-              "name": "interval_id",
+              "name": "game_id",
               "type": "core::integer::u64"
             }
           ],
@@ -6745,29 +6160,113 @@
         },
         {
           "type": "function",
-          "name": "progress",
+          "name": "reset_grid_for_level",
           "inputs": [
             {
-              "name": "player",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "task_id",
-              "type": "core::felt252"
-            },
-            {
-              "name": "count",
-              "type": "core::integer::u32"
+              "name": "game_id",
+              "type": "core::integer::u64"
             }
           ],
           "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "execute_move",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "row_index",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "start_index",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "final_index",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "skill_data",
+              "type": "core::felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "(core::integer::u8, core::bool)"
+            }
+          ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "apply_bonus",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "bonus",
+              "type": "zkube::types::bonus::Bonus"
+            },
+            {
+              "name": "row_index",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "col_index",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "skill_data",
+              "type": "core::felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::integer::u8"
+            }
+          ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "insert_line_if_empty",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "assess_grid",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "(core::integer::u8, core::integer::u16)"
+            }
+          ],
           "state_mutability": "external"
         }
       ]
     },
     {
       "type": "event",
-      "name": "zkube::systems::quest::quest_system::Event",
+      "name": "zkube::systems::grid::grid_system::Event",
       "kind": "enum",
       "variants": [
         {
@@ -6779,11 +6278,243 @@
           "name": "WorldProviderEvent",
           "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
           "kind": "nested"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "zkube::systems::level::ILevelSystem",
+      "items": [
+        {
+          "type": "function",
+          "name": "initialize_level",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "skill_data",
+              "type": "core::felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::bool"
+            }
+          ],
+          "state_mutability": "external"
         },
         {
-          "name": "QuestableEvent",
-          "type": "quest::components::questable::QuestableComponent::Event",
-          "kind": "flat"
+          "type": "function",
+          "name": "finalize_level",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "skill_data",
+              "type": "core::felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "(core::integer::u8, core::integer::u8, core::bool)"
+            }
+          ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "start_next_level",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "insert_line_if_empty",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::systems::level::level_system::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "zkube::systems::moves::IMoveSystem",
+      "items": [
+        {
+          "type": "function",
+          "name": "move",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "row_index",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "start_index",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "final_index",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::systems::moves::move_system::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "zkube::systems::mutator::IMutatorSystem",
+      "items": [
+        {
+          "type": "function",
+          "name": "register_mutator",
+          "inputs": [
+            {
+              "name": "mutator_id",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "name",
+              "type": "core::felt252"
+            },
+            {
+              "name": "zone_id",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "moves_modifier_encoded",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "ratio_modifier_encoded",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "difficulty_offset_encoded",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "combo_score_mult_x100",
+              "type": "core::integer::u16"
+            },
+            {
+              "name": "star_threshold_modifier_encoded",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "endless_ramp_mult_x100",
+              "type": "core::integer::u16"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "get_mutator",
+          "inputs": [
+            {
+              "name": "mutator_id",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "zkube::models::mutator::MutatorDef"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "get_zone_mutator",
+          "inputs": [
+            {
+              "name": "zone_id",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "index",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "zkube::models::mutator::MutatorDef"
+            }
+          ],
+          "state_mutability": "view"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::systems::mutator::mutator_system::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
         }
       ]
     },
@@ -6834,7 +6565,7 @@
           ],
           "outputs": [
             {
-              "type": "core::array::Span::<game_components_minigame::structs::GameDetail>"
+              "type": "core::array::Span::<game_components_interfaces::structs::minigame::GameDetail>"
             }
           ],
           "state_mutability": "view"
@@ -6860,14 +6591,30 @@
     },
     {
       "type": "interface",
-      "name": "zkube::systems::shop::IShopSystem",
+      "name": "zkube::systems::zone::IZoneSystem",
       "items": [
         {
           "type": "function",
-          "name": "upgrade_starting_bonus",
+          "name": "register_zone",
           "inputs": [
             {
-              "name": "bonus_type",
+              "name": "zone_id",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "settings_id",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "theme_id",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "name",
+              "type": "core::felt252"
+            },
+            {
+              "name": "mutator_count",
               "type": "core::integer::u8"
             }
           ],
@@ -6876,76 +6623,41 @@
         },
         {
           "type": "function",
-          "name": "upgrade_bag_size",
+          "name": "get_zone",
           "inputs": [
             {
-              "name": "bonus_type",
+              "name": "zone_id",
               "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "zkube::models::zone::ZoneConfig"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "set_zone_enabled",
+          "inputs": [
+            {
+              "name": "zone_id",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "enabled",
+              "type": "core::bool"
             }
           ],
           "outputs": [],
           "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "upgrade_bridging_rank",
-          "inputs": [],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "get_starting_bonus_upgrade_cost",
-          "inputs": [
-            {
-              "name": "current_level",
-              "type": "core::integer::u8"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::integer::u64"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "get_bag_upgrade_cost",
-          "inputs": [
-            {
-              "name": "current_level",
-              "type": "core::integer::u8"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::integer::u64"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "get_bridging_upgrade_cost",
-          "inputs": [
-            {
-              "name": "current_rank",
-              "type": "core::integer::u8"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::integer::u64"
-            }
-          ],
-          "state_mutability": "view"
         }
       ]
     },
     {
       "type": "event",
-      "name": "zkube::systems::shop::shop_system::Event",
+      "name": "zkube::systems::zone::zone_system::Event",
       "kind": "enum",
       "variants": [
         {
@@ -6969,15 +6681,19 @@
           "type": "()"
         },
         {
-          "name": "Hammer",
+          "name": "ComboSurge",
           "type": "()"
         },
         {
-          "name": "Totem",
+          "name": "Momentum",
           "type": "()"
         },
         {
-          "name": "Wave",
+          "name": "Harvest",
+          "type": "()"
+        },
+        {
+          "name": "Tsunami",
           "type": "()"
         }
       ]
@@ -6991,33 +6707,27 @@
           "type": "()"
         },
         {
-          "name": "ClearLines",
+          "name": "ComboLines",
+          "type": "()"
+        },
+        {
+          "name": "BreakBlocks",
+          "type": "()"
+        },
+        {
+          "name": "ComboStreak",
+          "type": "()"
+        },
+        {
+          "name": "FillAndClear",
           "type": "()"
         },
         {
           "name": "NoBonusUsed",
           "type": "()"
-        }
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "zkube::types::consumable::ConsumableType",
-      "variants": [
-        {
-          "name": "Hammer",
-          "type": "()"
         },
         {
-          "name": "Wave",
-          "type": "()"
-        },
-        {
-          "name": "Totem",
-          "type": "()"
-        },
-        {
-          "name": "ExtraMoves",
+          "name": "KeepGridBelow",
           "type": "()"
         }
       ]

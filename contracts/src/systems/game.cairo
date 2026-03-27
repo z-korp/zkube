@@ -119,32 +119,33 @@ mod game_system {
             },
         };
 
-        self
-            .minigame
-            .initializer(
-                creator_address,
-                "zKube",
-                "zKube is an onchain puzzle roguelike with 50 levels, constraints, and star ratings.",
-                "zKorp",
-                "zKorp",
-                "Puzzle",
-                "https://zkube.vercel.app/assets/pwa-512x512.png",
-                Option::Some("#3c2fba"),
-                Option::None, // client_url
-                if final_renderer_address.is_zero() {
-                    Option::None
-                } else {
-                    Option::Some(final_renderer_address)
-                }, // renderer address
-                Option::Some(config_system_address), // settings_address
-                Option::None,
-                denshokan_address,
-                Option::None, // royalty_fraction
-                Option::None, // skills_address
-                1, // version
-            );
+        if !denshokan_address.is_zero() {
+            self
+                .minigame
+                .initializer(
+                    creator_address,
+                    "zKube",
+                    "zKube - fast puzzle score-survival with themed zones and endless mode.",
+                    "zKorp",
+                    "zKorp",
+                    "Puzzle",
+                    "https://zkube.vercel.app/assets/pwa-512x512.png",
+                    Option::Some("#3c2fba"),
+                    Option::None,
+                    if final_renderer_address.is_zero() {
+                        Option::None
+                    } else {
+                        Option::Some(final_renderer_address)
+                    },
+                    Option::Some(config_system_address),
+                    Option::None,
+                    denshokan_address,
+                    Option::None,
+                    Option::None,
+                    1,
+                );
+        }
 
-        // Store VRF address for runtime random source selection
         self.vrf_address.write(vrf_address);
     }
 

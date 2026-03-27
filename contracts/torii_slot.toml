@@ -1,15 +1,11 @@
-world_address = "0x04c4c60ab04df7af555178eba9797090b513b087e50be950b042b2de699ddc66"
+world_address = "0x0173c998f2d8999a3d236b682f319b6970b46f55ae3514a9ba534b73207b670d"
 rpc = "https://api.cartridge.gg/x/zkube-djizus-slot/katana"
 
 [indexing]
 pending = true
 transactions = true
 namespaces = ["zkube_jc_sepolia_v1"]
-contracts = [
-  "erc721:0x02271f1bb4d75604b1c82a708c544ac851f430416cd409aa322327874fe5f918",
-  "erc20:0x4a26e3f67dae6f4049f80a418b2c11cbf3b88f5e15c11fd3ecbd6608b31b8bd",
-  # "erc1155:<zTicket_address>"  # Add zTicket ERC1155 after deployment
-]
+contracts = []
 
 [events]
 raw = true

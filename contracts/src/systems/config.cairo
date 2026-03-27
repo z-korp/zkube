@@ -90,6 +90,7 @@ mod config_system {
     use openzeppelin_introspection::src5::SRC5Component;
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
+    use core::num::traits::Zero;
     use zkube::constants::DEFAULT_NS;
     use zkube::constants::DEFAULT_SETTINGS::{
         DEFAULT_SETTINGS_ID, GET_DEFAULT_SETTINGS, GET_DEFAULT_SETTINGS_METADATA,
@@ -158,18 +159,20 @@ mod config_system {
         let minigame_dispatcher = IMinigameDispatcher { contract_address: game_systems_address };
         let minigame_token_address = minigame_dispatcher.token_address();
 
-        self
-            .settings
-            .create_settings(
-                game_systems_address,
-                DEFAULT_SETTINGS_ID,
-                GameSettingDetails {
-                    name: "Default",
-                    description: "The official zKube settings with progressive difficulty. Games using these settings earn cubes, track quests, and appear on leaderboards.",
-                    settings: array![GameSetting { name: 'MODE', value: 'PROGRESSIVE' }].span(),
-                },
-                minigame_token_address,
-            );
+        if !minigame_token_address.is_zero() {
+            self
+                .settings
+                .create_settings(
+                    game_systems_address,
+                    DEFAULT_SETTINGS_ID,
+                    GameSettingDetails {
+                        name: "Default",
+                        description: "zKube default settings with zone-based progressive difficulty.",
+                        settings: array![GameSetting { name: 'MODE', value: 'PROGRESSIVE' }].span(),
+                    },
+                    minigame_token_address,
+                );
+        }
     }
 
     #[abi(embed_v0)]
