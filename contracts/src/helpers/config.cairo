@@ -1,6 +1,6 @@
 use dojo::model::ModelStorage;
 use dojo::world::WorldStorage;
-use game_components_token::core::interface::{
+use game_components_embeddable_game_standard::token::interface::{
     IMinigameTokenDispatcher, IMinigameTokenDispatcherTrait,
 };
 use zkube::constants::DEFAULT_SETTINGS::DEFAULT_SETTINGS_ID;
@@ -12,7 +12,7 @@ use zkube::types::difficulty::Difficulty;
 pub impl ConfigUtilsImpl of ConfigUtilsTrait {
     fn get_game_settings(world: WorldStorage, game_id: u64) -> GameSettings {
         let token_dispatcher: IMinigameTokenDispatcher = token::token_dispatcher(world);
-        let settings_id = token_dispatcher.settings_id(game_id);
+        let settings_id = token_dispatcher.settings_id(game_id.into());
         let settings: GameSettings = world.read_model(settings_id);
 
         // Defensive fallback: if the token points at a missing settings_id, default to

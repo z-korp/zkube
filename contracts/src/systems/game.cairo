@@ -21,16 +21,16 @@ mod game_system {
     use dojo::event::EventStorage;
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
-    use game_components_minigame::interface::IMinigameTokenData;
-    use game_components_minigame::libs::{
+    use game_components_embeddable_game_standard::minigame::interface::IMinigameTokenData;
+    use game_components_embeddable_game_standard::minigame::minigame::{
         assert_token_ownership, get_player_name as get_token_player_name, post_action, pre_action,
     };
-    use game_components_minigame::minigame::MinigameComponent;
-    use game_components_token::core::interface::{
+    use game_components_embeddable_game_standard::minigame::minigame_component::MinigameComponent;
+    use game_components_embeddable_game_standard::token::interface::{
         IMinigameTokenDispatcher, IMinigameTokenDispatcherTrait,
     };
-    use game_components_token::libs::LifecycleTrait;
-    use game_components_token::structs::TokenMetadata;
+    use game_components_embeddable_game_standard::token::token::LifecycleTrait;
+    use game_components_embeddable_game_standard::token::structs::TokenMetadata;
     use openzeppelin_introspection::src5::SRC5Component;
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
@@ -140,6 +140,9 @@ mod game_system {
                 Option::Some(config_system_address), // settings_address
                 Option::None, // objectives_address (using Cartridge arcade)
                 denshokan_address,
+                Option::None, // royalty_fraction
+                Option::None, // skills_address
+                1, // version
             );
 
         // Store VRF address for runtime random source selection
@@ -148,17 +151,55 @@ mod game_system {
 
     #[abi(embed_v0)]
     impl GameTokenDataImpl of IMinigameTokenData<ContractState> {
-        fn score(self: @ContractState, token_id: u64) -> u32 {
+        fn score(self: @ContractState, token_id: felt252) -> u64 {
+            let game_id: u64 = token_id.try_into().expect('invalid token_id');
             let world: WorldStorage = self.world(@DEFAULT_NS());
-            let game: Game = world.read_model(token_id);
+            let game: Game = world.read_model(game_id);
             // Return level score as the "score" for token metadata
             game.get_level_score().into()
         }
 
-        fn game_over(self: @ContractState, token_id: u64) -> bool {
+        fn game_over(self: @ContractState, token_id: felt252) -> bool {
+            let game_id: u64 = token_id.try_into().expect('invalid token_id');
             let world: WorldStorage = self.world(@DEFAULT_NS());
-            let game: Game = world.read_model(token_id);
+            let game: Game = world.read_model(game_id);
             game.over
+        }
+
+        fn score_batch(self: @ContractState, token_ids: Span<felt252>) -> Array<u64> {
+            let mut scores = array![];
+            let mut i: u32 = 0;
+
+            loop {
+                if i >= token_ids.len() {
+                    break;
+                }
+
+                let token_id = *token_ids.at(i);
+                let score = self.score(token_id);
+                scores.append(score);
+                i += 1;
+            };
+
+            scores
+        }
+
+        fn game_over_batch(self: @ContractState, token_ids: Span<felt252>) -> Array<bool> {
+            let mut statuses = array![];
+            let mut i: u32 = 0;
+
+            loop {
+                if i >= token_ids.len() {
+                    break;
+                }
+
+                let token_id = *token_ids.at(i);
+                let over = self.game_over(token_id);
+                statuses.append(over);
+                i += 1;
+            };
+
+            statuses
         }
     }
 
@@ -168,10 +209,11 @@ mod game_system {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let token_address = self.token_address();
-            pre_action(token_address, game_id);
+            let token_id_felt: felt252 = game_id.into();
+            pre_action(token_address, token_id_felt);
 
             let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
-            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(token_id_felt);
             self.validate_start_conditions(game_id, @token_metadata, token_address);
 
             // Get game settings (selected via token settings_id)
@@ -249,7 +291,7 @@ mod game_system {
             // Track achievement progress: games played (Grinder achievement)
             libs.track_achievement(player, grinder::Grinder::identifier(), 1, settings.settings_id);
 
-            post_action(token_address, game_id);
+            post_action(token_address, token_id_felt);
 
             // Emit start game event
             world.emit_event(@StartGame { player, timestamp, game_id });
@@ -275,10 +317,11 @@ mod game_system {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let token_address = self.token_address();
-            pre_action(token_address, game_id);
+            let token_id_felt: felt252 = game_id.into();
+            pre_action(token_address, token_id_felt);
 
             let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
-            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(token_id_felt);
             assert!(
                 token_metadata.lifecycle.is_playable(get_block_timestamp()),
                 "Game {} lifecycle is not playable",
@@ -286,7 +329,7 @@ mod game_system {
             );
 
             let mut game: Game = world.read_model(game_id);
-            assert_token_ownership(token_address, game_id);
+            assert_token_ownership(token_address, token_id_felt);
             game.assert_not_over();
 
             game.over = true;
@@ -295,12 +338,13 @@ mod game_system {
             let player = get_caller_address();
             game_over::handle_game_over(ref world, game, player);
 
-            post_action(token_address, game_id);
+            post_action(token_address, token_id_felt);
         }
 
         fn get_player_name(self: @ContractState, game_id: u64) -> felt252 {
             let token_address = self.token_address();
-            get_token_player_name(token_address, game_id)
+            let token_id_felt: felt252 = game_id.into();
+            get_token_player_name(token_address, token_id_felt)
         }
 
         fn get_score(self: @ContractState, game_id: u64) -> u16 {
@@ -340,7 +384,8 @@ mod game_system {
             token_metadata: @TokenMetadata,
             token_address: ContractAddress,
         ) {
-            assert_token_ownership(token_address, token_id);
+            let token_id_felt: felt252 = token_id.into();
+            assert_token_ownership(token_address, token_id_felt);
             self.assert_game_not_started(token_id);
             assert!(
                 token_metadata.lifecycle.is_playable(starknet::get_block_timestamp()),

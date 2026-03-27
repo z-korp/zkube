@@ -77,12 +77,16 @@ pub trait IConfigSystem<T> {
 mod config_system {
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
-    use game_components_minigame::extensions::settings::interface::{
+    use game_components_embeddable_game_standard::minigame::extensions::settings::interface::{
         IMinigameSettings, IMinigameSettingsDetails,
     };
-    use game_components_minigame::extensions::settings::settings::SettingsComponent;
-    use game_components_minigame::extensions::settings::structs::{GameSetting, GameSettingDetails};
-    use game_components_minigame::interface::{IMinigameDispatcher, IMinigameDispatcherTrait};
+    use game_components_embeddable_game_standard::minigame::extensions::settings::settings::SettingsComponent;
+    use game_components_embeddable_game_standard::minigame::extensions::settings::structs::{
+        GameSetting, GameSettingDetails,
+    };
+    use game_components_embeddable_game_standard::minigame::interface::{
+        IMinigameDispatcher, IMinigameDispatcherTrait,
+    };
     use openzeppelin_introspection::src5::SRC5Component;
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
@@ -159,9 +163,11 @@ mod config_system {
             .create_settings(
                 game_systems_address,
                 DEFAULT_SETTINGS_ID,
-                "Default",
-                "The official zKube settings with progressive difficulty. Games using these settings earn cubes, track quests, and appear on leaderboards.",
-                array![GameSetting { name: "Difficulty", value: "Progressive" }].span(),
+                GameSettingDetails {
+                    name: "Default",
+                    description: "The official zKube settings with progressive difficulty. Games using these settings earn cubes, track quests, and appear on leaderboards.",
+                    settings: array![GameSetting { name: 'MODE', value: 'PROGRESSIVE' }].span(),
+                },
                 minigame_token_address,
             );
     }
@@ -173,10 +179,31 @@ mod config_system {
             let game_settings: GameSettings = world.read_model(settings_id);
             game_settings.exists()
         }
+
+        fn settings_exist_batch(self: @ContractState, settings_ids: Span<u32>) -> Array<bool> {
+            let mut exists_batch = array![];
+            let mut i: u32 = 0;
+
+            loop {
+                if i >= settings_ids.len() {
+                    break;
+                }
+
+                let settings_id = *settings_ids.at(i);
+                exists_batch.append(self.settings_exist(settings_id));
+                i += 1;
+            };
+
+            exists_batch
+        }
     }
 
     #[abi(embed_v0)]
     impl MinigameSettingsDetailsImpl of IMinigameSettingsDetails<ContractState> {
+        fn settings_count(self: @ContractState) -> u32 {
+            self.settings_counter.read() + 1
+        }
+
         fn settings_details(self: @ContractState, settings_id: u32) -> GameSettingDetails {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let settings: GameSettings = world.read_model(settings_id);
@@ -187,6 +214,25 @@ mod config_system {
                 description: metadata.description.clone(),
                 settings: generate_settings_array(settings),
             }
+        }
+
+        fn settings_details_batch(
+            self: @ContractState, settings_ids: Span<u32>,
+        ) -> Array<GameSettingDetails> {
+            let mut details_batch = array![];
+            let mut i: u32 = 0;
+
+            loop {
+                if i >= settings_ids.len() {
+                    break;
+                }
+
+                let settings_id = *settings_ids.at(i);
+                details_batch.append(self.settings_details(settings_id));
+                i += 1;
+            };
+
+            details_batch
         }
     }
 
@@ -241,9 +287,11 @@ mod config_system {
                 .create_settings(
                     game_systems_address,
                     settings_id,
-                    felt_to_bytearray(name),
-                    description.clone(),
-                    generate_settings_array(game_settings),
+                    GameSettingDetails {
+                        name: felt_to_bytearray(name),
+                        description: description.clone(),
+                        settings: generate_settings_array(game_settings),
+                    },
                     minigame_token_address,
                 );
 
@@ -447,9 +495,11 @@ mod config_system {
                 .create_settings(
                     game_systems_address,
                     settings_id,
-                    felt_to_bytearray(name),
-                    description.clone(),
-                    generate_settings_array(game_settings),
+                    GameSettingDetails {
+                        name: felt_to_bytearray(name),
+                        description: description.clone(),
+                        settings: generate_settings_array(game_settings),
+                    },
                     minigame_token_address,
                 );
 
@@ -692,251 +742,63 @@ mod config_system {
     }
 
     fn generate_settings_array(game_settings: GameSettings) -> Span<GameSetting> {
-        // Unpack constraint values for display
-        let (
-            veryeasy_min_lines,
-            master_min_lines,
-            veryeasy_max_lines,
-            master_max_lines,
-            veryeasy_budget_min,
-            veryeasy_budget_max,
-            master_budget_min,
-            master_budget_max,
-            veryeasy_min_times,
-            master_min_times,
-        ) =
-            game_settings
-            .unpack_lines_budgets();
-        let (
-            veryeasy_dual_chance,
-            master_dual_chance,
-            veryeasy_secondary_no_bonus,
-            master_secondary_no_bonus,
-        ) =
-            game_settings
-            .unpack_chances();
-
         array![
-            // Basic settings
-            GameSetting { name: "Mode", value: difficulty_label(game_settings.get_mode()) },
-            // Level Scaling
-            GameSetting { name: "Base Moves", value: format!("{}", game_settings.base_moves) },
-            GameSetting { name: "Max Moves", value: format!("{}", game_settings.max_moves) },
-            GameSetting { name: "Base Ratio", value: format_ratio(game_settings.base_ratio_x100) },
-            GameSetting { name: "Max Ratio", value: format_ratio(game_settings.max_ratio_x100) },
-            // Cube Thresholds
-            GameSetting {
-                name: "3-Cube Threshold", value: format!("{}%", game_settings.cube_3_percent),
-            },
-            GameSetting {
-                name: "2-Cube Threshold", value: format!("{}%", game_settings.cube_2_percent),
-            },
-            // Difficulty Progression (non-linear tier thresholds)
-            // Difficulty Progression (non-linear tier thresholds)
-            GameSetting {
-                name: "VeryEasy", value: format!("Levels 1-{}", game_settings.tier_1_threshold - 1),
-            },
-            GameSetting {
-                name: "Easy",
-                value: format!(
-                    "Levels {}-{}",
-                    game_settings.tier_1_threshold,
-                    game_settings.tier_2_threshold - 1,
-                ),
-            },
-            GameSetting {
-                name: "Medium",
-                value: format!(
-                    "Levels {}-{}",
-                    game_settings.tier_2_threshold,
-                    game_settings.tier_3_threshold - 1,
-                ),
-            },
-            GameSetting {
-                name: "MediumHard",
-                value: format!(
-                    "Levels {}-{}",
-                    game_settings.tier_3_threshold,
-                    game_settings.tier_4_threshold - 1,
-                ),
-            },
-            GameSetting {
-                name: "Hard",
-                value: format!(
-                    "Levels {}-{}",
-                    game_settings.tier_4_threshold,
-                    game_settings.tier_5_threshold - 1,
-                ),
-            },
-            GameSetting {
-                name: "VeryHard",
-                value: format!(
-                    "Levels {}-{}",
-                    game_settings.tier_5_threshold,
-                    game_settings.tier_6_threshold - 1,
-                ),
-            },
-            GameSetting {
-                name: "Expert",
-                value: format!(
-                    "Levels {}-{}",
-                    game_settings.tier_6_threshold,
-                    game_settings.tier_7_threshold - 1,
-                ),
-            },
-            GameSetting {
-                name: "Master", value: format!("Levels {}+", game_settings.tier_7_threshold),
-            },
-            // Constraint Settings
-            GameSetting {
-                name: "Constraints",
-                value: if game_settings.constraints_enabled != 0 {
-                    "Enabled"
-                } else {
-                    "Disabled"
-                },
-            },
-            GameSetting {
-                name: "Constraint Start",
-                value: format!("Level {}", game_settings.constraint_start_level),
-            },
-            // Constraint Distribution (VeryEasy to Master)
-            GameSetting {
-                name: "Lines Range",
-                value: format!(
-                    "{}-{} to {}-{}",
-                    veryeasy_min_lines,
-                    veryeasy_max_lines,
-                    master_min_lines,
-                    master_max_lines,
-                ),
-            },
-            GameSetting {
-                name: "Budget Range",
-                value: format!(
-                    "{}-{} to {}-{}",
-                    veryeasy_budget_min,
-                    veryeasy_budget_max,
-                    master_budget_min,
-                    master_budget_max,
-                ),
-            },
-            GameSetting {
-                name: "Min Times", value: format!("{} to {}", veryeasy_min_times, master_min_times),
-            },
-            GameSetting {
-                name: "Dual Chance",
-                value: format!("{}%-{}%", veryeasy_dual_chance, master_dual_chance),
-            },
-            GameSetting {
-                name: "Secondary NoBonus",
-                value: format!("{}%-{}%", veryeasy_secondary_no_bonus, master_secondary_no_bonus),
-            },
-            // Block Distribution (VeryEasy to Master) - size = block width
-            GameSetting {
-                name: "Size-1 Weight",
-                value: format!(
-                    "{}-{}", game_settings.veryeasy_size1_weight, game_settings.master_size1_weight,
-                ),
-            },
-            GameSetting {
-                name: "Size-2 Weight",
-                value: format!(
-                    "{}-{}", game_settings.veryeasy_size2_weight, game_settings.master_size2_weight,
-                ),
-            },
-            GameSetting {
-                name: "Size-3 Weight",
-                value: format!(
-                    "{}-{}", game_settings.veryeasy_size3_weight, game_settings.master_size3_weight,
-                ),
-            },
-            GameSetting {
-                name: "Size-4 Weight",
-                value: format!(
-                    "{}-{}", game_settings.veryeasy_size4_weight, game_settings.master_size4_weight,
-                ),
-            },
-            GameSetting {
-                name: "Size-5 Weight",
-                value: format!(
-                    "{}-{}", game_settings.veryeasy_size5_weight, game_settings.master_size5_weight,
-                ),
-            },
-            // Variance Settings
-            GameSetting {
-                name: "Early Variance", value: format!("{}%", game_settings.early_variance_percent),
-            },
-            GameSetting {
-                name: "Mid Variance", value: format!("{}%", game_settings.mid_variance_percent),
-            },
-            GameSetting {
-                name: "Late Variance", value: format!("{}%", game_settings.late_variance_percent),
-            },
-            // Level Tier Thresholds
-            GameSetting {
-                name: "Early Levels", value: format!("1-{}", game_settings.early_level_threshold),
-            },
-            GameSetting {
-                name: "Mid Levels",
-                value: format!(
-                    "{}-{}",
-                    game_settings.early_level_threshold + 1,
-                    game_settings.mid_level_threshold,
-                ),
-            },
-            // Level Cap
-            GameSetting { name: "Level Cap", value: format!("{}", game_settings.level_cap) },
-            // Draft Settings
-            GameSetting { name: "Draft Picks", value: format!("{}", game_settings.draft_picks) },
-            GameSetting {
-                name: "Draft Pool Mask",
-                value: format!("0x{:x}", game_settings.draft_pool_mask),
-            },
-            GameSetting {
-                name: "Draft Fixed Level", value: format!("{}", game_settings.draft_fixed_level),
-            },
-            GameSetting {
-                name: "Boss Upgrades",
-                value: if game_settings.boss_upgrades_enabled != 0 {
-                    "Enabled"
-                } else {
-                    "Disabled"
-                },
-            },
-            GameSetting {
-                name: "Reroll Base Cost", value: format!("{}", game_settings.reroll_base_cost),
-            },
-            GameSetting {
-                name: "Starting Charges", value: format!("{}", game_settings.starting_charges),
-            },
+            GameSetting { name: 'MODE', value: difficulty_label(game_settings.get_mode()) },
+            GameSetting { name: 'BASE_MOVES', value: game_settings.base_moves.into() },
+            GameSetting { name: 'MAX_MOVES', value: game_settings.max_moves.into() },
+            GameSetting { name: 'BASE_RATIO', value: game_settings.base_ratio_x100.into() },
+            GameSetting { name: 'MAX_RATIO', value: game_settings.max_ratio_x100.into() },
+            GameSetting { name: 'CUBE3_PCT', value: game_settings.cube_3_percent.into() },
+            GameSetting { name: 'CUBE2_PCT', value: game_settings.cube_2_percent.into() },
+            GameSetting { name: 'TIER1', value: game_settings.tier_1_threshold.into() },
+            GameSetting { name: 'TIER2', value: game_settings.tier_2_threshold.into() },
+            GameSetting { name: 'TIER3', value: game_settings.tier_3_threshold.into() },
+            GameSetting { name: 'TIER4', value: game_settings.tier_4_threshold.into() },
+            GameSetting { name: 'TIER5', value: game_settings.tier_5_threshold.into() },
+            GameSetting { name: 'TIER6', value: game_settings.tier_6_threshold.into() },
+            GameSetting { name: 'TIER7', value: game_settings.tier_7_threshold.into() },
+            GameSetting { name: 'CONS_EN', value: game_settings.constraints_enabled.into() },
+            GameSetting { name: 'CONS_START', value: game_settings.constraint_start_level.into() },
+            GameSetting { name: 'LINES_BUDGET', value: game_settings.constraint_lines_budgets.into() },
+            GameSetting { name: 'CHANCES', value: game_settings.constraint_chances.into() },
+            GameSetting { name: 'VE_S1', value: game_settings.veryeasy_size1_weight.into() },
+            GameSetting { name: 'VE_S2', value: game_settings.veryeasy_size2_weight.into() },
+            GameSetting { name: 'VE_S3', value: game_settings.veryeasy_size3_weight.into() },
+            GameSetting { name: 'VE_S4', value: game_settings.veryeasy_size4_weight.into() },
+            GameSetting { name: 'VE_S5', value: game_settings.veryeasy_size5_weight.into() },
+            GameSetting { name: 'MA_S1', value: game_settings.master_size1_weight.into() },
+            GameSetting { name: 'MA_S2', value: game_settings.master_size2_weight.into() },
+            GameSetting { name: 'MA_S3', value: game_settings.master_size3_weight.into() },
+            GameSetting { name: 'MA_S4', value: game_settings.master_size4_weight.into() },
+            GameSetting { name: 'MA_S5', value: game_settings.master_size5_weight.into() },
+            GameSetting { name: 'VAR_E', value: game_settings.early_variance_percent.into() },
+            GameSetting { name: 'VAR_M', value: game_settings.mid_variance_percent.into() },
+            GameSetting { name: 'VAR_L', value: game_settings.late_variance_percent.into() },
+            GameSetting { name: 'EARLY_TH', value: game_settings.early_level_threshold.into() },
+            GameSetting { name: 'MID_TH', value: game_settings.mid_level_threshold.into() },
+            GameSetting { name: 'LEVEL_CAP', value: game_settings.level_cap.into() },
+            GameSetting { name: 'DRAFT_PICKS', value: game_settings.draft_picks.into() },
+            GameSetting { name: 'DRAFT_MASK', value: game_settings.draft_pool_mask.into() },
+            GameSetting { name: 'DRAFT_FIX', value: game_settings.draft_fixed_level.into() },
+            GameSetting { name: 'BOSS_UP', value: game_settings.boss_upgrades_enabled.into() },
+            GameSetting { name: 'REROLL', value: game_settings.reroll_base_cost.into() },
+            GameSetting { name: 'START_CHG', value: game_settings.starting_charges.into() },
         ]
             .span()
     }
 
-    /// Format a ratio value (e.g., 100 -> "1.00", 250 -> "2.50")
-    fn format_ratio(value_x100: u16) -> ByteArray {
-        let whole = value_x100 / 100;
-        let frac = value_x100 % 100;
-        if frac < 10 {
-            format!("{}.0{}", whole, frac)
-        } else {
-            format!("{}.{}", whole, frac)
-        }
-    }
-
-    fn difficulty_label(difficulty: Difficulty) -> ByteArray {
+    fn difficulty_label(difficulty: Difficulty) -> felt252 {
         match difficulty {
-            Difficulty::None => "Unspecified",
-            Difficulty::Increasing => "Increasing",
-            Difficulty::VeryEasy => "Very Easy",
-            Difficulty::Easy => "Easy",
-            Difficulty::Medium => "Medium",
-            Difficulty::MediumHard => "Medium Hard",
-            Difficulty::Hard => "Hard",
-            Difficulty::VeryHard => "Very Hard",
-            Difficulty::Expert => "Expert",
-            Difficulty::Master => "Master",
+            Difficulty::None => 'NONE',
+            Difficulty::Increasing => 'INCREASING',
+            Difficulty::VeryEasy => 'VERY_EASY',
+            Difficulty::Easy => 'EASY',
+            Difficulty::Medium => 'MEDIUM',
+            Difficulty::MediumHard => 'MEDIUM_HARD',
+            Difficulty::Hard => 'HARD',
+            Difficulty::VeryHard => 'VERY_HARD',
+            Difficulty::Expert => 'EXPERT',
+            Difficulty::Master => 'MASTER',
         }
     }
 }

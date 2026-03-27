@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-use game_components_minigame::structs::GameDetail;
+use game_components_embeddable_game_standard::minigame::structs::GameDetail;
 
 #[starknet::interface]
 pub trait IRendererSystems<T> {
@@ -16,11 +16,11 @@ pub trait IRendererSystems<T> {
 mod renderer_systems {
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
-    use game_components_minigame::interface::{
+    use game_components_embeddable_game_standard::minigame::interface::{
         IMinigameDetails, IMinigameDetailsSVG, IMinigameDispatcher, IMinigameDispatcherTrait,
     };
-    use game_components_minigame::libs::get_player_name as libs_get_player_name;
-    use game_components_minigame::structs::GameDetail;
+    use game_components_embeddable_game_standard::minigame::minigame::get_player_name as libs_get_player_name;
+    use game_components_embeddable_game_standard::minigame::structs::GameDetail;
     use zkube::constants::DEFAULT_NS;
     use zkube::helpers::encoding::bytes_base64_encode;
     use zkube::helpers::packing::RunDataHelpersTrait;
@@ -42,7 +42,8 @@ mod renderer_systems {
                     contract_address: game_system_address,
                 };
                 let token_address = minigame_dispatcher.token_address();
-                libs_get_player_name(token_address, game_id)
+                let token_id_felt: felt252 = game_id.into();
+                libs_get_player_name(token_address, token_id_felt)
             },
             Option::None => {
                 // Fallback: return 0 if game_system not found
@@ -57,9 +58,10 @@ mod renderer_systems {
 
     #[abi(embed_v0)]
     impl GameDetailsImpl of IMinigameDetails<ContractState> {
-        fn game_details(self: @ContractState, token_id: u64) -> Span<GameDetail> {
+        fn game_details(self: @ContractState, token_id: felt252) -> Span<GameDetail> {
+            let game_id: u64 = token_id.try_into().expect('invalid token_id');
             let world: WorldStorage = self.world(@DEFAULT_NS());
-            let game: Game = world.read_model(token_id);
+            let game: Game = world.read_model(game_id);
             let run_data = game.get_run_data();
 
             let mut details: Array<GameDetail> = array![];
@@ -68,36 +70,37 @@ mod renderer_systems {
             details
                 .append(
                     GameDetail {
-                        name: "Status", value: if game.over {
-                            "Game Over"
+                        name: 'STATUS', value: if game.over {
+                            'OVER'
                         } else {
-                            "In Progress"
+                            'ACTIVE'
                         },
                     },
                 );
 
             // Level
             details
-                .append(GameDetail { name: "Level", value: format!("{}", run_data.current_level) });
+                .append(GameDetail { name: 'LEVEL', value: run_data.current_level.into() });
 
             // Score
             details
-                .append(GameDetail { name: "Score", value: format!("{}", run_data.total_score) });
+                .append(GameDetail { name: 'SCORE', value: run_data.total_score.into() });
 
             // Cubes
             details
-                .append(GameDetail { name: "Cubes", value: format!("{}", run_data.total_cubes) });
+                .append(GameDetail { name: 'CUBES', value: run_data.total_cubes.into() });
 
             details.span()
         }
 
-        fn token_name(self: @ContractState, token_id: u64) -> ByteArray {
+        fn token_name(self: @ContractState, token_id: felt252) -> ByteArray {
             "zKube Game"
         }
 
-        fn token_description(self: @ContractState, token_id: u64) -> ByteArray {
+        fn token_description(self: @ContractState, token_id: felt252) -> ByteArray {
+            let game_id: u64 = token_id.try_into().expect('invalid token_id');
             let world: WorldStorage = self.world(@DEFAULT_NS());
-            let game: Game = world.read_model(token_id);
+            let game: Game = world.read_model(game_id);
             let run_data = game.get_run_data();
 
             if game.over {
@@ -114,6 +117,61 @@ mod renderer_systems {
                 )
             }
         }
+
+        fn token_name_batch(self: @ContractState, token_ids: Span<felt252>) -> Array<ByteArray> {
+            let mut names = array![];
+            let mut i: u32 = 0;
+
+            loop {
+                if i >= token_ids.len() {
+                    break;
+                }
+
+                let token_id = *token_ids.at(i);
+                names.append(self.token_name(token_id));
+                i += 1;
+            };
+
+            names
+        }
+
+        fn token_description_batch(
+            self: @ContractState, token_ids: Span<felt252>,
+        ) -> Array<ByteArray> {
+            let mut descriptions = array![];
+            let mut i: u32 = 0;
+
+            loop {
+                if i >= token_ids.len() {
+                    break;
+                }
+
+                let token_id = *token_ids.at(i);
+                descriptions.append(self.token_description(token_id));
+                i += 1;
+            };
+
+            descriptions
+        }
+
+        fn game_details_batch(
+            self: @ContractState, token_ids: Span<felt252>,
+        ) -> Array<Span<GameDetail>> {
+            let mut details_batch = array![];
+            let mut i: u32 = 0;
+
+            loop {
+                if i >= token_ids.len() {
+                    break;
+                }
+
+                let token_id = *token_ids.at(i);
+                details_batch.append(self.game_details(token_id));
+                i += 1;
+            };
+
+            details_batch
+        }
     }
 
     // ------------------------------------------ //
@@ -122,9 +180,10 @@ mod renderer_systems {
 
     #[abi(embed_v0)]
     impl GameDetailsSVGImpl of IMinigameDetailsSVG<ContractState> {
-        fn game_details_svg(self: @ContractState, token_id: u64) -> ByteArray {
+        fn game_details_svg(self: @ContractState, token_id: felt252) -> ByteArray {
+            let game_id: u64 = token_id.try_into().expect('invalid token_id');
             // Generate the raw SVG
-            let svg = self.generate_svg(token_id);
+            let svg = self.generate_svg(game_id);
             // Return as base64-encoded data URI (required by FullTokenContract)
             format!("data:image/svg+xml;base64,{}", bytes_base64_encode(svg))
         }
@@ -277,22 +336,22 @@ mod renderer_systems {
             details
                 .append(
                     GameDetail {
-                        name: "Status", value: if game.over {
-                            "Game Over"
+                        name: 'STATUS', value: if game.over {
+                            'OVER'
                         } else {
-                            "In Progress"
+                            'ACTIVE'
                         },
                     },
                 );
 
             details
-                .append(GameDetail { name: "Level", value: format!("{}", run_data.current_level) });
+                .append(GameDetail { name: 'LEVEL', value: run_data.current_level.into() });
 
             details
-                .append(GameDetail { name: "Score", value: format!("{}", run_data.total_score) });
+                .append(GameDetail { name: 'SCORE', value: run_data.total_score.into() });
 
             details
-                .append(GameDetail { name: "Cubes", value: format!("{}", run_data.total_cubes) });
+                .append(GameDetail { name: 'CUBES', value: run_data.total_cubes.into() });
 
             details.span()
         }

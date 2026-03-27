@@ -17,30 +17,27 @@ cairo-version = "2.13.1"
 starknet = "2.13.1"
 
 # OpenZeppelin
-openzeppelin_token = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0-alpha.3" }
-openzeppelin_access = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0-alpha.3" }
-openzeppelin_introspection = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0-alpha.3" }
-openzeppelin_security = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0-alpha.3" }
-openzeppelin_upgrades = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0-alpha.3" }
-openzeppelin_interfaces = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0-alpha.3" }
+openzeppelin_token = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0" }
+openzeppelin_access = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0" }
+openzeppelin_introspection = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0" }
+openzeppelin_security = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0" }
+openzeppelin_upgrades = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0" }
+openzeppelin_interfaces = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0" }
 
 # Dojo (only for contracts)
 dojo = "1.8.0"
 
 # Alexandria
-alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.7.0" }
-alexandria_encoding = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.7.0" }
+alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.9.0" }
+alexandria_encoding = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.9.0" }
 
 # Game components
-game_components_minigame = { git = "https://github.com/Provable-Games/game-components", rev = "960c84aae59239763a2a2a339e0c649b0527f07d" }
-game_components_token = { git = "https://github.com/Provable-Games/game-components", rev = "960c84aae59239763a2a2a339e0c649b0527f07d" }
-game_components_metagame = { git = "https://github.com/Provable-Games/game-components", rev = "960c84aae59239763a2a2a339e0c649b0527f07d" }
-game_components_utils = { git = "https://github.com/Provable-Games/game-components", rev = "960c84aae59239763a2a2a339e0c649b0527f07d" }
+game_components_embeddable_game_standard = { git = "https://github.com/Provable-Games/game-components.git", branch = "next" }
 
 
 # Other
 origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.7.0" }
-graffiti = { git = "https://github.com/ponderingdemocritus/graffiti", rev = "bc569531791dbc71c6cd8d9bc154c34eedad31fe" }
+graffiti = { git = "https://github.com/Provable-Games/graffiti" }
 
 # Cartridge Arcade (quests & achievements)
 quest = { git = "https://github.com/cartridge-gg/arcade", rev = "1c66ba7" }
@@ -53,7 +50,7 @@ dojo_cairo_test = "1.8.0"
 cairo_test = "2.13.1"
 
 [patch."https://github.com/bal7hazar/graffiti"]
-graffiti = { git = "https://github.com/ponderingdemocritus/graffiti", rev = "bc569531791dbc71c6cd8d9bc154c34eedad31fe" }
+graffiti = { git = "https://github.com/Provable-Games/graffiti" }
 
 # Profiles for deployment
 [profile.slot]

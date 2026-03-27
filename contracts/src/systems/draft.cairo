@@ -13,7 +13,7 @@ mod draft_system {
     use dojo::event::EventStorage;
     use dojo::model::ModelStorage;
     use dojo::world::WorldStorage;
-    use game_components_minigame::libs::assert_token_ownership;
+    use game_components_embeddable_game_standard::minigame::minigame::assert_token_ownership;
     use starknet::get_caller_address;
     use zkube::constants::DEFAULT_NS;
     use zkube::events::{DraftOpened, DraftRerolled, DraftSelected};
@@ -171,7 +171,8 @@ mod draft_system {
         fn reroll(ref self: ContractState, game_id: u64, reroll_slot: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let token_address = token::get_token_address(world);
-            assert_token_ownership(token_address, game_id);
+            let token_id_felt: felt252 = game_id.into();
+            assert_token_ownership(token_address, token_id_felt);
 
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
             assert!(settings.reroll_base_cost > 0, "Rerolls disabled");
@@ -246,7 +247,8 @@ mod draft_system {
         fn select(ref self: ContractState, game_id: u64, selected_slot: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let token_address = token::get_token_address(world);
-            assert_token_ownership(token_address, game_id);
+            let token_id_felt: felt252 = game_id.into();
+            assert_token_ownership(token_address, token_id_felt);
 
             let player = get_caller_address();
             let mut draft: DraftState = world.read_model(game_id);

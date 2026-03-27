@@ -14,12 +14,14 @@ mod bonus_system {
     use dojo::event::EventStorage;
     use dojo::model::ModelStorage;
     use dojo::world::WorldStorage;
-    use game_components_minigame::libs::{assert_token_ownership, post_action, pre_action};
-    use game_components_token::core::interface::{
+    use game_components_embeddable_game_standard::minigame::minigame::{
+        assert_token_ownership, post_action, pre_action,
+    };
+    use game_components_embeddable_game_standard::token::interface::{
         IMinigameTokenDispatcher, IMinigameTokenDispatcherTrait,
     };
-    use game_components_token::libs::LifecycleTrait;
-    use game_components_token::structs::TokenMetadata;
+    use game_components_embeddable_game_standard::token::token::LifecycleTrait;
+    use game_components_embeddable_game_standard::token::structs::TokenMetadata;
     use starknet::get_block_timestamp;
     use zkube::constants::DEFAULT_NS;
     use zkube::events::UseBonus;
@@ -43,10 +45,11 @@ mod bonus_system {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let token_address = token::get_token_address(world);
-            pre_action(token_address, game_id);
+            let token_id_felt: felt252 = game_id.into();
+            pre_action(token_address, token_id_felt);
 
             let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
-            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(token_id_felt);
             assert!(
                 token_metadata.lifecycle.is_playable(starknet::get_block_timestamp()),
                 "Game {} lifecycle is not playable",
@@ -56,7 +59,7 @@ mod bonus_system {
             let game: Game = world.read_model(game_id);
             let player = starknet::get_caller_address();
             let skill_tree: PlayerSkillTree = world.read_model(player);
-            assert_token_ownership(token_address, game_id);
+            assert_token_ownership(token_address, token_id_felt);
             game.assert_not_over();
 
             // Cannot apply bonus while level transition is pending
@@ -145,7 +148,7 @@ mod bonus_system {
                 libs.grid.insert_line_if_empty(game_id);
             }
 
-            post_action(token_address, game_id);
+            post_action(token_address, token_id_felt);
 
             world
                 .emit_event(@UseBonus { player, timestamp: get_block_timestamp(), game_id, bonus });

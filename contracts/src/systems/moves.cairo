@@ -11,12 +11,14 @@ pub trait IMoveSystem<T> {
 mod move_system {
     use dojo::model::ModelStorage;
     use dojo::world::WorldStorage;
-    use game_components_minigame::libs::{assert_token_ownership, post_action, pre_action};
-    use game_components_token::core::interface::{
+    use game_components_embeddable_game_standard::minigame::minigame::{
+        assert_token_ownership, post_action, pre_action,
+    };
+    use game_components_embeddable_game_standard::token::interface::{
         IMinigameTokenDispatcher, IMinigameTokenDispatcherTrait,
     };
-    use game_components_token::libs::LifecycleTrait;
-    use game_components_token::structs::TokenMetadata;
+    use game_components_embeddable_game_standard::token::token::LifecycleTrait;
+    use game_components_embeddable_game_standard::token::structs::TokenMetadata;
     use starknet::{get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
     use zkube::elements::tasks::{clearer, combo, combo_streak};
@@ -42,10 +44,11 @@ mod move_system {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let token_address = token::get_token_address(world);
-            pre_action(token_address, game_id);
+            let token_id_felt: felt252 = game_id.into();
+            pre_action(token_address, token_id_felt);
 
             let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
-            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(token_id_felt);
             assert!(
                 token_metadata.lifecycle.is_playable(get_block_timestamp()),
                 "Game {} lifecycle is not playable",
@@ -53,7 +56,7 @@ mod move_system {
             );
 
             let game: Game = world.read_model(game_id);
-            assert_token_ownership(token_address, game_id);
+            assert_token_ownership(token_address, token_id_felt);
             game.assert_not_over();
 
             // Cannot move while level transition is pending (must call start_next_level first)
@@ -80,7 +83,7 @@ mod move_system {
 
             // Get settings_id directly from token_dispatcher (already resolved at line 47)
             // Avoids full ConfigUtilsTrait::get_game_settings chain (DNS lookup + model read)
-            let settings_id = token_dispatcher.settings_id(game_id);
+            let settings_id = token_dispatcher.settings_id(token_id_felt);
 
             // Hoist default-settings check and Option unwraps once (saves 19x redundant checks)
             // Quest and achievement tracking only applies to default settings games
@@ -186,7 +189,7 @@ mod move_system {
                     game_over::handle_game_over(ref world, updated_game, player);
                 }
             }
-            post_action(token_address, game_id);
+            post_action(token_address, token_id_felt);
         }
     }
 }

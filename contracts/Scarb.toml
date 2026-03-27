@@ -27,10 +27,7 @@ openzeppelin_access.workspace = true
 alexandria_math.workspace = true
 alexandria_encoding.workspace = true
 origami_random.workspace = true
-game_components_minigame.workspace = true
-game_components_token.workspace = true
-game_components_metagame.workspace = true
-game_components_utils.workspace = true
+game_components_embeddable_game_standard.workspace = true
 graffiti.workspace = true
 quest.workspace = true
 achievement.workspace = true
@@ -39,8 +36,6 @@ achievement.workspace = true
 casm = true
 build-external-contracts = [
     "dojo::world::world_contract::world",
-    "game_components_token::examples::full_token_contract::FullTokenContract",
-    "game_components_token::examples::minigame_registry_contract::MinigameRegistryContract",
     # Quest models
     "quest::models::index::m_QuestDefinition",
     "quest::models::index::m_QuestCompletion",
