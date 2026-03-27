@@ -1,8 +1,5 @@
 /// Task index - enumerates all trackable tasks for quests
 
-// External imports
-use achievement::types::task::{Task as AchievementTask, TaskTrait as AchievementTaskTrait};
-
 // Internal imports
 use crate::elements::tasks;
 
@@ -92,12 +89,6 @@ pub impl TaskImpl of TaskTrait {
         }
     }
 
-    /// Convert to achievement tasks array (for quest registration)
-    fn tasks(self: Task, count: u32) -> Span<AchievementTask> {
-        let task_id: felt252 = self.identifier();
-        let description: ByteArray = self.description(count);
-        array![AchievementTaskTrait::new(task_id, count.into(), description)].span()
-    }
 }
 
 // Into<Task, u8>

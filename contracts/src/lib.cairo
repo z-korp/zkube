@@ -43,26 +43,6 @@ mod elements {
         pub mod scorer;
         pub mod victory;
     }
-    pub mod achievements {
-        pub mod cascade;
-        pub mod champion;
-        pub mod clearer;
-        pub mod combo;
-        pub mod grinder;
-        pub mod index;
-        pub mod interface;
-        pub mod master;
-        pub mod streak;
-    }
-    pub mod quests {
-        pub mod clearer;
-        pub mod combo;
-        pub mod combo_streak;
-        pub mod finisher;
-        pub mod index;
-        pub mod interface;
-        pub mod player;
-    }
 }
 
 pub mod interfaces {

@@ -36,7 +36,6 @@ mod game_system {
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
     use zkube::constants::DAILY_CHALLENGE;
-    use zkube::elements::tasks::grinder;
     use zkube::events::StartGame;
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::game_libs::{
@@ -138,7 +137,7 @@ mod game_system {
                     Option::Some(final_renderer_address)
                 }, // renderer address
                 Option::Some(config_system_address), // settings_address
-                Option::None, // objectives_address (using Cartridge arcade)
+                Option::None,
                 denshokan_address,
                 Option::None, // royalty_fraction
                 Option::None, // skills_address
@@ -283,13 +282,6 @@ mod game_system {
 
             player_meta.increment_runs();
             world.write_model(@player_meta);
-
-            // Track quest progress: games played (Grinder task)
-            // Only counts for default settings games
-            libs.track_quest(player, grinder::Grinder::identifier(), 1, settings.settings_id);
-
-            // Track achievement progress: games played (Grinder achievement)
-            libs.track_achievement(player, grinder::Grinder::identifier(), 1, settings.settings_id);
 
             post_action(token_address, token_id_felt);
 

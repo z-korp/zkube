@@ -42,7 +42,6 @@ mod level_system {
     use dojo::world::WorldStorage;
     use starknet::{get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
-    use zkube::elements::tasks::victory;
     use zkube::events::{LevelCompleted, LevelStarted, RunCompleted};
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::game_libs::{
@@ -223,12 +222,7 @@ mod level_system {
                         },
                     );
 
-                // Track full-run victory achievement progress
                 let libs = GameLibsImpl::new(world);
-                libs
-                    .track_achievement(
-                        player, victory::Victory::identifier(), 1, settings.settings_id,
-                    );
 
                 // Mint cubes on victory via GameLibs
                 let cubes_to_mint: u256 = final_run_data.total_cubes.into();

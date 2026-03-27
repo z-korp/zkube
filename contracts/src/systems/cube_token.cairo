@@ -11,7 +11,7 @@ pub trait ICubeToken<T> {
     /// Burn cubes from an account (caller must be account or have MINTER_ROLE)
     fn burn(ref self: T, account: ContractAddress, amount: u256);
 
-    /// Grant MINTER_ROLE to game, move, quest, and skill_tree systems (only DEFAULT_ADMIN_ROLE)
+    /// Grant MINTER_ROLE to game, move, and skill_tree systems (only DEFAULT_ADMIN_ROLE)
     fn grant_minter_roles(ref self: T);
 
     /// Dev-only: mint cubes to caller (only DEFAULT_ADMIN_ROLE)
@@ -100,14 +100,6 @@ pub mod cube_token {
             Option::None => {},
         }
 
-        // Grant to quest_system (if already registered)
-        match world.dns_address(@"quest_system") {
-            Option::Some(quest_system) => {
-                self.accesscontrol._grant_role(MINTER_ROLE, quest_system);
-            },
-            Option::None => {},
-        }
-
         // Grant to skill_tree_system (if already registered) - burns cubes for skill upgrades
         match world.dns_address(@"skill_tree_system") {
             Option::Some(skill_tree_system) => {
@@ -144,9 +136,6 @@ pub mod cube_token {
 
             let move_system = world.dns_address(@"move_system").expect('move_system not in DNS');
             self.accesscontrol._grant_role(MINTER_ROLE, move_system);
-
-            let quest_system = world.dns_address(@"quest_system").expect('quest_system not in DNS');
-            self.accesscontrol._grant_role(MINTER_ROLE, quest_system);
 
             let skill_tree_system = world
                 .dns_address(@"skill_tree_system")
