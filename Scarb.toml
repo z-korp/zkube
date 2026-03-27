@@ -33,6 +33,8 @@ alexandria_encoding = { git = "https://github.com/keep-starknet-strange/alexandr
 
 # Game components
 game_components_embeddable_game_standard = { git = "https://github.com/Provable-Games/game-components.git", branch = "next" }
+game_components_utilities = { git = "https://github.com/Provable-Games/game-components.git", branch = "next" }
+game_components_interfaces = { git = "https://github.com/Provable-Games/game-components.git", branch = "next" }
 
 
 # Other

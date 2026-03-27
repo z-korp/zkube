@@ -4,7 +4,7 @@ description = "Reversed tetris fully onchain."
 cover_uri = "file://assets/cover.png"
 icon_uri = "file://assets/icon.png"
 website = "https://app.zkube.xyz"
-seed = "zkube_jc_slot_v3"
+seed = "zkube_jc_slot_v4"
 
 [world.socials]
 x = "https://x.com/ohayo_dojo"
@@ -50,9 +50,9 @@ account_address = "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5c
 [init_call_args]
 "zkube_jc_sepolia_v1-game_system" = [
     "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
+    "0x045edce17818992bb6885a3f9b85bf901179cbab2bee32deae4d1862f16c23bc",
+    "1",
     "0x0",
-    "1",    # renderer_address: Option::None
-    "0x0",  # vrf_address: zero = pseudo-random for slot
 ]
 "zkube_jc_sepolia_v1-config_system" = [
     "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",

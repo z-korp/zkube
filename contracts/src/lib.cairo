@@ -68,6 +68,11 @@ pub mod systems {
     pub mod daily_challenge;
 }
 
+pub mod external {
+    pub mod full_token_contract;
+    pub mod minigame_registry_contract;
+}
+
 #[cfg(test)]
 mod tests {
     mod test_run_data;

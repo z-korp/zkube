@@ -23,17 +23,22 @@ dojo.workspace = true
 starknet.workspace = true
 openzeppelin_token.workspace = true
 openzeppelin_introspection.workspace = true
+openzeppelin_interfaces.workspace = true
 openzeppelin_access.workspace = true
 alexandria_math.workspace = true
 alexandria_encoding.workspace = true
 origami_random.workspace = true
 game_components_embeddable_game_standard.workspace = true
+game_components_utilities.workspace = true
+game_components_interfaces.workspace = true
 graffiti.workspace = true
 
 [[target.starknet-contract]]
 casm = true
 build-external-contracts = [
     "dojo::world::world_contract::world",
+    "zkube::external::full_token_contract::FullTokenContract",
+    "zkube::external::minigame_registry_contract::MinigameRegistryContract",
 ]
 
 [dev-dependencies]

@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x173c998f2d8999a3d236b682f319b6970b46f55ae3514a9ba534b73207b670d",
-    "seed": "zkube_jc_slot_v3",
+    "address": "0x35c10515897a1b5698f9449cb9e27ce80c100302d3dd1e280e27dd748578c91",
+    "seed": "zkube_jc_slot_v4",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,7 +33,7 @@
   },
   "contracts": [
     {
-      "address": "0x279204aef4ae1fe4c317243032e70b6fa73a5529b5f2eccc72cc2f2d0f4c06b",
+      "address": "0x6d641b9ba2367a199bd41f830b65b6ddc4585578dd63b9e79f2d87a058b551a",
       "class_hash": "0x7e8dc3e36f02447bed2b641a219bec264d13b5b5ce162792121b05261d48b29",
       "init_calldata": [],
       "tag": "zkube_jc_sepolia_v1-achievement_system",
@@ -43,7 +43,7 @@
       ]
     },
     {
-      "address": "0x63334f95d7a5a33ee54a0e2f730b1ed2ce0bd5eac5d917fd4d639e278136d16",
+      "address": "0x22e8008e181cb0566f6c5bc8075eabe6b0a8278e19c9ecf5e29fb8ade740ded",
       "class_hash": "0x287b9ec245e25c29b784f1b1ea3e37e99e28fefc5f7fe0821aa5f63f1869903",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
@@ -59,7 +59,7 @@
       ]
     },
     {
-      "address": "0xc635e1f1a52c32ba35384e8343307d2358f08ee54e228d4f82368c5b6a3b5c",
+      "address": "0x7f67a58c3ddcda6c856802dcdeda74bdcc7302f2db8eed185e2fe0149c2a0d5",
       "class_hash": "0x791b3d3fced27c7aff75c69f33e58e6a5f69fe6c2f2039463fb027855550392",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
@@ -80,11 +80,11 @@
       ]
     },
     {
-      "address": "0x505cf49aa4ac9f3e3bd329dcebdfbd0f72fe6d7ff132d7d0a21149db92be541",
+      "address": "0x129e11696a019462a4d7b4c6924686a6f1c6ddd94f8d872f22e84bcbc4f4eb5",
       "class_hash": "0x5eb37cf1cffa446b7c4e8f05e3828ea8302d5f00c2d33732f9f1a0149a542ed",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
-        "0x0",
+        "0x045edce17818992bb6885a3f9b85bf901179cbab2bee32deae4d1862f16c23bc",
         "1",
         "0x0"
       ],
@@ -99,7 +99,7 @@
       ]
     },
     {
-      "address": "0x67ac69cc1716f21e206e4c569d9dc45ec649812911b4a5cdcefe84aee26eb82",
+      "address": "0x540b5005c1e56d51bacfe93b529acd9308842c7b4a12a411867e22471667c99",
       "class_hash": "0x308b3c3c11bf6e409cd44fa473eb322083979e2555cf33172e2ddbc76e29685",
       "init_calldata": [],
       "tag": "zkube_jc_sepolia_v1-grid_system",
@@ -115,7 +115,7 @@
       ]
     },
     {
-      "address": "0x4af3e031c2ebd684424681c4046ac0a2aa8867a737e763da69147b733632db4",
+      "address": "0x5cfa10c4d5d391bb0002bf73e02547e24f3cba8eff84eca7f11ea07c860235e",
       "class_hash": "0x2eb9cdb0dbc6627e1fe3cb467ec5cfaaef2d0a1b1c998183f1e7f27eb79fdb3",
       "init_calldata": [],
       "tag": "zkube_jc_sepolia_v1-level_system",
@@ -129,7 +129,7 @@
       ]
     },
     {
-      "address": "0x561c6dc7c85e767f30285d62428dc17e2134b1c5b15b72021b77626dddd37cc",
+      "address": "0xd6c34591a00ab31207ed50f23e97d65332725826ce3caef17aafd35f8a308f",
       "class_hash": "0x4093e599f55b3c18c3cc12f9155f83c2215994dbabf642874d45c39a28dbb9d",
       "init_calldata": [],
       "tag": "zkube_jc_sepolia_v1-move_system",
@@ -140,7 +140,7 @@
       ]
     },
     {
-      "address": "0x29d7f4dfb756d161758e231ceb2bdd2c3d567e3cb2337d9ad5475f9367b3c45",
+      "address": "0x650008ef3cc808e5821965ecd4ffd8171fcc54f75abf99c06de6bdb4c38ee9b",
       "class_hash": "0x2c47afe40e52049587850ada49062ae72f85c1913b536e4575bdcae478c7bb1",
       "init_calldata": [],
       "tag": "zkube_jc_sepolia_v1-mutator_system",
@@ -151,7 +151,7 @@
       ]
     },
     {
-      "address": "0x3c76c90b090d6ae7069775be9af3a9e9c3b40891ed6d19dc0fc31be79ceb72c",
+      "address": "0x4b9385d25f0a6c6870a420c851a59614a76df4149c4302a9349e68bd3adbf2b",
       "class_hash": "0x1e6f9df1dd8704f4a928e81731b0027c17c52fea25f681ede3acd78fa6ea8f9",
       "init_calldata": [],
       "tag": "zkube_jc_sepolia_v1-renderer_systems",
@@ -161,7 +161,7 @@
       ]
     },
     {
-      "address": "0x3f015667f1db8c55234847ccf89b5358c6d38496def314204debeade28cbc49",
+      "address": "0xc4ee6ecd1740e5bde0e76e30fa1595fb0f4d328d6d40fc32ad9a0e28f57328",
       "class_hash": "0x4778d1745c153956ff6ec6ea6ff977c35fe31a743732a135ce959a5df2cf8a9",
       "init_calldata": [],
       "tag": "zkube_jc_sepolia_v1-zone_system",
