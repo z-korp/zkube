@@ -85,13 +85,12 @@ const MyGamesPage: React.FC = () => {
                   <h3 className="font-['Fredericka_the_Great'] text-lg text-emerald-300 mb-3">
                     Active
                   </h3>
-                  <table className="w-full text-sm table-fixed">
+                  <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left text-slate-300 border-b border-slate-700/50">
-                        <th className="py-2 px-2 font-['Fredericka_the_Great']">Game</th>
+                        <th className="py-2 px-2 font-['Fredericka_the_Great']">Run</th>
                         <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
                         <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
-                        <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">T</th>
                         <th className="py-2 px-2 w-12"></th>
                       </tr>
                     </thead>
@@ -99,7 +98,6 @@ const MyGamesPage: React.FC = () => {
                       {activeGames.map((game, index) => {
                         const level = getAttributeNumber(game.metadata, "Level");
                         const score = getAttributeNumber(game.metadata, "Total Score") || game.score;
-                        const cubes = getAttributeNumber(game.metadata, "Total Cubes");
 
                         return (
                           <motion.tr
@@ -109,8 +107,11 @@ const MyGamesPage: React.FC = () => {
                             transition={{ delay: index * 0.02 }}
                             className="border-b border-slate-700/40"
                           >
-                            <td className="py-2.5 px-2 text-white truncate">
-                              #{game.token_id}
+                            <td className="py-2.5 px-2 text-white">
+                              <div className="flex flex-col">
+                                <span className="font-medium">Run #{activeGames.length - index}</span>
+                                <span className="text-xs text-slate-400">Polynesian</span>
+                              </div>
                             </td>
                             <td className="py-2.5 px-2 text-cyan-200 text-right">
                               <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
@@ -120,11 +121,6 @@ const MyGamesPage: React.FC = () => {
                             <td className="py-2.5 px-2 text-amber-200 text-right">
                               <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
                                 {score}
-                              </span>
-                            </td>
-                            <td className="py-2.5 px-2 text-blue-300 text-right">
-                              <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
-                                {cubes}
                               </span>
                             </td>
                             <td className="py-1.5 px-2 text-right">
@@ -153,13 +149,12 @@ const MyGamesPage: React.FC = () => {
                   <h3 className="font-['Fredericka_the_Great'] text-lg text-slate-400 mb-3">
                     Finished
                   </h3>
-                  <table className="w-full text-sm table-fixed">
+                  <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left text-slate-300 border-b border-slate-700/50">
-                        <th className="py-2 px-2 font-['Fredericka_the_Great']">Game</th>
+                        <th className="py-2 px-2 font-['Fredericka_the_Great']">Run</th>
                         <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
                         <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
-                        <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">T</th>
                         <th className="py-2 px-2 w-12"></th>
                       </tr>
                     </thead>
@@ -167,7 +162,6 @@ const MyGamesPage: React.FC = () => {
                       {finishedGames.map((game, index) => {
                         const level = getAttributeNumber(game.metadata, "Level");
                         const score = getAttributeNumber(game.metadata, "Total Score") || game.score;
-                        const cubes = getAttributeNumber(game.metadata, "Total Cubes");
 
                         return (
                           <motion.tr
@@ -177,8 +171,11 @@ const MyGamesPage: React.FC = () => {
                             transition={{ delay: index * 0.02 }}
                             className="border-b border-slate-700/40"
                           >
-                            <td className="py-2.5 px-2 text-white truncate">
-                              #{game.token_id}
+                            <td className="py-2.5 px-2 text-white">
+                              <div className="flex flex-col">
+                                <span className="font-medium">Run #{finishedGames.length - index}</span>
+                                <span className="text-xs text-slate-400">Polynesian</span>
+                              </div>
                             </td>
                             <td className="py-2.5 px-2 text-cyan-200 text-right">
                               <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
@@ -188,11 +185,6 @@ const MyGamesPage: React.FC = () => {
                             <td className="py-2.5 px-2 text-amber-200 text-right">
                               <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
                                 {score}
-                              </span>
-                            </td>
-                            <td className="py-2.5 px-2 text-blue-300 text-right">
-                              <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
-                                {cubes}
                               </span>
                             </td>
                             <td className="py-1.5 px-2 text-right">

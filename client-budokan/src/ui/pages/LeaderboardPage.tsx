@@ -40,14 +40,13 @@ const LeaderboardPage: React.FC = () => {
                 No entries yet. Finish a run to claim rank #1.
               </div>
             ) : (
-              <table className="w-full text-sm table-fixed">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-slate-300 border-b border-slate-700/50">
                     <th className="py-2 px-2 w-16 font-['Fredericka_the_Great']">Rank</th>
                     <th className="py-2 px-2 font-['Fredericka_the_Great']">Player</th>
                     <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
                     <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
-                    <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">T</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -79,11 +78,6 @@ const LeaderboardPage: React.FC = () => {
                         <td className="py-2.5 px-2 text-amber-200 text-right">
                           <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
                             {entry.score}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-2 text-blue-300 text-right">
-                          <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
-                            {entry.totalCubes}
                           </span>
                         </td>
                       </motion.tr>

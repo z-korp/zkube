@@ -1,76 +1,169 @@
-# zKube Dead Code Cleanup (Contracts + Frontend) Implementation Plan
+# zKube UI/UX Layout Overhaul (Desktop + Mobile) Implementation Plan
 
 ## Overview
-This cleanup aligns the codebase with the post-pivot game: 10-level map + endless, stars-only progression, F2P + paid maps, daily challenge, and no roguelite meta systems. The goal is to remove dead systems/files and simplify active flows without changing core gameplay behavior. We keep wire compatibility where explicitly required (RunData bit layout, FullTokenContract).
+This plan restructures zKube’s post-redesign UI into a clear, polished, and responsive layout system while preserving existing art direction, gameplay flows, and feature scope. The focus is layout usability: stronger hierarchy, better space usage on desktop, improved clarity on mobile, and reduced friction in navigation-heavy screens (Home, My Games, Leaderboard, Map). The output is an implementable phased roadmap for React + TailwindCSS 4 using existing assets.
 
 ## Goals
-- Remove dead contract/frontend code that no longer belongs to the pivoted design.
-- Eliminate dormant UI/routes/providers for quests, achievements, cubes, draft, zone/mutator map logic.
-- Keep only systems required by current design (game, config, moves/grid/level, renderer, daily challenge, map purchase entitlement).
-- Produce a clean, buildable/testable baseline for alpha iteration.
+- Make every primary screen instantly understandable on both desktop (1280+) and mobile (390 baseline).
+- Fix wasted space, weak hierarchy, and readability issues without changing core game mechanics.
+- Standardize a reusable page-shell + content-container system (glass cards + consistent spacing).
+- Improve wayfinding by clarifying top bar icons, table semantics, map progression, and primary CTAs.
+- Raise product polish from “prototype-like” to “release-ready”.
 
 ## Non-Goals
-- No RunData repack/migration (zone_id/mutator_mask bits remain reserved and zeroed).
-- No new gameplay features (no reintroduction of bonuses/quests/achievements).
-- No monetization redesign beyond existing map purchase model.
-- No migration of FullTokenContract ownership flow.
+- No new gameplay features (no economy/system logic changes).
+- No backend/onchain contract changes.
+- No net-new art pipeline; reuse existing backgrounds/node assets and current visual theme.
+- No IA expansion beyond existing pages/modes (Home, My Games, Leaderboard, Map, Settings).
 
 ## Assumptions and Constraints
-- User direction is authoritative: no skills/draft/skill tree/bonuses (deferred), no quest/achievement systems (deferred), no cube economy; stars are the only progression signal.
-- "All content unlocked for alpha" means no extra gating beyond map purchase entitlement already in scope.
-- Keep `full_token_contract` integration.
-- Keep RunData bit shape as-is; do not repack storage.
-- Use up-to-date game-components/Athanor-compatible integrations; avoid re-adding legacy components.
+- Stack remains React 19 + TailwindCSS 4 + Motion/GSAP.
+- Existing Polynesian/Feudal/Persian art assets are final and should be emphasized, not replaced.
+- Desktop and mobile both must be first-class (not just scaled versions).
+- Existing routes remain; only layout, hierarchy, and presentation behaviors change.
+- "T" metric exists in data model; label meaning must be clarified in UI copy/tooltips.
 
 ## Requirements
 
 ### Functional
-- Delete identified dead contract files (draft/zone/mutator/skill tree/skill effects stack, dead helpers).
-- Remove dead events and dead event fields (draft events, `RunEnded.zone_id`).
-- Remove quest/achievement contract stubs from active module graph.
-- Remove bonus system from active module graph and frontend interaction points.
-- Remove cube-based frontend UI and copy; keep stars/score outputs.
-- Simplify map UI from 5-zone roguelite structure to map-centric 10-level + endless representation.
+- Deliver revised layouts for: Home (logged-out + logged-in), My Games, Leaderboard, and Map.
+- Define desktop/mobile variants and breakpoint behavior for each page.
+- Define reusable top bar with icon labels (or labeled hover/long-press affordances) and active states.
+- Replace unreadable IDs with short display format while preserving full ID access (copy/reveal affordance).
+- Introduce clearer map progression visualization (paths/edges + stronger node labeling) without changing progression logic.
 
 ### Non-Functional
-- Build must pass for contracts and frontend.
-- Diagnostics/type checks clean on changed files.
-- No regression in mint → create/create_run → play core loop.
-- Keep deterministic map/game config behavior.
+- Maintain stable performance on low-mid mobile devices (avoid heavy continuous animations).
+- Keep text contrast and touch target sizing accessibility-safe.
+- Keep code maintainable via shared layout primitives and design tokens.
+- Prevent regressions by adding viewport-based visual QA checklist (desktop and mobile).
 
 ## Technical Design
 
 ### Data Model
-- **Keep:** `Game`, `GameSettings`, `GameSettingsMetadata`, `MapEntitlement`, `Daily*`.
-- **Delete:** `DraftState`, `ZoneConfig`, `MutatorDef`, `PlayerSkillTree` models.
-- **Keep but documented reserved fields:** `RunData.zone_id`, `RunData.mutator_mask` (always zero in active flow).
-- **Event schema changes:**
-  - Delete `DraftOpened`, `DraftRerolled`, `DraftSelected`.
-  - Remove `zone_id` from `RunEnded`.
+- No schema changes required.
+- Optional view-model enrichments (frontend-only):
+  - `displayGameId` (e.g., `#6150…3073`)
+  - `fullGameId` for copy/action tooltip
+  - `mapName` lookup attached to each game row/card
+  - `metricLabelT` human-readable label in UI layer
 
 ### API Design
-- **Contracts removed from public surface:** `bonus_system`, `quest_system`, `achievement_system`, draft/zone/mutator/skill-tree systems.
-- **Frontend system calls removed:** `applyBonus`, `claimQuest` (and their transport types/interfaces).
-- **No change** to active calls: `free_mint`, `create`, `create_run`, `move`, map purchase/config, daily challenge calls.
+- No API contract changes required.
+- Optional UI-only mapper functions:
+  - `formatGameId(id: string): { short: string; full: string }`
+  - `getMapLabel(mapId): string`
+  - `getTMetricLabel(): string`
 
 ### Architecture
 ```text
-Before: roguelite meta layers (draft/skills/bonus/quests/achievements/cubes) around core puzzle loop
-After:  core puzzle loop + settings-driven maps + entitlement + daily challenge
+Shared App Shell
+  ├─ TopBar (desktop: labeled nav; mobile: compact + optional bottom nav)
+  ├─ PageContainer (max-width + adaptive gutters)
+  └─ GlassPanel primitives
 
-Contracts retained:
-  game_system, move_system, grid_system, level_system, config_system,
-  renderer_system, daily_challenge_system, external full_token/minigame registry
-
-Frontend retained:
-  Home -> Map -> Play, Daily Challenge, Leaderboard, Settings, MyGames
-  (Quests page/provider/components and cube/bonus UX removed)
+Screens
+  ├─ HomeScreen
+  │   ├─ Hero block
+  │   ├─ Map cards grid/list
+  │   └─ Primary CTA stack (My Games / Daily / Leaderboard)
+  ├─ MyGamesScreen
+  │   └─ Adaptive table-to-cards list
+  ├─ LeaderboardScreen
+  │   └─ Adaptive ranked list with sticky header/footer indicators
+  └─ MapScreen
+      └─ Responsive map stage (desktop wide canvas, mobile tall canvas)
 ```
 
 ### UX Flow (if applicable)
-- Home top bar/actions remove quest/cube affordances.
-- Map view represents one map (10 levels + endless entry), not 5-zone campaign/draft transitions.
-- End-of-level/game dialogs show stars/score progression only (no cube rewards or draft prompts).
+
+#### Screen-by-screen audit + target layout
+
+| Screen | Current Friction (from screenshots) | Proposed Layout (Desktop) | Proposed Layout (Mobile) |
+|---|---|---|---|
+| Home (Logged Out) | Huge logo + tiny single CTA; weak hierarchy; unused lateral space | Centered hero in constrained content column (`max-w-[1100px]`) with logo + subtitle + clear “Log In” primary button and secondary “How it works”/“View leaderboard” text link | Keep moon/background composition but reduce logo footprint (`w-[200-240px]`); pin primary CTA within first viewport (no below-fold dependency) |
+| Home (Logged In) | Narrow centered column; cards feel like text rows; CTA buttons below fold; top bar icons ambiguous | Two-column layout: left = map selection cards (visual thumbnails + status chips), right = quick actions panel (My Games/Daily/Leaderboard). Use 12-col grid to consume width | Single-column but reorder: top hero compact, then primary actions, then map cards. Keep all core actions above fold on 390×844 |
+| My Games | 70+ char game IDs unreadable; “T” unclear; sparse table floating on background | Use panelized data area (`glass panel`) with sticky table header, row hover states, abbreviated IDs + copy icon, map badge column, explicit T label/tooltip | Switch to card list: each game card shows short ID, map, lvl/score/T chips, primary Play button. Keep table only >= md |
+| Leaderboard | Sparse; only one highlighted row; “T” unclear; no scrolling/pagination cues | Ranked table with podium header (top 3 treatment), sticky column headers, right-aligned numeric columns, visible page/scroll state | Card/list ranking with rank medal, player, stats chips, and sticky filter/header. Explicit “showing X of Y” cue |
+| Map | Desktop wastes width with mobile-like narrow path; tiny nodes and weak numbering; path continuity unclear | Dedicated wide map stage in centered frame (`max-w-[1440px]`), horizontal/diagonal path expansion, explicit connectors between nodes, larger node hitboxes/labels | Keep current mobile composition baseline but increase number legibility and connector contrast; preserve good viewport fill |
+
+#### Detailed page proposals
+
+1) **Home (Logged Out)**
+- Keep cinematic background; add subtle dark gradient overlay under content for legibility.
+- Content block:
+  - Logo (`desktop: w-80`, `mobile: w-52`) + one-line value prop (“Onchain puzzle roguelike on Starknet”).
+  - Primary CTA (“Log In”) high-contrast solid treatment.
+  - Secondary low-emphasis links beneath CTA.
+- Vertical rhythm: `pt-20 md:pt-28`, `space-y-6 md:space-y-8`.
+
+2) **Home (Logged In)**
+- Desktop (>=1280): `grid-cols-12`, `gap-6`, with `col-span-7` map cards and `col-span-5` quick actions/account summary.
+- Map card redesign (no feature change):
+  - Add map key art thumbnail strip (`h-24`) + name/status in footer.
+  - Status chip styles: `FREE` (teal), `LOCKED` (slate), `OWNED` (gold outline if applicable).
+  - Card affordance: hover lift + glow, clearer click target.
+- Move quick actions above fold with consistent button heights.
+
+3) **My Games**
+- Replace raw table-first mentality with adaptive pattern:
+  - `lg`: table with sticky header + row separators + action column.
+  - `sm`: stacked cards, each with core stats and one primary action.
+- Rename `T` header to explicit label (e.g., `Turns`, `Time`, or final domain term) + tooltip icon.
+- Game ID strategy:
+  - Show short ID by default (`#6150…3073`).
+  - Provide copy button and optional expand-on-hover/press for full ID.
+- Add map badge to each row/card (Polynesian/Feudal Japan/Ancient Persia).
+
+4) **Leaderboard**
+- Add richer hierarchy:
+  - Podium segment for top 3 (desktop horizontal, mobile stacked).
+  - Remaining ranks in list/table below.
+- Improve scanability:
+  - Strong row striping/hover states.
+  - Numeric tabular figures (`font-variant-numeric: tabular-nums`).
+  - Sticky header and visible list bounds.
+- Clarify `T` metric label with tooltip.
+
+5) **Map**
+- Desktop-first map stage redesign:
+  - Preserve current node art; increase node size (`w-20 h-20` unlocked, `w-24 h-24` active/boss).
+  - Draw explicit connector paths between nodes (SVG or absolutely positioned strokes).
+  - Distribute nodes across wider canvas to avoid narrow 9:16 look on 16:9 screens.
+  - Surface level numbers as integrated badges with stronger contrast and larger size.
+- Mobile refinements:
+  - Keep current vertical map framing.
+  - Increase number badge size and contrast.
+  - Keep boss landmark prominence and locked/unlocked state clarity.
+
+#### Shared responsive strategy
+
+- **Approach:** mobile-first foundations with explicit desktop composition overrides.
+- **Breakpoints (Tailwind):**
+  - `sm` (>=640): compact tablet transitions
+  - `md` (>=768): table/list hybrid enablement
+  - `lg` (>=1024): multi-column layout starts
+  - `xl` (>=1280): full desktop composition
+  - optional `2xl` (>=1536): cap max-width, avoid over-stretch
+- **Container system:**
+  - `mx-auto w-full px-4 sm:px-6 lg:px-8`
+  - `max-w-screen-2xl` for shell, per-page `max-w-[1100|1280|1440]`
+- **Page sections:** enforce `gap-4 sm:gap-6 lg:gap-8`; avoid arbitrary one-off spacing.
+
+#### Tailwind/CSS implementation recommendations
+
+- Glass panel primitive:
+  - `rounded-2xl border border-white/15 bg-slate-950/40 backdrop-blur-md shadow-[0_8px_40px_rgba(0,0,0,0.35)]`
+- Readability overlay (background-heavy screens):
+  - `before:absolute before:inset-0 before:bg-gradient-to-b before:from-slate-950/40 before:to-slate-950/65`
+- CTA consistency:
+  - Primary buttons min height `h-12` mobile, `h-14` desktop; avoid below-fold critical actions.
+- Typography hierarchy:
+  - Page title `text-2xl md:text-3xl`, section title `text-lg md:text-xl`, body `text-sm md:text-base`.
+- Safe touch targets:
+  - Icon buttons `min-w-10 min-h-10` (>=44px interactive area).
+- Top bar labels:
+  - Desktop inline text labels near icons; mobile keeps icon-only if space constrained but adds tooltip/long-press label.
 
 ---
 
@@ -80,14 +173,15 @@ Frontend retained:
 
 These tasks create foundations that other work depends on. Complete in order.
 
-#### Phase 0: Cleanup Contract/UI Decisions Lock + Safety Guardrails
+#### Phase 0: UX Baseline, Metrics, and Shared Layout Primitives
 **Prerequisite for:** All subsequent phases
 
 | Task | Description | Output |
 |------|-------------|--------|
-| 0.1 | Freeze cleanup policy in code comments/docs: remove bonus/quest/achievement paths; keep RunData reserved bits | Decision note in PLAN + inline comments where needed |
-| 0.2 | Prepare removal list and ownership map (imports/usages/build graph) before deletion | Ordered deletion checklist, avoids partial breaks |
-| 0.3 | Add temporary compile checkpoints (contract + frontend) to validate each removal stage | Repeatable verification checkpoints |
+| 0.1 | Audit current page components and identify exact files for Home/My Games/Leaderboard/Map + shared top bar/container | File-level implementation map |
+| 0.2 | Define responsive layout tokens (spacing, max-widths, panel styles, typography scale) in Tailwind/theme layer | Reusable tokens + utility classes |
+| 0.3 | Implement shared `PageContainer`, `GlassPanel`, `SectionHeader`, and upgraded `TopBar` primitives | Common UI foundation used by all pages |
+| 0.4 | Establish viewport QA matrix (390x844, 768x1024, 1280x800, 1440x900) | Repeatable visual validation checklist |
 
 ---
 
@@ -95,40 +189,38 @@ These tasks create foundations that other work depends on. Complete in order.
 
 These workstreams can be executed independently after Phase 0.
 
-#### Workstream A: Contract Graph Pruning
+#### Workstream A: Home Screen Layout Overhaul (Logged Out + Logged In)
 **Dependencies:** Phase 0
 **Can parallelize with:** Workstreams B, C
 
 | Task | Description | Output |
 |------|-------------|--------|
-| A.1 | Remove dead contract files: `systems/{draft,zone,mutator,skill_tree,skill_effects}.cairo`, `models/{draft,zone,mutator,skill_tree}.cairo`, `helpers/{skill_effects,bonus_logic}.cairo` | Files deleted, no dangling imports |
-| A.2 | Remove dormant systems from active graph: `systems/bonus.cairo`, `systems/quest.cairo`, `systems/achievement.cairo` and lib module exports | Active contract surface matches current game |
-| A.3 | Update `events.cairo` and emitters: delete draft events, remove `RunEnded.zone_id`, adjust `helpers/game_over.cairo` emission | Event schema aligned to current runtime |
-| A.4 | Remove skill-tree accessors/imports from `store.cairo` and any remaining references (including cube_token minter grants to skill tree) | Store and token setup free of skill-tree dependencies |
-| A.5 | Keep `RunData` bit layout unchanged; annotate reserved/dead bits in `helpers/packing.cairo` and tests | Compatibility retained, intent explicit |
+| A.1 | Recompose logged-out hero hierarchy and CTA placement to fit first viewport on desktop/mobile | Clear entry experience with above-fold primary action |
+| A.2 | Redesign logged-in desktop layout into 2-column map/actions composition | Better horizontal space usage, reduced scroll |
+| A.3 | Upgrade map cards with themed thumbnails, stronger status chips, and improved affordances | Cards feel like game destinations, not plain rows |
+| A.4 | Reorder mobile sections to prioritize actionable buttons before long list content | Reduced friction and faster task completion |
 
-#### Workstream B: Frontend Dead Feature Removal
+#### Workstream B: Data Screens (My Games + Leaderboard)
 **Dependencies:** Phase 0
 **Can parallelize with:** Workstreams A, C
 
 | Task | Description | Output |
 |------|-------------|--------|
-| B.1 | Delete dead frontend files: `utils/draftEvents.ts`, legacy `ui/components/QuestCard.tsx`, unused `Quest/QuestFamilyCard.tsx` | Dead files removed |
-| B.2 | Remove quest stack: `QuestsPage`, `QuestsProvider`, quest components/hooks/imports, navigation route/state entries, topbar quest action | No quest UI/runtime code paths |
-| B.3 | Remove bonus stack from UI/system calls/types: `BonusButton`, `BonusType` usage in board/tutorial/action bars, `applyBonus` call path | No bonus controls in client |
-| B.4 | Remove cube visuals/copy: `CubeIcon` usage, cube counters/reward labels in dialogs/topbar, `cubeBalance` props | Stars/score-only presentation |
-| B.5 | Strip draft fields from settings forms/types (`draft_*`) and map flow flags (`draftWillOpen`, `node.type === 'draft'`) | Settings/map UI matches pivot |
+| B.1 | Replace raw IDs with short IDs + copy affordance + optional full reveal | Readable identity with full traceability |
+| B.2 | Clarify ambiguous `T` metric label and add tooltip/context copy | Reduced semantic confusion |
+| B.3 | Implement responsive table↔card pattern (desktop tables, mobile cards) | Strong readability across breakpoints |
+| B.4 | Add map badges and richer row/card hierarchy (rank emphasis, sticky headers) | More informative and polished data views |
 
-#### Workstream C: Map UX Simplification
+#### Workstream C: Map Screen Responsive Stage Redesign
 **Dependencies:** Phase 0
 **Can parallelize with:** Workstreams A, B
 
 | Task | Description | Output |
 |------|-------------|--------|
-| C.1 | Refactor `useMapData` from 5-zone × 11-node model to map-centric 10-level + endless model | Simplified node model and state rules |
-| C.2 | Retire zone theme/layout machinery (`useMapLayout`, `ZoneBackground`, zone swiping, zone dots) and replace with linear/progressive map representation | Map page no longer zone-based |
-| C.3 | Update `MapPage`, `LevelPreview`, `LevelCompleteDialog`, `PlayScreen` to consume new map model and remove zone/mutator assumptions | End-to-end map/play transition coherent |
-| C.4 | Keep endless-depth rendering/logic where meaningful; remove only dead zone/mutator display fields | Endless mode preserved |
+| C.1 | Implement desktop map canvas constraints and node distribution that uses width effectively | Desktop map no longer narrow/phone-like |
+| C.2 | Add visual connectors/edges between nodes and improve level number badge prominence | Clear progression path comprehension |
+| C.3 | Tune node sizing, interaction states, and boss emphasis for both desktop/mobile | Better target size and visual hierarchy |
+| C.4 | Keep mobile map strengths while improving readability/contrast of labels and badges | Mobile remains strong, with reduced ambiguity |
 
 ---
 
@@ -136,68 +228,78 @@ These workstreams can be executed independently after Phase 0.
 
 After parallel workstreams complete, these tasks integrate the work.
 
-#### Phase N: Integration + Regression Safety
+#### Phase N: Integration, Consistency Pass, and UX QA
 **Dependencies:** Workstreams A, B, C
 
 | Task | Description | Output |
 |------|-------------|--------|
-| N.1 | Reconcile generated/manifest bindings (`contractSystems.ts`, model/system wrappers) with removed contracts/interfaces | No stale ABI calls/imports |
-| N.2 | Full compile/test pass and runtime smoke test of core flow | Verified clean baseline |
-| N.3 | Remove stale docs/comments naming removed systems (README/CLAUDE sections that mislead maintainers) | Documentation reflects product direction |
+| N.1 | Cross-page spacing/typography consistency sweep and token compliance cleanup | Cohesive visual language across routes |
+| N.2 | Motion polish pass (entry transitions, hover/tap feedback) with perf caps | High polish without jank |
+| N.3 | Run viewport QA matrix and adjust edge-case overflow/truncation issues | Verified responsive correctness |
+| N.4 | Prepare before/after screenshot set for signoff | Objective UX improvement evidence |
 
 ---
 
 ## Testing and Validation
 
-- Contract compile and tests after each deletion stage.
-- Frontend typecheck/build after each feature-slice removal (quests, bonus, cube, map).
-- Manual smoke tests:
-  - Connect wallet → start map run → play moves → level complete → map progression.
-  - Daily challenge flow still operable.
-  - Paid/free map selection remains functional.
+- **Manual UX checklist per screen:**
+  - First action obvious within 2 seconds.
+  - Primary CTA visible above fold on 390x844 and 1280x800.
+  - No clipped text/labels or ambiguous icons.
+  - IDs readable; full ID copy action works.
+  - Map path visually understandable without guesswork.
+- **Responsive validation:** test at 390x844, 768x1024, 1280x800, 1440x900.
+- **Accessibility quick pass:** contrast checks, 44px touch targets, keyboard focus states on actionable controls.
+- **Performance guardrail:** no heavy perpetual animation loops; verify smooth scroll and interaction on mobile.
 
 ## Rollout and Migration
 
-- Rollout as a single cleanup branch, but execute in commits by workstream for easy rollback.
-- If a regression appears, rollback offending workstream commit(s) without reverting whole cleanup.
-- No on-chain data migration required (storage compatibility preserved by not repacking RunData).
+- Roll out as a UI-only branch in phased PRs by workstream (A/B/C), then integration PR.
+- Use feature toggles only if needed for high-risk map layout swap; otherwise direct replacement.
+- Rollback strategy: revert offending workstream PR while preserving shared primitives from Phase 0.
 
 ## Verification Checklist
 
-- Contracts:
-  - `scarb build`
-  - `cd contracts && scarb test`
-  - `cd contracts && sozo build -P slot`
-- Frontend:
-  - `cd client-budokan && pnpm build`
-  - `cd client-budokan && pnpm test`
-- Diagnostics (changed files):
-  - run LSP diagnostics for changed TS/TSX and Cairo files; resolve all errors.
-- Manual runtime:
-  - Start local stack, mint/create/play loop, daily challenge, map selection states.
+- `cd client-budokan && pnpm build`
+- `cd client-budokan && pnpm test`
+- Capture updated screenshots for the 8 audited states and compare against baseline:
+  - `ux-desktop-home-loggedout.png`
+  - `ux-desktop-home.png`
+  - `ux-desktop-mygames.png`
+  - `ux-desktop-leaderboard.png`
+  - `ux-desktop-map.png`
+  - `ux-mobile-home.png`
+  - `ux-mobile-mygames.png`
+  - `ux-mobile-map.png`
+- Confirm all acceptance criteria:
+  - Desktop width is meaningfully utilized on Home/Map.
+  - Primary actions are above fold on mobile Home.
+  - `T` column meaning is explicit.
+  - Game IDs are readable and copyable.
+  - Map connectors and node numbering are clear.
 
 ## Risk Assessment
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
-| Removing systems breaks generated bindings/manifests | Med | High | Merge phase includes binding reconciliation + compile gates |
-| Hidden quest/bonus/cube references remain in UI | High | Med | Search-driven cleanup checklist + strict TS build |
-| Map refactor introduces progression UX regressions | Med | High | Isolate Workstream C + manual progression smoke tests |
-| Event schema edits break indexer consumers | Low | Med | Update event consumers in same PR; verify Torii queries |
-| Over-cleaning removes deferred-but-needed code | Low | Med | Keep cleanup focused on non-active/deferred systems only; preserve RunData compatibility |
+| Over-stylizing harms readability on atmospheric background | Med | High | Enforce content overlays, contrast checks, and panel tokens |
+| Desktop-first map adjustment breaks mobile map quality | Med | High | Keep separate layout constraints per breakpoint; validate mobile snapshots early |
+| Inconsistent implementation across pages reintroduces drift | High | Med | Shared primitives/tokens in Phase 0 + merge consistency sweep |
+| Ambiguous metric labeling remains unresolved (`T`) | Med | Med | Product confirmation + temporary tooltip fallback until final naming locked |
+| Regression in navigation discoverability from icon-only controls | Med | Med | Add desktop labels and active states; test with first-time user heuristics |
 
 ## Open Questions
 
-- [ ] Confirm alpha behavior for paid maps while also saying “all content unlocked for alpha”: should locked maps show purchase CTA or auto-owned in alpha builds?
-- [ ] Confirm desired Home top bar replacement for removed quest/cube controls (minimal mode vs star summary widget).
+- [ ] Confirm canonical meaning of `T` (Turns, Time, or other) so label can be finalized consistently.
+- [ ] On desktop, should top bar always show text labels next to icons, or only on hover/expanded mode?
+- [ ] For paid maps, should locked cards prioritize purchase CTA visibility or remain minimal until selected?
 
 ## Decision Log
 
 | Decision | Rationale | Alternatives Considered |
 |----------|-----------|------------------------|
-| Remove bonus system from active contracts and UI | Product direction explicitly says no bonuses (deferred) | Keep contract-only dormant bonus path (rejected: confusion + dead ABI surface) |
-| Remove quest + achievement systems now | User requested dropping both for now; current files are mostly stubs/dead UI | Keep dormant stubs indefinitely (rejected: unnecessary complexity) |
-| Remove cube UX from frontend and keep stars as sole progression signal | Product direction: no cube economy, stars only | Keep cube icon/counters as cosmetic (rejected: contradicts direction) |
-| Rewrite map page away from zone model | Current 5-zone draft-oriented map conflicts with 10-level+endless per-map design | Keep zone shell with hidden features (rejected: persistent conceptual debt) |
-| Keep RunData dead bits (zone/mutator) reserved | Explicit constraint to avoid repack/migration risk | Repack now (rejected: unnecessary risk in cleanup sprint) |
-| Keep FullTokenContract integration | Explicit constraint + existing flow stability | Replace token ownership flow (rejected: out of cleanup scope) |
+| Keep existing art direction and focus on layout/system polish | User requested practical improvements without art redesign | Full visual rebrand (rejected: out of scope) |
+| Introduce shared glass container primitives across all pages | Current screens lack structural containers over detailed backgrounds | Per-page ad hoc containers (rejected: inconsistent, hard to maintain) |
+| Use adaptive table-on-desktop / cards-on-mobile for data-heavy pages | Current mobile table readability is poor | Force one table layout everywhere (rejected: cramped and unclear) |
+| Preserve mobile map composition and redesign desktop map stage | Screenshot shows mobile map works better than desktop | Single universal 9:16 map stage (rejected: wastes desktop real estate) |
+| Prioritize hierarchy and clarity before adding extra motion detail | User asked for flawless/easy to understand UX | Motion-first redesign (rejected: polish without structure fails usability) |

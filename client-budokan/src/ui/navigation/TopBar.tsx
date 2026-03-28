@@ -29,9 +29,21 @@ const TopBar: React.FC<TopBarProps> = ({
             </span>
           )}
         </button>
-        <BarIconButton icon={<Settings2 size={18} />} onClick={onSettings} />
-        <BarIconButton icon={<BookOpen size={18} />} onClick={onTutorial} />
-        <BarIconButton icon={<Trophy size={18} />} onClick={onTrophies} />
+        <BarIconButton
+          icon={<Settings2 size={18} />}
+          label="Settings"
+          onClick={onSettings}
+        />
+        <BarIconButton
+          icon={<BookOpen size={18} />}
+          label="Tutorial"
+          onClick={onTutorial}
+        />
+        <BarIconButton
+          icon={<Trophy size={18} />}
+          label="Trophies"
+          onClick={onTrophies}
+        />
       </div>
     </div>
   );
@@ -39,14 +51,16 @@ const TopBar: React.FC<TopBarProps> = ({
 
 const BarIconButton: React.FC<{
   icon: React.ReactNode;
+  label?: string;
   onClick: () => void;
   badge?: number;
-}> = ({ icon, onClick, badge }) => (
+}> = ({ icon, label, onClick, badge }) => (
   <button
     onClick={onClick}
-    className="relative w-9 h-9 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
+    className="relative flex items-center gap-1.5 h-9 px-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
   >
     {icon}
+    {label && <span className="hidden lg:inline text-sm font-medium">{label}</span>}
     {badge !== undefined && badge > 0 && (
       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold min-w-[16px] h-[16px] flex items-center justify-center rounded-full px-1 shadow-md">
         {badge}
