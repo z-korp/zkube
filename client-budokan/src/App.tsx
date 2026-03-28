@@ -1,42 +1,59 @@
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { Toaster } from "./ui/elements/sonner";
 import { TooltipProvider } from "@/ui/elements/tooltip";
-import PageNavigator from "@/ui/navigation/PageNavigator";
-import { useNavigationStore } from "@/stores/navigationStore";
+import { useNavigationStore, FULLSCREEN_PAGES } from "@/stores/navigationStore";
 import type { PageId } from "@/stores/navigationStore";
 import { getToastPlacement } from "@/utils/toast";
 import { useAccount } from "@starknet-react/core";
 import { Loading } from "@/ui/screens/Loading";
+import ThemeBackground from "@/ui/components/shared/ThemeBackground";
+import BottomTabBar from "@/ui/components/BottomTabBar";
 
 import HomePage from "@/ui/pages/HomePage";
 import PlayScreen from "@/ui/pages/PlayScreen";
 import MapPage from "@/ui/pages/MapPage";
 import SettingsPage from "@/ui/pages/SettingsPage";
-import MyGamesPage from "@/ui/pages/MyGamesPage";
 import LeaderboardPage from "@/ui/pages/LeaderboardPage";
-import TutorialPage from "@/ui/pages/TutorialPage";
 import DailyChallengePage from "@/ui/pages/DailyChallengePage";
-import SettingsPresetsPage from "@/ui/pages/SettingsPresetsPage";
 
 const pageComponents: Record<PageId, React.ReactNode> = {
   home: <HomePage />,
   play: <PlayScreen />,
   map: <MapPage />,
-  leaderboard: <LeaderboardPage />,
+  ranks: <LeaderboardPage />,
   settings: <SettingsPage />,
-  mygames: <MyGamesPage />,
-  tutorial: <TutorialPage />,
-  dailychallenge: <DailyChallengePage />,
-  settingspresets: <SettingsPresetsPage />,
+  daily: <DailyChallengePage />,
+};
+
+const TRANSITION_DURATION = 0.15;
+const EASE_OUT_CUBIC: [number, number, number, number] = [0.33, 1, 0.68, 1];
+const SLIDE_TRANSITION = {
+  duration: TRANSITION_DURATION,
+  ease: EASE_OUT_CUBIC,
 };
 
 const CurrentPage: React.FC = () => {
   const currentPage = useNavigationStore((s) => s.currentPage);
-  return pageComponents[currentPage];
+  const transitionDirection = useNavigationStore((s) => s.transitionDirection);
+  const isBack = transitionDirection === "back";
+
+  return (
+    <AnimatePresence initial={false}>
+      <motion.div
+        key={currentPage}
+        initial={{ x: isBack ? "-100%" : "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: isBack ? "100%" : "-100%" }}
+        transition={SLIDE_TRANSITION}
+        className="absolute inset-0 overflow-y-auto overflow-x-hidden"
+      >
+        {pageComponents[currentPage]}
+      </motion.div>
+    </AnimatePresence>
+  );
 };
 
-// starknet-react's isReconnecting is never set to true — auto-connect is fire-and-forget.
-// We gate on lastUsedConnector in localStorage to hold the loading screen until connected or timeout.
 function useAutoConnectGate(): boolean {
   const { status } = useAccount();
   const [waiting, setWaiting] = useState(
@@ -60,14 +77,22 @@ function useAutoConnectGate(): boolean {
 
 export default function App() {
   const waitingForAutoConnect = useAutoConnectGate();
+  const currentPage = useNavigationStore((s) => s.currentPage);
+  const showTabBar = !FULLSCREEN_PAGES.has(currentPage);
 
   if (waitingForAutoConnect) return <Loading />;
 
   return (
     <TooltipProvider>
-      <PageNavigator>
-        <CurrentPage />
-      </PageNavigator>
+      <div className="fixed inset-0 flex flex-col">
+        <ThemeBackground />
+        <div
+          className={`relative flex-1 min-h-0 overflow-hidden ${showTabBar ? "pb-16 md:pb-14" : ""}`}
+        >
+          <CurrentPage />
+        </div>
+        {showTabBar && <BottomTabBar />}
+      </div>
       <Toaster position={getToastPlacement()} />
     </TooltipProvider>
   );

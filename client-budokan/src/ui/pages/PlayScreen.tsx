@@ -44,7 +44,18 @@ const PlayScreen: React.FC = () => {
     (s) => s.setPendingLevelCompletion,
   );
   const { themeTemplate, setThemeTemplate } = useTheme();
-  const { setMusicContext, setMusicPlaylist, playSfx, musicVolume, effectsVolume, setMusicVolume, setEffectsVolume, isPlaying, playTheme, stopTheme } = useMusicPlayer();
+  const {
+    setMusicContext,
+    setMusicPlaylist,
+    playSfx,
+    musicVolume,
+    effectsVolume,
+    setMusicVolume,
+    setEffectsVolume,
+    isPlaying,
+    playTheme,
+    stopTheme,
+  } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
 
   const { game, seed } = useGame({
@@ -58,8 +69,6 @@ const PlayScreen: React.FC = () => {
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isGameLoading, setIsGameLoading] = useState(true);
-  // Tracks whether the Grid cascade animation has finished for the current move.
-  // Level-complete detection is gated on this to prevent checking against a mid-cascade grid.
   const [cascadeComplete, setCascadeComplete] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
@@ -78,7 +87,9 @@ const PlayScreen: React.FC = () => {
     const level = game?.level ?? 1;
     const isBossLevel = checkBossLevel(level);
     const wasBossLevel =
-      prevBossLevelRef.current != null ? checkBossLevel(prevBossLevelRef.current) : false;
+      prevBossLevelRef.current != null
+        ? checkBossLevel(prevBossLevelRef.current)
+        : false;
 
     if (isBossLevel && prevBossLevelRef.current !== level) {
       playSfx("boss-intro");
@@ -92,8 +103,6 @@ const PlayScreen: React.FC = () => {
 
     prevBossLevelRef.current = level;
   }, [game?.level, playSfx, setMusicContext, setMusicPlaylist]);
-
-  // GameSeed.seed is now stable (never overwritten). level_seed holds per-level VRF.
 
   const mapThemeId: ThemeId = "theme-1";
 
@@ -132,12 +141,10 @@ const PlayScreen: React.FC = () => {
     prevGameOverRef.current = game?.over;
   }, [game?.over, playSfx]);
 
-  // Cascade-complete callback from Grid → GameBoard
   const handleCascadeComplete = useCallback(() => {
     setCascadeComplete(true);
   }, []);
 
-  // Reset cascadeComplete whenever the grid changes (new move started or chain synced)
   useEffect(() => {
     setCascadeComplete(false);
   }, [grid]);
@@ -151,14 +158,8 @@ const PlayScreen: React.FC = () => {
       levelStartTotalScoreRef.current = game.totalScore - game.levelScore;
     }
 
-    // Gate on cascadeComplete: don't detect level transition until the cascade
-    // animation has fully finished. If level changed but cascade isn't done yet,
-    // skip this run entirely (don't update prevState) so we re-detect on next run.
     if (prevState && currentLevel > prevState.level && !game.over) {
-      if (!cascadeComplete) {
-        // Cascade still running — preserve old prevState so we re-detect later
-        return;
-      }
+      if (!cascadeComplete) return;
       if (checkBossLevel(prevState.level)) {
         playSfx("boss-defeat");
       } else {
@@ -172,7 +173,6 @@ const PlayScreen: React.FC = () => {
         gameLevel: prevState.gameLevel,
       });
       levelStartTotalScoreRef.current = game.totalScore;
-
       navNavigate("map");
     }
 
@@ -257,38 +257,34 @@ const PlayScreen: React.FC = () => {
         />
       )}
 
-      {/* ---- Top Bar (consistent with other pages) ---- */}
-      <div className="flex items-center justify-between px-2 md:px-4 h-12 md:h-13 lg:h-14 bg-slate-900/70 backdrop-blur-sm border-b border-slate-700/50 shrink-0">
-        <div className="flex items-center gap-1">
+      <div className="flex items-center justify-between px-2 h-11 shrink-0">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={goBack}
-            className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white transition-colors"
           >
-            <ChevronLeft size={22} />
+            <ChevronLeft size={20} />
           </button>
-          <span className="font-['Fredericka_the_Great'] text-cyan-200 text-base md:text-lg leading-tight">
-            Level {game?.level ?? "..."}
+          <span className="font-['Fredericka_the_Great'] text-cyan-200 text-sm leading-tight">
+            Lv.{game?.level ?? "..."}
           </span>
           {game && (
             <>
-              <span className="text-slate-500 text-sm mx-0.5">·</span>
-              <span className="font-['Fredericka_the_Great'] text-amber-200 text-base tabular-nums">
+              <span className="text-slate-600 text-xs">·</span>
+              <span className="font-['Fredericka_the_Great'] text-amber-200/80 text-sm tabular-nums">
                 {game.totalScore}
               </span>
             </>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
-          >
-            <Settings size={18} />
-          </button>
-        </div>
+        <button
+          onClick={() => setIsSettingsOpen(true)}
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white transition-colors"
+        >
+          <Settings size={16} />
+        </button>
       </div>
 
-      {/* ---- Settings Dialog (styled like LevelCompleteDialog) ---- */}
       <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
         <DialogContent
           aria-describedby={undefined}
@@ -298,7 +294,6 @@ const PlayScreen: React.FC = () => {
             Settings
           </DialogTitle>
 
-          {/* Sound controls */}
           <div className="space-y-4 mb-6">
             <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-500/20">
               <div className="flex items-center gap-3 mb-4">
@@ -308,7 +303,11 @@ const PlayScreen: React.FC = () => {
                   className="h-8 w-8 shrink-0"
                   onClick={() => (isPlaying ? stopTheme() : playTheme())}
                 >
-                  {isPlaying ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                  {isPlaying ? (
+                    <Volume2 className="h-4 w-4" />
+                  ) : (
+                    <VolumeX className="h-4 w-4" />
+                  )}
                 </Button>
                 <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                   <span className="text-xs text-muted-foreground">Music</span>
@@ -341,7 +340,6 @@ const PlayScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* Surrender button */}
           {game && !game.over && (
             <Button
               variant="destructive"
@@ -370,8 +368,7 @@ const PlayScreen: React.FC = () => {
         />
       )}
 
-
-      <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-2 py-1 overflow-hidden">
+      <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-1 py-1 overflow-hidden">
         {(isGameLoading || isGridLoading) && (
           <div className="flex flex-col items-center justify-center gap-4 py-12">
             <img

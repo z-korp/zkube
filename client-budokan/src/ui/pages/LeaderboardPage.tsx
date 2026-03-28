@@ -1,93 +1,147 @@
+import { useState } from "react";
 import { motion } from "motion/react";
-import { Users } from "lucide-react";
 import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
-import { useNavigationStore } from "@/stores/navigationStore";
-import PageTopBar from "@/ui/navigation/PageTopBar";
 
-const rankStyle = (rank: number): string => {
-  if (rank === 1) return "bg-yellow-400/25 text-yellow-100 border border-yellow-300/50";
-  if (rank === 2) return "bg-slate-300/20 text-slate-100 border border-slate-300/45";
-  if (rank === 3) return "bg-amber-500/25 text-amber-100 border border-amber-400/45";
-  return "bg-slate-800/90 text-slate-200 border border-slate-600/70";
-};
+type LeaderboardTab = "zone" | "endless" | "daily";
+
+const TABS: { id: LeaderboardTab; label: string }[] = [
+  { id: "zone", label: "Zone" },
+  { id: "endless", label: "Endless" },
+  { id: "daily", label: "Daily" },
+];
+
+const PODIUM_STYLES = [
+  { bg: "bg-yellow-400/15", border: "border-yellow-400/40", text: "text-yellow-200", trophy: "/assets/trophies/gold.png" },
+  { bg: "bg-slate-300/10", border: "border-slate-400/30", text: "text-slate-200", trophy: "/assets/trophies/silver.png" },
+  { bg: "bg-amber-600/15", border: "border-amber-500/30", text: "text-amber-200", trophy: "/assets/trophies/bronze.png" },
+];
 
 const LeaderboardPage: React.FC = () => {
-  const goBack = useNavigationStore((state) => state.goBack);
+  const [activeTab, setActiveTab] = useState<LeaderboardTab>("zone");
   const { games, loading } = useLeaderboardSlot();
 
+  const top3 = games.slice(0, 3);
+  const rest = games.slice(3);
+
   return (
-    <div className="h-screen-viewport flex flex-col">
-      <PageTopBar title="LEADERBOARD" onBack={goBack} />
-
-      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
-        <div className="max-w-[860px] mx-auto pb-8">
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <Users size={17} className="text-cyan-300" />
-              <h2 className="font-['Fredericka_the_Great'] text-lg text-white">
-                Top Players
-              </h2>
-            </div>
-
-            {loading ? (
-              <div className="text-slate-200 text-sm">Loading leaderboard...</div>
-            ) : games.length === 0 ? (
-              <div className="text-slate-200 text-sm">
-                No entries yet. Finish a run to claim rank #1.
-              </div>
-            ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-slate-300 border-b border-slate-700/50">
-                    <th className="py-2 px-2 w-16 font-['Fredericka_the_Great']">Rank</th>
-                    <th className="py-2 px-2 font-['Fredericka_the_Great']">Player</th>
-                    <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
-                    <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {games.map((entry, index) => {
-                    const rank = index + 1;
-                    const playerName = entry.player_name || `Game #${entry.token_id}`;
-
-                    return (
-                      <motion.tr
-                        key={entry.token_id.toString()}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.02 }}
-                        className={`${rankStyle(rank)} border-b border-slate-700/40`}
-                      >
-                        <td className="py-2.5 px-2">
-                          <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
-                            #{rank}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-2 text-white truncate">
-                          {playerName}
-                        </td>
-                        <td className="py-2.5 px-2 text-cyan-200 text-right">
-                          <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
-                            {entry.level}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-2 text-amber-200 text-right">
-                          <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
-                            {entry.score}
-                          </span>
-                        </td>
-                      </motion.tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-          </motion.section>
+    <div className="flex h-full flex-col">
+      <div className="px-4 pt-4 pb-2">
+        <h1 className="font-['Fredericka_the_Great'] text-xl text-white text-center mb-3">
+          Leaderboard
+        </h1>
+        <div className="flex gap-1 rounded-lg bg-slate-800/80 p-1">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`relative flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === tab.id
+                  ? "text-white"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              {activeTab === tab.id && (
+                <motion.div
+                  layoutId="tab-bg"
+                  className="absolute inset-0 rounded-md bg-slate-600/60"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+              <span className="relative z-10">{tab.label}</span>
+            </button>
+          ))}
         </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 pb-4">
+        {loading ? (
+          <div className="text-slate-400 text-sm text-center py-8">
+            Loading...
+          </div>
+        ) : games.length === 0 ? (
+          <div className="text-slate-400 text-sm text-center py-8">
+            No entries yet. Finish a run to claim rank #1.
+          </div>
+        ) : (
+          <div className="max-w-[500px] mx-auto">
+            {top3.length > 0 && (
+              <div className="flex items-end justify-center gap-2 mb-4 pt-2">
+                {[1, 0, 2].map((podiumIdx) => {
+                  const entry = top3[podiumIdx];
+                  if (!entry) return <div key={podiumIdx} className="flex-1" />;
+                  const rank = podiumIdx + 1;
+                  const style = PODIUM_STYLES[podiumIdx];
+                  const isFirst = podiumIdx === 0;
+
+                  return (
+                    <motion.div
+                      key={entry.token_id.toString()}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: podiumIdx * 0.1 }}
+                      className={`flex-1 flex flex-col items-center rounded-xl border p-3 ${style.bg} ${style.border} ${isFirst ? "pb-5" : "pb-3"}`}
+                    >
+                      <img
+                        src={style.trophy}
+                        alt={`#${rank}`}
+                        className={`${isFirst ? "h-12 w-12" : "h-9 w-9"} object-contain mb-1.5`}
+                      />
+                      <span className={`font-['Fredericka_the_Great'] text-lg ${style.text}`}>
+                        #{rank}
+                      </span>
+                      <span className="text-xs text-white truncate w-full text-center mt-0.5">
+                        {entry.player_name || `Game #${entry.token_id}`}
+                      </span>
+                      <div className="flex items-baseline gap-1 mt-1">
+                        <span className="font-['Fredericka_the_Great'] text-sm text-cyan-200">
+                          Lv.{entry.level}
+                        </span>
+                        <span className="text-slate-500 text-[10px]">·</span>
+                        <span className="font-['Fredericka_the_Great'] text-sm text-amber-200">
+                          {entry.score}
+                        </span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+
+            {rest.length > 0 && (
+              <div className="rounded-xl bg-slate-900/80 border border-white/10 overflow-hidden">
+                {rest.map((entry, index) => {
+                  const rank = index + 4;
+                  return (
+                    <motion.div
+                      key={entry.token_id.toString()}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.02 }}
+                      className="flex items-center justify-between px-4 py-2.5 border-b border-slate-700/30 last:border-b-0"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="font-['Fredericka_the_Great'] text-sm text-slate-400 w-7">
+                          #{rank}
+                        </span>
+                        <span className="text-sm text-white truncate max-w-[160px]">
+                          {entry.player_name || `Game #${entry.token_id}`}
+                        </span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-['Fredericka_the_Great'] text-sm text-cyan-200">
+                          {entry.level}
+                        </span>
+                        <span className="font-['Fredericka_the_Great'] text-sm text-amber-200">
+                          {entry.score}
+                        </span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { motion } from "motion/react";
 import {
-  Calendar,
+  ChevronLeft,
   Clock3,
   Loader2,
   Trophy,
@@ -15,7 +14,6 @@ import { useNavigationStore } from "@/stores/navigationStore";
 import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
 import { usePlayerEntry } from "@/hooks/usePlayerEntry";
 import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
-import PageTopBar from "@/ui/navigation/PageTopBar";
 import GameButton from "@/ui/components/shared/GameButton";
 
 const RANKING_METRIC_LABELS: Record<number, string> = {
@@ -24,25 +22,7 @@ const RANKING_METRIC_LABELS: Record<number, string> = {
   2: "Cubes Earned",
 };
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.04 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.25, ease: "easeOut" as const },
-  },
-};
-
-// Countdown until challenge end_time
-const CountdownPill: React.FC<{ endTime: number }> = ({ endTime }) => {
+const CountdownRing: React.FC<{ endTime: number }> = ({ endTime }) => {
   const [sec, setSec] = useState(() =>
     Math.max(0, endTime - Math.floor(Date.now() / 1000)),
   );
@@ -61,12 +41,42 @@ const CountdownPill: React.FC<{ endTime: number }> = ({ endTime }) => {
       ? `${h}h ${m.toString().padStart(2, "0")}m`
       : `${m}m ${s.toString().padStart(2, "0")}s`;
 
+  const dayTotal = 24 * 3600;
+  const progress = sec / dayTotal;
+  const radius = 36;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference * (1 - progress);
+
   return (
-    <div className="flex items-center gap-1.5 rounded-lg bg-black/40 px-2.5 py-1.5 border border-white/10">
-      <Clock3 size={13} className="text-cyan-300" />
-      <span className="font-['Fredericka_the_Great'] text-sm leading-none text-cyan-100">
-        {sec > 0 ? formatted : "Ended"}
-      </span>
+    <div className="relative flex flex-col items-center justify-center">
+      <svg width="88" height="88" className="-rotate-90">
+        <circle
+          cx="44"
+          cy="44"
+          r={radius}
+          fill="none"
+          stroke="rgba(255,255,255,0.08)"
+          strokeWidth="4"
+        />
+        <circle
+          cx="44"
+          cy="44"
+          r={radius}
+          fill="none"
+          stroke="#22d3ee"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={dashOffset}
+          className="transition-all duration-1000 ease-linear"
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-['Fredericka_the_Great'] text-lg text-cyan-200 leading-none">
+          {sec > 0 ? formatted : "Ended"}
+        </span>
+        <span className="text-[10px] text-slate-400 mt-0.5">remaining</span>
+      </div>
     </div>
   );
 };
@@ -96,8 +106,6 @@ const DailyChallengePage: React.FC = () => {
     !challenge.settled &&
     challenge.start_time <= now &&
     challenge.end_time > now;
-  const isEnded =
-    challenge && !challenge.settled && challenge.end_time <= now;
   const isSettled = challenge?.settled;
 
   const prizePool = challenge?.prize_pool
@@ -136,239 +144,178 @@ const DailyChallengePage: React.FC = () => {
   }, [account, challenge, claiming, systemCalls]);
 
   return (
-    <div className="h-screen-viewport flex flex-col">
-      <PageTopBar
-        title="DAILY CHALLENGE"
-        onBack={goBack}
-        rightSlot={
-          challenge && !challenge.settled ? (
-            <CountdownPill endTime={challenge.end_time} />
-          ) : undefined
-        }
-      />
-
-      <div className="flex-1 overflow-y-auto px-4 py-4 md:px-6">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-          className="mx-auto flex w-full max-w-[600px] flex-col gap-3 pb-8"
+    <div className="flex h-full flex-col">
+      <div className="flex items-center gap-2 px-3 pt-3 pb-2">
+        <button
+          onClick={goBack}
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white transition-colors"
         >
-          {/* Loading */}
+          <ChevronLeft size={20} />
+        </button>
+        <h1 className="font-['Fredericka_the_Great'] text-lg text-white">
+          Daily Challenge
+        </h1>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 pb-4">
+        <div className="mx-auto flex w-full max-w-[500px] flex-col gap-3">
           {challengeLoading && (
-            <motion.div
-              variants={itemVariants}
-              className="rounded-xl bg-slate-900 p-6 text-center"
-            >
-              <div className="flex items-center justify-center gap-2 text-slate-300">
-                <Loader2 size={16} className="animate-spin" />
-                <span className="text-sm">Loading challenge...</span>
-              </div>
-            </motion.div>
+            <div className="rounded-xl bg-slate-900/80 p-8 text-center border border-white/10">
+              <Loader2 size={24} className="animate-spin text-slate-400 mx-auto" />
+            </div>
           )}
 
-          {/* No challenge */}
           {!challengeLoading && !challenge && (
-            <motion.div
-              variants={itemVariants}
-              className="rounded-xl bg-slate-900/90 p-6 text-center border border-white/10"
-            >
-              <Calendar size={32} className="mx-auto text-slate-500 mb-3" />
+            <div className="rounded-xl bg-slate-900/80 p-8 text-center border border-white/10">
+              <Clock3 size={32} className="mx-auto text-slate-500 mb-3" />
               <p className="font-['Fredericka_the_Great'] text-white text-lg mb-1">
                 No Active Challenge
               </p>
               <p className="text-sm text-slate-400">
                 Check back later for the next daily challenge.
               </p>
-            </motion.div>
+            </div>
           )}
 
-          {/* Challenge Info Card */}
           {challenge && (
-            <motion.div
-              variants={itemVariants}
-              className="rounded-xl bg-slate-900/90 p-4 border border-white/10"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="grid h-9 w-9 place-items-center rounded-lg bg-blue-500/15 text-blue-300">
-                    <Trophy size={18} />
+            <>
+              <div className="rounded-xl bg-slate-900/80 border border-white/10 p-5 flex flex-col items-center">
+                {isActive && <CountdownRing endTime={challenge.end_time} />}
+
+                <div className="grid grid-cols-3 gap-3 w-full mt-4">
+                  <div className="rounded-lg bg-black/30 p-2.5 text-center">
+                    <Target size={14} className="mx-auto text-cyan-400 mb-1" />
+                    <p className="text-[10px] text-slate-400">Metric</p>
+                    <p className="font-['Fredericka_the_Great'] text-sm text-white">
+                      {RANKING_METRIC_LABELS[challenge.ranking_metric] ?? "Score"}
+                    </p>
                   </div>
-                  <div>
-                    <h2 className="font-['Fredericka_the_Great'] text-lg text-white">
-                      Challenge #{challenge.challenge_id}
-                    </h2>
-                    <p className="text-xs text-slate-400">
-                      Settings #{challenge.settings_id}
+                  <div className="rounded-lg bg-black/30 p-2.5 text-center">
+                    <Users size={14} className="mx-auto text-purple-400 mb-1" />
+                    <p className="text-[10px] text-slate-400">Entries</p>
+                    <p className="font-['Fredericka_the_Great'] text-sm text-white">
+                      {challenge.total_entries}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-black/30 p-2.5 text-center">
+                    <Trophy size={14} className="mx-auto text-yellow-400" />
+                    <p className="text-[10px] text-slate-400 mt-1">Prize</p>
+                    <p className="font-['Fredericka_the_Great'] text-sm text-yellow-200">
+                      {prizePool.toString()}
                     </p>
                   </div>
                 </div>
-                <span
-                  className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                    isActive
-                      ? "bg-green-500/20 text-green-300"
-                      : isEnded
-                        ? "bg-yellow-500/20 text-yellow-300"
-                        : "bg-slate-700 text-slate-400"
-                  }`}
-                >
-                  {isActive ? "ACTIVE" : isEnded ? "ENDED" : "SETTLED"}
-                </span>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-lg bg-black/30 p-2.5 text-center">
-                  <Target size={14} className="mx-auto text-cyan-400 mb-1" />
-                  <p className="text-xs text-slate-400">Metric</p>
-                  <p className="font-['Fredericka_the_Great'] text-sm text-white">
-                    {RANKING_METRIC_LABELS[challenge.ranking_metric] ?? "Score"}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-black/30 p-2.5 text-center">
-                  <Users size={14} className="mx-auto text-purple-400 mb-1" />
-                  <p className="text-xs text-slate-400">Entries</p>
-                  <p className="font-['Fredericka_the_Great'] text-sm text-white">
-                    {challenge.total_entries}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-black/30 p-2.5 text-center">
-                  <Trophy size={14} className="mx-auto text-yellow-400" />
-                  <p className="text-xs text-slate-400 mt-1">Prize Pool</p>
-                  <p className="font-['Fredericka_the_Great'] text-sm text-yellow-200">
-                    {prizePool.toString()}
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Register Button */}
-          {challenge && isActive && !isRegistered && account && (
-            <motion.div variants={itemVariants}>
-              <GameButton
-                label={registering ? "REGISTERING..." : "REGISTER ENTRY"}
-                variant="primary"
-                loading={registering}
-                disabled={registering}
-                onClick={handleRegister}
-              />
-            </motion.div>
-          )}
-
-          {/* Player Entry Card */}
-          {challenge && isRegistered && entry && (
-            <motion.div
-              variants={itemVariants}
-              className="rounded-xl bg-slate-900/90 p-4 border border-white/10"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <Medal size={18} className="text-amber-300" />
-                <h3 className="font-['Fredericka_the_Great'] text-base text-white">
-                  Your Entry
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-lg bg-black/30 p-2.5">
-                  <p className="text-xs text-slate-400">Attempts</p>
-                  <p className="font-['Fredericka_the_Great'] text-lg text-white">
-                    {entry.attempts}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-black/30 p-2.5">
-                  <p className="text-xs text-slate-400">Rank</p>
-                  <p className="font-['Fredericka_the_Great'] text-lg text-white">
-                    {entry.rank > 0 ? `#${entry.rank}` : "\u2014"}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-black/30 p-2.5">
-                  <p className="text-xs text-slate-400">Best Score</p>
-                  <p className="font-['Fredericka_the_Great'] text-lg text-white">
-                    {entry.best_score}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-black/30 p-2.5">
-                  <p className="text-xs text-slate-400">Best Level</p>
-                  <p className="font-['Fredericka_the_Great'] text-lg text-white">
-                    {entry.best_level}
-                  </p>
-                </div>
-              </div>
-
-              {canClaim && (
-                <div className="mt-3">
-                  <GameButton
-                    label={
-                      claiming
-                        ? "CLAIMING..."
-                        : `CLAIM PRIZE (${playerPrize.toString()} CUBES)`
-                    }
-                    variant="primary"
-                    loading={claiming}
-                    disabled={claiming}
-                    onClick={handleClaimPrize}
-                  />
-                </div>
+              {isActive && !isRegistered && account && (
+                <GameButton
+                  label={registering ? "REGISTERING..." : "PLAY DAILY"}
+                  variant="primary"
+                  loading={registering}
+                  disabled={registering}
+                  onClick={handleRegister}
+                />
               )}
 
-              {entry.claimed && (
-                <p className="text-center text-xs text-green-400/70 mt-2">
-                  Prize claimed
-                </p>
-              )}
-            </motion.div>
-          )}
-
-          {/* Leaderboard */}
-          {challenge && leaderboard.length > 0 && (
-            <motion.div
-              variants={itemVariants}
-              className="rounded-xl bg-slate-900/90 p-4 border border-white/10"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <Trophy size={18} className="text-yellow-400" />
-                <h3 className="font-['Fredericka_the_Great'] text-base text-white">
-                  Leaderboard
-                </h3>
-              </div>
-
-              <div className="space-y-1">
-                {leaderboard.slice(0, 25).map((le) => (
-                  <div
-                    key={le.rank}
-                    className={`flex items-center justify-between px-3 py-2 rounded-lg ${
-                      le.rank <= 3
-                        ? "bg-yellow-500/10 border border-yellow-500/20"
-                        : "bg-black/20"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`font-['Fredericka_the_Great'] text-sm w-7 ${
-                          le.rank === 1
-                            ? "text-yellow-300"
-                            : le.rank === 2
-                              ? "text-slate-300"
-                              : le.rank === 3
-                                ? "text-amber-600"
-                                : "text-slate-500"
-                        }`}
-                      >
-                        #{le.rank}
-                      </span>
-                      <span className="text-sm text-white truncate max-w-[160px]">
-                        {le.playerName}
-                      </span>
-                    </div>
-                    <span className="font-['Fredericka_the_Great'] text-sm text-cyan-200">
-                      {le.value}
+              {isRegistered && entry && (
+                <div className="rounded-xl bg-slate-900/80 border border-white/10 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Medal size={16} className="text-amber-300" />
+                    <span className="font-['Fredericka_the_Great'] text-sm text-white">
+                      Your Entry
                     </span>
                   </div>
-                ))}
-              </div>
-            </motion.div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-lg bg-black/30 p-2.5">
+                      <p className="text-[10px] text-slate-400">Attempts</p>
+                      <p className="font-['Fredericka_the_Great'] text-lg text-white">
+                        {entry.attempts}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-black/30 p-2.5">
+                      <p className="text-[10px] text-slate-400">Rank</p>
+                      <p className="font-['Fredericka_the_Great'] text-lg text-white">
+                        {entry.rank > 0 ? `#${entry.rank}` : "\u2014"}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-black/30 p-2.5">
+                      <p className="text-[10px] text-slate-400">Best Score</p>
+                      <p className="font-['Fredericka_the_Great'] text-lg text-white">
+                        {entry.best_score}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-black/30 p-2.5">
+                      <p className="text-[10px] text-slate-400">Best Level</p>
+                      <p className="font-['Fredericka_the_Great'] text-lg text-white">
+                        {entry.best_level}
+                      </p>
+                    </div>
+                  </div>
+                  {canClaim && (
+                    <div className="mt-3">
+                      <GameButton
+                        label={
+                          claiming
+                            ? "CLAIMING..."
+                            : `CLAIM PRIZE (${playerPrize.toString()})`
+                        }
+                        variant="primary"
+                        loading={claiming}
+                        disabled={claiming}
+                        onClick={handleClaimPrize}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {leaderboard.length > 0 && (
+                <div className="rounded-xl bg-slate-900/80 border border-white/10 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Trophy size={16} className="text-yellow-400" />
+                    <span className="font-['Fredericka_the_Great'] text-sm text-white">
+                      Top 10
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    {leaderboard.slice(0, 10).map((le) => (
+                      <div
+                        key={le.rank}
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg ${
+                          le.rank <= 3
+                            ? "bg-yellow-500/10 border border-yellow-500/15"
+                            : "bg-black/15"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`font-['Fredericka_the_Great'] text-sm w-7 ${
+                              le.rank === 1
+                                ? "text-yellow-300"
+                                : le.rank === 2
+                                  ? "text-slate-300"
+                                  : le.rank === 3
+                                    ? "text-amber-600"
+                                    : "text-slate-500"
+                            }`}
+                          >
+                            #{le.rank}
+                          </span>
+                          <span className="text-sm text-white truncate max-w-[140px]">
+                            {le.playerName}
+                          </span>
+                        </div>
+                        <span className="font-['Fredericka_the_Great'] text-sm text-cyan-200">
+                          {le.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
-        </motion.div>
+        </div>
       </div>
     </div>
   );
