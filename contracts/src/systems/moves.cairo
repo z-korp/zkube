@@ -4,7 +4,7 @@
 #[starknet::interface]
 pub trait IMoveSystem<T> {
     /// Make a move - also handles level completion automatically
-    fn move(ref self: T, game_id: u64, row_index: u8, start_index: u8, final_index: u8);
+    fn move(ref self: T, game_id: felt252, row_index: u8, start_index: u8, final_index: u8);
 }
 
 #[dojo::contract]
@@ -34,7 +34,11 @@ mod move_system {
     #[abi(embed_v0)]
     impl MoveSystemImpl of super::IMoveSystem<ContractState> {
         fn move(
-            ref self: ContractState, game_id: u64, row_index: u8, start_index: u8, final_index: u8,
+            ref self: ContractState,
+            game_id: felt252,
+            row_index: u8,
+            start_index: u8,
+            final_index: u8,
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 

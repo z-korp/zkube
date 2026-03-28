@@ -95,7 +95,7 @@ const HomePage: React.FC = () => {
       });
 
       const gameId = mintResult.game_id;
-      if (!gameId) throw new Error("Failed to extract game_id from mint");
+      if (gameId === 0n) throw new Error("Failed to extract game_id from mint");
 
       await create({
         account,

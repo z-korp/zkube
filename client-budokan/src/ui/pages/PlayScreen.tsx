@@ -54,10 +54,10 @@ const PlayScreen: React.FC = () => {
   const imgAssets = ImageAssets(themeTemplate);
 
   const { game, seed } = useGame({
-    gameId: gameId ?? 0,
+    gameId: gameId ?? 0n,
     shouldLog: false,
   });
-  const grid = useGrid({ gameId: game?.id ?? 0, shouldLog: true });
+  const grid = useGrid({ gameId: game?.id ?? 0n, shouldLog: true });
   const gameLevel = useGameLevel({ gameId: game?.id });
 
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
@@ -143,7 +143,7 @@ const PlayScreen: React.FC = () => {
       }
     }
     prevGameOverRef.current = game?.over;
-  }, [game?.over, game?.runCompleted, playSfx]);
+  }, [game?.over, playSfx]);
 
   // Cascade-complete callback from Grid → GameBoard
   const handleCascadeComplete = useCallback(() => {
@@ -248,13 +248,6 @@ const PlayScreen: React.FC = () => {
         return "";
     }
   }, []);
-
-  const getBonusTooltip = useCallback(
-    (type: BonusType, level: number = 0): string => {
-      return new Bonus(type).getEffect(level);
-    },
-    [],
-  );
 
   const handleBonusSelect = useCallback(
     (type: BonusType) => {

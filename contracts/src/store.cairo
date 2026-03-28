@@ -32,7 +32,7 @@ pub impl StoreImpl of StoreTrait {
 
     /// Read a Game model by game_id
     #[inline(always)]
-    fn game(self: @Store, game_id: u64) -> Game {
+    fn game(self: @Store, game_id: felt252) -> Game {
         self.world.read_model(game_id)
     }
 
@@ -46,7 +46,7 @@ pub impl StoreImpl of StoreTrait {
 
     /// Read a GameSeed model by game_id
     #[inline(always)]
-    fn game_seed(self: @Store, game_id: u64) -> GameSeed {
+    fn game_seed(self: @Store, game_id: felt252) -> GameSeed {
         self.world.read_model(game_id)
     }
 
@@ -158,7 +158,7 @@ pub impl StoreImpl of StoreTrait {
 
     /// Read GameChallenge by game_id
     #[inline(always)]
-    fn game_challenge(self: @Store, game_id: u64) -> GameChallenge {
+    fn game_challenge(self: @Store, game_id: felt252) -> GameChallenge {
         self.world.read_model(game_id)
     }
 

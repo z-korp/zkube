@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { IWorld } from "./contractSystems";
 import * as SystemTypes from "./contractSystems";
-import { Account, type TransactionReceipt } from "starknet";
+import { Account, type TransactionReceipt, uint256, type Uint256 } from "starknet";
 import {
   getUrl,
   getWalnutUrl,
@@ -175,7 +175,7 @@ export function systems({ client }: { client: IWorld }) {
     account,
     settingsId,
     ...props
-  }: SystemTypes.FreeMint): Promise<{ game_id: number }> => {
+  }: SystemTypes.FreeMint): Promise<{ game_id: bigint }> => {
     const { transaction_hash, events } = await handleTransaction(
       account,
       () => client.game.free_mint({ account, ...props, settingsId }),
@@ -187,18 +187,19 @@ export function systems({ client }: { client: IWorld }) {
       (event: any) => event.keys?.length === 5 && event.data?.length === 0,
     );
 
-    let game_id = 0;
+    let game_id = 0n;
     if (transferEvent) {
       const tokenIdLow = BigInt(transferEvent.keys[3] || "0");
       const tokenIdHigh = BigInt(transferEvent.keys[4] || "0");
-      game_id = Number(tokenIdLow + (tokenIdHigh << 128n));
+      const uint256Value: Uint256 = { low: tokenIdLow, high: tokenIdHigh };
+      game_id = uint256.uint256ToBN(uint256Value);
       log.info("freeMint game_id extracted from transfer", { game_id });
     } else {
       const tokenMetadataEvent = events.find(
         (event: any) => event.data.length === 11,
       );
       if (tokenMetadataEvent) {
-        game_id = parseInt(tokenMetadataEvent.data[1], 16);
+        game_id = BigInt(tokenMetadataEvent.data[1]);
         log.info("freeMint game_id extracted from fallback metadata", {
           game_id,
         });

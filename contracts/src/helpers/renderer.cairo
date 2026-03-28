@@ -68,7 +68,7 @@ pub fn create_svg(internals: ByteArray) -> ByteArray {
 }
 
 pub fn create_metadata(
-    token_id: u64,
+    token_id: felt252,
     player_name: felt252,
     over: bool,
     score: u16,

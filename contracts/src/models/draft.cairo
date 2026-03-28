@@ -2,7 +2,7 @@
 #[dojo::model]
 pub struct DraftState {
     #[key]
-    pub game_id: u64,
+    pub game_id: felt252,
     pub seed: felt252,
     pub active: bool,
     pub phase: u8,
@@ -16,7 +16,7 @@ pub struct DraftState {
 
 #[generate_trait]
 pub impl DraftStateImpl of DraftStateTrait {
-    fn new(game_id: u64, seed: felt252) -> DraftState {
+    fn new(game_id: felt252, seed: felt252) -> DraftState {
         DraftState {
             game_id,
             seed,

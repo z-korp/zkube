@@ -12,7 +12,7 @@ export interface LevelPreviewProps {
   node: MapNodeData;
   game: Game | null;
   gameLevel: GameLevelData | null;
-  gameId: number | null;
+  gameId: bigint | null;
   onPlay: () => void;
   onClose: () => void;
 }

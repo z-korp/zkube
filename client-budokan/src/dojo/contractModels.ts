@@ -13,7 +13,7 @@ export function defineContractComponents(world: World) {
       return defineComponent(
         world,
         {
-          game_id: RecsType.Number,
+          game_id: RecsType.BigInt,
           blocks: RecsType.BigInt,
           next_row: RecsType.Number,
           combo_counter: RecsType.Number,
@@ -153,7 +153,7 @@ export function defineContractComponents(world: World) {
       return defineComponent(
         world,
         {
-          game_id: RecsType.Number,
+          game_id: RecsType.BigInt,
           seed: RecsType.BigInt,
           level_seed: RecsType.BigInt,
           vrf_enabled: RecsType.Boolean,
@@ -172,7 +172,7 @@ export function defineContractComponents(world: World) {
       return defineComponent(
         world,
         {
-          game_id: RecsType.Number,
+          game_id: RecsType.BigInt,
           level: RecsType.Number,
           points_required: RecsType.Number,
           max_moves: RecsType.Number,
@@ -222,7 +222,7 @@ export function defineContractComponents(world: World) {
       return defineComponent(
         world,
         {
-          game_id: RecsType.Number,
+          game_id: RecsType.BigInt,
           seed: RecsType.BigInt,
           active: RecsType.Boolean,
           phase: RecsType.Number,
@@ -335,7 +335,7 @@ export function defineContractComponents(world: World) {
           best_score: RecsType.Number,
           best_level: RecsType.Number,
           best_cubes: RecsType.Number,
-          best_game_id: RecsType.Number,
+          best_game_id: RecsType.BigInt,
           rank: RecsType.Number,
           prize_amount: RecsType.BigInt,
           claimed: RecsType.Boolean,
@@ -389,7 +389,7 @@ export function defineContractComponents(world: World) {
       return defineComponent(
         world,
         {
-          game_id: RecsType.Number,
+          game_id: RecsType.BigInt,
           challenge_id: RecsType.Number,
         },
         {

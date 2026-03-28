@@ -21,12 +21,17 @@ function parseHexToNumber(value: string): number {
   return parseInt(value, 10);
 }
 
+function parseHexToBigInt(value: string): bigint {
+  if (!value || value === "0" || value === "0x0") return 0n;
+  return BigInt(value);
+}
+
 export class StartGame {
   player: string;
   timestamp: number;
-  game_id: number;
+  game_id: bigint;
 
-  constructor(player: string, timestamp: number, game_id: number) {
+  constructor(player: string, timestamp: number, game_id: bigint) {
     this.player = player;
     this.timestamp = timestamp;
     this.game_id = game_id;
@@ -40,7 +45,7 @@ export class StartGame {
     return new StartGame(
       extractValue(data.player),
       parseHexToNumber(extractValue(data.timestamp)),
-      parseHexToNumber(extractValue(data.game_id)),
+      parseHexToBigInt(extractValue(data.game_id)),
     );
   }
 }
@@ -48,10 +53,10 @@ export class StartGame {
 export class UseBonus {
   player: string;
   timestamp: number;
-  game_id: number;
+  game_id: bigint;
   bonus: number;
 
-  constructor(player: string, timestamp: number, game_id: number, bonus: number) {
+  constructor(player: string, timestamp: number, game_id: bigint, bonus: number) {
     this.player = player;
     this.timestamp = timestamp;
     this.game_id = game_id;
@@ -66,14 +71,14 @@ export class UseBonus {
     return new UseBonus(
       extractValue(data.player),
       parseHexToNumber(extractValue(data.timestamp)),
-      parseHexToNumber(extractValue(data.game_id)),
+      parseHexToBigInt(extractValue(data.game_id)),
       parseHexToNumber(extractValue(data.bonus)),
     );
   }
 }
 
 export class LevelStarted {
-  game_id: number;
+  game_id: bigint;
   player: string;
   level: number;
   points_required: number;
@@ -83,7 +88,7 @@ export class LevelStarted {
   constraint_required: number;
 
   constructor(
-    game_id: number,
+    game_id: bigint,
     player: string,
     level: number,
     points_required: number,
@@ -108,7 +113,7 @@ export class LevelStarted {
 
   static parse(data: any): LevelStarted {
     return new LevelStarted(
-      parseHexToNumber(extractValue(data.game_id)),
+      parseHexToBigInt(extractValue(data.game_id)),
       extractValue(data.player),
       parseHexToNumber(extractValue(data.level)),
       parseHexToNumber(extractValue(data.points_required)),
@@ -121,7 +126,7 @@ export class LevelStarted {
 }
 
 export class LevelCompleted {
-  game_id: number;
+  game_id: bigint;
   player: string;
   level: number;
   cubes: number;
@@ -131,7 +136,7 @@ export class LevelCompleted {
   bonuses_earned: number;
 
   constructor(
-    game_id: number,
+    game_id: bigint,
     player: string,
     level: number,
     cubes: number,
@@ -156,7 +161,7 @@ export class LevelCompleted {
 
   static parse(data: any): LevelCompleted {
     return new LevelCompleted(
-      parseHexToNumber(extractValue(data.game_id)),
+      parseHexToBigInt(extractValue(data.game_id)),
       extractValue(data.player),
       parseHexToNumber(extractValue(data.level)),
       parseHexToNumber(extractValue(data.cubes)),
@@ -169,7 +174,7 @@ export class LevelCompleted {
 }
 
 export class RunEnded {
-  game_id: number;
+  game_id: bigint;
   player: string;
   final_level: number;
   final_score: number;
@@ -178,7 +183,7 @@ export class RunEnded {
   ended_at: number;
 
   constructor(
-    game_id: number,
+    game_id: bigint,
     player: string,
     final_level: number,
     final_score: number,
@@ -201,7 +206,7 @@ export class RunEnded {
 
   static parse(data: any): RunEnded {
     return new RunEnded(
-      parseHexToNumber(extractValue(data.game_id)),
+      parseHexToBigInt(extractValue(data.game_id)),
       extractValue(data.player),
       parseHexToNumber(extractValue(data.final_level)),
       parseHexToNumber(extractValue(data.final_score)),
@@ -213,7 +218,7 @@ export class RunEnded {
 }
 
 export class RunCompleted {
-  game_id: number;
+  game_id: bigint;
   player: string;
   final_score: number;
   total_cubes: number;
@@ -221,7 +226,7 @@ export class RunCompleted {
   completed_at: number;
 
   constructor(
-    game_id: number,
+    game_id: bigint,
     player: string,
     final_score: number,
     total_cubes: number,
@@ -242,7 +247,7 @@ export class RunCompleted {
 
   static parse(data: any): RunCompleted {
     return new RunCompleted(
-      parseHexToNumber(extractValue(data.game_id)),
+      parseHexToBigInt(extractValue(data.game_id)),
       extractValue(data.player),
       parseHexToNumber(extractValue(data.final_score)),
       parseHexToNumber(extractValue(data.total_cubes)),
@@ -253,14 +258,14 @@ export class RunCompleted {
 }
 
 export class ConsumablePurchased {
-  game_id: number;
+  game_id: bigint;
   player: string;
   consumable: number;
   cost: number;
   cubes_remaining: number;
 
   constructor(
-    game_id: number,
+    game_id: bigint,
     player: string,
     consumable: number,
     cost: number,
@@ -279,7 +284,7 @@ export class ConsumablePurchased {
 
   static parse(data: any): ConsumablePurchased {
     return new ConsumablePurchased(
-      parseHexToNumber(extractValue(data.game_id)),
+      parseHexToBigInt(extractValue(data.game_id)),
       extractValue(data.player),
       parseHexToNumber(extractValue(data.consumable)),
       parseHexToNumber(extractValue(data.cost)),
@@ -289,14 +294,14 @@ export class ConsumablePurchased {
 }
 
 export class BonusLevelUp {
-  game_id: number;
+  game_id: bigint;
   player: string;
   bonus_slot: number;
   bonus_type: number;
   new_level: number;
 
   constructor(
-    game_id: number,
+    game_id: bigint,
     player: string,
     bonus_slot: number,
     bonus_type: number,
@@ -315,7 +320,7 @@ export class BonusLevelUp {
 
   static parse(data: any): BonusLevelUp {
     return new BonusLevelUp(
-      parseHexToNumber(extractValue(data.game_id)),
+      parseHexToBigInt(extractValue(data.game_id)),
       extractValue(data.player),
       parseHexToNumber(extractValue(data.bonus_slot)),
       parseHexToNumber(extractValue(data.bonus_type)),

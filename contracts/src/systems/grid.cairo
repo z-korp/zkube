@@ -15,17 +15,17 @@ use zkube::types::bonus::Bonus;
 pub trait IGridSystem<T> {
     /// Initialize a new game's grid with starting blocks.
     /// This fills the grid until it reaches 4 rows of blocks.
-    fn initialize_grid(ref self: T, game_id: u64);
+    fn initialize_grid(ref self: T, game_id: felt252);
 
     /// Reset the grid for a new level.
     /// Called after level completion to reinitialize with the new difficulty.
-    fn reset_grid_for_level(ref self: T, game_id: u64);
+    fn reset_grid_for_level(ref self: T, game_id: felt252);
 
     /// Execute a move (swipe) on the grid.
     /// Returns (lines_cleared, is_grid_full)
     fn execute_move(
         ref self: T,
-        game_id: u64,
+        game_id: felt252,
         row_index: u8,
         start_index: u8,
         final_index: u8,
@@ -35,15 +35,20 @@ pub trait IGridSystem<T> {
     /// Apply an active skill effect to the grid.
     /// Returns lines_cleared
     fn apply_bonus(
-        ref self: T, game_id: u64, bonus: Bonus, row_index: u8, col_index: u8, skill_data: felt252,
+        ref self: T,
+        game_id: felt252,
+        bonus: Bonus,
+        row_index: u8,
+        col_index: u8,
+        skill_data: felt252,
     ) -> u8;
 
     /// Insert a new line if the grid is empty.
-    fn insert_line_if_empty(ref self: T, game_id: u64);
+    fn insert_line_if_empty(ref self: T, game_id: felt252);
 
     /// Assess the grid (apply gravity, clear lines).
     /// Returns (lines_cleared, points)
-    fn assess_grid(ref self: T, game_id: u64) -> (u8, u16);
+    fn assess_grid(ref self: T, game_id: felt252) -> (u8, u16);
 }
 
 #[dojo::contract]
@@ -74,7 +79,7 @@ mod grid_system {
 
     #[abi(embed_v0)]
     impl GridSystemImpl of super::IGridSystem<ContractState> {
-        fn initialize_grid(ref self: ContractState, game_id: u64) {
+        fn initialize_grid(ref self: ContractState, game_id: felt252) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let mut game: Game = world.read_model(game_id);
@@ -107,7 +112,7 @@ mod grid_system {
             world.write_model(@game);
         }
 
-        fn reset_grid_for_level(ref self: ContractState, game_id: u64) {
+        fn reset_grid_for_level(ref self: ContractState, game_id: felt252) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let mut game: Game = world.read_model(game_id);
@@ -147,7 +152,7 @@ mod grid_system {
 
         fn execute_move(
             ref self: ContractState,
-            game_id: u64,
+            game_id: felt252,
             row_index: u8,
             start_index: u8,
             final_index: u8,
@@ -321,7 +326,7 @@ mod grid_system {
 
         fn apply_bonus(
             ref self: ContractState,
-            game_id: u64,
+            game_id: felt252,
             bonus: Bonus,
             row_index: u8,
             col_index: u8,
@@ -335,7 +340,7 @@ mod grid_system {
             0
         }
 
-        fn insert_line_if_empty(ref self: ContractState, game_id: u64) {
+        fn insert_line_if_empty(ref self: ContractState, game_id: felt252) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let mut game: Game = world.read_model(game_id);
@@ -364,7 +369,7 @@ mod grid_system {
             world.write_model(@game);
         }
 
-        fn assess_grid(ref self: ContractState, game_id: u64) -> (u8, u16) {
+        fn assess_grid(ref self: ContractState, game_id: felt252) -> (u8, u16) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let mut game: Game = world.read_model(game_id);

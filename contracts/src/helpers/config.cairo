@@ -10,9 +10,9 @@ use zkube::types::difficulty::Difficulty;
 
 #[generate_trait]
 pub impl ConfigUtilsImpl of ConfigUtilsTrait {
-    fn get_game_settings(world: WorldStorage, game_id: u64) -> GameSettings {
+    fn get_game_settings(world: WorldStorage, game_id: felt252) -> GameSettings {
         let token_dispatcher: IMinigameTokenDispatcher = token::token_dispatcher(world);
-        let settings_id = token_dispatcher.settings_id(game_id.into());
+        let settings_id = token_dispatcher.settings_id(game_id);
         let settings: GameSettings = world.read_model(settings_id);
 
         // Defensive fallback: if the token points at a missing settings_id, default to

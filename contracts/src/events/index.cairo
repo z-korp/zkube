@@ -10,7 +10,7 @@ pub struct StartGame {
     #[key]
     pub player: ContractAddress,
     pub timestamp: u64,
-    pub game_id: u64,
+    pub game_id: felt252,
 }
 
 /// Emitted when a bonus is used
@@ -20,7 +20,7 @@ pub struct UseBonus {
     #[key]
     pub player: ContractAddress,
     pub timestamp: u64,
-    pub game_id: u64,
+    pub game_id: felt252,
     pub bonus: Bonus,
 }
 
@@ -29,7 +29,7 @@ pub struct UseBonus {
 #[dojo::event(historical: true)]
 pub struct LevelStarted {
     #[key]
-    pub game_id: u64,
+    pub game_id: felt252,
     #[key]
     pub player: ContractAddress,
     pub level: u8,
@@ -45,7 +45,7 @@ pub struct LevelStarted {
 #[dojo::event(historical: true)]
 pub struct LevelCompleted {
     #[key]
-    pub game_id: u64,
+    pub game_id: felt252,
     #[key]
     pub player: ContractAddress,
     pub level: u8,
@@ -61,7 +61,7 @@ pub struct LevelCompleted {
 #[dojo::event(historical: true)]
 pub struct RunEnded {
     #[key]
-    pub game_id: u64,
+    pub game_id: felt252,
     #[key]
     pub player: ContractAddress,
     pub final_level: u8,
@@ -76,7 +76,7 @@ pub struct RunEnded {
 #[dojo::event(historical: true)]
 pub struct RunCompleted {
     #[key]
-    pub game_id: u64,
+    pub game_id: felt252,
     #[key]
     pub player: ContractAddress,
     pub final_score: u16,

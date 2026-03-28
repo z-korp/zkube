@@ -1,6 +1,13 @@
 import type { Config } from "../../dojo.config.ts";
 import type { Manifest } from "@/config/manifest.ts";
-import { Account, CairoOption, CairoOptionVariant, CallData, hash } from "starknet";
+import {
+  Account,
+  CairoOption,
+  CairoOptionVariant,
+  CallData,
+  hash,
+  type BigNumberish,
+} from "starknet";
 import { stringToFelt } from "@/cartridgeConnector.tsx";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
@@ -16,15 +23,15 @@ export interface Signer {
 }
 
 export interface Surrender extends Signer {
-  game_id: number;
+  game_id: BigNumberish;
 }
 
 export interface Create extends Signer {
-  token_id: number;
+  token_id: BigNumberish;
 }
 
 export interface CreateRun extends Signer {
-  game_id: number;
+  game_id: BigNumberish;
   zone_id: number;
 }
 
@@ -34,10 +41,17 @@ export interface FreeMint extends Signer {
 }
 
 export interface Move extends Signer {
-  game_id: number;
+  game_id: BigNumberish;
   row_index: number;
   start_index: number;
   final_index: number;
+}
+
+export interface BonusTx extends Signer {
+  game_id: BigNumberish;
+  bonus: number;
+  row_index: number;
+  block_index: number;
 }
 
 export interface ClaimQuest extends Signer {
@@ -103,7 +117,7 @@ export interface RegisterEntry extends Signer {
 
 export interface SubmitResult extends Signer {
   challenge_id: number;
-  game_id: number;
+  game_id: BigNumberish;
 }
 
 export interface SettleChallenge extends Signer {
@@ -287,11 +301,27 @@ export function setupWorld(config: Config) {
       }
     };
 
+    const bonus = async ({ account, game_id, bonus, row_index, block_index }: BonusTx) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "apply_bonus",
+            calldata: [game_id, bonus, row_index, block_index],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing bonus:", error);
+        throw error;
+      }
+    };
+
     return {
       address: contract.address,
       free_mint,
       create,
       createRun,
+      bonus,
       surrender,
       move,
     };

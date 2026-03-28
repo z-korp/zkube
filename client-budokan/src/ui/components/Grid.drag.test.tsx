@@ -77,7 +77,7 @@ vi.mock("@/hooks/useTransitionBlocks", () => ({
 
 describe("Grid drag interactions", () => {
   const baseProps = {
-    gameId: 1,
+    gameId: 1n,
     initialData: [{ id: 1, x: 0, y: 9, width: 1 }],
     nextLineData: [],
     setNextLineHasBeenConsumed: vi.fn(),

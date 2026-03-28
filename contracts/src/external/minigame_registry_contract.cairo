@@ -331,14 +331,14 @@ pub mod MinigameRegistryContract {
                 return results;
             }
             let game_count = self.game_counter.read();
-            let mut game_id: u64 = 1;
+            let mut registry_id: u64 = 1;
             let mut skipped: u64 = 0;
             let mut collected: u64 = 0;
             loop {
-                if game_id > game_count || collected >= count {
+                if registry_id > game_count || collected >= count {
                     break;
                 }
-                let metadata = self.game_metadata.entry(game_id).read();
+                let metadata = self.game_metadata.entry(registry_id).read();
                 if metadata.developer == developer {
                     if skipped >= start {
                         results.append(metadata);
@@ -347,7 +347,7 @@ pub mod MinigameRegistryContract {
                         skipped += 1;
                     }
                 }
-                game_id += 1;
+                registry_id += 1;
             }
             results
         }
@@ -360,14 +360,14 @@ pub mod MinigameRegistryContract {
                 return results;
             }
             let game_count = self.game_counter.read();
-            let mut game_id: u64 = 1;
+            let mut registry_id: u64 = 1;
             let mut skipped: u64 = 0;
             let mut collected: u64 = 0;
             loop {
-                if game_id > game_count || collected >= count {
+                if registry_id > game_count || collected >= count {
                     break;
                 }
-                let metadata = self.game_metadata.entry(game_id).read();
+                let metadata = self.game_metadata.entry(registry_id).read();
                 if metadata.publisher == publisher {
                     if skipped >= start {
                         results.append(metadata);
@@ -376,7 +376,7 @@ pub mod MinigameRegistryContract {
                         skipped += 1;
                     }
                 }
-                game_id += 1;
+                registry_id += 1;
             }
             results
         }
@@ -389,14 +389,14 @@ pub mod MinigameRegistryContract {
                 return results;
             }
             let game_count = self.game_counter.read();
-            let mut game_id: u64 = 1;
+            let mut registry_id: u64 = 1;
             let mut skipped: u64 = 0;
             let mut collected: u64 = 0;
             loop {
-                if game_id > game_count || collected >= count {
+                if registry_id > game_count || collected >= count {
                     break;
                 }
-                let metadata = self.game_metadata.entry(game_id).read();
+                let metadata = self.game_metadata.entry(registry_id).read();
                 if metadata.genre == genre {
                     if skipped >= start {
                         results.append(metadata);
@@ -405,7 +405,7 @@ pub mod MinigameRegistryContract {
                         skipped += 1;
                     }
                 }
-                game_id += 1;
+                registry_id += 1;
             }
             results
         }
@@ -414,10 +414,10 @@ pub mod MinigameRegistryContract {
     #[generate_trait]
     pub impl InternalImpl of InternalTrait {
         fn mint_creator_token(
-            ref self: ContractState, game_id: u64, creator_address: ContractAddress,
+            ref self: ContractState, registry_id: u64, creator_address: ContractAddress,
         ) {
             // Mint the ERC721 token to the creator
-            self.erc721.mint(creator_address, game_id.into());
+            self.erc721.mint(creator_address, registry_id.into());
         }
 
         fn get_event_relayer(self: @ContractState) -> Option<ITokenEventRelayerDispatcher> {

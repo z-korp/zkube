@@ -40,7 +40,7 @@ pub trait IDailyChallengeSystem<T> {
     /// Updates player's best scores if this run beats previous best
     /// @param challenge_id: The challenge
     /// @param game_id: The completed game to submit
-    fn submit_result(ref self: T, challenge_id: u32, game_id: u64);
+    fn submit_result(ref self: T, challenge_id: u32, game_id: felt252);
 
     /// Claim prize for a settled challenge
     /// @param challenge_id: The challenge to claim from
@@ -320,7 +320,7 @@ mod daily_challenge_system {
             }
         }
 
-        fn submit_result(ref self: ContractState, challenge_id: u32, game_id: u64) {
+        fn submit_result(ref self: ContractState, challenge_id: u32, game_id: felt252) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let player = get_caller_address();
 

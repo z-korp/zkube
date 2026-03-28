@@ -5,11 +5,11 @@ use game_components_embeddable_game_standard::minigame::structs::GameDetail;
 #[starknet::interface]
 pub trait IRendererSystems<T> {
     /// Generate full metadata for a game token (JSON data URI)
-    fn create_metadata(self: @T, game_id: u64) -> ByteArray;
+    fn create_metadata(self: @T, game_id: felt252) -> ByteArray;
     /// Generate SVG for a game token
-    fn generate_svg(self: @T, game_id: u64) -> ByteArray;
+    fn generate_svg(self: @T, game_id: felt252) -> ByteArray;
     /// Generate game details (attributes)
-    fn generate_details(self: @T, game_id: u64) -> Span<GameDetail>;
+    fn generate_details(self: @T, game_id: felt252) -> Span<GameDetail>;
 }
 
 #[dojo::contract]
@@ -32,7 +32,7 @@ mod renderer_systems {
 
     /// Get player name from game_system via libs
     /// Uses world.dns() to lookup the game_system contract address
-    fn _get_player_name(world: WorldStorage, game_id: u64) -> felt252 {
+    fn _get_player_name(world: WorldStorage, game_id: felt252) -> felt252 {
         match world.dns(@"game_system") {
             Option::Some((
                 game_system_address, _,
@@ -41,8 +41,7 @@ mod renderer_systems {
                     contract_address: game_system_address,
                 };
                 let token_address = minigame_dispatcher.token_address();
-                let token_id_felt: felt252 = game_id.into();
-                libs_get_player_name(token_address, token_id_felt)
+                libs_get_player_name(token_address, game_id)
             },
             Option::None => {
                 // Fallback: return 0 if game_system not found
@@ -58,7 +57,7 @@ mod renderer_systems {
     #[abi(embed_v0)]
     impl GameDetailsImpl of IMinigameDetails<ContractState> {
         fn game_details(self: @ContractState, token_id: felt252) -> Span<GameDetail> {
-            let game_id: u64 = token_id.try_into().expect('invalid token_id');
+            let game_id = token_id;
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
             let run_data = game.get_run_data();
@@ -96,7 +95,7 @@ mod renderer_systems {
         }
 
         fn token_description(self: @ContractState, token_id: felt252) -> ByteArray {
-            let game_id: u64 = token_id.try_into().expect('invalid token_id');
+            let game_id = token_id;
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
             let run_data = game.get_run_data();
@@ -179,7 +178,7 @@ mod renderer_systems {
     #[abi(embed_v0)]
     impl GameDetailsSVGImpl of IMinigameDetailsSVG<ContractState> {
         fn game_details_svg(self: @ContractState, token_id: felt252) -> ByteArray {
-            let game_id: u64 = token_id.try_into().expect('invalid token_id');
+            let game_id = token_id;
             // Generate the raw SVG
             let svg = self.generate_svg(game_id);
             // Return as base64-encoded data URI (required by FullTokenContract)
@@ -193,7 +192,7 @@ mod renderer_systems {
 
     #[abi(embed_v0)]
     impl RendererSystemsImpl of super::IRendererSystems<ContractState> {
-        fn create_metadata(self: @ContractState, game_id: u64) -> ByteArray {
+        fn create_metadata(self: @ContractState, game_id: felt252) -> ByteArray {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
             let run_data = game.get_run_data();
@@ -218,7 +217,7 @@ mod renderer_systems {
             )
         }
 
-        fn generate_svg(self: @ContractState, game_id: u64) -> ByteArray {
+        fn generate_svg(self: @ContractState, game_id: felt252) -> ByteArray {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
             let run_data = game.get_run_data();
@@ -328,7 +327,7 @@ mod renderer_systems {
             renderer_helper::create_svg(renderer_helper::combine_elements(ref elements))
         }
 
-        fn generate_details(self: @ContractState, game_id: u64) -> Span<GameDetail> {
+        fn generate_details(self: @ContractState, game_id: felt252) -> Span<GameDetail> {
             // Reuse the game_details implementation
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);

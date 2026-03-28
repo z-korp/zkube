@@ -6,7 +6,7 @@ use starknet::ContractAddress;
 #[dojo::model]
 pub struct GameChallenge {
     #[key]
-    pub game_id: u64,
+    pub game_id: felt252,
     /// The daily challenge this game belongs to (0 = not a daily challenge game)
     pub challenge_id: u32,
 }
@@ -59,7 +59,7 @@ pub struct DailyEntry {
     /// Best CUBEs earned in a single run
     pub best_cubes: u16,
     /// Game ID of the best run (for verification)
-    pub best_game_id: u64,
+    pub best_game_id: felt252,
     /// Final rank (set during settlement, 0 = unranked)
     pub rank: u32,
     /// LORDS prize amount (set during settlement)

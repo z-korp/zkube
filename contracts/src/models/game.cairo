@@ -12,7 +12,7 @@ use zkube::helpers::packing::{RunData, RunDataPackingTrait};
 #[dojo::model]
 pub struct Game {
     #[key]
-    pub game_id: u64,
+    pub game_id: felt252,
     // ----------------------------------------
     // Grid state (changes every move)
     // ----------------------------------------
@@ -43,7 +43,7 @@ pub struct Game {
 #[dojo::model]
 pub struct GameSeed {
     #[key]
-    pub game_id: u64,
+    pub game_id: felt252,
     pub seed: felt252, // Original VRF seed — set once at game creation, NEVER changes
     pub level_seed: felt252, // Per-level seed — updated on each level advance
     pub vrf_enabled: bool,
@@ -56,7 +56,7 @@ pub struct GameSeed {
 #[dojo::model]
 pub struct GameLevel {
     #[key]
-    pub game_id: u64,
+    pub game_id: felt252,
     pub level: u8,
     pub points_required: u16,
     pub max_moves: u16,
@@ -82,7 +82,7 @@ use zkube::types::level::LevelConfig;
 #[generate_trait]
 pub impl GameLevelImpl of GameLevelTrait {
     /// Create a GameLevel model from a LevelConfig and game_id
-    fn from_level_config(game_id: u64, config: LevelConfig) -> GameLevel {
+    fn from_level_config(game_id: felt252, config: LevelConfig) -> GameLevel {
         GameLevel {
             game_id,
             level: config.level,
@@ -108,7 +108,7 @@ pub impl GameLevelImpl of GameLevelTrait {
 pub impl GameImpl of GameTrait {
     /// Create an empty game shell (no grid initialization)
     /// Grid should be initialized separately via grid_system.initialize_grid()
-    fn new_empty(game_id: u64, started_at: u64, zone_id: u8, mutator_mask: u8) -> Game {
+    fn new_empty(game_id: felt252, started_at: u64, zone_id: u8, mutator_mask: u8) -> Game {
         let run_data = RunDataPackingTrait::new(zone_id, mutator_mask);
 
         Game {

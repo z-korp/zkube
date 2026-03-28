@@ -2,21 +2,21 @@
 pub trait IGameSystem<T> {
     /// Create a new game
     /// @param game_id: NFT token ID for this game
-    fn create(ref self: T, game_id: u64);
+    fn create(ref self: T, game_id: felt252);
     /// Create a new game with explicit zone selection
     /// @param game_id: NFT token ID for this game
     /// @param zone_id: zone identifier (0-15)
-    fn create_run(ref self: T, game_id: u64, zone_id: u8);
+    fn create_run(ref self: T, game_id: felt252, zone_id: u8);
     /// Surrender the current run (game over)
-    fn surrender(ref self: T, game_id: u64);
+    fn surrender(ref self: T, game_id: felt252);
     /// Get player name from token
-    fn get_player_name(self: @T, game_id: u64) -> felt252;
+    fn get_player_name(self: @T, game_id: felt252) -> felt252;
     /// Get current level score
-    fn get_score(self: @T, game_id: u64) -> u16;
+    fn get_score(self: @T, game_id: felt252) -> u16;
     /// Get game data for UI
     /// Returns: (level, level_score, level_moves, combo, max_combo, reserved, reserved,
     /// reserved, reserved, over)
-    fn get_game_data(self: @T, game_id: u64) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool);
+    fn get_game_data(self: @T, game_id: felt252) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool);
 }
 
 #[dojo::contract]
@@ -152,7 +152,7 @@ mod game_system {
     #[abi(embed_v0)]
     impl GameTokenDataImpl of IMinigameTokenData<ContractState> {
         fn score(self: @ContractState, token_id: felt252) -> u64 {
-            let game_id: u64 = token_id.try_into().expect('invalid token_id');
+            let game_id = token_id;
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
             // Return level score as the "score" for token metadata
@@ -160,7 +160,7 @@ mod game_system {
         }
 
         fn game_over(self: @ContractState, token_id: felt252) -> bool {
-            let game_id: u64 = token_id.try_into().expect('invalid token_id');
+            let game_id = token_id;
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
             game.over
@@ -205,19 +205,19 @@ mod game_system {
 
     #[abi(embed_v0)]
     impl GameSystemImpl of super::IGameSystem<ContractState> {
-        fn create(ref self: ContractState, game_id: u64) {
+        fn create(ref self: ContractState, game_id: felt252) {
             self.create_run(game_id, 0);
         }
 
-        fn create_run(ref self: ContractState, game_id: u64, zone_id: u8) {
+        fn create_run(ref self: ContractState, game_id: felt252, zone_id: u8) {
             InternalImpl::create_game(ref self, game_id, zone_id);
         }
 
-        fn surrender(ref self: ContractState, game_id: u64) {
+        fn surrender(ref self: ContractState, game_id: felt252) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let token_address = self.token_address();
-            let token_id_felt: felt252 = game_id.into();
+            let token_id_felt = game_id;
             pre_action(token_address, token_id_felt);
 
             let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
@@ -241,20 +241,20 @@ mod game_system {
             post_action(token_address, token_id_felt);
         }
 
-        fn get_player_name(self: @ContractState, game_id: u64) -> felt252 {
+        fn get_player_name(self: @ContractState, game_id: felt252) -> felt252 {
             let token_address = self.token_address();
-            let token_id_felt: felt252 = game_id.into();
+            let token_id_felt = game_id;
             get_token_player_name(token_address, token_id_felt)
         }
 
-        fn get_score(self: @ContractState, game_id: u64) -> u16 {
+        fn get_score(self: @ContractState, game_id: felt252) -> u16 {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
             game.get_level_score().into()
         }
 
         fn get_game_data(
-            self: @ContractState, game_id: u64,
+            self: @ContractState, game_id: felt252,
         ) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool) {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
@@ -277,11 +277,11 @@ mod game_system {
 
     #[generate_trait]
     pub impl InternalImpl of InternalTrait {
-        fn create_game(ref self: ContractState, game_id: u64, zone_id: u8) {
+        fn create_game(ref self: ContractState, game_id: felt252, zone_id: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let token_address = self.token_address();
-            let token_id_felt: felt252 = game_id.into();
+            let token_id_felt = game_id;
             pre_action(token_address, token_id_felt);
 
             let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
@@ -323,7 +323,7 @@ mod game_system {
                 let random = if vrf_addr.is_zero() {
                     RandomImpl::new_pseudo_random()
                 } else {
-                    RandomImpl::new_vrf(game_id.into())
+                    RandomImpl::new_vrf(game_id)
                 };
                 (random.seed, vrf_on)
             };
@@ -373,12 +373,11 @@ mod game_system {
         #[inline(always)]
         fn validate_start_conditions(
             self: @ContractState,
-            token_id: u64,
+            token_id: felt252,
             token_metadata: @TokenMetadata,
             token_address: ContractAddress,
         ) {
-            let token_id_felt: felt252 = token_id.into();
-            assert_token_ownership(token_address, token_id_felt);
+            assert_token_ownership(token_address, token_id);
             self.assert_game_not_started(token_id);
             assert!(
                 token_metadata.lifecycle.is_playable(starknet::get_block_timestamp()),
@@ -388,7 +387,7 @@ mod game_system {
         }
 
         #[inline(always)]
-        fn assert_game_not_started(self: @ContractState, game_id: u64) {
+        fn assert_game_not_started(self: @ContractState, game_id: felt252) {
             let game: Game = self.world(@DEFAULT_NS()).read_model(game_id);
             assert!(game.blocks == 0, "Game {} has already started", game_id);
         }

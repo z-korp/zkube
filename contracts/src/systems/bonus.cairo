@@ -6,7 +6,7 @@ use zkube::types::bonus::Bonus;
 #[starknet::interface]
 pub trait IBonusSystem<T> {
     /// Apply a bonus from inventory
-    fn apply_bonus(ref self: T, game_id: u64, bonus: Bonus, row_index: u8, line_index: u8);
+    fn apply_bonus(ref self: T, game_id: felt252, bonus: Bonus, row_index: u8, line_index: u8);
 }
 
 #[dojo::contract]
@@ -40,7 +40,8 @@ mod bonus_system {
     #[abi(embed_v0)]
     impl BonusSystemImpl of super::IBonusSystem<ContractState> {
         fn apply_bonus(
-            ref self: ContractState, game_id: u64, bonus: Bonus, row_index: u8, line_index: u8,
+            ref self: ContractState, game_id: felt252, bonus: Bonus, row_index: u8,
+            line_index: u8,
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 

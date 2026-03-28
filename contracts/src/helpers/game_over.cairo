@@ -78,7 +78,7 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
 fn auto_submit_daily_result(
     ref world: WorldStorage,
     challenge_id: u32,
-    game_id: u64,
+    game_id: felt252,
     player: ContractAddress,
     total_score: u16,
     current_level: u8,

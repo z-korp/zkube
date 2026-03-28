@@ -3,17 +3,17 @@
 #[starknet::interface]
 pub trait ILevelSystem<T> {
     /// Initialize level 1 for a new game.
-    fn initialize_level(ref self: T, game_id: u64, skill_data: felt252) -> bool;
+    fn initialize_level(ref self: T, game_id: felt252, skill_data: felt252) -> bool;
 
     /// Finalize the current level and immediately advance in the same transaction.
     /// Returns reserved legacy tuple: (0, 0, false).
-    fn finalize_level(ref self: T, game_id: u64, skill_data: felt252) -> (u8, u8, bool);
+    fn finalize_level(ref self: T, game_id: felt252, skill_data: felt252) -> (u8, u8, bool);
 
     /// Legacy compatibility entrypoint. Transitioning is now automatic.
-    fn start_next_level(ref self: T, game_id: u64);
+    fn start_next_level(ref self: T, game_id: felt252);
 
     /// Insert a new line when grid is empty.
-    fn insert_line_if_empty(ref self: T, game_id: u64);
+    fn insert_line_if_empty(ref self: T, game_id: felt252);
 }
 
 #[dojo::contract]
@@ -35,7 +35,7 @@ mod level_system {
 
     #[abi(embed_v0)]
     impl LevelSystemImpl of super::ILevelSystem<ContractState> {
-        fn initialize_level(ref self: ContractState, game_id: u64, skill_data: felt252) -> bool {
+        fn initialize_level(ref self: ContractState, game_id: felt252, skill_data: felt252) -> bool {
             let _ = skill_data;
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
@@ -80,7 +80,9 @@ mod level_system {
         }
 
         fn finalize_level(
-            ref self: ContractState, game_id: u64, skill_data: felt252,
+            ref self: ContractState,
+            game_id: felt252,
+            skill_data: felt252,
         ) -> (u8, u8, bool) {
             let _ = skill_data;
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
@@ -120,11 +122,11 @@ mod level_system {
             (0, 0, false)
         }
 
-        fn start_next_level(ref self: ContractState, game_id: u64) {
+        fn start_next_level(ref self: ContractState, game_id: felt252) {
             let _ = game_id;
         }
 
-        fn insert_line_if_empty(ref self: ContractState, game_id: u64) {
+        fn insert_line_if_empty(ref self: ContractState, game_id: felt252) {
             let world: WorldStorage = self.world(@DEFAULT_NS());
 
             let game: Game = world.read_model(game_id);
@@ -149,7 +151,7 @@ mod level_system {
             }
         }
 
-        fn advance_level(ref world: WorldStorage, game_id: u64, player: ContractAddress) {
+        fn advance_level(ref world: WorldStorage, game_id: felt252, player: ContractAddress) {
             let mut game: Game = world.read_model(game_id);
             let base_seed: GameSeed = world.read_model(game_id);
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);

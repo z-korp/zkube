@@ -14,7 +14,7 @@ const normalizeEntityId = (entityId: string): Entity => {
 export const useGame = ({
   gameId,
 }: {
-  gameId: number | undefined;
+  gameId: bigint | undefined;
   shouldLog: boolean;
 }) => {
   const {
@@ -26,10 +26,10 @@ export const useGame = ({
     },
   } = useDojo();
 
-  const gameKeySource = gameId !== undefined ? gameId.toString() : "0";
+  const gameKeySource = gameId ?? 0n;
 
   const gameKey = useMemo(() => {
-    const rawKey = getEntityIdFromKeys([BigInt(gameKeySource)]);
+    const rawKey = getEntityIdFromKeys([gameKeySource]);
     return normalizeEntityId(rawKey);
   }, [gameKeySource]);
 

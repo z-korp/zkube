@@ -26,12 +26,12 @@ interface NavigationState {
   previousPage: PageId | null;
   isTransitioning: boolean;
   transitionDirection: "forward" | "back" | null;
-  gameId: number | null;
+  gameId: bigint | null;
   pendingPreviewLevel: number | null;
   pendingLevelCompletion: PendingLevelCompletion | null;
-  navigate: (page: PageId, gameId?: number) => void;
+  navigate: (page: PageId, gameId?: bigint) => void;
   goBack: () => void;
-  setGameId: (id: number | null) => void;
+  setGameId: (id: bigint | null) => void;
   setPendingPreviewLevel: (level: number | null) => void;
   setPendingLevelCompletion: (data: PendingLevelCompletion | null) => void;
 }

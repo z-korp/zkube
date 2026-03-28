@@ -13,8 +13,8 @@ const truncateAddress = (address: string): string => {
 };
 
 export interface LeaderboardEntry {
-  token_id: number;
-  game_id: number;
+  token_id: bigint;
+  game_id: bigint;
   level: number;
   totalCubes: number;
   totalScore: number;
@@ -150,7 +150,7 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
         const gameTokenAddress = VITE_PUBLIC_GAME_TOKEN_ADDRESS?.toLowerCase();
 
         // First, fetch token ownership data from Torii GraphQL
-        let tokenOwnerMap = new Map<number, { owner: string; playerName?: string }>();
+        let tokenOwnerMap = new Map<bigint, { owner: string; playerName?: string }>();
         
         if (toriiUrl) {
           try {
@@ -179,7 +179,7 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
                   if (!tokenContract?.includes(gameTokenAddress.replace("0x", ""))) continue;
                 }
 
-                const tokenId = Number(BigInt(erc721Meta.tokenId));
+                const tokenId = BigInt(erc721Meta.tokenId);
                 const owner = edge.node.to;
                 const playerName = parsePlayerName(erc721Meta.metadata);
 
@@ -195,12 +195,12 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
         const gameEntities = runQuery([Has(Game)]);
 
         const gameList: LeaderboardEntry[] = [];
-        const seenIds = new Set<number>();
+        const seenIds = new Set<bigint>();
 
         for (const entity of gameEntities) {
           const gameData = getComponentValue(Game, entity);
 
-          if (!gameData || gameData.game_id === 0) continue;
+          if (!gameData || gameData.game_id === 0n) continue;
 
           // Deduplicate
           if (seenIds.has(gameData.game_id)) continue;
@@ -213,7 +213,7 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
           const runDataPacked = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
           const runData = unpackRunData(runDataPacked);
           const level = runData.currentLevel;
-          const totalCubes = runData.totalCubes;
+          const totalCubes = 0;
           const totalScore = runData.totalScore;
 
           // Get owner info from token data

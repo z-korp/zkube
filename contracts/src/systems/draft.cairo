@@ -1,9 +1,9 @@
 #[starknet::interface]
 pub trait IDraftSystem<T> {
-    fn open_initial_draft(ref self: T, game_id: u64);
-    fn open_boss_upgrade(ref self: T, game_id: u64, completed_level: u8);
-    fn reroll(ref self: T, game_id: u64, reroll_slot: u8);
-    fn select(ref self: T, game_id: u64, selected_slot: u8);
+    fn open_initial_draft(ref self: T, game_id: felt252);
+    fn open_boss_upgrade(ref self: T, game_id: felt252, completed_level: u8);
+    fn reroll(ref self: T, game_id: felt252, reroll_slot: u8);
+    fn select(ref self: T, game_id: felt252, selected_slot: u8);
 }
 
 #[dojo::contract]
@@ -37,7 +37,7 @@ mod draft_system {
 
     #[abi(embed_v0)]
     impl DraftSystemImpl of super::IDraftSystem<ContractState> {
-        fn open_initial_draft(ref self: ContractState, game_id: u64) {
+        fn open_initial_draft(ref self: ContractState, game_id: felt252) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
@@ -96,7 +96,7 @@ mod draft_system {
                 );
         }
 
-        fn open_boss_upgrade(ref self: ContractState, game_id: u64, completed_level: u8) {
+        fn open_boss_upgrade(ref self: ContractState, game_id: felt252, completed_level: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
@@ -168,7 +168,7 @@ mod draft_system {
                 );
         }
 
-        fn reroll(ref self: ContractState, game_id: u64, reroll_slot: u8) {
+        fn reroll(ref self: ContractState, game_id: felt252, reroll_slot: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let token_address = token::get_token_address(world);
             let token_id_felt: felt252 = game_id.into();
@@ -244,7 +244,7 @@ mod draft_system {
                 );
         }
 
-        fn select(ref self: ContractState, game_id: u64, selected_slot: u8) {
+        fn select(ref self: ContractState, game_id: felt252, selected_slot: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let token_address = token::get_token_address(world);
             let token_id_felt: felt252 = game_id.into();

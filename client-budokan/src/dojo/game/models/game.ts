@@ -21,7 +21,7 @@ export interface Row {
 }
 
 export class Game {
-  public id: number;
+  public id: bigint;
   public blocks: number[][];
   public blocksRaw: bigint;
   public rows: Row[];
@@ -69,6 +69,10 @@ export class Game {
     return this.runData.mutatorMask;
   }
 
+  public get levelTransitionPending(): boolean {
+    return !this.over && this.blocksRaw === 0n;
+  }
+
   // Legacy compatibility
   public get score(): number {
     return this.runData.levelScore;
@@ -78,7 +82,7 @@ export class Game {
   }
 
   constructor(game: ComponentValue) {
-    this.id = game.game_id;
+    this.id = BigInt(game.game_id ?? 0);
     this.over = game.over ? true : false;
     this.started_at = game.started_at || 0;
     

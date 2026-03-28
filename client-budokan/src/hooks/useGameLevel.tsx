@@ -14,7 +14,7 @@ const normalizeEntityId = (entityId: string): Entity => {
 };
 
 export interface GameLevelData {
-  gameId: number;
+  gameId: bigint;
   level: number;
   pointsRequired: number;
   maxMoves: number;
@@ -43,7 +43,7 @@ export interface GameLevelData {
 export const useGameLevel = ({
   gameId,
 }: {
-  gameId: number | undefined;
+  gameId: bigint | undefined;
 }): GameLevelData | null => {
   const {
     setup: {
@@ -55,7 +55,7 @@ export const useGameLevel = ({
 
   const gameKey = useMemo(() => {
     if (gameId === undefined) return null;
-    const rawKey = getEntityIdFromKeys([BigInt(gameId)]);
+    const rawKey = getEntityIdFromKeys([gameId]);
     return normalizeEntityId(rawKey);
   }, [gameId]);
 

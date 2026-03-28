@@ -44,7 +44,13 @@ const MyGamesPage: React.FC = () => {
   });
 
   const { activeGames, finishedGames } = useMemo(() => {
-    const sorted = [...games].sort((left, right) => right.token_id - left.token_id);
+    const sorted = [...games].sort((left, right) =>
+      left.token_id === right.token_id
+        ? 0
+        : left.token_id > right.token_id
+          ? -1
+          : 1,
+    );
     return {
       activeGames: sorted.filter((g) => !g.game_over),
       finishedGames: sorted.filter((g) => g.game_over),
@@ -98,7 +104,7 @@ const MyGamesPage: React.FC = () => {
 
                         return (
                           <motion.tr
-                            key={game.token_id}
+                            key={game.token_id.toString()}
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.02 }}
@@ -166,7 +172,7 @@ const MyGamesPage: React.FC = () => {
 
                         return (
                           <motion.tr
-                            key={game.token_id}
+                            key={game.token_id.toString()}
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.02 }}

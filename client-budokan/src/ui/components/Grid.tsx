@@ -34,7 +34,7 @@ import { showToast } from "@/utils/toast";
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
 interface GridProps {
-  gameId: number;
+  gameId: bigint;
   initialData: Block[];
   nextLineData: Block[];
   setNextLineHasBeenConsumed: React.Dispatch<React.SetStateAction<boolean>>;
@@ -122,7 +122,6 @@ const Grid: React.FC<GridProps> = ({
   } = useTransitionBlocks();
 
   const queueForGame = queue.filter((item) => item.gameId === gameId);
-  const pendingQueueCount = queueForGame.length;
   const nextQueuedMove = queueForGame.find((item) => item.status === "queued");
 
   // ==================== Constants ====================
