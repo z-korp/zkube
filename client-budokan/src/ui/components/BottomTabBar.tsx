@@ -1,12 +1,13 @@
-import { Home, Map, Trophy, Settings } from "lucide-react";
 import { useNavigationStore } from "@/stores/navigationStore";
 import type { TabId } from "@/stores/navigationStore";
 
-const TABS: { id: TabId; label: string; Icon: typeof Home }[] = [
-  { id: "home", label: "Home", Icon: Home },
-  { id: "map", label: "Map", Icon: Map },
-  { id: "ranks", label: "Ranks", Icon: Trophy },
-  { id: "settings", label: "Settings", Icon: Settings },
+const ICON_BASE = "/assets/common/icons";
+
+const TABS: { id: TabId; label: string; icon: string }[] = [
+  { id: "home", label: "Home", icon: `${ICON_BASE}/icon-cube.png` },
+  { id: "map", label: "Map", icon: `${ICON_BASE}/icon-level.png` },
+  { id: "ranks", label: "Ranks", icon: `${ICON_BASE}/icon-trophy.png` },
+  { id: "settings", label: "Settings", icon: `${ICON_BASE}/icon-settings.png` },
 ];
 
 const BottomTabBar: React.FC = () => {
@@ -14,28 +15,50 @@ const BottomTabBar: React.FC = () => {
   const navigate = useNavigationStore((s) => s.navigate);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-stretch border-t border-slate-700/50 bg-slate-900/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)] md:h-14">
-      {TABS.map(({ id, label, Icon }) => {
-        const active = currentPage === id;
-        return (
-          <button
-            key={id}
-            type="button"
-            onClick={() => navigate(id)}
-            className={`relative flex flex-1 flex-col items-center justify-center gap-0.5 transition-colors ${
-              active ? "text-cyan-400" : "text-slate-500"
-            }`}
-          >
-            {active && (
-              <span className="absolute top-1 h-1 w-4 rounded-full bg-cyan-400" />
-            )}
-            <Icon size={20} strokeWidth={active ? 2.2 : 1.6} />
-            <span className="text-[10px] font-medium leading-none">
-              {label}
-            </span>
-          </button>
-        );
-      })}
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 pb-[env(safe-area-inset-bottom)]"
+      style={{
+        backgroundImage: "url(/assets/common/ui/action-bar.png)",
+        backgroundSize: "100% 100%",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <div className="flex h-16 items-stretch md:h-14">
+        {TABS.map(({ id, label, icon }) => {
+          const active = currentPage === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => navigate(id)}
+              className={`relative flex flex-1 flex-col items-center justify-center gap-0.5 transition-all ${
+                active ? "scale-105" : "opacity-50 hover:opacity-75"
+              }`}
+            >
+              {active && (
+                <span className="absolute -top-0.5 h-0.5 w-8 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+              )}
+              <img
+                src={icon}
+                alt={label}
+                className={`h-6 w-6 object-contain transition-all ${
+                  active
+                    ? "drop-shadow-[0_0_6px_rgba(52,211,153,0.8)] brightness-125"
+                    : "brightness-75 saturate-50"
+                }`}
+                draggable={false}
+              />
+              <span
+                className={`text-[9px] font-bold tracking-wider uppercase leading-none ${
+                  active ? "text-emerald-300" : "text-slate-400"
+                }`}
+              >
+                {label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </nav>
   );
 };

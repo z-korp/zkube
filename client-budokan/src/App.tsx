@@ -87,9 +87,15 @@ export default function App() {
       <div className="fixed inset-0 flex flex-col">
         <ThemeBackground />
         <div
-          className={`relative flex-1 min-h-0 overflow-hidden ${showTabBar ? "pb-16 md:pb-14" : ""}`}
+          className="relative flex-1 min-h-0 overflow-hidden"
+          style={showTabBar ? { paddingBottom: 0 } : undefined}
         >
-          <CurrentPage />
+          <div
+            className="absolute inset-0 overflow-hidden"
+            style={showTabBar ? { bottom: "4rem" } : undefined}
+          >
+            <CurrentPage />
+          </div>
         </div>
         {showTabBar && <BottomTabBar />}
       </div>
