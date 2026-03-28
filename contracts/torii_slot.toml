@@ -5,7 +5,9 @@ rpc = "https://api.cartridge.gg/x/zkube-djizus-slot/katana"
 pending = true
 transactions = true
 namespaces = ["zkube_jc_sepolia_v1"]
-contracts = []
+contracts = [
+  "erc721:0x045edce17818992bb6885a3f9b85bf901179cbab2bee32deae4d1862f16c23bc",
+]
 
 [events]
 raw = true
