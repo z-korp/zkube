@@ -7,7 +7,7 @@ import { useDojo } from "@/dojo/useDojo";
 import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
-import { THEME_META, loadThemeTemplate } from "@/config/themes";
+import { loadThemeTemplate } from "@/config/themes";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
@@ -122,7 +122,6 @@ const HomePage: React.FC = () => {
   }, [GameSettingsMetadata]);
 
   const zone = ZONE_CONFIG[activeZone];
-  const themeMeta = THEME_META[zone.themeId];
 
   const hasActiveRun = useMemo(() => {
     return activeGames.length > 0;
@@ -186,14 +185,7 @@ const HomePage: React.FC = () => {
     }
   }, [activeRunTokenId, navigate]);
 
-  const swipeZone = useCallback(
-    (direction: number) => {
-      setActiveZone((prev) =>
-        Math.max(0, Math.min(ZONE_CONFIG.length - 1, prev + direction)),
-      );
-    },
-    [],
-  );
+
 
   return (
     <div className="flex h-full flex-col">
@@ -212,93 +204,62 @@ const HomePage: React.FC = () => {
             className="absolute inset-0 h-full w-full object-cover"
             draggable={false}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/30" />
         </motion.div>
       </AnimatePresence>
 
       <div className="relative z-10 flex flex-1 flex-col min-h-0">
-        <div className="flex items-center justify-center pt-4 shrink-0">
+        <div className="flex items-center justify-center pt-3 shrink-0">
           <motion.img
             src={ImageAssets(zone.themeId).logo}
             alt="zKube"
             draggable={false}
-            className="h-10 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-            animate={{ y: [0, -3, 0] }}
+            className="h-8 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+            animate={{ y: [0, -2, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           />
         </div>
 
         <div className="flex-1 min-h-0" />
 
-        <div className="shrink-0 px-4 pb-2 flex flex-col gap-2">
-          <div className="flex items-center justify-between px-1">
-            <button
-              onClick={() => swipeZone(-1)}
-              disabled={activeZone === 0}
-              className="w-10 h-10 flex items-center justify-center disabled:opacity-0 transition-opacity"
-            >
-              <img
-                src="/assets/common/icons/icon-close.png"
-                alt="prev"
-                className="h-5 w-5 rotate-90 brightness-200"
-                draggable={false}
-              />
-            </button>
-            <div className="flex gap-2.5">
-              {ZONE_CONFIG.map((z, idx) => (
+        <div className="shrink-0 px-4 pb-2 flex flex-col gap-3">
+          <div className="flex justify-center gap-3">
+            {ZONE_CONFIG.map((z, idx) => {
+              const active = idx === activeZone;
+              return (
                 <button
                   key={idx}
                   onClick={() => setActiveZone(idx)}
-                  className="transition-all"
+                  className={`flex flex-col items-center gap-1.5 transition-all ${
+                    active ? "scale-105" : "opacity-40 hover:opacity-60"
+                  }`}
                 >
                   <img
                     src={ImageAssets(z.themeId).themeIcon}
                     alt={z.name}
-                    className={`rounded-lg border-2 transition-all ${
-                      idx === activeZone
-                        ? "w-10 h-10 border-white/80 shadow-[0_0_12px_rgba(255,255,255,0.4)]"
-                        : "w-8 h-8 border-white/20 opacity-50 saturate-50"
+                    className={`rounded-xl transition-all ${
+                      active
+                        ? "w-14 h-14 border-2 border-white/80 shadow-[0_0_16px_rgba(255,255,255,0.35)]"
+                        : "w-11 h-11 border border-white/15"
                     }`}
                     draggable={false}
                   />
+                  <span className={`text-[10px] font-semibold leading-none transition-colors ${
+                    active ? "text-white" : "text-white/40"
+                  }`}>
+                    {z.name}
+                  </span>
                 </button>
-              ))}
-            </div>
-            <button
-              onClick={() => swipeZone(1)}
-              disabled={activeZone === ZONE_CONFIG.length - 1}
-              className="w-10 h-10 flex items-center justify-center disabled:opacity-0 transition-opacity"
-            >
-              <img
-                src="/assets/common/icons/icon-close.png"
-                alt="next"
-                className="h-5 w-5 -rotate-90 brightness-200"
-                draggable={false}
-              />
-            </button>
+              );
+            })}
           </div>
 
-          <div className="relative rounded-xl overflow-hidden">
-            <div
-              className="absolute inset-0 opacity-40"
-              style={{
-                backgroundImage: "url(/assets/common/panels/panel-glass.png)",
-                backgroundSize: "100% 100%",
-              }}
-            />
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-lg" />
-            <div className="relative z-10 p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h1 className="font-['Fredericka_the_Great'] text-2xl text-white drop-shadow-lg">
-                  {zone.name}
-                </h1>
-                <img
-                  src={`/assets/${zone.themeId}/theme-icon.png`}
-                  alt=""
-                  className="h-9 w-9 rounded-lg border border-white/30 shadow-lg"
-                  draggable={false}
-                />
-              </div>
+          <div className="relative rounded-2xl overflow-hidden border border-white/10">
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-xl" />
+            <div className="relative z-10 p-4 flex flex-col gap-3">
+              <h1 className="font-['Fredericka_the_Great'] text-2xl text-white drop-shadow-lg">
+                {zone.name}
+              </h1>
 
               {!account ? (
                 <Connect />
@@ -307,14 +268,9 @@ const HomePage: React.FC = () => {
                   <motion.button
                     whileTap={{ scale: 0.96 }}
                     onClick={handleContinue}
-                    className="flex-1 relative h-14 flex items-center justify-center overflow-hidden rounded-lg"
+                    className="flex-1 relative h-14 flex items-center justify-center overflow-hidden rounded-xl"
                   >
-                    <img
-                      src="/assets/common/buttons/btn-orange.png"
-                      alt=""
-                      className="absolute inset-0 w-full h-full object-fill"
-                      draggable={false}
-                    />
+                    <img src="/assets/common/buttons/btn-orange.png" alt="" className="absolute inset-0 w-full h-full object-fill" draggable={false} />
                     <span className="relative z-10 font-['Fredericka_the_Great'] text-lg text-white drop-shadow-md tracking-wide">
                       CONTINUE
                     </span>
@@ -323,14 +279,9 @@ const HomePage: React.FC = () => {
                     whileTap={{ scale: 0.96 }}
                     disabled={isStartingGame}
                     onClick={() => handleStartGame(zone.settingsId)}
-                    className="relative h-14 w-20 flex items-center justify-center overflow-hidden rounded-lg disabled:opacity-50"
+                    className="relative h-14 w-20 flex items-center justify-center overflow-hidden rounded-xl disabled:opacity-50"
                   >
-                    <img
-                      src="/assets/common/buttons/btn-green.png"
-                      alt=""
-                      className="absolute inset-0 w-full h-full object-fill"
-                      draggable={false}
-                    />
+                    <img src="/assets/common/buttons/btn-green.png" alt="" className="absolute inset-0 w-full h-full object-fill" draggable={false} />
                     <span className="relative z-10 font-['Fredericka_the_Great'] text-sm text-white drop-shadow-md">
                       NEW
                     </span>
@@ -341,14 +292,9 @@ const HomePage: React.FC = () => {
                   whileTap={{ scale: 0.96 }}
                   disabled={isStartingGame}
                   onClick={() => handleStartGame(zone.settingsId)}
-                  className="relative w-full h-14 flex items-center justify-center overflow-hidden rounded-lg disabled:opacity-50"
+                  className="relative w-full h-14 flex items-center justify-center overflow-hidden rounded-xl disabled:opacity-50"
                 >
-                  <img
-                    src="/assets/common/buttons/btn-green.png"
-                    alt=""
-                    className="absolute inset-0 w-full h-full object-fill"
-                    draggable={false}
-                  />
+                  <img src="/assets/common/buttons/btn-green.png" alt="" className="absolute inset-0 w-full h-full object-fill" draggable={false} />
                   <span className="relative z-10 font-['Fredericka_the_Great'] text-xl text-white drop-shadow-md tracking-wider">
                     {isStartingGame ? "STARTING..." : "▶  PLAY"}
                   </span>
@@ -357,38 +303,27 @@ const HomePage: React.FC = () => {
             </div>
           </div>
 
-          <motion.button
-            whileTap={{ scale: 0.98 }}
+          <button
             onClick={() => navigate("daily")}
-            className="relative rounded-lg overflow-hidden flex items-center justify-between"
+            className="flex items-center gap-3 rounded-xl bg-white/5 border border-white/8 p-3 active:bg-white/10 transition-colors"
           >
-            <div
-              className="absolute inset-0 opacity-50"
-              style={{
-                backgroundImage: "url(/assets/common/panels/panel-dark.png)",
-                backgroundSize: "100% 100%",
-              }}
+            <img
+              src="/assets/common/icons/icon-star-filled.png"
+              alt=""
+              className="h-7 w-7 shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]"
+              draggable={false}
             />
-            <div className="absolute inset-0 bg-black/50" />
-            <div className="relative z-10 flex items-center gap-3 p-3 w-full">
-              <img
-                src="/assets/common/icons/icon-star-filled.png"
-                alt=""
-                className="h-7 w-7 drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]"
-                draggable={false}
-              />
-              <div className="text-left flex-1">
-                <p className="text-sm font-bold text-white leading-tight">Daily Challenge</p>
-                <p className="text-[11px] text-white/50">Compete for stars</p>
-              </div>
-              <img
-                src="/assets/common/icons/icon-score.png"
-                alt=""
-                className="h-5 w-5 opacity-40"
-                draggable={false}
-              />
+            <div className="text-left flex-1 min-w-0">
+              <p className="text-sm font-bold text-white leading-tight">Daily Challenge</p>
+              <p className="text-[11px] text-white/40">Compete for stars</p>
             </div>
-          </motion.button>
+            <img
+              src="/assets/common/icons/icon-score.png"
+              alt=""
+              className="h-4 w-4 shrink-0 opacity-30"
+              draggable={false}
+            />
+          </button>
         </div>
       </div>
     </div>

@@ -1,14 +1,6 @@
-import { useState } from "react";
 import { motion } from "motion/react";
 import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
-
-type LeaderboardTab = "zone" | "endless" | "daily";
-
-const TABS: { id: LeaderboardTab; label: string }[] = [
-  { id: "zone", label: "Zone" },
-  { id: "endless", label: "Endless" },
-  { id: "daily", label: "Daily" },
-];
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 const PODIUM_STYLES = [
   { bg: "bg-yellow-400/15", border: "border-yellow-400/40", text: "text-yellow-200", trophy: "/assets/trophies/gold.png" },
@@ -17,8 +9,8 @@ const PODIUM_STYLES = [
 ];
 
 const LeaderboardPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<LeaderboardTab>("zone");
   const { games, loading } = useLeaderboardSlot();
+  const { account } = useAccountCustom();
 
   const top3 = games.slice(0, 3);
   const rest = games.slice(3);
@@ -26,31 +18,9 @@ const LeaderboardPage: React.FC = () => {
   return (
     <div className="flex h-full flex-col">
       <div className="px-4 pt-4 pb-2">
-        <h1 className="font-['Fredericka_the_Great'] text-xl text-white text-center mb-3">
+        <h1 className="font-['Fredericka_the_Great'] text-xl text-white text-center">
           Leaderboard
         </h1>
-        <div className="flex gap-1 rounded-lg bg-slate-800/80 p-1">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`relative flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === tab.id
-                  ? "text-white"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              {activeTab === tab.id && (
-                <motion.div
-                  layoutId="tab-bg"
-                  className="absolute inset-0 rounded-md bg-slate-600/60"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
-              )}
-              <span className="relative z-10">{tab.label}</span>
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-4">
