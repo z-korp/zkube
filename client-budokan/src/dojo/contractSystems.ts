@@ -40,13 +40,6 @@ export interface Move extends Signer {
   final_index: number;
 }
 
-export interface BonusTx extends Signer {
-  game_id: number;
-  bonus: number;
-  row_index: number;
-  block_index: number;
-}
-
 export interface ClaimQuest extends Signer {
   quest_id: string; // felt252 encoded quest ID
   interval_id: number; // Current interval ID for the quest
@@ -161,15 +154,6 @@ export function setupWorld(config: Config) {
       throw new Error(`Contract ${move_contract_name} not found in manifest`);
     }
 
-    // bonus_system handles apply_bonus() function
-    const bonus_contract_name = "bonus_system";
-    const bonus_contract = config.manifest.contracts.find(
-      (c: Manifest["contracts"][number]) => c.tag.includes(bonus_contract_name),
-    );
-    if (!bonus_contract) {
-      throw new Error(`Contract ${bonus_contract_name} not found in manifest`);
-    }
-
     const free_mint = async ({ account, name, settingsId = 0 }: FreeMint) => {
       try {
         const trimmedName = name.trim();
@@ -179,19 +163,20 @@ export function setupWorld(config: Config) {
             contractAddress: contract.address,
             entrypoint: "mint_game",
             calldata: CallData.compile([
-              new CairoOption(
-                CairoOptionVariant.Some,
-                stringToFelt(trimmedName),
-              ),
+              new CairoOption(CairoOptionVariant.Some, stringToFelt(trimmedName)),
               new CairoOption(CairoOptionVariant.Some, settingsId),
-              1, // start
-              1, // end
-              1, // objective_ids
-              1, // context
-              1, // client_url
-              1, // renderer_address
+              new CairoOption(CairoOptionVariant.None),
+              new CairoOption(CairoOptionVariant.None),
+              new CairoOption(CairoOptionVariant.None),
+              new CairoOption(CairoOptionVariant.None),
+              new CairoOption(CairoOptionVariant.None),
+              new CairoOption(CairoOptionVariant.None),
+              new CairoOption(CairoOptionVariant.None),
               account.address,
-              false, // soulbound
+              false,
+              false,
+              0,
+              0,
             ]),
           },
         ]);
@@ -268,28 +253,6 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const bonus = async ({
-      account,
-      game_id,
-      bonus,
-      row_index,
-      block_index,
-    }: BonusTx) => {
-      try {
-        // bonus() no longer needs VRF - level transitions are handled by start_next_level()
-        return await account.execute([
-          {
-            contractAddress: bonus_contract.address,
-            entrypoint: "apply_bonus",
-            calldata: [game_id, bonus, row_index, block_index],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing bonus:", error);
-        throw error;
-      }
-    };
-
     const createRun = async ({ account, game_id, zone_id }: CreateRun) => {
       try {
         if (isSlotMode) {
@@ -331,7 +294,6 @@ export function setupWorld(config: Config) {
       createRun,
       surrender,
       move,
-      bonus,
     };
   }
 
