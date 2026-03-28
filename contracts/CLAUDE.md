@@ -2,7 +2,7 @@
 
 ## Overview
 
-Cairo 2.13.1 smart contracts using the Dojo 1.8.0 framework. These contracts implement the core game logic, state management, quest system, and achievement system for the zKube puzzle game.
+Cairo 2.13.1 smart contracts using the Dojo 1.8.0 framework. These contracts implement the core game logic, state management, daily challenge system, and achievement system for the zKube puzzle game. No economy (no cubes, no shops, no quests) — stars are the only progression signal.
 
 ## Directory Structure
 
@@ -15,27 +15,27 @@ contracts/
 │   ├── models/                # Dojo data models
 │   │   ├── game.cairo         # Game state model
 │   │   ├── player.cairo       # PlayerMeta model
-│   │   └── config.cairo       # GameSettings model
+│   │   ├── config.cairo       # GameSettings model
+│   │   ├── entitlement.cairo  # MapEntitlement (zone access)
+│   │   └── daily.cairo        # Daily challenge models
 │   ├── systems/               # Dojo systems (logic)
-│   │   ├── game.cairo         # Main game system + MinigameComponent
-│   │   ├── shop.cairo         # Permanent shop (cube economy)
-│   │   ├── cube_token.cairo   # ERC20 CUBE token (zKube/ZKUBE)
-│   │   ├── quest.cairo        # Daily quest system
+│   │   ├── game.cairo         # Main game system (create, create_run, surrender)
+│   │   ├── moves.cairo        # Move system (move)
+│   │   ├── grid.cairo         # Grid operations
+│   │   ├── level.cairo        # Level generation + constraints
 │   │   ├── config.cairo       # Configuration + IMinigameSettings
-│   │   └── renderer.cairo     # NFT metadata & SVG (IMinigameDetails)
+│   │   ├── renderer.cairo     # NFT metadata & SVG (IMinigameDetails)
+│   │   └── daily_challenge.cairo # Daily challenge system
 │   ├── types/                 # Type definitions
-│   │   ├── bonus.cairo        # Bonus enum (Combo, Score, Harvest, Wave, Supply)
-│   │   ├── difficulty.cairo   # Difficulty levels
+│   │   ├── bonus.cairo        # Bonus enum (legacy, unused in v1.3)
+│   │   ├── difficulty.cairo   # Difficulty levels (VeryEasy → Master)
 │   │   ├── block.cairo        # Block types
 │   │   ├── width.cairo        # Width types
-│   │   ├── constraint.cairo   # ConstraintType (7 types), LevelConstraint, ConstraintContext
+│   │   ├── constraint.cairo   # ConstraintType, LevelConstraint, ConstraintContext
 │   │   ├── level.cairo        # LevelConfig
-│   │   └── consumable.cairo   # ConsumableType enum
+│   │   └── daily.cairo        # Daily challenge types
 │   ├── elements/              # Game element implementations
-│   │   ├── bonuses/           # Bonus mechanics (harvest, wave)
-│   │   ├── difficulties/      # Difficulty configurations
-│   │   ├── tasks/             # Quest task definitions
-│   │   └── quests/            # Quest implementations
+│   │   └── difficulties/      # Difficulty configurations
 │   ├── helpers/               # Utility functions
 │   │   ├── controller.cairo   # Grid manipulation (main logic)
 │   │   ├── packer.cairo       # Bit packing utilities
@@ -68,8 +68,8 @@ pub struct Game {
     pub combo_counter: u8,    // Current combo streak this level
     pub max_combo: u8,        // Best combo this level
     // Level system (bit-packed run progress)
-    pub run_data: felt252,    // Bit-packed: level, score, moves, bonuses, cubes, etc.
-    pub level_stars: felt252,  // 2 bits per level × 50 levels = 100 bits
+    pub run_data: felt252,    // Bit-packed RunData: level, score, moves, constraints, zone, endless (101 bits)
+    pub level_stars: felt252,  // 2 bits per level (star ratings)
     // Timestamps
     pub started_at: u64,      // Run start timestamp
     // Game state
@@ -346,7 +346,7 @@ Row 0 (bottom): [b7][b6][b5][b4][b3][b2][b1][b0]
 
 Each block = 3 bits (0-4), 0 = empty
 
-### run_data Bit Layout
+### run_data Bit Layout (v1.3 — 101 bits)
 
 ```
 Bits 0-7:     current_level (u8)
@@ -354,36 +354,15 @@ Bits 8-15:    level_score (u8)
 Bits 16-23:   level_moves (u8)
 Bits 24-31:   constraint_progress (u8)
 Bits 32-39:   constraint_2_progress (u8)
-Bit 40:       bonus_used_this_level (bool)
-Bits 41-48:   combo_count (u8)
-Bits 49-56:   score_count (u8)
-Bits 57-64:   harvest_count (u8)
-Bits 65-72:   wave_count (u8)
-Bits 73-80:   supply_count (u8)
-Bits 81-88:   max_combo_run (u8)
-Bits 89-104:  cubes_brought (u16)
-Bits 105-120: cubes_spent (u16)
-Bits 121-136: total_cubes (u16)
-Bits 137-152: total_score (u16)
-Bit 153:      run_completed (bool) - Victory flag (level 50 cleared)
-Bits 154-156: selected_bonus_1 (3 bits, 0-5)
-Bits 157-159: selected_bonus_2 (3 bits, 0-5)
-Bits 160-162: selected_bonus_3 (3 bits, 0-5)
-Bits 163-164: bonus_1_level (2 bits, 0-2)
-Bits 165-166: bonus_2_level (2 bits, 0-2)
-Bits 167-168: bonus_3_level (2 bits, 0-2)
-Bits 169-171: free_moves (3 bits, 0-7)
-Bits 172-174: last_shop_level (3 bits, 0-7)
-Bit 175:      no_bonus_constraint (bool)
-Bits 176-183: constraint_3_progress (u8)
-Bits 184-187: shop_purchases (4 bits, 0-15)
-Bits 188-191: unallocated_charges (4 bits, 0-15)
-Bit 192:      shop_level_up_bought (bool)
-Bit 193:      shop_swap_bought (bool)
-Bit 194:      boss_level_up_pending (bool)
+Bits 40-47:   max_combo_run (u8)
+Bits 48-79:   total_score (u32)
+Bit 80:       zone_cleared (bool)
+Bits 81-88:   endless_depth (u8)
+Bits 89-92:   zone_id (u4, reserved)
+Bits 93-100:  mutator_mask (u8, reserved)
 ```
 
-**Total: 195 bits used (57 reserved in felt252)**
+**Total: 101 bits used (151 reserved in felt252)**
 
 ## Bonuses
 
