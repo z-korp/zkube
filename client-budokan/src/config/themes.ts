@@ -694,7 +694,6 @@ export function getThemeImages(themeId: ThemeId) {
     gridBg: `${base}/grid-bg.png`,
     mapBg: `${base}/map-bg.png`,
     mapNodeLevel: `${base}/map-node-level.png`,
-    mapNodeDraft: `${base}/map-node-draft.png`,
     mapNodeBoss: `${base}/map-node-boss.png`,
     mapNodeCompleted: `${base}/map-node-completed.png`,
     themeIcon: `${base}/theme-icon.png`,

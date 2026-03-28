@@ -11,7 +11,6 @@ import { Loading } from "@/ui/screens/Loading";
 import HomePage from "@/ui/pages/HomePage";
 import PlayScreen from "@/ui/pages/PlayScreen";
 import MapPage from "@/ui/pages/MapPage";
-import QuestsPage from "@/ui/pages/QuestsPage";
 import SettingsPage from "@/ui/pages/SettingsPage";
 import MyGamesPage from "@/ui/pages/MyGamesPage";
 import LeaderboardPage from "@/ui/pages/LeaderboardPage";
@@ -23,7 +22,6 @@ const pageComponents: Record<PageId, React.ReactNode> = {
   home: <HomePage />,
   play: <PlayScreen />,
   map: <MapPage />,
-  quests: <QuestsPage />,
   leaderboard: <LeaderboardPage />,
   settings: <SettingsPage />,
   mygames: <MyGamesPage />,

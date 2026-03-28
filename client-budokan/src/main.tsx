@@ -18,7 +18,6 @@ import {
 import { sepolia, mainnet, type NativeCurrency } from "@starknet-react/chains";
 import cartridgeConnector from "./cartridgeConnector";
 import { MetagameProvider } from "./contexts/MetagameProvider";
-import { QuestsProvider } from "./contexts/quests";
 import { ControllersProvider } from "./contexts/controllers";
 import { GameEventsProvider } from "./contexts/gameEvents";
 
@@ -144,13 +143,11 @@ export function Main() {
               {!loading && setupResult ? (
                 <DojoProvider value={setupResult}>
                   <ControllersProvider>
-                    <QuestsProvider>
-                      <GameEventsProvider>
-                        <SoundPlayerProvider>
-                          <App />
-                        </SoundPlayerProvider>
-                      </GameEventsProvider>
-                    </QuestsProvider>
+                    <GameEventsProvider>
+                      <SoundPlayerProvider>
+                        <App />
+                      </SoundPlayerProvider>
+                    </GameEventsProvider>
                   </ControllersProvider>
                 </DojoProvider>
               ) : (

@@ -1,5 +1,4 @@
 use starknet::ContractAddress;
-use crate::types::bonus::Bonus;
 use crate::types::constraint::ConstraintType;
 
 
@@ -10,16 +9,6 @@ pub struct StartGame {
     pub player: ContractAddress,
     pub timestamp: u64,
     pub game_id: felt252,
-}
-
-#[derive(Copy, Drop, Serde)]
-#[dojo::event(historical: true)]
-pub struct UseBonus {
-    #[key]
-    pub player: ContractAddress,
-    pub timestamp: u64,
-    pub game_id: felt252,
-    pub bonus: Bonus,
 }
 
 /// Emitted when a new level starts
@@ -65,7 +54,6 @@ pub struct RunEnded {
     pub final_level: u8,
     pub final_score: u32,
     pub endless_depth: u8,
-    pub zone_id: u8,
     pub started_at: u64,
     pub ended_at: u64,
 }
@@ -93,46 +81,4 @@ pub struct ConstraintProgress {
     pub constraint_type: ConstraintType,
     pub current: u8,
     pub required: u8,
-}
-
-
-#[derive(Copy, Drop, Serde)]
-#[dojo::event(historical: true)]
-pub struct DraftOpened {
-    #[key]
-    pub game_id: felt252,
-    #[key]
-    pub player: ContractAddress,
-    pub event_slot: u8,
-    pub event_type: u8,
-    pub trigger_level: u8,
-    pub zone: u8,
-    pub choice_1: u8,
-    pub choice_2: u8,
-    pub choice_3: u8,
-}
-
-#[derive(Copy, Drop, Serde)]
-#[dojo::event(historical: true)]
-pub struct DraftRerolled {
-    #[key]
-    pub game_id: felt252,
-    #[key]
-    pub player: ContractAddress,
-    pub event_slot: u8,
-    pub reroll_slot: u8,
-    pub reroll_cost: u16,
-    pub new_choice: u8,
-}
-
-#[derive(Copy, Drop, Serde)]
-#[dojo::event(historical: true)]
-pub struct DraftSelected {
-    #[key]
-    pub game_id: felt252,
-    #[key]
-    pub player: ContractAddress,
-    pub event_slot: u8,
-    pub selected_slot: u8,
-    pub selected_choice: u8,
 }

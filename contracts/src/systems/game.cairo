@@ -3,10 +3,9 @@ pub trait IGameSystem<T> {
     /// Create a new game
     /// @param game_id: NFT token ID for this game
     fn create(ref self: T, game_id: felt252);
-    /// Create a new game with explicit zone selection
+    /// Create a new game run
     /// @param game_id: NFT token ID for this game
-    /// @param zone_id: zone identifier (0-15)
-    fn create_run(ref self: T, game_id: felt252, zone_id: u8);
+    fn create_run(ref self: T, game_id: felt252);
     /// Surrender the current run (game over)
     fn surrender(ref self: T, game_id: felt252);
     /// Get player name from token
@@ -47,6 +46,8 @@ mod game_system {
     };
     use zkube::helpers::game_over;
     use zkube::helpers::random::RandomImpl;
+    use zkube::models::config::GameSettingsMetadata;
+    use zkube::models::entitlement::MapEntitlement;
     use zkube::models::game::{Game, GameAssert, GameSeed, GameTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::models::daily::{DailyChallenge, DailyEntry, DailyEntryTrait, GameChallenge};
@@ -206,11 +207,11 @@ mod game_system {
     #[abi(embed_v0)]
     impl GameSystemImpl of super::IGameSystem<ContractState> {
         fn create(ref self: ContractState, game_id: felt252) {
-            self.create_run(game_id, 0);
+            self.create_run(game_id);
         }
 
-        fn create_run(ref self: ContractState, game_id: felt252, zone_id: u8) {
-            InternalImpl::create_game(ref self, game_id, zone_id);
+        fn create_run(ref self: ContractState, game_id: felt252) {
+            InternalImpl::create_game(ref self, game_id);
         }
 
         fn surrender(ref self: ContractState, game_id: felt252) {
@@ -277,8 +278,9 @@ mod game_system {
 
     #[generate_trait]
     pub impl InternalImpl of InternalTrait {
-        fn create_game(ref self: ContractState, game_id: felt252, zone_id: u8) {
+        fn create_game(ref self: ContractState, game_id: felt252) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let player = get_caller_address();
 
             let token_address = self.token_address();
             let token_id_felt = game_id;
@@ -290,6 +292,16 @@ mod game_system {
 
             // Get game settings (selected via token settings_id)
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+
+            // === MAP ACCESS GATE ===
+            // Daily challenge settings bypass the entitlement check (always F2P)
+            if !DAILY_CHALLENGE::is_daily_challenge_settings(settings.settings_id) {
+                let metadata: GameSettingsMetadata = world.read_model(settings.settings_id);
+                if !metadata.is_free {
+                    let entitlement: MapEntitlement = world.read_model((player, settings.settings_id));
+                    assert!(entitlement.purchased_at != 0, "Map not purchased - unlock this map first");
+                }
+            }
 
             // Generate seed: daily challenge uses shared seed, otherwise VRF/pseudo-random
             let (seed, vrf_enabled) = if DAILY_CHALLENGE::is_daily_challenge_settings(
@@ -327,18 +339,12 @@ mod game_system {
                 };
                 (random.seed, vrf_on)
             };
-            let seed_u256: u256 = seed.into();
-            let mutator_id: u8 = (seed_u256 % 3).try_into().unwrap();
-            let mutator_mask: u8 = match mutator_id {
-                0 => 1,
-                1 => 2,
-                _ => 4,
-            };
+            let mutator_mask: u8 = 0; // Mutators deferred — zeroed out
 
             let timestamp = get_block_timestamp();
 
             // Create empty game shell (grid will be initialized via dispatcher)
-            let game = GameTrait::new_empty(game_id, timestamp, zone_id, mutator_mask);
+            let game = GameTrait::new_empty(game_id, timestamp, 0, mutator_mask);
 
             // Store the seed separately
             let game_seed = GameSeed {
@@ -347,7 +353,6 @@ mod game_system {
             world.write_model(@game_seed);
 
             // Initialize or update player meta
-            let player = get_caller_address();
             let mut player_meta: PlayerMeta = world.read_model(player);
             if !player_meta.exists() {
                 player_meta = PlayerMetaTrait::new(player);

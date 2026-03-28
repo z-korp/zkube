@@ -4,7 +4,7 @@ description = "Reversed tetris fully onchain."
 cover_uri = "file://assets/cover.png"
 icon_uri = "file://assets/icon.png"
 website = "https://app.zkube.xyz"
-seed = "zkube_jc_slot_v5"
+seed = "zkube_jc_slot_v6"
 
 [world.socials]
 x = "https://x.com/ohayo_dojo"
@@ -31,9 +31,8 @@ account_address = "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5c
 # Models — config
 "zkube_jc_sepolia_v1-GameSettings" = ["zkube_jc_sepolia_v1-config_system"]
 "zkube_jc_sepolia_v1-GameSettingsMetadata" = ["zkube_jc_sepolia_v1-config_system"]
-# Models — zones + mutators
-"zkube_jc_sepolia_v1-ZoneConfig" = ["zkube_jc_sepolia_v1-zone_system"]
-"zkube_jc_sepolia_v1-MutatorDef" = ["zkube_jc_sepolia_v1-mutator_system"]
+# Models — map entitlements
+"zkube_jc_sepolia_v1-MapEntitlement" = ["zkube_jc_sepolia_v1-config_system"]
 # Models — daily challenge
 "zkube_jc_sepolia_v1-DailyChallenge" = ["zkube_jc_sepolia_v1-daily_challenge_system"]
 "zkube_jc_sepolia_v1-DailyEntry" = ["zkube_jc_sepolia_v1-daily_challenge_system", "zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system"]

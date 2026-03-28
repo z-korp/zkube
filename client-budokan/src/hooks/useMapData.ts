@@ -1,14 +1,12 @@
 import { useMemo } from "react";
-import { hash } from "starknet";
 import {
   DEFAULT_SETTINGS,
   generateLevelConfig,
   type Level,
 } from "@/dojo/game/types/level";
-import { THEME_IDS, type ThemeId } from "@/config/themes";
 
 
-export type NodeType = "classic" | "draft" | "boss";
+export type NodeType = "classic" | "boss";
 export type NodeState =
   | "locked"
   | "cleared"
@@ -18,21 +16,17 @@ export type NodeState =
 
 export interface MapNodeData {
   nodeIndex: number;
-  zone: number;
   nodeInZone: number;
   type: NodeType;
   contractLevel: number | null;
   displayLabel: string;
   state: NodeState;
   levelConfig: Level | null;
-  zoneTheme: ThemeId;
 }
 
 export interface MapData {
   nodes: MapNodeData[];
-  zoneThemes: string[];
   currentNodeIndex: number;
-  currentZone: number;
 }
 
 export interface UseMapDataParams {
@@ -40,24 +34,9 @@ export interface UseMapDataParams {
   currentLevel: number;
 }
 
-/**
- * vNext: 11 nodes per zone (no mid-zone draft)
- * Sequence: entry_draft, L1, L2, ..., L9, boss
- */
-export const NODES_PER_ZONE = 11;
-export const TOTAL_ZONES = 5;
-export const GAMEPLAY_LEVELS = 50;
-const LEVELS_PER_ZONE = 10;
-const ZONE_THEMES_SELECTOR = BigInt("0x5a4f4e455f5448454d4553");
-
-function poseidon(values: bigint[]): bigint {
-  return BigInt(hash.computePoseidonHashOnElements(values));
-}
+export const TOTAL_LEVELS = 10;
 
 /* ------------------------------------------------------------------ */
-/*  Build the ordered 11-node sequence for a single zone.             */
-/*                                                                    */
-/*  Sequence: entry_draft, L1 … L9, boss                             */
 /* ------------------------------------------------------------------ */
 
 interface RawNode {
@@ -66,13 +45,10 @@ interface RawNode {
 }
 
 function buildZoneSequence(_seed: bigint, zone: number): RawNode[] {
-  const zoneStart = (zone - 1) * LEVELS_PER_ZONE + 1; // e.g. 1, 11, 21…
-  const bossLevel = zone * LEVELS_PER_ZONE; // e.g. 10, 20, 30…
+  const zoneStart = (zone - 1) * TOTAL_LEVELS + 1;
+  const bossLevel = zone * TOTAL_LEVELS;
 
   const nodes: RawNode[] = [];
-
-  // Entry draft — always first
-  nodes.push({ type: "draft", contractLevel: null });
 
   // 9 regular levels (zoneStart to zoneStart+8)
   for (let level = zoneStart; level < bossLevel; level++) {
@@ -91,13 +67,13 @@ function buildZoneSequence(_seed: bigint, zone: number): RawNode[] {
 
 export function contractLevelToNodeIndex(
   contractLevel: number,
-  seed: bigint,
+  _seed: bigint,
 ): number {
-  if (contractLevel < 1 || contractLevel > GAMEPLAY_LEVELS) return 0;
+  if (contractLevel < 1 || contractLevel > TOTAL_LEVELS) return 0;
 
-  const zone = Math.ceil(contractLevel / LEVELS_PER_ZONE);
-  const zoneBaseIndex = (zone - 1) * NODES_PER_ZONE;
-  const sequence = buildZoneSequence(seed, zone);
+  const zone = 1;
+  const zoneBaseIndex = 0;
+  const sequence = buildZoneSequence(0n, zone);
 
   for (let i = 0; i < sequence.length; i++) {
     if (sequence[i].contractLevel === contractLevel) {
@@ -114,8 +90,8 @@ export function contractLevelToNodeIndex(
 /* ------------------------------------------------------------------ */
 
 export function getZone(level: number): number {
-  const clamped = Math.max(1, Math.min(GAMEPLAY_LEVELS, level));
-  return Math.ceil(clamped / LEVELS_PER_ZONE);
+  void level;
+  return 1;
 }
 
 /* ------------------------------------------------------------------ */
@@ -123,20 +99,10 @@ export function getZone(level: number): number {
 /* ------------------------------------------------------------------ */
 
 function getNodeState(
-  node: Omit<MapNodeData, "state" | "levelConfig" | "zoneTheme">,
+  node: Omit<MapNodeData, "state" | "levelConfig">,
   currentLevel: number,
   currentNodeIndex: number,
 ): NodeState {
-  if (node.type === "draft") {
-    const zoneEndLevel = node.zone * LEVELS_PER_ZONE;
-    const zoneStartLevel = (node.zone - 1) * LEVELS_PER_ZONE + 1;
-
-    const unlockLevel = node.zone === 1 ? 1 : zoneStartLevel;
-    if (currentLevel < unlockLevel) return "locked";
-    if (currentLevel > zoneEndLevel) return "visited";
-    return "available";
-  }
-
   if (node.contractLevel !== null && node.contractLevel < currentLevel) {
     return "cleared";
   }
@@ -153,27 +119,6 @@ function getNodeState(
 }
 
 /* ------------------------------------------------------------------ */
-/*  Zone themes                                                        */
-/* ------------------------------------------------------------------ */
-
-export function deriveZoneThemes(seed: bigint): ThemeId[] {
-  const zoneSeed = poseidon([seed, ZONE_THEMES_SELECTOR]);
-  const themes = [...THEME_IDS];
-
-  for (let i = 0; i < TOTAL_ZONES; i++) {
-    const stepSeed = poseidon([zoneSeed, BigInt(i)]);
-    const remaining = themes.length - i;
-    const offset = Number(
-      (stepSeed < 0n ? -stepSeed : stepSeed) % BigInt(remaining),
-    );
-    const j = i + offset;
-    [themes[i], themes[j]] = [themes[j], themes[i]];
-  }
-
-  return themes.slice(0, TOTAL_ZONES);
-}
-
-/* ------------------------------------------------------------------ */
 /*  Main generator                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -181,35 +126,26 @@ export function generateMapData({
   seed,
   currentLevel,
 }: UseMapDataParams): MapData {
-  const clampedLevel = Math.max(1, Math.min(GAMEPLAY_LEVELS, currentLevel));
-  const zoneThemes = deriveZoneThemes(seed);
+  const clampedLevel = Math.max(1, Math.min(TOTAL_LEVELS, currentLevel));
 
-  const allNodes: Omit<MapNodeData, "state" | "levelConfig" | "zoneTheme">[] = [];
+  const allNodes: Omit<MapNodeData, "state" | "levelConfig">[] = [];
 
-  for (let z = 1; z <= TOTAL_ZONES; z++) {
-    const sequence = buildZoneSequence(seed, z);
-    const zoneBaseIndex = (z - 1) * NODES_PER_ZONE;
+  const sequence = buildZoneSequence(seed, 1);
+  const zoneBaseIndex = 0;
 
-    for (let i = 0; i < sequence.length; i++) {
-      const raw = sequence[i];
-      const nodeIndex = zoneBaseIndex + i;
+  for (let i = 0; i < sequence.length; i++) {
+    const raw = sequence[i];
+    const nodeIndex = zoneBaseIndex + i;
 
-      const displayLabel =
-        raw.type === "draft"
-          ? `${z}-DRAFT`
-          : raw.type === "boss"
-            ? `${z}-BOSS`
-            : `${raw.contractLevel ?? ""}`;
+    const displayLabel = raw.type === "boss" ? "BOSS" : `${raw.contractLevel ?? ""}`;
 
-      allNodes.push({
-        nodeIndex,
-        zone: z,
-        nodeInZone: i,
-        type: raw.type,
-        contractLevel: raw.contractLevel,
-        displayLabel,
-      });
-    }
+    allNodes.push({
+      nodeIndex,
+      nodeInZone: i,
+      type: raw.type,
+      contractLevel: raw.contractLevel,
+      displayLabel,
+    });
   }
 
   const currentNodeIndex = contractLevelToNodeIndex(clampedLevel, seed);
@@ -226,15 +162,12 @@ export function generateMapData({
       ...node,
       state,
       levelConfig,
-      zoneTheme: zoneThemes[node.zone - 1],
     };
   });
 
   return {
     nodes,
-    zoneThemes,
     currentNodeIndex,
-    currentZone: getZone(clampedLevel),
   };
 }
 

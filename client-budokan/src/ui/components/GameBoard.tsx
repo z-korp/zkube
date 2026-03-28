@@ -1,14 +1,10 @@
-import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Card } from "@/ui/elements/card";
-import { useDojo } from "@/dojo/useDojo";
 import { Account } from "starknet";
 import Grid from "./Grid";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
-import type { Block } from "@/types/types";
-import { Bonus, BonusType } from "@/dojo/game/types/bonus";
 import { Game } from "@/dojo/game/models/game";
-import { useMusicPlayer } from "@/contexts/hooks";
 
 import "../../grid.css";
 
@@ -17,9 +13,6 @@ interface GameBoardProps {
   nextLine: number[];
   account: Account | null;
   game: Game;
-  activeBonus: BonusType;
-  bonusDescription: string;
-  activeBonusLevel: number;
   onCascadeComplete?: () => void;
 }
 
@@ -28,18 +21,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
   nextLine,
   account,
   game,
-  activeBonus,
-  bonusDescription,
-  activeBonusLevel,
   onCascadeComplete,
 }) => {
-  const {
-    setup: {
-      systemCalls: { applyBonus },
-    },
-  } = useDojo();
-  const { playSfx } = useMusicPlayer();
-
   const ROWS = 10;
   const COLS = 8;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -49,7 +32,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   // State that will allow us to hide or display the next line
   const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
-
 
   useEffect(() => {
     const el = containerRef.current;
@@ -66,44 +48,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
     return () => observer.disconnect();
   }, [COLS]);
-
-  const handleBonusTx = useCallback(
-    async (bonusType: BonusType, rowIndex: number, colIndex: number) => {
-      if (!account) return;
-
-      setIsTxProcessing(true);
-      try {
-        await applyBonus({
-          account: account as Account,
-          game_id: game.id,
-          bonus: new Bonus(bonusType).into(),
-          row_index: ROWS - rowIndex - 1,
-          block_index: colIndex,
-        });
-        playSfx("bonus-activate");
-      } finally {
-        setIsTxProcessing(false);
-      }
-    },
-    [account, applyBonus, game.id, playSfx]
-  );
-
-  const selectBlock = useCallback(
-    async (block: Block) => {
-      if (activeBonus === BonusType.Harvest) {
-        handleBonusTx(BonusType.Harvest, block.y, block.x);
-      } else if (activeBonus === BonusType.Momentum) {
-        handleBonusTx(BonusType.Momentum, block.y, block.x);
-      } else if (activeBonus === BonusType.ComboSurge) {
-        handleBonusTx(BonusType.ComboSurge, block.y, block.x);
-      } else if (activeBonus === BonusType.Tsunami) {
-        handleBonusTx(BonusType.Tsunami, block.y, block.x);
-      } else if (activeBonus === BonusType.None) {
-        // No bonus selected
-      }
-    },
-    [activeBonus, handleBonusTx]
-  );
 
   const memoizedInitialData = useMemo(() => {
     return transformDataContractIntoBlock(initialGrid);
@@ -142,12 +86,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
             gridSize={gridSize}
             gridHeight={ROWS}
             gridWidth={COLS}
-            selectBlock={selectBlock}
-            bonus={activeBonus}
             account={account}
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
-            activeBonusLevel={activeBonusLevel}
             levelTransitionPending={game.levelTransitionPending}
             onCascadeComplete={onCascadeComplete}
           />
@@ -161,13 +102,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
           </div>
         </div>
 
-        {activeBonus !== BonusType.None && (
-          <div className="absolute inset-x-0 top-1/2 flex justify-center pointer-events-none z-50">
-            <div className="text-yellow-500 px-3 py-1.5 rounded font-bold text-sm bg-black/70 whitespace-nowrap">
-              {bonusDescription}
-            </div>
-          </div>
-        )}
       </Card>
     </>
   );

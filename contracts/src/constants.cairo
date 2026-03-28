@@ -70,10 +70,15 @@ pub mod DEFAULT_SETTINGS {
     ) -> @GameSettingsMetadata {
         @GameSettingsMetadata {
             settings_id: DEFAULT_SETTINGS_ID,
-            name: 'Default',
-            description: "The official zKube settings - progressive difficulty with cube rewards and quest tracking.",
+            name: 'Polynesian',
+            description: "The free Polynesian map - progressive difficulty with cube rewards and quest tracking.",
             created_by: creator_address,
             created_at: current_timestamp,
+            theme_id: 1,
+            is_free: true,
+            enabled: true,
+            price: 0,
+            payment_token: core::num::traits::Zero::zero(),
         }
     }
 }

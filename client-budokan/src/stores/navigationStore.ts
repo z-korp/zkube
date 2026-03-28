@@ -5,7 +5,6 @@ export type PageId =
   | "home"
   | "map"
   | "play"
-  | "quests"
   | "leaderboard"
   | "settings"
   | "mygames"

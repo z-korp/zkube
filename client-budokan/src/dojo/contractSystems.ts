@@ -32,7 +32,6 @@ export interface Create extends Signer {
 
 export interface CreateRun extends Signer {
   game_id: BigNumberish;
-  zone_id: number;
 }
 
 export interface FreeMint extends Signer {
@@ -45,18 +44,6 @@ export interface Move extends Signer {
   row_index: number;
   start_index: number;
   final_index: number;
-}
-
-export interface BonusTx extends Signer {
-  game_id: BigNumberish;
-  bonus: number;
-  row_index: number;
-  block_index: number;
-}
-
-export interface ClaimQuest extends Signer {
-  quest_id: string; // felt252 encoded quest ID
-  interval_id: number; // Current interval ID for the quest
 }
 
 export interface AddCustomGameSettings extends Signer {
@@ -96,12 +83,13 @@ export interface AddCustomGameSettings extends Signer {
   early_level_threshold: number;
   mid_level_threshold: number;
   level_cap: number;
-  draft_picks: number;
-  draft_pool_mask: number;
-  draft_fixed_level: number;
   boss_upgrades_enabled: number;
   reroll_base_cost: number;
   starting_charges: number;
+}
+
+export interface PurchaseMap extends Signer {
+  settings_id: number;
 }
 
 export interface CreateDailyChallenge extends Signer {
@@ -267,14 +255,14 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const createRun = async ({ account, game_id, zone_id }: CreateRun) => {
+    const createRun = async ({ account, game_id }: CreateRun) => {
       try {
         if (isSlotMode) {
           return await account.execute([
             {
               contractAddress: contract.address,
               entrypoint: "create_run",
-              calldata: [game_id, zone_id],
+              calldata: [game_id],
             },
           ]);
         }
@@ -283,35 +271,17 @@ export function setupWorld(config: Config) {
           buildVrfRequestCall(
             contract.address,
             BigInt(
-              hash.computePoseidonHashOnElements([
-                BigInt(game_id),
-                BigInt(zone_id),
-              ]),
+              hash.computePoseidonHashOnElements([BigInt(game_id)]),
             ),
           ),
           {
             contractAddress: contract.address,
             entrypoint: "create_run",
-            calldata: [game_id, zone_id],
+            calldata: [game_id],
           },
         ]);
       } catch (error) {
         console.error("Error executing createRun:", error);
-        throw error;
-      }
-    };
-
-    const bonus = async ({ account, game_id, bonus, row_index, block_index }: BonusTx) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "apply_bonus",
-            calldata: [game_id, bonus, row_index, block_index],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing bonus:", error);
         throw error;
       }
     };
@@ -321,42 +291,8 @@ export function setupWorld(config: Config) {
       free_mint,
       create,
       createRun,
-      bonus,
       surrender,
       move,
-    };
-  }
-
-  function quest() {
-    const contract_name = "quest_system";
-    const contract = config.manifest.contracts.find(
-      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
-    );
-    if (!contract) {
-      console.warn(
-        `Contract ${contract_name} not found in manifest - quest system disabled`,
-      );
-      return null;
-    }
-
-    const claim = async ({ account, quest_id, interval_id }: ClaimQuest) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "claim",
-            calldata: [quest_id, interval_id],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing quest claim:", error);
-        throw error;
-      }
-    };
-
-    return {
-      address: contract.address,
-      claim,
     };
   }
 
@@ -408,9 +344,6 @@ export function setupWorld(config: Config) {
       early_level_threshold,
       mid_level_threshold,
       level_cap,
-      draft_picks,
-      draft_pool_mask,
-      draft_fixed_level,
       boss_upgrades_enabled,
       reroll_base_cost,
       starting_charges,
@@ -457,9 +390,6 @@ export function setupWorld(config: Config) {
               early_level_threshold,
               mid_level_threshold,
               level_cap,
-              draft_picks,
-              draft_pool_mask,
-              draft_fixed_level,
               boss_upgrades_enabled,
               reroll_base_cost,
               starting_charges,
@@ -472,9 +402,25 @@ export function setupWorld(config: Config) {
       }
     };
 
+    const purchase_map = async ({ account, settings_id }: PurchaseMap) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "purchase_map",
+            calldata: [settings_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing purchase_map:", error);
+        throw error;
+      }
+    };
+
     return {
       address: contract.address,
       add_custom_game_settings,
+      purchase_map,
     };
   }
 
@@ -597,7 +543,6 @@ export function setupWorld(config: Config) {
 
   return {
     game: game(),
-    quest: quest(),
     config: configSystem(),
     daily_challenge: daily_challenge(),
   };

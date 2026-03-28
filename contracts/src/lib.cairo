@@ -3,10 +3,9 @@ pub mod events;
 
 pub mod models {
     pub mod config;
+    pub mod entitlement;
     pub mod game;
-    pub mod mutator;
     pub mod player;
-    pub mod zone;
     pub mod daily;
 }
 
@@ -56,15 +55,12 @@ pub mod helpers {
 }
 
 pub mod systems {
-    pub mod achievement;
     pub mod config;
     pub mod game;
     pub mod grid;
     pub mod level;
     pub mod moves;
-    pub mod mutator;
     pub mod renderer;
-    pub mod zone;
     pub mod daily_challenge;
 }
 

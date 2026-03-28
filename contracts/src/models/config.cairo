@@ -10,6 +10,16 @@ pub struct GameSettingsMetadata {
     pub description: ByteArray,
     pub created_by: ContractAddress,
     pub created_at: u64,
+    /// Theme ID mapping to frontend visual assets (1-10)
+    pub theme_id: u8,
+    /// True = no purchase required to play this map
+    pub is_free: bool,
+    /// Admin can disable/hide this map
+    pub enabled: bool,
+    /// Price in payment_token units (0 for free maps)
+    pub price: u256,
+    /// ERC20 token address for payment (zero for free maps)
+    pub payment_token: ContractAddress,
 }
 
 /// Extended GameSettings with all configurable game parameters

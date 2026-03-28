@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import { motion, type Variants } from "motion/react";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { Flame, Gem, Layers, RotateCw, Trophy } from "lucide-react";
-import CubeIcon from "@/ui/components/CubeIcon";
 import { BOSS_LEVELS, PRE_BOSS_LEVELS, LEVEL_CAP } from "@/dojo/game/constants";
 
 interface GameOverDialogProps {
@@ -62,7 +61,6 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
   const tweetUrl = useMemo(() => {
     const level = game.level;
     const score = game.totalScore;
-    const cubes = game.totalCubes;
     const combo = game.maxComboRun;
     
     // Dynamic opener based on performance
@@ -82,7 +80,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
     }
 
     // Build stats line with emojis
-    const statsLine = `${score.toLocaleString()} pts | ${cubes} cubes | ${combo}x combo`;
+    const statsLine = `${score.toLocaleString()} pts | ${combo}x combo`;
     
     // Dynamic challenge based on level
     let challenge: string;
@@ -103,7 +101,7 @@ ${challenge}
 app.zkube.xyz`;
 
     return `https://x.com/intent/tweet?text=${encodeURIComponent(tweetMsg)}`;
-  }, [game.level, game.totalCubes, game.totalScore, game.maxComboRun]);
+  }, [game.level, game.totalScore, game.maxComboRun]);
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -205,7 +203,6 @@ app.zkube.xyz`;
             </div>
           </motion.div>
 
-          {/* Stats row: Score (prominent), Cubes, Combo */}
           <motion.div 
             variants={itemVariants}
             className="flex gap-3 justify-center items-stretch"
@@ -217,15 +214,6 @@ app.zkube.xyz`;
                 <Gem size={24} className="text-2xl" />
               </div>
               <div className="text-xs text-slate-400">Score</div>
-            </div>
-
-            {/* Total Cubes */}
-            <div className="flex flex-col items-center gap-1 bg-slate-800/50 px-3 py-3 rounded-lg flex-1">
-              <div className="text-2xl flex gap-1.5 items-center text-yellow-400">
-                {game.totalCubes}
-                <CubeIcon size="lg" />
-              </div>
-              <div className="text-xs text-slate-400">Cubes</div>
             </div>
 
             {/* Max Combo */}

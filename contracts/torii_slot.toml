@@ -1,4 +1,4 @@
-world_address = "0x02aa3cdc15efd58da24158a5c518e4dc3fd9dfeb3207908cd330fbee274698c9"
+world_address = "0x03f9d859139e395463f66421223e80cf98847b552201eb71f0fa061206cf1c8c"
 rpc = "https://api.cartridge.gg/x/zkube-djizus-slot/katana"
 
 [indexing]

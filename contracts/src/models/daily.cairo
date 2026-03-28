@@ -28,10 +28,6 @@ pub struct DailyChallenge {
     pub end_time: u64,
     /// 0=score, 1=level, 2=cubes_earned, 3=composite (RankingMetric as u8)
     pub ranking_metric: u8,
-    /// Which zone this daily challenge uses
-    pub zone_id: u8,
-    /// Which fixed mutator this daily challenge uses
-    pub mutator_id: u8,
     /// Unique player count (incremented only on first registration)
     pub total_entries: u32,
     /// Fixed LORDS amount deposited by admin
@@ -127,8 +123,6 @@ mod tests {
             start_time: start,
             end_time: end,
             ranking_metric: 0,
-            zone_id: 1,
-            mutator_id: 0,
             total_entries: 0,
             prize_pool: 1000,
             settled: false,

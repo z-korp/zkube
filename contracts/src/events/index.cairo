@@ -1,5 +1,4 @@
 use starknet::ContractAddress;
-use crate::types::bonus::Bonus;
 use crate::types::constraint::ConstraintType;
 
 
@@ -11,17 +10,6 @@ pub struct StartGame {
     pub player: ContractAddress,
     pub timestamp: u64,
     pub game_id: felt252,
-}
-
-/// Emitted when a bonus is used
-#[derive(Copy, Drop, Serde)]
-#[dojo::event(historical: true)]
-pub struct UseBonus {
-    #[key]
-    pub player: ContractAddress,
-    pub timestamp: u64,
-    pub game_id: felt252,
-    pub bonus: Bonus,
 }
 
 /// Emitted when a new level starts

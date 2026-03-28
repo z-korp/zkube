@@ -2,11 +2,10 @@ use dojo::event::EventStorage;
 use dojo::model::ModelStorage;
 use dojo::world::{WorldStorage, WorldStorageTrait};
 use starknet::ContractAddress;
-use crate::events::index::{LevelCompleted, LevelStarted, RunEnded, StartGame, UseBonus};
+use crate::events::index::{LevelCompleted, LevelStarted, RunEnded, StartGame};
 use crate::models::config::{GameSettings, GameSettingsMetadata};
 use crate::models::game::{Game, GameSeed};
 use crate::models::player::PlayerMeta;
-use crate::models::skill_tree::PlayerSkillTree;
 use crate::models::daily::{DailyChallenge, DailyEntry, DailyLeaderboard, GameChallenge};
 use crate::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
 use crate::systems::cube_token::ICubeTokenDispatcher;
@@ -98,20 +97,6 @@ pub impl StoreImpl of StoreTrait {
         self.world.write_model(meta);
     }
 
-    // ===== PlayerSkillTree Model =====
-
-    /// Read PlayerSkillTree by player address
-    #[inline(always)]
-    fn player_skill_tree(self: @Store, player: ContractAddress) -> PlayerSkillTree {
-        self.world.read_model(player)
-    }
-
-    /// Write PlayerSkillTree model
-    #[inline(always)]
-    fn set_player_skill_tree(ref self: Store, tree: @PlayerSkillTree) {
-        self.world.write_model(tree);
-    }
-
     // ===== DailyChallenge Model =====
 
     /// Read DailyChallenge by challenge_id
@@ -186,12 +171,6 @@ pub impl StoreImpl of StoreTrait {
     /// Emit StartGame event
     #[inline(always)]
     fn emit_start_game(ref self: Store, event: @StartGame) {
-        self.world.emit_event(event);
-    }
-
-    /// Emit UseBonus event
-    #[inline(always)]
-    fn emit_use_bonus(ref self: Store, event: @UseBonus) {
         self.world.emit_event(event);
     }
 

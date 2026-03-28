@@ -226,7 +226,6 @@ export function systems({ client }: { client: IWorld }) {
   const createRun = async ({ account, ...props }: SystemTypes.CreateRun) => {
     log.debug("createRun params", {
       game_id: props.game_id,
-      zone_id: props.zone_id,
     });
     await handleTransaction(
       account,
@@ -262,33 +261,6 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
-  const applyBonus = async ({ account, ...props }: SystemTypes.BonusTx) => {
-    const setMoveComplete = useMoveStore.getState().setMoveComplete;
-    setMoveComplete(false);
-    try {
-      await handleTransaction(
-        account,
-        () => client.game.bonus({ account, ...props }),
-        "Bonus has been applied.",
-      );
-      setMoveComplete(true);
-    } catch (error) {
-      setMoveComplete(true);
-      throw error;
-    }
-  };
-
-  const claimQuest = async ({ account, ...props }: SystemTypes.ClaimQuest) => {
-    if (!client.quest) {
-      throw new Error("Quest system not available");
-    }
-    await handleTransaction(
-      account,
-      () => client.quest!.claim({ account, ...props }),
-      "Quest reward claimed!",
-    );
-  };
-
   const addCustomGameSettings = async ({
     account,
     ...props
@@ -300,6 +272,17 @@ export function systems({ client }: { client: IWorld }) {
       account,
       () => client.config!.add_custom_game_settings({ account, ...props }),
       "Game settings created.",
+    );
+  };
+
+  const purchaseMap = async ({ account, ...props }: SystemTypes.PurchaseMap) => {
+    if (!client.config) {
+      throw new Error("Config system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.config!.purchase_map({ account, ...props }),
+      "Map purchased.",
     );
   };
 
@@ -393,9 +376,8 @@ export function systems({ client }: { client: IWorld }) {
     createRun,
     surrender,
     move,
-    applyBonus,
-    claimQuest,
     addCustomGameSettings,
+    purchaseMap,
     createDailyChallenge,
     registerEntry,
     submitResult,

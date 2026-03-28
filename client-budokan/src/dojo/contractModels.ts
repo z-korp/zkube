@@ -48,16 +48,32 @@ export function defineContractComponents(world: World) {
         world,
         {
           settings_id: RecsType.Number,
+          theme_id: RecsType.Number,
           name: RecsType.String,
           description: RecsType.String,
           created_by: RecsType.String,
           created_at: RecsType.Number,
+          is_free: RecsType.Boolean,
+          enabled: RecsType.Boolean,
+          price: RecsType.BigInt,
+          payment_token: RecsType.String,
         },
         {
           metadata: {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "GameSettingsMetadata",
-            types: ["u32", "felt252", "ByteArray", "ContractAddress", "u64"],
+            types: [
+              "u32",
+              "felt252",
+              "ByteArray",
+              "ContractAddress",
+              "u64",
+              "u8",
+              "bool",
+              "bool",
+              "u256",
+              "ContractAddress",
+            ],
           },
         }
       );
@@ -112,10 +128,6 @@ export function defineContractComponents(world: World) {
           mid_level_threshold: RecsType.Number,
           // Level Cap
           level_cap: RecsType.Number,
-          // Draft Settings
-          draft_picks: RecsType.Number,
-          draft_pool_mask: RecsType.Number,
-          draft_fixed_level: RecsType.Number,
           boss_upgrades_enabled: RecsType.Number,
           reroll_base_cost: RecsType.Number,
           starting_charges: RecsType.Number,
@@ -135,15 +147,12 @@ export function defineContractComponents(world: World) {
               "u32",  // constraint_chances (packed)
               "u8", "u8", "u8", "u8", "u8",  // veryeasy block weights
               "u8", "u8", "u8", "u8", "u8",  // master block weights
-              "u8", "u8", "u8",  // variance
-              "u8", "u8",  // level thresholds
-              "u8",  // level_cap
-              "u8",   // draft_picks
-              "u16",  // draft_pool_mask
-              "u8",   // draft_fixed_level
-              "u8",   // boss_upgrades_enabled
-              "u8",   // reroll_base_cost
-              "u8",   // starting_charges
+               "u8", "u8", "u8",  // variance
+               "u8", "u8",  // level thresholds
+               "u8",  // level_cap
+               "u8",   // boss_upgrades_enabled
+               "u8",   // reroll_base_cost
+               "u8",   // starting_charges
             ],
           },
         }
@@ -218,60 +227,6 @@ export function defineContractComponents(world: World) {
         }
       );
     })(),
-    DraftState: (() => {
-      return defineComponent(
-        world,
-        {
-          game_id: RecsType.BigInt,
-          seed: RecsType.BigInt,
-          active: RecsType.Boolean,
-          phase: RecsType.Number,
-          picks_made: RecsType.Number,
-          choice_1: RecsType.Number,
-          choice_2: RecsType.Number,
-          choice_3: RecsType.Number,
-          reroll_count: RecsType.Number,
-          spent_cubes: RecsType.Number,
-        },
-        {
-          metadata: {
-            namespace: VITE_PUBLIC_NAMESPACE,
-            name: "DraftState",
-            types: [
-              "u64",
-              "felt252",
-              "bool",
-              "u8",
-              "u8",
-              "u8",
-              "u8",
-              "u8",
-              "u8",
-              "u16",
-            ],
-            customTypes: [],
-          },
-        }
-      );
-    })(),
-    PlayerSkillTree: (() => {
-      return defineComponent(
-        world,
-        {
-          player: RecsType.BigInt,
-          skill_data: RecsType.BigInt,
-        },
-        {
-          metadata: {
-            namespace: VITE_PUBLIC_NAMESPACE,
-            name: "PlayerSkillTree",
-            types: ["ContractAddress", "felt252"],
-            customTypes: [],
-          },
-        }
-      );
-    })(),
-
     PlayerMeta: (() => {
       return defineComponent(
         world,
@@ -285,6 +240,25 @@ export function defineContractComponents(world: World) {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "PlayerMeta",
             types: ["ContractAddress", "felt252", "u8"],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+
+    MapEntitlement: (() => {
+      return defineComponent(
+        world,
+        {
+          player: RecsType.BigInt,
+          settings_id: RecsType.Number,
+          purchased_at: RecsType.Number,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "MapEntitlement",
+            types: ["ContractAddress", "u32", "u64"],
             customTypes: [],
           },
         }

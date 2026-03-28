@@ -2,8 +2,10 @@
   "active_plan": "/home/djizus/projects/zkube/.sisyphus/plans/zkube-launch-redesign.md",
   "started_at": "2026-03-27T22:08:26.102Z",
   "session_ids": [
-    "ses_2cfcbfca9fferkTJofFceugpEL"
+    "ses_2cfcbfca9fferkTJofFceugpEL",
+    "ses_2cf950e44ffeab55Y7sSAmfddc"
   ],
   "plan_name": "zkube-launch-redesign",
-  "agent": "atlas"
+  "agent": "atlas",
+  "task_sessions": {}
 }

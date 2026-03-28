@@ -4,7 +4,6 @@ import GameBoardTutorial from "./GameBoardTutorial";
 import TutorialInfoStep from "./TutorialInfoStep";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";
-import { BonusType } from "@/dojo/game/types/bonus";
 import type { Block } from "@/types/types";
 
 // localStorage key for tutorial progress
@@ -19,17 +18,13 @@ import {
   AlertDialogTitle,
 } from "@/ui/elements/alert-dialog";
 import { Button } from "@/ui/elements/button";
-import { motion } from "motion/react";
 import { Trophy } from "lucide-react";
 
 import {
-  TUTORIAL_STEPS,
   TOTAL_TUTORIAL_STEPS,
   getGridForStep,
   getStepById,
   isInfoStep,
-  isBonusStep,
-  type TutorialStep,
   type MockGridState,
   type TutorialTarget,
 } from "./tutorialSteps";
@@ -106,10 +101,6 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
     
     if (isInfoStep(currentStepConfig)) return null;
     
-    if (isBonusStep(currentStepConfig)) {
-      return [currentStepConfig.targetBlock];
-    }
-    
     // Interactive step
     if ("targetBlock" in currentStepConfig && currentStepConfig.targetBlock) {
       return [currentStepConfig.targetBlock];
@@ -123,7 +114,6 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
     async (block: Block) => {
       if (!currentStepConfig) return;
 
-      // For bonus steps (4, 5, 6) and interactive steps (1, 2, 3, 8)
       switch (tutorialStep) {
         case 1: // Move blocks
           if (block.y === 8) {
@@ -146,37 +136,7 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
           }));
           setIsIntermission(true);
           break;
-        case 4: // Combo
-          if (block.y === 9 && block.x >= 6) {
-            setGridState((prev) => ({
-              ...prev,
-              score: prev.score + 25,
-              comboCount: prev.comboCount - 1,
-            }));
-            setIsIntermission(true);
-          }
-          break;
-        case 5: // Harvest
-          if (block.y === 8) {
-            setGridState((prev) => ({
-              ...prev,
-              score: prev.score + 200,
-              harvestCount: prev.harvestCount - 1,
-            }));
-            setIsIntermission(true);
-          }
-          break;
-        case 6: // Score
-          if (block.width === 3) {
-            setGridState((prev) => ({
-              ...prev,
-              score: prev.score + 150,
-              scoreCount: prev.scoreCount - 1,
-            }));
-            setIsIntermission(true);
-          }
-          break;
-        case 8: // Constraints
+        case 5: // Constraints
           // Multi-line clear triggers constraint success
           setGridState((prev) => ({ 
             ...prev, 
@@ -241,20 +201,7 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
 
   const TutorialImage = () => {
     if (!currentStepConfig) return null;
-    
-    if (isBonusStep(currentStepConfig)) {
-      switch (currentStepConfig.bonusType) {
-        case BonusType.ComboSurge:
-          return <img className="w-8 h-8" src={imgAssets.combo} alt="Combo" />;
-        case BonusType.Harvest:
-          return <img className="w-8 h-8" src={imgAssets.harvest} alt="Harvest" />;
-        case BonusType.Momentum:
-          return <img className="w-8 h-8" src={imgAssets.score} alt="Score" />;
-        default:
-          return null;
-      }
-    }
-    
+
     return null;
   };
 
@@ -273,7 +220,6 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
     );
   }
 
-  // Render interactive/bonus step
   return (
     <div className="flex flex-col items-center relative h-full mx-6">
       {/* Intermission Dialog */}

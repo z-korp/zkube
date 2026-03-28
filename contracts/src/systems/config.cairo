@@ -69,6 +69,22 @@ pub trait IConfigSystem<T> {
 
     fn get_game_settings(self: @T, settings_id: u32) -> GameSettings;
     fn get_game_settings_metadata(self: @T, settings_id: u32) -> GameSettingsMetadata;
+    /// Purchase access to a paid map
+    fn purchase_map(ref self: T, settings_id: u32);
+    /// Check if a player has access to a map (free or purchased)
+    fn has_map_access(self: @T, player: ContractAddress, settings_id: u32) -> bool;
+    /// Admin: set map pricing
+    fn set_map_pricing(
+        ref self: T,
+        settings_id: u32,
+        is_free: bool,
+        price: u256,
+        payment_token: ContractAddress,
+    );
+    /// Admin: set map enabled/disabled
+    fn set_map_enabled(ref self: T, settings_id: u32, enabled: bool);
+    /// Admin: set map theme
+    fn set_map_theme(ref self: T, settings_id: u32, theme_id: u8);
     fn settings_exists(self: @T, settings_id: u32) -> bool;
     fn get_cube_token_address(self: @T) -> ContractAddress;
 }
@@ -87,6 +103,7 @@ mod config_system {
     use game_components_embeddable_game_standard::minigame::interface::{
         IMinigameDispatcher, IMinigameDispatcherTrait,
     };
+    use openzeppelin_interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin_introspection::src5::SRC5Component;
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
@@ -97,6 +114,7 @@ mod config_system {
     };
     use zkube::helpers::encoding::U256BytesUsedTraitImpl;
     use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
+    use zkube::models::entitlement::MapEntitlement;
     use zkube::types::difficulty::Difficulty;
     use super::IConfigSystem;
 
@@ -152,8 +170,48 @@ mod config_system {
         world.write_model(GET_DEFAULT_SETTINGS());
         world.write_model(GET_DEFAULT_SETTINGS_METADATA(current_timestamp, creator_address));
 
-        // Custom settings will start at ID 1
-        self.settings_counter.write(DEFAULT_SETTINGS_ID);
+        // Register Map 2: Feudal Japan (paid)
+        let japan_settings_id = 1_u32;
+        let japan_settings = GameSettingsTrait::new_with_defaults(
+            japan_settings_id, Difficulty::Increasing,
+        );
+        let japan_metadata = GameSettingsMetadata {
+            settings_id: japan_settings_id,
+            name: 'Feudal Japan',
+            description: "Fast-paced puzzle action set in feudal Japan.",
+            created_by: creator_address,
+            created_at: current_timestamp,
+            theme_id: 5,
+            is_free: false,
+            enabled: true,
+            price: 0,
+            payment_token: Zero::zero(),
+        };
+        world.write_model(@japan_settings);
+        world.write_model(@japan_metadata);
+
+        // Register Map 3: Ancient Persia (paid)
+        let persia_settings_id = 2_u32;
+        let persia_settings = GameSettingsTrait::new_with_defaults(
+            persia_settings_id, Difficulty::Increasing,
+        );
+        let persia_metadata = GameSettingsMetadata {
+            settings_id: persia_settings_id,
+            name: 'Ancient Persia',
+            description: "Strategic puzzle play in the heart of ancient Persia.",
+            created_by: creator_address,
+            created_at: current_timestamp,
+            theme_id: 7,
+            is_free: false,
+            enabled: true,
+            price: 0,
+            payment_token: Zero::zero(),
+        };
+        world.write_model(@persia_settings);
+        world.write_model(@persia_metadata);
+
+        // Counter starts at 2 so next custom settings will be 3+
+        self.settings_counter.write(persia_settings_id);
 
         let (game_systems_address, _) = world.dns(@"game_system").unwrap();
         let minigame_dispatcher = IMinigameDispatcher { contract_address: game_systems_address };
@@ -265,6 +323,11 @@ mod config_system {
                 description: description.clone(),
                 created_by: get_caller_address(),
                 created_at: get_block_timestamp(),
+                theme_id: 1,
+                is_free: true,
+                enabled: true,
+                price: 0,
+                payment_token: Zero::zero(),
             };
 
             // Save to world
@@ -473,6 +536,11 @@ mod config_system {
                 description: description.clone(),
                 created_by: get_caller_address(),
                 created_at: get_block_timestamp(),
+                theme_id: 1,
+                is_free: true,
+                enabled: true,
+                price: 0,
+                payment_token: Zero::zero(),
             };
 
             // Save to world
@@ -519,6 +587,73 @@ mod config_system {
         ) -> GameSettingsMetadata {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             world.read_model(settings_id)
+        }
+
+        fn purchase_map(ref self: ContractState, settings_id: u32) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let caller = get_caller_address();
+
+            let metadata: GameSettingsMetadata = world.read_model(settings_id);
+            assert!(metadata.enabled, "Map is not available");
+            assert!(!metadata.is_free, "Map is free, no purchase needed");
+            assert!(!metadata.price.is_zero(), "Map has no price set");
+            assert!(!metadata.payment_token.is_zero(), "Map has no payment token set");
+
+            let existing: MapEntitlement = world.read_model((caller, settings_id));
+            assert!(existing.purchased_at == 0, "Map already purchased");
+
+            let erc20 = IERC20Dispatcher { contract_address: metadata.payment_token };
+            let success = erc20.transfer_from(caller, starknet::get_contract_address(), metadata.price);
+            assert!(success, "Payment transfer failed");
+
+            let entitlement = MapEntitlement {
+                player: caller,
+                settings_id,
+                purchased_at: get_block_timestamp(),
+            };
+            world.write_model(@entitlement);
+        }
+
+        fn has_map_access(
+            self: @ContractState, player: ContractAddress, settings_id: u32,
+        ) -> bool {
+            let world: WorldStorage = self.world(@DEFAULT_NS());
+            let metadata: GameSettingsMetadata = world.read_model(settings_id);
+            if metadata.is_free {
+                return true;
+            }
+
+            let entitlement: MapEntitlement = world.read_model((player, settings_id));
+            entitlement.purchased_at != 0
+        }
+
+        fn set_map_pricing(
+            ref self: ContractState,
+            settings_id: u32,
+            is_free: bool,
+            price: u256,
+            payment_token: ContractAddress,
+        ) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let mut metadata: GameSettingsMetadata = world.read_model(settings_id);
+            metadata.is_free = is_free;
+            metadata.price = price;
+            metadata.payment_token = payment_token;
+            world.write_model(@metadata);
+        }
+
+        fn set_map_enabled(ref self: ContractState, settings_id: u32, enabled: bool) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let mut metadata: GameSettingsMetadata = world.read_model(settings_id);
+            metadata.enabled = enabled;
+            world.write_model(@metadata);
+        }
+
+        fn set_map_theme(ref self: ContractState, settings_id: u32, theme_id: u8) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let mut metadata: GameSettingsMetadata = world.read_model(settings_id);
+            metadata.theme_id = theme_id;
+            world.write_model(@metadata);
         }
 
         fn settings_exists(self: @ContractState, settings_id: u32) -> bool {

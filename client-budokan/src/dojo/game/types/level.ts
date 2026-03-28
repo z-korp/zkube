@@ -93,10 +93,6 @@ export interface GameSettings {
   midLevelThreshold: number;
   // Level Cap
   levelCap: number;
-  // Draft Settings
-  draftPicks: number;
-  draftPoolMask: number;
-  draftFixedLevel: number;
   bossUpgradesEnabled: boolean;
   rerollBaseCost: number;
   startingCharges: number;
@@ -164,10 +160,6 @@ export const DEFAULT_SETTINGS: GameSettings = {
   midLevelThreshold: 25,
   // Level Cap
   levelCap: 50,
-  // Draft Settings
-  draftPicks: 3,
-  draftPoolMask: 0x3F7,
-  draftFixedLevel: 0,
   bossUpgradesEnabled: true,
   rerollBaseCost: 5,
   startingCharges: 1,
@@ -998,10 +990,6 @@ export function parseGameSettings(raw: any): GameSettings {
     midLevelThreshold:
       raw.mid_level_threshold ?? DEFAULT_SETTINGS.midLevelThreshold,
     levelCap: raw.level_cap ?? DEFAULT_SETTINGS.levelCap,
-    // Draft Settings
-    draftPicks: raw.draft_picks ?? DEFAULT_SETTINGS.draftPicks,
-    draftPoolMask: raw.draft_pool_mask ?? DEFAULT_SETTINGS.draftPoolMask,
-    draftFixedLevel: raw.draft_fixed_level ?? DEFAULT_SETTINGS.draftFixedLevel,
     bossUpgradesEnabled:
       raw.boss_upgrades_enabled !== undefined
         ? raw.boss_upgrades_enabled !== 0

@@ -3,7 +3,6 @@ import { Users } from "lucide-react";
 import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
 import { useNavigationStore } from "@/stores/navigationStore";
 import PageTopBar from "@/ui/navigation/PageTopBar";
-import CubeIcon from "@/ui/components/CubeIcon";
 
 const rankStyle = (rank: number): string => {
   if (rank === 1) return "bg-yellow-400/25 text-yellow-100 border border-yellow-300/50";
@@ -48,7 +47,7 @@ const LeaderboardPage: React.FC = () => {
                     <th className="py-2 px-2 font-['Fredericka_the_Great']">Player</th>
                     <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
                     <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
-                    <th className="py-2 px-2 w-16 text-right"><CubeIcon size="sm" /></th>
+                    <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">T</th>
                   </tr>
                 </thead>
                 <tbody>

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
-import { Account } from "starknet";
 import { ChevronLeft, Settings, Volume2, VolumeX, Flag } from "lucide-react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
@@ -10,14 +9,9 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import useViewport from "@/hooks/useViewport";
 import { useDojo } from "@/dojo/useDojo";
 import { isBossLevel as checkBossLevel } from "@/dojo/game/helpers/runDataPacking";
-import {
-  Bonus,
-  BonusType,
-} from "@/dojo/game/types/bonus";
 import { useNavigationStore } from "@/stores/navigationStore";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import GameHud from "@/ui/components/hud/GameHud";
-import GameActionBar from "@/ui/components/actionbar/GameActionBar";
 import GameBoard from "@/ui/components/GameBoard";
 import GameOverDialog from "@/ui/components/GameOverDialog";
 import VictoryDialog from "@/ui/components/VictoryDialog";
@@ -32,14 +26,14 @@ import {
 import { Button } from "@/ui/elements/button";
 import { Slider } from "@/ui/elements/slider";
 import { generateLevelConfig } from "@/dojo/game/types/level";
-import { deriveZoneThemes, getZone } from "@/hooks/useMapData";
+import { type ThemeId } from "@/config/themes";
 
 const PlayScreen: React.FC = () => {
   useViewport();
 
   const {
     setup: {
-      systemCalls: { surrender, applyBonus },
+      systemCalls: { surrender },
     },
   } = useDojo();
   const { account } = useAccountCustom();
@@ -64,10 +58,6 @@ const PlayScreen: React.FC = () => {
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isGameLoading, setIsGameLoading] = useState(true);
-  const [activeBonus, setActiveBonus] = useState<BonusType>(BonusType.None);
-  const [bonusDescription, setBonusDescription] = useState("");
-  const [confirmingBonus, setConfirmingBonus] = useState<BonusType | null>(null);
-  const [isBonusProcessing, setIsBonusProcessing] = useState(false);
   // Tracks whether the Grid cascade animation has finished for the current move.
   // Level-complete detection is gated on this to prevent checking against a mid-cascade grid.
   const [cascadeComplete, setCascadeComplete] = useState(false);
@@ -105,15 +95,12 @@ const PlayScreen: React.FC = () => {
 
   // GameSeed.seed is now stable (never overwritten). level_seed holds per-level VRF.
 
+  const mapThemeId: ThemeId = "theme-1";
+
   useEffect(() => {
     if (seed === 0n || !game) return;
-    const zoneThemes = deriveZoneThemes(seed);
-    const zone = getZone(game.level);
-    const zoneTheme = zoneThemes[zone - 1];
-    if (zoneTheme) {
-      setThemeTemplate(zoneTheme);
-    }
-  }, [seed, game?.level, setThemeTemplate]);
+    setThemeTemplate(mapThemeId);
+  }, [seed, game, mapThemeId, setThemeTemplate]);
 
   useEffect(() => {
     setIsGameLoading(true);
@@ -234,111 +221,6 @@ const PlayScreen: React.FC = () => {
 
   const isGameOn = game && !game.over;
 
-  const getBonusDescription = useCallback((type: BonusType): string => {
-    switch (type) {
-      case BonusType.Harvest:
-        return "Select a block size to harvest";
-      case BonusType.Momentum:
-        return "Apply instant score bonus";
-      case BonusType.ComboSurge:
-        return "Apply combo bonus";
-      case BonusType.Tsunami:
-        return "Select rows to clear";
-      default:
-        return "";
-    }
-  }, []);
-
-  const handleBonusSelect = useCallback(
-    (type: BonusType) => {
-      if (type === BonusType.ComboSurge || type === BonusType.Momentum) {
-        playSfx("click");
-        setConfirmingBonus(type);
-        return;
-      }
-
-      if (activeBonus === type) {
-        playSfx("click");
-        playSfx("unequip");
-        setActiveBonus(BonusType.None);
-        setBonusDescription("");
-      } else {
-        playSfx("click");
-        playSfx("equip");
-        setActiveBonus(type);
-        setBonusDescription(getBonusDescription(type));
-      }
-    },
-    [activeBonus, getBonusDescription, playSfx],
-  );
-
-  // TODO: Zone redesign — bonus/passive slots will be sourced from new zone system
-  const selectedBonusSlots: Array<{
-    slot: number;
-    type: BonusType;
-    level: number;
-    count: number;
-    bagSize: number;
-    icon: string;
-    tooltip: string;
-  }> = [];
-
-  const passiveSlots: Array<{
-    type: BonusType;
-    level: number;
-    count: number;
-    bagSize: number;
-    icon: string;
-    tooltip: string;
-    isPassive: true;
-    archetypeColor: string;
-  }> = [];
-
-  const activeBonusLevel = useMemo(() => {
-    const slot = selectedBonusSlots.find((s) => s.type === activeBonus);
-    return slot?.level ?? 0;
-  }, [selectedBonusSlots, activeBonus]);
-
-  useEffect(() => {
-    setActiveBonus(BonusType.None);
-    setBonusDescription("");
-  }, [grid]);
-
-  const confirmingBonusLevel = useMemo(() => {
-    if (!confirmingBonus) return 0;
-    const slot = selectedBonusSlots.find((s) => s.type === confirmingBonus);
-    return slot?.level ?? 0;
-  }, [selectedBonusSlots, confirmingBonus]);
-
-  const getConfirmBonusDescription = useCallback((type: BonusType, level: number): string => {
-    switch (type) {
-      case BonusType.ComboSurge:
-        return `Add +${level + 1} combo to your next move.`;
-      case BonusType.Momentum:
-        return `Instantly add +${(level + 1) * 10} points to your score.`;
-      default:
-        return "";
-    }
-  }, []);
-
-  const handleBonusConfirm = useCallback(async () => {
-    if (!account || !game || !confirmingBonus) return;
-    setIsBonusProcessing(true);
-    setConfirmingBonus(null);
-    try {
-      await applyBonus({
-        account: account as Account,
-        game_id: game.id,
-        bonus: new Bonus(confirmingBonus).into(),
-        row_index: 0,
-        block_index: 0,
-      });
-      playSfx("bonus-activate");
-    } finally {
-      setIsBonusProcessing(false);
-    }
-  }, [account, applyBonus, confirmingBonus, game, playSfx]);
-
   return (
     <div className="h-screen-viewport flex flex-col">
       <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
@@ -349,35 +231,6 @@ const PlayScreen: React.FC = () => {
           </DialogHeader>
           <div className="flex justify-center pt-4">
             <Connect />
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={confirmingBonus !== null} onOpenChange={(open) => { if (!open) setConfirmingBonus(null); }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold">
-              Use {confirmingBonus === BonusType.ComboSurge ? "Combo" : "Score"}?
-            </DialogTitle>
-            <DialogDescription>
-              {confirmingBonus && getConfirmBonusDescription(confirmingBonus, confirmingBonusLevel)}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => setConfirmingBonus(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="flex-1"
-              disabled={isBonusProcessing}
-              onClick={handleBonusConfirm}
-            >
-              {isBonusProcessing ? "Applying..." : "Confirm"}
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -539,9 +392,6 @@ const PlayScreen: React.FC = () => {
               nextLine={game.isOver() ? [] : game.next_row}
               account={account}
               game={game}
-              activeBonus={activeBonus}
-              bonusDescription={bonusDescription}
-              activeBonusLevel={activeBonusLevel}
               onCascadeComplete={handleCascadeComplete}
             />
           </div>
@@ -554,36 +404,11 @@ const PlayScreen: React.FC = () => {
               nextLine={[]}
               account={account}
               game={game}
-              activeBonus={activeBonus}
-              bonusDescription={bonusDescription}
-              activeBonusLevel={activeBonusLevel}
               onCascadeComplete={handleCascadeComplete}
             />
           </div>
         )}
       </div>
-
-      {game && !game.over && !isGameLoading && !isGridLoading && (
-        <GameActionBar
-          bonusSlots={[
-            ...selectedBonusSlots.map((slot) => ({
-              type: slot.type,
-              count: slot.count,
-              level: slot.level,
-              bagSize: slot.bagSize,
-              icon: slot.icon,
-              tooltip: slot.tooltip,
-              onClick: () => handleBonusSelect(slot.type),
-            })),
-            ...passiveSlots.map((slot) => ({
-              ...slot,
-              onClick: () => {},
-            })),
-          ]}
-          activeBonus={activeBonus}
-          bonusDescription={bonusDescription}
-        />
-      )}
     </div>
   );
 };

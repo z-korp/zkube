@@ -45,8 +45,7 @@ const BlockContainer: React.FC<BlockProps> = ({
       if (event.propertyName !== "top") return;
       if (
         state !== GameState.GRAVITY &&
-        state !== GameState.GRAVITY2 &&
-        state !== GameState.GRAVITY_BONUS
+        state !== GameState.GRAVITY2
       ) {
         return;
       }
@@ -79,8 +78,7 @@ const BlockContainer: React.FC<BlockProps> = ({
         height: `${gridSize}px`,
         transition:
           state === GameState.GRAVITY ||
-          state === GameState.GRAVITY2 ||
-          state === GameState.GRAVITY_BONUS
+          state === GameState.GRAVITY2
             ? `top ${transitionDuration / 1000}s linear`
             : "none",
         color: "white",

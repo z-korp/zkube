@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render } from "@testing-library/react";
 import type { HTMLAttributes } from "react";
 import Grid from "./Grid";
-import type { BonusType } from "../../dojo/game/types/bonus";
 import { useMoveStore } from "../../stores/moveTxStore";
 
 vi.mock("motion/react", () => ({
@@ -84,18 +83,9 @@ describe("Grid drag interactions", () => {
     gridSize: 20,
     gridWidth: 8,
     gridHeight: 10,
-    selectBlock: vi.fn(),
-    bonus: "None" as BonusType,
     account: null,
     isTxProcessing: false,
     setIsTxProcessing: vi.fn(),
-    score: 0,
-    combo: 0,
-    maxCombo: 0,
-    setOptimisticScore: vi.fn(),
-    setOptimisticCombo: vi.fn(),
-    setOptimisticMaxCombo: vi.fn(),
-    activeBonusLevel: 0,
     levelTransitionPending: false,
   };
 

@@ -43,7 +43,6 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
                 final_level: run_data.current_level,
                 final_score: run_data.total_score,
                 endless_depth: run_data.endless_depth,
-                zone_id: run_data.zone_id,
                 started_at: game.started_at,
                 ended_at: get_block_timestamp(),
             },

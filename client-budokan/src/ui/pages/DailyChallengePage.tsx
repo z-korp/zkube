@@ -17,7 +17,6 @@ import { usePlayerEntry } from "@/hooks/usePlayerEntry";
 import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import GameButton from "@/ui/components/shared/GameButton";
-import CubeIcon from "@/ui/components/CubeIcon";
 
 const RANKING_METRIC_LABELS: Record<number, string> = {
   0: "Score",
@@ -233,7 +232,7 @@ const DailyChallengePage: React.FC = () => {
                   </p>
                 </div>
                 <div className="rounded-lg bg-black/30 p-2.5 text-center">
-                  <CubeIcon size="xs" />
+                  <Trophy size={14} className="mx-auto text-yellow-400" />
                   <p className="text-xs text-slate-400 mt-1">Prize Pool</p>
                   <p className="font-['Fredericka_the_Great'] text-sm text-yellow-200">
                     {prizePool.toString()}

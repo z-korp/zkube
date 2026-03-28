@@ -147,6 +147,9 @@ mod daily_challenge_system {
             // but we keep this field for backward compatibility.
             let _metric: RankingMetric = ranking_metric.into();
             let composite_metric: u8 = RankingMetric::Composite.into();
+            // Kept in interface for backward compatibility; no longer stored on model.
+            let _ = zone_id;
+            let _ = mutator_id;
 
             // Assign challenge ID
             let challenge_id = self.next_challenge_id.read();
@@ -178,8 +181,6 @@ mod daily_challenge_system {
                 start_time,
                 end_time,
                 ranking_metric: composite_metric,
-                zone_id,
-                mutator_id,
                 total_entries: 0,
                 prize_pool: prize_amount,
                 settled: false,

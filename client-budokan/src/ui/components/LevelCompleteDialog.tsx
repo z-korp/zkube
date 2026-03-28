@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
 import { motion } from "motion/react";
 import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
@@ -6,21 +6,15 @@ import { Button } from "../elements/button";
 import { Check, Trophy } from "lucide-react";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import { useMusicPlayer } from "@/contexts/hooks";
-import CubeIcon from "@/ui/components/CubeIcon";
-import { BOSS_INTERVAL } from "@/dojo/game/constants";
-import { isBossLevel as checkBossLevel } from "@/dojo/game/helpers/runDataPacking";
 
 interface LevelCompleteDialogProps {
   isOpen: boolean;
   onClose: () => void;
   level: number;
   levelMoves: number;
-  prevTotalCubes: number;
-  totalCubes: number;
   prevTotalScore: number;
   totalScore: number;
   gameLevel: GameLevelData | null;
-  draftWillOpen?: boolean;
 }
 
 const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
@@ -28,12 +22,9 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   onClose,
   level,
   levelMoves,
-  prevTotalCubes,
-  totalCubes,
   prevTotalScore,
   totalScore,
   gameLevel,
-  draftWillOpen = false,
 }) => {
   const [animationPhase, setAnimationPhase] = useState(0);
   const { playSfx } = useMusicPlayer();
@@ -43,7 +34,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
       setAnimationPhase(0);
       const timer1 = setTimeout(() => {
         setAnimationPhase(1);
-        playSfx("coin");
+        playSfx("star");
       }, 200);
       const timer2 = setTimeout(() => {
         setAnimationPhase(2);
@@ -60,8 +51,6 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
 
   const pointsRequired = gameLevel?.pointsRequired ?? 0;
   const maxMoves = gameLevel?.maxMoves ?? 0;
-  const cube3Threshold = gameLevel?.cube3Threshold ?? 0;
-  const cube2Threshold = gameLevel?.cube2Threshold ?? 0;
 
   const constraints = useMemo<
     Array<{ type: ConstraintType; value: number; count: number }>
@@ -109,27 +98,6 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
 
   const levelFinalScore = totalScore - prevTotalScore;
 
-  const getCubesFromMoves = useCallback(
-    (moves: number): number => {
-      if (moves <= cube3Threshold) return 5;
-      if (moves <= cube2Threshold) return 3;
-      return 1;
-    },
-    [cube3Threshold, cube2Threshold],
-  );
-  const baseCubesEarned = getCubesFromMoves(levelMoves);
-
-  const totalLevelCubes = totalCubes - prevTotalCubes;
-
-  // Boss level bonus (levels 10, 20, 30, 40, 50)
-  const isBossLevel = checkBossLevel(level);
-  const bossTier = Math.floor(level / BOSS_INTERVAL);
-  const bossBonus = isBossLevel ? 10 * bossTier * bossTier : 0;
-
-  const extraRewardCubes = Math.max(0, totalLevelCubes - baseCubesEarned - bossBonus);
-
-  const isDraftLevel = draftWillOpen;
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
@@ -140,16 +108,15 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
           Level {level} Complete!
         </DialogTitle>
 
-        {/* Cubes Display with staggered animation */}
         <div className="flex justify-center gap-2 mb-4">
-          {[1, 2, 3, 4, 5].map((cube, index) => (
+          {[1, 2, 3].map((star, index) => (
             <motion.div
-              key={cube}
+              key={star}
               initial={{ scale: 0, rotate: -180 }}
               animate={
                 animationPhase >= 1
                   ? {
-                      scale: cube <= baseCubesEarned ? 1.1 : 1,
+                      scale: star <= 3 ? 1.1 : 1,
                       rotate: 0,
                     }
                   : { scale: 0, rotate: -180 }
@@ -160,63 +127,13 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
                 stiffness: 200,
                 damping: 15,
               }}
-            >
-              <span
-                className={`text-4xl ${
-                  cube <= baseCubesEarned ? "opacity-100" : "opacity-30"
-                }`}
               >
-                <CubeIcon size="xl" />
-              </span>
-            </motion.div>
-          ))}
+                <span className="text-4xl opacity-100">
+                  ⭐
+                </span>
+              </motion.div>
+            ))}
         </div>
-
-        {/* Cubes Earned Breakdown */}
-        <motion.div
-          className="mb-5 bg-gradient-to-r from-yellow-900/20 to-amber-900/20 rounded-lg p-3 border border-yellow-500/30"
-          initial={{ opacity: 0, y: 10 }}
-          animate={
-            animationPhase >= 1 ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }
-          }
-          transition={{ duration: 0.3, delay: 0.4 }}
-        >
-          <div className="text-xs text-yellow-400/80 mb-2 font-medium">
-            Cubes Earned
-          </div>
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-slate-300">Level clear</span>
-              <span className="text-yellow-400 font-semibold">
-                +{baseCubesEarned}
-              </span>
-            </div>
-            {extraRewardCubes > 0 && (
-              <div className="flex justify-between">
-                <span className="text-slate-300">Skill/World bonus</span>
-                <span className="text-yellow-400 font-semibold">
-                  +{extraRewardCubes}
-                </span>
-              </div>
-            )}
-            {isBossLevel && bossBonus > 0 && (
-              <div className="flex justify-between">
-                <span className="text-slate-300">Boss Level {level} bonus</span>
-                <span className="text-yellow-400 font-semibold">
-                  +{bossBonus}
-                </span>
-              </div>
-            )}
-            {totalLevelCubes > baseCubesEarned && (
-              <div className="flex justify-between pt-1 border-t border-yellow-500/20">
-                <span className="text-slate-200 font-medium">Total</span>
-                <span className="text-yellow-400 font-bold">
-                  +{totalLevelCubes} <CubeIcon size="sm" className="w-4 h-4 inline-block" />
-                </span>
-              </div>
-            )}
-          </div>
-        </motion.div>
 
         {/* Stats Summary with animation */}
         <motion.div
@@ -289,24 +206,6 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
           ))}
         </motion.div>
 
-        {isDraftLevel && (
-          <motion.div
-            className="mb-4 text-center"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={
-              animationPhase >= 3
-                ? { opacity: 1, scale: 1 }
-                : { opacity: 0, scale: 0.9 }
-            }
-            transition={{ duration: 0.4 }}
-          >
-            <span className="text-purple-400 text-sm font-medium">
-              🧩 Draft opens next — choose your run direction!
-            </span>
-          </motion.div>
-        )}
-
-        {/* Continue Button */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={
@@ -318,7 +217,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
             onClick={onClose}
             className="w-full py-3 text-lg font-semibold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
           >
-            {isDraftLevel ? "Continue to Draft" : "Continue"}
+            Continue
           </Button>
         </motion.div>
       </DialogContent>

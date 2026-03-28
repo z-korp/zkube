@@ -5,7 +5,6 @@ import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useNavigationStore } from "@/stores/navigationStore";
 import PageTopBar from "@/ui/navigation/PageTopBar";
-import CubeIcon from "@/ui/components/CubeIcon";
 
 const getAttributeNumber = (
   metadata: string | undefined,
@@ -92,7 +91,7 @@ const MyGamesPage: React.FC = () => {
                         <th className="py-2 px-2 font-['Fredericka_the_Great']">Game</th>
                         <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
                         <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
-                        <th className="py-2 px-2 w-16 text-right"><CubeIcon size="sm" /></th>
+                        <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">T</th>
                         <th className="py-2 px-2 w-12"></th>
                       </tr>
                     </thead>
@@ -160,7 +159,7 @@ const MyGamesPage: React.FC = () => {
                         <th className="py-2 px-2 font-['Fredericka_the_Great']">Game</th>
                         <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
                         <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
-                        <th className="py-2 px-2 w-16 text-right"><CubeIcon size="sm" /></th>
+                        <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">T</th>
                         <th className="py-2 px-2 w-12"></th>
                       </tr>
                     </thead>

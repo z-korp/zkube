@@ -1,10 +1,9 @@
-import { useState, useMemo, useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import ProgressRing from "@/ui/components/shared/ProgressRing";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
 import { getCommonAssetPath } from "@/config/themes";
-import CubeIcon from "@/ui/components/CubeIcon";
 import {
   Tooltip,
   TooltipContent,
@@ -198,9 +197,6 @@ const GameHud: React.FC<GameHudProps> = ({
     gameLevel?.constraint3Type, gameLevel?.constraint3Value, gameLevel?.constraint3Count, constraint3Progress,
   ]);
 
-  const potentialCubes = movesRemaining >= cube3Threshold ? 3
-    : movesRemaining >= cube2Threshold ? 2 : 1;
-
   return (
     <div className="w-full px-2 pt-2 shrink-0">
       <div
@@ -303,13 +299,7 @@ const GameHud: React.FC<GameHudProps> = ({
           </div>
         </div>
 
-        {/* Row 2 far right: Potential cubes */}
-        <div className="flex items-center gap-0.5">
-          <CubeIcon size="xs" />
-          <span className={`font-['Fredericka_the_Great'] text-sm tabular-nums ${
-            potentialCubes >= 3 ? "text-green-400" : potentialCubes >= 2 ? "text-yellow-400" : "text-red-400"
-          }`}>+{potentialCubes}</span>
-        </div>
+        <div className="w-8" />
       </div>
     </div>
   );

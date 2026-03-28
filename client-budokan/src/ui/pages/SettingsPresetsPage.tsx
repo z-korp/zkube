@@ -83,7 +83,7 @@ const SECTIONS: FormSection[] = [
   { id: "constraints", title: "Constraints" },
   { id: "blocks", title: "Block Weights" },
   { id: "variance", title: "Variance" },
-  { id: "draft", title: "Draft Settings" },
+  { id: "run", title: "Run Settings" },
 ];
 
 // ─── Form Field ──────────────────────────────────────────────────────────────
@@ -186,9 +186,6 @@ const SettingsPresetsPage: React.FC = () => {
     early_level_threshold: DEFAULT_SETTINGS.earlyLevelThreshold,
     mid_level_threshold: DEFAULT_SETTINGS.midLevelThreshold,
     level_cap: DEFAULT_SETTINGS.levelCap,
-    draft_picks: DEFAULT_SETTINGS.draftPicks,
-    draft_pool_mask: DEFAULT_SETTINGS.draftPoolMask,
-    draft_fixed_level: DEFAULT_SETTINGS.draftFixedLevel,
     boss_upgrades_enabled: 1,
     reroll_base_cost: DEFAULT_SETTINGS.rerollBaseCost,
     starting_charges: DEFAULT_SETTINGS.startingCharges,
@@ -296,9 +293,6 @@ const SettingsPresetsPage: React.FC = () => {
         early_level_threshold: form.early_level_threshold,
         mid_level_threshold: form.mid_level_threshold,
         level_cap: form.level_cap,
-        draft_picks: form.draft_picks,
-        draft_pool_mask: form.draft_pool_mask,
-        draft_fixed_level: form.draft_fixed_level,
         boss_upgrades_enabled: form.boss_upgrades_enabled,
         reroll_base_cost: form.reroll_base_cost,
         starting_charges: form.starting_charges,
@@ -839,28 +833,8 @@ const SettingsPresetsPage: React.FC = () => {
                   </>
                 ))}
 
-                {/* Draft */}
                 {renderSection(SECTIONS[7], (
                   <>
-                    <FormField
-                      label="Draft Picks"
-                      value={form.draft_picks}
-                      onChange={(v) => setField("draft_picks", v)}
-                      min={0}
-                      max={10}
-                    />
-                    <FormField
-                      label="Pool Mask"
-                      value={form.draft_pool_mask}
-                      onChange={(v) => setField("draft_pool_mask", v)}
-                    />
-                    <FormField
-                      label="Fixed Level"
-                      value={form.draft_fixed_level}
-                      onChange={(v) => setField("draft_fixed_level", v)}
-                      min={0}
-                      max={3}
-                    />
                     <div className="flex flex-col gap-1">
                       <label className="text-xs text-slate-400">
                         Boss Upgrades
