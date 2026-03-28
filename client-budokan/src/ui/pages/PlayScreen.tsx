@@ -104,7 +104,11 @@ const PlayScreen: React.FC = () => {
     prevBossLevelRef.current = level;
   }, [game?.level, playSfx, setMusicContext, setMusicPlaylist]);
 
-  const mapThemeId: ThemeId = "theme-1";
+  const mapThemeId: ThemeId = useMemo(() => {
+    if (!game) return "theme-1" as ThemeId;
+    const zoneThemes: Record<number, ThemeId> = { 1: "theme-1", 2: "theme-5", 3: "theme-7" };
+    return zoneThemes[game.zoneId] ?? "theme-1";
+  }, [game?.zoneId, game]);
 
   useEffect(() => {
     if (seed === 0n || !game) return;
@@ -239,6 +243,10 @@ const PlayScreen: React.FC = () => {
         <GameOverDialog
           isOpen={isGameOverOpen}
           onClose={() => {
+            setIsGameOverOpen(false);
+            navNavigate("home");
+          }}
+          onRetry={() => {
             setIsGameOverOpen(false);
             navNavigate("home");
           }}

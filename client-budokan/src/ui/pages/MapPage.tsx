@@ -23,7 +23,7 @@ import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
 import { Difficulty } from "@/dojo/game/types/difficulty";
 import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
 import ZoneBackground from "@/ui/components/map/ZoneBackground";
-import GameButton from "@/ui/components/shared/GameButton";
+
 
 const VB_W = 60;
 const VB_H = 100;
@@ -69,7 +69,8 @@ const MapPage: React.FC = () => {
   const [selectedNode, setSelectedNode] = useState<MapNodeData | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const themeId: ThemeId = "theme-1";
+  const zoneThemes: Record<number, ThemeId> = { 1: "theme-1", 2: "theme-5", 3: "theme-7" };
+  const themeId: ThemeId = game ? (zoneThemes[game.zoneId] ?? "theme-1") : "theme-1";
   const themeImages = getThemeImages(themeId);
   const pathTheme = getMapPathTheme(themeId);
   const zoneName = THEME_META[themeId].name;
@@ -80,7 +81,7 @@ const MapPage: React.FC = () => {
 
   useEffect(() => {
     setThemeTemplate(themeId);
-  }, [setThemeTemplate]);
+  }, [setThemeTemplate, themeId]);
 
   useEffect(() => {
     if (pendingPreviewLevel == null) return;
@@ -132,7 +133,7 @@ const MapPage: React.FC = () => {
       <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
         <ZoneBackground zone={1} themeId={themeId} />
 
-        <div className="relative mx-auto w-full max-w-[400px]" style={{ height: "150vh" }}>
+        <div className="relative mx-auto w-full max-w-[400px]" style={{ height: "110vh" }}>
           <svg
             viewBox={`0 0 ${VB_W} ${VB_H}`}
             preserveAspectRatio="xMidYMid meet"

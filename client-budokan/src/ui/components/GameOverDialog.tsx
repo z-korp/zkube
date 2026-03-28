@@ -8,12 +8,14 @@ import { BOSS_LEVELS, PRE_BOSS_LEVELS, LEVEL_CAP } from "@/dojo/game/constants";
 interface GameOverDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onRetry: () => void;
   game: Game;
 }
 
 const GameOverDialog: React.FC<GameOverDialogProps> = ({
   isOpen,
   onClose,
+  onRetry,
   game,
 }) => {
   const { playerMeta } = usePlayerMeta();
@@ -173,7 +175,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
                   Home
                 </button>
                 <button
-                  onClick={onClose}
+                  onClick={onRetry}
                   className="flex-1 flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-medium rounded-xl px-4 py-3.5 transition-colors"
                 >
                   <RotateCw size={16} />
