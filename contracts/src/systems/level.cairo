@@ -5,6 +5,9 @@ pub trait ILevelSystem<T> {
     /// Initialize level 1 for a new game.
     fn initialize_level(ref self: T, game_id: felt252, skill_data: felt252) -> bool;
 
+    /// Initialize dedicated endless mode level config for a new game.
+    fn initialize_endless_level(ref self: T, game_id: felt252);
+
     /// Finalize the current level and immediately advance in the same transaction.
     /// Returns reserved legacy tuple: (0, 0, false).
     fn finalize_level(ref self: T, game_id: felt252, skill_data: felt252) -> (u8, u8, bool);
@@ -26,6 +29,7 @@ mod level_system {
     use zkube::events::{LevelCompleted, LevelStarted};
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::game_libs::{GameLibsImpl, IGridSystemDispatcherTrait};
+    use zkube::helpers::game_over;
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::random::RandomImpl;
     use zkube::models::game::{Game, GameLevel, GameLevelTrait, GameSeed, GameTrait};
@@ -45,7 +49,8 @@ mod level_system {
             let player = get_caller_address();
 
             let level_config = LevelGeneratorTrait::generate(base_seed.level_seed, 1, settings);
-            let game_level = GameLevelTrait::from_level_config(game_id, level_config);
+            let mut game_level = GameLevelTrait::from_level_config(game_id, level_config);
+            game_level.mutator_id = game.get_run_data().active_mutator_id;
             world.write_model(@game_level);
 
             // Defensive reset of per-level/runtime fields for a fresh run.
@@ -77,6 +82,35 @@ mod level_system {
                 );
 
             false
+        }
+
+        fn initialize_endless_level(ref self: ContractState, game_id: felt252) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+
+            let mut game: Game = world.read_model(game_id);
+            let base_seed: GameSeed = world.read_model(game_id);
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+
+            let level_config = LevelGeneratorTrait::generate_endless_level(base_seed.seed, settings);
+            let mut game_level = GameLevelTrait::from_level_config(game_id, level_config);
+
+            let mut run_data = game.get_run_data();
+            run_data.current_level = 1;
+            run_data.level_score = 0;
+            run_data.level_moves = 0;
+            run_data.constraint_progress = 0;
+            run_data.constraint_2_progress = 0;
+            run_data.zone_cleared = false;
+            run_data.current_difficulty = 0;
+
+            game.combo_counter = 0;
+            game.max_combo = 0;
+            game.set_run_data(run_data);
+
+            game_level.mutator_id = run_data.active_mutator_id;
+
+            world.write_model(@game_level);
+            world.write_model(@game);
         }
 
         fn finalize_level(
@@ -159,18 +193,22 @@ mod level_system {
             let mut run_data = game.get_run_data();
             let current_level = run_data.current_level;
 
-            let next_level = if current_level < 10 {
-                current_level + 1
-            } else if current_level == 10 {
+            // Dedicated endless mode does not use level progression.
+            if run_data.mode == 1 {
+                return;
+            }
+
+            // Map mode victory at level cap: finish run (no transition to endless).
+            if current_level >= 10 {
                 run_data.zone_cleared = true;
-                run_data.current_difficulty = 1;
-                11
-            } else {
-                if run_data.current_difficulty < 255 {
-                    run_data.current_difficulty += 1;
-                }
-                current_level + 1
-            };
+                game.over = true;
+                game.set_run_data(run_data);
+                world.write_model(@game);
+                game_over::handle_game_over(ref world, game, player);
+                return;
+            }
+
+            let next_level = current_level + 1;
 
             run_data.current_level = next_level;
             run_data.level_score = 0;
@@ -201,7 +239,8 @@ mod level_system {
             world.write_model(@next_game_seed);
 
             let next_level_config = LevelGeneratorTrait::generate(next_level_seed, next_level, settings);
-            let game_level = GameLevelTrait::from_level_config(game_id, next_level_config);
+            let mut game_level = GameLevelTrait::from_level_config(game_id, next_level_config);
+            game_level.mutator_id = run_data.active_mutator_id;
             world.write_model(@game_level);
 
             world

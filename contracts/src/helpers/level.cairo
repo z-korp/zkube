@@ -166,6 +166,69 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         }
     }
 
+    /// Generate the fixed level configuration used by dedicated Endless mode.
+    /// Endless mode never completes a level and plays until game-over.
+    fn generate_endless_level(seed: felt252, settings: GameSettings) -> LevelConfig {
+        let _ = seed;
+        let _ = settings;
+
+        LevelConfig {
+            level: 1,
+            points_required: 0,
+            max_moves: 65535,
+            difficulty: Difficulty::VeryEasy,
+            constraint: LevelConstraintTrait::none(),
+            constraint_2: LevelConstraintTrait::none(),
+            constraint_3: LevelConstraintTrait::none(),
+            cube_3_threshold: 0,
+            cube_2_threshold: 0,
+        }
+    }
+
+    /// Returns the difficulty tier for the provided endless total score.
+    /// Thresholds: [0, 15, 40, 80, 150, 280, 500, 900]
+    fn get_endless_difficulty_for_score(total_score: u32) -> Difficulty {
+        if total_score >= 900 {
+            return Difficulty::Master;
+        }
+        if total_score >= 500 {
+            return Difficulty::Expert;
+        }
+        if total_score >= 280 {
+            return Difficulty::VeryHard;
+        }
+        if total_score >= 150 {
+            return Difficulty::Hard;
+        }
+        if total_score >= 80 {
+            return Difficulty::MediumHard;
+        }
+        if total_score >= 40 {
+            return Difficulty::Medium;
+        }
+        if total_score >= 15 {
+            return Difficulty::Easy;
+        }
+
+        Difficulty::VeryEasy
+    }
+
+    /// Returns endless score multiplier in x10 fixed-point.
+    /// Sequence by tier: [10, 12, 14, 17, 20, 25, 33, 40].
+    fn get_endless_score_multiplier(difficulty: Difficulty) -> u16 {
+        match difficulty {
+            Difficulty::VeryEasy => 10,
+            Difficulty::Easy => 12,
+            Difficulty::Medium => 14,
+            Difficulty::MediumHard => 17,
+            Difficulty::Hard => 20,
+            Difficulty::VeryHard => 25,
+            Difficulty::Expert => 33,
+            Difficulty::Master => 40,
+            _ => 10,
+        }
+    }
+
     // NOTE: generate_boss_constraints_seeded, generate_clear_lines_constraint_max_budget,
     // and generate_boss_secondary_constraint were removed in the constraint V2 redesign.
     // Boss constraint generation now uses the boss module (helpers/boss.cairo).
