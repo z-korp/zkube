@@ -3,14 +3,14 @@
 #[starknet::interface]
 pub trait ILevelSystem<T> {
     /// Initialize level 1 for a new game.
-    fn initialize_level(ref self: T, game_id: felt252, skill_data: felt252) -> bool;
+    fn initialize_level(ref self: T, game_id: felt252) -> bool;
 
     /// Initialize dedicated endless mode level config for a new game.
     fn initialize_endless_level(ref self: T, game_id: felt252);
 
     /// Finalize the current level and immediately advance in the same transaction.
     /// Returns reserved legacy tuple: (0, 0, false).
-    fn finalize_level(ref self: T, game_id: felt252, skill_data: felt252) -> (u8, u8, bool);
+    fn finalize_level(ref self: T, game_id: felt252) -> (u8, u8, bool);
 
     /// Legacy compatibility entrypoint. Transitioning is now automatic.
     fn start_next_level(ref self: T, game_id: felt252);
@@ -39,8 +39,7 @@ mod level_system {
 
     #[abi(embed_v0)]
     impl LevelSystemImpl of super::ILevelSystem<ContractState> {
-        fn initialize_level(ref self: ContractState, game_id: felt252, skill_data: felt252) -> bool {
-            let _ = skill_data;
+        fn initialize_level(ref self: ContractState, game_id: felt252) -> bool {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let mut game: Game = world.read_model(game_id);
@@ -116,9 +115,7 @@ mod level_system {
         fn finalize_level(
             ref self: ContractState,
             game_id: felt252,
-            skill_data: felt252,
         ) -> (u8, u8, bool) {
-            let _ = skill_data;
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let mut game: Game = world.read_model(game_id);
@@ -143,11 +140,9 @@ mod level_system {
                         game_id,
                         player,
                         level: completed_level,
-                        cubes: 0,
                         moves_used: final_moves.into(),
                         score: final_score.into(),
                         total_score,
-                        bonuses_earned: 0,
                     },
                 );
 
@@ -176,9 +171,11 @@ mod level_system {
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         fn calculate_stars_for_level(game_level: GameLevel, moves_used: u16) -> u8 {
-            if moves_used <= game_level.cube_3_threshold {
+            let cube_3_threshold = game_level.max_moves * 40 / 100;
+            let cube_2_threshold = game_level.max_moves * 70 / 100;
+            if moves_used <= cube_3_threshold {
                 3
-            } else if moves_used <= game_level.cube_2_threshold {
+            } else if moves_used <= cube_2_threshold {
                 2
             } else {
                 1

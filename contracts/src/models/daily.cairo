@@ -26,8 +26,6 @@ pub struct DailyChallenge {
     pub start_time: u64,
     /// start_time + 86400
     pub end_time: u64,
-    /// 0=score, 1=level, 2=cubes_earned, 3=composite (RankingMetric as u8)
-    pub ranking_metric: u8,
     /// Unique player count (incremented only on first registration)
     pub total_entries: u32,
     /// Fixed LORDS amount deposited by admin
@@ -56,8 +54,6 @@ pub struct DailyEntry {
     pub best_level: u8,
     /// Best endless depth reached across all attempts
     pub best_depth: u8,
-    /// Best CUBEs earned in a single run
-    pub best_cubes: u16,
     /// Game ID of the best run (for verification)
     pub best_game_id: felt252,
     /// Final rank (set during settlement, 0 = unranked)
@@ -126,7 +122,6 @@ mod tests {
             seed: 'test_seed',
             start_time: start,
             end_time: end,
-            ranking_metric: 0,
             total_entries: 0,
             prize_pool: 1000,
             settled: false,
@@ -186,7 +181,6 @@ mod tests {
             best_score: 0,
             best_level: 0,
             best_depth: 0,
-            best_cubes: 0,
             best_game_id: 0,
             rank: 0,
             prize_amount: 0,
@@ -204,7 +198,6 @@ mod tests {
             best_score: 0,
             best_level: 0,
             best_depth: 0,
-            best_cubes: 0,
             best_game_id: 0,
             rank: 0,
             prize_amount: 0,

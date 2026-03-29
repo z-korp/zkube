@@ -15,7 +15,7 @@ pub const MASK_1: u128 = 0x1;
 pub const MASK_7: u32 = 0x7;
 
 // Version
-pub const VERSION: felt252 = 'v1.2.0';
+pub const VERSION: felt252 = 'v1.3.0';
 
 // Tournament / Namespace
 pub fn DEFAULT_NS() -> ByteArray {
@@ -40,11 +40,11 @@ pub mod DEFAULT_SETTINGS {
     use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
     use zkube::types::difficulty::Difficulty;
 
-    /// The official default settings ID used for cube minting, quests, and leaderboards
+    /// The official default settings ID used for standard map gameplay and leaderboards
     pub const DEFAULT_SETTINGS_ID: u32 = 0;
 
     /// Check if a settings_id is the official default settings
-    /// Only games using default settings can mint cubes and track quest progress
+    /// Only games using default settings count for standard progression
     pub fn is_default_settings(settings_id: u32) -> bool {
         settings_id == DEFAULT_SETTINGS_ID
     }
@@ -59,7 +59,7 @@ pub mod DEFAULT_SETTINGS {
         @GameSettingsMetadata {
             settings_id: DEFAULT_SETTINGS_ID,
             name: 'Polynesian',
-            description: "The free Polynesian map - progressive difficulty with cube rewards and quest tracking.",
+            description: "The free Polynesian map - progressive difficulty for core progression.",
             created_by: creator_address,
             created_at: current_timestamp,
             theme_id: 1,

@@ -7,7 +7,7 @@ pub trait IDailyChallengeSystem<T> {
 
     /// Create a new daily challenge (admin only)
     /// @param settings_id: Map GameSettings ID for this challenge
-    /// @param ranking_metric: legacy field (0=Score,1=Level,2=Cubes,3=Composite). Stored as Composite.
+    /// @param ranking_metric: legacy reserved field (unused)
     /// @param zone_id: Encodes game_mode (0=Map, 1=Endless) for backward compatibility
     /// @param mutator_id: Legacy reserved parameter (unused)
     /// @param prize_amount: LORDS to deposit as prize pool
@@ -84,7 +84,6 @@ mod daily_challenge_system {
         GameChallenge,
     };
     use zkube::models::game::{Game, GameTrait};
-    use zkube::types::daily::RankingMetric;
     use super::{
         IERC20MinimalDispatcher, IERC20MinimalDispatcherTrait, IZTicketBurnDispatcher,
         IZTicketBurnDispatcherTrait,
@@ -135,11 +134,8 @@ mod daily_challenge_system {
             // Admin-only
             self.assert_admin(caller);
 
-            // Validate ranking metric (panics on invalid value)
-            // NOTE: ranking is now always mode-aware composite,
-            // but we keep this field for backward compatibility.
-            let _metric: RankingMetric = ranking_metric.into();
-            let composite_metric: u8 = RankingMetric::Composite.into();
+            // Legacy reserved parameter; ranking is mode-aware and derived from game_mode.
+            let _ = ranking_metric;
             // Backward-compatible parameter mapping:
             // - zone_id now carries game_mode (0=Map, 1=Endless)
             // - settings_id is the actual map settings id
@@ -177,7 +173,6 @@ mod daily_challenge_system {
                 seed,
                 start_time,
                 end_time,
-                ranking_metric: composite_metric,
                 total_entries: 0,
                 prize_pool: prize_amount,
                 settled: false,
@@ -351,7 +346,6 @@ mod daily_challenge_system {
             };
             let level = run_data.current_level;
             let depth = run_data.current_difficulty;
-            let cubes: u16 = 0;
 
             // Mode-aware ranking:
             // - Map: total_stars * 65536 + total_score
@@ -382,7 +376,6 @@ mod daily_challenge_system {
                 entry.best_score = score;
                 entry.best_level = level;
                 entry.best_depth = depth;
-                entry.best_cubes = cubes;
                 entry.best_game_id = game_id;
                 world.write_model(@entry);
 

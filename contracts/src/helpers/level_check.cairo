@@ -55,15 +55,3 @@ pub fn is_level_failed(game_level: @GameLevel, run_data: @RunData) -> bool {
 
     current_moves >= *game_level.max_moves && !is_level_complete(game_level, run_data)
 }
-
-/// Calculate cubes earned based on moves used.
-#[inline(always)]
-pub fn calculate_cubes(game_level: @GameLevel, moves_used: u16) -> u8 {
-    if moves_used <= *game_level.cube_3_threshold {
-        3
-    } else if moves_used <= *game_level.cube_2_threshold {
-        2
-    } else {
-        1
-    }
-}

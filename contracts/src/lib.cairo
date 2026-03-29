@@ -11,7 +11,6 @@ pub mod models {
 
 pub mod types {
     pub mod block;
-    pub mod bonus;
     pub mod constraint;
 
     pub mod difficulty;

@@ -13,8 +13,9 @@ pub trait IGameSystem<T> {
     /// Get current level score
     fn get_score(self: @T, game_id: felt252) -> u16;
     /// Get game data for UI
-    /// Returns: (level, level_score, level_moves, combo, max_combo, reserved, reserved,
-    /// reserved, reserved, over)
+    /// Returns:
+    /// (level, level_score, level_moves, combo, max_combo,
+    ///  reserved_1, reserved_2, reserved_3, reserved_4, over)
     fn get_game_data(self: @T, game_id: felt252) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool);
 }
 
@@ -385,7 +386,7 @@ mod game_system {
             if mode_val == 1 {
                 libs.level.initialize_endless_level(game_id);
             } else {
-                libs.level.initialize_level(game_id, 0);
+                libs.level.initialize_level(game_id);
             }
             libs.grid.initialize_grid(game_id);
         }

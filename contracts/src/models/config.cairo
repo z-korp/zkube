@@ -39,9 +39,6 @@ pub struct GameSettings {
     pub max_moves: u16, // Moves at level cap (default: 60)
     pub base_ratio_x100: u16, // Points/move ratio at level 1 * 100 (default: 80 = 0.80)
     pub max_ratio_x100: u16, // Points/move ratio at level cap * 100 (default: 180 = 1.80)
-    // === Cube Thresholds ===
-    pub cube_3_percent: u8, // 3 cubes if moves <= X% of max (default: 40)
-    pub cube_2_percent: u8, // 2 cubes if moves <= X% of max (default: 70)
     // === Difficulty Progression (non-linear tier thresholds) ===
     // === Difficulty Progression (non-linear tier thresholds) ===
     // Each threshold is the level at which that difficulty tier begins
@@ -100,13 +97,6 @@ pub struct GameSettings {
     pub mid_level_threshold: u8, // End of "mid" levels (default: 25)
     // === Level Cap ===
     pub level_cap: u8, // Max level for scaling (default: 50)
-    // === Draft Settings ===
-    pub draft_picks: u8, // Number of skills to draft (0=no draft, 1-3, default: 3)
-    pub draft_pool_mask: u16, // Bitmask of allowed skill IDs (bits 0-11 = skills 1-12, default: 0x3F7 = no Control)
-    pub draft_fixed_level: u8, // 0=use player's tree level, 1-5=override all skills to this level (default: 0)
-    pub boss_upgrades_enabled: u8, // 0/1 — can boss clears upgrade active skills? (default: 1)
-    pub reroll_base_cost: u8, // 0=rerolls disabled, N=base cost with 3x escalation (default: 5)
-    pub starting_charges: u8, // Charges given to all actives after final draft pick (default: 1)
     // === Mutator Settings ===
     pub allowed_mutators: u32, // Bitmask of mutator IDs allowed for this map (default: 0 = none)
     // === Endless Mode Settings ===
@@ -126,10 +116,6 @@ pub mod GameSettingsDefaults {
     pub const MAX_MOVES: u16 = 60;
     pub const BASE_RATIO_X100: u16 = 80; // 0.80
     pub const MAX_RATIO_X100: u16 = 180; // 1.80
-
-    // Cube Thresholds
-    pub const CUBE_3_PERCENT: u8 = 40;
-    pub const CUBE_2_PERCENT: u8 = 70;
 
     // Difficulty Progression (non-linear tier thresholds)
 
@@ -215,14 +201,6 @@ pub mod GameSettingsDefaults {
     // Level Cap
     pub const LEVEL_CAP: u8 = 50; // Max level for scaling
 
-    // Draft Settings
-    pub const DRAFT_PICKS: u8 = 3; // Draft 3 skills
-    pub const DRAFT_POOL_MASK: u16 = 0x3F7; // Skills 1-3, 5-10 enabled (Control archetype disabled: 4, 11, 12)
-    pub const DRAFT_FIXED_LEVEL: u8 = 0; // Use player's tree level
-    pub const BOSS_UPGRADES_ENABLED: u8 = 1; // Boss upgrades on
-    pub const REROLL_BASE_COST: u8 = 5; // 5 CUBE base reroll cost
-    pub const STARTING_CHARGES: u8 = 1; // 1 starting charge per active
-
     // Endless Mode Defaults
     // Thresholds stored as felt252 — will be unpacked by helper functions
     // Default thresholds: [0, 15, 40, 80, 150, 280, 500, 900]
@@ -258,9 +236,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             max_moves: GameSettingsDefaults::MAX_MOVES,
             base_ratio_x100: GameSettingsDefaults::BASE_RATIO_X100,
             max_ratio_x100: GameSettingsDefaults::MAX_RATIO_X100,
-            // Cube Thresholds
-            cube_3_percent: GameSettingsDefaults::CUBE_3_PERCENT,
-            cube_2_percent: GameSettingsDefaults::CUBE_2_PERCENT,
             // Difficulty Progression (non-linear tier thresholds)
             // Difficulty Progression (non-linear tier thresholds)
             tier_1_threshold: GameSettingsDefaults::TIER_1_THRESHOLD,
@@ -296,13 +271,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             mid_level_threshold: GameSettingsDefaults::MID_LEVEL_THRESHOLD,
             // Level Cap
             level_cap: GameSettingsDefaults::LEVEL_CAP,
-            // Draft Settings
-            draft_picks: GameSettingsDefaults::DRAFT_PICKS,
-            draft_pool_mask: GameSettingsDefaults::DRAFT_POOL_MASK,
-            draft_fixed_level: GameSettingsDefaults::DRAFT_FIXED_LEVEL,
-            boss_upgrades_enabled: GameSettingsDefaults::BOSS_UPGRADES_ENABLED,
-            reroll_base_cost: GameSettingsDefaults::REROLL_BASE_COST,
-            starting_charges: GameSettingsDefaults::STARTING_CHARGES,
             // Mutator Settings
             allowed_mutators: 0, // No mutators by default
             // Endless Mode Settings
@@ -545,11 +513,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             return false;
         }
 
-        // Cube thresholds: 3-star should be harder than 2-star (lower %)
-        if self.cube_3_percent > self.cube_2_percent {
-            return false;
-        }
-
         // Level thresholds: early < mid < cap
         if self.early_level_threshold >= self.mid_level_threshold {
             return false;
@@ -605,23 +568,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             return false;
         }
 
-        // Draft settings
-        if self.draft_picks > 3 {
-            return false;
-        }
-        if self.draft_pool_mask == 0 && self.draft_picks > 0 {
-            return false; // Can't draft from empty pool
-        }
-        if self.draft_fixed_level > 5 {
-            return false;
-        }
-        if self.boss_upgrades_enabled > 1 {
-            return false;
-        }
-        if self.starting_charges > 3 {
-            return false;
-        }
-
         true
     }
 
@@ -660,11 +606,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         assert!(self.base_moves <= self.max_moves, "base_moves must be <= max_moves");
         assert!(self.base_ratio_x100 <= self.max_ratio_x100, "base_ratio must be <= max_ratio");
 
-        // Cube thresholds
-        assert!(
-            self.cube_3_percent <= self.cube_2_percent, "cube_3_percent must be <= cube_2_percent",
-        );
-
         // Level thresholds
         assert!(
             self.early_level_threshold < self.mid_level_threshold,
@@ -701,15 +642,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             + self.master_size5_weight.into();
         assert!(master_total > 0, "master block weights must have at least one non-zero");
 
-        // Draft settings
-        assert!(self.draft_picks <= 3, "draft_picks must be 0-3");
-        assert!(
-            self.draft_pool_mask > 0 || self.draft_picks == 0,
-            "draft_pool_mask cannot be 0 when draft_picks > 0",
-        );
-        assert!(self.draft_fixed_level <= 5, "draft_fixed_level must be 0-5");
-        assert!(self.boss_upgrades_enabled <= 1, "boss_upgrades_enabled must be 0 or 1");
-        assert!(self.starting_charges <= 3, "starting_charges must be 0-3");
     }
 
     /// Linear interpolation helper
@@ -748,9 +680,6 @@ mod tests {
         assert!(settings.max_moves == 60, "Max moves should be 60");
         assert!(settings.base_ratio_x100 == 80, "Base ratio should be 80");
         assert!(settings.max_ratio_x100 == 180, "Max ratio should be 180");
-        // Cube Thresholds
-        assert!(settings.cube_3_percent == 40, "Cube 3 percent should be 40");
-        assert!(settings.cube_2_percent == 70, "Cube 2 percent should be 70");
         // Difficulty Progression (non-linear tier thresholds)
         // Difficulty Progression (non-linear tier thresholds)
         assert!(settings.tier_1_threshold == 4, "Tier 1 (Easy) should start at level 4");
@@ -1099,16 +1028,6 @@ mod tests {
         settings.base_moves = 100;
         settings.max_moves = 50;
         assert!(!settings.validate(), "Should be invalid when base_moves > max_moves");
-    }
-
-    #[test]
-    fn test_validate_cube_thresholds() {
-        let mut settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-
-        // Invalid: 3-star threshold > 2-star (should be harder to get 3 stars)
-        settings.cube_3_percent = 80;
-        settings.cube_2_percent = 50;
-        assert!(!settings.validate(), "Should be invalid when cube_3_percent > cube_2_percent");
     }
 
     #[test]

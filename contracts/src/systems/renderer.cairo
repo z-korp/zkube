@@ -84,9 +84,6 @@ mod renderer_systems {
             details
                 .append(GameDetail { name: 'SCORE', value: run_data.total_score.into() });
 
-            // Cubes
-            details.append(GameDetail { name: 'CUBES', value: 0 });
-
             details.span()
         }
 
@@ -211,9 +208,6 @@ mod renderer_systems {
                 run_data.level_moves.into(),
                 game.combo_counter.into(),
                 game.max_combo,
-                0,
-                0,
-                0,
             )
         }
 
@@ -242,9 +236,6 @@ mod renderer_systems {
             let _score = format!("{}", run_data.total_score);
             let _combo = format!("{}", game.combo_counter);
             let _max_combo = format!("{}", game.max_combo);
-            let _combo_bonus = format!("{}", 0);
-            let _score_bonus = format!("{}", 0);
-            let _harvest_bonus = format!("{}", 0);
             let _level = format!("{}", run_data.current_level);
 
             let mut elements = array![
@@ -291,29 +282,6 @@ mod renderer_systems {
                             "Max Combo: " + _max_combo.clone(), "30", "200", "18", "middle", "left",
                         ),
                     );
-                elements
-                    .append(
-                        renderer_helper::create_text(
-                            "Combo: " + _combo_bonus.clone(), "30", "250", "18", "middle", "left",
-                        ),
-                    );
-                elements
-                    .append(
-                        renderer_helper::create_text(
-                            "Score: " + _score_bonus.clone(), "30", "275", "18", "middle", "left",
-                        ),
-                    );
-                elements
-                    .append(
-                        renderer_helper::create_text(
-                            "Harvest: " + _harvest_bonus.clone(),
-                            "30",
-                            "300",
-                            "18",
-                            "middle",
-                            "left",
-                        ),
-                    );
             } else {
                 elements
                     .append(
@@ -351,8 +319,6 @@ mod renderer_systems {
 
             details
                 .append(GameDetail { name: 'SCORE', value: run_data.total_score.into() });
-
-            details.append(GameDetail { name: 'CUBES', value: 0 });
 
             details.span()
         }

@@ -20,9 +20,6 @@ pub trait IConfigSystem<T> {
         max_moves: u16,
         base_ratio_x100: u16,
         max_ratio_x100: u16,
-        // Cube Thresholds
-        cube_3_percent: u8,
-        cube_2_percent: u8,
         // Difficulty Progression (non-linear tier thresholds)
         // Difficulty Progression (non-linear tier thresholds)
         tier_1_threshold: u8,
@@ -58,13 +55,6 @@ pub trait IConfigSystem<T> {
         mid_level_threshold: u8,
         // Level Cap
         level_cap: u8,
-        // Draft Settings
-        draft_picks: u8,
-        draft_pool_mask: u16,
-        draft_fixed_level: u8,
-        boss_upgrades_enabled: u8,
-        reroll_base_cost: u8,
-        starting_charges: u8,
     ) -> u32;
 
     fn get_game_settings(self: @T, settings_id: u32) -> GameSettings;
@@ -86,7 +76,6 @@ pub trait IConfigSystem<T> {
     /// Admin: set map theme
     fn set_map_theme(ref self: T, settings_id: u32, theme_id: u8);
     fn settings_exists(self: @T, settings_id: u32) -> bool;
-    fn get_cube_token_address(self: @T) -> ContractAddress;
 }
 
 #[dojo::contract]
@@ -374,9 +363,6 @@ mod config_system {
             max_moves: u16,
             base_ratio_x100: u16,
             max_ratio_x100: u16,
-            // Cube Thresholds
-            cube_3_percent: u8,
-            cube_2_percent: u8,
             // Difficulty Progression (non-linear tier thresholds)
             // Difficulty Progression (non-linear tier thresholds)
             tier_1_threshold: u8,
@@ -412,13 +398,6 @@ mod config_system {
             mid_level_threshold: u8,
             // Level Cap
             level_cap: u8,
-            // Draft Settings
-            draft_picks: u8,
-            draft_pool_mask: u16,
-            draft_fixed_level: u8,
-            boss_upgrades_enabled: u8,
-            reroll_base_cost: u8,
-            starting_charges: u8,
         ) -> u32 {
             // Validate input
             assert(difficulty != Difficulty::None, 'Invalid difficulty');
@@ -428,8 +407,6 @@ mod config_system {
                     max_moves,
                     base_ratio_x100,
                     max_ratio_x100,
-                    cube_3_percent,
-                    cube_2_percent,
                     tier_1_threshold,
                     tier_2_threshold,
                     tier_3_threshold,
@@ -457,12 +434,6 @@ mod config_system {
                     early_level_threshold,
                     mid_level_threshold,
                     level_cap,
-                    draft_picks,
-                    draft_pool_mask,
-                    draft_fixed_level,
-                    boss_upgrades_enabled,
-                    reroll_base_cost,
-                    starting_charges,
                 );
 
             // Get the world dispatcher
@@ -482,9 +453,6 @@ mod config_system {
                 max_moves,
                 base_ratio_x100,
                 max_ratio_x100,
-                // Cube Thresholds
-                cube_3_percent,
-                cube_2_percent,
                 // Difficulty Progression (non-linear tier thresholds)
                 // Difficulty Progression (non-linear tier thresholds)
                 tier_1_threshold,
@@ -520,13 +488,6 @@ mod config_system {
                 mid_level_threshold,
                 // Level Cap
                 level_cap,
-                // Draft Settings
-                draft_picks,
-                draft_pool_mask,
-                draft_fixed_level,
-                boss_upgrades_enabled,
-                reroll_base_cost,
-                starting_charges,
                 // Mutator Settings (default: none)
                 allowed_mutators: 0,
                 // Endless Mode Settings (defaults)
@@ -667,9 +628,6 @@ mod config_system {
             settings.exists()
         }
 
-        fn get_cube_token_address(self: @ContractState) -> ContractAddress {
-            self.cube_token_address.read()
-        }
     }
 
     #[generate_trait]
@@ -720,8 +678,6 @@ mod config_system {
             max_moves: u16,
             base_ratio_x100: u16,
             max_ratio_x100: u16,
-            cube_3_percent: u8,
-            cube_2_percent: u8,
             // Difficulty tier thresholds
             tier_1_threshold: u8,
             tier_2_threshold: u8,
@@ -753,13 +709,6 @@ mod config_system {
             early_level_threshold: u8,
             mid_level_threshold: u8,
             level_cap: u8,
-            // Draft settings
-            draft_picks: u8,
-            draft_pool_mask: u16,
-            draft_fixed_level: u8,
-            boss_upgrades_enabled: u8,
-            reroll_base_cost: u8,
-            starting_charges: u8,
         ) {
             // Validate moves
             assert!(base_moves > 0, "Base moves must be positive");
@@ -769,11 +718,6 @@ mod config_system {
             // Validate ratios
             assert!(base_ratio_x100 > 0, "Base ratio must be positive");
             assert!(max_ratio_x100 >= base_ratio_x100, "Max ratio must be >= base ratio");
-
-            // Validate cube thresholds
-            assert!(cube_3_percent <= 100, "Cube 3 percent must be <= 100");
-            assert!(cube_2_percent <= 100, "Cube 2 percent must be <= 100");
-            assert!(cube_3_percent < cube_2_percent, "Cube 3 threshold must be < cube 2 threshold");
 
             // Validate difficulty tier thresholds (must be in ascending order)
             assert!(tier_1_threshold >= 2, "Tier 1 must be >= 2 (at least 1 VeryEasy level)");
@@ -864,15 +808,6 @@ mod config_system {
             assert!(level_cap > 0, "Level cap must be positive");
             assert!(mid_level_threshold <= level_cap, "Mid threshold must be <= level cap");
 
-            // Validate draft settings
-            assert!(draft_picks <= 3, "draft_picks must be 0-3");
-            assert!(
-                draft_pool_mask > 0 || draft_picks == 0,
-                "draft_pool_mask cannot be 0 when draft_picks > 0",
-            );
-            assert!(draft_fixed_level <= 5, "draft_fixed_level must be 0-5");
-            assert!(boss_upgrades_enabled <= 1, "boss_upgrades_enabled must be 0 or 1");
-            assert!(starting_charges <= 3, "starting_charges must be 0-3");
         }
     }
 
@@ -891,8 +826,6 @@ mod config_system {
             GameSetting { name: 'MAX_MOVES', value: game_settings.max_moves.into() },
             GameSetting { name: 'BASE_RATIO', value: game_settings.base_ratio_x100.into() },
             GameSetting { name: 'MAX_RATIO', value: game_settings.max_ratio_x100.into() },
-            GameSetting { name: 'CUBE3_PCT', value: game_settings.cube_3_percent.into() },
-            GameSetting { name: 'CUBE2_PCT', value: game_settings.cube_2_percent.into() },
             GameSetting { name: 'TIER1', value: game_settings.tier_1_threshold.into() },
             GameSetting { name: 'TIER2', value: game_settings.tier_2_threshold.into() },
             GameSetting { name: 'TIER3', value: game_settings.tier_3_threshold.into() },
@@ -920,12 +853,6 @@ mod config_system {
             GameSetting { name: 'EARLY_TH', value: game_settings.early_level_threshold.into() },
             GameSetting { name: 'MID_TH', value: game_settings.mid_level_threshold.into() },
             GameSetting { name: 'LEVEL_CAP', value: game_settings.level_cap.into() },
-            GameSetting { name: 'DRAFT_PICKS', value: game_settings.draft_picks.into() },
-            GameSetting { name: 'DRAFT_MASK', value: game_settings.draft_pool_mask.into() },
-            GameSetting { name: 'DRAFT_FIX', value: game_settings.draft_fixed_level.into() },
-            GameSetting { name: 'BOSS_UP', value: game_settings.boss_upgrades_enabled.into() },
-            GameSetting { name: 'REROLL', value: game_settings.reroll_base_cost.into() },
-            GameSetting { name: 'START_CHG', value: game_settings.starting_charges.into() },
         ]
             .span()
     }

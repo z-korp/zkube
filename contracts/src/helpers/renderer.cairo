@@ -75,9 +75,6 @@ pub fn create_metadata(
     moves: u16,
     combo: u16,
     max_combo: u8,
-    combo_bonus: u8,
-    score_bonus: u8,
-    harvest_bonus: u8,
 ) -> ByteArray {
     let rect = create_rect();
     //let logo_element = logo();
@@ -95,9 +92,6 @@ pub fn create_metadata(
     let _score = format!("{}", score);
     let _combo = format!("{}", combo);
     let _max_combo = format!("{}", max_combo);
-    let _combo_bonus = format!("{}", combo_bonus);
-    let _score_bonus = format!("{}", score_bonus);
-    let _harvest_bonus = format!("{}", harvest_bonus);
 
     // Combine all elements
     let mut elements = array![
@@ -115,24 +109,6 @@ pub fn create_metadata(
             .append(
                 create_text(
                     "Max Combo: " + _max_combo.clone(), "30", "175", "18", "middle", "left",
-                ),
-            );
-        elements
-            .append(
-                create_text(
-                    "Combo Bonus: " + _combo_bonus.clone(), "30", "225", "18", "middle", "left",
-                ),
-            );
-        elements
-            .append(
-                create_text(
-                    "Score Bonus: " + _score_bonus.clone(), "30", "250", "18", "middle", "left",
-                ),
-            );
-        elements
-            .append(
-                create_text(
-                    "Harvest Bonus: " + _harvest_bonus.clone(), "30", "275", "18", "middle", "left",
                 ),
             );
     } else {

@@ -21,29 +21,10 @@ pub struct LevelConfig {
     pub constraint_2: LevelConstraint,
     /// Tertiary constraint (can be None; only used on triple-constraint boss levels 40/50)
     pub constraint_3: LevelConstraint,
-    /// Moves threshold for 3 cubes (must complete in <= this many moves)
-    pub cube_3_threshold: u16,
-    /// Moves threshold for 2 cubes (must complete in <= this many moves)
-    pub cube_2_threshold: u16,
 }
 
 #[generate_trait]
 pub impl LevelConfigImpl of LevelConfigTrait {
-    /// Calculate cubes earned based on moves used
-    /// 3 cubes: moves <= cube_3_threshold
-    /// 2 cubes: moves <= cube_2_threshold
-    /// 1 cube: completed
-    #[inline(always)]
-    fn calculate_cubes(self: LevelConfig, moves_used: u16) -> u8 {
-        if moves_used <= self.cube_3_threshold {
-            3
-        } else if moves_used <= self.cube_2_threshold {
-            2
-        } else {
-            1
-        }
-    }
-
     // V3.0: get_bonus_reward removed - bonuses are only bought in shops
 
     /// Check if level is complete (score reached AND all constraints satisfied)
@@ -105,17 +86,6 @@ pub impl LevelConfigImpl of LevelConfigTrait {
         }
     }
 
-    /// Get current potential cubes (based on current move count)
-    #[inline(always)]
-    fn potential_cubes(self: LevelConfig, current_moves: u16) -> u8 {
-        if current_moves <= self.cube_3_threshold {
-            3
-        } else if current_moves <= self.cube_2_threshold {
-            2
-        } else {
-            1
-        }
-    }
 }
 
 #[cfg(test)]
@@ -133,26 +103,7 @@ mod tests {
             constraint: LevelConstraintTrait::combo_lines(2, 1),
             constraint_2: LevelConstraintTrait::none(), // No secondary constraint
             constraint_3: LevelConstraintTrait::none(), // No tertiary constraint
-            cube_3_threshold: 12, // 40% of 30
-            cube_2_threshold: 21 // 70% of 30
         }
-    }
-
-    #[test]
-    fn test_calculate_cubes() {
-        let config = create_test_config();
-
-        // 3 cubes: <= 12 moves
-        assert!(config.calculate_cubes(10) == 3, "10 moves should be 3 cubes");
-        assert!(config.calculate_cubes(12) == 3, "12 moves should be 3 cubes");
-
-        // 2 cubes: 13-21 moves
-        assert!(config.calculate_cubes(13) == 2, "13 moves should be 2 cubes");
-        assert!(config.calculate_cubes(21) == 2, "21 moves should be 2 cubes");
-
-        // 1 cube: > 21 moves
-        assert!(config.calculate_cubes(22) == 1, "22 moves should be 1 cube");
-        assert!(config.calculate_cubes(30) == 1, "30 moves should be 1 cube");
     }
 
     // V3.0: test_bonus_reward removed - get_bonus_reward was removed
@@ -200,8 +151,6 @@ mod tests {
             constraint: LevelConstraintTrait::combo_lines(3, 2), // Clear 3+ lines, 2 times
             constraint_2: LevelConstraintTrait::combo_lines(2, 3), // Clear 2+ lines, 3 times
             constraint_3: LevelConstraintTrait::none(),
-            cube_3_threshold: 14,
-            cube_2_threshold: 24,
         };
 
         // Not complete: first constraint not met
@@ -220,29 +169,27 @@ mod tests {
 
     #[test]
     fn test_mixed_constraints() {
-        // ComboLines + NoBonusUsed
+        // ComboLines + KeepGridBelow
         let config = LevelConfig {
             level: 25,
             points_required: 70,
             max_moves: 40,
             difficulty: Difficulty::Hard,
             constraint: LevelConstraintTrait::combo_lines(3, 2),
-            constraint_2: LevelConstraintTrait::no_bonus(),
+            constraint_2: LevelConstraintTrait::keep_grid_below(),
             constraint_3: LevelConstraintTrait::none(),
-            cube_3_threshold: 16,
-            cube_2_threshold: 28,
         };
 
-        // Not complete: used bonus
-        assert!(!config.is_complete(70, 2, 0, 0, true), "Should not complete - bonus used");
+        // Not complete: KeepGridBelow breached
+        assert!(!config.is_complete(70, 2, 1, 0, false), "Should not complete - grid cap breached");
 
-        // Complete: both constraints met (ComboLines satisfied, no bonus used)
+        // Complete: both constraints met (ComboLines satisfied, keep-grid-below not breached)
         assert!(config.is_complete(70, 2, 0, 0, false), "Should complete with both constraints");
     }
 
     #[test]
     fn test_triple_constraints() {
-        // ComboLines + ComboStreak + NoBonusUsed (boss level 40/50)
+        // ComboLines + ComboStreak + KeepGridBelow (boss level 40/50)
         let config = LevelConfig {
             level: 40,
             points_required: 80,
@@ -250,13 +197,11 @@ mod tests {
             difficulty: Difficulty::Expert,
             constraint: LevelConstraintTrait::combo_lines(3, 3),
             constraint_2: LevelConstraintTrait::combo_streak(5),
-            constraint_3: LevelConstraintTrait::no_bonus(),
-            cube_3_threshold: 20,
-            cube_2_threshold: 35,
+            constraint_3: LevelConstraintTrait::keep_grid_below(),
         };
 
-        // Not complete: third constraint (NoBonusUsed) failed
-        assert!(!config.is_complete(80, 3, 1, 0, true), "Should not complete - bonus used");
+        // Not complete: third constraint (KeepGridBelow) failed
+        assert!(!config.is_complete(80, 3, 1, 1, false), "Should not complete - grid cap breached");
 
         // Not complete: second constraint not met
         assert!(
@@ -287,14 +232,4 @@ mod tests {
         assert!(config.score_progress_percent(60) == 100, "Over goal should be 100%");
     }
 
-    #[test]
-    fn test_potential_cubes() {
-        let config = create_test_config();
-
-        assert!(config.potential_cubes(5) == 3, "5 moves should allow 3 cubes");
-        assert!(config.potential_cubes(12) == 3, "12 moves should allow 3 cubes");
-        assert!(config.potential_cubes(13) == 2, "13 moves should allow 2 cubes");
-        assert!(config.potential_cubes(21) == 2, "21 moves should allow 2 cubes");
-        assert!(config.potential_cubes(22) == 1, "22 moves should allow 1 cube");
-    }
 }

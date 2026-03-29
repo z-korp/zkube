@@ -32,10 +32,6 @@ mod LevelConstants {
     pub const MID_VARIANCE_PERCENT: u16 = 5; // ±5% for levels 6-25
     pub const LATE_VARIANCE_PERCENT: u16 = 5; // ±5% for levels 26-50
 
-    // Cube thresholds (percentage of max_moves)
-    pub const CUBE_3_PERCENT: u16 = 40; // 3 cubes if moves <= 40% of max
-    pub const CUBE_2_PERCENT: u16 = 70; // 2 cubes if moves <= 70% of max
-
     // Level cap for scaling (survival mode after this)
     pub const LEVEL_CAP: u8 = 50;
 
@@ -60,17 +56,6 @@ pub mod BossLevel {
         }
     }
 
-    /// Get boss cube bonus for completing a boss level.
-    /// Formula: 10 * boss_index^2 where boss_index is 1 for level 10.
-    pub fn get_boss_cube_bonus(level: u8) -> u16 {
-        let tier = get_boss_tier(level);
-        if tier == 0 {
-            0
-        } else {
-            let t: u16 = tier.into();
-            10 * t * t
-        }
-    }
 }
 
 #[generate_trait]
@@ -122,10 +107,6 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             (endless_points, settings.max_moves, Difficulty::Master)
         };
 
-        // Thresholds remain percentage-based from max_moves for star evaluation.
-        let cube_3_threshold = max_moves * settings.cube_3_percent.into() / 100;
-        let cube_2_threshold = max_moves * settings.cube_2_percent.into() / 100;
-
         // Generate constraints: use boss identity system for boss levels, otherwise normal
         // generation Respect constraints_enabled setting for both boss and regular levels
         let (constraint, constraint_2, constraint_3) = if !settings.are_constraints_enabled() {
@@ -161,8 +142,6 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             constraint,
             constraint_2,
             constraint_3,
-            cube_3_threshold,
-            cube_2_threshold,
         }
     }
 
@@ -180,8 +159,6 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             constraint: LevelConstraintTrait::none(),
             constraint_2: LevelConstraintTrait::none(),
             constraint_3: LevelConstraintTrait::none(),
-            cube_3_threshold: 0,
-            cube_2_threshold: 0,
         }
     }
 
@@ -238,8 +215,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     ///
     /// Deterministic count-based system: each difficulty tier has a hardcoded
     /// constraint_min/constraint_max. Roll count in [min, max], generate that many.
-    /// Regular levels generate ComboLines, BreakBlocks, ComboStreak, Fill only.
-    /// NoBonusUsed is boss-only — never generated on regular levels.
+    /// Regular levels generate ComboLines, BreakBlocks, ComboStreak only.
     ///
     /// Returns (constraint_1, constraint_2, constraint_3)
     fn generate_constraints_with_settings(
@@ -420,7 +396,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     /// Get deterministic constraint count range from budget range.
     /// Returns (constraint_min, constraint_max).
     /// Roll a random count in [min, max] to determine how many constraints a level has.
-    /// NoBonusUsed is boss-only — never generated on regular levels.
+    /// KeepGridBelow is boss-only — never generated on regular levels.
     fn get_constraint_count_range_from_budget(budget_min: u8, budget_max: u8) -> (u8, u8) {
         let avg_budget: u8 = (((budget_min.into() + budget_max.into()) / 2_u16))
             .try_into()
@@ -484,9 +460,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         match constraint_type {
             ConstraintType::ComboLines => Self::generate_combo_lines_from_budget(seed, budget),
             ConstraintType::BreakBlocks => Self::generate_break_blocks_from_budget(seed, budget),
-            ConstraintType::FillAndClear => Self::generate_fill_from_budget(seed, budget),
             ConstraintType::ComboStreak => Self::generate_combo_streak_from_budget(seed, budget),
-            ConstraintType::NoBonusUsed => LevelConstraintTrait::no_bonus(),
             ConstraintType::KeepGridBelow => LevelConstraintTrait::keep_grid_below(),
             ConstraintType::None => LevelConstraintTrait::none(),
         }
@@ -520,21 +494,6 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             2 => 5,
             3 => 6,
             _ => 7 // size 4+
-        }
-    }
-
-    /// Cost for Fill constraints by target filled-row count.
-    /// Higher targets are harder to maintain.
-    /// rows 6->10, 7->20, 8->30, 9->40, 10->50
-    fn fill_row_cost(row: u8) -> u8 {
-        match row {
-            0 | 1 | 2 | 3 | 4 => 2,
-            5 => 5,
-            6 => 10,
-            7 => 20,
-            8 => 30,
-            9 => 40,
-            _ => 50 // row 10+
         }
     }
 
@@ -719,58 +678,6 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         let _ = seed;
         let target: u8 = budget / 2;
         LevelConstraintTrait::combo_streak(target)
-    }
-
-    /// Generate a Fill constraint from budget.
-    /// Candidate rows must satisfy:
-    /// fill_row_cost(row) in [min_budget_spend(budget), budget]
-    /// Fill required_count is hard-capped to 1.
-    fn generate_fill_from_budget(seed: felt252, budget: u8) -> LevelConstraint {
-        let seed_u256: u256 = seed.into();
-        let min_spend = Self::min_budget_spend(budget);
-
-        let mut candidates_count: u16 = 0;
-        let mut row_scan: u8 = 6;
-        while row_scan <= 10 {
-            let row_cost = Self::fill_row_cost(row_scan);
-            if row_cost <= budget {
-                let times_cap: u8 = 1;
-                let times_min: u8 = Self::ceil_div_u16_by_u8(min_spend.into(), row_cost);
-                if times_min <= times_cap {
-                    candidates_count += 1;
-                }
-            }
-            row_scan += 1;
-        }
-
-        if candidates_count == 0 {
-            return LevelConstraintTrait::fill_and_clear(6, 1);
-        }
-
-        let pick: u16 = (seed_u256 % candidates_count.into()).try_into().unwrap();
-        let mut idx: u16 = 0;
-        let mut chosen_row: u8 = 6;
-        let mut chosen_times: u8 = 1;
-
-        let mut row_scan2: u8 = 6;
-        while row_scan2 <= 10 {
-            let row_cost = Self::fill_row_cost(row_scan2);
-            if row_cost <= budget {
-                let times_cap: u8 = 1;
-                let times_min: u8 = Self::ceil_div_u16_by_u8(min_spend.into(), row_cost);
-                if times_min <= times_cap {
-                    if idx == pick {
-                        chosen_row = row_scan2;
-                        chosen_times = 1;
-                        break;
-                    }
-                    idx += 1;
-                }
-            }
-            row_scan2 += 1;
-        }
-
-        LevelConstraintTrait::fill_and_clear(chosen_row, chosen_times)
     }
 
     /// Scale factor for BreakBlocks target counts by size.
@@ -1028,23 +935,6 @@ mod tests {
     }
 
     #[test]
-    fn test_cube_thresholds() {
-        let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
-
-        // Cube thresholds should be percentages of max_moves
-        let expected_3_cube = config.max_moves * 40 / 100;
-        let expected_2_cube = config.max_moves * 70 / 100;
-
-        assert!(
-            config.cube_3_threshold == expected_3_cube, "3-cube threshold should be 40% of max",
-        );
-        assert!(
-            config.cube_2_threshold == expected_2_cube, "2-cube threshold should be 70% of max",
-        );
-    }
-
-    #[test]
     fn test_generate_level_1() {
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         let config = LevelGeneratorTrait::generate(TEST_SEED, 1, settings);
@@ -1070,8 +960,6 @@ mod tests {
         assert!(config.points_required == 198, "Endless level 25 points should be deterministic");
         assert!(config.max_moves == 60, "Endless levels should use max_moves");
         assert!(config.difficulty == Difficulty::Master, "Endless levels should be Master");
-        assert!(config.cube_3_threshold < config.cube_2_threshold, "Cube thresholds ordered");
-        assert!(config.cube_2_threshold < config.max_moves, "2-cube threshold < max");
     }
 
     #[test]
@@ -1097,44 +985,6 @@ mod tests {
         assert!(config.level == 25, "Level should be 25");
         assert!(config.points_required > 0, "Points should be positive");
         assert!(config.max_moves > 0, "Moves should be positive");
-        assert!(
-            config.cube_3_threshold < config.cube_2_threshold, "Cube thresholds should be ordered",
-        );
-    }
-
-    #[test]
-    fn test_fill_constraint_range_scales_to_ten() {
-        // Fill target is budget-driven and bounded to [6,10].
-        let low = LevelGeneratorTrait::generate_constraint_from_budget(
-            1, 10, ConstraintType::FillAndClear,
-        );
-        assert!(low.constraint_type == ConstraintType::FillAndClear, "Should generate Fill");
-        assert!(low.value >= 6 && low.value <= 10, "Fill must be within 6..10");
-
-        let mid = LevelGeneratorTrait::generate_constraint_from_budget(
-            1, 26, ConstraintType::FillAndClear,
-        );
-        assert!(mid.value >= 6 && mid.value <= 10, "Fill must be within 6..10");
-
-        let high = LevelGeneratorTrait::generate_constraint_from_budget(
-            1, 32, ConstraintType::FillAndClear,
-        );
-        assert!(high.value >= 6 && high.value <= 10, "Fill must be within 6..10");
-    }
-
-    #[test]
-    fn test_fill_constraint_master_can_hit_ten() {
-        // With budget below row-10 cost, target cannot be 10.
-        let master_capped = LevelGeneratorTrait::generate_constraint_from_budget(
-            1, 49, ConstraintType::FillAndClear,
-        );
-        assert!(master_capped.value <= 9, "Fill should be below 10 when budget < 50");
-
-        // With budget 50, row 10 should be reachable for valid seeds.
-        let master_max = LevelGeneratorTrait::generate_constraint_from_budget(
-            1, 50, ConstraintType::FillAndClear,
-        );
-        assert!(master_max.value == 10, "Fill should reach 10 at max budget");
     }
 
     #[test]
@@ -1149,45 +999,6 @@ mod tests {
         assert!(c.required_count >= 1, "Times must be at least 1");
     }
 
-    #[test]
-    fn test_generate_custom_moves() {
-        // Create custom settings with different parameters
-        let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        settings.base_moves = 30; // Higher than default 20
-        settings.max_moves = 80; // Higher than default 60
-        settings.cube_3_percent = 30; // Stricter than default 40
-        settings.cube_2_percent = 60; // Stricter than default 70
-
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 1, settings);
-
-        // At level 1, should use base_moves (with variance)
-        // With ±5% variance: 30 -> 28-32
-        assert!(
-            config.max_moves >= 27 && config.max_moves <= 33, "Custom moves should be around 30",
-        );
-
-        // Cube thresholds should use custom percentages
-        let expected_3_cube = config.max_moves * 30 / 100;
-        let expected_2_cube = config.max_moves * 60 / 100;
-        assert!(config.cube_3_threshold == expected_3_cube, "Custom 3-cube threshold");
-        assert!(config.cube_2_threshold == expected_2_cube, "Custom 2-cube threshold");
-    }
-
-    #[test]
-    fn test_generate_tournament_mode() {
-        // Tournament mode: harder thresholds, same base moves
-        let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        settings.cube_3_percent = 25; // Much stricter
-        settings.cube_2_percent = 50; // Much stricter
-
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
-
-        // Cube thresholds should be much stricter
-        let expected_3_cube = config.max_moves * 25 / 100;
-        let expected_2_cube = config.max_moves * 50 / 100;
-        assert!(config.cube_3_threshold == expected_3_cube, "Tournament 3-cube threshold");
-        assert!(config.cube_2_threshold == expected_2_cube, "Tournament 2-cube threshold");
-    }
 
     #[test]
     fn test_generate_constraints_disabled() {
@@ -1300,8 +1111,6 @@ mod tests {
         settings.max_moves = 100; // Way more moves at high levels
         settings.base_ratio_x100 = 50; // Lower points/move ratio (easier)
         settings.max_ratio_x100 = 150; // Still easier at high levels
-        settings.cube_3_percent = 50; // More generous 3-cube threshold
-        settings.cube_2_percent = 80; // More generous 2-cube threshold
         settings.constraints_enabled = 0; // No constraints
         // Slow difficulty progression - stay VeryEasy longer
         settings.tier_1_threshold = 20; // Easy starts at level 20

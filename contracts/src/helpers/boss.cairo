@@ -125,13 +125,11 @@ fn keep_grid_below_cap_for_boss_level(level: u8) -> u8 {
 
 /// Generate a boss constraint using the unified budget system from level.cairo.
 /// Uses budget_max for the boss's difficulty to create challenging constraints.
-/// NoBonusUsed is binary; KeepGridBelow uses level-scaled cap.
+/// KeepGridBelow uses a level-scaled cap.
 fn generate_boss_constraint(
     constraint_type: ConstraintType, budget_max: u8, seed: felt252, level: u8,
 ) -> LevelConstraint {
     match constraint_type {
-        // Binary constraints: no budget needed
-        ConstraintType::NoBonusUsed => LevelConstraintTrait::no_bonus(),
         ConstraintType::KeepGridBelow => {
             let cap = keep_grid_below_cap_for_boss_level(level);
             LevelConstraintTrait::keep_grid_below_with_cap(cap)
@@ -280,13 +278,6 @@ mod tests {
     fn test_generate_boss_constraint_none() {
         let c = generate_boss_constraint(ConstraintType::None, 20, 'SEED', 20);
         assert!(c.constraint_type == ConstraintType::None, "Should be None");
-    }
-
-    #[test]
-    fn test_generate_boss_constraint_no_bonus() {
-        let c = generate_boss_constraint(ConstraintType::NoBonusUsed, 20, 'SEED', 20);
-        assert!(c.constraint_type == ConstraintType::NoBonusUsed, "Should be NoBonusUsed");
-        assert!(c.value == 0, "NoBonusUsed has no value");
     }
 
     #[test]

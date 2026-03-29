@@ -205,14 +205,13 @@ pub impl RunDataPacking of RunDataPackingTrait {
 // PlayerMeta packing
 // =============================================================================
 
-/// PlayerMeta.data layout (64 bits used, 188 reserved):
+/// PlayerMeta.data layout (32 bits used, 220 reserved):
 /// ┌─────────────────────────────────────────────────────────────────────┐
 /// │ Bits    │ Field                 │ Size │ Description                │
 /// ├─────────┼───────────────────────┼──────┼────────────────────────────┤
 /// │ 0-15    │ total_runs            │ 16   │ Lifetime run count         │
-/// │ 16-47   │ total_cubes_earned    │ 32   │ Lifetime cubes earned      │
-/// │ 48-63   │ daily_stars           │ 16   │ Lifetime daily stars       │
-/// │ 64-251  │ reserved              │ 188  │ Future features            │
+/// │ 16-31   │ daily_stars           │ 16   │ Lifetime daily stars       │
+/// │ 32-251  │ reserved              │ 220  │ Future features            │
 /// └─────────────────────────────────────────────────────────────────────┘
 
 /// Unpacked player meta data structure
@@ -220,7 +219,6 @@ pub impl RunDataPacking of RunDataPackingTrait {
 pub struct MetaData {
     // Stats
     pub total_runs: u16,
-    pub total_cubes_earned: u32,
     pub daily_stars: u16,
 }
 
@@ -228,12 +226,10 @@ pub struct MetaData {
 mod MetaDataBits {
     // Bit positions
     pub const TOTAL_RUNS_POS: u8 = 0;
-    pub const TOTAL_CUBES_EARNED_POS: u8 = 16;
-    pub const DAILY_STARS_POS: u8 = 48;
+    pub const DAILY_STARS_POS: u8 = 16;
 
     // Masks
     pub const TOTAL_RUNS_MASK: u256 = 0xFFFF; // 16 bits
-    pub const TOTAL_CUBES_EARNED_MASK: u256 = 0xFFFFFFFF; // 32 bits
     pub const DAILY_STARS_MASK: u256 = 0xFFFF; // 16 bits
 }
 
@@ -241,7 +237,7 @@ mod MetaDataBits {
 pub impl MetaDataPacking of MetaDataPackingTrait {
     /// Create a new MetaData with initial values
     fn new() -> MetaData {
-        MetaData { total_runs: 0, total_cubes_earned: 0, daily_stars: 0 }
+        MetaData { total_runs: 0, daily_stars: 0 }
     }
 
     /// Pack MetaData into a felt252
@@ -252,11 +248,6 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
             | BitShift::shl(
                 self.total_runs.into() & MetaDataBits::TOTAL_RUNS_MASK,
                 MetaDataBits::TOTAL_RUNS_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                self.total_cubes_earned.into() & MetaDataBits::TOTAL_CUBES_EARNED_MASK,
-                MetaDataBits::TOTAL_CUBES_EARNED_POS.into(),
             );
         packed = packed
             | BitShift::shl(
@@ -274,10 +265,6 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
         MetaData {
             total_runs: (BitShift::shr(data, MetaDataBits::TOTAL_RUNS_POS.into())
                 & MetaDataBits::TOTAL_RUNS_MASK)
-                .try_into()
-                .unwrap(),
-            total_cubes_earned: (BitShift::shr(data, MetaDataBits::TOTAL_CUBES_EARNED_POS.into())
-                & MetaDataBits::TOTAL_CUBES_EARNED_MASK)
                 .try_into()
                 .unwrap(),
             daily_stars: (BitShift::shr(data, MetaDataBits::DAILY_STARS_POS.into())

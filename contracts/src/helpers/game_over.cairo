@@ -65,7 +65,7 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
                 player,
                 final_level: run_data.current_level,
                 final_score: run_data.total_score,
-                endless_depth: run_data.current_difficulty,
+                current_difficulty: run_data.current_difficulty,
                 started_at: game.started_at,
                 ended_at: get_block_timestamp(),
             },
@@ -86,7 +86,6 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
                 run_data.current_difficulty,
                 total_stars,
                 challenge.game_mode,
-                0,
             );
 
             // Participation star for completing a daily challenge game.
@@ -142,7 +141,6 @@ fn auto_submit_daily_result(
     endless_depth: u8,
     total_stars: u8,
     mode: u8,
-    total_cubes: u16,
 ) {
     let challenge: DailyChallenge = world.read_model(challenge_id);
     if challenge.settled {
@@ -169,7 +167,6 @@ fn auto_submit_daily_result(
         entry.best_score = total_score;
         entry.best_level = current_level;
         entry.best_depth = endless_depth;
-        entry.best_cubes = total_cubes;
         entry.best_game_id = game_id;
         world.write_model(@entry);
 

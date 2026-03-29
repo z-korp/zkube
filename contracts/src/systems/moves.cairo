@@ -71,7 +71,7 @@ mod move_system {
             // Execute move via grid_system dispatcher (contains Controller logic)
             let (_lines_cleared, is_grid_full) = libs
                 .grid
-                .execute_move(game_id, row_index, start_index, final_index, 0);
+                .execute_move(game_id, row_index, start_index, final_index);
 
             // Re-read game after grid_system modified it (needed for level/game-over checks)
             let game: Game = world.read_model(game_id);
@@ -83,7 +83,7 @@ mod move_system {
                 let is_complete = level_check::is_level_complete(@game_level, @run_data);
 
                 if is_complete {
-                    libs.level.finalize_level(game_id, 0);
+                    libs.level.finalize_level(game_id);
                 } else if is_grid_full {
                     let mut updated_game: Game = world.read_model(game_id);
                     updated_game.over = true;

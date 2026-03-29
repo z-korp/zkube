@@ -1,5 +1,5 @@
 //! Shared scoring and combo logic.
-//! Consolidates duplicate scoring code from GameTrait::make_move() and apply_bonus().
+//! Consolidates duplicate scoring code for move resolution.
 
 use zkube::helpers::packing::RunData;
 
@@ -53,10 +53,10 @@ pub fn update_combo_tracking(
     }
 }
 
-/// Process lines cleared after a move or bonus application.
+/// Process lines cleared after a move.
 /// This is the main entry point that combines:
 /// - Combo tracking (combo_counter, max_combo, max_combo_run)
-/// - No global combo-cube rewards (handled by charge system and explicit skill effects)
+/// - No external reward side-effects (pure run_data/combo mutation)
 pub fn process_lines_cleared(
     ref run_data: RunData, ref combo_counter: u8, ref max_combo: u8, lines_cleared: u8,
 ) {

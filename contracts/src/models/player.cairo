@@ -3,7 +3,6 @@ use zkube::helpers::packing::{MetaData, MetaDataPacking, MetaDataPackingTrait};
 
 /// PlayerMeta stores persistent player data across all runs
 /// This is used for meta-progression (unlocks, stats)
-/// Note: Cube balance is now tracked via ERC1155 CubeToken contract
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
 #[dojo::model]
 pub struct PlayerMeta {
@@ -45,21 +44,6 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
         if meta.total_runs < 65535 {
             meta.total_runs += 1;
         }
-        self.set_meta_data(meta);
-    }
-
-    /// Add cubes to lifetime total (stat tracking in MetaData)
-    fn add_cubes_earned(ref self: PlayerMeta, cubes: u32) {
-        let mut meta = self.get_meta_data();
-        // Cap at max u32
-        let new_total: u64 = meta.total_cubes_earned.into() + cubes.into();
-        meta
-            .total_cubes_earned =
-                if new_total > 0xFFFFFFFF {
-                    0xFFFFFFFF
-                } else {
-                    new_total.try_into().unwrap()
-                };
         self.set_meta_data(meta);
     }
 
@@ -142,7 +126,6 @@ mod tests {
 
         let data = meta.get_meta_data();
         assert!(data.total_runs == 0, "Should have 0 runs");
-        assert!(data.total_cubes_earned == 0, "Should have 0 cubes earned");
         assert!(data.daily_stars == 0, "Should have 0 daily stars");
     }
 
@@ -186,5 +169,4 @@ mod tests {
         let data = meta.get_meta_data();
         assert!(data.daily_stars == 2, "Should have 2 daily stars");
     }
-    // Note: Cube balance tests removed - cube balance is now managed by ERC1155 CubeToken contract
 }

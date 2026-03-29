@@ -9,8 +9,6 @@
 //!
 //! Other systems call this via dispatcher to avoid importing heavy dependencies.
 
-use zkube::types::bonus::Bonus;
-
 #[starknet::interface]
 pub trait IGridSystem<T> {
     /// Initialize a new game's grid with starting blocks.
@@ -29,19 +27,7 @@ pub trait IGridSystem<T> {
         row_index: u8,
         start_index: u8,
         final_index: u8,
-        skill_data: felt252,
     ) -> (u8, bool);
-
-    /// Apply an active skill effect to the grid.
-    /// Returns lines_cleared
-    fn apply_bonus(
-        ref self: T,
-        game_id: felt252,
-        bonus: Bonus,
-        row_index: u8,
-        col_index: u8,
-        skill_data: felt252,
-    ) -> u8;
 
     /// Insert a new line if the grid is empty.
     fn insert_line_if_empty(ref self: T, game_id: felt252);
@@ -67,7 +53,6 @@ mod grid_system {
     };
     use zkube::models::config::GameSettings;
     use zkube::models::game::{Game, GameLevel, GameSeed, GameTrait};
-    use zkube::types::bonus::Bonus;
     use zkube::types::constraint::{
         ConstraintContext, LevelConstraint, LevelConstraintTrait, any_needs_break_blocks,
         get_break_blocks_target_size,
@@ -156,7 +141,6 @@ mod grid_system {
             row_index: u8,
             start_index: u8,
             final_index: u8,
-            skill_data: felt252,
         ) -> (u8, bool) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
@@ -183,7 +167,7 @@ mod grid_system {
             };
             let constraint_3 = LevelConstraintTrait::none();
 
-            // Compute highest occupied row BEFORE the move (for FillAndClear constraint)
+            // Compute highest occupied row BEFORE the move (for constraint context)
             let highest_row_before = InternalImpl::highest_occupied_row(game.blocks);
 
             // Check if we need to track BreakBlocks (expensive — only when active)
@@ -322,22 +306,6 @@ mod grid_system {
             world.write_model(@game);
 
             (lines_cleared, false)
-        }
-
-        fn apply_bonus(
-            ref self: ContractState,
-            game_id: felt252,
-            bonus: Bonus,
-            row_index: u8,
-            col_index: u8,
-            skill_data: felt252,
-        ) -> u8 {
-            let _ = game_id;
-            let _ = bonus;
-            let _ = row_index;
-            let _ = col_index;
-            let _ = skill_data;
-            0
         }
 
         fn insert_line_if_empty(ref self: ContractState, game_id: felt252) {
