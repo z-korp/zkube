@@ -4,7 +4,7 @@ description = "Reversed tetris fully onchain."
 cover_uri = "file://assets/cover.png"
 icon_uri = "file://assets/icon.png"
 website = "https://app.zkube.xyz"
-seed = "zkube_jc_slot_v6"
+seed = "zkube_jc_slot_v9"
 
 [world.socials]
 x = "https://x.com/ohayo_dojo"
@@ -17,7 +17,8 @@ default = "zkube_jc_sepolia_v1"
 [env]
 rpc_url = "https://api.cartridge.gg/x/zkube-djizus-slot/katana"
 account_address = "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
-# private_key: use DOJO_PRIVATE_KEY env var or --keystore flag
+private_key = "0xc5b2fcab997346f3ea1c00b002ecf6f382c5f9c9659a3894eb783c5320f912"
+world_address = "0x02bdb0cc3800b7a2e618a26f364d1ee4ae914c7c616a1c43aa80a8835576e402"
 
 [writers]
 # Models — game state
@@ -28,6 +29,7 @@ account_address = "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5c
 "zkube_jc_sepolia_v1-GameMetadata" = ["zkube_jc_sepolia_v1-game_system"]
 "zkube_jc_sepolia_v1-TokenMetadata" = ["zkube_jc_sepolia_v1-game_system"]
 "zkube_jc_sepolia_v1-PlayerMeta" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system"]
+"zkube_jc_sepolia_v1-PlayerBestRun" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system"]
 # Models — config
 "zkube_jc_sepolia_v1-GameSettings" = ["zkube_jc_sepolia_v1-config_system"]
 "zkube_jc_sepolia_v1-GameSettingsMetadata" = ["zkube_jc_sepolia_v1-config_system"]
@@ -43,7 +45,6 @@ account_address = "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5c
 "zkube_jc_sepolia_v1-LevelStarted" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system", "zkube_jc_sepolia_v1-level_system"]
 "zkube_jc_sepolia_v1-LevelCompleted" = ["zkube_jc_sepolia_v1-move_system", "zkube_jc_sepolia_v1-level_system"]
 "zkube_jc_sepolia_v1-RunEnded" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system"]
-"zkube_jc_sepolia_v1-RunCompleted" = ["zkube_jc_sepolia_v1-move_system", "zkube_jc_sepolia_v1-level_system"]
 "zkube_jc_sepolia_v1-ConstraintProgress" = ["zkube_jc_sepolia_v1-game_system"]
 
 [init_call_args]
