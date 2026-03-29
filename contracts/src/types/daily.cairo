@@ -8,7 +8,9 @@ pub enum RankingMetric {
     Level,
     /// Highest CUBEs earned in a single run
     CubesEarned,
-    /// Composite ranking value: (endless_depth << 16) | total_score
+    /// Composite ranking value (mode-aware):
+    /// - Map: (total_stars << 16) | total_score
+    /// - Endless: total_score
     Composite,
 }
 

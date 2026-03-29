@@ -103,8 +103,18 @@ pub struct PlayerBestRun {
 
 #[generate_trait]
 pub impl PlayerBestRunImpl of PlayerBestRunTrait {
+    /// Check whether a best-run record has been initialized.
+    fn exists(self: @PlayerBestRun) -> bool {
+        *self.best_game_id != 0 || *self.best_score > 0 || *self.best_stars > 0 || *self.best_level > 0
+            || *self.map_cleared
+    }
+
     /// Check if this run beats the existing best. Returns true if it should replace.
     fn is_new_best(self: @PlayerBestRun, mode: u8, score: u32, stars: u8) -> bool {
+        if !self.exists() {
+            return true;
+        }
+
         if mode == 1 {
             // Endless: pure score comparison
             score > *self.best_score

@@ -25,6 +25,7 @@ mod move_system {
     use zkube::helpers::game_libs::{
         GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
     };
+    use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::{game_over, level_check, token};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
 
@@ -74,22 +75,48 @@ mod move_system {
 
             // Re-read game after grid_system modified it (needed for level/game-over checks)
             let game: Game = world.read_model(game_id);
-            let game_level: GameLevel = world.read_model(game_id);
-            let run_data = game.get_run_data();
+            let mut game_level: GameLevel = world.read_model(game_id);
+            let mut run_data = game.get_run_data();
 
-            // Check for level completion
-            let is_complete = level_check::is_level_complete(@game_level, @run_data);
+            if run_data.mode == 0 {
+                // Map mode: preserve existing completion/failure flow.
+                let is_complete = level_check::is_level_complete(@game_level, @run_data);
 
-            if is_complete {
-                libs.level.finalize_level(game_id, 0);
-            } else if is_grid_full {
-                let mut updated_game: Game = world.read_model(game_id);
-                updated_game.over = true;
-                world.write_model(@updated_game);
-                game_over::handle_game_over(ref world, updated_game, player);
+                if is_complete {
+                    libs.level.finalize_level(game_id, 0);
+                } else if is_grid_full {
+                    let mut updated_game: Game = world.read_model(game_id);
+                    updated_game.over = true;
+                    world.write_model(@updated_game);
+                    game_over::handle_game_over(ref world, updated_game, player);
+                } else {
+                    let is_failed = level_check::is_level_failed(@game_level, @run_data);
+                    if is_failed {
+                        let mut updated_game: Game = world.read_model(game_id);
+                        updated_game.over = true;
+                        world.write_model(@updated_game);
+                        game_over::handle_game_over(ref world, updated_game, player);
+                    }
+                }
             } else {
-                let is_failed = level_check::is_level_failed(@game_level, @run_data);
-                if is_failed {
+                // Endless mode: no level completion/failure checks.
+                let target_difficulty = LevelGeneratorTrait::get_endless_difficulty_for_score(
+                    run_data.total_score,
+                );
+                let target_difficulty_u8: u8 = target_difficulty.into();
+
+                if run_data.current_difficulty != target_difficulty_u8 {
+                    run_data.current_difficulty = target_difficulty_u8;
+
+                    let mut updated_game: Game = world.read_model(game_id);
+                    updated_game.set_run_data(run_data);
+                    world.write_model(@updated_game);
+
+                    game_level.difficulty = target_difficulty_u8;
+                    world.write_model(@game_level);
+                }
+
+                if is_grid_full {
                     let mut updated_game: Game = world.read_model(game_id);
                     updated_game.over = true;
                     world.write_model(@updated_game);

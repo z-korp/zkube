@@ -5,18 +5,20 @@ use dojo::event::EventStorage;
 use dojo::model::ModelStorage;
 use dojo::world::WorldStorage;
 use starknet::{ContractAddress, get_block_timestamp};
-use zkube::constants::DAILY_CHALLENGE::is_daily_challenge_settings;
 use zkube::events::RunEnded;
 use zkube::helpers::config::ConfigUtilsTrait;
 use zkube::helpers::daily;
 use zkube::models::game::{Game, GameTrait};
-use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
-use zkube::models::daily::{DailyChallenge, DailyEntry, DailyEntryTrait, GameChallenge};
+use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
+use zkube::models::daily::{
+    DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait, GameChallenge,
+};
 
 /// Handle game over: update player meta, emit event, submit daily result.
 /// Used by game_system (surrender) and move_system (level failed/game over).
 pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAddress) {
     let run_data = game.get_run_data();
+    let mode = run_data.mode;
     let capped_score: u16 = if run_data.total_score > 65535 {
         65535
     } else {
@@ -34,6 +36,27 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
 
     let settings = ConfigUtilsTrait::get_game_settings(world, game.game_id);
 
+    // Upsert best run per player × settings × mode.
+    let total_stars = if mode == 0 {
+        calculate_total_stars(game)
+    } else {
+        0
+    };
+    let mut best_run: PlayerBestRun = world.read_model((player, settings.settings_id, mode));
+    if best_run.is_new_best(mode, run_data.total_score, total_stars) {
+        best_run = PlayerBestRun {
+            player,
+            settings_id: settings.settings_id,
+            mode,
+            best_score: run_data.total_score,
+            best_stars: total_stars,
+            best_level: run_data.current_level,
+            map_cleared: run_data.zone_cleared,
+            best_game_id: game.game_id,
+        };
+        world.write_model(@best_run);
+    }
+
     // Emit run ended event
     world
         .emit_event(
@@ -48,10 +71,11 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
             },
         );
 
-    // Auto-submit result for daily challenge games
-    if is_daily_challenge_settings(settings.settings_id) {
-        let game_challenge: GameChallenge = world.read_model(game.game_id);
-        if game_challenge.challenge_id > 0 {
+    // Auto-submit result for daily challenge games.
+    let game_challenge: GameChallenge = world.read_model(game.game_id);
+    if game_challenge.challenge_id > 0 {
+        let challenge: DailyChallenge = world.read_model(game_challenge.challenge_id);
+        if challenge.exists() {
             auto_submit_daily_result(
                 ref world,
                 game_challenge.challenge_id,
@@ -60,6 +84,8 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
                 capped_score,
                 run_data.current_level,
                 run_data.current_difficulty,
+                total_stars,
+                challenge.game_mode,
                 0,
             );
 
@@ -69,6 +95,38 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
             world.write_model(@player_meta);
         }
     }
+}
+
+/// Compute ranking value by mode.
+/// - Map: total_stars * 65536 + total_score
+/// - Endless: total_score
+fn compute_ranking_value(mode: u8, total_stars: u8, total_score: u16) -> u32 {
+    if mode == 1 {
+        total_score.into()
+    } else {
+        total_stars.into() * 65536 + total_score.into()
+    }
+}
+
+/// Sum stars across map levels 1..10.
+fn calculate_total_stars(game: Game) -> u8 {
+    let mut stars: u8 = 0;
+    let mut level: u8 = 1;
+    while level <= 10 {
+        stars += game.get_level_stars(level);
+        level += 1;
+    }
+    stars
+}
+
+/// Resolve stars for an existing daily entry best game (map mode ranking).
+fn get_entry_best_stars(world: WorldStorage, entry: DailyEntry) -> u8 {
+    if entry.best_game_id == 0 {
+        return 0;
+    }
+
+    let best_game: Game = world.read_model(entry.best_game_id);
+    calculate_total_stars(best_game)
 }
 
 /// Auto-submit a game result to the daily challenge leaderboard.
@@ -82,6 +140,8 @@ fn auto_submit_daily_result(
     total_score: u16,
     current_level: u8,
     endless_depth: u8,
+    total_stars: u8,
+    mode: u8,
     total_cubes: u16,
 ) {
     let challenge: DailyChallenge = world.read_model(challenge_id);
@@ -94,11 +154,15 @@ fn auto_submit_daily_result(
         return; // Player hasn't registered, skip
     }
 
-    // Composite ranking: depth dominates, score breaks ties.
-    let ranking_value: u32 = endless_depth.into() * 65536 + total_score.into();
+    let ranking_value = compute_ranking_value(mode, total_stars, total_score);
 
     // Check if this beats the player's current best
-    let current_best: u32 = entry.best_depth.into() * 65536 + entry.best_score.into();
+    let current_best: u32 = if mode == 1 {
+        entry.best_score.into()
+    } else {
+        let best_stars = get_entry_best_stars(world, entry);
+        compute_ranking_value(0, best_stars, entry.best_score)
+    };
 
     if ranking_value > current_best {
         // Update entry with new bests

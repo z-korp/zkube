@@ -38,7 +38,6 @@ mod game_system {
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
-    use zkube::constants::DAILY_CHALLENGE;
     use zkube::events::StartGame;
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::game_libs::{
@@ -295,9 +294,37 @@ mod game_system {
             // Get game settings (selected via token settings_id)
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
 
+            // Detect active daily challenge context by (mode, map_settings_id).
+            let mut daily_seed: felt252 = 0;
+            let mut daily_challenge_id: u32 = 0;
+            match world.dns_address(@"daily_challenge_system") {
+                Option::Some(daily_system_addr) => {
+                    let daily = IDailyChallengeSystemDispatcher {
+                        contract_address: daily_system_addr,
+                    };
+                    let challenge_id = daily.get_current_challenge();
+                    if challenge_id > 0 {
+                        let challenge: DailyChallenge = world.read_model(challenge_id);
+                        if challenge.map_settings_id == settings.settings_id
+                            && challenge.game_mode == mode_val {
+                            let entry: DailyEntry = world.read_model((challenge_id, player));
+                            assert!(entry.exists(), "Must register for daily challenge first");
+
+                            let game_challenge = GameChallenge { game_id, challenge_id };
+                            world.write_model(@game_challenge);
+
+                            daily_seed = challenge.seed;
+                            daily_challenge_id = challenge_id;
+                        }
+                    }
+                },
+                Option::None => {},
+            }
+            let is_daily_game = daily_challenge_id > 0;
+
             // === MAP ACCESS GATE ===
-            // Daily challenge settings bypass the entitlement check (always F2P)
-            if !DAILY_CHALLENGE::is_daily_challenge_settings(settings.settings_id) {
+            // Daily challenge runs bypass entitlement checks.
+            if !is_daily_game {
                 let metadata: GameSettingsMetadata = world.read_model(settings.settings_id);
                 if !metadata.is_free {
                     let entitlement: MapEntitlement = world.read_model((player, settings.settings_id));
@@ -305,31 +332,9 @@ mod game_system {
                 }
             }
 
-            // Generate seed: daily challenge uses shared seed, otherwise VRF/pseudo-random
-            let (seed, vrf_enabled) = if DAILY_CHALLENGE::is_daily_challenge_settings(
-                settings.settings_id,
-            ) {
-                // Daily challenge: use the challenge's shared seed for determinism
-                let daily_system_addr = world
-                    .dns_address(@"daily_challenge_system")
-                    .expect('DailyChallengeSystem not in DNS');
-                let daily = IDailyChallengeSystemDispatcher {
-                    contract_address: daily_system_addr,
-                };
-                let challenge_id = daily.get_current_challenge();
-                assert!(challenge_id > 0, "No active daily challenge");
-                let challenge: DailyChallenge = world.read_model(challenge_id);
-
-                // Verify player has registered for this challenge
-                let player_check = get_caller_address();
-                let entry: DailyEntry = world.read_model((challenge_id, player_check));
-                assert!(entry.exists(), "Must register for daily challenge first");
-
-                // Store game-to-challenge mapping
-                let game_challenge = GameChallenge { game_id, challenge_id };
-                world.write_model(@game_challenge);
-
-                (challenge.seed, false)
+            // Generate seed: daily challenge uses shared seed, otherwise VRF/pseudo-random.
+            let (seed, vrf_enabled) = if is_daily_game {
+                (daily_seed, false)
             } else {
                 // Normal game: use VRF if available, otherwise pseudo-random
                 let vrf_addr = self.vrf_address.read();

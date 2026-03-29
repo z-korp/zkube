@@ -6,10 +6,10 @@ pub trait IDailyChallengeSystem<T> {
     // === Admin ===
 
     /// Create a new daily challenge (admin only)
-    /// @param settings_id: GameSettings ID for this challenge (100-109)
+    /// @param settings_id: Map GameSettings ID for this challenge
     /// @param ranking_metric: legacy field (0=Score,1=Level,2=Cubes,3=Composite). Stored as Composite.
-    /// @param zone_id: Fixed zone for this daily challenge
-    /// @param mutator_id: Fixed mutator for this daily challenge
+    /// @param zone_id: Encodes game_mode (0=Map, 1=Endless) for backward compatibility
+    /// @param mutator_id: Legacy reserved parameter (unused)
     /// @param prize_amount: LORDS to deposit as prize pool
     fn create_daily_challenge(
         ref self: T,
@@ -78,7 +78,6 @@ mod daily_challenge_system {
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
     use core::num::traits::Zero;
     use zkube::constants::DEFAULT_NS;
-    use zkube::constants::DAILY_CHALLENGE;
     use zkube::helpers::{daily, prize};
     use zkube::models::daily::{
         DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait, DailyLeaderboard,
@@ -136,19 +135,17 @@ mod daily_challenge_system {
             // Admin-only
             self.assert_admin(caller);
 
-            // Validate settings_id is in daily challenge range (100-109)
-            assert!(
-                DAILY_CHALLENGE::is_daily_challenge_settings(settings_id),
-                "settings_id must be in daily challenge range (100-109)",
-            );
-
             // Validate ranking metric (panics on invalid value)
-            // NOTE: ranking is now always composite (depth then score),
+            // NOTE: ranking is now always mode-aware composite,
             // but we keep this field for backward compatibility.
             let _metric: RankingMetric = ranking_metric.into();
             let composite_metric: u8 = RankingMetric::Composite.into();
+            // Backward-compatible parameter mapping:
+            // - zone_id now carries game_mode (0=Map, 1=Endless)
+            // - settings_id is the actual map settings id
+            let game_mode: u8 = zone_id & 0x1;
+            let map_settings_id: u32 = settings_id;
             // Kept in interface for backward compatibility; no longer stored on model.
-            let _ = zone_id;
             let _ = mutator_id;
 
             // Assign challenge ID
@@ -184,8 +181,8 @@ mod daily_challenge_system {
                 total_entries: 0,
                 prize_pool: prize_amount,
                 settled: false,
-                game_mode: 0,
-                map_settings_id: settings_id,
+                game_mode,
+                map_settings_id,
             };
             world.write_model(@challenge);
         }
@@ -356,11 +353,29 @@ mod daily_challenge_system {
             let depth = run_data.current_difficulty;
             let cubes: u16 = 0;
 
-            // Composite ranking: depth dominates, score breaks ties.
-            let ranking_value: u32 = depth.into() * 65536 + score.into();
+            // Mode-aware ranking:
+            // - Map: total_stars * 65536 + total_score
+            // - Endless: total_score
+            let mode = challenge.game_mode;
+            let stars = if mode == 0 {
+                InternalImpl::calculate_total_stars(game)
+            } else {
+                0
+            };
+            let ranking_value: u32 = InternalImpl::compute_ranking_value(mode, stars, score);
 
             // Check if this beats the player's current best
-            let current_best: u32 = entry.best_depth.into() * 65536 + entry.best_score.into();
+            let current_best: u32 = if mode == 1 {
+                entry.best_score.into()
+            } else {
+                let best_stars = if entry.best_game_id == 0 {
+                    0
+                } else {
+                    let best_game: Game = world.read_model(entry.best_game_id);
+                    InternalImpl::calculate_total_stars(best_game)
+                };
+                InternalImpl::compute_ranking_value(0, best_stars, entry.best_score)
+            };
 
             if ranking_value > current_best {
                 // Update entry with new bests
@@ -429,6 +444,29 @@ mod daily_challenge_system {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
+        /// Compute ranking value by mode.
+        /// - Map: total_stars * 65536 + total_score
+        /// - Endless: total_score
+        #[inline(always)]
+        fn compute_ranking_value(mode: u8, total_stars: u8, total_score: u16) -> u32 {
+            if mode == 1 {
+                total_score.into()
+            } else {
+                total_stars.into() * 65536 + total_score.into()
+            }
+        }
+
+        /// Sum stars across map levels 1..10.
+        fn calculate_total_stars(game: Game) -> u8 {
+            let mut stars: u8 = 0;
+            let mut level: u8 = 1;
+            while level <= 10 {
+                stars += game.get_level_stars(level);
+                level += 1;
+            }
+            stars
+        }
+
         /// Assert caller is admin
         #[inline(always)]
         fn assert_admin(self: @ContractState, caller: ContractAddress) {
