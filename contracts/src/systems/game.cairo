@@ -339,12 +339,12 @@ mod game_system {
                 };
                 (random.seed, vrf_on)
             };
-            let mutator_mask: u8 = 0; // Mutators deferred — zeroed out
+            let active_mutator_id: u8 = 0; // Mutators deferred — zeroed out
 
             let timestamp = get_block_timestamp();
 
             // Create empty game shell (grid will be initialized via dispatcher)
-            let game = GameTrait::new_empty(game_id, timestamp, 0, mutator_mask);
+            let game = GameTrait::new_empty(game_id, timestamp, 0, active_mutator_id, 0);
 
             // Store the seed separately
             let game_seed = GameSeed {

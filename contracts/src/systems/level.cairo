@@ -56,7 +56,7 @@ mod level_system {
             run_data.constraint_progress = 0;
             run_data.constraint_2_progress = 0;
             run_data.zone_cleared = false;
-            run_data.endless_depth = 0;
+            run_data.current_difficulty = 0;
             game.combo_counter = 0;
             game.max_combo = 0;
             game.set_run_data(run_data);
@@ -163,11 +163,11 @@ mod level_system {
                 current_level + 1
             } else if current_level == 10 {
                 run_data.zone_cleared = true;
-                run_data.endless_depth = 1;
+                run_data.current_difficulty = 1;
                 11
             } else {
-                if run_data.endless_depth < 255 {
-                    run_data.endless_depth += 1;
+                if run_data.current_difficulty < 255 {
+                    run_data.current_difficulty += 1;
                 }
                 current_level + 1
             };

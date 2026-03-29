@@ -15,6 +15,7 @@ pub mod types {
     pub mod constraint;
 
     pub mod difficulty;
+    pub mod mode;
     pub mod level;
     pub mod width;
     pub mod daily;

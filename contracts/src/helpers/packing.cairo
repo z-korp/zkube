@@ -2,7 +2,7 @@ use alexandria_math::BitShift;
 
 /// Bit-packing helpers for efficient storage.
 ///
-/// run_data layout (101 bits used, 151 reserved):
+/// run_data layout (102 bits used, 150 reserved):
 /// - 0-7: current_level
 /// - 8-15: level_score
 /// - 16-23: level_moves
@@ -11,9 +11,10 @@ use alexandria_math::BitShift;
 /// - 40-47: max_combo_run
 /// - 48-79: total_score (u32)
 /// - 80: zone_cleared
-/// - 81-88: endless_depth
+/// - 81-88: current_difficulty
 /// - 89-92: zone_id (RESERVED — always zero, kept for storage compatibility)
-/// - 93-100: mutator_mask (RESERVED — always zero, kept for storage compatibility)
+/// - 93-100: active_mutator_id (RESERVED — always zero, kept for storage compatibility)
+/// - 101: mode (0=Map, 1=Endless)
 
 /// Unpacked run data structure (zone-based runs + endless)
 #[derive(Copy, Drop, Serde, Debug, PartialEq)]
@@ -27,9 +28,10 @@ pub struct RunData {
     pub max_combo_run: u8,
     pub total_score: u32,
     pub zone_cleared: bool,
-    pub endless_depth: u8,
+    pub current_difficulty: u8,
     pub zone_id: u8,
-    pub mutator_mask: u8,
+    pub active_mutator_id: u8,
+    pub mode: u8,
 }
 
 /// Bit positions and masks for run_data
@@ -42,9 +44,10 @@ mod RunDataBits {
     pub const MAX_COMBO_RUN_POS: u8 = 40;
     pub const TOTAL_SCORE_POS: u8 = 48;
     pub const ZONE_CLEARED_POS: u8 = 80;
-    pub const ENDLESS_DEPTH_POS: u8 = 81;
+    pub const CURRENT_DIFFICULTY_POS: u8 = 81;
     pub const ZONE_ID_POS: u8 = 89;
-    pub const MUTATOR_MASK_POS: u8 = 93;
+    pub const ACTIVE_MUTATOR_ID_POS: u8 = 93;
+    pub const MODE_POS: u8 = 101;
 
     pub const U8_MASK: u256 = 0xFF;
     pub const U32_MASK: u256 = 0xFFFFFFFF;
@@ -55,7 +58,7 @@ mod RunDataBits {
 #[generate_trait]
 pub impl RunDataPacking of RunDataPackingTrait {
     /// Create a new RunData with initial values for level 1.
-    fn new(zone_id: u8, mutator_mask: u8) -> RunData {
+    fn new(zone_id: u8, active_mutator_id: u8, mode: u8) -> RunData {
         RunData {
             current_level: 1,
             level_score: 0,
@@ -65,9 +68,10 @@ pub impl RunDataPacking of RunDataPackingTrait {
             max_combo_run: 0,
             total_score: 0,
             zone_cleared: false,
-            endless_depth: 0,
+            current_difficulty: 0,
             zone_id: zone_id & 0xF,
-            mutator_mask,
+            active_mutator_id,
+            mode: mode & 0x1,
         }
     }
 
@@ -119,8 +123,8 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                self.endless_depth.into() & RunDataBits::U8_MASK,
-                RunDataBits::ENDLESS_DEPTH_POS.into(),
+                self.current_difficulty.into() & RunDataBits::U8_MASK,
+                RunDataBits::CURRENT_DIFFICULTY_POS.into(),
             );
         packed = packed
             | BitShift::shl(
@@ -129,8 +133,13 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                self.mutator_mask.into() & RunDataBits::U8_MASK,
-                RunDataBits::MUTATOR_MASK_POS.into(),
+                self.active_mutator_id.into() & RunDataBits::U8_MASK,
+                RunDataBits::ACTIVE_MUTATOR_ID_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                self.mode.into() & RunDataBits::BOOL_MASK,
+                RunDataBits::MODE_POS.into(),
             );
 
         packed.try_into().unwrap()
@@ -173,7 +182,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 .unwrap(),
             zone_cleared: (BitShift::shr(data, RunDataBits::ZONE_CLEARED_POS.into())
                 & RunDataBits::BOOL_MASK) == 1,
-            endless_depth: (BitShift::shr(data, RunDataBits::ENDLESS_DEPTH_POS.into())
+            current_difficulty: (BitShift::shr(data, RunDataBits::CURRENT_DIFFICULTY_POS.into())
                 & RunDataBits::U8_MASK)
                 .try_into()
                 .unwrap(),
@@ -181,8 +190,11 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 & RunDataBits::FOUR_BITS_MASK)
                 .try_into()
                 .unwrap(),
-            mutator_mask: (BitShift::shr(data, RunDataBits::MUTATOR_MASK_POS.into())
+            active_mutator_id: (BitShift::shr(data, RunDataBits::ACTIVE_MUTATOR_ID_POS.into())
                 & RunDataBits::U8_MASK)
+                .try_into()
+                .unwrap(),
+            mode: (BitShift::shr(data, RunDataBits::MODE_POS.into()) & RunDataBits::BOOL_MASK)
                 .try_into()
                 .unwrap(),
         }

@@ -351,7 +351,7 @@ mod daily_challenge_system {
                 run_data.total_score.try_into().unwrap()
             };
             let level = run_data.current_level;
-            let depth = run_data.endless_depth;
+            let depth = run_data.current_difficulty;
             let cubes: u16 = 0;
 
             // Composite ranking: depth dominates, score breaks ties.
