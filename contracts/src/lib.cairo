@@ -16,6 +16,7 @@ pub mod types {
 
     pub mod difficulty;
     pub mod mode;
+    pub mod mutator;
     pub mod level;
     pub mod width;
     pub mod daily;

@@ -527,6 +527,11 @@ mod config_system {
                 boss_upgrades_enabled,
                 reroll_base_cost,
                 starting_charges,
+                // Mutator Settings (default: none)
+                allowed_mutators: 0,
+                // Endless Mode Settings (defaults)
+                endless_difficulty_thresholds: 0,
+                endless_score_multipliers: 0,
             };
 
             // Create metadata

@@ -184,6 +184,8 @@ mod daily_challenge_system {
                 total_entries: 0,
                 prize_pool: prize_amount,
                 settled: false,
+                game_mode: 0,
+                map_settings_id: settings_id,
             };
             world.write_model(@challenge);
         }

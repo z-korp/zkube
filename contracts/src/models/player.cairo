@@ -79,6 +79,44 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
     }
 }
 
+/// Tracks the best run per player × map × mode combination
+#[derive(Copy, Drop, Serde, Introspect)]
+#[dojo::model]
+pub struct PlayerBestRun {
+    #[key]
+    pub player: ContractAddress,
+    #[key]
+    pub settings_id: u32,
+    #[key]
+    pub mode: u8, // 0=Map, 1=Endless
+    /// Best total score across all runs for this combination
+    pub best_score: u32,
+    /// Best total stars (Map mode only, 0-30)
+    pub best_stars: u8,
+    /// Best level reached (Map mode only, 1-10)
+    pub best_level: u8,
+    /// Whether map was fully cleared (Map mode, L10 boss beaten)
+    pub map_cleared: bool,
+    /// Game ID of the best run
+    pub best_game_id: felt252,
+}
+
+#[generate_trait]
+pub impl PlayerBestRunImpl of PlayerBestRunTrait {
+    /// Check if this run beats the existing best. Returns true if it should replace.
+    fn is_new_best(self: @PlayerBestRun, mode: u8, score: u32, stars: u8) -> bool {
+        if mode == 1 {
+            // Endless: pure score comparison
+            score > *self.best_score
+        } else {
+            // Map: stars × 65536 + score (composite)
+            let new_rank: u64 = stars.into() * 65536 + score.into();
+            let old_rank: u64 = (*self.best_stars).into() * 65536 + (*self.best_score).into();
+            new_rank > old_rank
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use starknet::ContractAddress;

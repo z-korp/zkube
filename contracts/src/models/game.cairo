@@ -75,7 +75,9 @@ pub struct GameLevel {
     pub constraint3_count: u8,
     // Cube thresholds
     pub cube_3_threshold: u16, // Moves threshold for 3 cubes
-    pub cube_2_threshold: u16 // Moves threshold for 2 cubes
+    pub cube_2_threshold: u16, // Moves threshold for 2 cubes
+    // Mutator
+    pub mutator_id: u8, // Active mutator for this level (0=none)
 }
 use zkube::types::level::LevelConfig;
 
@@ -100,6 +102,7 @@ pub impl GameLevelImpl of GameLevelTrait {
             constraint3_count: config.constraint_3.required_count,
             cube_3_threshold: config.cube_3_threshold,
             cube_2_threshold: config.cube_2_threshold,
+            mutator_id: 0,
         }
     }
 }

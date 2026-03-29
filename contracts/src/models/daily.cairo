@@ -18,7 +18,7 @@ pub struct GameChallenge {
 pub struct DailyChallenge {
     #[key]
     pub challenge_id: u32,
-    /// GameSettings ID (100-109 for daily presets)
+    /// GameSettings ID — actual map settings (0=Polynesian, 1=Japan, 2=Persia)
     pub settings_id: u32,
     /// VRF seed — shared by all players for identical block sequences
     pub seed: felt252,
@@ -34,6 +34,10 @@ pub struct DailyChallenge {
     pub prize_pool: u256,
     /// True once prize distribution is finalized
     pub settled: bool,
+    /// Game mode for this challenge: 0=Map, 1=Endless
+    pub game_mode: u8,
+    /// Map settings ID (real map, not daily-specific range): 0, 1, 2
+    pub map_settings_id: u32,
 }
 
 /// Per-player entry tracking for a daily challenge (compound key)
@@ -126,6 +130,8 @@ mod tests {
             total_entries: 0,
             prize_pool: 1000,
             settled: false,
+            game_mode: 0,
+            map_settings_id: 0,
         }
     }
 

@@ -107,6 +107,16 @@ pub struct GameSettings {
     pub boss_upgrades_enabled: u8, // 0/1 — can boss clears upgrade active skills? (default: 1)
     pub reroll_base_cost: u8, // 0=rerolls disabled, N=base cost with 3x escalation (default: 5)
     pub starting_charges: u8, // Charges given to all actives after final draft pick (default: 1)
+    // === Mutator Settings ===
+    pub allowed_mutators: u32, // Bitmask of mutator IDs allowed for this map (default: 0 = none)
+    // === Endless Mode Settings ===
+    // Packed score thresholds for 8 difficulty tiers (8 × u16 = 128 bits)
+    // Tier 0 threshold is always 0 (VeryEasy). Tiers 1-7 packed here.
+    // Format: tier1 | tier2<<16 | tier3<<32 | tier4<<48 | tier5<<64 | tier6<<80 | tier7<<96
+    pub endless_difficulty_thresholds: felt252,
+    // Packed score multipliers for 8 tiers (8 × u8, stored as ×100, e.g. 150 = 1.5×)
+    // Format: tier0 | tier1<<8 | tier2<<16 | ... | tier7<<56
+    pub endless_score_multipliers: u64,
 }
 
 /// Default values for GameSettings
@@ -212,6 +222,15 @@ pub mod GameSettingsDefaults {
     pub const BOSS_UPGRADES_ENABLED: u8 = 1; // Boss upgrades on
     pub const REROLL_BASE_COST: u8 = 5; // 5 CUBE base reroll cost
     pub const STARTING_CHARGES: u8 = 1; // 1 starting charge per active
+
+    // Endless Mode Defaults
+    // Thresholds stored as felt252 — will be unpacked by helper functions
+    // Default thresholds: [0, 15, 40, 80, 150, 280, 500, 900]
+    // Tier 0 (VeryEasy) = 0 is implicit, only tiers 1-7 stored
+    pub const ENDLESS_DIFFICULTY_THRESHOLDS: felt252 = 0;  // Unpacked via helper; 0 = use hardcoded defaults
+    // Multipliers stored as u64 — 8 × u8, value/10 = multiplier
+    // Default: [10, 12, 14, 17, 20, 25, 33, 40] → [1.0×, 1.2×, 1.4×, 1.7×, 2.0×, 2.5×, 3.3×, 4.0×]
+    pub const ENDLESS_SCORE_MULTIPLIERS: u64 = 0;
 }
 
 #[generate_trait]
@@ -284,6 +303,11 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             boss_upgrades_enabled: GameSettingsDefaults::BOSS_UPGRADES_ENABLED,
             reroll_base_cost: GameSettingsDefaults::REROLL_BASE_COST,
             starting_charges: GameSettingsDefaults::STARTING_CHARGES,
+            // Mutator Settings
+            allowed_mutators: 0, // No mutators by default
+            // Endless Mode Settings
+            endless_difficulty_thresholds: 0, // 0 = use hardcoded defaults
+            endless_score_multipliers: 0, // 0 = use hardcoded defaults
         }
     }
 
