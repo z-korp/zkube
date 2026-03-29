@@ -115,19 +115,23 @@ Level completion happens within the same transaction as the final move. No "next
 
 Difficulty tier changes as `total_score` crosses configurable thresholds. Each tier also applies a **score multiplier** so harder play is more rewarding.
 
-| Tier | Difficulty | Score Threshold (example) | Score Multiplier |
-|------|-----------|--------------------------|-----------------|
-| 0 | VeryEasy | 0 | 1.0× |
-| 1 | Easy | 50 | 1.1× |
-| 2 | Medium | 150 | 1.2× |
-| 3 | MediumHard | 300 | 1.4× |
-| 4 | Hard | 500 | 1.6× |
-| 5 | VeryHard | 800 | 1.9× |
-| 6 | Expert | 1200 | 2.3× |
-| 7 | Master | 1800 | 2.8× |
+| Tier | Difficulty | Score Threshold | Score Multiplier | Typical Duration |
+|------|-----------|----------------|-----------------|-----------------|
+| 0 | VeryEasy | 0 | 100 (1.0×) | ~20-30 moves to cross |
+| 1 | Easy | 30 | 110 (1.1×) | ~25-35 moves |
+| 2 | Medium | 80 | 125 (1.25×) | ~30-40 moves |
+| 3 | MediumHard | 160 | 150 (1.5×) | ~35-50 moves |
+| 4 | Hard | 300 | 175 (1.75×) | ~40-60 moves |
+| 5 | VeryHard | 500 | 200 (2.0×) | ~50-70 moves |
+| 6 | Expert | 800 | 250 (2.5×) | ~60-90 moves |
+| 7 | Master | 1200 | 300 (3.0×) | Terminal — play until death |
 
-*Thresholds are configurable per map via `GameSettings.endless_difficulty_thresholds`.*
-*Multipliers are configurable per tier.*
+**Scoring context:** 1 line clear ≈ 1-2 base points. Combos add `combo_counter × lines_cleared` bonus. With multiplier, a 3-line combo at Master (3.0×) earns ~27 points vs ~9 at VeryEasy (1.0×).
+
+**Storage:** Thresholds packed as 8 × u16 in `GameSettings.endless_difficulty_thresholds` (felt252). Multipliers packed as 8 × u8 (×100 format, so 150 = 1.5×) in a second felt252 field or in the same packing.
+
+*All values are configurable per map via GameSettings — different maps can scale differently.*
+*Multiplier stored as integer ×100 (e.g., 150 = 1.5×). Applied in scoring: `final_points = base_points × multiplier / 100`.*
 
 **Key property:** Difficulty only goes **up**, never down (monotonic). Once you cross a threshold, you stay at that tier. The multiplier ensures that even though blocks get harder, your score accelerates — preventing the "plateau" feeling.
 
