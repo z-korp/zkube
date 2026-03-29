@@ -341,23 +341,60 @@ pub struct GameSettings {
 
 ---
 
+## EGC Integration (Embeddable Game Component)
+
+The game uses Provable Games' `game_components_minigame` framework:
+
+### Token → Game Flow
+1. `FullTokenContract.free_mint(settings_id)` → Creates NFT with `settings_id` in TokenMetadata
+2. `settings_id` represents the **map** (0=Polynesian, 1=Japan, 2=Persia) — NOT the mode
+3. `game_system.create(game_id, mode)` reads `settings_id` from token metadata via `ConfigUtilsTrait::get_game_settings()`
+4. `GameSettings` loaded from Dojo world storage by `settings_id`
+5. **Mode** (Map=0, Endless=1) is a runtime parameter — not stored in the token
+
+### GameSettings (40+ configurable fields per map)
+- **Level scaling:** base_moves (20), max_moves (60), base_ratio_x100 (80), max_ratio_x100 (180)
+- **Difficulty progression:** 8 tier thresholds (VeryEasy→Master)
+- **Constraints:** budgets, chances, start_level — all configurable per map
+- **Block distribution:** size weights per difficulty tier (10 weights: 5 VeryEasy + 5 Master)
+- **Mutator gating:** `allowed_mutators` u32 bitmask (3 per map for Map mode)
+- **Endless scaling:** `endless_difficulty_thresholds` + `endless_score_multipliers`
+- **Legacy fields (unused):** draft_*, cube_*, starting_charges — v1.2 artifacts, not removed yet
+
+### Map Access Control
+- `GameSettingsMetadata.is_free` determines if a map requires purchase
+- settings_id 0 (Polynesian): free for all
+- settings_id 1, 2 (Japan, Persia): require `MapEntitlement` (purchased)
+- Daily challenge games bypass entitlement checks
+
 ## Implementation Status
 
 | Feature | Contract | Frontend |
 |---------|:--------:|:--------:|
 | Grid mechanics | ✅ | ✅ |
 | Map mode (10 levels + boss) | ✅ | ✅ |
-| Endless mode (separate) | ❌ Build | ❌ Build |
-| GameMode enum + RunData | ❌ Build | ❌ Build |
-| Mutator hooks (no-op) | ❌ Build | ❌ Build |
+| Endless mode (separate) | ✅ | ❌ Build |
+| GameMode enum + RunData | ✅ | ❌ Build |
+| Mutator hooks (no-op) | ✅ | ❌ Build |
 | Mutator effects (actual) | ❌ Later | ❌ Later |
-| PlayerBestRun model | ❌ Build | ❌ Build |
-| Mode-aware leaderboards | ❌ Build | ❌ Build |
-| Daily challenge (mode-aware) | ❌ Build | ❌ Build |
-| Score multiplier (endless) | ❌ Build | ❌ Build |
+| PlayerBestRun model | ✅ | ❌ Build |
+| Mode-aware leaderboards | ✅ | ❌ Build |
+| Mode-aware game creation | ✅ | ❌ Build |
+| Mode-aware moves | ✅ | ❌ Build |
+| Mode-aware game over | ✅ | ❌ Build |
+| Daily challenge (mode-aware) | ✅ | ❌ Build |
+| Score multiplier (endless) | ❌ Hook only | ❌ Build |
 | Star system (map) | ✅ | ✅ |
 | Constraint system (map) | ✅ | ✅ |
 | Auto-advance (map) | ✅ | ✅ |
+
+### Stale v1.2 Artifacts (cosmetic debt, not functional issues)
+- `GameSettings` still has `draft_picks`, `draft_pool_mask`, `draft_fixed_level`, `boss_upgrades_enabled`, `reroll_base_cost`, `starting_charges`, `cube_3_percent`, `cube_2_percent` — all unused
+- Events: `LevelCompleted.cubes`, `LevelCompleted.bonuses_earned`, `RunCompleted.total_cubes` — always 0
+- `MetaData.total_cubes_earned` — never incremented
+- `DailyEntry.best_cubes` — never updated
+- `constants.cairo`: `VERSION = 'v1.2.0'` — should be v1.3
+- Constraint generation still includes FillAndClear type in the enum (not generated for levels ≤10)
 
 ---
 

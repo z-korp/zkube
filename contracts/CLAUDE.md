@@ -346,7 +346,7 @@ Row 0 (bottom): [b7][b6][b5][b4][b3][b2][b1][b0]
 
 Each block = 3 bits (0-4), 0 = empty
 
-### run_data Bit Layout (v1.3 — 101 bits)
+### run_data Bit Layout (v1.3 — 102 bits)
 
 ```
 Bits 0-7:     current_level (u8)
@@ -357,12 +357,13 @@ Bits 32-39:   constraint_2_progress (u8)
 Bits 40-47:   max_combo_run (u8)
 Bits 48-79:   total_score (u32)
 Bit 80:       zone_cleared (bool)
-Bits 81-88:   endless_depth (u8)
+Bits 81-88:   current_difficulty (u8)
 Bits 89-92:   zone_id (u4, reserved)
-Bits 93-100:  mutator_mask (u8, reserved)
+Bits 93-100:  active_mutator_id (u8)
+Bit 101:      mode (u1)               — 0=Map, 1=Endless
 ```
 
-**Total: 101 bits used (151 reserved in felt252)**
+**Total: 102 bits used (150 reserved in felt252)**
 
 ## Bonuses
 

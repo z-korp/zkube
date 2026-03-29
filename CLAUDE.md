@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-zKube is a fully on-chain puzzle game built with the Dojo framework on Starknet. Players manipulate blocks on an 8x10 grid to form solid horizontal lines, progress through 10-level zones, defeat bosses, and enter endless mode. The game features VRF-powered randomness, a constraint system, daily challenges, and an achievement system. No economy (no cubes, no shops) — stars are the only progression signal.
+zKube is a fully on-chain puzzle game built with the Dojo framework on Starknet. Players manipulate blocks on an 8×10 grid to form complete horizontal lines. Two game modes — **Map** (10-level structured progression with boss) and **Endless** (pure survival with score-based difficulty scaling) — are available on all 3 maps. The game features VRF-powered randomness, a constraint system (Map mode), mutator hooks, daily challenges, and an achievement system. No economy (no cubes, no shops) — stars and score are the only progression signals.
 
 ## Architecture
 
@@ -14,7 +14,7 @@ zkube/
 │   │   ├── systems/        # game, grid, moves, level, config, renderer, daily_challenge
 │   │   ├── models/         # Game, GameSeed, PlayerMeta, GameSettings, MapEntitlement, Daily
 │   │   ├── helpers/        # controller, level, packing, gravity, random, boss, scoring, game_over
-│   │   ├── types/          # bonus, difficulty, constraint, block, width, level, daily
+│   │   ├── types/          # bonus, difficulty, constraint, block, width, level, daily, mode, mutator
 │   │   └── elements/       # difficulties/
 │   ├── dojo_*.toml         # Network-specific configs
 │   └── manifest_*.json     # Deployment manifests
@@ -62,10 +62,10 @@ zkube/
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         FRONTEND (React)                            │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐      │
-│  │  Home    │───>│ FreeMint │───>│  Create  │───>│   Play   │      │
-│  │  (Zone)  │    │  (NFT)   │    │  (Game)  │    │  Screen  │      │
-│  └──────────┘    └──────────┘    └──────────┘    └──────────┘      │
+│  ┌──────────┐    ┌──────────┐    ┌────────────┐    ┌──────────┐    │
+│  │  Home    │───>│ FreeMint │───>│  Create    │───>│   Play   │    │
+│  │(Map+Mode)│    │  (NFT)   │    │(game,mode) │    │  Screen  │    │
+│  └──────────┘    └──────────┘    └────────────┘    └──────────┘    │
 └─────────────────────────────────────────────────────────────────────┘
                               │
                               │ Transactions via Cartridge Controller
@@ -74,18 +74,19 @@ zkube/
 │                    DOJO WORLD (Starknet)                            │
 │  ┌────────────────┐  ┌──────────────┐  ┌─────────────────┐        │
 │  │  Game System   │  │ Moves System │  │ Level System    │        │
-│  │  - create()    │  │ - move()     │  │ - level gen     │        │
-│  │  - create_run()│  └──────────────┘  │ - constraints   │        │
-│  │  - surrender() │                    └─────────────────┘        │
-│  └────────────────┘                                                │
+│  │- create(id,mode)│ │ - move()     │  │- initialize_lvl │        │
+│  │- create_run()  │  │   (mode-aware)│  │- init_endless   │        │
+│  │- surrender()   │  └──────────────┘  │- finalize_lvl   │        │
+│  └────────────────┘                    └─────────────────┘        │
 │           │          ┌──────────────┐  ┌─────────────────┐        │
-│           ▼          │Daily Challenge│  │Achievement      │        │
-│  ┌────────────────┐  │ - create     │  │ System          │        │
-│  │   Game Model   │  │ - register   │  │ - trophies      │        │
-│  │  - blocks      │  │ - settle     │  └─────────────────┘        │
-│  │  - run_data    │  └──────────────┘                              │
-│  │  - combo/over  │  ┌──────────────┐  ┌─────────────────┐        │
-│  └────────────────┘  │  GameSeed    │  │  PlayerMeta     │        │
+│           ▼          │Daily Challenge│  │  PlayerBestRun  │        │
+│  ┌────────────────┐  │ - create     │  │(player,map,mode)│        │
+│  │   Game Model   │  │ - register   │  │  - best_score   │        │
+│  │  - blocks      │  │ - settle     │  │  - best_stars   │        │
+│  │  - run_data    │  │ - game_mode  │  └─────────────────┘        │
+│  │  - combo/over  │  └──────────────┘                              │
+│  └────────────────┘  ┌──────────────┐  ┌─────────────────┐        │
+│                      │  GameSeed    │  │  PlayerMeta     │        │
 │                      │  - VRF seed  │  │  - best_level   │        │
 │                      └──────────────┘  └─────────────────┘        │
 └─────────────────────────────────────────────────────────────────────┘
@@ -102,22 +103,33 @@ zkube/
 
 1. **Game Creation:**
    - User connects wallet via Cartridge Controller
-   - Selects a zone (Polynesian, Feudal Japan, Ancient Persia)
-   - Calls `free_mint()` on FullTokenContract (gets NFT game token)
-   - Calls `create()` on game_system with the token ID
+   - Selects a map (Polynesian, Feudal Japan, Ancient Persia)
+   - Selects a mode (Map or Endless)
+   - Calls `free_mint(settings_id)` on FullTokenContract (gets NFT with map's settings_id baked in)
+   - Calls `create(game_id, mode)` on game_system
+   - settings_id read from token → GameSettings loaded from world
    - VRF generates random seed (or pseudo-random on slot)
-   - Initial grid created, level 1 config generated from seed
+   - Mutator rolled: Map mode from map's gated pool, Endless from full pool
+   - Map mode: Level 1 initialized with constraints
+   - Endless mode: Perpetual level initialized (VeryEasy, unlimited moves, no constraints)
+   - Grid initialized with blocks
 
-2. **Gameplay (Zone + Endless):**
-   - Frontend displays grid from `Game.blocks` (packed felt252 = 240 bits)
-   - User swipes blocks horizontally via drag handlers
-   - `move()` transaction updates blocks, applies gravity, checks lines
-   - Completed lines increase score, track combos and constraint progress
-   - Level completes when score threshold + constraints met
-   - 10 levels per zone, boss at level 10
-   - After boss clear: `zone_cleared` flag set, endless mode begins
-   - Endless mode: increasingly difficult levels, depth tracked in `endless_depth`
-   - Game over when grid fills up (no valid moves)
+2. **Gameplay — Map Mode (mode=0):**
+   - 10 levels with progressive difficulty, constraints from L3+
+   - `move()` checks level completion (score threshold + constraints met)
+   - Level completes → auto-advance to next level (same transaction)
+   - Boss at level 10 (dual constraints, themed boss identity)
+   - Clearing L10 boss → `zone_cleared = true` → game ends (clean exit)
+   - Star ratings (0-3) per level based on moves efficiency
+   - Ranking: `total_stars × 65536 + total_score`
+
+3. **Gameplay — Endless Mode (mode=1):**
+   - Starts at VeryEasy, scales to Master via score thresholds
+   - Score multiplier increases per difficulty tier (1.0× → 4.0×)
+   - No constraints, no move limits, no levels
+   - `move()` only checks: grid full → game over
+   - Difficulty updates when total_score crosses thresholds
+   - Ranking: pure `total_score`
 
 3. **State Synchronization:**
    - Torii indexes all Game model changes
@@ -143,13 +155,20 @@ pub const DEFAULT_GRID_HEIGHT: u8 = 10;
 
 ### Level System
 
-10-level zones with progressive difficulty, followed by endless mode:
+**Map Mode:** 10-level zones with progressive difficulty:
 - **Moves:** 20 at level 1, scales up with level (LEVEL_CAP=50 for scaling)
 - **Points ratio:** 0.80 at level 1, scales to 1.80 at cap
 - **Difficulty:** VeryEasy → Easy → Medium → MediumHard → Hard → VeryHard → Expert → Master
-- **Constraints:** ComboLines, BreakBlocks, ComboStreak, KeepGridBelow
+- **Constraints:** ComboLines, BreakBlocks, ComboStreak, KeepGridBelow (from L3+)
 - **Boss at level 10:** Dual/triple constraints, themed boss identity
-- **Endless mode:** After boss clear, difficulty keeps scaling, `endless_depth` increments
+- **Level 10 clear:** `zone_cleared = true`, game ends with final score + stars
+
+**Endless Mode:** Score-based difficulty scaling, no levels:
+- Starts at VeryEasy, single perpetual "level" (unlimited moves, no constraints)
+- Difficulty thresholds: [0, 15, 40, 80, 150, 280, 500, 900]
+- Score multipliers: [1.0×, 1.2×, 1.4×, 1.7×, 2.0×, 2.5×, 3.3×, 4.0×]
+- Difficulty only goes up (monotonic), never down
+- Game over only when grid fills up
 
 ### Boss System
 
@@ -174,7 +193,7 @@ Constraint types (None, ComboLines, BreakBlocks, ComboStreak, KeepGridBelow):
 - Leaderboard ranked by depth-then-score
 - Prize pool distribution on settlement
 
-### run_data Layout (101 bits)
+### run_data Layout (102 bits)
 
 ```
 Bits 0-7:     current_level (u8)
@@ -185,10 +204,33 @@ Bits 32-39:   constraint_2_progress (u8)
 Bits 40-47:   max_combo_run (u8)
 Bits 48-79:   total_score (u32)
 Bit 80:       zone_cleared (bool)
-Bits 81-88:   endless_depth (u8)
+Bits 81-88:   current_difficulty (u8)
 Bits 89-92:   zone_id (u4, reserved)
-Bits 93-100:  mutator_mask (u8, reserved)
-```
+Bits 93-100:  active_mutator_id (u8)
+Bit 101:      mode (u1)               — 0=Map, 1=Endless
+## EGC Integration (Embeddable Game Component)
+
+The game uses Provable Games' `game_components_minigame` framework:
+
+### Token → Game Flow
+1. `FullTokenContract.free_mint(settings_id)` → Creates NFT with `settings_id` in TokenMetadata
+2. `settings_id` represents the **map** (0=Polynesian, 1=Japan, 2=Persia) — NOT the mode
+3. `game_system.create(game_id, mode)` reads `settings_id` from token metadata via `ConfigUtilsTrait::get_game_settings()`
+4. `GameSettings` loaded from Dojo world storage by `settings_id`
+5. **Mode** (Map=0, Endless=1) is a runtime parameter — not stored in the token
+
+### Map Access Control
+- `GameSettingsMetadata.is_free` determines if a map requires purchase
+- settings_id 0 (Polynesian): free for all
+- settings_id 1, 2 (Japan, Persia): require `MapEntitlement` (purchased)
+- Daily challenge games bypass entitlement checks
+
+### Mutator System
+- Pool of up to 32 mutators (gated per map via `GameSettings.allowed_mutators` bitmask)
+- Map mode: rolls from map's gated pool at game start
+- Endless mode: rolls from full pool
+- Mutator hooks exist (no-op): `modify_level_config()`, `modify_score()`, `modify_block_weights()`
+- Actual mutator effects to be defined later
 
 ## Key Files Reference
 
@@ -207,13 +249,13 @@ Bits 93-100:  mutator_mask (u8, reserved)
 - Navigation store: `client-budokan/src/stores/navigationStore.ts`
 
 ### Smart Contract Systems
-- `contracts/src/systems/game.cairo` - create, create_run, surrender
-- `contracts/src/systems/moves.cairo` - move()
-- `contracts/src/systems/grid.cairo` - Grid operations
-- `contracts/src/systems/level.cairo` - Level generation + constraints
-- `contracts/src/systems/config.cairo` - Game settings management
+- `contracts/src/systems/game.cairo` - create(game_id, mode), create_run, surrender
+- `contracts/src/systems/moves.cairo` - move() (mode-aware: Map checks completion, Endless checks difficulty)
+- `contracts/src/systems/grid.cairo` - Grid operations (execute_move, initialize_grid)
+- `contracts/src/systems/level.cairo` - initialize_level, initialize_endless_level, finalize_level
+- `contracts/src/systems/config.cairo` - Game settings management, map pricing, entitlements
 - `contracts/src/systems/renderer.cairo` - NFT metadata + SVG
-- `contracts/src/systems/daily_challenge.cairo` - Daily challenge system
+- `contracts/src/systems/daily_challenge.cairo` - Daily challenge system (mode-aware)
 
 ### Smart Contract Models
 - `contracts/src/models/game.cairo` - Game state (blocks, run_data, combo, over)
