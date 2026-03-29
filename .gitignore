@@ -56,3 +56,9 @@ addresses.csv
 # Zone identifier files (Windows/WSL)
 *:Zone.Identifier
 .env
+
+# Playwright screenshots (generated during dev/testing)
+*.png
+!assets/**/*.png
+!client-budokan/public/**/*.png
+!packages/**/*.png
