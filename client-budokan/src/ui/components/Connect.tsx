@@ -6,10 +6,9 @@ const Connect = () => {
   const { connect, connectors, isPending } = useConnect();
 
   const handleConnect = () => {
-    // Find the controller connector (primary) or use first available
     const controllerConnector = connectors.find((c) => c.id === "controller");
     const connector = controllerConnector || connectors[0];
-    
+
     if (connector) {
       connect({ connector });
     }
@@ -17,14 +16,13 @@ const Connect = () => {
 
   return (
     <Button
-      variant="default"
       onClick={handleConnect}
       disabled={isPending}
       isLoading={isPending}
-      className="gap-2"
+      className="gap-2 w-full h-14 bg-emerald-600 hover:bg-emerald-500 text-white text-lg font-bold rounded-xl shadow-lg shadow-emerald-900/30 transition-all active:scale-[0.97]"
     >
-      <Gamepad2 size={16} />
-      {isPending ? "Connecting..." : "Log In"}
+      <Gamepad2 size={20} />
+      {isPending ? "Connecting..." : "Connect & Play"}
     </Button>
   );
 };

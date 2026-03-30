@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "motion/react";
 import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
 import useAccountCustom from "@/hooks/useAccountCustom";
@@ -11,6 +12,7 @@ const PODIUM_STYLES = [
 const LeaderboardPage: React.FC = () => {
   const { games, loading } = useLeaderboardSlot();
   const { account } = useAccountCustom();
+  const [modeFilter, setModeFilter] = useState<"all" | "map" | "endless">("all");
 
   const top3 = games.slice(0, 3);
   const rest = games.slice(3);
@@ -21,6 +23,21 @@ const LeaderboardPage: React.FC = () => {
         <h1 className="font-['Fredericka_the_Great'] text-xl text-white text-center">
           Leaderboard
         </h1>
+        <div className="flex justify-center gap-1 mt-2">
+          {(["all", "map", "endless"] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setModeFilter(mode)}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
+                modeFilter === mode
+                  ? "bg-white/15 text-white"
+                  : "text-white/40 hover:text-white/60"
+              }`}
+            >
+              {mode === "all" ? "All" : mode === "map" ? "Map" : "Endless"}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-4">
@@ -49,7 +66,7 @@ const LeaderboardPage: React.FC = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: podiumIdx * 0.1 }}
-                      className={`flex-1 flex flex-col items-center rounded-xl border p-3 ${style.bg} ${style.border} ${isFirst ? "pb-5" : "pb-3"}`}
+                      className={`flex-1 flex flex-col items-center rounded-xl border p-3 overflow-hidden ${style.bg} ${style.border} ${isFirst ? "pb-5" : "pb-3"}`}
                     >
                       <img
                         src={style.trophy}
@@ -59,8 +76,8 @@ const LeaderboardPage: React.FC = () => {
                       <span className={`font-['Fredericka_the_Great'] text-lg ${style.text}`}>
                         #{rank}
                       </span>
-                      <span className="text-xs text-white truncate w-full text-center mt-0.5">
-                        {entry.player_name || `Game #${entry.token_id}`}
+                      <span className="text-xs text-white truncate max-w-full text-center mt-0.5 block overflow-hidden">
+                        {entry.player_name && entry.player_name.length <= 20 ? entry.player_name : "Anonymous"}
                       </span>
                       <div className="flex items-baseline gap-1 mt-1">
                         <span className="font-['Fredericka_the_Great'] text-sm text-cyan-200">
@@ -94,7 +111,7 @@ const LeaderboardPage: React.FC = () => {
                           #{rank}
                         </span>
                         <span className="text-sm text-white truncate max-w-[160px]">
-                          {entry.player_name || `Game #${entry.token_id}`}
+                          {entry.player_name && entry.player_name.length <= 20 ? entry.player_name : "Anonymous"}
                         </span>
                       </div>
                       <div className="flex items-baseline gap-2">

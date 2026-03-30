@@ -117,7 +117,7 @@ const SettingsPage: React.FC = () => {
                     whileTap={{ scale: 0.93 }}
                     onClick={() => setThemeTemplate(themeId)}
                     title={name}
-                    className={`relative rounded-xl border overflow-hidden transition-colors w-20 h-20 flex items-center justify-center ${
+                    className={`relative rounded-xl border overflow-hidden transition-colors flex-1 aspect-square flex items-center justify-center ${
                       isSelected
                         ? "border-cyan-400 bg-cyan-500/10 ring-1 ring-cyan-400/30"
                         : "border-slate-600/70 bg-slate-900/40 hover:border-slate-400"
@@ -186,6 +186,10 @@ const SettingsPage: React.FC = () => {
               </div>
             )}
           </motion.section>
+
+          <div className="text-center text-[10px] text-slate-600 pt-2">
+            zKube v1.3.0
+          </div>
         </div>
       </div>
     </div>

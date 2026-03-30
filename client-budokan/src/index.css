@@ -420,6 +420,7 @@
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
@@ -449,6 +450,17 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
+  overflow: hidden;
+}
+
+button, a, [role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.h-dvh {
+  height: 100vh;
+  height: 100dvh;
 }
 
 @keyframes wiggle {

@@ -9,6 +9,7 @@ import { useAccount } from "@starknet-react/core";
 import { Loading } from "@/ui/screens/Loading";
 import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import BottomTabBar from "@/ui/components/BottomTabBar";
+import PhoneFrame from "@/ui/components/shared/PhoneFrame";
 
 import HomePage from "@/ui/pages/HomePage";
 import PlayScreen from "@/ui/pages/PlayScreen";
@@ -84,21 +85,23 @@ export default function App() {
 
   return (
     <TooltipProvider>
-      <div className="fixed inset-0 flex flex-col">
-        <ThemeBackground />
-        <div
-          className="relative flex-1 min-h-0 overflow-hidden"
-          style={showTabBar ? { paddingBottom: 0 } : undefined}
-        >
+      <PhoneFrame>
+        <div className="relative flex h-full flex-col">
+          <ThemeBackground />
           <div
-            className="absolute inset-0 overflow-hidden"
-            style={showTabBar ? { bottom: "4rem" } : undefined}
+            className="relative flex-1 min-h-0 overflow-hidden"
+            style={showTabBar ? { paddingBottom: 0 } : undefined}
           >
-            <CurrentPage />
+            <div
+              className="absolute inset-0 overflow-hidden"
+              style={showTabBar ? { bottom: "4rem" } : undefined}
+            >
+              <CurrentPage />
+            </div>
           </div>
+          {showTabBar && <BottomTabBar />}
         </div>
-        {showTabBar && <BottomTabBar />}
-      </div>
+      </PhoneFrame>
       <Toaster position={getToastPlacement()} />
     </TooltipProvider>
   );

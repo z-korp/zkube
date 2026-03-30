@@ -6,7 +6,6 @@ import { useGame } from "@/hooks/useGame";
 import { useGrid } from "@/hooks/useGrid";
 import { useGameLevel, type GameLevelData } from "@/hooks/useGameLevel";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import useViewport from "@/hooks/useViewport";
 import { useDojo } from "@/dojo/useDojo";
 import { isBossLevel as checkBossLevel } from "@/dojo/game/helpers/runDataPacking";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -29,8 +28,6 @@ import { generateLevelConfig } from "@/dojo/game/types/level";
 import { type ThemeId } from "@/config/themes";
 
 const PlayScreen: React.FC = () => {
-  useViewport();
-
   const {
     setup: {
       systemCalls: { surrender },
@@ -226,7 +223,7 @@ const PlayScreen: React.FC = () => {
   const isGameOn = game && !game.over;
 
   return (
-    <div className="h-screen-viewport flex flex-col">
+    <div className="h-dvh flex flex-col">
       <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -269,7 +266,7 @@ const PlayScreen: React.FC = () => {
         <div className="flex items-center gap-1.5">
           <button
             onClick={goBack}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white transition-colors"
+            className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-white transition-colors"
           >
             <ChevronLeft size={20} />
           </button>
@@ -287,7 +284,7 @@ const PlayScreen: React.FC = () => {
         </div>
         <button
           onClick={() => setIsSettingsOpen(true)}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white transition-colors"
+          className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-white transition-colors"
         >
           <Settings size={16} />
         </button>

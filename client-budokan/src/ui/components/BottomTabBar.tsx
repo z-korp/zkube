@@ -16,12 +16,7 @@ const BottomTabBar: React.FC = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 pb-[env(safe-area-inset-bottom)]"
-      style={{
-        backgroundImage: "url(/assets/common/ui/action-bar.png)",
-        backgroundSize: "100% 100%",
-        backgroundRepeat: "no-repeat",
-      }}
+      className="relative z-50 border-t border-white/10 bg-black/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-md"
     >
       <div className="flex h-16 items-stretch md:h-14">
         {TABS.map(({ id, label, icon }) => {
@@ -31,30 +26,36 @@ const BottomTabBar: React.FC = () => {
               key={id}
               type="button"
               onClick={() => navigate(id)}
-              className={`relative flex flex-1 flex-col items-center justify-center gap-0.5 transition-all ${
-                active ? "scale-105" : "opacity-50 hover:opacity-75"
+              className={`relative flex flex-1 items-center justify-center transition-all ${
+                active ? "" : "opacity-50 hover:opacity-75"
               }`}
             >
               {active && (
-                <span className="absolute -top-0.5 h-0.5 w-8 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+                <span className="absolute -top-0.5 h-0.5 w-10 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
               )}
-              <img
-                src={icon}
-                alt={label}
-                className={`h-6 w-6 object-contain transition-all ${
-                  active
-                    ? "drop-shadow-[0_0_6px_rgba(52,211,153,0.8)] brightness-125"
-                    : "brightness-75 saturate-50"
-                }`}
-                draggable={false}
-              />
-              <span
-                className={`text-[9px] font-bold tracking-wider uppercase leading-none ${
-                  active ? "text-emerald-300" : "text-slate-400"
+              <div
+                className={`flex h-11 w-11 flex-col items-center justify-center gap-0.5 rounded-xl transition-all ${
+                  active ? "shadow-[0_0_16px_rgba(52,211,153,0.35)]" : ""
                 }`}
               >
-                {label}
-              </span>
+                <img
+                  src={icon}
+                  alt={label}
+                  className={`h-6 w-6 object-contain transition-all ${
+                    active
+                      ? "drop-shadow-[0_0_8px_rgba(52,211,153,0.6)] brightness-110"
+                      : "brightness-75 saturate-50"
+                  }`}
+                  draggable={false}
+                />
+                <span
+                  className={`text-[9px] font-bold leading-none tracking-wider uppercase ${
+                    active ? "text-emerald-300" : "text-slate-400"
+                  }`}
+                >
+                  {label}
+                </span>
+              </div>
             </button>
           );
         })}

@@ -28,6 +28,7 @@ mod move_system {
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::{game_over, level_check, token};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
+    use zkube::types::mutator::MutatorTrait;
 
     #[storage]
     struct Storage {}
@@ -77,6 +78,31 @@ mod move_system {
             let game: Game = world.read_model(game_id);
             let mut game_level: GameLevel = world.read_model(game_id);
             let mut run_data = game.get_run_data();
+
+            // Mutator-driven bonus setup and charge gain.
+            let mut run_data_changed = false;
+            let active_mutator_id = run_data.active_mutator_id;
+
+            let bonus_type = MutatorTrait::get_bonus_type(active_mutator_id);
+            if run_data.bonus_type != bonus_type {
+                run_data.bonus_type = bonus_type;
+                run_data_changed = true;
+            }
+
+            let combo_interval = MutatorTrait::get_bonus_combo_interval(active_mutator_id);
+            if combo_interval > 0 && game.combo_counter > 0
+                && game.combo_counter % combo_interval == 0 {
+                if run_data.bonus_charges < 15 {
+                    run_data.bonus_charges += 1;
+                    run_data_changed = true;
+                }
+            }
+
+            if run_data_changed {
+                let mut updated_game: Game = world.read_model(game_id);
+                updated_game.set_run_data(run_data);
+                world.write_model(@updated_game);
+            }
 
             if run_data.mode == 0 {
                 // Map mode: preserve existing completion/failure flow.

@@ -2,7 +2,7 @@ use alexandria_math::BitShift;
 
 /// Bit-packing helpers for efficient storage.
 ///
-/// run_data layout (102 bits used, 150 reserved):
+/// run_data layout (108 bits used, 144 reserved):
 /// - 0-7: current_level
 /// - 8-15: level_score
 /// - 16-23: level_moves
@@ -12,9 +12,11 @@ use alexandria_math::BitShift;
 /// - 48-79: total_score (u32)
 /// - 80: zone_cleared
 /// - 81-88: current_difficulty
-/// - 89-92: zone_id (RESERVED — always zero, kept for storage compatibility)
-/// - 93-100: active_mutator_id (RESERVED — always zero, kept for storage compatibility)
+/// - 89-92: zone_id
+/// - 93-100: active_mutator_id
 /// - 101: mode (0=Map, 1=Endless)
+/// - 102-103: bonus_type (0=None, 1=Hammer, 2=Totem, 3=Wave)
+/// - 104-107: bonus_charges (u4)
 
 /// Unpacked run data structure (zone-based runs + endless)
 #[derive(Copy, Drop, Serde, Debug, PartialEq)]
@@ -32,6 +34,8 @@ pub struct RunData {
     pub zone_id: u8,
     pub active_mutator_id: u8,
     pub mode: u8,
+    pub bonus_type: u8,
+    pub bonus_charges: u8,
 }
 
 /// Bit positions and masks for run_data
@@ -48,10 +52,13 @@ mod RunDataBits {
     pub const ZONE_ID_POS: u8 = 89;
     pub const ACTIVE_MUTATOR_ID_POS: u8 = 93;
     pub const MODE_POS: u8 = 101;
+    pub const BONUS_TYPE_POS: u8 = 102;
+    pub const BONUS_CHARGES_POS: u8 = 104;
 
     pub const U8_MASK: u256 = 0xFF;
     pub const U32_MASK: u256 = 0xFFFFFFFF;
     pub const BOOL_MASK: u256 = 0x1;
+    pub const TWO_BITS_MASK: u256 = 0x3;
     pub const FOUR_BITS_MASK: u256 = 0xF;
 }
 
@@ -72,6 +79,8 @@ pub impl RunDataPacking of RunDataPackingTrait {
             zone_id: zone_id & 0xF,
             active_mutator_id,
             mode: mode & 0x1,
+            bonus_type: 0,
+            bonus_charges: 0,
         }
     }
 
@@ -141,6 +150,16 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 self.mode.into() & RunDataBits::BOOL_MASK,
                 RunDataBits::MODE_POS.into(),
             );
+        packed = packed
+            | BitShift::shl(
+                self.bonus_type.into() & RunDataBits::TWO_BITS_MASK,
+                RunDataBits::BONUS_TYPE_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                self.bonus_charges.into() & RunDataBits::FOUR_BITS_MASK,
+                RunDataBits::BONUS_CHARGES_POS.into(),
+            );
 
         packed.try_into().unwrap()
     }
@@ -195,6 +214,14 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 .try_into()
                 .unwrap(),
             mode: (BitShift::shr(data, RunDataBits::MODE_POS.into()) & RunDataBits::BOOL_MASK)
+                .try_into()
+                .unwrap(),
+            bonus_type: (BitShift::shr(data, RunDataBits::BONUS_TYPE_POS.into())
+                & RunDataBits::TWO_BITS_MASK)
+                .try_into()
+                .unwrap(),
+            bonus_charges: (BitShift::shr(data, RunDataBits::BONUS_CHARGES_POS.into())
+                & RunDataBits::FOUR_BITS_MASK)
                 .try_into()
                 .unwrap(),
         }

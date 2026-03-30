@@ -28,8 +28,8 @@ import ZoneBackground from "@/ui/components/map/ZoneBackground";
 const VB_W = 60;
 const VB_H = 100;
 
-const NODE_R = 6;
-const BOSS_R = 8.5;
+const NODE_R = 8;
+const BOSS_R = 11;
 
 const getLabel = (node: MapNodeData): string => {
   if (node.type === "boss") return node.state === "cleared" ? "\u2713" : "\u2605";
@@ -115,7 +115,7 @@ const MapPage: React.FC = () => {
         <div className="flex items-center gap-1.5">
           <button
             onClick={goBack}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white transition-colors"
+            className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-white transition-colors"
           >
             <ChevronLeft size={20} />
           </button>
@@ -130,8 +130,22 @@ const MapPage: React.FC = () => {
         )}
       </div>
 
-      <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-        <ZoneBackground zone={1} themeId={themeId} />
+      {!game && (
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8">
+          <p className="text-slate-400 text-center">Start a run from Home to see your map</p>
+          <button
+            onClick={() => navigate("home")}
+            className="px-6 py-2 rounded-xl bg-white/10 text-white text-sm hover:bg-white/15 transition-colors"
+          >
+            Go to Home
+          </button>
+        </div>
+      )}
+
+      {game && (
+        <>
+          <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+            <ZoneBackground zone={1} themeId={themeId} />
 
         <div className="relative mx-auto w-full max-w-[400px]" style={{ height: "110vh" }}>
           <svg
@@ -322,36 +336,38 @@ const MapPage: React.FC = () => {
               );
             })}
           </svg>
-        </div>
-      </div>
+          </div>
+          </div>
 
-      <AnimatePresence>
-        {selectedNode && !pendingLevelCompletion && (
-          <BottomSheetPreview
-            node={selectedNode}
-            game={game ?? null}
-            gameLevel={gameLevel}
-            gameId={gameId}
-            onPlay={handlePlay}
-            onClose={() => setSelectedNode(null)}
-          />
-        )}
-      </AnimatePresence>
+          <AnimatePresence>
+            {selectedNode && !pendingLevelCompletion && (
+              <BottomSheetPreview
+                node={selectedNode}
+                game={game ?? null}
+                gameLevel={gameLevel}
+                gameId={gameId}
+                onPlay={handlePlay}
+                onClose={() => setSelectedNode(null)}
+              />
+            )}
+          </AnimatePresence>
 
-      {pendingLevelCompletion && (
-        <LevelCompleteDialog
-          isOpen={true}
-          onClose={() => {
-            const completedLevel = pendingLevelCompletion.level;
-            setPendingLevelCompletion(null);
-            setPendingPreviewLevel(completedLevel + 1);
-          }}
-          level={pendingLevelCompletion.level}
-          levelMoves={pendingLevelCompletion.levelMoves}
-          prevTotalScore={pendingLevelCompletion.prevTotalScore}
-          totalScore={pendingLevelCompletion.totalScore}
-          gameLevel={pendingLevelCompletion.gameLevel}
-        />
+          {pendingLevelCompletion && (
+            <LevelCompleteDialog
+              isOpen={true}
+              onClose={() => {
+                const completedLevel = pendingLevelCompletion.level;
+                setPendingLevelCompletion(null);
+                setPendingPreviewLevel(completedLevel + 1);
+              }}
+              level={pendingLevelCompletion.level}
+              levelMoves={pendingLevelCompletion.levelMoves}
+              prevTotalScore={pendingLevelCompletion.prevTotalScore}
+              totalScore={pendingLevelCompletion.totalScore}
+              gameLevel={pendingLevelCompletion.gameLevel}
+            />
+          )}
+        </>
       )}
     </div>
   );

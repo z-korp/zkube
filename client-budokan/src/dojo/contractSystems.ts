@@ -28,6 +28,7 @@ export interface Surrender extends Signer {
 
 export interface Create extends Signer {
   token_id: BigNumberish;
+  mode: number;
 }
 
 export interface CreateRun extends Signer {
@@ -188,9 +189,9 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const create = async ({ account, token_id }: Create) => {
+    const create = async ({ account, token_id, mode }: Create) => {
       try {
-        const calldata = [token_id];
+        const calldata = [token_id, mode];
 
         // On Slot, skip VRF call since it's not deployed
         if (isSlotMode) {

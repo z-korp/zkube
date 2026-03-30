@@ -214,6 +214,7 @@ export function systems({ client }: { client: IWorld }) {
   const create = async ({ account, ...props }: SystemTypes.Create) => {
     log.debug("create params", {
       token_id: props.token_id,
+      mode: props.mode,
     });
     await handleTransaction(
       account,

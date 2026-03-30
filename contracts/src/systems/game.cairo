@@ -8,6 +8,8 @@ pub trait IGameSystem<T> {
     fn create_run(ref self: T, game_id: felt252, mode: u8);
     /// Surrender the current run (game over)
     fn surrender(ref self: T, game_id: felt252);
+    /// Apply currently active mutator bonus at target block position
+    fn apply_bonus(ref self: T, game_id: felt252, row_index: u8, block_index: u8);
     /// Get player name from token
     fn get_player_name(self: @T, game_id: felt252) -> felt252;
     /// Get current level score
@@ -22,6 +24,7 @@ pub trait IGameSystem<T> {
 #[dojo::contract]
 mod game_system {
     use core::num::traits::Zero;
+    use core::traits::Into;
     use dojo::event::EventStorage;
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
@@ -41,6 +44,7 @@ mod game_system {
     use zkube::constants::DEFAULT_NS;
     use zkube::events::StartGame;
     use zkube::helpers::config::ConfigUtilsTrait;
+    use zkube::helpers::controller::Controller;
     use zkube::helpers::game_libs::{
         GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
     };
@@ -52,6 +56,7 @@ mod game_system {
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::models::daily::{DailyChallenge, DailyEntry, DailyEntryTrait, GameChallenge};
     use zkube::types::mutator::{FULL_MUTATOR_MASK, MutatorTrait};
+    use zkube::types::bonus::{Bonus, BonusTrait};
     use zkube::systems::daily_challenge::{
         IDailyChallengeSystemDispatcher, IDailyChallengeSystemDispatcherTrait,
     };
@@ -239,6 +244,48 @@ mod game_system {
 
             let player = get_caller_address();
             game_over::handle_game_over(ref world, game, player);
+
+            post_action(token_address, token_id_felt);
+        }
+
+        fn apply_bonus(
+            ref self: ContractState,
+            game_id: felt252,
+            row_index: u8,
+            block_index: u8,
+        ) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+
+            let token_address = self.token_address();
+            let token_id_felt = game_id;
+            pre_action(token_address, token_id_felt);
+
+            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(token_id_felt);
+            assert!(
+                token_metadata.lifecycle.is_playable(get_block_timestamp()),
+                "Game {} lifecycle is not playable",
+                game_id,
+            );
+
+            let mut game: Game = world.read_model(game_id);
+            assert_token_ownership(token_address, token_id_felt);
+            game.assert_not_over();
+
+            assert!(row_index < 10, "Invalid row_index: must be < 10");
+            assert!(block_index < 8, "Invalid block_index: must be < 8");
+
+            let mut run_data = game.get_run_data();
+            assert!(run_data.bonus_charges > 0, "No bonus charges available");
+            assert!(run_data.bonus_type > 0, "No active bonus");
+
+            let bonus: Bonus = run_data.bonus_type.into();
+            let new_blocks = bonus.apply(game.blocks, row_index, block_index);
+            game.blocks = Controller::apply_gravity(new_blocks);
+
+            run_data.bonus_charges -= 1;
+            game.set_run_data(run_data);
+            world.write_model(@game);
 
             post_action(token_address, token_id_felt);
         }

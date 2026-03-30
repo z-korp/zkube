@@ -148,7 +148,7 @@ const DailyChallengePage: React.FC = () => {
       <div className="flex items-center gap-2 px-3 pt-3 pb-2">
         <button
           onClick={goBack}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white transition-colors"
+          className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-white transition-colors"
         >
           <ChevronLeft size={20} />
         </button>

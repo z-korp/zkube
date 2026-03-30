@@ -15,7 +15,8 @@ import { useNavigationStore } from "@/stores/navigationStore";
 import { showToast } from "@/utils/toast";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import Connect from "@/ui/components/Connect";
-import useViewport from "@/hooks/useViewport";
+import ModePill from "@/ui/components/shared/ModePill";
+import GameCard from "@/ui/components/shared/GameCard";
 
 const normalizeAddress = (address: string | undefined): string | undefined => {
   if (!address) return undefined;
@@ -40,8 +41,6 @@ const ZONE_CONFIG = [
 ] as const;
 
 const HomePage: React.FC = () => {
-  useViewport();
-
   const { account } = useAccountCustom();
   const {
     setup: {
@@ -53,6 +52,8 @@ const HomePage: React.FC = () => {
   const { setThemeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
   const navigate = useNavigationStore((s) => s.navigate);
+  const selectedMode = useNavigationStore((s) => s.selectedMode);
+  const setSelectedMode = useNavigationStore((s) => s.setSelectedMode);
   const [isStartingGame, setIsStartingGame] = useState(false);
   const [activeZone, setActiveZone] = useState(0);
 
@@ -162,7 +163,7 @@ const HomePage: React.FC = () => {
         const gameId = mintResult.game_id;
         if (gameId === 0n) throw new Error("Failed to extract game_id from mint");
 
-        await create({ account, token_id: gameId });
+        await create({ account, token_id: gameId, mode: selectedMode });
 
         showToast({ message: `Game started!`, type: "success" });
         navigate("map", gameId);
@@ -176,7 +177,17 @@ const HomePage: React.FC = () => {
         setIsStartingGame(false);
       }
     },
-    [account, create, freeMint, isStartingGame, mapEntitlements, mapMetadataById, navigate, username],
+    [
+      account,
+      create,
+      freeMint,
+      isStartingGame,
+      mapEntitlements,
+      mapMetadataById,
+      navigate,
+      selectedMode,
+      username,
+    ],
   );
 
   const handleContinue = useCallback(() => {
@@ -208,21 +219,26 @@ const HomePage: React.FC = () => {
         </motion.div>
       </AnimatePresence>
 
-      <div className="relative z-10 flex flex-1 flex-col min-h-0">
-        <div className="flex items-center justify-center pt-3 shrink-0">
-          <motion.img
-            src={ImageAssets(zone.themeId).logo}
-            alt="zKube"
-            draggable={false}
-            className="h-8 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-            animate={{ y: [0, -2, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          />
+      <div className="relative z-10 flex flex-1 min-h-0 flex-col">
+        <div className="relative flex-[4] min-h-0 shrink-0">
+          <div className="flex h-full items-start justify-center pt-4">
+            <motion.img
+              src={ImageAssets(zone.themeId).logo}
+              alt="zKube"
+              draggable={false}
+              className="h-8 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+              animate={{ y: [0, -2, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
+          <div className="absolute bottom-3 left-4 rounded-md border border-white/20 bg-black/35 px-2 py-1 backdrop-blur-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/80">
+              {zone.name}
+            </p>
+          </div>
         </div>
 
-        <div className="flex-1 min-h-0" />
-
-        <div className="shrink-0 px-4 pb-2 flex flex-col gap-3">
+        <div className="flex-[6] shrink-0 pb-2 flex flex-col gap-2">
           <div className="flex justify-center gap-3">
             {ZONE_CONFIG.map((z, idx) => {
               const active = idx === activeZone;
@@ -231,7 +247,7 @@ const HomePage: React.FC = () => {
                   key={idx}
                   onClick={() => setActiveZone(idx)}
                   className={`flex flex-col items-center gap-1.5 transition-all ${
-                    active ? "scale-105" : "opacity-40 hover:opacity-60"
+                    active ? "" : "opacity-40 hover:opacity-60"
                   }`}
                 >
                   <img
@@ -239,12 +255,12 @@ const HomePage: React.FC = () => {
                     alt={z.name}
                     className={`rounded-xl transition-all ${
                       active
-                        ? "w-14 h-14 border-2 border-white/80 shadow-[0_0_16px_rgba(255,255,255,0.35)]"
-                        : "w-11 h-11 border border-white/15"
+                        ? "h-16 w-16 border-2 border-white/80 shadow-[0_0_16px_rgba(255,255,255,0.35)]"
+                        : "h-[52px] w-[52px] border border-white/15 opacity-40"
                     }`}
                     draggable={false}
                   />
-                  <span className={`text-[10px] font-semibold leading-none transition-colors ${
+                  <span className={`text-xs font-semibold leading-none transition-colors ${
                     active ? "text-white" : "text-white/40"
                   }`}>
                     {z.name}
@@ -254,58 +270,80 @@ const HomePage: React.FC = () => {
             })}
           </div>
 
-          <div className="relative rounded-2xl overflow-hidden border border-white/10">
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-xl" />
-            <div className="relative z-10 p-4 flex flex-col gap-3">
+          {hasActiveRun && (
+            <div className="mx-4 mb-1 flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-amber-200">Active Run</p>
+                <p className="text-xs text-white/50">Tap to continue</p>
+              </div>
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={handleContinue}
+                className="relative flex h-10 items-center justify-center overflow-hidden rounded-lg px-6"
+              >
+                <img
+                  src="/assets/common/buttons/btn-orange.png"
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-fill"
+                  draggable={false}
+                />
+                <span className="relative z-10 font-['Fredericka_the_Great'] text-sm text-white drop-shadow-md">
+                  CONTINUE
+                </span>
+              </motion.button>
+            </div>
+          )}
+
+          <GameCard variant="glass" className="mx-4 flex flex-col gap-3">
+            <div className="flex items-start justify-between gap-3">
               <h1 className="font-['Fredericka_the_Great'] text-2xl text-white drop-shadow-lg">
                 {zone.name}
               </h1>
-
-              {!account ? (
-                <Connect />
-              ) : hasActiveRun ? (
-                <div className="flex gap-2">
-                  <motion.button
-                    whileTap={{ scale: 0.96 }}
-                    onClick={handleContinue}
-                    className="flex-1 relative h-14 flex items-center justify-center overflow-hidden rounded-xl"
-                  >
-                    <img src="/assets/common/buttons/btn-orange.png" alt="" className="absolute inset-0 w-full h-full object-fill" draggable={false} />
-                    <span className="relative z-10 font-['Fredericka_the_Great'] text-lg text-white drop-shadow-md tracking-wide">
-                      CONTINUE
-                    </span>
-                  </motion.button>
-                  <motion.button
-                    whileTap={{ scale: 0.96 }}
-                    disabled={isStartingGame}
-                    onClick={() => handleStartGame(zone.settingsId)}
-                    className="relative h-14 w-20 flex items-center justify-center overflow-hidden rounded-xl disabled:opacity-50"
-                  >
-                    <img src="/assets/common/buttons/btn-green.png" alt="" className="absolute inset-0 w-full h-full object-fill" draggable={false} />
-                    <span className="relative z-10 font-['Fredericka_the_Great'] text-sm text-white drop-shadow-md">
-                      NEW
-                    </span>
-                  </motion.button>
-                </div>
-              ) : (
-                <motion.button
-                  whileTap={{ scale: 0.96 }}
-                  disabled={isStartingGame}
-                  onClick={() => handleStartGame(zone.settingsId)}
-                  className="relative w-full h-14 flex items-center justify-center overflow-hidden rounded-xl disabled:opacity-50"
-                >
-                  <img src="/assets/common/buttons/btn-green.png" alt="" className="absolute inset-0 w-full h-full object-fill" draggable={false} />
-                  <span className="relative z-10 font-['Fredericka_the_Great'] text-xl text-white drop-shadow-md tracking-wider">
-                    {isStartingGame ? "STARTING..." : "▶  PLAY"}
-                  </span>
-                </motion.button>
-              )}
             </div>
-          </div>
+            <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
+
+            {!account ? (
+              <Connect />
+            ) : hasActiveRun ? (
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                disabled={isStartingGame}
+                onClick={() => handleStartGame(zone.settingsId)}
+                className="relative flex h-14 w-full items-center justify-center overflow-hidden rounded-xl disabled:opacity-50"
+              >
+                <img
+                  src="/assets/common/buttons/btn-green.png"
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-fill"
+                  draggable={false}
+                />
+                <span className="relative z-10 font-['Fredericka_the_Great'] text-lg text-white drop-shadow-md tracking-wider">
+                  {isStartingGame ? "STARTING..." : "NEW"}
+                </span>
+              </motion.button>
+            ) : (
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                disabled={isStartingGame}
+                onClick={() => handleStartGame(zone.settingsId)}
+                className="relative flex h-14 w-full items-center justify-center overflow-hidden rounded-xl disabled:opacity-50"
+              >
+                <img
+                  src="/assets/common/buttons/btn-green.png"
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-fill"
+                  draggable={false}
+                />
+                <span className="relative z-10 font-['Fredericka_the_Great'] text-xl text-white drop-shadow-md tracking-wider">
+                  {isStartingGame ? "STARTING..." : "▶  PLAY"}
+                </span>
+              </motion.button>
+            )}
+          </GameCard>
 
           <button
             onClick={() => navigate("daily")}
-            className="flex items-center gap-3 rounded-xl bg-white/5 border border-white/8 p-3 active:bg-white/10 transition-colors"
+            className="mx-4 flex items-center gap-3 rounded-xl border border-white/8 bg-white/5 p-3 transition-colors active:bg-white/10"
           >
             <img
               src="/assets/common/icons/icon-star-filled.png"
@@ -317,12 +355,7 @@ const HomePage: React.FC = () => {
               <p className="text-sm font-bold text-white leading-tight">Daily Challenge</p>
               <p className="text-[11px] text-white/40">Compete for stars</p>
             </div>
-            <img
-              src="/assets/common/icons/icon-score.png"
-              alt=""
-              className="h-4 w-4 shrink-0 opacity-30"
-              draggable={false}
-            />
+            <span className="shrink-0 text-lg font-bold leading-none text-white/50">›</span>
           </button>
         </div>
       </div>

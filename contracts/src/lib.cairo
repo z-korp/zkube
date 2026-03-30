@@ -10,6 +10,7 @@ pub mod models {
 }
 
 pub mod types {
+    pub mod bonus;
     pub mod block;
     pub mod constraint;
 
@@ -21,7 +22,14 @@ pub mod types {
     pub mod daily;
 }
 
-mod elements {
+pub mod elements {
+    pub mod bonuses {
+        pub mod hammer;
+        pub mod interface;
+        pub mod totem;
+        pub mod wave;
+    }
+
     pub mod difficulties {
         pub mod data;
         pub mod interface;

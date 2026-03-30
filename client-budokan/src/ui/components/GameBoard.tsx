@@ -39,9 +39,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
     const observer = new ResizeObserver(([entry]) => {
       const w = entry.contentRect.width;
+      const h = entry.contentRect.height;
       const padding = 24;
-      const cellSize = Math.floor((w - padding) / COLS);
-      setGridSize(Math.max(28, Math.min(cellSize, 56)));
+      const widthBasedSize = Math.floor((w - padding) / COLS);
+      const heightBasedSize = h > 0 ? Math.floor((h - padding) / (ROWS + 1.5)) : widthBasedSize;
+      setGridSize(Math.max(28, Math.min(widthBasedSize, heightBasedSize, 56)));
     });
 
     observer.observe(el);

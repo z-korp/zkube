@@ -1,5 +1,4 @@
 use zkube::types::level::LevelConfig;
-use zkube::types::difficulty::Difficulty;
 
 /// Mutator eligibility for different game modes
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
@@ -30,6 +29,24 @@ pub impl MutatorImpl of MutatorTrait {
     /// Check if a mutator ID is valid (non-zero and within range)
     fn is_valid(mutator_id: u8) -> bool {
         mutator_id > 0 && mutator_id <= 32
+    }
+
+    /// Returns which bonus type this mutator grants.
+    /// 0=None, 1=Hammer, 2=Totem, 3=Wave
+    fn get_bonus_type(mutator_id: u8) -> u8 {
+        match mutator_id {
+            1 => 1, // First mutator grants Hammer
+            _ => 0,
+        }
+    }
+
+    /// Returns combo interval for earning one bonus charge.
+    /// 0 disables bonus charge gain for this mutator.
+    fn get_bonus_combo_interval(mutator_id: u8) -> u8 {
+        match mutator_id {
+            1 => 3, // +1 charge every 3 combos
+            _ => 0,
+        }
     }
 
     /// Check if a mutator is allowed by a given bitmask
@@ -122,6 +139,21 @@ fn pow2(mut exp: u32) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::{MutatorTrait, MUTATOR_NONE, count_set_bits, nth_set_bit};
+
+    #[test]
+    fn test_mutator_bonus_mappings() {
+        assert!(MutatorTrait::get_bonus_type(1) == 1, "Mutator 1 should grant Hammer");
+        assert!(
+            MutatorTrait::get_bonus_combo_interval(1) == 3,
+            "Mutator 1 should grant one charge every 3 combos",
+        );
+
+        assert!(MutatorTrait::get_bonus_type(2) == 0, "Other mutators default to no bonus");
+        assert!(
+            MutatorTrait::get_bonus_combo_interval(2) == 0,
+            "Other mutators default to disabled charge gain",
+        );
+    }
 
     #[test]
     fn test_mutator_none_always_valid() {

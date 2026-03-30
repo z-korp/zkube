@@ -22,6 +22,8 @@ fn test_run_data_pack_unpack_roundtrip_small_values() {
         zone_id: 1,
         active_mutator_id: 0,
         mode: 0,
+        bonus_type: 0,
+        bonus_charges: 0,
     };
 
     assert_roundtrip(data);
@@ -42,6 +44,8 @@ fn test_run_data_pack_unpack_roundtrip_max_values() {
         zone_id: 15,
         active_mutator_id: 255,
         mode: 0,
+        bonus_type: 3,
+        bonus_charges: 15,
     };
 
     assert_roundtrip(data);
@@ -65,6 +69,8 @@ fn test_run_data_total_score_supports_u32_above_u16() {
         zone_id: 9,
         active_mutator_id: 170,
         mode: 0,
+        bonus_type: 0,
+        bonus_charges: 0,
     };
 
     let unpacked = RunDataPackingTrait::unpack(data.pack());
@@ -122,6 +128,30 @@ fn test_run_data_mode_bit_roundtrip() {
     assert!(endless_data.mode == 1, "Endless mode should be 1");
     let unpacked_endless = RunDataPackingTrait::unpack(endless_data.pack());
     assert!(unpacked_endless.mode == 1, "Endless mode should roundtrip as 1");
+}
+
+#[test]
+fn test_run_data_bonus_fields_roundtrip() {
+    let data = RunData {
+        current_level: 4,
+        level_score: 12,
+        level_moves: 5,
+        constraint_progress: 1,
+        constraint_2_progress: 0,
+        max_combo_run: 3,
+        total_score: 321,
+        zone_cleared: false,
+        current_difficulty: 2,
+        zone_id: 1,
+        active_mutator_id: 1,
+        mode: 0,
+        bonus_type: 1,
+        bonus_charges: 7,
+    };
+
+    let unpacked = RunDataPackingTrait::unpack(data.pack());
+    assert!(unpacked.bonus_type == 1, "bonus_type should roundtrip as 1");
+    assert!(unpacked.bonus_charges == 7, "bonus_charges should roundtrip as 7");
 }
 
 #[test]
