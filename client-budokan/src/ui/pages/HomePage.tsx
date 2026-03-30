@@ -15,6 +15,7 @@ import { useNavigationStore } from "@/stores/navigationStore";
 import { showToast } from "@/utils/toast";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import Connect from "@/ui/components/Connect";
+import { Play, Plus, Star } from "lucide-react";
 import ModePill from "@/ui/components/shared/ModePill";
 import GameCard from "@/ui/components/shared/GameCard";
 
@@ -279,15 +280,10 @@ const HomePage: React.FC = () => {
               <motion.button
                 whileTap={{ scale: 0.96 }}
                 onClick={handleContinue}
-                className="relative flex h-10 items-center justify-center overflow-hidden rounded-lg px-6"
+                className="flex h-10 items-center justify-center gap-2 rounded-lg bg-amber-600 px-5 shadow-lg shadow-amber-900/30 transition-colors hover:bg-amber-500 active:bg-amber-700"
               >
-                <img
-                  src="/assets/common/buttons/btn-orange.png"
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-fill"
-                  draggable={false}
-                />
-                <span className="relative z-10 font-['Fredericka_the_Great'] text-sm text-white drop-shadow-md">
+                <Play size={14} fill="white" className="text-white" />
+                <span className="font-['Fredericka_the_Great'] text-sm text-white">
                   CONTINUE
                 </span>
               </motion.button>
@@ -309,16 +305,11 @@ const HomePage: React.FC = () => {
                 whileTap={{ scale: 0.96 }}
                 disabled={isStartingGame}
                 onClick={() => handleStartGame(zone.settingsId)}
-                className="relative flex h-14 w-full items-center justify-center overflow-hidden rounded-xl disabled:opacity-50"
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 shadow-lg shadow-emerald-900/30 transition-colors hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50"
               >
-                <img
-                  src="/assets/common/buttons/btn-green.png"
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-fill"
-                  draggable={false}
-                />
-                <span className="relative z-10 font-['Fredericka_the_Great'] text-lg text-white drop-shadow-md tracking-wider">
-                  {isStartingGame ? "STARTING..." : "NEW"}
+                <Plus size={18} className="text-white" />
+                <span className="font-['Fredericka_the_Great'] text-lg text-white tracking-wider">
+                  {isStartingGame ? "STARTING..." : "NEW GAME"}
                 </span>
               </motion.button>
             ) : (
@@ -326,16 +317,11 @@ const HomePage: React.FC = () => {
                 whileTap={{ scale: 0.96 }}
                 disabled={isStartingGame}
                 onClick={() => handleStartGame(zone.settingsId)}
-                className="relative flex h-14 w-full items-center justify-center overflow-hidden rounded-xl disabled:opacity-50"
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 shadow-lg shadow-emerald-900/30 transition-colors hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50"
               >
-                <img
-                  src="/assets/common/buttons/btn-green.png"
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-fill"
-                  draggable={false}
-                />
-                <span className="relative z-10 font-['Fredericka_the_Great'] text-xl text-white drop-shadow-md tracking-wider">
-                  {isStartingGame ? "STARTING..." : "▶  PLAY"}
+                <Play size={20} fill="white" className="text-white" />
+                <span className="font-['Fredericka_the_Great'] text-xl text-white tracking-wider">
+                  {isStartingGame ? "STARTING..." : "PLAY"}
                 </span>
               </motion.button>
             )}
@@ -345,12 +331,7 @@ const HomePage: React.FC = () => {
             onClick={() => navigate("daily")}
             className="mx-4 flex items-center gap-3 rounded-xl border border-white/8 bg-white/5 p-3 transition-colors active:bg-white/10"
           >
-            <img
-              src="/assets/common/icons/icon-star-filled.png"
-              alt=""
-              className="h-7 w-7 shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]"
-              draggable={false}
-            />
+            <Star size={24} fill="#fbbf24" className="shrink-0 text-amber-400 drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]" />
             <div className="text-left flex-1 min-w-0">
               <p className="text-sm font-bold text-white leading-tight">Daily Challenge</p>
               <p className="text-[11px] text-white/40">Compete for stars</p>

@@ -1,13 +1,12 @@
+import { Home, Map, Trophy, Settings, type LucideIcon } from "lucide-react";
 import { useNavigationStore } from "@/stores/navigationStore";
 import type { TabId } from "@/stores/navigationStore";
 
-const ICON_BASE = "/assets/common/icons";
-
-const TABS: { id: TabId; label: string; icon: string }[] = [
-  { id: "home", label: "Home", icon: `${ICON_BASE}/icon-cube.png` },
-  { id: "map", label: "Map", icon: `${ICON_BASE}/icon-level.png` },
-  { id: "ranks", label: "Ranks", icon: `${ICON_BASE}/icon-trophy.png` },
-  { id: "settings", label: "Settings", icon: `${ICON_BASE}/icon-settings.png` },
+const TABS: { id: TabId; label: string; Icon: LucideIcon }[] = [
+  { id: "home", label: "Home", Icon: Home },
+  { id: "map", label: "Map", Icon: Map },
+  { id: "ranks", label: "Ranks", Icon: Trophy },
+  { id: "settings", label: "Settings", Icon: Settings },
 ];
 
 const BottomTabBar: React.FC = () => {
@@ -19,7 +18,7 @@ const BottomTabBar: React.FC = () => {
       className="relative z-50 border-t border-white/10 bg-black/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-md"
     >
       <div className="flex h-16 items-stretch md:h-14">
-        {TABS.map(({ id, label, icon }) => {
+        {TABS.map(({ id, label, Icon }) => {
           const active = currentPage === id;
           return (
             <button
@@ -38,15 +37,13 @@ const BottomTabBar: React.FC = () => {
                   active ? "shadow-[0_0_16px_rgba(52,211,153,0.35)]" : ""
                 }`}
               >
-                <img
-                  src={icon}
-                  alt={label}
-                  className={`h-6 w-6 object-contain transition-all ${
+                <Icon
+                  size={22}
+                  className={`transition-all ${
                     active
-                      ? "drop-shadow-[0_0_8px_rgba(52,211,153,0.6)] brightness-110"
-                      : "brightness-75 saturate-50"
+                      ? "text-emerald-300 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]"
+                      : "text-slate-400"
                   }`}
-                  draggable={false}
                 />
                 <span
                   className={`text-[9px] font-bold leading-none tracking-wider uppercase ${
