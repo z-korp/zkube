@@ -1,10 +1,10 @@
-import { Home, Map, Trophy, Settings, type LucideIcon } from "lucide-react";
+import { Home, Gamepad2, Trophy, Settings, type LucideIcon } from "lucide-react";
 import { useNavigationStore } from "@/stores/navigationStore";
 import type { TabId } from "@/stores/navigationStore";
 
 const TABS: { id: TabId; label: string; Icon: LucideIcon }[] = [
   { id: "home", label: "Home", Icon: Home },
-  { id: "map", label: "Map", Icon: Map },
+  { id: "map", label: "Play", Icon: Gamepad2 },
   { id: "ranks", label: "Ranks", Icon: Trophy },
   { id: "settings", label: "Settings", Icon: Settings },
 ];

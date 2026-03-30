@@ -11,11 +11,12 @@ import { loadThemeTemplate } from "@/config/themes";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
+import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { showToast } from "@/utils/toast";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import Connect from "@/ui/components/Connect";
-import { Play, Plus, Star } from "lucide-react";
+import { Play, Plus, Star, User } from "lucide-react";
 import ModePill from "@/ui/components/shared/ModePill";
 import GameCard from "@/ui/components/shared/GameCard";
 
@@ -50,6 +51,7 @@ const HomePage: React.FC = () => {
     },
   } = useDojo();
   const { username } = useControllerUsername();
+  const { playerMeta } = usePlayerMeta();
   const { setThemeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
   const navigate = useNavigationStore((s) => s.navigate);
@@ -200,7 +202,7 @@ const HomePage: React.FC = () => {
 
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden">
       <AnimatePresence mode="wait">
         <motion.div
           key={zone.themeId}
@@ -221,33 +223,52 @@ const HomePage: React.FC = () => {
       </AnimatePresence>
 
       <div className="relative z-10 flex flex-1 min-h-0 flex-col">
-        <div className="relative flex-[4] min-h-0 shrink-0">
-          <div className="flex h-full items-start justify-center pt-4">
-            <motion.img
-              src={ImageAssets(zone.themeId).logo}
-              alt="zKube"
-              draggable={false}
-              className="h-8 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-              animate={{ y: [0, -2, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </div>
-          <div className="absolute bottom-3 left-4 rounded-md border border-white/20 bg-black/35 px-2 py-1 backdrop-blur-sm">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/80">
-              {zone.name}
-            </p>
-          </div>
+        <div className="pointer-events-none flex flex-1 items-center justify-center">
+          <motion.img
+            src={ImageAssets(zone.themeId).logo}
+            alt="zKube"
+            draggable={false}
+            className="h-24 drop-shadow-[0_0_30px_rgba(255,255,255,0.4)]"
+            animate={{ y: [0, -5, 0] }}
+            transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+          />
         </div>
 
-        <div className="flex-[6] shrink-0 pb-2 flex flex-col gap-2">
-          <div className="flex justify-center gap-3">
+        <div className="mt-auto flex flex-col gap-3 px-4 pb-3">
+          {account && (
+            <GameCard variant="glass" className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-600/20">
+                <User size={20} className="text-emerald-300" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate text-sm font-bold text-white">{username || "Player"}</p>
+                  <span className="shrink-0 text-xs font-semibold text-white/55">
+                    Lv.{playerMeta?.bestLevel ?? 0}
+                  </span>
+                </div>
+                <p className="text-xs text-white/45">
+                  🎮 {ownedGames?.length ?? 0} runs · ⭐ {activeGames.length} active
+                </p>
+              </div>
+              {hasActiveRun && (
+                <div className="shrink-0 flex items-center gap-1 rounded-full border border-amber-500/25 bg-amber-500/15 px-2.5 py-1">
+                  <div className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="text-[10px] font-semibold text-amber-300">LIVE</span>
+                </div>
+              )}
+            </GameCard>
+          )}
+
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex justify-center gap-3">
             {ZONE_CONFIG.map((z, idx) => {
               const active = idx === activeZone;
               return (
                 <button
                   key={idx}
                   onClick={() => setActiveZone(idx)}
-                  className={`flex flex-col items-center gap-1.5 transition-all ${
+                  className={`transition-all ${
                     active ? "" : "opacity-40 hover:opacity-60"
                   }`}
                 >
@@ -256,65 +277,48 @@ const HomePage: React.FC = () => {
                     alt={z.name}
                     className={`rounded-xl transition-all ${
                       active
-                        ? "h-16 w-16 border-2 border-white/80 shadow-[0_0_16px_rgba(255,255,255,0.35)]"
-                        : "h-[52px] w-[52px] border border-white/15 opacity-40"
+                        ? "h-16 w-16 border-2 border-white/80 shadow-[0_0_18px_rgba(255,255,255,0.35)]"
+                        : "h-14 w-14 border border-white/20 opacity-60"
                     }`}
                     draggable={false}
                   />
-                  <span className={`text-xs font-semibold leading-none transition-colors ${
-                    active ? "text-white" : "text-white/40"
-                  }`}>
-                    {z.name}
-                  </span>
                 </button>
               );
             })}
+            </div>
+            <p className="font-['Fredericka_the_Great'] text-sm text-white/80">{zone.name}</p>
           </div>
 
-          {hasActiveRun && (
-            <div className="mx-4 mb-1 flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold text-amber-200">Active Run</p>
-                <p className="text-xs text-white/50">Tap to continue</p>
-              </div>
-              <motion.button
-                whileTap={{ scale: 0.96 }}
-                onClick={handleContinue}
-                className="flex h-10 items-center justify-center gap-2 rounded-lg bg-amber-600 px-5 shadow-lg shadow-amber-900/30 transition-colors hover:bg-amber-500 active:bg-amber-700"
-              >
-                <Play size={14} fill="white" className="text-white" />
-                <span className="font-['Fredericka_the_Great'] text-sm text-white">
-                  CONTINUE
-                </span>
-              </motion.button>
-            </div>
-          )}
+          <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
 
-          <GameCard variant="glass" className="mx-4 flex flex-col gap-3">
-            <div className="flex items-start justify-between gap-3">
-              <h1 className="font-['Fredericka_the_Great'] text-2xl text-white drop-shadow-lg">
-                {zone.name}
-              </h1>
-            </div>
-            <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
-
-            {!account ? (
-              <Connect />
-            ) : hasActiveRun ? (
+          {!account ? (
+            <Connect />
+          ) : hasActiveRun ? (
+            <>
               <motion.button
                 whileTap={{ scale: 0.96 }}
                 disabled={isStartingGame}
-                onClick={() => handleStartGame(zone.settingsId)}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 shadow-lg shadow-emerald-900/30 transition-colors hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50"
+                onClick={handleContinue}
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-amber-600 shadow-lg shadow-amber-900/30 transition-colors hover:bg-amber-500 active:bg-amber-700 disabled:opacity-50"
               >
-                <Plus size={18} className="text-white" />
-                <span className="font-['Fredericka_the_Great'] text-lg text-white tracking-wider">
-                  {isStartingGame ? "STARTING..." : "NEW GAME"}
+                <Play size={20} fill="white" className="text-white" />
+                <span className="font-['Fredericka_the_Great'] text-xl tracking-wider text-white">
+                  CONTINUE
                 </span>
               </motion.button>
-            ) : (
+              <button
+                type="button"
+                disabled={isStartingGame}
+                onClick={() => handleStartGame(zone.settingsId)}
+                className="mx-auto flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white/65 transition-colors hover:text-white disabled:opacity-40"
+              >
+                <Plus size={13} />
+                {isStartingGame ? "STARTING..." : "New Game"}
+              </button>
+            </>
+          ) : (
+            <motion.div whileTap={{ scale: 0.96 }}>
               <motion.button
-                whileTap={{ scale: 0.96 }}
                 disabled={isStartingGame}
                 onClick={() => handleStartGame(zone.settingsId)}
                 className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 shadow-lg shadow-emerald-900/30 transition-colors hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50"
@@ -324,12 +328,12 @@ const HomePage: React.FC = () => {
                   {isStartingGame ? "STARTING..." : "PLAY"}
                 </span>
               </motion.button>
-            )}
-          </GameCard>
+            </motion.div>
+          )}
 
           <button
             onClick={() => navigate("daily")}
-            className="mx-4 flex items-center gap-3 rounded-xl border border-white/8 bg-white/5 p-3 transition-colors active:bg-white/10"
+            className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/5 p-3 transition-colors active:bg-white/10"
           >
             <Star size={24} fill="#fbbf24" className="shrink-0 text-amber-400 drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]" />
             <div className="text-left flex-1 min-w-0">
