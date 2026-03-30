@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x3f9d859139e395463f66421223e80cf98847b552201eb71f0fa061206cf1c8c",
-    "seed": "zkube_jc_slot_v6",
+    "address": "0x2bdb0cc3800b7a2e618a26f364d1ee4ae914c7c616a1c43aa80a8835576e402",
+    "seed": "zkube_jc_slot_v9",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,8 +33,8 @@
   },
   "contracts": [
     {
-      "address": "0x433a58c40861a5c166be3145a6e16095236c8323ac26a6d907e8d8991c837f1",
-      "class_hash": "0xba63d5769fe797e4ba9dfa6e7edf9ba81bc328b14bf394aa438c9743b43ea6",
+      "address": "0x4bc85f472332c19781f3f10c3f8c8282f96aa804961bf2bde710df3a7e66e2f",
+      "class_hash": "0x476517f31b8ffde9b7281c476d2c49cc147eb5ed07c2698c221c12a609df642",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x0"
@@ -53,8 +53,8 @@
       ]
     },
     {
-      "address": "0x3687f43dd7d534eddf6214a51bad394af4c28532d1bc5854e6408a3f039f8ce",
-      "class_hash": "0x1dcb57a6319f86b4fc2360d52f6ccdb567dd80d26f3d91f0f762e6806d1068f",
+      "address": "0x79198dc713dea650a32c7b17e335011d0aed378f508f5180a6698d841b9f333",
+      "class_hash": "0x24c36efdcf9f89ca154262816ff90de0e0ef6a186aae5d6a737468ae41f52f9",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x0",
@@ -74,8 +74,8 @@
       ]
     },
     {
-      "address": "0x36b0aee82e3f9f9760d448559c3e8f0c49d5b622c85e8eb2335f225e145902d",
-      "class_hash": "0x28cc58dfcc5202b1c78faab9746fa31bc0b336a16b7589a2f652508a235cdd5",
+      "address": "0x4260900d0df6e0552feb07a1e4df710bc0c0d2528e553ea3ee2eb58854a28bf",
+      "class_hash": "0x15739d3b90e1d6f20237f375385f0d1b968b2cd3474ddb46bd7da7a24f1264",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x045edce17818992bb6885a3f9b85bf901179cbab2bee32deae4d1862f16c23bc",
@@ -93,8 +93,8 @@
       ]
     },
     {
-      "address": "0x88e286a2a4be8115d4ebce18fbf544b18d663ca2b59b9d54ebc5cc08a98c8e",
-      "class_hash": "0x35ed379fc1b30a0183cd8de2ed53dcfdeb17983b82b61f4bcb8dfcbbac3f802",
+      "address": "0x4dc9727735aa19c565158a029f49f8a7a970f395de6919ff941c93dcbca9ab3",
+      "class_hash": "0x12384a3beefb2885a2d95e777946b4671cc3d057ff5c76fe3a4dda70b6f7924",
       "init_calldata": [],
       "tag": "zkube_jc_sepolia_v1-grid_system",
       "selector": "0x464c2f608f7324220554f13229d5f14cf148f430415b879856203e9b6dbc3d4",
@@ -102,20 +102,20 @@
         "initialize_grid",
         "reset_grid_for_level",
         "execute_move",
-        "apply_bonus",
         "insert_line_if_empty",
         "assess_grid",
         "upgrade"
       ]
     },
     {
-      "address": "0x31418382491f08f41635a47aa0288918bd867f4a1d1281a9d7e961c5335edd3",
-      "class_hash": "0x39f1f00ef41762d4ae8edc752a822b98f967a9893c63a1c7ecbd4ec1662b87e",
+      "address": "0x68716466310c1fb34e72ae5129a5cdcfe2a6d6343497c0b986ecaf271b12173",
+      "class_hash": "0x15f2ff90942457724f287c5a93e25d5559cb5147addd8090994323acdd86516",
       "init_calldata": [],
       "tag": "zkube_jc_sepolia_v1-level_system",
       "selector": "0x33b3b3102d929fb9cbc17885ff894cbf4a01055819b277379d62c0b49d9de4f",
       "systems": [
         "initialize_level",
+        "initialize_endless_level",
         "finalize_level",
         "start_next_level",
         "insert_line_if_empty",
@@ -123,8 +123,8 @@
       ]
     },
     {
-      "address": "0x7e0e7e591f58fef5af3f21fea2ddc43fa4776ec0e24ec94795d3a59c58c724f",
-      "class_hash": "0x32aeffeb10a84c00b46fe4f46f1c9f7a45cb2c743478ec80d6b202992cc4442",
+      "address": "0x6f22fa3d76262b68e2fb0abb98f170435661fb3f67c1fb0923f2066a2d23ff6",
+      "class_hash": "0x437dc7aa3a795b5e9e1592c47bcf137a86d0bceaa684ac800be912eb1583b18",
       "init_calldata": [],
       "tag": "zkube_jc_sepolia_v1-move_system",
       "selector": "0x5e1069363565a194f3fa083b852430e104bec263626c42a4338365b3f03c696",
@@ -134,8 +134,8 @@
       ]
     },
     {
-      "address": "0x677263f2e38ae64d93378692765e6bd82d03ae75f44db9df2c2f68b00dd1dc8",
-      "class_hash": "0x3d52a8f89c62b7ebfaf7104eb85c530c8adfc2b70c049e272313a81681ae896",
+      "address": "0x58fc72926ef3b01c7311f3adeb5084d815d18cd271895bfd950fe47dbdaaa25",
+      "class_hash": "0x3ff9868d765a81473d1f47871c652b5748aadd883f281417ade19cc6a9199a3",
       "init_calldata": [],
       "tag": "zkube_jc_sepolia_v1-renderer_systems",
       "selector": "0x60a4652b2620654947e38ccf23c7d63252be81078b331b6221e72376ac0cd89",
@@ -174,11 +174,6 @@
           "key": false
         },
         {
-          "name": "ranking_metric",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
           "name": "total_entries",
           "type": "core::integer::u32",
           "key": false
@@ -192,9 +187,19 @@
           "name": "settled",
           "type": "core::bool",
           "key": false
+        },
+        {
+          "name": "game_mode",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "map_settings_id",
+          "type": "core::integer::u32",
+          "key": false
         }
       ],
-      "class_hash": "0x2345abf36b5f9a8ff4d51728c4f3adc3148425f72d596affd4d9c8ccedce2da",
+      "class_hash": "0x4cd85af6d9ec8cfb6896da98919603a0232652f773c5e89c19a40ae8ed3f652",
       "tag": "zkube_jc_sepolia_v1-DailyChallenge",
       "selector": "0x71d21fc0793e230b8abafc032acfcd93285f54b07145e70886f1c46683c9b4"
     },
@@ -231,11 +236,6 @@
           "key": false
         },
         {
-          "name": "best_cubes",
-          "type": "core::integer::u16",
-          "key": false
-        },
-        {
           "name": "best_game_id",
           "type": "core::felt252",
           "key": false
@@ -256,7 +256,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x49ba469030fd3a899906e81e59666d2bfac848ca13703aeff1bc782e7a318b0",
+      "class_hash": "0x815f9eb0f305deedd0e21c72661c3fd5f95527a36f1709bc9872704c5c9b",
       "tag": "zkube_jc_sepolia_v1-DailyEntry",
       "selector": "0x6a2976607564c4aaf31da78efbb5c2b91407851c8cf039e35ee7388d7911781"
     },
@@ -429,17 +429,12 @@
           "key": false
         },
         {
-          "name": "cube_3_threshold",
-          "type": "core::integer::u16",
-          "key": false
-        },
-        {
-          "name": "cube_2_threshold",
-          "type": "core::integer::u16",
+          "name": "mutator_id",
+          "type": "core::integer::u8",
           "key": false
         }
       ],
-      "class_hash": "0x6d357ffb2c4d5cfe5f4a050bbeeca58cc0e6bdd024b1606913c2f3ff8def03",
+      "class_hash": "0x760d381dc4133d1dfe9c32d1679034a9f60541342372c5af4f0d9a6f84102da",
       "tag": "zkube_jc_sepolia_v1-GameLevel",
       "selector": "0x4802e12abba71de70f11d387a90a2639e65ad0480c7fd4e36dfce75ab2de42a"
     },
@@ -500,16 +495,6 @@
         {
           "name": "max_ratio_x100",
           "type": "core::integer::u16",
-          "key": false
-        },
-        {
-          "name": "cube_3_percent",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "cube_2_percent",
-          "type": "core::integer::u8",
           "key": false
         },
         {
@@ -648,37 +633,22 @@
           "key": false
         },
         {
-          "name": "draft_picks",
-          "type": "core::integer::u8",
+          "name": "allowed_mutators",
+          "type": "core::integer::u32",
           "key": false
         },
         {
-          "name": "draft_pool_mask",
-          "type": "core::integer::u16",
+          "name": "endless_difficulty_thresholds",
+          "type": "core::felt252",
           "key": false
         },
         {
-          "name": "draft_fixed_level",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "boss_upgrades_enabled",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "reroll_base_cost",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "starting_charges",
-          "type": "core::integer::u8",
+          "name": "endless_score_multipliers",
+          "type": "core::integer::u64",
           "key": false
         }
       ],
-      "class_hash": "0x6d1cdd4c75e2a400c4508160edfa44e0292516ddabe80afa3c6166c44ca5c90",
+      "class_hash": "0x304699952889e1967547805f5a2d521926935885f38ce963d7dda78b250ebeb",
       "tag": "zkube_jc_sepolia_v1-GameSettings",
       "selector": "0x451f1c5cc1065b109244ae3f5f349ddf535168edb8745ec55680f11c3277694"
     },
@@ -769,6 +739,53 @@
           "key": true
         },
         {
+          "name": "settings_id",
+          "type": "core::integer::u32",
+          "key": true
+        },
+        {
+          "name": "mode",
+          "type": "core::integer::u8",
+          "key": true
+        },
+        {
+          "name": "best_score",
+          "type": "core::integer::u32",
+          "key": false
+        },
+        {
+          "name": "best_stars",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "best_level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "map_cleared",
+          "type": "core::bool",
+          "key": false
+        },
+        {
+          "name": "best_game_id",
+          "type": "core::felt252",
+          "key": false
+        }
+      ],
+      "class_hash": "0x68e744e7d2d4f7398c9379b54d7445b8c81798ba75e357fd36dd217eb335804",
+      "tag": "zkube_jc_sepolia_v1-PlayerBestRun",
+      "selector": "0x7848d71387306668a5d31eaf63d945b97a06f3da55ed2a926bb34d9542d9b3"
+    },
+    {
+      "members": [
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
           "name": "data",
           "type": "core::felt252",
           "key": false
@@ -808,7 +825,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x1a37cb46ddfbdb58893e58ecbfc6dfe48e4d73d78db19cc0340eb59ae8c6e32",
+      "class_hash": "0x7fd65bc87eda9fdfc7f23fd4fea15041a71165768f5fcac569ae08a8a37382d",
       "tag": "zkube_jc_sepolia_v1-ConstraintProgress",
       "selector": "0x22376a88c3194f82daaa363ce6de364ae4e4883157b746126005af10e46b189"
     },
@@ -830,11 +847,6 @@
           "key": false
         },
         {
-          "name": "cubes",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
           "name": "moves_used",
           "type": "core::integer::u16",
           "key": false
@@ -848,14 +860,9 @@
           "name": "total_score",
           "type": "core::integer::u32",
           "key": false
-        },
-        {
-          "name": "bonuses_earned",
-          "type": "core::integer::u8",
-          "key": false
         }
       ],
-      "class_hash": "0x445db1b3f7f68e50cb393eee6f035d75213ae55548c5b0dc767f3fa60bff80e",
+      "class_hash": "0xd5879991031213d467aaa2c35bb9ce85c21ab96a7cc0a8304ad264b3ef6e50",
       "tag": "zkube_jc_sepolia_v1-LevelCompleted",
       "selector": "0x3ff95274d9ed00ac5e6bf656b6dcd12d50c77c693fe55c80cd300aa0cad4b83"
     },
@@ -902,46 +909,9 @@
           "key": false
         }
       ],
-      "class_hash": "0x26afcc6a24390c5219e72eba86e4f49225c3041ea316a4f72e1382322848063",
+      "class_hash": "0x1cd85d405c01fb5833dc5b5510ad4d088e76ca7cfd51272466a40e9b2c0b33e",
       "tag": "zkube_jc_sepolia_v1-LevelStarted",
       "selector": "0xacdf353d0db712b7ef3aa7a967a476607e84f660cf4b108f8f7f34fce988a"
-    },
-    {
-      "members": [
-        {
-          "name": "game_id",
-          "type": "core::felt252",
-          "key": true
-        },
-        {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "key": true
-        },
-        {
-          "name": "final_score",
-          "type": "core::integer::u32",
-          "key": false
-        },
-        {
-          "name": "total_cubes",
-          "type": "core::integer::u16",
-          "key": false
-        },
-        {
-          "name": "started_at",
-          "type": "core::integer::u64",
-          "key": false
-        },
-        {
-          "name": "completed_at",
-          "type": "core::integer::u64",
-          "key": false
-        }
-      ],
-      "class_hash": "0x4c3f424b6e2cf5eb687920dca76f5d84a02311b8af86e9160301b7e05157bc3",
-      "tag": "zkube_jc_sepolia_v1-RunCompleted",
-      "selector": "0x2b63049a1a82d2b15f001f000b86b7a4d2db394a4518b157e3dfad10505980a"
     },
     {
       "members": [
@@ -966,7 +936,7 @@
           "key": false
         },
         {
-          "name": "endless_depth",
+          "name": "current_difficulty",
           "type": "core::integer::u8",
           "key": false
         },
@@ -981,7 +951,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x429ce1d376d418b33e5e3d83b27a27117fa2705a32152d0f0755c5449eba40d",
+      "class_hash": "0x6f68d4a681baeded8e001a0e2a95b90eef3f622756467183b4f6b1fe25efa16",
       "tag": "zkube_jc_sepolia_v1-RunEnded",
       "selector": "0xc24a23cbe1c08669380caa51245845361b840fe9190e5c4f285491c8402321"
     },
@@ -3625,10 +3595,6 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "cubes",
-          "type": "core::integer::u8"
-        },
-        {
           "name": "moves_used",
           "type": "core::integer::u16"
         },
@@ -3639,10 +3605,6 @@
         {
           "name": "total_score",
           "type": "core::integer::u32"
-        },
-        {
-          "name": "bonuses_earned",
-          "type": "core::integer::u8"
         }
       ]
     },
@@ -3655,10 +3617,6 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "cubes",
-          "type": "core::integer::u8"
-        },
-        {
           "name": "moves_used",
           "type": "core::integer::u16"
         },
@@ -3669,10 +3627,6 @@
         {
           "name": "total_score",
           "type": "core::integer::u32"
-        },
-        {
-          "name": "bonuses_earned",
-          "type": "core::integer::u8"
         }
       ]
     },
@@ -3746,58 +3700,6 @@
     },
     {
       "type": "struct",
-      "name": "zkube::events::RunCompleted",
-      "members": [
-        {
-          "name": "game_id",
-          "type": "core::felt252"
-        },
-        {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "final_score",
-          "type": "core::integer::u32"
-        },
-        {
-          "name": "total_cubes",
-          "type": "core::integer::u16"
-        },
-        {
-          "name": "started_at",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "completed_at",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "zkube::events::RunCompletedValue",
-      "members": [
-        {
-          "name": "final_score",
-          "type": "core::integer::u32"
-        },
-        {
-          "name": "total_cubes",
-          "type": "core::integer::u16"
-        },
-        {
-          "name": "started_at",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "completed_at",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
       "name": "zkube::events::RunEnded",
       "members": [
         {
@@ -3817,7 +3719,7 @@
           "type": "core::integer::u32"
         },
         {
-          "name": "endless_depth",
+          "name": "current_difficulty",
           "type": "core::integer::u8"
         },
         {
@@ -3843,7 +3745,7 @@
           "type": "core::integer::u32"
         },
         {
-          "name": "endless_depth",
+          "name": "current_difficulty",
           "type": "core::integer::u8"
         },
         {
@@ -3908,12 +3810,6 @@
     },
     {
       "type": "event",
-      "name": "zkube::events::e_RunCompleted::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
       "name": "zkube::events::e_RunEnded::Event",
       "kind": "enum",
       "variants": []
@@ -3951,14 +3847,6 @@
         {
           "name": "max_ratio_x100",
           "type": "core::integer::u16"
-        },
-        {
-          "name": "cube_3_percent",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "cube_2_percent",
-          "type": "core::integer::u8"
         },
         {
           "name": "tier_1_threshold",
@@ -4069,28 +3957,16 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "draft_picks",
-          "type": "core::integer::u8"
+          "name": "allowed_mutators",
+          "type": "core::integer::u32"
         },
         {
-          "name": "draft_pool_mask",
-          "type": "core::integer::u16"
+          "name": "endless_difficulty_thresholds",
+          "type": "core::felt252"
         },
         {
-          "name": "draft_fixed_level",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "boss_upgrades_enabled",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "reroll_base_cost",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "starting_charges",
-          "type": "core::integer::u8"
+          "name": "endless_score_multipliers",
+          "type": "core::integer::u64"
         }
       ]
     },
@@ -4207,14 +4083,6 @@
           "type": "core::integer::u16"
         },
         {
-          "name": "cube_3_percent",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "cube_2_percent",
-          "type": "core::integer::u8"
-        },
-        {
           "name": "tier_1_threshold",
           "type": "core::integer::u8"
         },
@@ -4323,28 +4191,16 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "draft_picks",
-          "type": "core::integer::u8"
+          "name": "allowed_mutators",
+          "type": "core::integer::u32"
         },
         {
-          "name": "draft_pool_mask",
-          "type": "core::integer::u16"
+          "name": "endless_difficulty_thresholds",
+          "type": "core::felt252"
         },
         {
-          "name": "draft_fixed_level",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "boss_upgrades_enabled",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "reroll_base_cost",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "starting_charges",
-          "type": "core::integer::u8"
+          "name": "endless_score_multipliers",
+          "type": "core::integer::u64"
         }
       ]
     },
@@ -4385,10 +4241,6 @@
           "type": "core::integer::u64"
         },
         {
-          "name": "ranking_metric",
-          "type": "core::integer::u8"
-        },
-        {
           "name": "total_entries",
           "type": "core::integer::u32"
         },
@@ -4399,6 +4251,14 @@
         {
           "name": "settled",
           "type": "core::bool"
+        },
+        {
+          "name": "game_mode",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "map_settings_id",
+          "type": "core::integer::u32"
         }
       ]
     },
@@ -4423,10 +4283,6 @@
           "type": "core::integer::u64"
         },
         {
-          "name": "ranking_metric",
-          "type": "core::integer::u8"
-        },
-        {
           "name": "total_entries",
           "type": "core::integer::u32"
         },
@@ -4437,6 +4293,14 @@
         {
           "name": "settled",
           "type": "core::bool"
+        },
+        {
+          "name": "game_mode",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "map_settings_id",
+          "type": "core::integer::u32"
         }
       ]
     },
@@ -4467,10 +4331,6 @@
         {
           "name": "best_depth",
           "type": "core::integer::u8"
-        },
-        {
-          "name": "best_cubes",
-          "type": "core::integer::u16"
         },
         {
           "name": "best_game_id",
@@ -4509,10 +4369,6 @@
         {
           "name": "best_depth",
           "type": "core::integer::u8"
-        },
-        {
-          "name": "best_cubes",
-          "type": "core::integer::u16"
         },
         {
           "name": "best_game_id",
@@ -4753,12 +4609,8 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "cube_3_threshold",
-          "type": "core::integer::u16"
-        },
-        {
-          "name": "cube_2_threshold",
-          "type": "core::integer::u16"
+          "name": "mutator_id",
+          "type": "core::integer::u8"
         }
       ]
     },
@@ -4819,12 +4671,8 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "cube_3_threshold",
-          "type": "core::integer::u16"
-        },
-        {
-          "name": "cube_2_threshold",
-          "type": "core::integer::u16"
+          "name": "mutator_id",
+          "type": "core::integer::u8"
         }
       ]
     },
@@ -4926,6 +4774,70 @@
     },
     {
       "type": "struct",
+      "name": "zkube::models::player::PlayerBestRun",
+      "members": [
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "settings_id",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "mode",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "best_score",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "best_stars",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "best_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "map_cleared",
+          "type": "core::bool"
+        },
+        {
+          "name": "best_game_id",
+          "type": "core::felt252"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::player::PlayerBestRunValue",
+      "members": [
+        {
+          "name": "best_score",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "best_stars",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "best_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "map_cleared",
+          "type": "core::bool"
+        },
+        {
+          "name": "best_game_id",
+          "type": "core::felt252"
+        }
+      ]
+    },
+    {
+      "type": "struct",
       "name": "zkube::models::player::PlayerMeta",
       "members": [
         {
@@ -4955,6 +4867,12 @@
           "type": "core::integer::u8"
         }
       ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::player::m_PlayerBestRun::Event",
+      "kind": "enum",
+      "variants": []
     },
     {
       "type": "event",
@@ -5021,14 +4939,6 @@
             {
               "name": "max_ratio_x100",
               "type": "core::integer::u16"
-            },
-            {
-              "name": "cube_3_percent",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "cube_2_percent",
-              "type": "core::integer::u8"
             },
             {
               "name": "tier_1_threshold",
@@ -5136,30 +5046,6 @@
             },
             {
               "name": "level_cap",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "draft_picks",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "draft_pool_mask",
-              "type": "core::integer::u16"
-            },
-            {
-              "name": "draft_fixed_level",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "boss_upgrades_enabled",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "reroll_base_cost",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "starting_charges",
               "type": "core::integer::u8"
             }
           ],
@@ -5302,17 +5188,6 @@
           "outputs": [
             {
               "type": "core::bool"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "get_cube_token_address",
-          "inputs": [],
-          "outputs": [
-            {
-              "type": "core::starknet::contract_address::ContractAddress"
             }
           ],
           "state_mutability": "view"
@@ -5535,6 +5410,10 @@
             {
               "name": "game_id",
               "type": "core::felt252"
+            },
+            {
+              "name": "mode",
+              "type": "core::integer::u8"
             }
           ],
           "outputs": [],
@@ -5547,6 +5426,10 @@
             {
               "name": "game_id",
               "type": "core::felt252"
+            },
+            {
+              "name": "mode",
+              "type": "core::integer::u8"
             }
           ],
           "outputs": [],
@@ -5688,47 +5571,11 @@
             {
               "name": "final_index",
               "type": "core::integer::u8"
-            },
-            {
-              "name": "skill_data",
-              "type": "core::felt252"
             }
           ],
           "outputs": [
             {
               "type": "(core::integer::u8, core::bool)"
-            }
-          ],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "apply_bonus",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::felt252"
-            },
-            {
-              "name": "bonus",
-              "type": "zkube::types::bonus::Bonus"
-            },
-            {
-              "name": "row_index",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "col_index",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "skill_data",
-              "type": "core::felt252"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::integer::u8"
             }
           ],
           "state_mutability": "external"
@@ -5791,10 +5638,6 @@
             {
               "name": "game_id",
               "type": "core::felt252"
-            },
-            {
-              "name": "skill_data",
-              "type": "core::felt252"
             }
           ],
           "outputs": [
@@ -5806,14 +5649,22 @@
         },
         {
           "type": "function",
-          "name": "finalize_level",
+          "name": "initialize_endless_level",
           "inputs": [
             {
               "name": "game_id",
               "type": "core::felt252"
-            },
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "finalize_level",
+          "inputs": [
             {
-              "name": "skill_data",
+              "name": "game_id",
               "type": "core::felt252"
             }
           ],
@@ -5987,32 +5838,6 @@
     },
     {
       "type": "enum",
-      "name": "zkube::types::bonus::Bonus",
-      "variants": [
-        {
-          "name": "None",
-          "type": "()"
-        },
-        {
-          "name": "ComboSurge",
-          "type": "()"
-        },
-        {
-          "name": "Momentum",
-          "type": "()"
-        },
-        {
-          "name": "Harvest",
-          "type": "()"
-        },
-        {
-          "name": "Tsunami",
-          "type": "()"
-        }
-      ]
-    },
-    {
-      "type": "enum",
       "name": "zkube::types::constraint::ConstraintType",
       "variants": [
         {
@@ -6029,14 +5854,6 @@
         },
         {
           "name": "ComboStreak",
-          "type": "()"
-        },
-        {
-          "name": "FillAndClear",
-          "type": "()"
-        },
-        {
-          "name": "NoBonusUsed",
           "type": "()"
         },
         {

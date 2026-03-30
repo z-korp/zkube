@@ -1,4 +1,4 @@
-world_address = "0x03f9d859139e395463f66421223e80cf98847b552201eb71f0fa061206cf1c8c"
+world_address = "0x02bdb0cc3800b7a2e618a26f364d1ee4ae914c7c616a1c43aa80a8835576e402"
 rpc = "https://api.cartridge.gg/x/zkube-djizus-slot/katana"
 
 [indexing]
@@ -6,7 +6,7 @@ pending = true
 transactions = true
 namespaces = ["zkube_jc_sepolia_v1"]
 contracts = [
-  "erc721:0x045edce17818992bb6885a3f9b85bf901179cbab2bee32deae4d1862f16c23bc",
+  "erc721:0x045a583128eeccc8f2a365243abc1940f17063ff33a6df1db784b4da40643a84"
 ]
 
 [events]

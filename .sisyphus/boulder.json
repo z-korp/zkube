@@ -3,7 +3,12 @@
   "started_at": "2026-03-27T22:08:26.102Z",
   "session_ids": [
     "ses_2cfcbfca9fferkTJofFceugpEL",
-    "ses_2cf950e44ffeab55Y7sSAmfddc"
+    "ses_2cf950e44ffeab55Y7sSAmfddc",
+    "ses_2c0dada50ffematCPYw2lgrWke",
+    "ses_2c0da9ed4ffe0ozJ1nudRKvfho",
+    "ses_2c0d79f92ffekT5Vtd7HYMGox2",
+    "ses_2c0d54362ffeR58E4VY1VTskCh",
+    "ses_2c0cac962ffehx4PGbENi2gmmz"
   ],
   "plan_name": "zkube-launch-redesign",
   "agent": "atlas",
