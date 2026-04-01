@@ -12,7 +12,7 @@
 #[starknet::interface]
 pub trait IGridSystem<T> {
     /// Initialize a new game's grid with starting blocks.
-    /// This fills the grid until it reaches 4 rows of blocks.
+    /// This fills the grid until it reaches configured starting rows (default: 4).
     fn initialize_grid(ref self: T, game_id: felt252);
 
     /// Reset the grid for a new level.
@@ -74,6 +74,12 @@ mod grid_system {
             let base_seed: GameSeed = world.read_model(game_id);
             let game_level: GameLevel = world.read_model(game_id);
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+            let run_data = game.get_run_data();
+            let mutator_def = InternalImpl::read_mutator_def(world, run_data.active_mutator_id);
+            let mut starting_rows = MutatorEffectsTrait::get_starting_rows(@mutator_def);
+            if starting_rows > constants::DEFAULT_GRID_HEIGHT {
+                starting_rows = constants::DEFAULT_GRID_HEIGHT;
+            }
 
             let difficulty: Difficulty = game_level.difficulty.into();
             let level_seed = GameTrait::generate_level_seed(base_seed.level_seed, 1);
@@ -81,8 +87,10 @@ mod grid_system {
             // Create initial next_row
             game.next_row = Controller::create_line(level_seed, difficulty, settings);
 
-            // Fill grid until it has at least 4 rows of blocks
-            let div: u256 = BitShift::shl(1_u256, 4 * constants::ROW_BIT_COUNT.into()) - 1;
+            // Fill grid until it has at least the configured starting rows.
+            let div: u256 = BitShift::shl(
+                1_u256, starting_rows.into() * constants::ROW_BIT_COUNT.into(),
+            ) - 1;
             loop {
                 if game.blocks.into() / div > 0 {
                     break;
@@ -110,6 +118,11 @@ mod grid_system {
 
             let run_data = game.get_run_data();
             let current_level = run_data.current_level;
+            let mutator_def = InternalImpl::read_mutator_def(world, run_data.active_mutator_id);
+            let mut starting_rows = MutatorEffectsTrait::get_starting_rows(@mutator_def);
+            if starting_rows > constants::DEFAULT_GRID_HEIGHT {
+                starting_rows = constants::DEFAULT_GRID_HEIGHT;
+            }
             let difficulty: Difficulty = game_level.difficulty.into();
             let level_seed = GameTrait::generate_level_seed(base_seed.level_seed, current_level);
 
@@ -117,8 +130,10 @@ mod grid_system {
             game.blocks = 0;
             game.next_row = Controller::create_line(level_seed, difficulty, settings);
 
-            // Fill grid until it has at least 4 rows of blocks
-            let div: u256 = BitShift::shl(1_u256, 4 * constants::ROW_BIT_COUNT.into()) - 1;
+            // Fill grid until it has at least the configured starting rows.
+            let div: u256 = BitShift::shl(
+                1_u256, starting_rows.into() * constants::ROW_BIT_COUNT.into(),
+            ) - 1;
             loop {
                 if game.blocks.into() / div > 0 {
                     break;
@@ -216,14 +231,20 @@ mod grid_system {
                 base_points, run_data.mode, score_difficulty, @settings, @mutator_def,
             );
             update_score(ref run_data, points);
+            let line_clear_bonus = MutatorEffectsTrait::get_line_clear_bonus(@mutator_def);
 
             // Check grid full
             let is_full = InternalImpl::is_grid_full(new_blocks);
             if is_full {
+                if lines_cleared > 0 && line_clear_bonus > 0 {
+                    let bonus_points: u16 = lines_cleared.into() * line_clear_bonus.into();
+                    update_score(ref run_data, bonus_points);
+                }
+
                 game.blocks = new_blocks;
                 game.set_run_data(run_data);
                 world.write_model(@game);
-                return (0, true);
+                return (lines_cleared, true);
             }
 
             // Insert new line
@@ -247,6 +268,17 @@ mod grid_system {
                 more_base_points, run_data.mode, score_difficulty, @settings, @mutator_def,
             );
             update_score(ref run_data, more_points);
+
+            if lines_cleared > 0 && line_clear_bonus > 0 {
+                let bonus_points: u16 = lines_cleared.into() * line_clear_bonus.into();
+                update_score(ref run_data, bonus_points);
+            }
+
+            let perfect_clear_bonus = MutatorEffectsTrait::get_perfect_clear_bonus(@mutator_def);
+            if new_blocks == 0 && perfect_clear_bonus > 0 {
+                update_score(ref run_data, perfect_clear_bonus.into());
+            }
+
             // Use the max cascade depth from both phases
             if cascade_depth_2 > cascade_depth {
                 cascade_depth = cascade_depth_2;

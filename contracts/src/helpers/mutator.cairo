@@ -6,6 +6,7 @@ mod MutatorDefaults {
     pub const BIAS_ZERO: u8 = 128;
     pub const MULTIPLIER_NEUTRAL_X100: u16 = 100;
     pub const MAX_BONUS_TYPE: u8 = 3;
+    pub const MAX_TRIGGER_TYPE: u8 = 4;
 }
 
 #[generate_trait]
@@ -23,7 +24,11 @@ pub impl MutatorEffectsImpl of MutatorEffectsTrait {
             star_threshold_modifier: MutatorDefaults::BIAS_ZERO,
             endless_ramp_mult_x100: MutatorDefaults::MULTIPLIER_NEUTRAL_X100,
             bonus_type: 0,
-            bonus_combo_interval: 0,
+            trigger_type: 0,
+            trigger_threshold: 0,
+            line_clear_bonus: 0,
+            perfect_clear_bonus: 0,
+            starting_rows: 0,
         }
     }
 
@@ -58,6 +63,9 @@ pub impl MutatorEffectsImpl of MutatorEffectsTrait {
         }
         if mutator_def.bonus_type > MutatorDefaults::MAX_BONUS_TYPE {
             mutator_def.bonus_type = 0;
+        }
+        if mutator_def.trigger_type > MutatorDefaults::MAX_TRIGGER_TYPE {
+            mutator_def.trigger_type = 0;
         }
 
         mutator_def
@@ -118,9 +126,39 @@ pub impl MutatorEffectsImpl of MutatorEffectsTrait {
         }
     }
 
-    /// Combo interval used to add one bonus charge.
-    fn get_bonus_combo_interval(mutator_def: @MutatorDef) -> u8 {
-        *mutator_def.bonus_combo_interval
+    /// Bonus trigger type as encoded in MutatorDef.
+    fn get_trigger_type(mutator_def: @MutatorDef) -> u8 {
+        let trigger_type = *mutator_def.trigger_type;
+        if trigger_type <= MutatorDefaults::MAX_TRIGGER_TYPE {
+            trigger_type
+        } else {
+            0
+        }
+    }
+
+    /// Bonus trigger threshold as encoded in MutatorDef.
+    fn get_trigger_threshold(mutator_def: @MutatorDef) -> u8 {
+        *mutator_def.trigger_threshold
+    }
+
+    /// Flat score bonus per cleared line.
+    fn get_line_clear_bonus(mutator_def: @MutatorDef) -> u8 {
+        *mutator_def.line_clear_bonus
+    }
+
+    /// Score bonus when grid is fully cleared.
+    fn get_perfect_clear_bonus(mutator_def: @MutatorDef) -> u8 {
+        *mutator_def.perfect_clear_bonus
+    }
+
+    /// Starting filled rows override. 0 keeps the default (4 rows).
+    fn get_starting_rows(mutator_def: @MutatorDef) -> u8 {
+        let rows = *mutator_def.starting_rows;
+        if rows == 0 {
+            4
+        } else {
+            rows
+        }
     }
 }
 

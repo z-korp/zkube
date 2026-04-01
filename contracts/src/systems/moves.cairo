@@ -72,7 +72,7 @@ mod move_system {
             let player = get_caller_address();
 
             // Execute move via grid_system dispatcher (contains Controller logic)
-            let (_lines_cleared, is_grid_full) = libs
+            let (lines_cleared, is_grid_full) = libs
                 .grid
                 .execute_move(game_id, row_index, start_index, final_index);
 
@@ -93,12 +93,60 @@ mod move_system {
                 run_data_changed = true;
             }
 
-            let combo_interval = MutatorEffectsTrait::get_bonus_combo_interval(@mutator_def);
-            if combo_interval > 0 && game.combo_counter > 0
-                && game.combo_counter % combo_interval == 0 {
-                if run_data.bonus_charges < 15 {
-                    run_data.bonus_charges += 1;
-                    run_data_changed = true;
+            let trigger_type = MutatorEffectsTrait::get_trigger_type(@mutator_def);
+            let threshold = MutatorEffectsTrait::get_trigger_threshold(@mutator_def);
+
+            // Type 4 (blocks destroyed) is reserved until grid dispatcher exposes a value.
+            let blocks_destroyed: u8 = 0;
+
+            if trigger_type > 0 && threshold > 0 {
+                let trigger_count: u8 = match trigger_type {
+                    1 => game.combo_counter,
+                    2 => lines_cleared,
+                    3 => run_data.level_score,
+                    4 => blocks_destroyed,
+                    _ => 0,
+                };
+
+                if trigger_type == 1 {
+                    // Combo trigger (cumulative): one charge every N combos.
+                    if trigger_count > 0 && trigger_count % threshold == 0
+                        && run_data.bonus_charges < 15 {
+                        run_data.bonus_charges += 1;
+                        run_data_changed = true;
+                    }
+                } else if trigger_type == 2 {
+                    // Lines-cleared trigger (per move): can grant multiple charges in one move.
+                    if trigger_count >= threshold && run_data.bonus_charges < 15 {
+                        let earned = trigger_count / threshold;
+                        if earned > 0 {
+                            let next_charges_u16: u16 = run_data.bonus_charges.into()
+                                + earned.into();
+                            let next_charges: u8 = if next_charges_u16 > 15 {
+                                15
+                            } else {
+                                next_charges_u16.try_into().unwrap()
+                            };
+
+                            if next_charges != run_data.bonus_charges {
+                                run_data.bonus_charges = next_charges;
+                                run_data_changed = true;
+                            }
+                        }
+                    }
+                } else if trigger_type == 3 {
+                    // Score trigger (cumulative): charges are monotonic level_score / threshold.
+                    let earned = trigger_count / threshold;
+                    let capped_earned = if earned > 15 {
+                        15
+                    } else {
+                        earned
+                    };
+
+                    if capped_earned > run_data.bonus_charges {
+                        run_data.bonus_charges = capped_earned;
+                        run_data_changed = true;
+                    }
                 }
             }
 

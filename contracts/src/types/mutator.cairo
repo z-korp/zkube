@@ -40,10 +40,38 @@ pub impl MutatorImpl of MutatorTrait {
         0
     }
 
-    /// Returns combo interval for earning one bonus charge.
+    /// Returns bonus trigger type (0 = disabled).
     /// Effects are now data-driven from MutatorDef model in systems/helpers.
     /// This method remains as a neutral fallback.
-    fn get_bonus_combo_interval(_mutator_id: u8) -> u8 {
+    fn get_trigger_type(_mutator_id: u8) -> u8 {
+        0
+    }
+
+    /// Returns bonus trigger threshold.
+    /// Effects are now data-driven from MutatorDef model in systems/helpers.
+    /// This method remains as a neutral fallback.
+    fn get_trigger_threshold(_mutator_id: u8) -> u8 {
+        0
+    }
+
+    /// Returns flat score bonus per line clear.
+    /// Effects are now data-driven from MutatorDef model in systems/helpers.
+    /// This method remains as a neutral fallback.
+    fn get_line_clear_bonus(_mutator_id: u8) -> u8 {
+        0
+    }
+
+    /// Returns perfect clear score bonus.
+    /// Effects are now data-driven from MutatorDef model in systems/helpers.
+    /// This method remains as a neutral fallback.
+    fn get_perfect_clear_bonus(_mutator_id: u8) -> u8 {
+        0
+    }
+
+    /// Returns starting rows override (0 = use default).
+    /// Effects are now data-driven from MutatorDef model in systems/helpers.
+    /// This method remains as a neutral fallback.
+    fn get_starting_rows(_mutator_id: u8) -> u8 {
         0
     }
 
@@ -141,16 +169,33 @@ mod tests {
     #[test]
     fn test_mutator_bonus_mappings() {
         assert!(MutatorTrait::get_bonus_type(1) == 0, "Fallback bonus type should be neutral");
+        assert!(MutatorTrait::get_trigger_type(1) == 0, "Fallback trigger type should be disabled");
         assert!(
-            MutatorTrait::get_bonus_combo_interval(1) == 0,
-            "Fallback combo interval should be disabled",
+            MutatorTrait::get_trigger_threshold(1) == 0,
+            "Fallback trigger threshold should be disabled",
+        );
+        assert!(
+            MutatorTrait::get_line_clear_bonus(1) == 0,
+            "Fallback line clear bonus should be disabled",
+        );
+        assert!(
+            MutatorTrait::get_perfect_clear_bonus(1) == 0,
+            "Fallback perfect clear bonus should be disabled",
+        );
+        assert!(
+            MutatorTrait::get_starting_rows(1) == 0,
+            "Fallback starting rows should be neutral",
         );
 
         assert!(MutatorTrait::get_bonus_type(2) == 0, "Fallback should stay neutral");
+        assert!(MutatorTrait::get_trigger_type(2) == 0, "Fallback should stay disabled");
         assert!(
-            MutatorTrait::get_bonus_combo_interval(2) == 0,
+            MutatorTrait::get_trigger_threshold(2) == 0,
             "Fallback should stay disabled",
         );
+        assert!(MutatorTrait::get_line_clear_bonus(2) == 0, "Fallback should stay disabled");
+        assert!(MutatorTrait::get_perfect_clear_bonus(2) == 0, "Fallback should stay disabled");
+        assert!(MutatorTrait::get_starting_rows(2) == 0, "Fallback should stay neutral");
     }
 
     #[test]
