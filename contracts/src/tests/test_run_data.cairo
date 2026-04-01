@@ -24,6 +24,8 @@ fn test_run_data_pack_unpack_roundtrip_small_values() {
         mode: 0,
         bonus_type: 0,
         bonus_charges: 0,
+        level_lines_cleared: 0,
+        bonus_slot: 0,
     };
 
     assert_roundtrip(data);
@@ -46,6 +48,8 @@ fn test_run_data_pack_unpack_roundtrip_max_values() {
         mode: 0,
         bonus_type: 3,
         bonus_charges: 15,
+        level_lines_cleared: 255,
+        bonus_slot: 2,
     };
 
     assert_roundtrip(data);
@@ -71,6 +75,8 @@ fn test_run_data_total_score_supports_u32_above_u16() {
         mode: 0,
         bonus_type: 0,
         bonus_charges: 0,
+        level_lines_cleared: 12,
+        bonus_slot: 1,
     };
 
     let unpacked = RunDataPackingTrait::unpack(data.pack());
@@ -147,11 +153,15 @@ fn test_run_data_bonus_fields_roundtrip() {
         mode: 0,
         bonus_type: 1,
         bonus_charges: 7,
+        level_lines_cleared: 9,
+        bonus_slot: 2,
     };
 
     let unpacked = RunDataPackingTrait::unpack(data.pack());
     assert!(unpacked.bonus_type == 1, "bonus_type should roundtrip as 1");
     assert!(unpacked.bonus_charges == 7, "bonus_charges should roundtrip as 7");
+    assert!(unpacked.level_lines_cleared == 9, "level_lines_cleared should roundtrip as 9");
+    assert!(unpacked.bonus_slot == 2, "bonus_slot should roundtrip as 2");
 }
 
 #[test]

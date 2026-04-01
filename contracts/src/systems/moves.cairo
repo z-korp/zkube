@@ -61,6 +61,7 @@ mod move_system {
             let game: Game = world.read_model(game_id);
             assert_token_ownership(token_address, token_id_felt);
             game.assert_not_over();
+            let run_data_before_move = game.get_run_data();
 
             // Validate move indices (grid is 10 rows x 8 columns)
             assert!(row_index < 10, "Invalid row_index: must be < 10");
@@ -82,72 +83,71 @@ mod move_system {
             let mut run_data = game.get_run_data();
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
 
-            // Mutator-driven bonus setup and charge gain.
+            // Mutator-driven non-bonus effects (scoring/pressure) still read from MutatorDef.
             let mut run_data_changed = false;
             let active_mutator_id = run_data.active_mutator_id;
             let mutator_def = InternalImpl::read_mutator_def(world, active_mutator_id);
 
-            let bonus_type = MutatorEffectsTrait::get_bonus_type(@mutator_def);
-            if run_data.bonus_type != bonus_type {
-                run_data.bonus_type = bonus_type;
+            // Track per-level lines cleared in run_data.
+            let next_level_lines_cleared_u16: u16 = run_data.level_lines_cleared.into()
+                + lines_cleared.into();
+            let next_level_lines_cleared = if next_level_lines_cleared_u16 > 255 {
+                255_u8
+            } else {
+                next_level_lines_cleared_u16.try_into().unwrap()
+            };
+            if run_data.level_lines_cleared != next_level_lines_cleared {
+                run_data.level_lines_cleared = next_level_lines_cleared;
                 run_data_changed = true;
             }
 
-            let trigger_type = MutatorEffectsTrait::get_trigger_type(@mutator_def);
-            let threshold = MutatorEffectsTrait::get_trigger_threshold(@mutator_def);
+            // Bonus charges now use per-map bonus slot configuration from GameSettings.
+            let (trigger_type, threshold) = match run_data.bonus_slot {
+                0 => (settings.bonus_1_trigger_type, settings.bonus_1_trigger_threshold),
+                1 => (settings.bonus_2_trigger_type, settings.bonus_2_trigger_threshold),
+                2 => (settings.bonus_3_trigger_type, settings.bonus_3_trigger_threshold),
+                _ => (0_u8, 0_u8),
+            };
 
-            // Type 4 (blocks destroyed) is reserved until grid dispatcher exposes a value.
-            let blocks_destroyed: u8 = 0;
-
-            if trigger_type > 0 && threshold > 0 {
-                let trigger_count: u8 = match trigger_type {
-                    1 => game.combo_counter,
-                    2 => lines_cleared,
-                    3 => run_data.level_score,
-                    4 => blocks_destroyed,
-                    _ => 0,
-                };
-
+            if trigger_type > 0 && threshold > 0 && run_data.bonus_type > 0 {
                 if trigger_type == 1 {
-                    // Combo trigger (cumulative): one charge every N combos.
-                    if trigger_count > 0 && trigger_count % threshold == 0
-                        && run_data.bonus_charges < 15 {
-                        run_data.bonus_charges += 1;
-                        run_data_changed = true;
+                    // Combo streak (per-level): award one charge each exact threshold hit.
+                    if game.combo_counter > 0 && game.combo_counter % threshold == 0 {
+                        let next_charges = InternalImpl::add_bonus_charges(run_data.bonus_charges, 1);
+                        if next_charges != run_data.bonus_charges {
+                            run_data.bonus_charges = next_charges;
+                            run_data_changed = true;
+                        }
                     }
                 } else if trigger_type == 2 {
-                    // Lines-cleared trigger (per move): can grant multiple charges in one move.
-                    if trigger_count >= threshold && run_data.bonus_charges < 15 {
-                        let earned = trigger_count / threshold;
-                        if earned > 0 {
-                            let next_charges_u16: u16 = run_data.bonus_charges.into()
-                                + earned.into();
-                            let next_charges: u8 = if next_charges_u16 > 15 {
-                                15
-                            } else {
-                                next_charges_u16.try_into().unwrap()
-                            };
-
-                            if next_charges != run_data.bonus_charges {
-                                run_data.bonus_charges = next_charges;
-                                run_data_changed = true;
-                            }
+                    // Lines cleared (per-level, monotonic threshold crossings).
+                    let earned = run_data.level_lines_cleared / threshold;
+                    let prev_earned = run_data_before_move.level_lines_cleared / threshold;
+                    if earned > prev_earned {
+                        let charges_to_add = earned - prev_earned;
+                        let next_charges = InternalImpl::add_bonus_charges(
+                            run_data.bonus_charges, charges_to_add,
+                        );
+                        if next_charges != run_data.bonus_charges {
+                            run_data.bonus_charges = next_charges;
+                            run_data_changed = true;
                         }
                     }
                 } else if trigger_type == 3 {
-                    // Score trigger (cumulative): charges are monotonic level_score / threshold.
-                    let earned = trigger_count / threshold;
-                    let capped_earned = if earned > 15 {
-                        15
-                    } else {
-                        earned
-                    };
-
-                    if capped_earned > run_data.bonus_charges {
-                        run_data.bonus_charges = capped_earned;
-                        run_data_changed = true;
+                    // Score (per-level, monotonic threshold crossings).
+                    let earned = run_data.level_score / threshold;
+                    let prev_earned = run_data_before_move.level_score / threshold;
+                    if earned > prev_earned {
+                        let charges_to_add = earned - prev_earned;
+                        let next_charges = InternalImpl::add_bonus_charges(
+                            run_data.bonus_charges, charges_to_add,
+                        );
+                        if next_charges != run_data.bonus_charges {
+                            run_data.bonus_charges = next_charges;
+                            run_data_changed = true;
+                        }
                     }
-                }
+                };
             }
 
             if run_data_changed {
@@ -211,6 +211,16 @@ mod move_system {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
+        #[inline(always)]
+        fn add_bonus_charges(current: u8, to_add: u8) -> u8 {
+            let next_charges_u16: u16 = current.into() + to_add.into();
+            if next_charges_u16 > 15 {
+                15
+            } else {
+                next_charges_u16.try_into().unwrap()
+            }
+        }
+
         fn read_mutator_def(world: WorldStorage, mutator_id: u8) -> MutatorDef {
             if mutator_id == 0 {
                 return MutatorEffectsTrait::neutral(0);

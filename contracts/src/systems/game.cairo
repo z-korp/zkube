@@ -49,12 +49,10 @@ mod game_system {
         GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
     };
     use zkube::helpers::game_over;
-    use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::random::RandomImpl;
     use zkube::models::config::GameSettingsMetadata;
     use zkube::models::entitlement::MapEntitlement;
     use zkube::models::game::{Game, GameAssert, GameSeed, GameTrait};
-    use zkube::models::mutator::MutatorDef;
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::models::daily::{DailyChallenge, DailyEntry, DailyEntryTrait, GameChallenge};
     use zkube::types::mutator::{FULL_MUTATOR_MASK, MutatorTrait};
@@ -278,11 +276,6 @@ mod game_system {
             assert!(block_index < 8, "Invalid block_index: must be < 8");
 
             let mut run_data = game.get_run_data();
-            let mutator_def = InternalImpl::read_mutator_def(world, run_data.active_mutator_id);
-            let bonus_type = MutatorEffectsTrait::get_bonus_type(@mutator_def);
-            if run_data.bonus_type != bonus_type {
-                run_data.bonus_type = bonus_type;
-            }
             assert!(run_data.bonus_charges > 0, "No bonus charges available");
             assert!(run_data.bonus_type > 0, "No active bonus");
 
@@ -407,13 +400,23 @@ mod game_system {
                 MutatorTrait::roll_mutator(seed, settings.allowed_mutators)
             };
 
+            let seed_u256: u256 = seed.into();
+            let bonus_slot: u8 = (seed_u256 % 3_u256).try_into().unwrap();
+            let (bonus_type, starting_charges) = match bonus_slot {
+                0 => (settings.bonus_1_type, settings.bonus_1_starting_charges),
+                1 => (settings.bonus_2_type, settings.bonus_2_starting_charges),
+                2 => (settings.bonus_3_type, settings.bonus_3_starting_charges),
+                _ => (0_u8, 0_u8),
+            };
+
             let timestamp = get_block_timestamp();
 
             // Create empty game shell (grid will be initialized via dispatcher)
             let mut game = GameTrait::new_empty(game_id, timestamp, 0, active_mutator_id, mode_val);
             let mut run_data = game.get_run_data();
-            let mutator_def = Self::read_mutator_def(world, active_mutator_id);
-            run_data.bonus_type = MutatorEffectsTrait::get_bonus_type(@mutator_def);
+            run_data.bonus_slot = bonus_slot;
+            run_data.bonus_type = bonus_type;
+            run_data.bonus_charges = if starting_charges > 15 { 15 } else { starting_charges };
             game.set_run_data(run_data);
 
             // Store the seed separately
@@ -469,15 +472,6 @@ mod game_system {
         fn assert_game_not_started(self: @ContractState, game_id: felt252) {
             let game: Game = self.world(@DEFAULT_NS()).read_model(game_id);
             assert!(game.blocks == 0, "Game {} has already started", game_id);
-        }
-
-        fn read_mutator_def(world: WorldStorage, mutator_id: u8) -> MutatorDef {
-            if mutator_id == 0 {
-                return MutatorEffectsTrait::neutral(0);
-            }
-
-            let stored: MutatorDef = world.read_model(mutator_id);
-            MutatorEffectsTrait::normalize(mutator_id, stored)
         }
     }
 }

@@ -5,8 +5,6 @@ use zkube::types::level::LevelConfig;
 mod MutatorDefaults {
     pub const BIAS_ZERO: u8 = 128;
     pub const MULTIPLIER_NEUTRAL_X100: u16 = 100;
-    pub const MAX_BONUS_TYPE: u8 = 3;
-    pub const MAX_TRIGGER_TYPE: u8 = 4;
 }
 
 #[generate_trait]
@@ -23,9 +21,6 @@ pub impl MutatorEffectsImpl of MutatorEffectsTrait {
             combo_score_mult_x100: MutatorDefaults::MULTIPLIER_NEUTRAL_X100,
             star_threshold_modifier: MutatorDefaults::BIAS_ZERO,
             endless_ramp_mult_x100: MutatorDefaults::MULTIPLIER_NEUTRAL_X100,
-            bonus_type: 0,
-            trigger_type: 0,
-            trigger_threshold: 0,
             line_clear_bonus: 0,
             perfect_clear_bonus: 0,
             starting_rows: 0,
@@ -60,12 +55,6 @@ pub impl MutatorEffectsImpl of MutatorEffectsTrait {
         }
         if mutator_def.endless_ramp_mult_x100 == 0 {
             mutator_def.endless_ramp_mult_x100 = MutatorDefaults::MULTIPLIER_NEUTRAL_X100;
-        }
-        if mutator_def.bonus_type > MutatorDefaults::MAX_BONUS_TYPE {
-            mutator_def.bonus_type = 0;
-        }
-        if mutator_def.trigger_type > MutatorDefaults::MAX_TRIGGER_TYPE {
-            mutator_def.trigger_type = 0;
         }
 
         mutator_def
@@ -114,31 +103,6 @@ pub impl MutatorEffectsImpl of MutatorEffectsTrait {
         } else {
             adjusted.try_into().unwrap()
         }
-    }
-
-    /// Bonus type as encoded in MutatorDef.
-    fn get_bonus_type(mutator_def: @MutatorDef) -> u8 {
-        let bonus_type = *mutator_def.bonus_type;
-        if bonus_type <= MutatorDefaults::MAX_BONUS_TYPE {
-            bonus_type
-        } else {
-            0
-        }
-    }
-
-    /// Bonus trigger type as encoded in MutatorDef.
-    fn get_trigger_type(mutator_def: @MutatorDef) -> u8 {
-        let trigger_type = *mutator_def.trigger_type;
-        if trigger_type <= MutatorDefaults::MAX_TRIGGER_TYPE {
-            trigger_type
-        } else {
-            0
-        }
-    }
-
-    /// Bonus trigger threshold as encoded in MutatorDef.
-    fn get_trigger_threshold(mutator_def: @MutatorDef) -> u8 {
-        *mutator_def.trigger_threshold
     }
 
     /// Flat score bonus per cleared line.

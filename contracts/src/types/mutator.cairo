@@ -33,48 +33,6 @@ pub impl MutatorImpl of MutatorTrait {
         mutator_id > 0 && mutator_id <= 32
     }
 
-    /// Returns which bonus type this mutator grants.
-    /// Effects are now data-driven from MutatorDef model in systems/helpers.
-    /// This method remains as a neutral fallback.
-    fn get_bonus_type(_mutator_id: u8) -> u8 {
-        0
-    }
-
-    /// Returns bonus trigger type (0 = disabled).
-    /// Effects are now data-driven from MutatorDef model in systems/helpers.
-    /// This method remains as a neutral fallback.
-    fn get_trigger_type(_mutator_id: u8) -> u8 {
-        0
-    }
-
-    /// Returns bonus trigger threshold.
-    /// Effects are now data-driven from MutatorDef model in systems/helpers.
-    /// This method remains as a neutral fallback.
-    fn get_trigger_threshold(_mutator_id: u8) -> u8 {
-        0
-    }
-
-    /// Returns flat score bonus per line clear.
-    /// Effects are now data-driven from MutatorDef model in systems/helpers.
-    /// This method remains as a neutral fallback.
-    fn get_line_clear_bonus(_mutator_id: u8) -> u8 {
-        0
-    }
-
-    /// Returns perfect clear score bonus.
-    /// Effects are now data-driven from MutatorDef model in systems/helpers.
-    /// This method remains as a neutral fallback.
-    fn get_perfect_clear_bonus(_mutator_id: u8) -> u8 {
-        0
-    }
-
-    /// Returns starting rows override (0 = use default).
-    /// Effects are now data-driven from MutatorDef model in systems/helpers.
-    /// This method remains as a neutral fallback.
-    fn get_starting_rows(_mutator_id: u8) -> u8 {
-        0
-    }
-
     /// Check if a mutator is allowed by a given bitmask
     fn is_allowed(mutator_id: u8, allowed_mask: u32) -> bool {
         if mutator_id == 0 {
@@ -165,38 +123,6 @@ fn pow2(mut exp: u32) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::{MutatorTrait, MUTATOR_NONE, count_set_bits, nth_set_bit};
-
-    #[test]
-    fn test_mutator_bonus_mappings() {
-        assert!(MutatorTrait::get_bonus_type(1) == 0, "Fallback bonus type should be neutral");
-        assert!(MutatorTrait::get_trigger_type(1) == 0, "Fallback trigger type should be disabled");
-        assert!(
-            MutatorTrait::get_trigger_threshold(1) == 0,
-            "Fallback trigger threshold should be disabled",
-        );
-        assert!(
-            MutatorTrait::get_line_clear_bonus(1) == 0,
-            "Fallback line clear bonus should be disabled",
-        );
-        assert!(
-            MutatorTrait::get_perfect_clear_bonus(1) == 0,
-            "Fallback perfect clear bonus should be disabled",
-        );
-        assert!(
-            MutatorTrait::get_starting_rows(1) == 0,
-            "Fallback starting rows should be neutral",
-        );
-
-        assert!(MutatorTrait::get_bonus_type(2) == 0, "Fallback should stay neutral");
-        assert!(MutatorTrait::get_trigger_type(2) == 0, "Fallback should stay disabled");
-        assert!(
-            MutatorTrait::get_trigger_threshold(2) == 0,
-            "Fallback should stay disabled",
-        );
-        assert!(MutatorTrait::get_line_clear_bonus(2) == 0, "Fallback should stay disabled");
-        assert!(MutatorTrait::get_perfect_clear_bonus(2) == 0, "Fallback should stay disabled");
-        assert!(MutatorTrait::get_starting_rows(2) == 0, "Fallback should stay neutral");
-    }
 
     #[test]
     fn test_mutator_none_always_valid() {

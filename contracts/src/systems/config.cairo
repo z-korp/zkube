@@ -55,6 +55,21 @@ pub trait IConfigSystem<T> {
         mid_level_threshold: u8,
         // Level Cap
         level_cap: u8,
+        // Bonus slot 1
+        bonus_1_type: u8,
+        bonus_1_trigger_type: u8,
+        bonus_1_trigger_threshold: u8,
+        bonus_1_starting_charges: u8,
+        // Bonus slot 2
+        bonus_2_type: u8,
+        bonus_2_trigger_type: u8,
+        bonus_2_trigger_threshold: u8,
+        bonus_2_starting_charges: u8,
+        // Bonus slot 3
+        bonus_3_type: u8,
+        bonus_3_trigger_type: u8,
+        bonus_3_trigger_threshold: u8,
+        bonus_3_starting_charges: u8,
     ) -> u32;
 
     fn get_game_settings(self: @T, settings_id: u32) -> GameSettings;
@@ -398,6 +413,21 @@ mod config_system {
             mid_level_threshold: u8,
             // Level Cap
             level_cap: u8,
+            // Bonus slot 1
+            bonus_1_type: u8,
+            bonus_1_trigger_type: u8,
+            bonus_1_trigger_threshold: u8,
+            bonus_1_starting_charges: u8,
+            // Bonus slot 2
+            bonus_2_type: u8,
+            bonus_2_trigger_type: u8,
+            bonus_2_trigger_threshold: u8,
+            bonus_2_starting_charges: u8,
+            // Bonus slot 3
+            bonus_3_type: u8,
+            bonus_3_trigger_type: u8,
+            bonus_3_trigger_threshold: u8,
+            bonus_3_starting_charges: u8,
         ) -> u32 {
             // Validate input
             assert(difficulty != Difficulty::None, 'Invalid difficulty');
@@ -434,6 +464,18 @@ mod config_system {
                     early_level_threshold,
                     mid_level_threshold,
                     level_cap,
+                    bonus_1_type,
+                    bonus_1_trigger_type,
+                    bonus_1_trigger_threshold,
+                    bonus_1_starting_charges,
+                    bonus_2_type,
+                    bonus_2_trigger_type,
+                    bonus_2_trigger_threshold,
+                    bonus_2_starting_charges,
+                    bonus_3_type,
+                    bonus_3_trigger_type,
+                    bonus_3_trigger_threshold,
+                    bonus_3_starting_charges,
                 );
 
             // Get the world dispatcher
@@ -493,6 +535,19 @@ mod config_system {
                 // Endless Mode Settings (defaults)
                 endless_difficulty_thresholds: 0,
                 endless_score_multipliers: 0,
+                // Bonus slot settings
+                bonus_1_type,
+                bonus_1_trigger_type,
+                bonus_1_trigger_threshold,
+                bonus_1_starting_charges,
+                bonus_2_type,
+                bonus_2_trigger_type,
+                bonus_2_trigger_threshold,
+                bonus_2_starting_charges,
+                bonus_3_type,
+                bonus_3_trigger_type,
+                bonus_3_trigger_threshold,
+                bonus_3_starting_charges,
             };
 
             // Create metadata
@@ -709,6 +764,21 @@ mod config_system {
             early_level_threshold: u8,
             mid_level_threshold: u8,
             level_cap: u8,
+            // Bonus slot 1
+            bonus_1_type: u8,
+            bonus_1_trigger_type: u8,
+            bonus_1_trigger_threshold: u8,
+            bonus_1_starting_charges: u8,
+            // Bonus slot 2
+            bonus_2_type: u8,
+            bonus_2_trigger_type: u8,
+            bonus_2_trigger_threshold: u8,
+            bonus_2_starting_charges: u8,
+            // Bonus slot 3
+            bonus_3_type: u8,
+            bonus_3_trigger_type: u8,
+            bonus_3_trigger_threshold: u8,
+            bonus_3_starting_charges: u8,
         ) {
             // Validate moves
             assert!(base_moves > 0, "Base moves must be positive");
@@ -808,6 +878,29 @@ mod config_system {
             assert!(level_cap > 0, "Level cap must be positive");
             assert!(mid_level_threshold <= level_cap, "Mid threshold must be <= level cap");
 
+            // Bonus slots
+            assert!(bonus_1_type <= 3, "Bonus 1 type must be in range 0..=3");
+            assert!(bonus_2_type <= 3, "Bonus 2 type must be in range 0..=3");
+            assert!(bonus_3_type <= 3, "Bonus 3 type must be in range 0..=3");
+
+            assert!(bonus_1_trigger_type <= 3, "Bonus 1 trigger type must be in range 0..=3");
+            assert!(bonus_2_trigger_type <= 3, "Bonus 2 trigger type must be in range 0..=3");
+            assert!(bonus_3_trigger_type <= 3, "Bonus 3 trigger type must be in range 0..=3");
+
+            if bonus_1_trigger_type > 0 {
+                assert!(bonus_1_trigger_threshold > 0, "Bonus 1 trigger threshold must be > 0");
+            }
+            if bonus_2_trigger_type > 0 {
+                assert!(bonus_2_trigger_threshold > 0, "Bonus 2 trigger threshold must be > 0");
+            }
+            if bonus_3_trigger_type > 0 {
+                assert!(bonus_3_trigger_threshold > 0, "Bonus 3 trigger threshold must be > 0");
+            }
+
+            assert!(bonus_1_starting_charges <= 15, "Bonus 1 starting charges must be <= 15");
+            assert!(bonus_2_starting_charges <= 15, "Bonus 2 starting charges must be <= 15");
+            assert!(bonus_3_starting_charges <= 15, "Bonus 3 starting charges must be <= 15");
+
         }
     }
 
@@ -853,6 +946,18 @@ mod config_system {
             GameSetting { name: 'EARLY_TH', value: game_settings.early_level_threshold.into() },
             GameSetting { name: 'MID_TH', value: game_settings.mid_level_threshold.into() },
             GameSetting { name: 'LEVEL_CAP', value: game_settings.level_cap.into() },
+            GameSetting { name: 'B1_TYPE', value: game_settings.bonus_1_type.into() },
+            GameSetting { name: 'B1_TRIG', value: game_settings.bonus_1_trigger_type.into() },
+            GameSetting { name: 'B1_TH', value: game_settings.bonus_1_trigger_threshold.into() },
+            GameSetting { name: 'B1_CHG', value: game_settings.bonus_1_starting_charges.into() },
+            GameSetting { name: 'B2_TYPE', value: game_settings.bonus_2_type.into() },
+            GameSetting { name: 'B2_TRIG', value: game_settings.bonus_2_trigger_type.into() },
+            GameSetting { name: 'B2_TH', value: game_settings.bonus_2_trigger_threshold.into() },
+            GameSetting { name: 'B2_CHG', value: game_settings.bonus_2_starting_charges.into() },
+            GameSetting { name: 'B3_TYPE', value: game_settings.bonus_3_type.into() },
+            GameSetting { name: 'B3_TRIG', value: game_settings.bonus_3_trigger_type.into() },
+            GameSetting { name: 'B3_TH', value: game_settings.bonus_3_trigger_threshold.into() },
+            GameSetting { name: 'B3_CHG', value: game_settings.bonus_3_starting_charges.into() },
         ]
             .span()
     }

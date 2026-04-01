@@ -65,6 +65,7 @@ mod level_system {
             run_data.level_moves = 0;
             run_data.constraint_progress = 0;
             run_data.constraint_2_progress = 0;
+            run_data.level_lines_cleared = 0;
             run_data.zone_cleared = false;
             run_data.current_difficulty = 0;
             game.combo_counter = 0;
@@ -105,6 +106,7 @@ mod level_system {
             run_data.level_moves = 0;
             run_data.constraint_progress = 0;
             run_data.constraint_2_progress = 0;
+            run_data.level_lines_cleared = 0;
             run_data.zone_cleared = false;
             run_data.current_difficulty = 0;
 
@@ -227,6 +229,7 @@ mod level_system {
             run_data.level_moves = 0;
             run_data.constraint_progress = 0;
             run_data.constraint_2_progress = 0;
+            run_data.level_lines_cleared = 0;
 
             game.combo_counter = 0;
             game.max_combo = 0;
