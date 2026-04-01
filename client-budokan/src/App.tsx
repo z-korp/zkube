@@ -18,6 +18,7 @@ import SettingsPage from "@/ui/pages/SettingsPage";
 import LeaderboardPage from "@/ui/pages/LeaderboardPage";
 import DailyChallengePage from "@/ui/pages/DailyChallengePage";
 import ProfilePage from "@/ui/pages/ProfilePage";
+import BossRevealPage from "@/ui/pages/BossRevealPage";
 
 const pageComponents: Record<PageId, React.ReactNode> = {
   home: <HomePage />,
@@ -27,6 +28,7 @@ const pageComponents: Record<PageId, React.ReactNode> = {
   ranks: <LeaderboardPage />,
   settings: <SettingsPage />,
   daily: <DailyChallengePage />,
+  boss: <BossRevealPage />,
 };
 
 const TRANSITION_DURATION = 0.15;

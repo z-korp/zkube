@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 
 import { Has, getComponentValue, runQuery } from "@dojoengine/recs";
 
@@ -7,18 +7,16 @@ import { useDojo } from "@/dojo/useDojo";
 import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
-import { loadThemeTemplate } from "@/config/themes";
+import { getThemeColors, loadThemeTemplate } from "@/config/themes";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { showToast } from "@/utils/toast";
-import ImageAssets from "@/ui/theme/ImageAssets";
 import Connect from "@/ui/components/Connect";
-import { Play, Plus, Star, User } from "lucide-react";
+import { Play } from "lucide-react";
 import ModePill from "@/ui/components/shared/ModePill";
-import GameCard from "@/ui/components/shared/GameCard";
 
 const normalizeAddress = (address: string | undefined): string | undefined => {
   if (!address) return undefined;
@@ -37,9 +35,37 @@ const toAddressBigInt = (address: string | undefined): bigint | null => {
 };
 
 const ZONE_CONFIG = [
-  { zoneId: 1, settingsId: 0, themeId: "theme-1" as const, name: "Polynesian" },
-  { zoneId: 2, settingsId: 1, themeId: "theme-5" as const, name: "Feudal Japan" },
-  { zoneId: 3, settingsId: 2, themeId: "theme-7" as const, name: "Ancient Persia" },
+  {
+    zoneId: 1,
+    settingsId: 0,
+    themeId: "theme-1" as const,
+    name: "Polynesian",
+    emoji: "🌊",
+  },
+  {
+    zoneId: 2,
+    settingsId: 1,
+    themeId: "theme-5" as const,
+    name: "Feudal Japan",
+    emoji: "⛩️",
+  },
+  {
+    zoneId: 3,
+    settingsId: 2,
+    themeId: "theme-7" as const,
+    name: "Ancient Persia",
+    emoji: "🕌",
+  },
+] as const;
+
+const EXTRA_LOCKED_ZONES = [
+  { name: "Ancient Egypt", emoji: "🏛️" },
+  { name: "Norse", emoji: "⚔️" },
+  { name: "Ancient Greece", emoji: "🏺" },
+  { name: "Ancient China", emoji: "🐉" },
+  { name: "Mayan", emoji: "🌿" },
+  { name: "Tribal", emoji: "🥁" },
+  { name: "Inca", emoji: "⛰️" },
 ] as const;
 
 const HomePage: React.FC = () => {
@@ -52,7 +78,7 @@ const HomePage: React.FC = () => {
   } = useDojo();
   const { username } = useControllerUsername();
   const { playerMeta } = usePlayerMeta();
-  const { setThemeTemplate } = useTheme();
+  const { themeTemplate, setThemeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
   const navigate = useNavigationStore((s) => s.navigate);
   const selectedMode = useNavigationStore((s) => s.selectedMode);
@@ -126,6 +152,7 @@ const HomePage: React.FC = () => {
   }, [GameSettingsMetadata]);
 
   const zone = ZONE_CONFIG[activeZone];
+  const colors = getThemeColors(themeTemplate);
 
   const hasActiveRun = useMemo(() => {
     return activeGames.length > 0;
@@ -201,149 +228,217 @@ const HomePage: React.FC = () => {
 
 
 
+  const profileStars = Math.min(30, Math.max(0, (playerMeta?.bestLevel ?? 0) * 3));
+
+  const unlockedZones = ZONE_CONFIG.map((z) => {
+    const settingsMeta = mapMetadataById.get(z.settingsId);
+    const isEnabled = settingsMeta?.enabled ?? true;
+    const isFreeMap = settingsMeta?.is_free ?? z.settingsId === DEFAULT_SETTINGS_ID;
+    const isOwned = mapEntitlements.has(z.settingsId);
+    return {
+      ...z,
+      unlocked: isEnabled && (isFreeMap || isOwned),
+      stars: profileStars,
+    };
+  });
+
+  const zonesForDisplay = [
+    ...unlockedZones,
+    ...EXTRA_LOCKED_ZONES.map((zoneName, idx) => ({
+      zoneId: idx + 4,
+      settingsId: -1,
+      themeId: "theme-1" as const,
+      name: zoneName.name,
+      emoji: zoneName.emoji,
+      unlocked: false,
+      stars: 0,
+    })),
+  ];
+
   return (
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={zone.themeId}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="absolute inset-0 z-0"
+    <div className="flex h-full min-h-0 flex-col overflow-hidden px-4 pb-3 pt-6">
+      <div className="mb-5 text-center">
+        <h1
+          className="font-display text-4xl font-black tracking-wider"
+          style={{ color: colors.text, textShadow: colors.glow }}
         >
-          <img
-            src={`/assets/${zone.themeId}/background.png`}
-            alt={zone.name}
-            className="absolute inset-0 h-full w-full object-cover"
-            draggable={false}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/30" />
-        </motion.div>
-      </AnimatePresence>
+          zKube
+        </h1>
+        <p
+          className="mt-1 text-[10px] uppercase tracking-[0.3em]"
+          style={{ color: colors.accent }}
+        >
+          ON-CHAIN PUZZLE
+        </p>
+      </div>
 
-      <div className="relative z-10 flex flex-1 min-h-0 flex-col">
-        <div className="pointer-events-none flex flex-1 items-center justify-center">
-          <motion.img
-            src={ImageAssets(zone.themeId).logo}
-            alt="zKube"
-            draggable={false}
-            className="h-24 drop-shadow-[0_0_30px_rgba(255,255,255,0.4)]"
-            animate={{ y: [0, -5, 0] }}
-            transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </div>
-
-        <div className="mt-auto flex flex-col gap-3 px-4 pb-3">
-          {account && (
-            <GameCard variant="glass" className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-600/20">
-                <User size={20} className="text-emerald-300" />
+      <div className="flex-1 space-y-3 overflow-y-auto pb-1">
+        {account ? (
+          <div
+            className="flex items-center justify-between rounded-xl border p-3"
+            style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] font-display text-sm font-black"
+                style={{
+                  background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent2})`,
+                  color: "#0a1628",
+                }}
+              >
+                ZK
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-bold text-white">{username || "Player"}</p>
-                  <span className="shrink-0 text-xs font-semibold text-white/55">
-                    Lv.{playerMeta?.bestLevel ?? 0}
-                  </span>
-                </div>
-                <p className="text-xs text-white/45">
-                  🎮 {ownedGames?.length ?? 0} runs · ⭐ {activeGames.length} active
+              <div className="min-w-0">
+                <p
+                  className="truncate font-display text-[13px] font-bold"
+                  style={{ color: colors.text }}
+                >
+                  {username || "Player"}
+                </p>
+                <p className="text-[10px]" style={{ color: colors.textMuted }}>
+                  {profileStars} ★ collected
                 </p>
               </div>
-              {hasActiveRun && (
-                <div className="shrink-0 flex items-center gap-1 rounded-full border border-amber-500/25 bg-amber-500/15 px-2.5 py-1">
-                  <div className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-                  <span className="text-[10px] font-semibold text-amber-300">LIVE</span>
-                </div>
-              )}
-            </GameCard>
-          )}
+            </div>
+            <span
+              className="shrink-0 rounded-md px-2 py-1 text-[9px] font-semibold tracking-[0.05em]"
+              style={{
+                color: colors.accent,
+                backgroundColor: `${colors.accent}26`,
+                border: `1px solid ${colors.accent}33`,
+              }}
+            >
+              CONNECTED
+            </span>
+          </div>
+        ) : (
+          <div
+            className="rounded-xl border p-3"
+            style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+          >
+            <Connect />
+          </div>
+        )}
 
-          <div className="flex flex-col items-center gap-2">
-            <div className="flex justify-center gap-3">
-            {ZONE_CONFIG.map((z, idx) => {
-              const active = idx === activeZone;
+        <button
+          type="button"
+          onClick={() => navigate("daily")}
+          className="flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left"
+          style={{
+            background: `linear-gradient(135deg, ${colors.accent}33, ${colors.accent2}26)`,
+            borderColor: `${colors.accent}4D`,
+          }}
+        >
+          <div>
+            <p className="font-display text-xs font-bold tracking-[0.05em]" style={{ color: colors.accent2 }}>
+              ⚡ DAILY CHALLENGE
+            </p>
+            <p className="mt-0.5 text-[10px]" style={{ color: colors.textMuted }}>
+              24h remaining · {Math.max(42, (ownedGames?.length ?? 0) * 3)} players
+            </p>
+          </div>
+          <span
+            className="rounded-lg px-3 py-1 font-display text-[10px] font-bold"
+            style={{ backgroundColor: colors.accent2, color: "#0a1628" }}
+          >
+            PLAY
+          </span>
+        </button>
+
+        <div>
+          <p
+            className="mb-2 text-[11px] uppercase tracking-[0.15em]"
+            style={{ color: colors.textMuted }}
+          >
+            Select Zone
+          </p>
+
+          <div className="space-y-2">
+            {zonesForDisplay.map((z, idx) => {
+              const isSelectable = z.unlocked;
+              const isSelected = idx === activeZone && isSelectable;
               return (
                 <button
-                  key={idx}
-                  onClick={() => setActiveZone(idx)}
-                  className={`transition-all ${
-                    active ? "" : "opacity-40 hover:opacity-60"
-                  }`}
+                  key={`${z.zoneId}-${z.name}`}
+                  type="button"
+                  onClick={() => {
+                    if (isSelectable) setActiveZone(idx);
+                  }}
+                  className="flex w-full items-center justify-between rounded-xl border px-3 py-3 text-left transition-all"
+                  style={{
+                    backgroundColor: isSelectable ? colors.surface : "rgba(255,255,255,0.02)",
+                    borderColor: isSelected ? colors.accent : isSelectable ? colors.border : "rgba(255,255,255,0.05)",
+                    opacity: isSelectable ? 1 : 0.4,
+                    boxShadow: isSelected ? colors.glow : "none",
+                  }}
                 >
-                  <img
-                    src={ImageAssets(z.themeId).themeIcon}
-                    alt={z.name}
-                    className={`rounded-xl transition-all ${
-                      active
-                        ? "h-16 w-16 border-2 border-white/80 shadow-[0_0_18px_rgba(255,255,255,0.35)]"
-                        : "h-14 w-14 border border-white/20 opacity-60"
-                    }`}
-                    draggable={false}
-                  />
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">{z.emoji}</span>
+                    <div>
+                      <p className="font-display text-[13px] font-bold" style={{ color: colors.text }}>
+                        {z.name}
+                      </p>
+                      <div className="mt-0.5 flex items-center gap-1">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                          <span
+                            key={i}
+                            className="text-[10px]"
+                            style={{ color: z.stars > i * 10 ? colors.accent2 : colors.textMuted }}
+                          >
+                            ★
+                          </span>
+                        ))}
+                        <span className="ml-1 text-[9px]" style={{ color: colors.textMuted }}>
+                          {z.stars}/30
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-base" style={{ color: isSelectable ? colors.accent : colors.textMuted }}>
+                    {isSelectable ? "→" : "🔒"}
+                  </span>
                 </button>
               );
             })}
-            </div>
-            <p className="font-['Chakra_Petch'] text-sm text-white/80">{zone.name}</p>
           </div>
-
-          <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
-
-          {!account ? (
-            <Connect />
-          ) : hasActiveRun ? (
-            <>
-              <motion.button
-                whileTap={{ scale: 0.96 }}
-                disabled={isStartingGame}
-                onClick={handleContinue}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-amber-600 shadow-lg shadow-amber-900/30 transition-colors hover:bg-amber-500 active:bg-amber-700 disabled:opacity-50"
-              >
-                <Play size={20} fill="white" className="text-white" />
-                <span className="font-['Chakra_Petch'] text-xl tracking-wider text-white">
-                  CONTINUE
-                </span>
-              </motion.button>
-              <button
-                type="button"
-                disabled={isStartingGame}
-                onClick={() => handleStartGame(zone.settingsId)}
-                className="mx-auto flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white/65 transition-colors hover:text-white disabled:opacity-40"
-              >
-                <Plus size={13} />
-                {isStartingGame ? "STARTING..." : "New Game"}
-              </button>
-            </>
-          ) : (
-            <motion.div whileTap={{ scale: 0.96 }}>
-              <motion.button
-                disabled={isStartingGame}
-                onClick={() => handleStartGame(zone.settingsId)}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 shadow-lg shadow-emerald-900/30 transition-colors hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50"
-              >
-                <Play size={20} fill="white" className="text-white" />
-                <span className="font-['Chakra_Petch'] text-xl text-white tracking-wider">
-                  {isStartingGame ? "STARTING..." : "PLAY"}
-                </span>
-              </motion.button>
-            </motion.div>
-          )}
-
-          <button
-            onClick={() => navigate("daily")}
-            className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/5 p-3 transition-colors active:bg-white/10"
-          >
-            <Star size={24} fill="#fbbf24" className="shrink-0 text-amber-400 drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]" />
-            <div className="text-left flex-1 min-w-0">
-              <p className="text-sm font-bold text-white leading-tight">Daily Challenge</p>
-              <p className="text-[11px] text-white/40">Compete for stars</p>
-            </div>
-            <span className="shrink-0 text-lg font-bold leading-none text-white/50">›</span>
-          </button>
         </div>
+
+        <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
       </div>
+
+      {account && hasActiveRun ? (
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          type="button"
+          onClick={handleContinue}
+          className="mb-2 mt-3 flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 font-display text-base font-bold tracking-[0.08em]"
+          style={{
+            backgroundColor: `${colors.accent2}26`,
+            borderColor: `${colors.accent2}66`,
+            color: colors.accent2,
+          }}
+        >
+          <Play size={16} />
+          CONTINUE
+        </motion.button>
+      ) : null}
+
+      {account && (
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          type="button"
+          disabled={isStartingGame}
+          onClick={() => handleStartGame(zone.settingsId)}
+          className="flex w-full items-center justify-center rounded-xl px-4 py-3 font-display text-base font-black tracking-[0.1em] disabled:opacity-50"
+          style={{
+            background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent}CC)`,
+            color: "#0a1628",
+            boxShadow: colors.glow,
+          }}
+        >
+          {isStartingGame ? "STARTING..." : "NEW GAME"}
+        </motion.button>
+      )}
     </div>
   );
 };

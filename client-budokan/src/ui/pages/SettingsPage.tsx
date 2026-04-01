@@ -2,7 +2,6 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import { Check, Copy } from "lucide-react";
 import { useDisconnect } from "@starknet-react/core";
-import { THEME_META } from "@/config/themes";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import useAccountCustom from "@/hooks/useAccountCustom";

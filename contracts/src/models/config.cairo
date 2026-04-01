@@ -123,6 +123,9 @@ pub struct GameSettings {
     pub bonus_3_trigger_type: u8,
     pub bonus_3_trigger_threshold: u8,
     pub bonus_3_starting_charges: u8,
+    // === Boss Settings ===
+    /// Fixed boss identity for this map (1-10, 0 = no boss/endless mode)
+    pub boss_id: u8,
 }
 
 /// Default values for GameSettings
@@ -241,6 +244,9 @@ pub mod GameSettingsDefaults {
     pub const BONUS_3_TRIGGER_TYPE: u8 = 2; // lines_cleared
     pub const BONUS_3_TRIGGER_THRESHOLD: u8 = 10;
     pub const BONUS_3_STARTING_CHARGES: u8 = 1;
+
+    // Boss Settings
+    pub const BOSS_ID: u8 = 0; // Default: no boss (endless mode)
 }
 
 #[generate_trait]
@@ -321,6 +327,8 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             bonus_3_trigger_type: GameSettingsDefaults::BONUS_3_TRIGGER_TYPE,
             bonus_3_trigger_threshold: GameSettingsDefaults::BONUS_3_TRIGGER_THRESHOLD,
             bonus_3_starting_charges: GameSettingsDefaults::BONUS_3_STARTING_CHARGES,
+            // Boss Settings
+            boss_id: GameSettingsDefaults::BOSS_ID,
         }
     }
 
@@ -635,6 +643,11 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             return false;
         }
 
+        // Boss ID must be 0-10 (0 = no boss, 1-10 = boss identities)
+        if self.boss_id > 10 {
+            return false;
+        }
+
         true
     }
 
@@ -731,6 +744,9 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         assert!(self.bonus_1_starting_charges <= 15, "bonus_1_starting_charges must be <= 15");
         assert!(self.bonus_2_starting_charges <= 15, "bonus_2_starting_charges must be <= 15");
         assert!(self.bonus_3_starting_charges <= 15, "bonus_3_starting_charges must be <= 15");
+
+        // Boss ID validation
+        assert!(self.boss_id <= 10, "boss_id must be 0-10 (0=no boss, 1-10=boss identities)");
 
     }
 

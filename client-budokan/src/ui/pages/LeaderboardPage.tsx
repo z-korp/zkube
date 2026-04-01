@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
-import useAccountCustom from "@/hooks/useAccountCustom";
 
 const PODIUM_STYLES = [
   { bg: "bg-yellow-400/15", border: "border-yellow-400/40", text: "text-yellow-200", trophy: "/assets/trophies/gold.png" },
@@ -11,7 +10,6 @@ const PODIUM_STYLES = [
 
 const LeaderboardPage: React.FC = () => {
   const { games, loading } = useLeaderboardSlot();
-  const { account } = useAccountCustom();
   const [modeFilter, setModeFilter] = useState<"all" | "map" | "endless">("all");
 
   const top3 = games.slice(0, 3);

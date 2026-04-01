@@ -70,6 +70,8 @@ pub trait IConfigSystem<T> {
         bonus_3_trigger_type: u8,
         bonus_3_trigger_threshold: u8,
         bonus_3_starting_charges: u8,
+        // Boss Settings
+        boss_id: u8,
     ) -> u32;
 
     fn get_game_settings(self: @T, settings_id: u32) -> GameSettings;
@@ -186,6 +188,7 @@ mod config_system {
         polynesian_map_settings.bonus_3_trigger_threshold = 10;
         polynesian_map_settings.bonus_3_starting_charges = 1;
         polynesian_map_settings.allowed_mutators = 1;
+        polynesian_map_settings.boss_id = 1;
 
         let polynesian_map_metadata = GameSettingsMetadata {
             settings_id: 0_u32,
@@ -220,6 +223,7 @@ mod config_system {
         polynesian_endless_settings.bonus_3_trigger_threshold = 0;
         polynesian_endless_settings.bonus_3_starting_charges = 0;
         polynesian_endless_settings.allowed_mutators = 2;
+        polynesian_endless_settings.boss_id = 0;
 
         let polynesian_endless_metadata = GameSettingsMetadata {
             settings_id: 1_u32,
@@ -482,6 +486,8 @@ mod config_system {
             bonus_3_trigger_type: u8,
             bonus_3_trigger_threshold: u8,
             bonus_3_starting_charges: u8,
+            // Boss Settings
+            boss_id: u8,
         ) -> u32 {
             // Validate input
             assert(difficulty != Difficulty::None, 'Invalid difficulty');
@@ -530,6 +536,7 @@ mod config_system {
                     bonus_3_trigger_type,
                     bonus_3_trigger_threshold,
                     bonus_3_starting_charges,
+                    boss_id,
                 );
 
             // Get the world dispatcher
@@ -602,6 +609,8 @@ mod config_system {
                 bonus_3_trigger_type,
                 bonus_3_trigger_threshold,
                 bonus_3_starting_charges,
+                // Boss Settings
+                boss_id,
             };
 
             // Create metadata
@@ -833,6 +842,8 @@ mod config_system {
             bonus_3_trigger_type: u8,
             bonus_3_trigger_threshold: u8,
             bonus_3_starting_charges: u8,
+            // Boss Settings
+            boss_id: u8,
         ) {
             // Validate moves
             assert!(base_moves > 0, "Base moves must be positive");
@@ -954,6 +965,9 @@ mod config_system {
             assert!(bonus_1_starting_charges <= 15, "Bonus 1 starting charges must be <= 15");
             assert!(bonus_2_starting_charges <= 15, "Bonus 2 starting charges must be <= 15");
             assert!(bonus_3_starting_charges <= 15, "Bonus 3 starting charges must be <= 15");
+
+            // Boss ID validation
+            assert!(boss_id <= 10, "boss_id must be 0-10 (0=no boss, 1-10=boss identities)");
 
         }
     }

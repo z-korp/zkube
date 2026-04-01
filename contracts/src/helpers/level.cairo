@@ -121,7 +121,8 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             )
         } else if BossLevel::is_boss_level(level) {
             // Boss level uses the boss identity system with budget_max
-            let boss_id = boss::derive_boss_id(level_seed);
+            // Use boss_id from settings instead of deriving from seed
+            let boss_id = settings.boss_id;
             let (_min_lines, _max_lines, _budget_min, budget_max, _min_times) = settings
                 .get_constraint_params_for_difficulty(difficulty);
             let (c1, c2, c3) = boss::generate_boss_constraints(
