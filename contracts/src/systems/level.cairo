@@ -31,8 +31,10 @@ mod level_system {
     use zkube::helpers::game_libs::{GameLibsImpl, IGridSystemDispatcherTrait};
     use zkube::helpers::game_over;
     use zkube::helpers::level::LevelGeneratorTrait;
+    use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::random::RandomImpl;
     use zkube::models::game::{Game, GameLevel, GameLevelTrait, GameSeed, GameTrait};
+    use zkube::models::mutator::MutatorDef;
 
     #[storage]
     struct Storage {}
@@ -46,10 +48,14 @@ mod level_system {
             let base_seed: GameSeed = world.read_model(game_id);
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
             let player = get_caller_address();
+            let active_mutator_id = game.get_run_data().active_mutator_id;
+            let mutator_def = InternalImpl::read_mutator_def(world, active_mutator_id);
 
-            let level_config = LevelGeneratorTrait::generate(base_seed.level_seed, 1, settings);
+            let level_config = LevelGeneratorTrait::generate(
+                base_seed.level_seed, 1, settings, @mutator_def,
+            );
             let mut game_level = GameLevelTrait::from_level_config(game_id, level_config);
-            game_level.mutator_id = game.get_run_data().active_mutator_id;
+            game_level.mutator_id = active_mutator_id;
             world.write_model(@game_level);
 
             // Defensive reset of per-level/runtime fields for a fresh run.
@@ -170,6 +176,15 @@ mod level_system {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
+        fn read_mutator_def(world: WorldStorage, mutator_id: u8) -> MutatorDef {
+            if mutator_id == 0 {
+                return MutatorEffectsTrait::neutral(0);
+            }
+
+            let stored: MutatorDef = world.read_model(mutator_id);
+            MutatorEffectsTrait::normalize(mutator_id, stored)
+        }
+
         fn calculate_stars_for_level(game_level: GameLevel, moves_used: u16) -> u8 {
             let cube_3_threshold = game_level.max_moves * 40 / 100;
             let cube_2_threshold = game_level.max_moves * 70 / 100;
@@ -235,7 +250,10 @@ mod level_system {
             };
             world.write_model(@next_game_seed);
 
-            let next_level_config = LevelGeneratorTrait::generate(next_level_seed, next_level, settings);
+            let mutator_def = Self::read_mutator_def(world, run_data.active_mutator_id);
+            let next_level_config = LevelGeneratorTrait::generate(
+                next_level_seed, next_level, settings, @mutator_def,
+            );
             let mut game_level = GameLevelTrait::from_level_config(game_id, next_level_config);
             game_level.mutator_id = run_data.active_mutator_id;
             world.write_model(@game_level);

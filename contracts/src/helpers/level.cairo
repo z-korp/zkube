@@ -12,7 +12,9 @@ use core::hash::HashStateTrait;
 
 use core::poseidon::{HashState, PoseidonTrait};
 use zkube::helpers::boss;
+use zkube::helpers::mutator::MutatorEffectsTrait;
 use zkube::models::config::{GameSettings, GameSettingsTrait};
+use zkube::models::mutator::MutatorDef;
 use zkube::types::constraint::{ConstraintType, LevelConstraint, LevelConstraintTrait};
 use zkube::types::difficulty::Difficulty;
 use zkube::types::level::LevelConfig;
@@ -62,7 +64,9 @@ pub mod BossLevel {
 pub impl LevelGenerator of LevelGeneratorTrait {
     /// Generate a complete level configuration from seed, level number, and GameSettings
     /// Uses configurable game balance parameters from settings
-    fn generate(seed: felt252, level: u8, settings: GameSettings) -> LevelConfig {
+    fn generate(
+        seed: felt252, level: u8, settings: GameSettings, mutator_def: @MutatorDef,
+    ) -> LevelConfig {
         // Derive a level-specific seed for deterministic variance
         let level_seed = Self::derive_level_seed(seed, level);
 
@@ -134,7 +138,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             )
         };
 
-        LevelConfig {
+        let mut config = LevelConfig {
             level,
             points_required,
             max_moves,
@@ -142,7 +146,10 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             constraint,
             constraint_2,
             constraint_3,
-        }
+        };
+
+        MutatorEffectsTrait::apply_mutator_to_level(mutator_def, ref config);
+        config
     }
 
     /// Generate the fixed level configuration used by dedicated Endless mode.
@@ -163,8 +170,50 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     }
 
     /// Returns the difficulty tier for the provided endless total score.
-    /// Thresholds: [0, 15, 40, 80, 150, 280, 500, 900]
-    fn get_endless_difficulty_for_score(total_score: u32) -> Difficulty {
+    ///
+    /// Reads packed thresholds from `settings.endless_difficulty_thresholds` when configured.
+    /// Fallback thresholds: [0, 15, 40, 80, 150, 280, 500, 900].
+    fn get_endless_difficulty_for_score(total_score: u32, settings: @GameSettings) -> Difficulty {
+        // Packed 8 × u16 thresholds (tier0..tier7). 0 means "use defaults".
+        if *settings.endless_difficulty_thresholds != 0 {
+            let packed: u256 = (*settings.endless_difficulty_thresholds).into();
+            let tier_0: u16 = (packed & 0xFFFF).try_into().unwrap();
+            let tier_1: u16 = ((packed / 0x10000) & 0xFFFF).try_into().unwrap();
+            let tier_2: u16 = ((packed / 0x100000000) & 0xFFFF).try_into().unwrap();
+            let tier_3: u16 = ((packed / 0x1000000000000) & 0xFFFF).try_into().unwrap();
+            let tier_4: u16 = ((packed / 0x10000000000000000) & 0xFFFF).try_into().unwrap();
+            let tier_5: u16 = ((packed / 0x100000000000000000000) & 0xFFFF).try_into().unwrap();
+            let tier_6: u16 = ((packed / 0x1000000000000000000000000) & 0xFFFF).try_into().unwrap();
+            let tier_7: u16 = ((packed / 0x10000000000000000000000000000) & 0xFFFF)
+                .try_into()
+                .unwrap();
+
+            let _ = tier_0;
+            if total_score >= tier_7.into() {
+                return Difficulty::Master;
+            }
+            if total_score >= tier_6.into() {
+                return Difficulty::Expert;
+            }
+            if total_score >= tier_5.into() {
+                return Difficulty::VeryHard;
+            }
+            if total_score >= tier_4.into() {
+                return Difficulty::Hard;
+            }
+            if total_score >= tier_3.into() {
+                return Difficulty::MediumHard;
+            }
+            if total_score >= tier_2.into() {
+                return Difficulty::Medium;
+            }
+            if total_score >= tier_1.into() {
+                return Difficulty::Easy;
+            }
+
+            return Difficulty::VeryEasy;
+        }
+
         if total_score >= 900 {
             return Difficulty::Master;
         }
@@ -191,8 +240,35 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     }
 
     /// Returns endless score multiplier in x10 fixed-point.
-    /// Sequence by tier: [10, 12, 14, 17, 20, 25, 33, 40].
-    fn get_endless_score_multiplier(difficulty: Difficulty) -> u16 {
+    ///
+    /// Reads packed multipliers from `settings.endless_score_multipliers` when configured.
+    /// Fallback sequence by tier: [10, 12, 14, 17, 20, 25, 33, 40].
+    fn get_endless_score_multiplier(difficulty: Difficulty, settings: @GameSettings) -> u16 {
+        // Packed 8 × u8 multipliers (tier0..tier7). 0 means "use defaults".
+        if *settings.endless_score_multipliers != 0 {
+            let packed: u64 = *settings.endless_score_multipliers;
+            let tier_0: u16 = (packed & 0xFF).try_into().unwrap();
+            let tier_1: u16 = ((packed / 0x100) & 0xFF).try_into().unwrap();
+            let tier_2: u16 = ((packed / 0x10000) & 0xFF).try_into().unwrap();
+            let tier_3: u16 = ((packed / 0x1000000) & 0xFF).try_into().unwrap();
+            let tier_4: u16 = ((packed / 0x100000000) & 0xFF).try_into().unwrap();
+            let tier_5: u16 = ((packed / 0x10000000000) & 0xFF).try_into().unwrap();
+            let tier_6: u16 = ((packed / 0x1000000000000) & 0xFF).try_into().unwrap();
+            let tier_7: u16 = ((packed / 0x100000000000000) & 0xFF).try_into().unwrap();
+
+            return match difficulty {
+                Difficulty::VeryEasy => tier_0,
+                Difficulty::Easy => tier_1,
+                Difficulty::Medium => tier_2,
+                Difficulty::MediumHard => tier_3,
+                Difficulty::Hard => tier_4,
+                Difficulty::VeryHard => tier_5,
+                Difficulty::Expert => tier_6,
+                Difficulty::Master => tier_7,
+                _ => tier_0,
+            };
+        }
+
         match difficulty {
             Difficulty::VeryEasy => 10,
             Difficulty::Easy => 12,
@@ -824,13 +900,19 @@ pub impl LevelGenerator of LevelGeneratorTrait {
 
 #[cfg(test)]
 mod tests {
+    use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::models::config::GameSettingsTrait;
+    use zkube::models::mutator::MutatorDef;
     use zkube::types::constraint::ConstraintType;
     use zkube::types::difficulty::Difficulty;
     use super::{LevelGenerator, LevelGeneratorTrait};
 
     const TEST_SEED: felt252 = 'TEST_SEED_12345';
     const DIFFERENT_SEED: felt252 = 'DIFFERENT_SEED';
+
+    fn default_mutator() -> MutatorDef {
+        MutatorEffectsTrait::neutral(0)
+    }
 
     #[test]
     fn test_base_moves_scaling() {
@@ -867,8 +949,8 @@ mod tests {
     fn test_seed_determinism() {
         // Same seed + same level should produce same config
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
-        let config2 = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
+        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 25, settings, @default_mutator());
+        let config2 = LevelGeneratorTrait::generate(TEST_SEED, 25, settings, @default_mutator());
 
         assert!(config1.points_required == config2.points_required, "Points should match");
         assert!(config1.max_moves == config2.max_moves, "Moves should match");
@@ -879,7 +961,7 @@ mod tests {
     fn test_correlated_variance() {
         // Test that zone-mode variance is correlated (ratio stays approximately constant).
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 10, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 10, settings, @default_mutator());
 
         // Base at level 10 (zone cap): moves = 60, ratio_x100 = 180, points = 60 × 1.80 = 108
         // With variance (±5%), both should scale together maintaining the ratio
@@ -896,8 +978,10 @@ mod tests {
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         // Endless levels are seed-independent by design; use a zone level where variance/constraints
         // are seeded.
-        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 9, settings);
-        let config2 = LevelGeneratorTrait::generate(DIFFERENT_SEED, 9, settings);
+        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 9, settings, @default_mutator());
+        let config2 = LevelGeneratorTrait::generate(
+            DIFFERENT_SEED, 9, settings, @default_mutator(),
+        );
 
         // At least one of points or moves should differ (very high probability)
         let points_differ = config1.points_required != config2.points_required;
@@ -910,8 +994,8 @@ mod tests {
     fn test_level_50_cap() {
         // Level 50 and 100 should have same base difficulty (Master)
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        let config50 = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
-        let config100 = LevelGeneratorTrait::generate(TEST_SEED, 100, settings);
+        let config50 = LevelGeneratorTrait::generate(TEST_SEED, 50, settings, @default_mutator());
+        let config100 = LevelGeneratorTrait::generate(TEST_SEED, 100, settings, @default_mutator());
 
         assert!(config50.difficulty == Difficulty::Master, "Level 50 should be Master");
         assert!(config100.difficulty == Difficulty::Master, "Level 100 should be Master (capped)");
@@ -921,8 +1005,8 @@ mod tests {
     fn test_no_constraint_early_levels() {
         // Default constraint_start_level is 3, so levels 1-2 have no constraints
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 1, settings);
-        let config2 = LevelGeneratorTrait::generate(TEST_SEED, 2, settings);
+        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 1, settings, @default_mutator());
+        let config2 = LevelGeneratorTrait::generate(TEST_SEED, 2, settings, @default_mutator());
 
         assert!(
             config1.constraint.constraint_type == ConstraintType::None,
@@ -937,7 +1021,7 @@ mod tests {
     #[test]
     fn test_generate_level_1() {
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 1, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 1, settings, @default_mutator());
 
         // Level 1: base_moves=20, ratio=0.80, base_points=16
         // With ±5% variance: moves 19-21, points 15-17
@@ -951,7 +1035,7 @@ mod tests {
     #[test]
     fn test_generate_level_25() {
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 25, settings, @default_mutator());
 
         // Endless mode (11+): fixed moves=max_moves, Master difficulty,
         // ratio increases by +10 per level depth over level 10.
@@ -965,7 +1049,7 @@ mod tests {
     #[test]
     fn test_generate_level_50() {
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings, @default_mutator());
 
         // Endless level 50 => depth 40 => ratio_x100=580 => points=60*5.80=348.
         assert!(config.level == 50, "Level should be 50");
@@ -979,7 +1063,7 @@ mod tests {
         // Test generate with default settings
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
 
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 25, settings, @default_mutator());
 
         // Verify it produces reasonable values
         assert!(config.level == 25, "Level should be 25");
@@ -1007,13 +1091,13 @@ mod tests {
         settings.constraints_enabled = 0;
 
         // Even at high levels, should have no constraint
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 25, settings, @default_mutator());
         assert!(
             config.constraint.constraint_type == ConstraintType::None,
             "Should have no constraint when disabled",
         );
 
-        let config_50 = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
+        let config_50 = LevelGeneratorTrait::generate(TEST_SEED, 50, settings, @default_mutator());
         assert!(
             config_50.constraint.constraint_type == ConstraintType::None,
             "Level 50 should have no constraint when disabled",
@@ -1027,14 +1111,14 @@ mod tests {
         settings.constraint_start_level = 20;
 
         // Level 15 should have no constraint
-        let config_15 = LevelGeneratorTrait::generate(TEST_SEED, 15, settings);
+        let config_15 = LevelGeneratorTrait::generate(TEST_SEED, 15, settings, @default_mutator());
         assert!(
             config_15.constraint.constraint_type == ConstraintType::None,
             "Level 15 should have no constraint",
         );
 
         // Level 20 might have a constraint (depending on RNG)
-        let _config_20 = LevelGeneratorTrait::generate(TEST_SEED, 20, settings);
+        let _config_20 = LevelGeneratorTrait::generate(TEST_SEED, 20, settings, @default_mutator());
         // We can't assert the specific type since it's random, but it should use
     // generate_constraint
     }
@@ -1051,16 +1135,16 @@ mod tests {
         settings.tier_6_threshold = 40; // Expert starts at level 40
         settings.tier_7_threshold = 60; // Master starts at level 60
 
-        let config_1 = LevelGeneratorTrait::generate(TEST_SEED, 1, settings);
+        let config_1 = LevelGeneratorTrait::generate(TEST_SEED, 1, settings, @default_mutator());
         assert!(config_1.difficulty == Difficulty::VeryEasy, "Level 1 should be VeryEasy");
 
-        let config_2 = LevelGeneratorTrait::generate(TEST_SEED, 2, settings);
+        let config_2 = LevelGeneratorTrait::generate(TEST_SEED, 2, settings, @default_mutator());
         assert!(config_2.difficulty == Difficulty::Easy, "Level 2 should be Easy");
 
-        let config_5 = LevelGeneratorTrait::generate(TEST_SEED, 5, settings);
+        let config_5 = LevelGeneratorTrait::generate(TEST_SEED, 5, settings, @default_mutator());
         assert!(config_5.difficulty == Difficulty::Medium, "Level 5 should be Medium");
 
-        let config_10 = LevelGeneratorTrait::generate(TEST_SEED, 10, settings);
+        let config_10 = LevelGeneratorTrait::generate(TEST_SEED, 10, settings, @default_mutator());
         assert!(config_10.difficulty == Difficulty::MediumHard, "Level 10 should be MediumHard");
     }
 
@@ -1073,8 +1157,10 @@ mod tests {
         settings.late_variance_percent = 0;
 
         // With zero variance, multiple generations with same seed should be identical
-        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
-        let config2 = LevelGeneratorTrait::generate(DIFFERENT_SEED, 25, settings);
+        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 25, settings, @default_mutator());
+        let config2 = LevelGeneratorTrait::generate(
+            DIFFERENT_SEED, 25, settings, @default_mutator(),
+        );
 
         // Points should be exactly base calculation (no variance)
         // Level 25: base_moves ~28.5, ratio ~125, points ~35
@@ -1093,8 +1179,8 @@ mod tests {
         settings.level_cap = 30;
 
         // Level 30 and 50 should have same scaling (both at cap)
-        let config_30 = LevelGeneratorTrait::generate(TEST_SEED, 30, settings);
-        let config_50 = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
+        let config_30 = LevelGeneratorTrait::generate(TEST_SEED, 30, settings, @default_mutator());
+        let config_50 = LevelGeneratorTrait::generate(TEST_SEED, 50, settings, @default_mutator());
 
         // Both should use level 30 for calculations
         // Note: We can't directly compare due to different level seeds, but we can verify
@@ -1121,7 +1207,7 @@ mod tests {
         settings.tier_6_threshold = 95; // Expert starts at level 95
         settings.tier_7_threshold = 100; // Master starts at level 100
 
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 1, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 1, settings, @default_mutator());
 
         // Should have easier parameters
         assert!(config.max_moves >= 27, "Should have more moves"); // ~30 with variance

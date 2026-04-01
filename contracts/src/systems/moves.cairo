@@ -22,13 +22,15 @@ mod move_system {
     use starknet::{get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
 
+    use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::game_libs::{
         GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
     };
     use zkube::helpers::level::LevelGeneratorTrait;
+    use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::{game_over, level_check, token};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
-    use zkube::types::mutator::MutatorTrait;
+    use zkube::models::mutator::MutatorDef;
 
     #[storage]
     struct Storage {}
@@ -78,18 +80,20 @@ mod move_system {
             let game: Game = world.read_model(game_id);
             let mut game_level: GameLevel = world.read_model(game_id);
             let mut run_data = game.get_run_data();
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
 
             // Mutator-driven bonus setup and charge gain.
             let mut run_data_changed = false;
             let active_mutator_id = run_data.active_mutator_id;
+            let mutator_def = InternalImpl::read_mutator_def(world, active_mutator_id);
 
-            let bonus_type = MutatorTrait::get_bonus_type(active_mutator_id);
+            let bonus_type = MutatorEffectsTrait::get_bonus_type(@mutator_def);
             if run_data.bonus_type != bonus_type {
                 run_data.bonus_type = bonus_type;
                 run_data_changed = true;
             }
 
-            let combo_interval = MutatorTrait::get_bonus_combo_interval(active_mutator_id);
+            let combo_interval = MutatorEffectsTrait::get_bonus_combo_interval(@mutator_def);
             if combo_interval > 0 && game.combo_counter > 0
                 && game.combo_counter % combo_interval == 0 {
                 if run_data.bonus_charges < 15 {
@@ -126,8 +130,12 @@ mod move_system {
                 }
             } else {
                 // Endless mode: no level completion/failure checks.
+                let ramped_score = MutatorEffectsTrait::apply_endless_ramp(
+                    @mutator_def, run_data.total_score,
+                );
                 let target_difficulty = LevelGeneratorTrait::get_endless_difficulty_for_score(
-                    run_data.total_score,
+                    ramped_score,
+                    @settings,
                 );
                 let target_difficulty_u8: u8 = target_difficulty.into();
 
@@ -150,6 +158,18 @@ mod move_system {
                 }
             }
             post_action(token_address, token_id_felt);
+        }
+    }
+
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        fn read_mutator_def(world: WorldStorage, mutator_id: u8) -> MutatorDef {
+            if mutator_id == 0 {
+                return MutatorEffectsTrait::neutral(0);
+            }
+
+            let stored: MutatorDef = world.read_model(mutator_id);
+            MutatorEffectsTrait::normalize(mutator_id, stored)
         }
     }
 }

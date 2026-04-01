@@ -48,11 +48,14 @@ mod grid_system {
 
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::controller::Controller;
+    use zkube::helpers::level::LevelGeneratorTrait;
+    use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::scoring::{
         process_lines_cleared, update_score,
     };
     use zkube::models::config::GameSettings;
     use zkube::models::game::{Game, GameLevel, GameSeed, GameTrait};
+    use zkube::models::mutator::MutatorDef;
     use zkube::types::constraint::{
         ConstraintContext, LevelConstraint, LevelConstraintTrait, any_needs_break_blocks,
         get_break_blocks_target_size,
@@ -150,6 +153,12 @@ mod grid_system {
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
 
             let mut run_data = game.get_run_data();
+            let mutator_def = InternalImpl::read_mutator_def(world, run_data.active_mutator_id);
+            let score_difficulty: Difficulty = if run_data.mode == 1 && run_data.current_difficulty != 0 {
+                run_data.current_difficulty.into()
+            } else {
+                game_level.difficulty.into()
+            };
 
             // Validate move limit
             assert!(run_data.level_moves.into() < game_level.max_moves, "Move limit exceeded");
@@ -200,8 +209,11 @@ mod grid_system {
             // Assess and score (gravity + line clearing) with cascade depth tracking
             let mut lines_cleared: u8 = 0;
             let mut cascade_depth: u8 = 0;
-            let points = InternalImpl::assess_game(
+            let base_points = InternalImpl::assess_game(
                 ref new_blocks, ref lines_cleared, ref cascade_depth,
+            );
+            let points = InternalImpl::apply_score_modifiers(
+                base_points, run_data.mode, score_difficulty, @settings, @mutator_def,
             );
             update_score(ref run_data, points);
 
@@ -228,8 +240,11 @@ mod grid_system {
 
             // Assess again after new line
             let mut cascade_depth_2: u8 = 0;
-            let more_points = InternalImpl::assess_game(
+            let more_base_points = InternalImpl::assess_game(
                 ref new_blocks, ref lines_cleared, ref cascade_depth_2,
+            );
+            let more_points = InternalImpl::apply_score_modifiers(
+                more_base_points, run_data.mode, score_difficulty, @settings, @mutator_def,
             );
             update_score(ref run_data, more_points);
             // Use the max cascade depth from both phases
@@ -353,6 +368,49 @@ mod grid_system {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
+        fn read_mutator_def(world: WorldStorage, mutator_id: u8) -> MutatorDef {
+            if mutator_id == 0 {
+                return MutatorEffectsTrait::neutral(0);
+            }
+
+            let stored: MutatorDef = world.read_model(mutator_id);
+            MutatorEffectsTrait::normalize(mutator_id, stored)
+        }
+
+        fn apply_score_modifiers(
+            base_score: u16,
+            mode: u8,
+            difficulty: Difficulty,
+            settings: @GameSettings,
+            mutator_def: @MutatorDef,
+        ) -> u16 {
+            let mut score = base_score;
+
+            // Dedicated endless mode uses configurable difficulty multipliers.
+            if mode == 1 {
+                let multiplier_x10 = LevelGeneratorTrait::get_endless_score_multiplier(
+                    difficulty, settings,
+                );
+                score = Self::apply_x10_multiplier(score, multiplier_x10);
+            }
+
+            // Apply mutator score modifier on top of base/endless multiplier.
+            MutatorEffectsTrait::apply_mutator_to_score(mutator_def, score)
+        }
+
+        fn apply_x10_multiplier(score: u16, multiplier_x10: u16) -> u16 {
+            if multiplier_x10 == 10 {
+                return score;
+            }
+
+            let adjusted: u32 = (score.into() * multiplier_x10.into()) / 10_u32;
+            if adjusted > 65535 {
+                65535
+            } else {
+                adjusted.try_into().unwrap()
+            }
+        }
+
         /// Apply gravity and assess lines until stable, tracking cascade depth.
         fn assess_game(
             ref blocks: felt252, ref counter: u8, ref cascade_depth: u8,

@@ -49,10 +49,12 @@ mod game_system {
         GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
     };
     use zkube::helpers::game_over;
+    use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::random::RandomImpl;
     use zkube::models::config::GameSettingsMetadata;
     use zkube::models::entitlement::MapEntitlement;
     use zkube::models::game::{Game, GameAssert, GameSeed, GameTrait};
+    use zkube::models::mutator::MutatorDef;
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::models::daily::{DailyChallenge, DailyEntry, DailyEntryTrait, GameChallenge};
     use zkube::types::mutator::{FULL_MUTATOR_MASK, MutatorTrait};
@@ -276,6 +278,11 @@ mod game_system {
             assert!(block_index < 8, "Invalid block_index: must be < 8");
 
             let mut run_data = game.get_run_data();
+            let mutator_def = InternalImpl::read_mutator_def(world, run_data.active_mutator_id);
+            let bonus_type = MutatorEffectsTrait::get_bonus_type(@mutator_def);
+            if run_data.bonus_type != bonus_type {
+                run_data.bonus_type = bonus_type;
+            }
             assert!(run_data.bonus_charges > 0, "No bonus charges available");
             assert!(run_data.bonus_type > 0, "No active bonus");
 
@@ -403,7 +410,11 @@ mod game_system {
             let timestamp = get_block_timestamp();
 
             // Create empty game shell (grid will be initialized via dispatcher)
-            let game = GameTrait::new_empty(game_id, timestamp, 0, active_mutator_id, mode_val);
+            let mut game = GameTrait::new_empty(game_id, timestamp, 0, active_mutator_id, mode_val);
+            let mut run_data = game.get_run_data();
+            let mutator_def = Self::read_mutator_def(world, active_mutator_id);
+            run_data.bonus_type = MutatorEffectsTrait::get_bonus_type(@mutator_def);
+            game.set_run_data(run_data);
 
             // Store the seed separately
             let game_seed = GameSeed {
@@ -458,6 +469,15 @@ mod game_system {
         fn assert_game_not_started(self: @ContractState, game_id: felt252) {
             let game: Game = self.world(@DEFAULT_NS()).read_model(game_id);
             assert!(game.blocks == 0, "Game {} has already started", game_id);
+        }
+
+        fn read_mutator_def(world: WorldStorage, mutator_id: u8) -> MutatorDef {
+            if mutator_id == 0 {
+                return MutatorEffectsTrait::neutral(0);
+            }
+
+            let stored: MutatorDef = world.read_model(mutator_id);
+            MutatorEffectsTrait::normalize(mutator_id, stored)
         }
     }
 }

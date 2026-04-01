@@ -1,3 +1,5 @@
+use zkube::helpers::mutator::MutatorEffectsTrait;
+use zkube::models::mutator::MutatorDef;
 use zkube::types::level::LevelConfig;
 
 /// Mutator eligibility for different game modes
@@ -32,21 +34,17 @@ pub impl MutatorImpl of MutatorTrait {
     }
 
     /// Returns which bonus type this mutator grants.
-    /// 0=None, 1=Hammer, 2=Totem, 3=Wave
-    fn get_bonus_type(mutator_id: u8) -> u8 {
-        match mutator_id {
-            1 => 1, // First mutator grants Hammer
-            _ => 0,
-        }
+    /// Effects are now data-driven from MutatorDef model in systems/helpers.
+    /// This method remains as a neutral fallback.
+    fn get_bonus_type(_mutator_id: u8) -> u8 {
+        0
     }
 
     /// Returns combo interval for earning one bonus charge.
-    /// 0 disables bonus charge gain for this mutator.
-    fn get_bonus_combo_interval(mutator_id: u8) -> u8 {
-        match mutator_id {
-            1 => 3, // +1 charge every 3 combos
-            _ => 0,
-        }
+    /// Effects are now data-driven from MutatorDef model in systems/helpers.
+    /// This method remains as a neutral fallback.
+    fn get_bonus_combo_interval(_mutator_id: u8) -> u8 {
+        0
     }
 
     /// Check if a mutator is allowed by a given bitmask
@@ -82,14 +80,14 @@ pub impl MutatorImpl of MutatorTrait {
         nth_set_bit(allowed_mask, index)
     }
 
-    /// No-op: Modify level config based on mutator (override when adding effects)
-    fn modify_level_config(_mutator_id: u8, ref _config: LevelConfig) {
-        // No-op — individual mutator effects will be added here
+    /// Apply level modifiers from a MutatorDef payload.
+    fn modify_level_config(mutator_def: @MutatorDef, ref config: LevelConfig) {
+        MutatorEffectsTrait::apply_mutator_to_level(mutator_def, ref config);
     }
 
-    /// No-op: Modify score based on mutator (override when adding effects)
-    fn modify_score(_mutator_id: u8, base_score: u16, _ctx: MutatorContext) -> u16 {
-        base_score // No-op
+    /// Apply score modifiers from a MutatorDef payload.
+    fn modify_score(mutator_def: @MutatorDef, base_score: u16, _ctx: MutatorContext) -> u16 {
+        MutatorEffectsTrait::apply_mutator_to_score(mutator_def, base_score)
     }
 }
 
@@ -142,16 +140,16 @@ mod tests {
 
     #[test]
     fn test_mutator_bonus_mappings() {
-        assert!(MutatorTrait::get_bonus_type(1) == 1, "Mutator 1 should grant Hammer");
+        assert!(MutatorTrait::get_bonus_type(1) == 0, "Fallback bonus type should be neutral");
         assert!(
-            MutatorTrait::get_bonus_combo_interval(1) == 3,
-            "Mutator 1 should grant one charge every 3 combos",
+            MutatorTrait::get_bonus_combo_interval(1) == 0,
+            "Fallback combo interval should be disabled",
         );
 
-        assert!(MutatorTrait::get_bonus_type(2) == 0, "Other mutators default to no bonus");
+        assert!(MutatorTrait::get_bonus_type(2) == 0, "Fallback should stay neutral");
         assert!(
             MutatorTrait::get_bonus_combo_interval(2) == 0,
-            "Other mutators default to disabled charge gain",
+            "Fallback should stay disabled",
         );
     }
 

@@ -3,6 +3,7 @@ pub mod events;
 
 pub mod models {
     pub mod config;
+    pub mod mutator;
     pub mod entitlement;
     pub mod game;
     pub mod player;
@@ -54,6 +55,7 @@ pub mod helpers {
     pub mod level;
     pub mod level_check;
     pub mod math;
+    pub mod mutator;
     pub mod packer;
     pub mod prize;
     pub mod packing;
