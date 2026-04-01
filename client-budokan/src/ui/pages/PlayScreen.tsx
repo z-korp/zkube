@@ -25,7 +25,7 @@ import {
 import { Button } from "@/ui/elements/button";
 import { Slider } from "@/ui/elements/slider";
 import { generateLevelConfig } from "@/dojo/game/types/level";
-import { type ThemeId } from "@/config/themes";
+import { getBlockColors, getThemeColors, type ThemeId } from "@/config/themes";
 
 const PlayScreen: React.FC = () => {
   const {
@@ -54,6 +54,7 @@ const PlayScreen: React.FC = () => {
     stopTheme,
   } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
+  const colors = getThemeColors(themeTemplate);
 
   const { game, seed } = useGame({
     gameId: gameId ?? 0n,
@@ -221,6 +222,7 @@ const PlayScreen: React.FC = () => {
     !!game && !game.isOver() && (!grid || grid.length === 0);
 
   const isGameOn = game && !game.over;
+  const nextRowBlocks = game?.next_row ?? [];
 
   return (
     <div className="h-dvh flex flex-col">
@@ -262,21 +264,25 @@ const PlayScreen: React.FC = () => {
         />
       )}
 
-      <div className="flex items-center justify-between px-2 h-11 shrink-0">
+      <div
+        className="flex h-11 shrink-0 items-center justify-between border-b px-2"
+        style={{ borderColor: colors.border, backgroundColor: colors.surface }}
+      >
         <div className="flex items-center gap-1.5">
           <button
             onClick={goBack}
-            className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-white transition-colors"
+            className="flex h-11 w-11 items-center justify-center rounded-lg transition-colors"
+            style={{ color: colors.textMuted }}
           >
             <ChevronLeft size={20} />
           </button>
-          <span className="font-['Chakra_Petch'] text-cyan-200 text-sm leading-tight">
+          <span className="font-display text-sm leading-tight" style={{ color: colors.text }}>
             Lv.{game?.level ?? "..."}
           </span>
           {game && (
             <>
-              <span className="text-slate-600 text-xs">·</span>
-              <span className="font-['Chakra_Petch'] text-amber-200/80 text-sm tabular-nums">
+              <span className="text-xs" style={{ color: colors.textMuted }}>·</span>
+              <span className="font-display text-sm tabular-nums" style={{ color: colors.accent2 }}>
                 {game.totalScore}
               </span>
             </>
@@ -284,7 +290,8 @@ const PlayScreen: React.FC = () => {
         </div>
         <button
           onClick={() => setIsSettingsOpen(true)}
-          className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-white transition-colors"
+          className="flex h-11 w-11 items-center justify-center rounded-lg transition-colors"
+          style={{ color: colors.textMuted }}
         >
           <Settings size={16} />
         </button>
@@ -373,7 +380,7 @@ const PlayScreen: React.FC = () => {
         />
       )}
 
-      <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-1 py-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden px-1 py-1">
         {(isGameLoading || isGridLoading) && (
           <div className="flex flex-col items-center justify-center gap-4 py-12">
             <img
@@ -388,7 +395,7 @@ const PlayScreen: React.FC = () => {
         )}
 
         {game && isGameOn && !isGridLoading && !isGameLoading && (
-          <div className="flex w-full flex-col items-center min-h-0">
+          <div className="flex min-h-0 w-full flex-col items-center">
             <GameBoard
               initialGrid={grid}
               nextLine={game.isOver() ? [] : game.next_row}
@@ -396,6 +403,32 @@ const PlayScreen: React.FC = () => {
               game={game}
               onCascadeComplete={handleCascadeComplete}
             />
+
+            <div className="mt-1 flex items-center justify-center gap-1.5">
+              <span className="mr-1 text-[9px]" style={{ color: colors.textMuted }}>
+                NEXT
+              </span>
+              {nextRowBlocks.map((block, idx) => {
+                const validBlock = block >= 1 && block <= 4;
+                const blockColor = validBlock
+                  ? getBlockColors(themeTemplate, block as 1 | 2 | 3 | 4).fill
+                  : "transparent";
+                return (
+                  <div
+                    key={`next-preview-${idx}`}
+                    className="h-3.5 w-3.5 rounded-[3px] border"
+                    style={{
+                      borderColor: validBlock ? `${blockColor}66` : colors.border,
+                      backgroundColor: validBlock ? `${blockColor}CC` : `${colors.textMuted}1A`,
+                    }}
+                  />
+                );
+              })}
+            </div>
+
+            <p className="mt-1.5 text-center text-[10px]" style={{ color: colors.textMuted }}>
+              ← Swipe rows to align blocks →
+            </p>
           </div>
         )}
 

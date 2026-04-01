@@ -16,6 +16,7 @@ export interface LeaderboardEntry {
   token_id: bigint;
   game_id: bigint;
   level: number;
+  endlessDepth: number;
   totalCubes: number;
   totalScore: number;
   gameOver: boolean;
@@ -213,6 +214,7 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
           const runDataPacked = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
           const runData = unpackRunData(runDataPacked);
           const level = runData.currentLevel;
+          const endlessDepth = runData.endlessDepth;
           const totalCubes = 0;
           const totalScore = runData.totalScore;
 
@@ -223,6 +225,7 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
             token_id: gameData.game_id,
             game_id: gameData.game_id,
             level,
+            endlessDepth,
             totalCubes,
             totalScore,
             gameOver: gameData.over || false,

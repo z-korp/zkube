@@ -11,9 +11,9 @@ import {
 } from "@/hooks/useMapData";
 import { useMapLayout } from "@/hooks/useMapLayout";
 import {
-  getMapPathTheme,
-  getThemeImages,
+  getThemeColors,
   THEME_META,
+  type ThemeColors,
   type ThemeId,
 } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
@@ -28,13 +28,20 @@ import ZoneBackground from "@/ui/components/map/ZoneBackground";
 const VB_W = 60;
 const VB_H = 100;
 
-const NODE_R = 8;
-const BOSS_R = 11;
+const NODE_R = 5;
+const BOSS_R = 6;
 
-const getLabel = (node: MapNodeData): string => {
-  if (node.type === "boss") return node.state === "cleared" ? "\u2713" : "\u2605";
-  if (node.state === "cleared") return "\u2713";
-  return String(node.contractLevel ?? "");
+const ZONE_EMOJI_BY_THEME: Record<ThemeId, string> = {
+  "theme-1": "🌊",
+  "theme-2": "🏛️",
+  "theme-3": "⚔️",
+  "theme-4": "🏺",
+  "theme-5": "⛩️",
+  "theme-6": "🐉",
+  "theme-7": "🕌",
+  "theme-8": "🌿",
+  "theme-9": "🥁",
+  "theme-10": "⛰️",
 };
 
 const getPathType = (
@@ -71,9 +78,18 @@ const MapPage: React.FC = () => {
 
   const zoneThemes: Record<number, ThemeId> = { 1: "theme-1", 2: "theme-5", 3: "theme-7" };
   const themeId: ThemeId = game ? (zoneThemes[game.zoneId] ?? "theme-1") : "theme-1";
-  const themeImages = getThemeImages(themeId);
-  const pathTheme = getMapPathTheme(themeId);
+  const colors = getThemeColors(themeId);
   const zoneName = THEME_META[themeId].name;
+  const zoneEmoji = ZONE_EMOJI_BY_THEME[themeId] ?? "🌊";
+  const earnedStars = game
+    ? (() => {
+        let total = 0;
+        for (let level = 1; level <= TOTAL_LEVELS; level++) {
+          total += game.getLevelStars(level);
+        }
+        return total;
+      })()
+    : 0;
 
   useEffect(() => {
     setMusicPlaylist(["main", "level"]);
@@ -115,19 +131,21 @@ const MapPage: React.FC = () => {
         <div className="flex items-center gap-1.5">
           <button
             onClick={goBack}
-            className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-white transition-colors"
+            className="w-11 h-11 flex items-center justify-center rounded-lg transition-colors"
+            style={{ color: colors.textMuted }}
           >
             <ChevronLeft size={20} />
           </button>
-          <span className="font-['Chakra_Petch'] text-white text-sm">
-            {zoneName}
+          <span className="font-display text-base font-extrabold" style={{ color: colors.text }}>
+            {zoneEmoji} {zoneName}
           </span>
         </div>
-        {game && (
-          <span className="font-['Chakra_Petch'] text-amber-200/80 text-sm tabular-nums">
-            Score: {game.totalScore}
+        <div className="flex items-center gap-1">
+          <span style={{ color: colors.accent2 }}>★</span>
+          <span className="text-[11px]" style={{ color: colors.accent2 }}>
+            {earnedStars}/30
           </span>
-        )}
+        </div>
       </div>
 
       {!game && (
@@ -180,15 +198,11 @@ const MapPage: React.FC = () => {
               if (!fromNode || !toNode) return null;
 
               const pathType = getPathType(fromNode.state, toNode.state);
-              const stroke =
-                pathType === "cleared"
-                  ? pathTheme.clearedColor
-                  : pathType === "active"
-                    ? pathTheme.activeColor
-                    : pathTheme.lockedColor;
-              const sw = pathType === "locked" ? 1.2 : 2;
-              const opacity = pathType === "locked" ? 0.35 : 0.8;
-              const dash = pathType === "locked" ? "4 4" : undefined;
+               const stroke =
+                 pathType === "locked" ? `${colors.border}66` : colors.border;
+               const sw = pathType === "locked" ? 1.2 : 2;
+               const opacity = pathType === "locked" ? 0.35 : 0.8;
+               const dash = pathType === "locked" ? "4 4" : undefined;
 
               return (
                 <g key={`edge-${edge.from}-${edge.to}`}>
@@ -227,12 +241,6 @@ const MapPage: React.FC = () => {
               const isCleared = node.state === "cleared" || node.state === "visited";
               const isCurrent = node.state === "current";
 
-              const nodeImg = isBoss
-                ? themeImages.mapNodeBoss
-                : isCleared
-                  ? themeImages.mapNodeCompleted
-                  : themeImages.mapNodeLevel;
-
               const stars = game && node.contractLevel
                 ? game.getLevelStars(node.contractLevel)
                 : 0;
@@ -249,65 +257,77 @@ const MapPage: React.FC = () => {
                   opacity={node.state === "locked" ? 0.35 : 1}
                   filter={isCurrent ? "url(#node-glow)" : undefined}
                 >
-                  <clipPath id={`clip-${node.nodeInZone}`}>
-                    <circle cx={cx} cy={cy} r={r} />
-                  </clipPath>
-                  <image
-                    href={nodeImg}
-                    x={cx - r}
-                    y={cy - r}
-                    width={r * 2}
-                    height={r * 2}
-                    preserveAspectRatio="xMidYMid slice"
-                    clipPath={`url(#clip-${node.nodeInZone})`}
-                  />
-
-                  {isCurrent && (
+                  {isBoss ? (
+                    <rect
+                      x={cx - r}
+                      y={cy - r}
+                      width={r * 2}
+                      height={r * 2}
+                      rx={1.8}
+                      ry={1.8}
+                      fill={
+                        isCurrent
+                          ? `url(#node-gradient)`
+                          : isCleared
+                            ? colors.surface
+                            : "rgba(255,255,255,0.03)"
+                      }
+                      stroke={
+                        isCurrent
+                          ? colors.accent
+                          : isCleared
+                            ? colors.border
+                            : "rgba(255,255,255,0.06)"
+                      }
+                      strokeWidth={isCurrent ? 0.8 : 0.4}
+                    />
+                  ) : (
                     <circle
                       cx={cx}
                       cy={cy}
-                      r={r + 1.2}
-                      fill="none"
-                      stroke={pathTheme.activeColor}
-                      strokeWidth={0.6}
-                      opacity={0.8}
-                      style={{ animation: "map-node-pulse 2s ease-in-out infinite" }}
+                      r={r}
+                      fill={
+                        isCurrent
+                          ? `url(#node-gradient)`
+                          : isCleared
+                            ? colors.surface
+                            : "rgba(255,255,255,0.03)"
+                      }
+                      stroke={
+                        isCurrent
+                          ? colors.accent
+                          : isCleared
+                            ? colors.border
+                            : "rgba(255,255,255,0.06)"
+                      }
+                      strokeWidth={isCurrent ? 0.8 : 0.4}
                     />
                   )}
 
-                  <circle
-                    cx={cx}
-                    cy={cy}
-                    r={r}
-                    fill="none"
-                    stroke={
-                      isCurrent
-                        ? pathTheme.activeColor
-                        : isCleared
-                          ? pathTheme.clearedColor
-                          : "rgba(255,255,255,0.15)"
-                    }
-                    strokeWidth={isCurrent ? 0.7 : 0.4}
-                  />
+                  {isCurrent && (
+                    <text
+                      x={cx}
+                      y={cy - r - 2.2}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fontSize={2.2}
+                      fill={colors.accent}
+                      fontWeight="bold"
+                    >
+                      ▼
+                    </text>
+                  )}
 
-                  <circle
-                    cx={cx + r * 0.65}
-                    cy={cy + r * 0.65}
-                    r={2.2}
-                    fill="rgba(0,0,0,0.8)"
-                    stroke={isCleared ? pathTheme.clearedColor : "rgba(255,255,255,0.3)"}
-                    strokeWidth={0.3}
-                  />
                   <text
-                    x={cx + r * 0.65}
-                    y={cy + r * 0.65 + 0.2}
+                    x={cx}
+                    y={cy + 0.2}
                     textAnchor="middle"
                     dominantBaseline="central"
-                    fill="#ffffff"
-                    fontSize={2.4}
+                    fill={isCurrent ? "#0a1628" : isCleared ? colors.text : colors.textMuted}
+                    fontSize={isBoss ? 4 : 2.8}
                     fontWeight="bold"
                   >
-                    {getLabel(node)}
+                    {isBoss ? "👹" : node.contractLevel}
                   </text>
 
                   {isCleared && stars > 0 && (
@@ -332,9 +352,29 @@ const MapPage: React.FC = () => {
                       })}
                     </g>
                   )}
+
+                  {isBoss && !isCleared && (
+                    <text
+                      x={cx}
+                      y={cy + r + 2.1}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fontSize={1.8}
+                      fill={colors.accent}
+                      fontWeight="700"
+                    >
+                      BOSS
+                    </text>
+                  )}
                 </g>
               );
             })}
+            <defs>
+              <linearGradient id="node-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={colors.accent} />
+                <stop offset="100%" stopColor={colors.accent2} />
+              </linearGradient>
+            </defs>
           </svg>
           </div>
           </div>
@@ -346,6 +386,7 @@ const MapPage: React.FC = () => {
                 game={game ?? null}
                 gameLevel={gameLevel}
                 gameId={gameId}
+                colors={colors}
                 onPlay={handlePlay}
                 onClose={() => setSelectedNode(null)}
               />
@@ -389,6 +430,7 @@ interface BottomSheetPreviewProps {
   game: import("@/dojo/game/models/game").Game | null;
   gameLevel: import("@/hooks/useGameLevel").GameLevelData | null;
   gameId: bigint | null;
+  colors: ThemeColors;
   onPlay: () => void;
   onClose: () => void;
 }
@@ -398,6 +440,7 @@ const BottomSheetPreview: React.FC<BottomSheetPreviewProps> = ({
   game,
   gameLevel,
   gameId,
+  colors,
   onPlay,
   onClose,
 }) => {
@@ -445,59 +488,61 @@ const BottomSheetPreview: React.FC<BottomSheetPreviewProps> = ({
         onClick={onClose}
       />
       <motion.div
-        className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-slate-900/98 border-t border-white/15 backdrop-blur-xl px-5 pb-6 pt-3 shadow-2xl max-h-[70vh] overflow-y-auto"
+        className="fixed bottom-0 left-0 right-0 z-50 max-h-[70vh] overflow-y-auto rounded-t-2xl border-t px-5 pb-6 pt-3 shadow-2xl backdrop-blur-xl"
+        style={{ backgroundColor: `${colors.surface}F2`, borderColor: colors.border }}
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 350, damping: 35 }}
       >
-        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-slate-600" />
+        <div className="mx-auto mb-3 h-1 w-10 rounded-full" style={{ backgroundColor: colors.border }} />
 
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="font-['Chakra_Petch'] text-xl text-white">
+            <h3 className="font-display text-xl" style={{ color: colors.text }}>
               {node.type === "boss" ? `Boss Level ${node.contractLevel}` : `Level ${node.contractLevel}`}
             </h3>
-            <span className={`text-sm ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}>
+            <span className={`text-sm ${DIFFICULTY_STYLES[difficulty] ?? ""}`} style={{ color: colors.textMuted }}>
               {difficulty}
             </span>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white"
+            className="w-8 h-8 flex items-center justify-center rounded-lg"
+            style={{ color: colors.textMuted }}
           >
             <X size={18} />
           </button>
         </div>
 
         {isCleared && (
-          <div className="flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 mb-3">
-            <span className="text-emerald-300 text-sm font-medium">Cleared</span>
+          <div className="mb-3 flex items-center gap-2 rounded-lg border px-3 py-2" style={{ backgroundColor: `${colors.accent}1F`, borderColor: `${colors.accent}4D` }}>
+            <span className="text-sm font-medium" style={{ color: colors.accent }}>Cleared</span>
             <span className="ml-auto text-sm">
               {Array.from({ length: 3 }).map((_, i) => (
-                <span key={i} className={i < stars ? "text-yellow-400" : "text-slate-600"}>★</span>
+                <span key={i} style={{ color: i < stars ? colors.accent2 : colors.textMuted }}>★</span>
               ))}
             </span>
           </div>
         )}
 
         <div className="grid grid-cols-2 gap-2 mb-3">
-          <div className="rounded-lg bg-black/30 p-2.5">
-            <p className="text-[10px] text-slate-400">Target</p>
-            <p className="font-['Chakra_Petch'] text-lg text-white">{pointsRequired}</p>
+          <div className="rounded-lg p-2.5" style={{ backgroundColor: `${colors.surface}99` }}>
+            <p className="text-[10px]" style={{ color: colors.textMuted }}>Target</p>
+            <p className="font-display text-lg" style={{ color: colors.text }}>{pointsRequired}</p>
           </div>
-          <div className="rounded-lg bg-black/30 p-2.5">
-            <p className="text-[10px] text-slate-400">Moves</p>
-            <p className="font-['Chakra_Petch'] text-lg text-white">{maxMoves}</p>
+          <div className="rounded-lg p-2.5" style={{ backgroundColor: `${colors.surface}99` }}>
+            <p className="text-[10px]" style={{ color: colors.textMuted }}>Moves</p>
+            <p className="font-display text-lg" style={{ color: colors.text }}>{maxMoves}</p>
           </div>
         </div>
 
         {constraints.length > 0 && (
           <div className="mb-4">
-            <p className="text-[10px] text-slate-400 mb-1.5">Constraints</p>
+            <p className="mb-1.5 text-[10px]" style={{ color: colors.textMuted }}>Constraints</p>
             <div className="space-y-1">
               {constraints.map((c) => (
-                <p key={c} className="rounded-md bg-black/25 px-2.5 py-1.5 text-sm text-slate-200">
+                <p key={c} className="rounded-md px-2.5 py-1.5 text-sm" style={{ backgroundColor: `${colors.surface}99`, color: colors.text }}>
                   {c}
                 </p>
               ))}
@@ -510,7 +555,8 @@ const BottomSheetPreview: React.FC<BottomSheetPreviewProps> = ({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onPlay}
-            className="w-full py-3.5 rounded-xl font-['Chakra_Petch'] text-lg tracking-wide bg-emerald-500 hover:bg-emerald-400 text-white transition-colors flex items-center justify-center gap-2"
+            className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-display text-lg tracking-wide transition-colors"
+            style={{ backgroundColor: colors.accent, color: "#0a1628" }}
           >
             <Play size={18} fill="currentColor" />
             PLAY

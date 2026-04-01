@@ -6,8 +6,7 @@ import { useMusicPlayer } from "@/contexts/hooks";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
-import ImageAssets from "@/ui/theme/ImageAssets";
-import type { ThemeId } from "@/config/themes";
+import { getThemeColors, type ThemeId } from "@/config/themes";
 
 const ZONE_THEMES: { themeId: ThemeId; name: string }[] = [
   { themeId: "theme-1", name: "Polynesian" },
@@ -25,6 +24,7 @@ const SettingsPage: React.FC = () => {
   const { username } = useControllerUsername();
   const { disconnect } = useDisconnect();
   const { themeTemplate, setThemeTemplate } = useTheme();
+  const colors = getThemeColors(themeTemplate);
   const { musicVolume, effectsVolume, setMusicVolume, setEffectsVolume } =
     useMusicPlayer();
 
@@ -44,97 +44,126 @@ const SettingsPage: React.FC = () => {
     }
   };
 
+  const ToggleSwitch = ({
+    checked,
+    onClick,
+  }: {
+    checked: boolean;
+    onClick: () => void;
+  }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative h-[22px] w-10 rounded-full border transition-all"
+      style={{
+        backgroundColor: checked ? colors.accent : `${colors.textMuted}26`,
+        borderColor: checked ? `${colors.accent}80` : colors.border,
+      }}
+    >
+      <span
+        className="absolute top-[2px] h-[16px] w-[16px] rounded-full transition-all"
+        style={{
+          backgroundColor: colors.text,
+          left: checked ? 22 : 2,
+          boxShadow: colors.glow,
+        }}
+      />
+    </button>
+  );
+
   return (
     <div className="flex h-full flex-col">
       <div className="pt-4 pb-2 px-4">
-        <h1 className="font-['Chakra_Petch'] text-xl text-white text-center">
+        <h1 className="font-display text-[18px] font-extrabold text-center" style={{ color: colors.text }}>
           Settings
         </h1>
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
         <div className="max-w-[500px] mx-auto flex flex-col gap-3">
-          <motion.section
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-slate-900/80 rounded-xl p-4 border border-white/10"
-          >
-            <h2 className="font-['Chakra_Petch'] text-sm text-slate-300 tracking-wider mb-3">
-              AUDIO
+          <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <h2 className="mb-2 text-[10px] uppercase tracking-[0.15em]" style={{ color: colors.textMuted }}>
+              ACCOUNT
             </h2>
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3">
-                <span className="text-sm shrink-0 w-14 text-slate-300">Music</span>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={Math.round(musicVolume * 100)}
-                  onChange={(e) => setMusicVolume(Number(e.target.value) / 100)}
-                  className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer bg-slate-700 accent-cyan-400"
-                />
-                <span className="font-['Chakra_Petch'] text-cyan-200 text-sm w-8 text-right tabular-nums">
-                  {Math.round(musicVolume * 100)}
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-sm shrink-0 w-14 text-slate-300">Effects</span>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={Math.round(effectsVolume * 100)}
-                  onChange={(e) => setEffectsVolume(Number(e.target.value) / 100)}
-                  className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer bg-slate-700 accent-emerald-400"
-                />
-                <span className="font-['Chakra_Petch'] text-emerald-200 text-sm w-8 text-right tabular-nums">
-                  {Math.round(effectsVolume * 100)}
-                </span>
-              </div>
+            <div
+              className="rounded-xl border p-3"
+              style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+            >
+              {accountAddress ? (
+                <>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-display text-xs font-bold" style={{ color: colors.text }}>
+                        {resolvedUsername}
+                      </p>
+                      <p className="mt-0.5 text-[9px]" style={{ color: colors.textMuted }}>
+                        {truncateAddress(accountAddress)}
+                      </p>
+                    </div>
+                    <span className="text-[10px]" style={{ color: colors.accent }}>
+                      Cartridge ✓
+                    </span>
+                  </div>
+
+                  <div className="mt-3 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleCopyAddress}
+                      className="flex items-center gap-1 rounded-md border px-2 py-1 text-[10px]"
+                      style={{ borderColor: colors.border, color: colors.textMuted }}
+                    >
+                      {copied ? <Check size={11} /> : <Copy size={11} />}
+                      {copied ? "Copied" : "Copy"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => disconnect()}
+                      className="rounded-md border px-2 py-1 text-[10px]"
+                      style={{ borderColor: `${colors.accent2}80`, color: colors.accent2 }}
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm" style={{ color: colors.textMuted }}>
+                  Connect a wallet to manage your account.
+                </p>
+              )}
             </div>
           </motion.section>
 
           <motion.section
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.04 }}
-            className="bg-slate-900/80 rounded-xl p-4 border border-white/10"
+            transition={{ delay: 0.03 }}
           >
-            <h2 className="font-['Chakra_Petch'] text-sm text-slate-300 tracking-wider mb-3">
-              THEME
+            <h2 className="mb-2 text-[10px] uppercase tracking-[0.15em]" style={{ color: colors.textMuted }}>
+              PREVIEW THEME
             </h2>
             <div className="flex gap-2">
               {ZONE_THEMES.map(({ themeId, name }) => {
-                const themeAssets = ImageAssets(themeId);
                 const isSelected = themeTemplate === themeId;
+                const dotColor = getThemeColors(themeId).accent;
                 return (
-                  <motion.button
+                  <button
                     key={themeId}
                     type="button"
-                    whileTap={{ scale: 0.93 }}
                     onClick={() => setThemeTemplate(themeId)}
-                    title={name}
-                    className={`relative rounded-xl border overflow-hidden transition-colors flex-1 aspect-square flex items-center justify-center ${
-                      isSelected
-                        ? "border-cyan-400 bg-cyan-500/10 ring-1 ring-cyan-400/30"
-                        : "border-slate-600/70 bg-slate-900/40 hover:border-slate-400"
-                    }`}
+                    className="flex flex-1 flex-col items-center rounded-xl border px-2 py-2"
+                    style={{
+                      borderColor: isSelected ? colors.accent : colors.border,
+                      backgroundColor: isSelected ? `${colors.accent}26` : colors.surface,
+                    }}
                   >
-                    <img
-                      src={themeAssets.themeIcon}
-                      alt={name}
-                      className="w-full h-full object-cover"
-                      draggable={false}
+                    <span
+                      className="h-5 w-5 rounded-full"
+                      style={{ backgroundColor: dotColor }}
                     />
-                    {isSelected && (
-                      <Check
-                        size={14}
-                        className="absolute bottom-1 right-1 text-cyan-300 drop-shadow-md"
-                      />
-                    )}
-                  </motion.button>
+                    <span className="mt-1 text-[8px]" style={{ color: isSelected ? colors.accent : colors.textMuted }}>
+                      {name.split(" ")[0]}
+                    </span>
+                  </button>
                 );
               })}
             </div>
@@ -143,52 +172,58 @@ const SettingsPage: React.FC = () => {
           <motion.section
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-            className="bg-slate-900/80 rounded-xl p-4 border border-white/10"
+            transition={{ delay: 0.04 }}
           >
-            <h2 className="font-['Chakra_Petch'] text-sm text-slate-300 tracking-wider mb-3">
-              ACCOUNT
+            <h2 className="mb-2 text-[10px] uppercase tracking-[0.15em]" style={{ color: colors.textMuted }}>
+              AUDIO
             </h2>
-            {accountAddress ? (
-              <div className="space-y-3">
-                <div className="rounded-lg bg-black/30 p-3">
-                  <p className="text-[10px] text-slate-400 mb-0.5">Username</p>
-                  <p className="text-white text-sm">{resolvedUsername}</p>
-                </div>
-                <div className="rounded-lg bg-black/30 p-3">
-                  <p className="text-[10px] text-slate-400 mb-0.5">Wallet</p>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-white text-sm truncate">
-                      {truncateAddress(accountAddress)}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleCopyAddress}
-                      className="inline-flex items-center gap-1 text-xs text-slate-300 hover:text-white"
-                    >
-                      {copied ? <Check size={12} /> : <Copy size={12} />}
-                      {copied ? "Copied" : "Copy"}
-                    </button>
-                  </div>
-                </div>
-                <motion.button
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => disconnect()}
-                  className="w-full py-2.5 rounded-xl text-sm font-medium bg-red-500/20 text-red-300 border border-red-500/30 hover:bg-red-500/30 transition-colors"
+            <div className="space-y-2">
+              {[
+                {
+                  label: "Music",
+                  isOn: musicVolume > 0,
+                  toggle: () => setMusicVolume(musicVolume > 0 ? 0 : 0.7),
+                },
+                {
+                  label: "Sound Effects",
+                  isOn: effectsVolume > 0,
+                  toggle: () => setEffectsVolume(effectsVolume > 0 ? 0 : 0.7),
+                },
+              ].map((audio) => (
+                <div
+                  key={audio.label}
+                  className="flex items-center justify-between rounded-xl border px-3 py-2"
+                  style={{ backgroundColor: colors.surface, borderColor: colors.border }}
                 >
-                  Disconnect
-                </motion.button>
-              </div>
-            ) : (
-              <div className="rounded-lg bg-black/30 p-4 text-sm text-slate-400">
-                Connect a wallet to manage your account.
-              </div>
-            )}
+                  <span className="text-sm" style={{ color: colors.text }}>
+                    {audio.label}
+                  </span>
+                  <ToggleSwitch checked={audio.isOn} onClick={audio.toggle} />
+                </div>
+              ))}
+            </div>
           </motion.section>
 
-          <div className="text-center text-[10px] text-slate-600 pt-2">
-            zKube v1.3.0
-          </div>
+          <motion.section
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+          >
+            <h2 className="mb-2 text-[10px] uppercase tracking-[0.15em]" style={{ color: colors.textMuted }}>
+              ABOUT
+            </h2>
+            <div
+              className="rounded-xl border p-3"
+              style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+            >
+              <p className="text-[11px]" style={{ color: colors.text }}>
+                zKube v1.0 · Dojo 1.8.0
+              </p>
+              <p className="mt-1 text-[9px]" style={{ color: colors.textMuted }}>
+                Fully on-chain · Starknet
+              </p>
+            </div>
+          </motion.section>
         </div>
       </div>
     </div>

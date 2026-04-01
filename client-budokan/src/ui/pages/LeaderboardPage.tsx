@@ -1,38 +1,75 @@
 import { useState } from "react";
-import { motion } from "motion/react";
 import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
+import useAccountCustom from "@/hooks/useAccountCustom";
+import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
+import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
+import { getThemeColors } from "@/config/themes";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
 
-const PODIUM_STYLES = [
-  { bg: "bg-yellow-400/15", border: "border-yellow-400/40", text: "text-yellow-200", trophy: "/assets/trophies/gold.png" },
-  { bg: "bg-slate-300/10", border: "border-slate-400/30", text: "text-slate-200", trophy: "/assets/trophies/silver.png" },
-  { bg: "bg-amber-600/15", border: "border-amber-500/30", text: "text-amber-200", trophy: "/assets/trophies/bronze.png" },
-];
+const MEDALS = ["🥇", "🥈", "🥉"];
 
 const LeaderboardPage: React.FC = () => {
+  const { themeTemplate } = useTheme();
+  const colors = getThemeColors(themeTemplate);
+  const { account } = useAccountCustom();
   const { games, loading } = useLeaderboardSlot();
-  const [modeFilter, setModeFilter] = useState<"all" | "map" | "endless">("all");
+  const { challenge } = useCurrentChallenge();
+  const { entries: dailyEntries } = useDailyLeaderboard(challenge?.challenge_id);
+  const [activeTab, setActiveTab] = useState<"zone" | "endless" | "daily">("zone");
 
-  const top3 = games.slice(0, 3);
-  const rest = games.slice(3);
+  const normalizedAccount = account?.address?.toLowerCase();
+  const filteredGames = games.filter((game) =>
+    activeTab === "zone" ? game.endlessDepth === 0 : game.endlessDepth > 0,
+  );
+
+  const rankRows =
+    activeTab === "daily"
+      ? dailyEntries.slice(0, 30).map((entry) => ({
+          id: `daily-${entry.rank}`,
+          rank: entry.rank,
+          name: entry.playerName ?? entry.player,
+          score: entry.value,
+          stars: 0,
+          isYou: normalizedAccount === entry.player.toLowerCase(),
+        }))
+      : filteredGames.slice(0, 30).map((entry, index) => {
+          const starCount = Math.min(30, Math.max(0, entry.level * 3));
+          return {
+            id: entry.token_id.toString(),
+            rank: index + 1,
+            name: entry.player_name || "Anonymous",
+            score: entry.score,
+            stars: starCount,
+            isYou:
+              !!normalizedAccount &&
+              !!entry.player_address &&
+              entry.player_address.toLowerCase() === normalizedAccount,
+          };
+        });
 
   return (
     <div className="flex h-full flex-col">
       <div className="px-4 pt-4 pb-2">
-        <h1 className="font-['Chakra_Petch'] text-xl text-white text-center">
+        <h1 className="font-display text-[18px] font-extrabold text-center" style={{ color: colors.text }}>
           Leaderboard
         </h1>
-        <div className="flex justify-center gap-1 mt-2">
-          {(["all", "map", "endless"] as const).map((mode) => (
+        <div className="mt-2 flex">
+          {([
+            { id: "zone", label: "Zone" },
+            { id: "endless", label: "Endless" },
+            { id: "daily", label: "Daily" },
+          ] as const).map((tab) => (
             <button
-              key={mode}
-              onClick={() => setModeFilter(mode)}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                modeFilter === mode
-                  ? "bg-white/15 text-white"
-                  : "text-white/40 hover:text-white/60"
-              }`}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className="flex-1 border-b-2 py-2 text-[11px]"
+              style={{
+                color: activeTab === tab.id ? colors.accent : colors.textMuted,
+                borderBottomColor: activeTab === tab.id ? colors.accent : "transparent",
+                fontWeight: activeTab === tab.id ? 700 : 500,
+              }}
             >
-              {mode === "all" ? "All" : mode === "map" ? "Map" : "Endless"}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -40,91 +77,49 @@ const LeaderboardPage: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         {loading ? (
-          <div className="text-slate-400 text-sm text-center py-8">
+          <div className="py-8 text-center text-sm" style={{ color: colors.textMuted }}>
             Loading...
           </div>
-        ) : games.length === 0 ? (
-          <div className="text-slate-400 text-sm text-center py-8">
+        ) : rankRows.length === 0 ? (
+          <div className="py-8 text-center text-sm" style={{ color: colors.textMuted }}>
             No entries yet. Finish a run to claim rank #1.
           </div>
         ) : (
-          <div className="max-w-[500px] mx-auto">
-            {top3.length > 0 && (
-              <div className="flex items-end justify-center gap-2 mb-4 pt-2">
-                {[1, 0, 2].map((podiumIdx) => {
-                  const entry = top3[podiumIdx];
-                  if (!entry) return <div key={podiumIdx} className="flex-1" />;
-                  const rank = podiumIdx + 1;
-                  const style = PODIUM_STYLES[podiumIdx];
-                  const isFirst = podiumIdx === 0;
+          <div className="mx-auto max-w-[500px] space-y-1.5">
+            {rankRows.map((entry) => (
+              <div
+                key={entry.id}
+                className="flex items-center gap-2 rounded-[10px] border px-3 py-2.5"
+                style={{
+                  backgroundColor: entry.isYou ? `${colors.accent}1F` : colors.surface,
+                  borderColor: entry.isYou ? `${colors.accent}4D` : colors.border,
+                }}
+              >
+                <div className="w-8 text-center font-display text-base font-black" style={{ color: entry.rank <= 3 ? colors.accent2 : colors.textMuted }}>
+                  {entry.rank <= 3 ? MEDALS[entry.rank - 1] : entry.rank}
+                </div>
 
-                  return (
-                    <motion.div
-                      key={entry.token_id.toString()}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: podiumIdx * 0.1 }}
-                      className={`flex-1 flex flex-col items-center rounded-xl border p-3 overflow-hidden ${style.bg} ${style.border} ${isFirst ? "pb-5" : "pb-3"}`}
-                    >
-                      <img
-                        src={style.trophy}
-                        alt={`#${rank}`}
-                        className={`${isFirst ? "h-12 w-12" : "h-9 w-9"} object-contain mb-1.5`}
-                      />
-                      <span className={`font-['Chakra_Petch'] text-lg ${style.text}`}>
-                        #{rank}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-display text-xs font-bold" style={{ color: colors.text }}>
+                    {entry.name} {entry.isYou ? "(You)" : ""}
+                  </p>
+                  <div className="mt-0.5 flex items-center gap-0.5">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <span key={i} className="text-[9px]" style={{ color: entry.stars >= (i + 1) * 10 ? colors.accent2 : colors.textMuted }}>
+                        ★
                       </span>
-                      <span className="text-xs text-white truncate max-w-full text-center mt-0.5 block overflow-hidden">
-                        {entry.player_name && entry.player_name.length <= 20 ? entry.player_name : "Anonymous"}
-                      </span>
-                      <div className="flex items-baseline gap-1 mt-1">
-                        <span className="font-['Chakra_Petch'] text-sm text-cyan-200">
-                          Lv.{entry.level}
-                        </span>
-                        <span className="text-slate-500 text-[10px]">·</span>
-                        <span className="font-['Chakra_Petch'] text-sm text-amber-200">
-                          {entry.score}
-                        </span>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
+                    ))}
+                    <span className="ml-1 text-[8px]" style={{ color: colors.textMuted }}>
+                      {entry.stars}
+                    </span>
+                  </div>
+                </div>
 
-            {rest.length > 0 && (
-              <div className="rounded-xl bg-slate-900/80 border border-white/10 overflow-hidden">
-                {rest.map((entry, index) => {
-                  const rank = index + 4;
-                  return (
-                    <motion.div
-                      key={entry.token_id.toString()}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.02 }}
-                      className="flex items-center justify-between px-4 py-2.5 border-b border-slate-700/30 last:border-b-0"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="font-['Chakra_Petch'] text-sm text-slate-400 w-7">
-                          #{rank}
-                        </span>
-                        <span className="text-sm text-white truncate max-w-[160px]">
-                          {entry.player_name && entry.player_name.length <= 20 ? entry.player_name : "Anonymous"}
-                        </span>
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="font-['Chakra_Petch'] text-sm text-cyan-200">
-                          {entry.level}
-                        </span>
-                        <span className="font-['Chakra_Petch'] text-sm text-amber-200">
-                          {entry.score}
-                        </span>
-                      </div>
-                    </motion.div>
-                  );
-                })}
+                <div className="font-display text-[13px] font-extrabold" style={{ color: colors.text }}>
+                  {entry.score.toLocaleString()}
+                </div>
               </div>
-            )}
+            ))}
           </div>
         )}
       </div>
