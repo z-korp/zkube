@@ -113,12 +113,11 @@ mod config_system {
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
     use core::num::traits::Zero;
     use zkube::constants::DEFAULT_NS;
-    use zkube::constants::DEFAULT_SETTINGS::{
-        DEFAULT_SETTINGS_ID, GET_DEFAULT_SETTINGS, GET_DEFAULT_SETTINGS_METADATA,
-    };
+    use zkube::constants::DEFAULT_SETTINGS::DEFAULT_SETTINGS_ID;
     use zkube::helpers::encoding::U256BytesUsedTraitImpl;
     use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
     use zkube::models::entitlement::MapEntitlement;
+    use zkube::models::mutator::MutatorDef;
     use zkube::types::difficulty::Difficulty;
     use super::IConfigSystem;
 
@@ -169,53 +168,108 @@ mod config_system {
 
         let current_timestamp = get_block_timestamp();
 
-        // Create only the official default settings (ID 0)
-        // Only games using these settings can mint cubes and track quest progress
-        world.write_model(GET_DEFAULT_SETTINGS());
-        world.write_model(GET_DEFAULT_SETTINGS_METADATA(current_timestamp, creator_address));
-
-        // Register Map 2: Feudal Japan (paid)
-        let japan_settings_id = 1_u32;
-        let japan_settings = GameSettingsTrait::new_with_defaults(
-            japan_settings_id, Difficulty::Increasing,
+        // Register Polynesian Map mode settings (ID 0)
+        let mut polynesian_map_settings = GameSettingsTrait::new_with_defaults(
+            0_u32, Difficulty::Increasing,
         );
-        let japan_metadata = GameSettingsMetadata {
-            settings_id: japan_settings_id,
-            name: 'Feudal Japan',
-            description: "Fast-paced puzzle action set in feudal Japan.",
+        polynesian_map_settings.level_cap = 10;
+        polynesian_map_settings.bonus_1_type = 1;
+        polynesian_map_settings.bonus_1_trigger_type = 1;
+        polynesian_map_settings.bonus_1_trigger_threshold = 5;
+        polynesian_map_settings.bonus_1_starting_charges = 1;
+        polynesian_map_settings.bonus_2_type = 3;
+        polynesian_map_settings.bonus_2_trigger_type = 3;
+        polynesian_map_settings.bonus_2_trigger_threshold = 30;
+        polynesian_map_settings.bonus_2_starting_charges = 1;
+        polynesian_map_settings.bonus_3_type = 2;
+        polynesian_map_settings.bonus_3_trigger_type = 2;
+        polynesian_map_settings.bonus_3_trigger_threshold = 10;
+        polynesian_map_settings.bonus_3_starting_charges = 1;
+        polynesian_map_settings.allowed_mutators = 1;
+
+        let polynesian_map_metadata = GameSettingsMetadata {
+            settings_id: 0_u32,
+            name: 'Polynesian',
+            description: "Explore the Polynesian islands...",
             created_by: creator_address,
             created_at: current_timestamp,
-            theme_id: 5,
-            is_free: false,
+            theme_id: 1,
+            is_free: true,
             enabled: true,
             price: 0,
             payment_token: Zero::zero(),
         };
-        world.write_model(@japan_settings);
-        world.write_model(@japan_metadata);
+        world.write_model(@polynesian_map_settings);
+        world.write_model(@polynesian_map_metadata);
 
-        // Register Map 3: Ancient Persia (paid)
-        let persia_settings_id = 2_u32;
-        let persia_settings = GameSettingsTrait::new_with_defaults(
-            persia_settings_id, Difficulty::Increasing,
+        // Register Polynesian Endless mode settings (ID 1)
+        let mut polynesian_endless_settings = GameSettingsTrait::new_with_defaults(
+            1_u32, Difficulty::Increasing,
         );
-        let persia_metadata = GameSettingsMetadata {
-            settings_id: persia_settings_id,
-            name: 'Ancient Persia',
-            description: "Strategic puzzle play in the heart of ancient Persia.",
+        polynesian_endless_settings.level_cap = 255;
+        polynesian_endless_settings.bonus_1_type = 0;
+        polynesian_endless_settings.bonus_1_trigger_type = 0;
+        polynesian_endless_settings.bonus_1_trigger_threshold = 0;
+        polynesian_endless_settings.bonus_1_starting_charges = 0;
+        polynesian_endless_settings.bonus_2_type = 0;
+        polynesian_endless_settings.bonus_2_trigger_type = 0;
+        polynesian_endless_settings.bonus_2_trigger_threshold = 0;
+        polynesian_endless_settings.bonus_2_starting_charges = 0;
+        polynesian_endless_settings.bonus_3_type = 0;
+        polynesian_endless_settings.bonus_3_trigger_type = 0;
+        polynesian_endless_settings.bonus_3_trigger_threshold = 0;
+        polynesian_endless_settings.bonus_3_starting_charges = 0;
+        polynesian_endless_settings.allowed_mutators = 2;
+
+        let polynesian_endless_metadata = GameSettingsMetadata {
+            settings_id: 1_u32,
+            name: 'Polynesian Endless',
+            description: "Survive the endless tides...",
             created_by: creator_address,
             created_at: current_timestamp,
-            theme_id: 7,
-            is_free: false,
+            theme_id: 1,
+            is_free: true,
             enabled: true,
             price: 0,
             payment_token: Zero::zero(),
         };
-        world.write_model(@persia_settings);
-        world.write_model(@persia_metadata);
+        world.write_model(@polynesian_endless_settings);
+        world.write_model(@polynesian_endless_metadata);
 
-        // Counter starts at 2 so next custom settings will be 3+
-        self.settings_counter.write(persia_settings_id);
+        let tidecaller = MutatorDef {
+            mutator_id: 1,
+            name: 'Tidecaller',
+            zone_id: 1,
+            moves_modifier: 128,
+            ratio_modifier: 128,
+            difficulty_offset: 128,
+            combo_score_mult_x100: 100,
+            star_threshold_modifier: 128,
+            endless_ramp_mult_x100: 100,
+            line_clear_bonus: 2,
+            perfect_clear_bonus: 0,
+            starting_rows: 0,
+        };
+        world.write_model(@tidecaller);
+
+        let riptide = MutatorDef {
+            mutator_id: 2,
+            name: 'Riptide',
+            zone_id: 1,
+            moves_modifier: 128,
+            ratio_modifier: 128,
+            difficulty_offset: 129,
+            combo_score_mult_x100: 150,
+            star_threshold_modifier: 128,
+            endless_ramp_mult_x100: 130,
+            line_clear_bonus: 0,
+            perfect_clear_bonus: 0,
+            starting_rows: 0,
+        };
+        world.write_model(@riptide);
+
+        // Counter starts at 1 so next custom settings will be 2+
+        self.settings_counter.write(1_u32);
 
         let (game_systems_address, _) = world.dns(@"game_system").unwrap();
         let minigame_dispatcher = IMinigameDispatcher { contract_address: game_systems_address };
@@ -228,8 +282,8 @@ mod config_system {
                     game_systems_address,
                     DEFAULT_SETTINGS_ID,
                     GameSettingDetails {
-                        name: "Default",
-                        description: "zKube default settings with zone-based progressive difficulty.",
+                        name: "Polynesian",
+                        description: "Polynesian map mode settings with zone progression.",
                         settings: array![GameSetting { name: 'MODE', value: 'PROGRESSIVE' }].span(),
                     },
                     minigame_token_address,

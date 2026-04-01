@@ -1,707 +1,847 @@
-# Mobile-First UI Redesign Plan
+# zKube UI Redesign — Implementation Plan
 
-## Status: Ready for Implementation
-**Last Updated:** 2025-03-30
-**Scope:** Full-app mobile-first redesign — all pages, navigation shell, design system
-**Target:** Mobile-primary (390×844 reference), Wordle-style phone-frame on desktop
+## Overview
 
----
+Adapt the design reference at `/zkube-ui-design.jsx` (1532 lines, 7 screens, 3 theme variants) into the production `client-budokan/` codebase. This is a **visual-only redesign** — the data layer (hooks, RECS, Dojo, stores, contexts) remains untouched. Per-theme block colors are preserved. All 10 themes get the new token system via algorithmic derivation.
 
-## 1. Context & Decisions
-
-### Problem Statement
-
-The current UI has critical mobile UX issues:
-1. **60% dead space** on HomePage — decorative background with no interactive content above the fold
-2. **No clear CTA** — "Log In" button looks like a form element, no PLAY affordance visible
-3. **No mode selection** — Map vs Endless (core v1.3 feature) has zero UI entry point
-4. **Leaderboard broken** — raw 70-char hex game IDs overflow cards
-5. **Daily Challenge cut off** — half-visible at bottom, unclear scrollability
-6. **Not game-like** — feels like a web form, not a game lobby
-
-### Key Design Decisions
-
-| # | Decision | Choice | Rationale |
-|---|----------|--------|-----------|
-| 1 | Desktop layout | Phone-frame (max-w-[430px] centered) | User preference ("I love Wordle style") |
-| 2 | Mode selection | Pill toggle on home card, Map default | No puzzle game gates mode choice before first play |
-| 3 | Navigation | Keep 4-tab bottom bar (Home/Map/Ranks/Settings) | Games with 2+ sections universally use bottom tabs |
-| 4 | Visual style | Hybrid — zone art hero top, opaque dark cards bottom | Preserves themed art while keeping interactive area clean |
-| 5 | Viewport unit | `100dvh` (replace `useViewport` hook) | `dvh` handles iOS Safari address bar natively |
-| 6 | Tab bar in-game | Hidden during PlayScreen | Already implemented; maximize grid area |
-| 7 | HomePage content | 5 elements: zone/active-run/mode-pill/CTA/daily | Medium-sparse density; shows "next thing to do" |
-
-### Reference: Death Mountain Patterns Adopted
-
-- `100dvh` + `overflow: hidden` on body (no rubber-band scroll)
-- 64px bottom nav with glow active states and `touch-action: manipulation`
-- `user-select: none` globally, `-webkit-tap-highlight-color: transparent`
-- PWA manifest with `display: fullscreen`
-- Loading screen with thematic art (not spinner)
+**Key deliverables:**
+- Extended theme token system (surface, border, glow, text, textMuted, accent2) for all 10 themes
+- Font migration: Fredericka the Great → Chakra Petch (display) + DM Sans (body)
+- Gradient backgrounds + SVG pattern overlays (replacing image backgrounds)
+- Theme-aware BottomTabBar (replacing hardcoded emerald colors)
+- 6 page redesigns matching the design reference
+- 1 new page: BossRevealPage with navigation integration
 
 ---
 
-## 2. Design System Specification
+## Architecture Decisions
 
-### 2.1 Phone-Frame Shell
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Block colors | **Per-theme (existing)** | Keep all 10 theme-specific block color palettes. Do NOT use the universal block colors from the design reference. |
+| Theme coverage | **All 10 themes** | Auto-derive new tokens (surface, border, glow, text, textMuted, accent2) for all 10 themes algorithmically from existing accent colors. |
+| Background strategy | **Gradient + SVG patterns** | Replace per-theme background.png images with CSS gradients and subtle SVG pattern overlays. Faster load, smaller bundle. |
+| Font strategy | **Google Fonts** | Load Chakra Petch + DM Sans from Google Fonts CDN. Remove local Fredericka the Great TTF. |
+| Styling approach | **TailwindCSS** | All new markup uses Tailwind utilities. No inline styles. Theme-dynamic values use CSS custom properties or `style={{}}` when computed. |
+| Boss screen | **New overlay page** | Add "boss" as OverlayId in navigationStore, render BossRevealPage between map and play. |
+| Grid.tsx | **DO NOT MODIFY** | The 690-line grid state machine is untouchable. Only its container/wrapper can change. |
+
+---
+
+## Design Reference
+
+**File:** `/zkube-ui-design.jsx`
+
+| Screen | Lines | Key Elements |
+|--------|-------|--------------|
+| Shared (themes, patterns, tab bar) | 1–208 | THEMES object, PatternOverlay, Star, TabBar, StatusBar |
+| HomeScreen | 212–462 | Text logo, player card, daily banner, vertical zone list, NEW GAME button |
+| MapScreen | 464–618 | Zone header + star count, sinusoidal SVG path, circle/square nodes |
+| PlayScreen | 621–797 | Level badge + stars, moves/score/combo row, constraint bar, grid, next row, swipe hint |
+| BossScreen | 799–919 | Large emoji, boss name + glow, description, dual constraint cards, FIGHT BOSS button |
+| LeaderboardScreen | 921–1028 | Title, Zone/Endless/Daily tabs, card-based player list with medals |
+| DailyScreen | 1030–1162 | Header + countdown pill, mini top-3 leaderboard, grid preview, START DAILY button |
+| SettingsScreen | 1164–1322 | Account card, theme color dots, audio toggle switches, about section |
+
+---
+
+## Dependency Graph
 
 ```
-Desktop (≥768px):
-┌─────────────────────────────────────────────┐
-│             dark bg (#080414)                │
-│         ┌───────────────────┐               │
-│         │   max-w-[430px]   │               │
-│         │   100dvh column   │               │
-│         │   (the full app)  │               │
-│         └───────────────────┘               │
-└─────────────────────────────────────────────┘
+Phase 0 (Serial — Foundation)
+├── 0.1 Theme Token Extension ──────────────┐
+├── 0.2 Font Migration ─────────────────────┤
+├── 0.3 Gradient Backgrounds + SVG Patterns ─┤ (depends on 0.1)
+└── 0.4 BottomTabBar Theme-Aware ───────────┘ (depends on 0.1)
 
-Mobile (<768px):
-┌─────────────────┐
-│  full-width     │
-│  100dvh         │
-│  (no wrapper)   │
-└─────────────────┘
+Phase 1 (Parallel — all depend on Phase 0 complete)
+├── 1.1 HomePage ──────────────┐
+├── 1.2 PlayScreen HUD ────────┤
+├── 1.3 MapPage ───────────────┤  All parallel, independent files
+├── 1.4 SettingsPage ──────────┤
+├── 1.5 LeaderboardPage ───────┤
+└── 1.6 DailyChallengePage ────┘
+
+Phase 2 (Depends on Phase 0 only)
+└── 2.1 BossRevealPage + Navigation
+
+Phase 3 (After Phase 1 + 2)
+└── 3.1 Cross-Theme QA + Polish
 ```
 
-### 2.2 Card Component
+---
 
-Two variants shared across all pages:
+## Phase 0: Foundation (Serial)
 
-**Glass Card** (hero areas — zone selector, backgrounds):
+### Task 0.1: Extend Theme Token System
+
+**Goal:** Add `surface`, `border`, `glow`, `text`, `textMuted`, `accent2`, and `bgGradient` tokens to all 10 themes.
+
+**Files to modify:**
+- `client-budokan/src/config/themes.ts` — Extend `ThemeColors` interface, add derived values to all 10 theme objects
+- `client-budokan/src/index.css` — Add CSS custom properties for the new tokens in each `[data-theme="theme-N"]` block
+
+**Extend the `ThemeColors` interface:**
+```typescript
+export interface ThemeColors {
+  // === EXISTING (keep all) ===
+  background: string;
+  backgroundGradientStart: string;
+  backgroundGradientEnd: string;
+  gridLines: string;
+  gridLinesAlpha: number;
+  gridBg: string;
+  gridCellAlt: string;
+  frameBorder: string;
+  hudBar: string;
+  hudBarBorder: string;
+  actionBarBg: string;
+  dangerZone: string;
+  dangerZoneAlpha: number;
+  accent: string;
+  blocks: Record<1 | 2 | 3 | 4, BlockColors>;
+  particles: { primary: string[]; explosion: string[] };
+
+  // === NEW TOKENS ===
+  accent2: string;       // Warm secondary accent (gold/amber/coral)
+  surface: string;       // Card/container bg: accent @ 8% opacity
+  border: string;        // Card/container border: accent @ 15% opacity
+  glow: string;          // Box-shadow for active elements: accent @ 30%
+  text: string;          // Primary text color (light, slightly tinted)
+  textMuted: string;     // Secondary text: text @ 50% opacity
+  bgGradient: string;    // Full CSS gradient string for background
+}
 ```
-bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl
-```
 
-**Solid Card** (interactive content — settings sections, leaderboard rows):
-```
-bg-slate-900/90 border border-white/10 rounded-xl
-```
+**Derivation formulas (apply to all 10 themes):**
 
-### 2.3 Button Hierarchy
+Given theme's existing `accent` hex color (e.g. `#A9D8FF`):
+- `surface` = `rgba({accent_r}, {accent_g}, {accent_b}, 0.08)`
+- `border` = `rgba({accent_r}, {accent_g}, {accent_b}, 0.15)`
+- `glow` = `0 0 40px rgba({accent_r}, {accent_g}, {accent_b}, 0.3)`
+- `textMuted` = `rgba({text_r}, {text_g}, {text_b}, 0.5)`
+- `bgGradient` = `linear-gradient(170deg, {darken(bg, 0.3)} 0%, {bg} 40%, {lighten(bg, 0.08)} 70%, {lighten(bg, 0.15)} 100%)`
 
-| Level | Usage | Style |
-|-------|-------|-------|
-| Primary CTA | PLAY, CONTINUE | Image-based (`btn-green.png`), h-14, full-width, `Fredericka` font, `whileTap: scale(0.96)` |
-| Secondary CTA | NEW game, mode-specific | Image-based (`btn-orange.png`), h-12 |
-| Tertiary | Daily challenge, nav actions | `bg-white/5 border border-white/8`, text-based |
-| Connect | Wallet login | Primary CTA style with gamepad icon, NOT a form-style button |
-| Destructive | Surrender, Disconnect | `bg-red-500/20 text-red-300 border-red-500/30` |
+Create a helper function `hexToRgba(hex: string, alpha: number): string` in themes.ts to implement the derivation.
 
-### 2.4 Typography
+**accent2 and text — per-theme explicit values:**
 
-- **Headings:** `font-['Fredericka_the_Great']` (already used, keep as-is)
-- **Body/labels:** System sans-serif via Tailwind defaults
-- **Stats/numbers:** `tabular-nums` for alignment
+| Theme | accent | accent2 | text |
+|-------|--------|---------|------|
+| 1 Polynesian | #A9D8FF | #FFD93D | #E0F0F5 |
+| 2 Ancient Egypt | #D4AF37 | #FF6B4A | #F5EDE3 |
+| 3 Norse | #7EB8DA | #C4A2FF | #E5EDF5 |
+| 4 Ancient Greece | #3B6FA0 | #FFD93D | #E8ECF5 |
+| 5 Feudal Japan | #C41E3A | #FFD700 | #F5E6D3 |
+| 6 Ancient China | #50C878 | #FFD93D | #E0F5E8 |
+| 7 Ancient Persia | #1E90FF | #FFB347 | #E8ECF5 |
+| 8 Mayan | #4CAF50 | #FFD93D | #E5F0E5 |
+| 9 Tribal | #40C8B8 | #E07850 | #F0E8E0 |
+| 10 Inca | #D4AF37 | #FF6B4A | #F0EDE5 |
 
-### 2.5 Touch Targets
-
-- Minimum 44×44px for all interactive elements
-- Bottom tab bar icons: 44×44px with 8px border-radius
-- Zone selector thumbnails: 64×64px minimum (up from ~50px)
-
-### 2.6 Active States
-
-Bottom tab bar uses glow instead of color fill:
+**CSS custom properties to add (for each `[data-theme="theme-N"]` block):**
 ```css
-/* Active tab */
-box-shadow: 0 0 10px rgba(THEME_ACCENT, 0.3);
-border: 1px solid rgba(THEME_ACCENT, 0.3);
-background-color: rgba(THEME_ACCENT, 0.1);
-
-/* Inactive tab */
-opacity: 0.5;
+--theme-surface: ...;
+--theme-border: ...;
+--theme-glow: ...;
+--theme-text: ...;
+--theme-text-muted: ...;
+--theme-accent2: ...;
+--theme-bg-gradient: ...;
 ```
 
+**Verification:**
+- `pnpm build` passes (no TypeScript errors from interface change)
+- Manually check: `getThemeColors("theme-1")` returns all new fields
+- Grep for `getThemeColors` usage — ensure existing consumers still work (they just ignore new fields)
+
+**Commit:** `feat: extend theme token system with surface/border/glow/text/accent2 for all 10 themes`
+
 ---
 
-## 3. Page-by-Page Specifications
+### Task 0.2: Font Migration
 
-### 3.1 HomePage (Complete Redesign)
+**Goal:** Replace Fredericka the Great with Chakra Petch (display) + DM Sans (body).
 
-**Current:** 60% dead background, tiny zone selector, no mode choice, "Log In" form button.
+**Files to modify:**
+- `client-budokan/index.html` — Add Google Fonts `<link>` for Chakra Petch and DM Sans
+- `client-budokan/src/index.css` — Remove `@font-face` for Fredericka, update `:root { font-family }`, remove Bangers import
+- `client-budokan/tailwind.config.cjs` — Update `fontFamily` mappings
 
-**New layout (top to bottom, within phone-frame):**
-
-```
-┌──────────────────────────────┐
-│  Zone Hero Art (40% height)  │  ← full-bleed themed background
-│  + Animated logo overlay     │
-│  + Zone name overlay         │
-├──────────────────────────────┤
-│  Zone Selector (3 thumbnails)│  ← 64×64px, horizontal, centered
-├──────────────────────────────┤
-│  [Active Run Banner]         │  ← conditional: "Level 4/10 — CONTINUE"
-│  ┌────────────────────────┐  │
-│  │  [ Map Mode | Endless ]│  │  ← pill toggle, Map is default
-│  │                        │  │
-│  │  ▶  PLAY               │  │  ← giant primary CTA
-│  └────────────────────────┘  │
-├──────────────────────────────┤
-│  ★ Daily Challenge  12h 34m  │  ← teaser card with countdown
-├──────────────────────────────┤
-│  [Home] [Map] [Ranks] [⚙]   │  ← bottom tab bar (64px)
-└──────────────────────────────┘
+**index.html — add in `<head>` (before other links):**
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 ```
 
-**Key behaviors:**
-- NOT connected: Zone hero + selector + Connect button (styled as primary CTA: "▶ CONNECT & PLAY")
-- Connected, no active run: Zone hero + selector + mode pill + PLAY button
-- Connected, has active run: Zone hero + selector + active run banner (CONTINUE + small NEW) + mode pill + daily teaser
-- Zone selector changes background with crossfade (`AnimatePresence mode="wait"`, already implemented)
-
-### 3.2 MapPage (Polish)
-
-**Changes:**
-- Header: Replace bare `<` chevron with 44×44px back button + zone name + score badge
-- Level nodes: Increase `NODE_R` from 6→8, `BOSS_R` from 8.5→11 for bigger tap targets
-- Bottom sheet preview: Already good (spring animation, dark card) — keep
-- Empty state when no active run: "Start a run from Home" with navigate-home button
-
-### 3.3 LeaderboardPage (Fix + Enhance)
-
-**Critical fix:** Game IDs are raw hex strings overflowing cards.
-**Changes:**
-- Truncate/replace game IDs with player names (from `useGetUsernames`)
-- Add mode filter tabs at top: `[All | Map | Endless]` (pill-style, like mode selector)
-- Fix podium card layout: constrain text, use `truncate` class
-- Empty state: "No entries yet. Play a game to claim rank #1." with PLAY nav button
-
-### 3.4 SettingsPage (Density Fix)
-
-**Changes:**
-- Tighten section spacing (currently lots of dead space below Account)
-- Make theme thumbnails bigger (64×64px, up from 80×80px but fill the row properly — currently 3 thumbnails with wasted horizontal space)
-- Add version/build info at very bottom (subtle)
-- No structural changes needed — this page works
-
-### 3.5 PlayScreen (Mobile Optimization)
-
-**Changes:**
-- Replace `h-screen-viewport` class with `h-dvh` (dvh migration)
-- Compact the 44px header: merge level/score into HUD, keep only back + settings buttons (save 20-30px vertical space)
-- GameBoard: The ResizeObserver-based `gridSize` calculation is good; ensure it maximizes to fill available space after HUD
-- Grid.tsx (690 lines): DO NOT REFACTOR — complex state machine, behavior preservation is critical. Only change: ensure container allows maximum height
-
-### 3.6 DailyChallengePage (Minor Polish)
-
-**Changes:**
-- Already well-structured with proper cards and layout
-- Ensure back button is 44×44px (currently 32×32px)
-- Ensure countdown ring and stats cards fit cleanly on 390px width
-
-### 3.7 BottomTabBar (Refinement)
-
-**Changes:**
-- Height: Keep `h-16` (64px) — already correct
-- Active state: Replace `scale-105 + emerald color` with glow box-shadow pattern
-- Icons: Ensure 44×44px tap area (add padding if needed; current icons are 24×24px)
-- Remove `backgroundImage: url(action-bar.png)` — replace with `bg-black/80 backdrop-blur-md`
-- Keep `pb-[env(safe-area-inset-bottom)]` for iOS
-
----
-
-## 4. Implementation Plan
-
-### Phase 0: Foundation (Serial — must complete first)
-
-All subsequent work depends on these shared primitives.
-
-#### Task 0.1: DVH Migration + Mobile Hardening
-**Files:** `index.css`, `index.html`, `PlayScreen.tsx`, `HomePage.tsx`
-**What:**
-- Replace `.h-screen-viewport { height: calc(var(--vh, 1vh) * 100) }` with `.h-dvh { height: 100dvh }`
-- Add to `index.css`: `body { overflow: hidden; -webkit-user-select: none; user-select: none; }`
-- Add `touch-action: manipulation; -webkit-tap-highlight-color: transparent;` to interactive elements base
-- Remove `useViewport()` calls from `HomePage.tsx` and `PlayScreen.tsx` (the hook can stay for backward compat but is no longer needed)
-- Update viewport meta in `index.html`: already has `viewport-fit=cover` ✓
-
-**Test (Vitest unit):**
-- `dvh-migration.test.ts`: Verify `.h-dvh` class exists in CSS output
-- `index.css` snapshot test: Confirm `overflow: hidden` and `user-select: none` on body
-
-**Commit:** `refactor(viewport): migrate from useViewport to 100dvh + harden mobile touch`
-
-#### Task 0.2: Phone-Frame Shell Component
-**Files:** NEW `src/ui/components/shared/PhoneFrame.tsx`, `App.tsx`
-**What:**
-- Create `PhoneFrame` wrapper: `max-w-[430px] mx-auto h-dvh` on `≥768px`, `w-full h-dvh` on mobile
-- Desktop: dark background (`bg-[#080414]`) fills viewport, frame is centered
-- Wrap `App.tsx` content in `PhoneFrame`
-- The frame contains EVERYTHING: `ThemeBackground` + `CurrentPage` + `BottomTabBar`
-- Add subtle border on desktop: `md:border md:border-white/5 md:rounded-2xl md:shadow-2xl`
-
-**Test:**
-- `PhoneFrame.test.tsx`: Render at 1024px → verify `max-w-[430px]` container. Render at 390px → verify full-width.
-
-**Commit:** `feat(shell): add PhoneFrame wrapper for Wordle-style desktop layout`
-
-#### Task 0.3: Shared Card Components
-**Files:** NEW `src/ui/components/shared/GameCard.tsx`
-**What:**
-- `GameCard` with variants: `glass` (`bg-black/60 backdrop-blur-xl border-white/10 rounded-2xl`) and `solid` (`bg-slate-900/90 border-white/10 rounded-xl`)
-- Props: `variant`, `className`, `children`, `padding` (default `p-4`)
-- Replace ad-hoc card styles across pages with this component (progressive — don't block on full replacement)
-
-**Test:**
-- `GameCard.test.tsx`: Render `variant="glass"` → verify backdrop-blur class. Render `variant="solid"` → verify bg-slate-900 class.
-
-**Commit:** `feat(design): add shared GameCard component with glass and solid variants`
-
-#### Task 0.4: Mode Pill Component
-**Files:** NEW `src/ui/components/shared/ModePill.tsx`, update `src/stores/navigationStore.ts`
-**What:**
-- Pill toggle: `[ Map Mode | Endless ]` — two segments, Map is default
-- Stores selected mode in navigation store: add `selectedMode: 0 | 1` (0=Map, 1=Endless)
-- Visual: `bg-white/5 rounded-full p-1`, active segment `bg-white/15 rounded-full`, text `text-white` vs `text-white/40`
-- Emits mode value, consumed by HomePage's `handleStartGame`
-
-**Test:**
-- `ModePill.test.tsx`: Default renders with Map active. Click Endless → mode changes. Verify both segments render.
-
-**Commit:** `feat(home): add ModePill toggle component for Map/Endless mode selection`
-
-#### Task 0.5: Connect Button Restyle
-**Files:** `src/ui/components/Connect.tsx`
-**What:**
-- Replace `Button variant="default"` with primary CTA style matching PLAY button
-- Change label from "Log In" to "▶ CONNECT & PLAY"
-- Use image-based button (`btn-green.png`) like the PLAY button in HomePage
-- Keep `Gamepad2` icon but increase size
-
-**Test:**
-- `Connect.test.tsx`: Verify button renders with text "CONNECT & PLAY". Verify onClick calls connect.
-
-**Commit:** `fix(connect): restyle Connect button as primary game CTA`
-
-#### Task 0.6: PWA Manifest
-**Files:** NEW `client-budokan/public/manifest.json`, update `index.html`
-**What:**
-- Create manifest: `name: "zKube"`, `short_name: "zKube"`, `display: "fullscreen"`, `background_color: "#080414"`, `theme_color: "#080414"`
-- Add `<link rel="manifest" href="/manifest.json">` to `index.html`
-- Update `<meta name="theme-color">` to match (already `#080414` ✓)
-
-**Test:**
-- Verify manifest.json is valid JSON with required fields (unit test or manual check)
-
-**Commit:** `feat(pwa): add PWA manifest with fullscreen display`
-
----
-
-### Phase 1: HomePage + Navigation (Parallel streams, after Phase 0)
-
-#### Stream A: HomePage Redesign
-
-##### Task A.1: HomePage Layout Skeleton
-**Files:** `src/ui/pages/HomePage.tsx`
-**What:**
-- Restructure from "poster + bottom-crammed card" to "hero top (40%) + interactive bottom (60%)"
-- Hero area: zone background (full-bleed, already has crossfade) + logo + zone name
-- Interactive area: zone selector + mode pill + CTA + daily teaser
-- Remove the `flex-1 min-h-0` dead spacer between logo and cards
-- Ensure everything fits in `100dvh` WITHOUT scrolling (no overflow, no hidden content)
-
-**Test:**
-- `HomePage.test.tsx`: Render with mocked account → verify PLAY button present. Render without account → verify CONNECT button present. Verify mode pill renders.
-
-**Commit:** `feat(home): restructure HomePage layout — hero top, interactive bottom`
-
-##### Task A.2: Zone Selector Redesign
-**Files:** `src/ui/pages/HomePage.tsx` (zone selector section)
-**What:**
-- Increase thumbnail size: 64×64px (from ~50px)
-- Active zone: `w-16 h-16 border-2 border-white/80 shadow glow` (up from `w-14 h-14`)
-- Inactive: `w-14 h-14 border border-white/15 opacity-40`
-- Zone name below thumbnail: `text-xs font-semibold` (up from `text-[10px]`)
-- Ensure swipe-friendly horizontal layout with proper gap
-
-**Test:**
-- Visual regression only (no unit test needed — layout change)
-
-**Commit:** `feat(home): enlarge zone selector thumbnails for mobile tap targets`
-
-##### Task A.3: Active Run Banner
-**Files:** `src/ui/pages/HomePage.tsx`
-**What:**
-- New conditional section: shown when `activeGames.length > 0`
-- Content: "Level {X}/10 on {ZoneName}" + CONTINUE button (primary CTA)
-- When active run exists: CONTINUE is primary, NEW is secondary (smaller)
-- Banner uses `GameCard variant="solid"` with accent left border
-- Mode pill still shows below the banner
-
-**Test:**
-- `HomePage.test.tsx`: Mock `useGameTokensSlot` with active game → verify CONTINUE button renders. Mock with no active game → verify CONTINUE absent.
-
-**Commit:** `feat(home): add active run banner with CONTINUE/NEW buttons`
-
-##### Task A.4: Integrate Mode Selection into Game Flow
-**Files:** `src/ui/pages/HomePage.tsx`, `src/dojo/systems.ts`
-**What:**
-- Mode pill value feeds into `handleStartGame`: calls `create({ account, token_id: gameId, mode: selectedMode })`
-- Verify the `create` system call accepts `mode` parameter (check `systems.ts`)
-- Default: Map (mode=0). Toggle to Endless (mode=1).
-- Mode pill is visible in both connected states (with/without active run)
-
-**Test:**
-- `HomePage.test.tsx`: Click Endless → click PLAY → verify `create` called with `mode: 1`. Default PLAY → verify `mode: 0`.
-
-**Commit:** `feat(home): wire mode pill to game creation flow`
-
-##### Task A.5: Daily Challenge Teaser
-**Files:** `src/ui/pages/HomePage.tsx`
-**What:**
-- Keep existing daily challenge card but refine:
-  - Increase height to fill remaining space
-  - Add countdown timer if challenge is active (reuse `CountdownRing` logic from DailyChallengePage, but inline/smaller)
-  - Star icon + "Daily Challenge" + countdown OR "No challenge active"
-  - Right chevron for navigation affordance
-- Ensure it's always visible (no scroll needed)
-
-**Test:**
-- Visual regression only
-
-**Commit:** `feat(home): polish daily challenge teaser card with countdown`
-
-#### Stream B: Navigation Shell
-
-##### Task B.1: BottomTabBar Refinement
-**Files:** `src/ui/components/BottomTabBar.tsx`
-**What:**
-- Replace `backgroundImage: url(action-bar.png)` with `bg-black/80 backdrop-blur-md border-t border-white/10`
-- Active state: glow box-shadow + accent-colored icon (per current theme) instead of `scale-105`
-- Increase tap area: wrap each icon in 44×44px padded container
-- Keep `pb-[env(safe-area-inset-bottom)]` for iOS safe area
-- Add `touch-action: manipulation` and `-webkit-tap-highlight-color: transparent`
-
-**Test:**
-- `BottomTabBar.test.tsx`: Render with `currentPage="home"` → verify home tab has active class. Click "ranks" → verify navigate called with "ranks".
-
-**Commit:** `feat(nav): refine BottomTabBar with glow states and larger tap targets`
-
-##### Task B.2: App.tsx Shell Integration
-**Files:** `src/App.tsx`
-**What:**
-- Wrap entire content in `PhoneFrame` component
-- Replace `h-screen-viewport` references with `h-dvh`
-- Ensure `ThemeBackground` renders INSIDE the phone frame (not outside)
-- Keep `AnimatePresence` page transitions (already good at 150ms)
-- Verify tab bar positioning within phone frame on desktop
-
-**Test:**
-- `App.test.tsx`: Render at desktop viewport → verify PhoneFrame wrapper exists. Verify BottomTabBar renders for non-fullscreen pages.
-
-**Commit:** `feat(shell): integrate PhoneFrame into App.tsx layout`
-
----
-
-### Phase 2: Secondary Pages (Parallel, after Phase 0)
-
-#### Stream C: PlayScreen Optimization
-
-##### Task C.1: PlayScreen Compact Header
-**Files:** `src/ui/pages/PlayScreen.tsx`
-**What:**
-- Current header is 44px (`h-11`) with back button + "Lv.X · Score" + settings gear
-- Reduce to 36px: smaller text, tighter padding
-- The level/score info can merge into GameHud (it's redundant — HUD already shows score)
-- Keep only: back button (44×44 tap target via padding) + settings button (44×44)
-- Save ~8px vertical space for grid
-
-**Test:**
-- `PlayScreen.test.tsx`: Render with mocked game → verify back and settings buttons present. Verify GameBoard renders.
-
-**Commit:** `feat(play): compact PlayScreen header to maximize grid area`
-
-##### Task C.2: GameBoard Max Height
-**Files:** `src/ui/components/GameBoard.tsx`
-**What:**
-- The ResizeObserver gridSize calculation (lines 36-49) already caps at 56px cell size
-- Adjust: let it calculate based on available HEIGHT too (not just width)
-- Formula: `min(widthBasedSize, heightBasedSize, 56)` where `heightBasedSize = (availableHeight - hudHeight - padding) / ROWS`
-- This ensures the grid fills the screen on tall phones without overflow on short ones
-
-**Test:**
-- `GameBoard.test.tsx`: Mock ResizeObserver → verify gridSize respects both width and height constraints.
-
-**Commit:** `feat(play): make GameBoard gridSize responsive to available height`
-
-#### Stream D: LeaderboardPage Fix
-
-##### Task D.1: Fix Leaderboard Display
-**Files:** `src/ui/pages/LeaderboardPage.tsx`
-**What:**
-- Replace raw `entry.token_id` display with `entry.player_name` (already available from hook)
-- Add `truncate max-w-[140px]` on ALL name displays (some already have it, podium cards don't)
-- Fix score/level display to show mode-appropriate values
-- Style rank numbers consistently: `#1 gold, #2 silver, #3 bronze, rest slate`
-
-**Test:**
-- `LeaderboardPage.test.tsx`: Mock `useLeaderboardSlot` with 5 entries → verify no overflow. Verify player names display (not hex IDs). Verify empty state message.
-
-**Commit:** `fix(leaderboard): fix hex ID overflow and display player names`
-
-##### Task D.2: Leaderboard Mode Filter
-**Files:** `src/ui/pages/LeaderboardPage.tsx`
-**What:**
-- Add pill-style tabs at top: `[All | Map | Endless]`
-- Reuse `ModePill` pattern (or create `FilterPill` variant)
-- Filter games by mode field from leaderboard data
-- Default: "All"
-
-**Test:**
-- `LeaderboardPage.test.tsx`: Click "Map" filter → verify only Map entries shown. Click "All" → verify all entries.
-
-**Commit:** `feat(leaderboard): add mode filter tabs (All/Map/Endless)`
-
-#### Stream E: Other Pages
-
-##### Task E.1: MapPage Header + Node Size
-**Files:** `src/ui/pages/MapPage.tsx`
-**What:**
-- Back button: increase from 32×32px to 44×44px tap area
-- Level nodes: increase `NODE_R` from 6→8 and `BOSS_R` from 8.5→11
-- Adjust `VB_W`/`VB_H` if needed to prevent node overlap after size increase
-- Empty state when `!game`: Show centered message "Start a run from Home" + button to navigate home
-
-**Test:**
-- `MapPage.test.tsx`: Render with no `gameId` → verify empty state renders. Render with game → verify SVG map renders.
-
-**Commit:** `feat(map): increase node tap targets and add empty state`
-
-##### Task E.2: SettingsPage Polish
-**Files:** `src/ui/pages/SettingsPage.tsx`
-**What:**
-- Theme thumbnails: fill horizontal space better (use `flex-1` instead of fixed `w-20`)
-- Reduce bottom dead space: add subtle version/build footer
-- No structural changes
-
-**Test:**
-- Visual regression only
-
-**Commit:** `fix(settings): tighten layout density and improve theme thumbnails`
-
-##### Task E.3: DailyChallengePage Touch Targets
-**Files:** `src/ui/pages/DailyChallengePage.tsx`
-**What:**
-- Back button: 32→44px tap area (same pattern as MapPage)
-- Verify countdown ring + stats grid fit on 390px without horizontal overflow
-- No structural changes — page is well-built
-
-**Test:**
-- Visual regression only
-
-**Commit:** `fix(daily): increase back button tap target`
-
----
-
-### Phase 3: Integration (Serial, after all streams)
-
-##### Task M.1: Cross-Page Card Consistency
-**Files:** All pages
-**What:**
-- Audit all pages: replace ad-hoc `bg-slate-900/80 rounded-xl border border-white/10` with `GameCard variant="solid"`
-- Ensure all pages use consistent section headers: `font-['Fredericka_the_Great'] text-sm text-slate-300 tracking-wider`
-- Verify phone-frame rendering on all pages at 1024px desktop viewport
-
-**Commit:** `refactor(ui): apply GameCard component across all pages for consistency`
-
-##### Task M.2: Animation & Transition Polish
-**Files:** `App.tsx`, page components
-**What:**
-- Verify `AnimatePresence` slide transitions work correctly inside PhoneFrame
-- Ensure page transitions don't overflow the phone-frame bounds on desktop
-- Add `overflow: hidden` to PhoneFrame inner container to clip slide animations
-- Test: navigate between all pages rapidly — no animation glitches
-
-**Commit:** `fix(transitions): ensure page animations clip within PhoneFrame bounds`
-
-##### Task M.3: Mobile Device Testing Pass
-**What (manual verification, not automated):**
-- Test on 390×844 (iPhone 14) and 360×800 (Android common)
-- Verify: no content overflow, no scroll on HomePage, tab bar respects safe area
-- Verify: PlayScreen grid fills available space, HUD readable
-- Verify: all tap targets ≥44px
-- Verify: no rubber-band scroll on any page
-- Verify: PWA add-to-home-screen works (fullscreen mode)
-
-**Commit:** No code commit — testing pass only. Any fixes get their own commits.
-
----
-
-## 5. Dependency Graph
-
-```
-Phase 0 (Serial):
-  0.1 DVH Migration
-  0.2 PhoneFrame Shell ──────────┐
-  0.3 GameCard Component         │
-  0.4 ModePill Component         │
-  0.5 Connect Button Restyle     │
-  0.6 PWA Manifest               │
-                                 │
-Phase 1 (Parallel, after 0.*):   │
-  Stream A: HomePage             │
-    A.1 Layout Skeleton ─────────┤ depends on 0.2, 0.3
-    A.2 Zone Selector            │
-    A.3 Active Run Banner        │ depends on 0.3
-    A.4 Mode Integration         │ depends on 0.4
-    A.5 Daily Teaser             │
-                                 │
-  Stream B: Navigation           │
-    B.1 BottomTabBar ────────────┤ depends on 0.1
-    B.2 App.tsx Integration ─────┘ depends on 0.2, B.1
-                                 
-Phase 2 (Parallel, after 0.*):   
-  Stream C: PlayScreen           
-    C.1 Compact Header           │ depends on 0.1
-    C.2 GameBoard Height         │
-                                 
-  Stream D: Leaderboard          
-    D.1 Fix Display              │ independent
-    D.2 Mode Filter              │ depends on 0.4 pattern
-                                 
-  Stream E: Other Pages          
-    E.1 MapPage Polish           │ independent
-    E.2 SettingsPage             │ independent
-    E.3 DailyChallenge           │ independent
-
-Phase 3 (Serial, after all):
-  M.1 Card Consistency ──── depends on 0.3, all pages done
-  M.2 Animation Polish ──── depends on B.2
-  M.3 Testing Pass ──────── depends on everything
+**index.css — changes:**
+- Remove line 1: `@import url("https://fonts.googleapis.com/css2?family=Bangers&display=swap");`
+- Remove the `@font-face` block for Fredericka the Great (lines 7-13)
+- Update `:root { font-family: "DM Sans", sans-serif; }` (was `"Fredericka the Great", sans`)
+
+**tailwind.config.cjs — update fontFamily:**
+```javascript
+fontFamily: {
+  sans: ['"DM Sans"', 'sans-serif'],
+  display: ['"Chakra Petch"', 'sans-serif'],
+  body: ['"DM Sans"', 'sans-serif'],
+},
 ```
 
-## 6. Commit Strategy
+**Usage convention (for all subsequent tasks):**
+- Display/headings: `className="font-display"` for Chakra Petch — page titles, scores, level numbers, boss names, button text, "zKube" logo
+- Body/labels: default or `font-body` class (DM Sans) — descriptions, labels, muted text, constraints, about section
+- Numeric data: `font-display tabular-nums` — scores, moves, combo counters, countdowns
 
-Each task = one atomic commit. The app must build and run after every commit.
+**Verification:**
+- `pnpm build` passes
+- Open `https://localhost:5125` — fonts visually changed on all existing pages
+- DevTools: check computed font-family on body = "DM Sans"
 
-**Naming convention:** `{type}({scope}): {description}`
-- `refactor(viewport):` — infrastructure changes
-- `feat(shell):` — new components/features
-- `feat(home):` — HomePage changes
-- `feat(nav):` — navigation changes
-- `feat(play):` — PlayScreen changes
-- `feat(map):` — MapPage changes
-- `fix(leaderboard):` — bug fixes
-- `fix(settings):` — bug fixes
-- `fix(daily):` — bug fixes
-- `refactor(ui):` — cross-cutting consistency
+**Commit:** `feat: migrate fonts to Chakra Petch (display) + DM Sans (body)`
 
-**Suggested branch:** `feat/mobile-first-redesign`
+---
 
-**Commit order (recommended):**
+### Task 0.3: Gradient Backgrounds + SVG Pattern Overlays
+
+**Goal:** Replace image-based backgrounds with CSS gradients and themed SVG patterns.
+
+**Files to modify:**
+- `client-budokan/src/ui/components/shared/ThemeBackground.tsx` — Rewrite to use gradient + pattern
+
+**Files to create:**
+- `client-budokan/src/ui/components/shared/PatternOverlay.tsx` — New SVG pattern component
+
+**ThemeBackground.tsx — rewrite:**
+```tsx
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import { getThemeColors, type ThemeId } from "@/config/themes";
+import PatternOverlay from "./PatternOverlay";
+
+const ThemeBackground: React.FC = () => {
+  const { themeTemplate } = useTheme();
+  const colors = getThemeColors(themeTemplate as ThemeId);
+
+  return (
+    <>
+      <div
+        className="fixed inset-0 -z-20"
+        style={{ background: colors.bgGradient }}
+      />
+      <PatternOverlay themeId={themeTemplate as ThemeId} />
+    </>
+  );
+};
+
+export default ThemeBackground;
 ```
-1.  refactor(viewport): migrate from useViewport to 100dvh + harden mobile touch
-2.  feat(shell): add PhoneFrame wrapper for Wordle-style desktop layout
-3.  feat(design): add shared GameCard component with glass and solid variants
-4.  feat(home): add ModePill toggle component for Map/Endless mode selection
-5.  fix(connect): restyle Connect button as primary game CTA
-6.  feat(pwa): add PWA manifest with fullscreen display
-7.  feat(home): restructure HomePage layout — hero top, interactive bottom
-8.  feat(home): enlarge zone selector thumbnails for mobile tap targets
-9.  feat(home): add active run banner with CONTINUE/NEW buttons
-10. feat(home): wire mode pill to game creation flow
-11. feat(home): polish daily challenge teaser card with countdown
-12. feat(nav): refine BottomTabBar with glow states and larger tap targets
-13. feat(shell): integrate PhoneFrame into App.tsx layout
-14. feat(play): compact PlayScreen header to maximize grid area
-15. feat(play): make GameBoard gridSize responsive to available height
-16. fix(leaderboard): fix hex ID overflow and display player names
-17. feat(leaderboard): add mode filter tabs (All/Map/Endless)
-18. feat(map): increase node tap targets and add empty state
-19. fix(settings): tighten layout density and improve theme thumbnails
-20. fix(daily): increase back button tap target
-21. refactor(ui): apply GameCard component across all pages for consistency
-22. fix(transitions): ensure page animations clip within PhoneFrame bounds
+
+**PatternOverlay.tsx — new component:**
+
+Creates a full-screen SVG with a subtle geometric pattern at 4% opacity. The pattern shape depends on the theme.
+
+Pattern assignments:
+
+| Theme | Pattern | SVG Shape |
+|-------|---------|-----------|
+| 1 Polynesian | diamonds | `M20 0 L40 20 L20 40 L0 20Z` + center circle |
+| 2 Ancient Egypt | triangles | Equilateral triangles in a grid |
+| 3 Norse | hexagons | Hexagonal grid cells |
+| 4 Ancient Greece | waves | Sine wave paths |
+| 5 Feudal Japan | circles | Large circles with crosshairs |
+| 6 Ancient China | waves | Sine wave paths |
+| 7 Ancient Persia | waves | Cubic bezier waves + dots |
+| 8 Mayan | triangles | Equilateral triangles |
+| 9 Tribal | circles | Circles with dots |
+| 10 Inca | diamonds | Diamond grid |
+
+The component renders:
+```tsx
+<svg className="fixed inset-0 -z-10 pointer-events-none opacity-[0.04] w-full h-full">
+  <defs>
+    <pattern id={patternId} width={size} height={size} patternUnits="userSpaceOnUse">
+      {/* theme-specific path elements using accent color for stroke */}
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill={`url(#${patternId})`} />
+</svg>
 ```
 
----
+Reference the design file lines 62–131 for the 3 existing pattern implementations (Polynesian, Japan, Persia). Extrapolate the remaining 7 patterns from these.
 
-## 7. QA / Acceptance Criteria
+**Verification:**
+- `pnpm build` passes
+- Open each of the 3 alpha themes (Polynesian, Japan, Persia) — see gradient background with faint pattern overlay
+- No background image loading in Network tab for theme backgrounds
+- Pattern is barely visible (4% opacity) but discernible on close inspection
 
-### Automated (Vitest)
-
-| Test | Command | Expected |
-|------|---------|----------|
-| All unit tests pass | `cd client-budokan && pnpm test` | 0 failures |
-| PhoneFrame renders correctly | `pnpm test -- PhoneFrame` | max-w-[430px] on desktop, full-width on mobile |
-| ModePill toggles | `pnpm test -- ModePill` | Default = Map, click switches to Endless |
-| GameCard variants | `pnpm test -- GameCard` | Glass has backdrop-blur, Solid has bg-slate |
-| Connect button text | `pnpm test -- Connect` | "CONNECT & PLAY" renders |
-| HomePage states | `pnpm test -- HomePage` | 3 states render correctly (no account, no run, active run) |
-| Leaderboard no overflow | `pnpm test -- LeaderboardPage` | Player names display, no raw hex IDs |
-
-### Manual (Playwright or human)
-
-| Scenario | Viewport | Expected |
-|----------|----------|----------|
-| Desktop phone-frame | 1440×900 | App renders in centered 430px column, dark sides |
-| Mobile full-width | 390×844 | App fills viewport, no horizontal scroll |
-| HomePage no scroll | 390×844 | All content visible in viewport, no vertical scroll needed |
-| PlayScreen grid fills | 390×844 | Grid uses maximum available height after HUD |
-| Tab bar safe area | iPhone (Safari) | Tab bar respects notch/home indicator spacing |
-| No rubber-band scroll | iOS Safari | Pull down/up on any page does NOT show browser bounce |
-| PWA fullscreen | iOS add-to-home | Opens without browser chrome |
-| Page transitions clip | Desktop 1024px | Slide animations don't overflow phone frame |
-| All tap targets ≥44px | Any mobile | Bottom tabs, back buttons, zone selector all ≥44px |
+**Commit:** `feat: replace image backgrounds with gradient + SVG pattern overlays`
 
 ---
 
-## 8. Risks & Mitigations
+### Task 0.4: BottomTabBar — Theme-Aware
 
-| Risk | Severity | Mitigation |
-|------|----------|------------|
-| `100dvh` not supported on older browsers | Low | `dvh` is supported in all modern browsers since 2023. Fallback: `height: 100vh; height: 100dvh;` (progressive enhancement) |
-| Grid.tsx (690 lines) behavior regression | High | DO NOT refactor Grid.tsx internals. Only touch its container sizing. Run existing drag tests after changes. |
-| Mode parameter not wired in `systems.ts` | Medium | Verify `create` system call accepts `mode` before Task A.4. If not, add it as a prerequisite sub-task. |
-| PhoneFrame breaks existing page transitions | Medium | Add `overflow: hidden` to frame inner container. Test all transitions after B.2. |
-| Image-based buttons don't scale well | Low | Already used in current app. Keep `object-fill` on button images. |
-| `overflow: hidden` on body breaks dialog scrolling | Medium | Dialogs use Radix portals which create their own scroll context. Verify GameOverDialog, VictoryDialog, SettingsDialog still scroll. |
+**Goal:** Make the tab bar use theme accent colors instead of hardcoded emerald. Switch to unicode icons matching the design.
+
+**Files to modify:**
+- `client-budokan/src/ui/components/BottomTabBar.tsx` — Rewrite styling
+
+**Current issues:**
+- Hardcoded `emerald-300`, `emerald-400`, `text-slate-400` colors
+- Lucide icons (Home, Gamepad2, Trophy, Settings) — don't match design
+
+**New implementation:**
+- Use CSS variable `var(--theme-accent)` for active state colors
+- Use `var(--theme-text-muted)` for inactive state
+- Replace Lucide icons with unicode characters: ⬡ (Home), ◈ (Map), ◆ (Ranks), ⚙ (Settings)
+- Background: `bg-black/60 backdrop-blur-xl` with top border in `var(--theme-border)`
+- Active indicator: top bar colored with `var(--theme-accent)` + glow
+
+Reference design lines 140–186 for the TabBar component.
+
+**Key style mappings:**
+```
+Active icon/text color:   var(--theme-accent)
+Inactive icon/text color: var(--theme-text-muted)
+Background:               bg-black/60 backdrop-blur-xl
+Top border:               border color = var(--theme-border)
+Active top bar:           bg color = var(--theme-accent)
+Active glow:              box-shadow = 0 0 8px var(--theme-accent)
+```
+
+**Verification:**
+- `pnpm build` passes
+- Tab bar colors change when switching themes in Settings
+- No hardcoded emerald/slate references remain in BottomTabBar.tsx
+
+**Commit:** `feat: make BottomTabBar theme-aware with accent colors`
 
 ---
 
-## 9. What's NOT in Scope
+## Phase 1: Page Redesigns (Parallel)
 
-- ❌ Contracts — no contract changes
-- ❌ Grid.tsx refactor — complex state machine, behavior preservation only
-- ❌ New game features (achievements, quests, shop) — UI redesign only
-- ❌ Desktop-specific responsive layouts — desktop is phone-frame only
-- ❌ Torii/indexer changes
-- ❌ Theme system changes (all 10 themes work as-is)
-- ❌ Audio system changes
-- ❌ Routing library migration (keep Zustand navigation store)
+All Phase 1 tasks can execute in parallel — each modifies a different page file. All depend on Phase 0 being complete.
+
+**Shared patterns across all pages:**
+- Import theme: `const { themeTemplate } = useTheme(); const colors = getThemeColors(themeTemplate as ThemeId);`
+- Display font: `className="font-display"` for Chakra Petch headings
+- Body font: default (DM Sans via root)
+- Surface cards: `style={{ background: colors.surface, border: \`1px solid ${colors.border}\` }}`
+- Text: `style={{ color: colors.text }}` or `style={{ color: colors.textMuted }}`
+- All data hooks stay EXACTLY as they are — only the JSX/styling changes
 
 ---
 
-## 10. Files Changed Summary
+### Task 1.1: HomePage
 
-### New Files (6)
-- `src/ui/components/shared/PhoneFrame.tsx`
-- `src/ui/components/shared/PhoneFrame.test.tsx`
-- `src/ui/components/shared/GameCard.tsx`
-- `src/ui/components/shared/GameCard.test.tsx`
-- `src/ui/components/shared/ModePill.tsx`
-- `public/manifest.json`
+**Goal:** Restructure home page to match design: text logo → player card → daily banner → vertical zone list → NEW GAME button.
 
-### Modified Files (12)
-- `src/App.tsx` — PhoneFrame integration, dvh classes
-- `src/index.css` — dvh class, body overflow/user-select, remove .h-screen-viewport
-- `index.html` — PWA manifest link
-- `src/ui/pages/HomePage.tsx` — Full layout redesign
-- `src/ui/pages/PlayScreen.tsx` — Compact header, dvh migration
-- `src/ui/pages/LeaderboardPage.tsx` — Fix IDs, add mode filter
-- `src/ui/pages/MapPage.tsx` — Bigger nodes, empty state, header
-- `src/ui/pages/SettingsPage.tsx` — Density fix
-- `src/ui/pages/DailyChallengePage.tsx` — Back button size
-- `src/ui/components/BottomTabBar.tsx` — Glow states, tap targets
-- `src/ui/components/Connect.tsx` — Restyle as CTA
-- `src/ui/components/GameBoard.tsx` — Height-responsive gridSize
-- `src/stores/navigationStore.ts` — Add selectedMode field
+**File:** `client-budokan/src/ui/pages/HomePage.tsx` (351 lines — rewrite)
 
-### Untouched Critical Files
-- `src/ui/components/Grid.tsx` — 690-line state machine, DO NOT MODIFY internals
-- `src/ui/components/Block.tsx` — Block rendering
-- `src/dojo/*` — Dojo integration layer
-- `src/hooks/*` — All hooks preserved
-- `src/contexts/*` — All contexts preserved
-- `src/stores/moveTxStore.ts` — Move transaction state
+**Design reference:** Lines 212–462
+
+**New layout (top to bottom):**
+
+1. **Logo section** — "zKube" in `font-display text-4xl font-black tracking-wider` with `textShadow: colors.glow`. Below: "ON-CHAIN PUZZLE" in `text-[10px] uppercase tracking-[0.3em]` in `colors.accent`.
+
+2. **Player card** — Surface card with:
+   - Left: Avatar square (gradient `accent→accent2`, initials "ZK" in font-display)
+   - Middle: Username from `useControllerUsername()`, star count from `usePlayerMeta()`
+   - Right: "CONNECTED" badge (accent bg at 15%, accent text)
+   - If not connected: Show `<Connect />` component instead
+
+3. **Daily Challenge banner** — Gradient card (`accent@20% → accent2@15%`), border `accent@30%`:
+   - Left: "⚡ DAILY CHALLENGE" in `colors.accent2`, font-display. Below: countdown + player count
+   - Right: "PLAY" pill button in `colors.accent2` bg
+   - onClick: `navigate("daily")`
+
+4. **Zone selector** — Section label "SELECT ZONE" in `text-[11px] uppercase tracking-[0.15em]` textMuted. Then vertical card list:
+   - Each zone card: emoji icon + zone name (font-display) + star progress (3 mini stars + "X/30") + arrow (→) or lock (🔒)
+   - Unlocked zones: surface bg, full opacity
+   - Locked zones: `rgba(255,255,255,0.02)` bg, 40% opacity
+   - Zone emojis: Polynesian 🌊, Egypt 🏛️, Norse ⚔️, Greece 🏺, Japan ⛩️, China 🐉, Persia 🕌, Mayan 🌿, Tribal 🥁, Inca ⛰️
+
+5. **NEW GAME button** — Full width, gradient `accent→accent CC`, text `#0a1628`, font-display, tracking-[0.1em], `boxShadow: colors.glow`. onClick: trigger game creation flow (freeMint + create + navigate to map).
+
+**Data hooks to use (existing, unchanged):**
+- `useControllerUsername()` — player name
+- `usePlayerMeta()` — star count (from best_level or packed MetaData)
+- `useAccountCustom()` — wallet address / connected state
+- `useGameTokensSlot()` — check for existing game to show CONTINUE
+- `useTheme()` + `getThemeColors()` — theme colors
+- `useNavigationStore()` — navigate()
+
+**Keep existing logic for:**
+- Game creation flow (freeMint → create → navigate)
+- Zone selection state
+- Mode selection (Map/Endless) — integrate ModePill somewhere appropriate (e.g. below zone list or in zone card interaction)
+- Entitlement checking
+
+**Verification:**
+- `pnpm build` passes
+- Playwright screenshot at 390x844 for Polynesian, Japan, Persia themes
+- Player card shows username when connected, Connect button when not
+- Zone cards are vertical, scrollable
+- Daily banner navigates to daily page on click
+- NEW GAME button triggers game creation flow
+
+**Commit:** `feat: redesign HomePage with vertical zone list and daily banner`
+
+---
+
+### Task 1.2: PlayScreen HUD Redesign
+
+**Goal:** Restructure the HUD layout above the grid. Do NOT modify Grid.tsx or GameBoard internals.
+
+**Files to modify:**
+- `client-budokan/src/ui/pages/PlayScreen.tsx` (418 lines — modify wrapper/HUD only)
+- `client-budokan/src/ui/components/hud/GameHud.tsx` (308 lines — restyle)
+
+**Design reference:** Lines 621–797
+
+**New HUD layout (above grid):**
+
+1. **Top bar** — flex row, space-between:
+   - Left group: Level badge (`LV.{n}` in accent surface pill, font-display text-[10px] tracking-[0.1em]) + 3 star icons (filled/empty based on potential stars)
+   - Right group: Three stat columns (MOVES, SCORE, COMBO) each with muted label (9px, DM Sans) above bold value (15px, Chakra Petch)
+   - MOVES: `{used}/{max}` in colors.text
+   - SCORE: value in colors.accent2
+   - COMBO: `x{n}` in colors.accent
+
+2. **Constraint bar** — Below HUD, above grid. Surface card with border, flex row:
+   - Left: constraint emoji + constraint description (DM Sans, 10px, colors.text)
+   - Right: progress `{current}/{target}` (Chakra Petch, bold, colors.accent)
+   - If two constraints (boss level): stack two rows
+   - If no constraint: hide the bar
+
+3. **Grid area** — Keep existing GameBoard/Grid component. Don't modify props or internals.
+
+4. **Next row preview** — Below grid. "NEXT" label (DM Sans, 9px, textMuted) + 8 small colored squares showing next_row data.
+
+5. **Swipe hint** — Below next row. "← Swipe rows to align blocks →" in textMuted, 10px, centered.
+
+**What stays from current PlayScreen:**
+- All dialog components (GameOverDialog, VictoryDialog, LevelCompleteDialog)
+- Game creation/loading logic
+- Back button functionality
+- Settings/surrender overlay
+- All hooks and state management
+
+**What changes:**
+- HUD arrangement and styling (GameHud.tsx)
+- Constraint display location (move from HUD to dedicated bar)
+- Add next row preview section
+- Add swipe hint text
+
+**Verification:**
+- `pnpm build` passes
+- Level badge shows correct level number
+- Stars reflect potential star rating
+- Moves/Score/Combo display correctly during gameplay
+- Constraint bar shows current constraint with progress
+- Grid renders identically to before (no Grid.tsx changes)
+- Swipe hint visible below grid
+
+**Commit:** `feat: redesign PlayScreen HUD with compact layout and constraint bar`
+
+---
+
+### Task 1.3: MapPage
+
+**Goal:** Restyle the zone map with simpler circle/square nodes following the design reference.
+
+**File:** `client-budokan/src/ui/pages/MapPage.tsx` (524 lines — restyle, preserve data logic)
+
+**Design reference:** Lines 464–618
+
+**New layout:**
+
+1. **Header** — flex row, space-between:
+   - Left: Zone emoji + zone name (Chakra Petch, 18px, 800 weight)
+   - Right: Star icon (filled) + `{earned}/30` (DM Sans, 11px, colors.accent2)
+
+2. **Map visualization** — Keep the SVG-based approach but simplify node rendering:
+   - **Completed nodes**: Circle (46px), `colors.surface` bg, `colors.border` border, level number in Chakra Petch
+   - **Current node**: Circle (46px), gradient fill (`accent → accent2`), `accent` border (2px), glow shadow, ▼ indicator above
+   - **Locked nodes**: Circle (46px), `rgba(255,255,255,0.03)` bg, `rgba(255,255,255,0.06)` border, textMuted number
+   - **Boss node (L10)**: Rounded square (54px, borderRadius 14px), emoji 👹 instead of number, "BOSS" label below if locked
+   - Stars shown below completed nodes (3 mini star icons)
+
+3. **Path** — Keep existing SVG path logic but use `colors.border` for the dashed line color.
+
+4. **Level preview bottom sheet** — Keep existing functionality, restyle with surface/border/text tokens.
+
+**IMPORTANT: Boss node tap behavior:**
+- If boss node (L10) is tapped AND player has reached level 10 → navigate to "boss" overlay (Task 2.1)
+- This requires checking: `if (level === 10 && nodeState !== 'locked') navigate("boss", gameId)`
+- Add this navigation hook but the BossRevealPage itself is created in Task 2.1
+
+**Keep existing:**
+- `useMapData()`, `useMapLayout()` hooks
+- SVG path calculation logic
+- Bottom sheet animation
+- Auto-scroll to current level
+
+**Verification:**
+- `pnpm build` passes
+- Map nodes are circles (regular) and rounded square (boss)
+- Current level has gradient fill + glow
+- Completed levels show star ratings
+- Locked levels are dimmed
+- Boss node shows 👹 emoji
+
+**Commit:** `feat: redesign MapPage with simplified circle/square nodes`
+
+---
+
+### Task 1.4: SettingsPage
+
+**Goal:** Restyle settings with account card first, theme dots, audio toggles, and about section.
+
+**File:** `client-budokan/src/ui/pages/SettingsPage.tsx` (199 lines — restyle)
+
+**Design reference:** Lines 1164–1322
+
+**New layout (top to bottom):**
+
+1. **Title** — "Settings" in Chakra Petch, 18px, 800 weight, colors.text
+
+2. **Account section** — Label "ACCOUNT" (DM Sans, 10px, uppercase, tracking-[0.15em], textMuted). Surface card with:
+   - Left: username (Chakra Petch, 12px, 700) + truncated address (DM Sans, 9px, textMuted)
+   - Right: "Cartridge ✓" (DM Sans, 10px, accent)
+
+3. **Theme section** — Label "PREVIEW THEME". Row of theme buttons (one per active theme):
+   - Each: colored circle (20px, filled with theme's accent color) + theme name below (8px, DM Sans)
+   - Selected theme has accent border (2px) + accent bg at 15%
+   - Tapping a theme calls `setThemeTemplate(themeId)`
+
+4. **Audio section** — Label "AUDIO". Two surface cards:
+   - "Music" with toggle switch (pill shape: 40x22, accent bg when on, circle knob)
+   - "Sound Effects" with toggle switch
+   - Toggle state from `useMusicPlayer()` volume (> 0 = on)
+
+5. **About section** — Label "ABOUT". Surface card:
+   - "zKube v1.0 · Dojo 1.8.0" (DM Sans, 11px, colors.text)
+   - "Fully on-chain · Starknet" (DM Sans, 9px, textMuted)
+
+**Keep existing:**
+- Theme persistence (localStorage)
+- Audio volume management (useMusicPlayer)
+- Disconnect functionality
+- Copy-to-clipboard
+- All hooks
+
+**Verification:**
+- `pnpm build` passes
+- Theme dots switch themes in real-time
+- Audio toggles control music/SFX
+- Account info shows connected wallet details
+
+**Commit:** `feat: redesign SettingsPage with theme dots and toggle switches`
+
+---
+
+### Task 1.5: LeaderboardPage
+
+**Goal:** Add Zone/Endless/Daily tabs and switch to card-based player list.
+
+**File:** `client-budokan/src/ui/pages/LeaderboardPage.tsx` (137 lines — rewrite)
+
+**Design reference:** Lines 921–1028
+
+**New layout:**
+
+1. **Title** — "Leaderboard" in Chakra Petch, 18px, 800 weight
+
+2. **Tab bar** — 3 tabs: "Zone", "Endless", "Daily". Flex row, each tab is flex-1:
+   - Active tab: accent color text, `2px solid accent` bottom border, font-weight 700
+   - Inactive tab: textMuted, transparent bottom border, font-weight 500
+   - DM Sans, 11px
+
+3. **Player list** — Vertical card list (gap 6px), scrollable:
+   - Each card: surface bg, border, borderRadius 10px, padding 10px 12px
+   - Left: rank display — medal emoji (🥇🥈🥉) for 1-3, number for 4+ (Chakra Petch, 800 weight)
+   - Middle: player name (Chakra Petch, 12px, 700) + star mini-display (3 stars + count)
+   - Right: score (Chakra Petch, 13px, 800, colors.text)
+   - "You" card: highlighted with `accent@12%` bg, `accent@30%` border
+
+**Tab filtering logic:**
+- "Zone" tab: filter leaderboard by Map mode (mode = 0) — current default
+- "Endless" tab: filter by Endless mode (mode = 1)
+- "Daily" tab: show daily challenge leaderboard (use `useDailyLeaderboard` if available, or same data filtered)
+- Note: Tab state is local useState, not persisted
+
+**Data hooks:**
+- `useLeaderboardSlot()` — existing hook, provides sorted game entries
+- `useAccountCustom()` — for highlighting "you" entry
+- `useGetUsernames()` — for resolving player names
+
+**Verification:**
+- `pnpm build` passes
+- Three tabs are visible and switchable
+- Player cards show rank, name, stars, score
+- Current player's card is highlighted
+- Medals show for top 3
+
+**Commit:** `feat: redesign LeaderboardPage with tabs and card-based player list`
+
+---
+
+### Task 1.6: DailyChallengePage
+
+**Goal:** Restructure with header + countdown + mini leaderboard + grid preview + CTA.
+
+**File:** `client-budokan/src/ui/pages/DailyChallengePage.tsx` (324 lines — restyle)
+
+**Design reference:** Lines 1030–1162
+
+**New layout:**
+
+1. **Header** — flex row, space-between:
+   - Left: "⚡ Daily Challenge" (Chakra Petch, 16px, 800) + date string + "Same seed for all" (DM Sans, 10px, textMuted)
+   - Right: Countdown pill (surface bg, accent border, Chakra Petch, "HH:MM:SS" format)
+
+2. **Mini leaderboard** — Surface card with border, borderRadius 10px:
+   - Section label "TODAY'S TOP 3" (DM Sans, 9px, uppercase, tracking-[0.15em], textMuted)
+   - 3 rows: medal emoji + player name + score (Chakra Petch, accent2)
+   - Rows separated by border-top in colors.border
+
+3. **Grid preview** — Centered mini grid showing the daily challenge starting configuration:
+   - Small blocks (22px) in `rgba(0,0,0,0.3)` container with border
+   - Use per-theme block colors from `getBlockColors()`
+   - Below: "X players today" (DM Sans, 10px, textMuted)
+
+4. **START DAILY button** — Full width, gradient `accent2 → accent2 CC`, color `#0a1628`, Chakra Petch, tracking-[0.1em], glow shadow with accent2.
+
+**Data hooks (existing, unchanged):**
+- `useCurrentChallenge()` — active challenge data
+- `usePlayerEntry()` — player's entry
+- `useDailyLeaderboard()` — top entries
+- Countdown timer logic (existing)
+
+**Keep existing:**
+- Challenge registration flow
+- Prize claiming logic
+- Settled state handling
+
+**Verification:**
+- `pnpm build` passes
+- Countdown timer updates every second
+- Mini leaderboard shows top 3 with medals
+- START DAILY button triggers challenge registration
+- Grid preview shows starting block configuration
+
+**Commit:** `feat: redesign DailyChallengePage with mini leaderboard and grid preview`
+
+---
+
+## Phase 2: Boss Screen (Parallel with Phase 1)
+
+### Task 2.1: BossRevealPage + Navigation
+
+**Goal:** Create a new BossRevealPage shown before level 10 boss fights, and integrate it into navigation.
+
+**Files to create:**
+- `client-budokan/src/ui/pages/BossRevealPage.tsx` — New page component
+- `client-budokan/src/config/bossIdentities.ts` — Client-side boss identity mapping
+
+**Files to modify:**
+- `client-budokan/src/stores/navigationStore.ts` — Add "boss" overlay
+- `client-budokan/src/App.tsx` — Register BossRevealPage in pageComponents
+
+**Step 1: Boss identity data (`config/bossIdentities.ts`)**
+
+Map the 10 boss IDs from `contracts/src/helpers/boss.cairo` to display data:
+
+```typescript
+export interface BossDisplayData {
+  id: number;
+  name: string;
+  emoji: string;
+  title: string;
+  description: string;
+}
+
+export const BOSS_IDENTITIES: Record<number, BossDisplayData> = {
+  1:  { id: 1,  name: "COMBO MASTER",   emoji: "🔥", title: "Lord of Chains",      description: "Chains endless combos into devastating streaks" },
+  2:  { id: 2,  name: "DEMOLISHER",     emoji: "💥", title: "Breaker of Blocks",    description: "Shatters blocks with relentless precision" },
+  3:  { id: 3,  name: "DAREDEVIL",      emoji: "⚡", title: "Edge Walker",          description: "Thrives on the razor's edge of destruction" },
+  4:  { id: 4,  name: "PURIST",         emoji: "🧊", title: "Keeper of Order",      description: "Demands absolute control of the grid" },
+  5:  { id: 5,  name: "HARVESTER",      emoji: "🌀", title: "Reaper of Lines",      description: "Harvests blocks with surgical efficiency" },
+  6:  { id: 6,  name: "TIDECALLER",     emoji: "🌊", title: "Master of Currents",   description: "Commands the deep currents of the grid" },
+  7:  { id: 7,  name: "STACKER",        emoji: "🗼", title: "Tower Builder",        description: "Builds towering combos from nothing" },
+  8:  { id: 8,  name: "SURGEON",        emoji: "🎯", title: "Precision Cutter",     description: "Cuts with perfect accuracy under pressure" },
+  9:  { id: 9,  name: "ASCETIC",        emoji: "🧘", title: "Master of Restraint",  description: "Achieves victory through disciplined control" },
+  10: { id: 10, name: "PERFECTIONIST",  emoji: "👹", title: "Flawless Executor",    description: "Demands nothing less than perfection" },
+};
+
+export function getBossDisplay(bossId: number): BossDisplayData {
+  return BOSS_IDENTITIES[bossId] ?? BOSS_IDENTITIES[1];
+}
+```
+
+**Step 2: Navigation (`navigationStore.ts`)**
+
+```diff
+- export type OverlayId = "play" | "daily";
++ export type OverlayId = "play" | "daily" | "boss";
+
+- export const FULLSCREEN_PAGES: ReadonlySet<PageId> = new Set(["play"]);
++ export const FULLSCREEN_PAGES: ReadonlySet<PageId> = new Set(["play", "boss"]);
+```
+
+Update `getBackTarget`:
+```typescript
+case "boss": return "map";
+```
+
+**Step 3: App.tsx registration**
+
+```diff
++ import BossRevealPage from "@/ui/pages/BossRevealPage";
+
+  const pageComponents: Record<PageId, React.ReactNode> = {
+    home: <HomePage />,
+    play: <PlayScreen />,
+    map: <MapPage />,
+    ranks: <LeaderboardPage />,
+    settings: <SettingsPage />,
+    daily: <DailyChallengePage />,
++   boss: <BossRevealPage />,
+  };
+```
+
+**Step 4: BossRevealPage component**
+
+**Design reference:** Lines 799–919
+
+**Layout:**
+- Full-screen centered layout, no tab bar (boss is in FULLSCREEN_PAGES)
+- **Back button** — Top-left, navigates back to map via `goBack()`
+
+- **Boss emoji** — 64px, centered, with `filter: drop-shadow(0 0 20px ${accent}80)`
+- **Level label** — "Level 10 · Boss" in DM Sans, 10px, uppercase, tracking-[0.3em], accent color
+- **Boss name** — Chakra Petch, 22px, 900 weight, colors.text, `textShadow: colors.glow`
+- **Boss title** — DM Sans, 11px, textMuted, centered
+
+- **Constraint cards** — Two cards stacked vertically (gap 8px), width 100%:
+  - Each: `rgba(255,59,59,0.08)` bg, `rgba(255,59,59,0.2)` border, borderRadius 10px
+  - Left: constraint emoji (18px) — 🔥 for ComboLines, 💎 for BreakBlocks, ⚡ for ComboStreak, 📊 for KeepGridBelow
+  - Right: constraint name (Chakra Petch, 11px, 700, colors.text) + constraint description (DM Sans, 9px, textMuted)
+  - Constraint data comes from the GameLevel model (constraint_type maps to description)
+
+- **FIGHT BOSS button** — Full width, red gradient (`linear-gradient(135deg, #FF3B3B, #FF6B3B)`), white text, Chakra Petch, tracking-[0.1em], `boxShadow: 0 0 30px rgba(255,59,59,0.4)`
+  - onClick: `navigate("play", gameId)` — starts the boss level
+
+**Data required:**
+- `gameId` from `useNavigationStore()`
+- `useGame({ gameId })` — get game state to extract seed
+- `useGameLevel({ gameId })` — get constraint data for level 10
+- Boss identity: derive boss_id from game seed → `getBossDisplay(bossId)`
+- Note: `bossId = Number(BigInt(seed) % 10n + 1n)` (mirrors contract logic from boss.cairo line 112-115)
+
+**Boss sound effect:** Call `playSfx("boss-intro")` via `useMusicPlayer()` on page mount.
+
+**Verification:**
+- `pnpm build` passes
+- Navigate to boss page: app does not crash, boss data displays
+- Back button returns to map
+- FIGHT BOSS navigates to play screen with correct gameId
+- Boss emoji + name + constraints render correctly
+- Tab bar is hidden on boss page
+
+**Commit:** `feat: add BossRevealPage with boss identity data and navigation integration`
+
+---
+
+## Phase 3: QA & Polish
+
+### Task 3.1: Cross-Theme Visual Verification
+
+**Goal:** Verify all pages look correct across all 10 themes.
+
+**Process:**
+1. For each of the 3 alpha themes (Polynesian, Japan, Persia):
+   - Take Playwright screenshots of all 7 pages at 390x844 viewport
+   - Verify: text readable, accent colors applied, surfaces visible, no contrast issues
+
+2. For the remaining 7 themes:
+   - Take Playwright screenshots of Home + Play + Settings pages
+   - Verify: auto-derived tokens produce acceptable visuals
+   - Fix any themes where text contrast is too low or surface is invisible
+
+3. Run `pnpm build` — must pass with zero errors
+4. Run `pnpm test` — must pass with zero regressions
+
+**Files likely to adjust:**
+- `client-budokan/src/config/themes.ts` — Fine-tune text/accent2 colors for specific themes
+- Individual page files — Fix any contrast or spacing issues
+
+**Verification commands:**
+```bash
+cd client-budokan && pnpm build
+cd client-budokan && pnpm test
+```
+
+**Commit:** `fix: polish cross-theme visual consistency`
+
+---
+
+## Commit Strategy
+
+Each commit must leave `pnpm build` passing. Commits are ordered by dependency:
+
+| # | Commit | Phase | Dependencies |
+|---|--------|-------|--------------|
+| 1 | `feat: extend theme token system with surface/border/glow/text/accent2 for all 10 themes` | 0.1 | None |
+| 2 | `feat: migrate fonts to Chakra Petch (display) + DM Sans (body)` | 0.2 | None (parallel with 1) |
+| 3 | `feat: replace image backgrounds with gradient + SVG pattern overlays` | 0.3 | Commit 1 |
+| 4 | `feat: make BottomTabBar theme-aware with accent colors` | 0.4 | Commit 1 |
+| 5 | `feat: redesign HomePage with vertical zone list and daily banner` | 1.1 | Commits 1-4 |
+| 6 | `feat: redesign PlayScreen HUD with compact layout and constraint bar` | 1.2 | Commits 1-4 |
+| 7 | `feat: redesign MapPage with simplified circle/square nodes` | 1.3 | Commits 1-4 |
+| 8 | `feat: redesign SettingsPage with theme dots and toggle switches` | 1.4 | Commits 1-4 |
+| 9 | `feat: redesign LeaderboardPage with tabs and card-based player list` | 1.5 | Commits 1-4 |
+| 10 | `feat: redesign DailyChallengePage with mini leaderboard and grid preview` | 1.6 | Commits 1-4 |
+| 11 | `feat: add BossRevealPage with boss identity data and navigation integration` | 2.1 | Commits 1-4 |
+| 12 | `fix: polish cross-theme visual consistency` | 3.1 | All above |
+
+**Parallel execution:** Commits 5-11 can be developed in parallel branches and merged sequentially, since they modify different files. The only shared touchpoints:
+- `App.tsx` — only modified by commit 11 (Boss screen)
+- `navigationStore.ts` — only modified by commit 11 (Boss screen)
+- `themes.ts` — only modified by commits 1 and 12
+
+---
+
+## Risks & Mitigations
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|-----------|
+| Grid rendering breaks | Medium | Critical | DO NOT modify Grid.tsx. Only change its container/wrapper. Verify grid renders after each PlayScreen change. |
+| Theme token derivation produces bad contrast | Medium | Medium | Test all 10 themes visually. Fine-tune text/accent2 values per theme in Phase 3. |
+| Font change breaks layout spacing | Medium | Low | Chakra Petch is taller/narrower than Fredericka. May need size/weight adjustments. Check each page after font migration. |
+| Hardcoded colors elsewhere in codebase | Medium | Low | Run `ast_grep_search` for `emerald`, `slate-400`, `#34d399` patterns before Phase 1. Fix any found. |
+| SVG patterns cause performance issues | Low | Low | Patterns are static SVG at 4% opacity — negligible GPU cost. Use `pointer-events-none`. |
+| Boss screen data unavailable (seed not loaded) | Medium | Medium | BossRevealPage must handle loading state gracefully. Show skeleton while seed loads. |
+| Google Fonts CDN latency | Low | Low | Use `font-display: swap` (already in the Google Fonts URL). Chakra Petch is a small font (~40KB). |
+
+---
+
+## Must NOT Touch
+
+These files/directories must remain completely unmodified:
+
+| Path | Reason |
+|------|--------|
+| `client-budokan/src/ui/components/Grid.tsx` | 690-line grid state machine — zero tolerance for changes |
+| `client-budokan/src/ui/components/Block.tsx` | Block rendering with per-theme images |
+| `client-budokan/src/dojo/**` | Entire Dojo integration layer |
+| `client-budokan/src/hooks/**` | All custom hooks (data layer) |
+| `client-budokan/src/contexts/**` | All context providers |
+| `client-budokan/src/stores/moveTxStore.ts` | Move transaction queue |
+| `client-budokan/src/stores/generalStore.ts` | General app state |
+| `contracts/**` | Smart contracts — no changes |
+| Per-theme block image assets | `block-1.png` through `block-4.png` per theme stay as-is |
+
+**Exception:** `client-budokan/src/stores/navigationStore.ts` — modified ONLY by Task 2.1 to add "boss" overlay.
