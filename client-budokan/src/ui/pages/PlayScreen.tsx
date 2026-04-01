@@ -270,13 +270,13 @@ const PlayScreen: React.FC = () => {
           >
             <ChevronLeft size={20} />
           </button>
-          <span className="font-['Fredericka_the_Great'] text-cyan-200 text-sm leading-tight">
+          <span className="font-['Chakra_Petch'] text-cyan-200 text-sm leading-tight">
             Lv.{game?.level ?? "..."}
           </span>
           {game && (
             <>
               <span className="text-slate-600 text-xs">·</span>
-              <span className="font-['Fredericka_the_Great'] text-amber-200/80 text-sm tabular-nums">
+              <span className="font-['Chakra_Petch'] text-amber-200/80 text-sm tabular-nums">
                 {game.totalScore}
               </span>
             </>
@@ -293,7 +293,7 @@ const PlayScreen: React.FC = () => {
       <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
         <DialogContent
           aria-describedby={undefined}
-          className="sm:max-w-[400px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-6 py-8 font-['Fredericka_the_Great']"
+          className="sm:max-w-[400px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-6 py-8 font-['Chakra_Petch']"
         >
           <DialogTitle className="text-2xl text-center mb-4 text-slate-100">
             Settings

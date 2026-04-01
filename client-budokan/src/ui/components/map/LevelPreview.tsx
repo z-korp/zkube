@@ -118,14 +118,14 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
           <X size={18} />
         </button>
 
-        <h3 className="pr-8 font-['Fredericka_the_Great'] text-xl text-white">
+        <h3 className="pr-8 font-['Chakra_Petch'] text-xl text-white">
           {node.type === "boss"
               ? `Boss Level ${node.contractLevel}`
               : `Level ${node.contractLevel}`}
         </h3>
 
         {node.state === "cleared" || node.state === "visited" ? (
-          <div className="mt-4 space-y-3 text-sm font-['Fredericka_the_Great']">
+          <div className="mt-4 space-y-3 text-sm font-['Chakra_Petch']">
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Difficulty</span>
               <span
@@ -161,7 +161,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
             )}
           </div>
         ) : (
-          <div className="mt-4 space-y-3 text-sm font-['Fredericka_the_Great']">
+          <div className="mt-4 space-y-3 text-sm font-['Chakra_Petch']">
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Difficulty</span>
               <span

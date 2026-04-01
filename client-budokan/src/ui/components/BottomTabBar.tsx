@@ -1,24 +1,29 @@
-import { Home, Gamepad2, Trophy, Settings, type LucideIcon } from "lucide-react";
 import { useNavigationStore } from "@/stores/navigationStore";
 import type { TabId } from "@/stores/navigationStore";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import { getThemeColors, type ThemeId } from "@/config/themes";
 
-const TABS: { id: TabId; label: string; Icon: LucideIcon }[] = [
-  { id: "home", label: "Home", Icon: Home },
-  { id: "map", label: "Play", Icon: Gamepad2 },
-  { id: "ranks", label: "Ranks", Icon: Trophy },
-  { id: "settings", label: "Settings", Icon: Settings },
+const TABS: { id: TabId; icon: string; label: string }[] = [
+  { id: "home", icon: "⬡", label: "Home" },
+  { id: "map", icon: "◈", label: "Map" },
+  { id: "profile", icon: "◉", label: "Profile" },
+  { id: "ranks", icon: "◆", label: "Ranks" },
+  { id: "settings", icon: "⚙", label: "Settings" },
 ];
 
 const BottomTabBar: React.FC = () => {
   const currentPage = useNavigationStore((s) => s.currentPage);
   const navigate = useNavigationStore((s) => s.navigate);
+  const { themeTemplate } = useTheme();
+  const colors = getThemeColors(themeTemplate as ThemeId);
 
   return (
     <nav
-      className="relative z-50 border-t border-white/10 bg-black/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-md"
+      className="relative z-50 border-t bg-black/60 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl"
+      style={{ borderColor: colors.border }}
     >
       <div className="flex h-16 items-stretch md:h-14">
-        {TABS.map(({ id, label, Icon }) => {
+        {TABS.map(({ id, label, icon }) => {
           const active = currentPage === id;
           return (
             <button
@@ -30,25 +35,29 @@ const BottomTabBar: React.FC = () => {
               }`}
             >
               {active && (
-                <span className="absolute -top-0.5 h-0.5 w-10 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+                <span
+                  className="absolute -top-0.5 h-0.5 w-10 rounded-full"
+                  style={{
+                    backgroundColor: colors.accent,
+                    boxShadow: `0 0 8px ${colors.accent}`,
+                  }}
+                />
               )}
               <div
                 className={`flex h-11 w-11 flex-col items-center justify-center gap-0.5 rounded-xl transition-all ${
-                  active ? "shadow-[0_0_16px_rgba(52,211,153,0.35)]" : ""
+                  active ? "" : ""
                 }`}
+                style={active ? { boxShadow: colors.glow } : undefined}
               >
-                <Icon
-                  size={22}
-                  className={`transition-all ${
-                    active
-                      ? "text-emerald-300 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]"
-                      : "text-slate-400"
-                  }`}
-                />
                 <span
-                  className={`text-[9px] font-bold leading-none tracking-wider uppercase ${
-                    active ? "text-emerald-300" : "text-slate-400"
-                  }`}
+                  className="text-xl leading-none transition-all"
+                  style={{ color: active ? colors.accent : colors.textMuted }}
+                >
+                  {icon}
+                </span>
+                <span
+                  className="text-[9px] font-bold leading-none tracking-wider uppercase"
+                  style={{ color: active ? colors.accent : colors.textMuted }}
                 >
                   {label}
                 </span>

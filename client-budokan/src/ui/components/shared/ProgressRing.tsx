@@ -67,13 +67,13 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
       </div>
 
       {badgeTopLeft && (
-        <span className="absolute -top-1.5 -left-1.5 bg-slate-800 border border-slate-500 text-white text-[8px] font-bold font-['Fredericka_the_Great'] min-w-[16px] h-[14px] flex items-center justify-center rounded-full px-1 leading-none z-20">
+        <span className="absolute -top-1.5 -left-1.5 bg-slate-800 border border-slate-500 text-white text-[8px] font-bold font-['Chakra_Petch'] min-w-[16px] h-[14px] flex items-center justify-center rounded-full px-1 leading-none z-20">
           {badgeTopLeft}
         </span>
       )}
 
       {badgeBottomRight && (
-        <span className="absolute -bottom-1.5 -right-1.5 bg-slate-800 border border-slate-500 text-white text-[8px] font-bold font-['Fredericka_the_Great'] min-w-[16px] h-[14px] flex items-center justify-center rounded-full px-1 leading-none z-20">
+        <span className="absolute -bottom-1.5 -right-1.5 bg-slate-800 border border-slate-500 text-white text-[8px] font-bold font-['Chakra_Petch'] min-w-[16px] h-[14px] flex items-center justify-center rounded-full px-1 leading-none z-20">
           {badgeBottomRight}
         </span>
       )}

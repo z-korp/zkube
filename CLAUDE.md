@@ -1,11 +1,9 @@
 # zKube - On-Chain Puzzle Game
 
 ## Project Overview
-
-zKube is a fully on-chain puzzle game built with Dojo/Starknet. Players manipulate blocks on an 8x10 grid to form horizontal lines. Zone-based runs: 10-level themed zones with boss at L10, endless mode after clear. No economy — stars are the only progression signal.
+zKube is a fully on-chain puzzle game built with Dojo/Starknet. Players manipulate blocks on an 8x10 grid to form horizontal lines, progressing through themed zones or surviving in endless mode.
 
 ## Architecture
-
 ```
 zkube/
 ├── Scarb.toml                    # Workspace root
@@ -20,298 +18,162 @@ zkube/
 │   ├── dojo_slot.toml
 │   └── torii_slot.toml
 ├── packages/
-│   └── token/                    # ERC20 Fake LORD (dev only)
-├── client-budokan/               # React 19 + TypeScript + Vite
+│   └── ticket/                   # zTicket ERC20
+├── client-budokan/               # React 19.2.4 + TypeScript 5.7 + Vite 6.0
 │   ├── src/
-│   │   ├── dojo/                 # 17 files: setup, systems, contractSystems, contractModels, game models + helpers
+│   │   ├── dojo/                 # Dojo integration layer (setup, systems, models)
 │   │   ├── ui/pages/             # 6 pages: Home, Play, Map, Leaderboard, Daily, Settings
 │   │   ├── ui/components/        # 34 components (grid, HUD, map, tutorial, shared)
 │   │   ├── hooks/                # 21 hooks
-│   │   ├── stores/               # 3 Zustand stores (navigation, moveTx, general)
-│   │   ├── contexts/             # 6 contexts (controllers, gameEvents, music, sound, metagame)
-│   │   └── config/themes.ts      # 10 visual themes
+│   │   ├── stores/               # 4 Zustand stores (navigation, moveTx, general, cubeBalance)
+│   │   └── contexts/             # 7 contexts (controllers, gameEvents, music, sound, metagame, quests)
 │   └── .env.slot
 ├── assets/                       # Graphics, sounds, media
-├── scripts/                      # Deploy scripts
-└── docs/                         # Additional docs
+└── scripts/                      # Deploy scripts
 ```
 
 ## Technology Stack
-
-### Frontend (`client-budokan/`)
-- React 19 + TypeScript 5.9 + Vite 7.3
-- TailwindCSS 4.1, Motion 12.34, GSAP 3.14, Howler.js 2.2
-- starknet 8.5, @starknet-react/core 5.0
-- @dojoengine/sdk 1.9, @dojoengine/core 1.8, @dojoengine/recs
-- Cartridge Controller 0.13.9
-
-### Contracts (`contracts/`)
-- Cairo 2.13.1, Dojo 1.8.0
-- OpenZeppelin Cairo v3.0.0
-- Alexandria v0.9.0
-- game_components_embeddable_game_standard (branch:next)
-- game_components_utilities, game_components_interfaces
-- origami_random v1.7.0, graffiti
+- **Frontend**: React 19.2.4, TypeScript 5.7, Vite 6.0, TailwindCSS 3.4, Motion 11.11, GSAP 3.12, Howler.js 2.2
+- **Blockchain**: Starknet 2.13.1, Dojo 1.8.0, Cartridge Controller 0.13.9
+- **Libraries**: @dojoengine/sdk 1.9.0, @dojoengine/core 1.8.8, starknet.js 8.5.2, openzeppelin-contracts v3.0.0, alexandria v0.9.0
 
 ## Game Flow
-
-```
-Home -> FreeMint (NFT) -> Create (game_id) -> Map (10 levels) -> Play -> Level Complete (auto-advance same tx) -> Boss (L10) -> Endless -> Game Over -> Leaderboard
-```
-
-1. Player connects via Cartridge Controller
-2. `mint_game()` on game_system (MinigameComponent) — mints ERC721 with felt252 token_id
-3. `create(game_id)` — loads GameSettings, generates VRF/pseudo seed, rolls mutator, initializes L1 + grid
-4. `move(game_id, row, start, final)` — swipe blocks, gravity, clear lines, check constraints
-5. Level complete — auto-advance in same tx (no `start_next_level`)
-6. L10 boss clear — `zone_cleared = true` — enters endless
-7. Endless L11+ — difficulty escalates, game over when grid fills
-8. Game over — PlayerMeta updated, RunEnded event, daily leaderboard submission
+Mint (NFT) → Create (game_id, mode) → Play (move) → Level Complete (auto-advance) → Boss (L10) → Endless (L11+) → Game Over → Leaderboard
 
 ## Grid Representation
+- **Dimensions**: 8 columns x 10 rows
+- **Encoding**: 240 bits packed in `felt252` (3 bits per block, 24 bits per row)
+- **Block Values**: 0 = empty, 1-4 = block widths
 
-- 10 rows x 8 columns
-- Each block = 3 bits (0-4, 0=empty)
-- Row = 24 bits, total = 240 bits packed in felt252
-- Constants: `BLOCK_SIZE=8`, `BLOCK_BIT_COUNT=3`, `ROW_BIT_COUNT=24`
-
-## RunData Layout (102 bits in felt252)
-
-```
-Bits 0-7:     current_level (u8)
-Bits 8-15:    level_score (u8)
-Bits 16-23:   level_moves (u8)
-Bits 24-31:   constraint_progress (u8)
-Bits 32-39:   constraint_2_progress (u8)
-Bits 40-47:   max_combo_run (u8)
-Bits 48-79:   total_score (u32)
-Bit 80:       zone_cleared (bool)
-Bits 81-88:   current_difficulty (u8)
-Bits 89-92:   zone_id (u4)
-Bits 93-100:  active_mutator_id (u8)
-Bit 101:      mode (u1) — 0=Map, 1=Endless
-```
+## RunData Layout (118 bits in felt252)
+- **0-7**: `current_level` (u8)
+- **8-15**: `level_score` (u8)
+- **16-23**: `level_moves` (u8)
+- **24-31**: `constraint_progress` (u8)
+- **32-39**: `constraint_2_progress` (u8)
+- **40-47**: `max_combo_run` (u8)
+- **48-79**: `total_score` (u32)
+- **80**: `zone_cleared` (bool)
+- **81-88**: `current_difficulty` (u8)
+- **89-92**: `zone_id` (u4)
+- **93-100**: `active_mutator_id` (u8)
+- **101**: `mode` (u1: 0=Map, 1=Endless)
+- **102-103**: `bonus_type` (u2: 0=None, 1=Hammer, 2=Totem, 3=Wave)
+- **104-107**: `bonus_charges` (u4)
+- **108-115**: `level_lines_cleared` (u8)
+- **116-117**: `bonus_slot` (u2: 0-2)
 
 ## Key Models
-
-| Model | Key | Fields |
-|-------|-----|--------|
-| Game | felt252 | blocks, next_row, combo, run_data, level_stars, over |
-| GameSeed | felt252 | seed, level_seed, vrf_enabled |
-| GameLevel | felt252 | level config with 3 constraint slots + mutator_id |
-| PlayerMeta | ContractAddress | packed MetaData (total_runs, daily_stars), best_level |
-| PlayerBestRun | player + settings_id + mode | best_score, best_stars, map_cleared |
-| ZoneConfig | u8 | settings_id, theme_id, mutator_count, enabled |
-| MutatorDef | u8 | generation + scoring modifiers |
-
-Daily models: `DailyChallenge`, `DailyEntry`, `DailyLeaderboard`, `GameChallenge`
+| Model | Key | Important Fields |
+|-------|-----|------------------|
+| `Game` | `game_id: felt252` | `blocks: felt252`, `next_row: u32`, `run_data: felt252`, `level_stars: felt252`, `over: bool` |
+| `GameSeed` | `game_id: felt252` | `seed: felt252`, `level_seed: felt252`, `vrf_enabled: bool` |
+| `GameLevel` | `game_id: felt252` | `level: u8`, `points_required: u16`, `max_moves: u16`, `constraint_type: u8`, `mutator_id: u8` |
+| `PlayerMeta` | `player: ContractAddress` | `data: felt252` (packed MetaData: `total_runs`, `daily_stars`), `best_level: u8` |
+| `PlayerBestRun` | `player, settings_id, mode` | `best_score: u32`, `best_stars: u8`, `map_cleared: bool` |
+| `GameSettings` | `settings_id: u32` | `mode: u8`, `base_moves: u16`, `allowed_mutators: u32`, `bonus_1_type: u8`, `level_cap: u8` |
+| `MutatorDef` | `mutator_id: u8` | `name: felt252`, `moves_modifier: u8`, `combo_score_mult_x100: u16`, `line_clear_bonus: u8` |
+| `DailyChallenge` | `challenge_id: u32` | `settings_id: u32`, `seed: felt252`, `start_time: u64`, `game_mode: u8` |
 
 ## Level System
+- **Map Mode**: 10 levels per zone. L1-9 progressive difficulty, L10 Boss with dual/triple constraints.
+- **Endless Mode**: L11+ with score-based difficulty scaling and no move limits.
+- **Constraints**: `ComboLines`, `BreakBlocks`, `ComboStreak`, `KeepGridBelow` (Boss only).
+- **Stars**: 3-star (<=40% moves), 2-star (<=70%), 1-star (complete).
 
-**Zone mode (L1-10):**
-- Progressive difficulty VeryEasy -> Master
-- Constraints from L3+: ComboLines, BreakBlocks, ComboStreak, KeepGridBelow
-- Boss at L10 with dual constraints and themed identity (10 boss identities in `contracts/src/helpers/boss.cairo`)
-- Boss ID derived from `level_seed % 10 + 1`
-- Star ratings: 3-star (<=40% moves used), 2-star (<=70%), 1-star (complete)
+## Bonus System
+- **Types**: `Hammer` (single block), `Totem` (all same size), `Wave` (entire row).
+- **Slots**: 3 slots defined in `GameSettings`. 1 slot rolled per run based on seed.
+- **Triggers**: Charges earned per level via `combo_streak`, `lines_cleared`, or `score` thresholds.
 
-**Endless (L11+):**
-- Score-based difficulty scaling, no move limits, no constraints
-- Difficulty thresholds: [0, 15, 40, 80, 150, 280, 500, 900]
-- Score multipliers: [1.0x, 1.2x, 1.4x, 1.7x, 2.0x, 2.5x, 3.3x, 4.0x]
-- Game over only when grid fills
+## Mutator System
+- **Model**: `MutatorDef` defines scoring, moves, and difficulty modifiers.
+- **Selection**: Rolled at game start from `allowed_mutators` bitmask in `GameSettings`.
+- **Registered**: `Tidecaller` (ID 1, line clear bonus), `Riptide` (ID 2, combo/endless ramp bonus).
 
-## Themes (10 total)
+## Themes
+| ID | Name | Description |
+|----|------|-------------|
+| 1 | Polynesian | Moonlit coast, deep cobalt tones |
+| 2 | Ancient Egypt | Golden pyramids, sun-drenched sandstone |
+| 3 | Norse | Frost-covered viking realm, aurora skies |
+| 4 | Ancient Greece | White marble temples, Aegean Sea |
+| 5 | Feudal Japan | Black lacquer dojo, red trim |
+| 6 | Ancient China | Imperial jade palace, golden calligraphy |
+| 7 | Ancient Persia | Blue geometric mosaics, regal symmetry |
+| 8 | Mayan | Jungle temple ruins, mossy masonry |
+| 9 | Tribal | Earthy savanna, painted patterns |
+| 10 | Inca | Mountainous stone citadel, gold highlights |
 
-| ID | Theme | Notes |
-|----|-------|-------|
-| 1 | Polynesian | Teal ocean, moonlit coast |
-| 2 | Ancient Egypt | Golden sandstone |
-| 3 | Norse | Frost/aurora |
-| 4 | Ancient Greece | White marble |
-| 5 | Feudal Japan | Red/black lacquer |
-| 6 | Ancient China | Jade/emerald |
-| 7 | Ancient Persia | Blue geometric |
-| 8 | Mayan | Jungle green |
-| 9 | Tribal | Earthy/teal |
-| 10 | Inca | Mountain stone |
+## Alpha Config (dojo_init)
+- **Settings 0**: Polynesian Map (level_cap 10, mutators allowed: 1)
+- **Settings 1**: Polynesian Endless (level_cap 255, mutators allowed: 2)
+- **Mutator 1**: Tidecaller (Zone 1, line_clear_bonus 2)
+- **Mutator 2**: Riptide (Zone 1, combo_score_mult_x100 150, endless_ramp_mult_x100 130)
 
-Alpha zones: Polynesian (1), Feudal Japan (5), Ancient Persia (7)
+## EGC Integration
+- **Standard**: Uses `game_components_embeddable_game_standard` (branch: next).
+- **Token**: `FullTokenContract` (ERC721) where `token_id` is the `game_id`.
+- **Metadata**: `settings_id` baked into NFT metadata determines the map.
 
-## EGC Integration (Embeddable Game Component)
+## Frontend Pages
+- **Home**: Zone selection and game initialization.
+- **Play**: Core gameplay grid and HUD.
+- **Map**: 10-level progression path with star ratings.
+- **Leaderboard**: Global rankings by score and stars.
+- **Daily**: Shared-seed daily challenges with prize pools.
+- **Settings**: Audio volumes, theme selection, and account management.
 
-Uses `game_components_embeddable_game_standard` (branch:next):
-
-1. `mint_game()` on game_system (MinigameComponent) — mints ERC721, token_id is felt252
-2. `settings_id` in token metadata represents the map (not the mode)
-3. `game_system.create(game_id)` reads `settings_id` from token via `ConfigUtilsTrait::get_game_settings()`
-4. `GameSettings` loaded from Dojo world by `settings_id`
-5. Mode (Map=0, Endless=1) is a runtime parameter, not stored in token
-
-### Map Access Control
-- `GameSettingsMetadata.is_free` — free vs. gated maps
-- settings_id 0 (Polynesian): free
-- settings_id 1, 2 (Japan, Persia): require `MapEntitlement`
-- Daily challenge games bypass entitlement checks
-
-### Mutator System
-- Pool of up to 32 mutators, gated per map via `GameSettings.allowed_mutators` bitmask
-- Rolled at game start
-- Hooks exist (`modify_level_config()`, `modify_score()`, `modify_block_weights()`) but are no-op — effects not yet wired
-
-## Key Files Reference
-
-### Frontend Pages
-- `client-budokan/src/App.tsx` — AppShell, tab-based routing, BottomTabBar
-- `client-budokan/src/ui/pages/HomePage.tsx` — Zone selector + NEW GAME button
-- `client-budokan/src/ui/pages/PlayScreen.tsx` — Gameplay grid + HUD
-- `client-budokan/src/ui/pages/MapPage.tsx` — 10-level zone map with winding path
-- `client-budokan/src/ui/pages/LeaderboardPage.tsx` — Ranked leaderboard
-- `client-budokan/src/ui/pages/DailyChallengePage.tsx` — Daily challenge + leaderboard
-- `client-budokan/src/ui/pages/SettingsPage.tsx` — Audio, theme, account
-
-### Frontend Navigation
-- Tab-based: `home | map | ranks | settings` (persistent bottom tab bar)
-- Overlay pages: `play | daily` (tab bar hidden)
-- Navigation store: `client-budokan/src/stores/navigationStore.ts`
-
-### Frontend Key Hooks
-- `useGame(gameId)` — Game state from RECS
-- `useGrid(gameId)` — 2D block array
-- `useGameLevel(gameId)` — Level config
-- `useSettings(settingsId)` — GameSettings
-- `usePlayerMeta(player)` — Player progression
-- `useGameTokensSlot(owner)` — Owned game NFTs (slot mode)
-- `useLeaderboardSlot()` — Leaderboard (slot mode)
-
-### Smart Contract Systems
-- `contracts/src/systems/game.cairo` — `create(game_id)`, `surrender()`
-- `contracts/src/systems/moves.cairo` — `move()` (mode-aware)
-- `contracts/src/systems/grid.cairo` — `execute_move()`, `initialize_grid()`
-- `contracts/src/systems/level.cairo` — `initialize_level()`, `initialize_endless_level()`, `finalize_level()`
-- `contracts/src/systems/config.cairo` — GameSettings management, map pricing, entitlements
-- `contracts/src/systems/renderer.cairo` — NFT metadata + SVG
-- `contracts/src/systems/daily_challenge.cairo` — Daily challenge (create, register, settle)
-
-### Smart Contract Helpers
-- `contracts/src/helpers/controller.cairo` — Grid manipulation logic
-- `contracts/src/helpers/level.cairo` — Level generation with settings
-- `contracts/src/helpers/packing.cairo` — RunData bit-packing (102 bits)
-- `contracts/src/helpers/boss.cairo` — Boss identity system (10 identities)
-- `contracts/src/helpers/scoring.cairo` — Score calculations
-- `contracts/src/helpers/game_over.cairo` — Game over handling
-
-### Token Contracts
-- `packages/token/` — ERC20 Fake LORD with faucet (dev only)
-- `contracts/src/external/` — FullTokenContract, MinigameRegistryContract (copied, not built externally)
+## Frontend Key Hooks
+- `useGame(gameId)`: Reactive game state and seed from RECS.
+- `useGrid(gameId)`: Unpacked 2D block array with gravity/clear logic.
+- `useGameLevel(gameId)`: Current level configuration and constraints.
+- `useSettings(settingsId)`: Map-specific scaling and bonus parameters.
+- `usePlayerMeta()`: Persistent progression and lifetime stats.
+- `useGameTokensSlot(owner)`: Owned game NFTs for slot-mode indexing.
+- `useLeaderboardSlot()`: Ranked leaderboard data from Torii.
 
 ## State Management
-
-- **On-chain:** RECS via Dojo (reactive, synced from Torii)
-- **UI:** Zustand stores (`navigationStore.ts`, `moveTxStore.ts`, `generalStore.ts`)
-- **Audio:** React contexts (`MusicPlayerProvider`, `SoundPlayerProvider`)
+- **On-Chain**: RECS (Reactive ECS) via Dojo SDK.
+- **UI State**: Zustand stores for navigation, transactions, and balances.
+- **Audio/Events**: React Contexts for music, sound, and game event subscriptions.
 
 ## Transaction Flow
-
-- All transactions via `client-budokan/src/dojo/systems.ts`
-- Wrapped with toast notifications + error handling
-- VRF calls prepended on Sepolia/Mainnet, skipped on Slot
-- `game_id` is `BigInt`/`BigNumberish` throughout (felt252 packed token_id)
+- **Systems**: All calls via `dojo/systems.ts` wrappers.
+- **Randomness**: Cartridge VRF on Sepolia/Mainnet; Pseudo-random on Slot/Katana.
+- **Auto-Advance**: Level completion and next level initialization happen in a single `move` transaction.
 
 ## Entity ID
-
-`game_id` = felt252 packed ERC721 token_id from embeddable game standard. Not a simple counter.
-
-```typescript
-// Extract from mint_game Transfer event:
-const tokenIdLow = BigInt(transferEvent.keys[3]);
-const tokenIdHigh = BigInt(transferEvent.keys[4]);
-const game_id = uint256.uint256ToBN({ low: tokenIdLow, high: tokenIdHigh });
-```
-
-Torii stores entity IDs without leading zeros — normalize before RECS lookups:
-```typescript
-const normalizeEntityId = (entityId: string): Entity => {
-  if (!entityId.startsWith("0x")) return entityId as Entity;
-  const hex = entityId.slice(2).replace(/^0+/, "") || "0";
-  return `0x${hex}` as Entity;
-};
-```
+- **Format**: `game_id` is a `felt252` (packed ERC721 `token_id`).
+- **TS Handling**: `BigInt` in TypeScript, normalized to remove leading zeros for RECS lookups.
+- **Extraction**: `uint256.uint256ToBN({ low, high })` from `Transfer` event keys.
 
 ## Namespace
-
-Current: `zkube_jc_sepolia_v1`
-
-Torii model prefix: `zkube_jc_sepolia_v1-Game`, `zkube_jc_sepolia_v1-PlayerMeta`, etc.
+- **Current**: `zkube_jc_sepolia_v1`
 
 ## Development Commands
-
 ### Frontend
 ```bash
 cd client-budokan
+pnpm install
 pnpm slot        # Dev server (https://localhost:5125)
 pnpm build       # Production build
-pnpm test        # Vitest
 ```
-
 ### Contracts
 ```bash
-export PATH="$HOME/.cargo/bin:$PATH"   # Required for cargo (ekubo dep)
 sozo build -P slot
-scarb test                             # 177 tests
-DOJO_PRIVATE_KEY="..." sozo migrate -P slot   # From workspace root
+scarb test                             # Run 170+ tests
+DOJO_PRIVATE_KEY="..." sozo migrate -P slot
 ```
 
 ## Slot Deployment
+- **World**: `0x02bdb0cc3800b7a2e618a26f364d1ee4ae914c7c616a1c43aa80a8835576e402`
+- **Token**: `0x045a583128eeccc8f2a365243abc1940f17063ff33a6df1db784b4da40643a84`
+- **Seed**: `zkube_jc_slot_v9`
+- **Torii**: Must index `FullTokenContract` for ERC721 balance tracking.
 
-- Katana RPC: `https://api.cartridge.gg/x/zkube-djizus-slot/katana`
-- Torii: `https://api.cartridge.gg/x/zkube-djizus-slot/torii`
-- World: `0x02aa3cdc15efd58da24158a5c518e4dc3fd9dfeb3207908cd330fbee274698c9`
-- FullTokenContract: `0x045edce17818992bb6885a3f9b85bf901179cbab2bee32deae4d1862f16c23bc`
-- Account: `0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec`
-- Seed: `zkube_jc_slot_v5`
-- VRF: pseudo-random (no Cartridge VRF on slot)
-- `game_system` dojo_init guards `minigame.initializer` behind non-zero denshokan check
-
-### Redeployment Steps
-1. Change seed in `dojo_slot.toml`
-2. Declare + deploy MinigameRegistry + FullTokenContract (`sozo declare`/`sozo deploy`)
-3. Update `denshokan_address` in `dojo_slot.toml` init_call_args
-4. `sozo migrate -P slot`
-5. Copy `manifest_slot.json` to `contracts/` and `client-budokan/`
-6. Restart Torii with new world address
-
-### Torii Config (`contracts/torii_slot.toml`)
-Must include FullTokenContract for ERC721 token balance indexing:
-```toml
-contracts = ["erc721:0x045edce..."]
-```
-
-### Troubleshooting
-- **"Invalid new schema to upgrade resource"** — Change seed in `dojo_slot.toml` or restart katana
-- **"Requested contract address 0x0 is not deployed"** — `denshokan_address` in init_call_args is wrong or FullTokenContract not deployed
-
-## Important Patterns
-
-- `game_id` is felt252 everywhere (BigInt in TS, BigNumberish in starknet.js)
-- RunData packed in felt252 — use pack/unpack helpers in `contracts/src/helpers/packing.cairo`
-- Auto-advance between levels in same tx (no multi-tx level transitions)
-- Mode-aware logic: Map (10 levels + boss) vs Endless (survival, L11+)
-- Mutator system exists but effects are no-op (models created, not wired into generation)
-- Boss only at L10
-- Stars are the ONLY progression signal — no economy
-
-## What Does NOT Exist (removed in redesign)
-
-- No skill system (`skill_tree_system`, `draft_system`, `bonus_system`, `skill_effects_system`)
-- No cube token / economy (`cube_token_system`)
-- No quest system (`quest_system`)
-- No achievement system (arcade dependency removed)
-- No in-game shop
-- No `game_erc721` package (legacy ERC721 removed)
-- No `build-external-contracts` step (FullTokenContract copied to `contracts/src/external/`)
-
-## Documentation
-
-- `docs/CONFIGURABLE_SETTINGS.md` — GameSettings customization
-- `docs/DEPLOYMENT_GUIDE.md` — Network deployment guide
+## What Does NOT Exist
+- No skill tree or permanent character upgrades.
+- No cube economy or in-game shop for consumables.
+- No quest system or achievement tracking (removed in v1.3.0).
+- No draft system or bonus selection during runs.

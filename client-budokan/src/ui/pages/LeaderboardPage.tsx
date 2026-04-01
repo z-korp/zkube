@@ -20,7 +20,7 @@ const LeaderboardPage: React.FC = () => {
   return (
     <div className="flex h-full flex-col">
       <div className="px-4 pt-4 pb-2">
-        <h1 className="font-['Fredericka_the_Great'] text-xl text-white text-center">
+        <h1 className="font-['Chakra_Petch'] text-xl text-white text-center">
           Leaderboard
         </h1>
         <div className="flex justify-center gap-1 mt-2">
@@ -73,18 +73,18 @@ const LeaderboardPage: React.FC = () => {
                         alt={`#${rank}`}
                         className={`${isFirst ? "h-12 w-12" : "h-9 w-9"} object-contain mb-1.5`}
                       />
-                      <span className={`font-['Fredericka_the_Great'] text-lg ${style.text}`}>
+                      <span className={`font-['Chakra_Petch'] text-lg ${style.text}`}>
                         #{rank}
                       </span>
                       <span className="text-xs text-white truncate max-w-full text-center mt-0.5 block overflow-hidden">
                         {entry.player_name && entry.player_name.length <= 20 ? entry.player_name : "Anonymous"}
                       </span>
                       <div className="flex items-baseline gap-1 mt-1">
-                        <span className="font-['Fredericka_the_Great'] text-sm text-cyan-200">
+                        <span className="font-['Chakra_Petch'] text-sm text-cyan-200">
                           Lv.{entry.level}
                         </span>
                         <span className="text-slate-500 text-[10px]">·</span>
-                        <span className="font-['Fredericka_the_Great'] text-sm text-amber-200">
+                        <span className="font-['Chakra_Petch'] text-sm text-amber-200">
                           {entry.score}
                         </span>
                       </div>
@@ -107,7 +107,7 @@ const LeaderboardPage: React.FC = () => {
                       className="flex items-center justify-between px-4 py-2.5 border-b border-slate-700/30 last:border-b-0"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="font-['Fredericka_the_Great'] text-sm text-slate-400 w-7">
+                        <span className="font-['Chakra_Petch'] text-sm text-slate-400 w-7">
                           #{rank}
                         </span>
                         <span className="text-sm text-white truncate max-w-[160px]">
@@ -115,10 +115,10 @@ const LeaderboardPage: React.FC = () => {
                         </span>
                       </div>
                       <div className="flex items-baseline gap-2">
-                        <span className="font-['Fredericka_the_Great'] text-sm text-cyan-200">
+                        <span className="font-['Chakra_Petch'] text-sm text-cyan-200">
                           {entry.level}
                         </span>
-                        <span className="font-['Fredericka_the_Great'] text-sm text-amber-200">
+                        <span className="font-['Chakra_Petch'] text-sm text-amber-200">
                           {entry.score}
                         </span>
                       </div>

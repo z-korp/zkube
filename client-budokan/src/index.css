@@ -1,19 +1,9 @@
-@import url("https://fonts.googleapis.com/css2?family=Bangers&display=swap");
-
 @import "tailwindcss";
 @config "../tailwind.config.cjs";
 
 @layer base {
-  @font-face {
-    font-family: "Fredericka the Great";
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url(/fonts/FrederickatheGreat-Regular.ttf) format("woff2");
-  }
-
   :root {
-    font-family: "Fredericka the Great", sans;
+    font-family: "DM Sans", sans-serif;
     user-select: none;
     --background: 0 0% 100%;
     --foreground: 222.2 47.4% 11.2%;
@@ -417,6 +407,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: "DM Sans", sans-serif;
     font-feature-settings:
       "rlig" 1,
       "calt" 1;

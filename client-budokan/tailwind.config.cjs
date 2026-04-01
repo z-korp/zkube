@@ -18,9 +18,9 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ["Bangers", "sans-serif"],
-        display: ["Fredericka the Great", "sans"],
-        body: ["Fredericka the Great", "sans"],
+        sans: ['"DM Sans"', "sans-serif"],
+        display: ['"Chakra Petch"', "sans-serif"],
+        body: ['"DM Sans"', "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

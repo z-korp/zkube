@@ -48,7 +48,7 @@ const SettingsPage: React.FC = () => {
   return (
     <div className="flex h-full flex-col">
       <div className="pt-4 pb-2 px-4">
-        <h1 className="font-['Fredericka_the_Great'] text-xl text-white text-center">
+        <h1 className="font-['Chakra_Petch'] text-xl text-white text-center">
           Settings
         </h1>
       </div>
@@ -60,7 +60,7 @@ const SettingsPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="bg-slate-900/80 rounded-xl p-4 border border-white/10"
           >
-            <h2 className="font-['Fredericka_the_Great'] text-sm text-slate-300 tracking-wider mb-3">
+            <h2 className="font-['Chakra_Petch'] text-sm text-slate-300 tracking-wider mb-3">
               AUDIO
             </h2>
             <div className="flex flex-col gap-3">
@@ -75,7 +75,7 @@ const SettingsPage: React.FC = () => {
                   onChange={(e) => setMusicVolume(Number(e.target.value) / 100)}
                   className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer bg-slate-700 accent-cyan-400"
                 />
-                <span className="font-['Fredericka_the_Great'] text-cyan-200 text-sm w-8 text-right tabular-nums">
+                <span className="font-['Chakra_Petch'] text-cyan-200 text-sm w-8 text-right tabular-nums">
                   {Math.round(musicVolume * 100)}
                 </span>
               </div>
@@ -90,7 +90,7 @@ const SettingsPage: React.FC = () => {
                   onChange={(e) => setEffectsVolume(Number(e.target.value) / 100)}
                   className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer bg-slate-700 accent-emerald-400"
                 />
-                <span className="font-['Fredericka_the_Great'] text-emerald-200 text-sm w-8 text-right tabular-nums">
+                <span className="font-['Chakra_Petch'] text-emerald-200 text-sm w-8 text-right tabular-nums">
                   {Math.round(effectsVolume * 100)}
                 </span>
               </div>
@@ -103,7 +103,7 @@ const SettingsPage: React.FC = () => {
             transition={{ delay: 0.04 }}
             className="bg-slate-900/80 rounded-xl p-4 border border-white/10"
           >
-            <h2 className="font-['Fredericka_the_Great'] text-sm text-slate-300 tracking-wider mb-3">
+            <h2 className="font-['Chakra_Petch'] text-sm text-slate-300 tracking-wider mb-3">
               THEME
             </h2>
             <div className="flex gap-2">
@@ -147,7 +147,7 @@ const SettingsPage: React.FC = () => {
             transition={{ delay: 0.08 }}
             className="bg-slate-900/80 rounded-xl p-4 border border-white/10"
           >
-            <h2 className="font-['Fredericka_the_Great'] text-sm text-slate-300 tracking-wider mb-3">
+            <h2 className="font-['Chakra_Petch'] text-sm text-slate-300 tracking-wider mb-3">
               ACCOUNT
             </h2>
             {accountAddress ? (

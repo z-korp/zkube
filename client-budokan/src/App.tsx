@@ -17,11 +17,13 @@ import MapPage from "@/ui/pages/MapPage";
 import SettingsPage from "@/ui/pages/SettingsPage";
 import LeaderboardPage from "@/ui/pages/LeaderboardPage";
 import DailyChallengePage from "@/ui/pages/DailyChallengePage";
+import ProfilePage from "@/ui/pages/ProfilePage";
 
 const pageComponents: Record<PageId, React.ReactNode> = {
   home: <HomePage />,
   play: <PlayScreen />,
   map: <MapPage />,
+  profile: <ProfilePage />,
   ranks: <LeaderboardPage />,
   settings: <SettingsPage />,
   daily: <DailyChallengePage />,

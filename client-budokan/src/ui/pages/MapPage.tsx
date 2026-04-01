@@ -119,12 +119,12 @@ const MapPage: React.FC = () => {
           >
             <ChevronLeft size={20} />
           </button>
-          <span className="font-['Fredericka_the_Great'] text-white text-sm">
+          <span className="font-['Chakra_Petch'] text-white text-sm">
             {zoneName}
           </span>
         </div>
         {game && (
-          <span className="font-['Fredericka_the_Great'] text-amber-200/80 text-sm tabular-nums">
+          <span className="font-['Chakra_Petch'] text-amber-200/80 text-sm tabular-nums">
             Score: {game.totalScore}
           </span>
         )}
@@ -455,7 +455,7 @@ const BottomSheetPreview: React.FC<BottomSheetPreviewProps> = ({
 
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="font-['Fredericka_the_Great'] text-xl text-white">
+            <h3 className="font-['Chakra_Petch'] text-xl text-white">
               {node.type === "boss" ? `Boss Level ${node.contractLevel}` : `Level ${node.contractLevel}`}
             </h3>
             <span className={`text-sm ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}>
@@ -484,11 +484,11 @@ const BottomSheetPreview: React.FC<BottomSheetPreviewProps> = ({
         <div className="grid grid-cols-2 gap-2 mb-3">
           <div className="rounded-lg bg-black/30 p-2.5">
             <p className="text-[10px] text-slate-400">Target</p>
-            <p className="font-['Fredericka_the_Great'] text-lg text-white">{pointsRequired}</p>
+            <p className="font-['Chakra_Petch'] text-lg text-white">{pointsRequired}</p>
           </div>
           <div className="rounded-lg bg-black/30 p-2.5">
             <p className="text-[10px] text-slate-400">Moves</p>
-            <p className="font-['Fredericka_the_Great'] text-lg text-white">{maxMoves}</p>
+            <p className="font-['Chakra_Petch'] text-lg text-white">{maxMoves}</p>
           </div>
         </div>
 
@@ -510,7 +510,7 @@ const BottomSheetPreview: React.FC<BottomSheetPreviewProps> = ({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onPlay}
-            className="w-full py-3.5 rounded-xl font-['Fredericka_the_Great'] text-lg tracking-wide bg-emerald-500 hover:bg-emerald-400 text-white transition-colors flex items-center justify-center gap-2"
+            className="w-full py-3.5 rounded-xl font-['Chakra_Petch'] text-lg tracking-wide bg-emerald-500 hover:bg-emerald-400 text-white transition-colors flex items-center justify-center gap-2"
           >
             <Play size={18} fill="currentColor" />
             PLAY

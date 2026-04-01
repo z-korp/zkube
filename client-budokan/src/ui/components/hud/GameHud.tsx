@@ -239,8 +239,8 @@ const GameHud: React.FC<GameHudProps> = ({
         {/* Row 1 right: Score bar */}
         <div className="min-w-0">
           <div className="flex items-baseline justify-between mb-0.5">
-            <span className="font-['Fredericka_the_Great'] text-xs text-slate-300">Score</span>
-            <span className="font-['Fredericka_the_Great'] text-xs text-cyan-300 tabular-nums">
+            <span className="font-['Chakra_Petch'] text-xs text-slate-300">Score</span>
+            <span className="font-['Chakra_Petch'] text-xs text-cyan-300 tabular-nums">
               {animatedScore}<span className="text-slate-400">/{targetScore}</span>
             </span>
           </div>
@@ -257,7 +257,7 @@ const GameHud: React.FC<GameHudProps> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center">
-                <span className={`font-['Fredericka_the_Great'] text-sm tabular-nums ${combo > 0 ? "text-white" : "text-slate-500"}`}>
+                <span className={`font-['Chakra_Petch'] text-sm tabular-nums ${combo > 0 ? "text-white" : "text-slate-500"}`}>
                   🔥{combo}x
                 </span>
               </div>
@@ -274,8 +274,8 @@ const GameHud: React.FC<GameHudProps> = ({
         {/* Row 2 right: Moves bar */}
         <div className="min-w-0">
           <div className="flex items-baseline justify-between mb-0.5">
-            <span className="font-['Fredericka_the_Great'] text-xs text-slate-300">Moves</span>
-            <span className={`font-['Fredericka_the_Great'] text-xs tabular-nums ${movesTextColor}`}>
+            <span className="font-['Chakra_Petch'] text-xs text-slate-300">Moves</span>
+            <span className={`font-['Chakra_Petch'] text-xs tabular-nums ${movesTextColor}`}>
               {movesRemaining}<span className="text-slate-400">/{maxMoves}</span>
             </span>
           </div>

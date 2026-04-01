@@ -286,7 +286,7 @@ const HomePage: React.FC = () => {
               );
             })}
             </div>
-            <p className="font-['Fredericka_the_Great'] text-sm text-white/80">{zone.name}</p>
+            <p className="font-['Chakra_Petch'] text-sm text-white/80">{zone.name}</p>
           </div>
 
           <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
@@ -302,7 +302,7 @@ const HomePage: React.FC = () => {
                 className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-amber-600 shadow-lg shadow-amber-900/30 transition-colors hover:bg-amber-500 active:bg-amber-700 disabled:opacity-50"
               >
                 <Play size={20} fill="white" className="text-white" />
-                <span className="font-['Fredericka_the_Great'] text-xl tracking-wider text-white">
+                <span className="font-['Chakra_Petch'] text-xl tracking-wider text-white">
                   CONTINUE
                 </span>
               </motion.button>
@@ -324,7 +324,7 @@ const HomePage: React.FC = () => {
                 className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 shadow-lg shadow-emerald-900/30 transition-colors hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50"
               >
                 <Play size={20} fill="white" className="text-white" />
-                <span className="font-['Fredericka_the_Great'] text-xl text-white tracking-wider">
+                <span className="font-['Chakra_Petch'] text-xl text-white tracking-wider">
                   {isStartingGame ? "STARTING..." : "PLAY"}
                 </span>
               </motion.button>

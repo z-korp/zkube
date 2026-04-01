@@ -102,7 +102,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
               className="flex flex-col gap-4 max-w-[400px] mx-auto"
             >
               <motion.div variants={itemVariants} className="text-center">
-                <h2 className="font-['Fredericka_the_Great'] text-3xl text-white mb-1">
+                <h2 className="font-['Chakra_Petch'] text-3xl text-white mb-1">
                   Game Over
                 </h2>
                 <p className={`text-sm font-medium ${subtitleColor}`}>
@@ -113,7 +113,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
               <motion.div variants={itemVariants} className="text-center py-1">
                 <div className="relative inline-block">
                   <div
-                    className="font-['Fredericka_the_Great'] text-6xl text-white"
+                    className="font-['Chakra_Petch'] text-6xl text-white"
                     style={{
                       textShadow: isNewBestLevel
                         ? "0 0 30px rgba(250,204,21,0.6), 0 0 60px rgba(250,204,21,0.3)"
@@ -141,7 +141,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
               <motion.div variants={itemVariants} className="flex gap-2">
                 <div className="flex flex-col items-center gap-1 bg-black/30 rounded-xl px-4 py-3 flex-1">
                   <div className="flex items-center gap-1.5 text-cyan-400">
-                    <span className="font-['Fredericka_the_Great'] text-2xl">
+                    <span className="font-['Chakra_Petch'] text-2xl">
                       {game.totalScore.toLocaleString()}
                     </span>
                     <Gem size={18} />
@@ -150,7 +150,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
                 </div>
                 <div className="flex flex-col items-center gap-1 bg-black/30 rounded-xl px-4 py-3 flex-1">
                   <div className="flex items-center gap-1.5 text-orange-400">
-                    <span className="font-['Fredericka_the_Great'] text-2xl">
+                    <span className="font-['Chakra_Petch'] text-2xl">
                       {game.maxComboRun}x
                     </span>
                     <Flame size={18} />

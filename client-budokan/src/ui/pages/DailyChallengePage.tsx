@@ -72,7 +72,7 @@ const CountdownRing: React.FC<{ endTime: number }> = ({ endTime }) => {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-['Fredericka_the_Great'] text-lg text-cyan-200 leading-none">
+        <span className="font-['Chakra_Petch'] text-lg text-cyan-200 leading-none">
           {sec > 0 ? formatted : "Ended"}
         </span>
         <span className="text-[10px] text-slate-400 mt-0.5">remaining</span>
@@ -152,7 +152,7 @@ const DailyChallengePage: React.FC = () => {
         >
           <ChevronLeft size={20} />
         </button>
-        <h1 className="font-['Fredericka_the_Great'] text-lg text-white">
+        <h1 className="font-['Chakra_Petch'] text-lg text-white">
           Daily Challenge
         </h1>
       </div>
@@ -168,7 +168,7 @@ const DailyChallengePage: React.FC = () => {
           {!challengeLoading && !challenge && (
             <div className="rounded-xl bg-slate-900/80 p-8 text-center border border-white/10">
               <Clock3 size={32} className="mx-auto text-slate-500 mb-3" />
-              <p className="font-['Fredericka_the_Great'] text-white text-lg mb-1">
+              <p className="font-['Chakra_Petch'] text-white text-lg mb-1">
                 No Active Challenge
               </p>
               <p className="text-sm text-slate-400">
@@ -186,21 +186,21 @@ const DailyChallengePage: React.FC = () => {
                   <div className="rounded-lg bg-black/30 p-2.5 text-center">
                     <Target size={14} className="mx-auto text-cyan-400 mb-1" />
                     <p className="text-[10px] text-slate-400">Metric</p>
-                    <p className="font-['Fredericka_the_Great'] text-sm text-white">
+                    <p className="font-['Chakra_Petch'] text-sm text-white">
                       {RANKING_METRIC_LABELS[challenge.ranking_metric] ?? "Score"}
                     </p>
                   </div>
                   <div className="rounded-lg bg-black/30 p-2.5 text-center">
                     <Users size={14} className="mx-auto text-purple-400 mb-1" />
                     <p className="text-[10px] text-slate-400">Entries</p>
-                    <p className="font-['Fredericka_the_Great'] text-sm text-white">
+                    <p className="font-['Chakra_Petch'] text-sm text-white">
                       {challenge.total_entries}
                     </p>
                   </div>
                   <div className="rounded-lg bg-black/30 p-2.5 text-center">
                     <Trophy size={14} className="mx-auto text-yellow-400" />
                     <p className="text-[10px] text-slate-400 mt-1">Prize</p>
-                    <p className="font-['Fredericka_the_Great'] text-sm text-yellow-200">
+                    <p className="font-['Chakra_Petch'] text-sm text-yellow-200">
                       {prizePool.toString()}
                     </p>
                   </div>
@@ -221,32 +221,32 @@ const DailyChallengePage: React.FC = () => {
                 <div className="rounded-xl bg-slate-900/80 border border-white/10 p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Medal size={16} className="text-amber-300" />
-                    <span className="font-['Fredericka_the_Great'] text-sm text-white">
+                    <span className="font-['Chakra_Petch'] text-sm text-white">
                       Your Entry
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded-lg bg-black/30 p-2.5">
                       <p className="text-[10px] text-slate-400">Attempts</p>
-                      <p className="font-['Fredericka_the_Great'] text-lg text-white">
+                      <p className="font-['Chakra_Petch'] text-lg text-white">
                         {entry.attempts}
                       </p>
                     </div>
                     <div className="rounded-lg bg-black/30 p-2.5">
                       <p className="text-[10px] text-slate-400">Rank</p>
-                      <p className="font-['Fredericka_the_Great'] text-lg text-white">
+                      <p className="font-['Chakra_Petch'] text-lg text-white">
                         {entry.rank > 0 ? `#${entry.rank}` : "\u2014"}
                       </p>
                     </div>
                     <div className="rounded-lg bg-black/30 p-2.5">
                       <p className="text-[10px] text-slate-400">Best Score</p>
-                      <p className="font-['Fredericka_the_Great'] text-lg text-white">
+                      <p className="font-['Chakra_Petch'] text-lg text-white">
                         {entry.best_score}
                       </p>
                     </div>
                     <div className="rounded-lg bg-black/30 p-2.5">
                       <p className="text-[10px] text-slate-400">Best Level</p>
-                      <p className="font-['Fredericka_the_Great'] text-lg text-white">
+                      <p className="font-['Chakra_Petch'] text-lg text-white">
                         {entry.best_level}
                       </p>
                     </div>
@@ -273,7 +273,7 @@ const DailyChallengePage: React.FC = () => {
                 <div className="rounded-xl bg-slate-900/80 border border-white/10 p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Trophy size={16} className="text-yellow-400" />
-                    <span className="font-['Fredericka_the_Great'] text-sm text-white">
+                    <span className="font-['Chakra_Petch'] text-sm text-white">
                       Top 10
                     </span>
                   </div>
@@ -289,7 +289,7 @@ const DailyChallengePage: React.FC = () => {
                       >
                         <div className="flex items-center gap-3">
                           <span
-                            className={`font-['Fredericka_the_Great'] text-sm w-7 ${
+                            className={`font-['Chakra_Petch'] text-sm w-7 ${
                               le.rank === 1
                                 ? "text-yellow-300"
                                 : le.rank === 2
@@ -305,7 +305,7 @@ const DailyChallengePage: React.FC = () => {
                             {le.playerName}
                           </span>
                         </div>
-                        <span className="font-['Fredericka_the_Great'] text-sm text-cyan-200">
+                        <span className="font-['Chakra_Petch'] text-sm text-cyan-200">
                           {le.value}
                         </span>
                       </div>

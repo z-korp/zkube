@@ -1,21 +1,15 @@
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
-import ImageAssets from "@/ui/theme/ImageAssets";
+import { getThemeColors, type ThemeId } from "@/config/themes";
+import PatternOverlay from "./PatternOverlay";
 
 const ThemeBackground: React.FC = () => {
   const { themeTemplate } = useTheme();
-  const imgAssets = ImageAssets(themeTemplate);
+  const colors = getThemeColors(themeTemplate as ThemeId);
 
   return (
     <>
-      <div className="fixed inset-0 -z-20">
-        <img
-          src={imgAssets.imageBackground}
-          alt=""
-          className="w-full h-full object-cover"
-          draggable={false}
-        />
-      </div>
-      <div className="fixed inset-0 -z-10 bg-black/30" />
+      <div className="fixed inset-0 -z-20" style={{ background: colors.bgGradient }} />
+      <PatternOverlay themeId={themeTemplate as ThemeId} />
     </>
   );
 };

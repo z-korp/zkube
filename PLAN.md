@@ -2,15 +2,20 @@
 
 ## Overview
 
-Adapt the design reference at `/zkube-ui-design.jsx` (1532 lines, 7 screens, 3 theme variants) into the production `client-budokan/` codebase. This is a **visual-only redesign** — the data layer (hooks, RECS, Dojo, stores, contexts) remains untouched. Per-theme block colors are preserved. All 10 themes get the new token system via algorithmic derivation.
+Adapt the design references into the production `client-budokan/` codebase. This is a **visual-only redesign** — the data layer (hooks, RECS, Dojo, stores, contexts) remains untouched. Per-theme block colors are preserved. All 10 themes get the new token system via algorithmic derivation.
+
+**Design references:**
+- `/zkube-ui-design.jsx` (1532 lines) — 7 screens: Home, Map, Play, Boss, Leaderboard, Daily, Settings
+- `/zkube-dual-unlock.jsx` (846 lines) — Player Profile page with dual-unlock monetization model
 
 **Key deliverables:**
 - Extended theme token system (surface, border, glow, text, textMuted, accent2) for all 10 themes
 - Font migration: Fredericka the Great → Chakra Petch (display) + DM Sans (body)
 - Gradient backgrounds + SVG pattern overlays (replacing image backgrounds)
-- Theme-aware BottomTabBar (replacing hardcoded emerald colors)
+- Theme-aware BottomTabBar with 5 tabs (replacing hardcoded 4-tab emerald bar)
 - 6 page redesigns matching the design reference
 - 1 new page: BossRevealPage with navigation integration
+- 1 new page: ProfilePage with 3 tabs (Overview, Quests, Achievements) + UnlockModal
 
 ---
 
@@ -24,6 +29,8 @@ Adapt the design reference at `/zkube-ui-design.jsx` (1532 lines, 7 screens, 3 t
 | Font strategy | **Google Fonts** | Load Chakra Petch + DM Sans from Google Fonts CDN. Remove local Fredericka the Great TTF. |
 | Styling approach | **TailwindCSS** | All new markup uses Tailwind utilities. No inline styles. Theme-dynamic values use CSS custom properties or `style={{}}` when computed. |
 | Boss screen | **New overlay page** | Add "boss" as OverlayId in navigationStore, render BossRevealPage between map and play. |
+| Profile page | **New tab page (5th tab)** | Add "profile" as TabId in navigationStore. BottomTabBar becomes 5 tabs: Home, Map, Profile, Ranks, Settings. |
+| Profile data strategy | **Real data + mock placeholders** | Wire real hooks (username, stars, zones, games) for Overview tab. Use static mock data for Quests, Achievements, XP/Level, and ETH pricing — these need contract-side work that doesn't exist yet. |
 | Grid.tsx | **DO NOT MODIFY** | The 690-line grid state machine is untouchable. Only its container/wrapper can change. |
 
 ---
@@ -43,6 +50,17 @@ Adapt the design reference at `/zkube-ui-design.jsx` (1532 lines, 7 screens, 3 t
 | DailyScreen | 1030–1162 | Header + countdown pill, mini top-3 leaderboard, grid preview, START DAILY button |
 | SettingsScreen | 1164–1322 | Account card, theme color dots, audio toggle switches, about section |
 
+**File:** `/zkube-dual-unlock.jsx`
+
+| Screen | Lines | Key Elements |
+|--------|-------|--------------|
+| Shared (ProgressBar, Star) | 1–66 | Theme tokens, ProgressBar with glow, Star icon, PatternOverlay |
+| UnlockModal | 68–354 | Bottom sheet: zone header, dual-path (Earn It / Skip Ahead), discount scale bar chart |
+| OverviewTab | 356–478 | 4-stat grid, zone progress with star bars, locked zone dual-unlock teaser, recent activity |
+| QuestsTab | 480–625 | Next Unlock dual-path card, daily quests (3), weekly quests (3), milestones (3) |
+| AchievementsTab | 627–717 | Summary card with rarity breakdown, 3 categories (Combat/Mastery/Explorer), 2-col achievement grid |
+| ProfilePage main | 719–846 | Player card (avatar + level badge + XP bar + star count), 3-tab layout, bottom tab bar with 5 tabs |
+
 ---
 
 ## Dependency Graph
@@ -52,7 +70,7 @@ Phase 0 (Serial — Foundation)
 ├── 0.1 Theme Token Extension ──────────────┐
 ├── 0.2 Font Migration ─────────────────────┤
 ├── 0.3 Gradient Backgrounds + SVG Patterns ─┤ (depends on 0.1)
-└── 0.4 BottomTabBar Theme-Aware ───────────┘ (depends on 0.1)
+└── 0.4 BottomTabBar Theme-Aware (5 tabs) ──┘ (depends on 0.1)
 
 Phase 1 (Parallel — all depend on Phase 0 complete)
 ├── 1.1 HomePage ──────────────┐
@@ -62,8 +80,9 @@ Phase 1 (Parallel — all depend on Phase 0 complete)
 ├── 1.5 LeaderboardPage ───────┤
 └── 1.6 DailyChallengePage ────┘
 
-Phase 2 (Depends on Phase 0 only)
-└── 2.1 BossRevealPage + Navigation
+Phase 2 (Parallel with Phase 1 — both depend on Phase 0 only)
+├── 2.1 BossRevealPage + Navigation
+└── 2.2 ProfilePage (3 tabs + UnlockModal)
 
 Phase 3 (After Phase 1 + 2)
 └── 3.1 Cross-Theme QA + Polish
@@ -280,25 +299,43 @@ Reference the design file lines 62–131 for the 3 existing pattern implementati
 
 ---
 
-### Task 0.4: BottomTabBar — Theme-Aware
+### Task 0.4: BottomTabBar — Theme-Aware, 5 Tabs
 
-**Goal:** Make the tab bar use theme accent colors instead of hardcoded emerald. Switch to unicode icons matching the design.
+**Goal:** Make the tab bar use theme accent colors instead of hardcoded emerald. Switch to 5 unicode-icon tabs including Profile.
 
 **Files to modify:**
-- `client-budokan/src/ui/components/BottomTabBar.tsx` — Rewrite styling
+- `client-budokan/src/ui/components/BottomTabBar.tsx` — Rewrite styling, add Profile tab
+- `client-budokan/src/stores/navigationStore.ts` — Add "profile" to TabId union type
 
-**Current issues:**
+**navigationStore.ts — type change:**
+```diff
+- export type TabId = "home" | "map" | "ranks" | "settings";
++ export type TabId = "home" | "map" | "profile" | "ranks" | "settings";
+```
+
+**BottomTabBar.tsx — new tab definition:**
+```typescript
+const TABS: { id: TabId; icon: string; label: string }[] = [
+  { id: "home",     icon: "⬡", label: "Home" },
+  { id: "map",      icon: "◈", label: "Map" },
+  { id: "profile",  icon: "◉", label: "Profile" },
+  { id: "ranks",    icon: "◆", label: "Ranks" },
+  { id: "settings", icon: "⚙", label: "Settings" },
+];
+```
+
+**Current issues being fixed:**
 - Hardcoded `emerald-300`, `emerald-400`, `text-slate-400` colors
 - Lucide icons (Home, Gamepad2, Trophy, Settings) — don't match design
+- Only 4 tabs — design has 5
 
-**New implementation:**
+**New styling:**
 - Use CSS variable `var(--theme-accent)` for active state colors
 - Use `var(--theme-text-muted)` for inactive state
-- Replace Lucide icons with unicode characters: ⬡ (Home), ◈ (Map), ◆ (Ranks), ⚙ (Settings)
 - Background: `bg-black/60 backdrop-blur-xl` with top border in `var(--theme-border)`
 - Active indicator: top bar colored with `var(--theme-accent)` + glow
 
-Reference design lines 140–186 for the TabBar component.
+Reference design `/zkube-ui-design.jsx` lines 140–186 for 4-tab version, `/zkube-dual-unlock.jsx` lines 804–818 for 5-tab version with Profile.
 
 **Key style mappings:**
 ```
@@ -312,10 +349,12 @@ Active glow:              box-shadow = 0 0 8px var(--theme-accent)
 
 **Verification:**
 - `pnpm build` passes
+- Tab bar shows 5 tabs with correct icons and labels
 - Tab bar colors change when switching themes in Settings
+- Profile tab navigates to "profile" page (will show empty until Task 2.2)
 - No hardcoded emerald/slate references remain in BottomTabBar.tsx
 
-**Commit:** `feat: make BottomTabBar theme-aware with accent colors`
+**Commit:** `feat: make BottomTabBar theme-aware with 5 tabs including Profile`
 
 ---
 
@@ -339,7 +378,7 @@ All Phase 1 tasks can execute in parallel — each modifies a different page fil
 
 **File:** `client-budokan/src/ui/pages/HomePage.tsx` (351 lines — rewrite)
 
-**Design reference:** Lines 212–462
+**Design reference:** `/zkube-ui-design.jsx` lines 212–462
 
 **New layout (top to bottom):**
 
@@ -398,7 +437,7 @@ All Phase 1 tasks can execute in parallel — each modifies a different page fil
 - `client-budokan/src/ui/pages/PlayScreen.tsx` (418 lines — modify wrapper/HUD only)
 - `client-budokan/src/ui/components/hud/GameHud.tsx` (308 lines — restyle)
 
-**Design reference:** Lines 621–797
+**Design reference:** `/zkube-ui-design.jsx` lines 621–797
 
 **New HUD layout (above grid):**
 
@@ -453,7 +492,7 @@ All Phase 1 tasks can execute in parallel — each modifies a different page fil
 
 **File:** `client-budokan/src/ui/pages/MapPage.tsx` (524 lines — restyle, preserve data logic)
 
-**Design reference:** Lines 464–618
+**Design reference:** `/zkube-ui-design.jsx` lines 464–618
 
 **New layout:**
 
@@ -501,7 +540,7 @@ All Phase 1 tasks can execute in parallel — each modifies a different page fil
 
 **File:** `client-budokan/src/ui/pages/SettingsPage.tsx` (199 lines — restyle)
 
-**Design reference:** Lines 1164–1322
+**Design reference:** `/zkube-ui-design.jsx` lines 1164–1322
 
 **New layout (top to bottom):**
 
@@ -548,7 +587,7 @@ All Phase 1 tasks can execute in parallel — each modifies a different page fil
 
 **File:** `client-budokan/src/ui/pages/LeaderboardPage.tsx` (137 lines — rewrite)
 
-**Design reference:** Lines 921–1028
+**Design reference:** `/zkube-ui-design.jsx` lines 921–1028
 
 **New layout:**
 
@@ -594,7 +633,7 @@ All Phase 1 tasks can execute in parallel — each modifies a different page fil
 
 **File:** `client-budokan/src/ui/pages/DailyChallengePage.tsx` (324 lines — restyle)
 
-**Design reference:** Lines 1030–1162
+**Design reference:** `/zkube-ui-design.jsx` lines 1030–1162
 
 **New layout:**
 
@@ -636,7 +675,9 @@ All Phase 1 tasks can execute in parallel — each modifies a different page fil
 
 ---
 
-## Phase 2: Boss Screen (Parallel with Phase 1)
+## Phase 2: New Pages (Parallel with Phase 1)
+
+Both Phase 2 tasks depend only on Phase 0 and are independent of each other and Phase 1.
 
 ### Task 2.1: BossRevealPage + Navigation
 
@@ -705,6 +746,7 @@ case "boss": return "map";
     home: <HomePage />,
     play: <PlayScreen />,
     map: <MapPage />,
++   profile: <ProfilePage />,  // (added by Task 2.2)
     ranks: <LeaderboardPage />,
     settings: <SettingsPage />,
     daily: <DailyChallengePage />,
@@ -712,9 +754,11 @@ case "boss": return "map";
   };
 ```
 
+Note: Both Task 2.1 and 2.2 add entries to this map. If executed in parallel, the second commit should merge cleanly since they're different keys.
+
 **Step 4: BossRevealPage component**
 
-**Design reference:** Lines 799–919
+**Design reference:** `/zkube-ui-design.jsx` lines 799–919
 
 **Layout:**
 - Full-screen centered layout, no tab bar (boss is in FULLSCREEN_PAGES)
@@ -755,6 +799,252 @@ case "boss": return "map";
 
 ---
 
+### Task 2.2: ProfilePage (3 Tabs + UnlockModal)
+
+**Goal:** Create a Player Profile page with 3 tabs (Overview, Quests, Achievements) and a zone UnlockModal bottom sheet. This page uses **real data where available** and **static mock data** for features that lack contract support (quests, achievements, XP).
+
+**Design reference:** `/zkube-dual-unlock.jsx` — entire file (846 lines)
+
+**Files to create:**
+- `client-budokan/src/ui/pages/ProfilePage.tsx` — Main page shell with header + tabs
+- `client-budokan/src/ui/components/profile/OverviewTab.tsx` — Stats grid + zone progress + activity
+- `client-budokan/src/ui/components/profile/QuestsTab.tsx` — Next unlock + quest lists
+- `client-budokan/src/ui/components/profile/AchievementsTab.tsx` — Summary + achievement grid
+- `client-budokan/src/ui/components/profile/UnlockModal.tsx` — Dual-path unlock bottom sheet
+- `client-budokan/src/ui/components/shared/ProgressBar.tsx` — Reusable progress bar (used across Profile)
+- `client-budokan/src/config/profileData.ts` — Mock quest/achievement/XP definitions + zone emoji mapping
+
+**Files to modify:**
+- `client-budokan/src/App.tsx` — Register ProfilePage in pageComponents
+
+**Data strategy — what's real vs mock:**
+
+| Data Point | Source | Status |
+|-----------|--------|--------|
+| Username | `useControllerUsername()` | ✅ Real |
+| Total stars | `usePlayerMeta()` → derive from zone data | ✅ Real |
+| Best level | `usePlayerMeta()` → best_level | ✅ Real |
+| Total games | `useGameTokensSlot()` → games.length | ✅ Real |
+| Best combo | Game run_data → max_combo_run (via useGameTokensSlot) | ✅ Real |
+| Zone unlock status | `MapEntitlement` model (via RECS) | ✅ Real |
+| Zone star counts per zone | `PlayerBestRun` (best_stars per settings_id) — may need RECS query | ⚠️ Partial (aggregate manually) |
+| Player XP / Level | Not in contract models | 🔶 Mock (derive from total stars) |
+| Player titles | Not in contract | 🔶 Mock (static map from level) |
+| Lines cleared total | Not tracked in models | 🔶 Mock |
+| Bosses defeated count | Not tracked (only zone_cleared bool) | 🔶 Mock |
+| Quest progress (daily/weekly/milestone) | No quest system in contracts | 🔶 Mock |
+| Achievement progress | No achievement system in contracts | 🔶 Mock |
+| ETH pricing / sliding discount | Not in current purchase_map logic | 🔶 Mock |
+| Recent activity feed | No event history accessible from client | 🔶 Mock |
+
+**profileData.ts — mock data constants:**
+
+```typescript
+// XP system (mock — derived from total stars as a proxy)
+export const XP_PER_STAR = 100;
+export const LEVEL_THRESHOLDS = [0, 500, 1200, 2000, 3000, 4500, 6500, 9000, 12000, 16000]; // XP needed per level
+export const PLAYER_TITLES: Record<number, string> = {
+  1: "Novice", 2: "Apprentice", 3: "Puzzle Adept", 5: "Block Master",
+  7: "Grid Sage", 10: "Puzzle Legend", 15: "Eternal",
+};
+
+// Zone metadata (complements existing THEME_META)
+export const ZONE_EMOJIS: Record<number, string> = {
+  1: "🌊", 2: "🏛️", 3: "❄️", 4: "🏺", 5: "⛩️",
+  6: "🐉", 7: "🕌", 8: "🌿", 9: "🥁", 10: "⛰️",
+};
+
+// Mock unlock pricing
+export const ZONE_UNLOCK_PRICES: Record<number, { starCost: number; ethPrice: number }> = {
+  2: { starCost: 120, ethPrice: 0.015 },
+  3: { starCost: 200, ethPrice: 0.020 },
+  // ... other locked zones
+};
+
+// Quest definitions (all mock — structure ready for future contract integration)
+export interface QuestDef { id: string; title: string; desc: string; icon: string; max: number; reward: number; color: string; category: "daily" | "weekly" | "milestone"; }
+export const QUEST_DEFS: QuestDef[] = [ /* ... */ ];
+
+// Achievement definitions (all mock)
+export interface AchievementDef { id: string; name: string; desc: string; icon: string; rarity: "Common" | "Rare" | "Epic" | "Legendary"; category: "Combat" | "Mastery" | "Explorer"; }
+export const ACHIEVEMENT_DEFS: AchievementDef[] = [ /* ... */ ];
+
+export const RARITY_COLORS = { Common: "rgba(255,255,255,0.5)", Rare: "#4DA6FF", Epic: "#A78BFA", Legendary: "#FFD93D" };
+```
+
+Reference `/zkube-dual-unlock.jsx` lines 358–370 (zone data), 508–522 (quest data), 629–657 (achievement data) for the full mock data structures.
+
+---
+
+**Sub-deliverable A: ProfilePage shell (`ProfilePage.tsx`)**
+
+Reference: `/zkube-dual-unlock.jsx` lines 719–823
+
+Layout:
+- **Back button** — Top-left, `← Profile` (Chakra Petch, 16px). Note: Profile is a tab, not overlay, so back button navigates to `"home"`.
+- **Player card** — Gradient border card (`accent@10% → accent2@08%`):
+  - Avatar: 48px rounded square, gradient fill (accent → accent2), "ZK" initials, level badge (20px circle at bottom-right with level number)
+  - Username: Chakra Petch, 14px, 800 weight
+  - Subtitle: "Level {n} · {title}" (DM Sans, 9px, textMuted)
+  - Star count (right): Star icon + large number (18px, accent2) + "total stars" label
+  - XP progress bar below: "Level {n}" left label, "{xp}/{xpMax} XP" right label, accent-colored bar with glow
+  - Sub-label: "{remaining} XP to Level {n+1} · '{nextTitle}'"
+  - **Real data:** username, total stars (derived from PlayerBestRun aggregation or PlayerMeta)
+  - **Mock data:** XP value (= totalStars × XP_PER_STAR), level (from threshold lookup), title
+
+- **Tab bar** — 3 tabs: "Overview", "Quests", "Achievements"
+  - Active: accent text + 2px accent bottom border
+  - Quests tab shows notification badge with pending quest count
+  - Tab state: local useState
+
+- **Content area** — Scrollable, renders active tab component
+
+- **UnlockModal** — Conditionally rendered when a locked zone is tapped
+
+**Sub-deliverable B: OverviewTab (`profile/OverviewTab.tsx`)**
+
+Reference: `/zkube-dual-unlock.jsx` lines 356–478
+
+1. **Stats grid** — 4-column grid:
+   - Games: `useGameTokensSlot().games.length` (✅ real)
+   - Best Combo: from game run data or `"--"` if unavailable (⚠️ partial)
+   - Lines: `"--"` (🔶 mock — not tracked)
+   - Bosses: `"--"` (🔶 mock — not tracked)
+
+2. **Zone Progress** — Section label + vertical zone list:
+   - For each zone: emoji + name + CLEARED/FREE badges + star progress bar + star count
+   - Unlocked zones: accent-colored progress bar, `{stars}/{max}` count
+   - Locked zones: show dual-unlock teaser: `{starCost}★` or `{ethPrice} ETH`
+     - Star progress bar toward free unlock
+     - `{currentStars}/{starCost}★ · {discount}% discount available`
+     - `Tap to unlock →` link → opens UnlockModal
+   - **Real data:** zone unlock status (MapEntitlement), zone stars (PlayerBestRun)
+   - **Mock data:** starCost, ethPrice, discount
+
+3. **Recent Activity** — Section label + 3-item feed:
+   - Each: emoji + description + time ago
+   - 🔶 All mock data (static placeholder entries)
+
+**Sub-deliverable C: QuestsTab (`profile/QuestsTab.tsx`)**
+
+Reference: `/zkube-dual-unlock.jsx` lines 480–625
+
+> **All quest data is mock.** The quest system was removed from contracts. This tab shows the UI design for future implementation.
+
+1. **Next Unlock teaser** — Gradient card showing dual-path to next locked zone:
+   - Left half: "★ EARN IT" — star progress toward free unlock
+   - Right half: "◆ SKIP AHEAD" — ETH price with discount badge
+   - Tapping opens UnlockModal
+   - Reference lines 526–592
+
+2. **Daily Quests** — Header with "Resets in HH:MM" badge, 3 quest cards:
+   - Each card: icon + title + description + progress bar + star reward
+   - Completed quests show "CLAIMED" badge, reduced opacity
+   - Reference lines 594–602
+
+3. **Weekly Quests** — Header with "X days left" badge, 3 quest cards
+   - Reference lines 605–614
+
+4. **Milestones** — Header, 3 milestone cards (larger format)
+   - Reference lines 616–623
+
+**QuestCard sub-component:** (inline or shared)
+- Surface bg (done: `color@08%`), border, borderRadius 10px
+- Icon (16-18px) + title (Chakra Petch, 11px) + reward badge (`+{n}★`)
+- Description (DM Sans, 9px, textMuted)
+- Progress bar (4px height, colored by quest color, with `{n}/{max}` label)
+
+**Sub-deliverable D: AchievementsTab (`profile/AchievementsTab.tsx`)**
+
+Reference: `/zkube-dual-unlock.jsx` lines 627–717
+
+> **All achievement data is mock.** No achievement system in contracts.
+
+1. **Summary card** — Surface card:
+   - Left: `{unlocked}/{total}` (Chakra Petch, 20px) + "Achievements unlocked"
+   - Right: Rarity breakdown — 4 columns (Common, Rare, Epic, Legendary) each with count + rarity color
+
+2. **Category sections** — 3 categories (Combat, Mastery, Explorer):
+   - Section header: category name + `{unlocked}/{total}`
+   - 2-column grid of achievement cards:
+     - Unlocked: `rarity_color@08%` bg, `rarity_color@20%` border, full opacity, radial glow corner
+     - Locked: `rgba(255,255,255,0.015)` bg, 40% opacity, grayscale emoji
+     - Icon (16px) + rarity label (5.5px, uppercase, rarity color) + name (Chakra Petch, 9px) + description (DM Sans, 7.5px)
+
+**Sub-deliverable E: UnlockModal (`profile/UnlockModal.tsx`)**
+
+Reference: `/zkube-dual-unlock.jsx` lines 68–354
+
+Bottom sheet overlay:
+- **Backdrop** — `rgba(0,0,0,0.7)` + `backdrop-blur(8px)`, click to close
+- **Sheet** — Gradient bg (`linear-gradient(180deg, lighten(bg), bg)`), top border-radius 20px, drag handle bar
+
+1. **Zone header** — Large emoji (32px) + "Unlock Zone" label + zone name (Chakra Petch, 18px, 900) + "10 levels · Boss battle · Endless mode"
+2. **Divider** — 1px line in colors.border
+3. **Two-path layout** — Flex row with gap 8px:
+   - **Earn It card** (left): accent2 tint, star icon, star cost (large number), progress bar, `{current}/{target}` count, `{remaining} more to go`. If stars >= cost → "UNLOCK FREE" button (accent2 bg)
+   - **OR divider** (center): vertical line + "OR" text
+   - **Skip Ahead card** (right): accent tint, diamond icon, ETH price (strikethrough if discount), discounted price (large), `{discount}% OFF` badge (accent3/pink), "BUY NOW" button (accent gradient)
+4. **Star Discount Scale** — Bar chart visualization:
+   - 10 bars (0-90% tiers), height proportional to tier, filled bars use accent/accent3 colors, current tier marked "YOU"
+   - Labels: "0★ = Full price" ↔ "90%★ = 90% off"
+   - Footer: "100% stars = FREE unlock · Every star counts toward a discount"
+
+**Discount formula:** `discount% = floor(currentStars / starCost × 100)`, `finalPrice = basePrice × (1 - discount / 100)`
+
+**Data for UnlockModal:**
+- Zone name/emoji/starCost/ethPrice from profileData.ts mock config (🔶 mock)
+- currentStars for the player — can derive from total earned stars across all zones (⚠️ partial real)
+- Discount calculation is pure client-side math
+
+**Sub-deliverable F: ProgressBar (`shared/ProgressBar.tsx`)**
+
+Reference: `/zkube-dual-unlock.jsx` lines 24–44
+
+Reusable progress bar component used across the Profile page:
+```typescript
+interface ProgressBarProps {
+  value: number;
+  max: number;
+  color: string;
+  height?: number;      // default 6
+  glow?: boolean;       // default false — adds box-shadow
+  showLabel?: boolean;  // default false — shows "{value}/{max}" above right end
+}
+```
+
+Rendering:
+- Outer: full width, `height` px, borderRadius `height/2`, bg `rgba(255,255,255,0.06)`
+- Inner: width `min(value/max * 100, 100)%`, gradient fill (`{color}CC → {color}`), optional glow shadow
+- Label: absolute positioned, fontSize 9px, Chakra Petch, color `{color}CC`
+
+---
+
+**App.tsx registration:**
+```diff
++ import ProfilePage from "@/ui/pages/ProfilePage";
+
+  const pageComponents: Record<PageId, React.ReactNode> = {
+    // ... existing ...
++   profile: <ProfilePage />,
+  };
+```
+
+**Verification:**
+- `pnpm build` passes
+- Profile tab in bottom bar navigates to ProfilePage
+- Player card shows real username and star count
+- Overview tab: stats grid renders, zone progress list shows real zone unlock status
+- Quests tab: mock quests display with progress bars and reward badges
+- Achievements tab: mock achievements display in 2-column grid with rarity colors
+- UnlockModal: opens when tapping locked zone, shows dual-path layout, discount math is correct
+- Tab bar remains visible on Profile page (it's a TabId, not OverlayId)
+- Back button navigates to home
+
+**Commit:** `feat: add ProfilePage with overview, quests, achievements tabs and unlock modal`
+
+---
+
 ## Phase 3: QA & Polish
 
 ### Task 3.1: Cross-Theme Visual Verification
@@ -763,11 +1053,11 @@ case "boss": return "map";
 
 **Process:**
 1. For each of the 3 alpha themes (Polynesian, Japan, Persia):
-   - Take Playwright screenshots of all 7 pages at 390x844 viewport
+   - Take Playwright screenshots of all 8 pages (Home, Map, Play, Boss, Profile, Leaderboard, Daily, Settings) at 390x844 viewport
    - Verify: text readable, accent colors applied, surfaces visible, no contrast issues
 
 2. For the remaining 7 themes:
-   - Take Playwright screenshots of Home + Play + Settings pages
+   - Take Playwright screenshots of Home + Play + Profile + Settings pages
    - Verify: auto-derived tokens produce acceptable visuals
    - Fix any themes where text contrast is too low or surface is invisible
 
@@ -797,7 +1087,7 @@ Each commit must leave `pnpm build` passing. Commits are ordered by dependency:
 | 1 | `feat: extend theme token system with surface/border/glow/text/accent2 for all 10 themes` | 0.1 | None |
 | 2 | `feat: migrate fonts to Chakra Petch (display) + DM Sans (body)` | 0.2 | None (parallel with 1) |
 | 3 | `feat: replace image backgrounds with gradient + SVG pattern overlays` | 0.3 | Commit 1 |
-| 4 | `feat: make BottomTabBar theme-aware with accent colors` | 0.4 | Commit 1 |
+| 4 | `feat: make BottomTabBar theme-aware with 5 tabs including Profile` | 0.4 | Commit 1 |
 | 5 | `feat: redesign HomePage with vertical zone list and daily banner` | 1.1 | Commits 1-4 |
 | 6 | `feat: redesign PlayScreen HUD with compact layout and constraint bar` | 1.2 | Commits 1-4 |
 | 7 | `feat: redesign MapPage with simplified circle/square nodes` | 1.3 | Commits 1-4 |
@@ -805,12 +1095,13 @@ Each commit must leave `pnpm build` passing. Commits are ordered by dependency:
 | 9 | `feat: redesign LeaderboardPage with tabs and card-based player list` | 1.5 | Commits 1-4 |
 | 10 | `feat: redesign DailyChallengePage with mini leaderboard and grid preview` | 1.6 | Commits 1-4 |
 | 11 | `feat: add BossRevealPage with boss identity data and navigation integration` | 2.1 | Commits 1-4 |
-| 12 | `fix: polish cross-theme visual consistency` | 3.1 | All above |
+| 12 | `feat: add ProfilePage with overview, quests, achievements tabs and unlock modal` | 2.2 | Commits 1-4 |
+| 13 | `fix: polish cross-theme visual consistency` | 3.1 | All above |
 
-**Parallel execution:** Commits 5-11 can be developed in parallel branches and merged sequentially, since they modify different files. The only shared touchpoints:
-- `App.tsx` — only modified by commit 11 (Boss screen)
-- `navigationStore.ts` — only modified by commit 11 (Boss screen)
-- `themes.ts` — only modified by commits 1 and 12
+**Parallel execution:** Commits 5-12 can be developed in parallel branches and merged sequentially, since they modify different files. The only shared touchpoints:
+- `App.tsx` — modified by commits 11 and 12 (adding page registrations). These are additive changes to different keys in the same object literal — merge-safe.
+- `navigationStore.ts` — modified by commit 4 (adds "profile" TabId) and commit 11 (adds "boss" OverlayId). Commit 4 runs first, so commit 11 builds on top.
+- `themes.ts` — only modified by commits 1 and 13.
 
 ---
 
@@ -825,6 +1116,9 @@ Each commit must leave `pnpm build` passing. Commits are ordered by dependency:
 | SVG patterns cause performance issues | Low | Low | Patterns are static SVG at 4% opacity — negligible GPU cost. Use `pointer-events-none`. |
 | Boss screen data unavailable (seed not loaded) | Medium | Medium | BossRevealPage must handle loading state gracefully. Show skeleton while seed loads. |
 | Google Fonts CDN latency | Low | Low | Use `font-display: swap` (already in the Google Fonts URL). Chakra Petch is a small font (~40KB). |
+| Profile mock data creates false expectations | Medium | Medium | Add clear `// MOCK DATA` comments in profileData.ts. Mark quest/achievement sections with subtle "Coming Soon" indicators if desired. The UI should feel real but not promise features that don't exist yet. |
+| 5-tab bar feels cramped on small screens | Low | Low | Test at 320px width minimum. Unicode icons are compact. Each tab only needs ~64px. 5 × 64 = 320px — tight but viable. |
+| Profile + Boss both modify App.tsx | Low | Low | Changes are additive (different keys in pageComponents object). Standard merge, no conflict expected. |
 
 ---
 
@@ -844,4 +1138,6 @@ These files/directories must remain completely unmodified:
 | `contracts/**` | Smart contracts — no changes |
 | Per-theme block image assets | `block-1.png` through `block-4.png` per theme stay as-is |
 
-**Exception:** `client-budokan/src/stores/navigationStore.ts` — modified ONLY by Task 2.1 to add "boss" overlay.
+**Exceptions:**
+- `client-budokan/src/stores/navigationStore.ts` — modified by Task 0.4 (adds "profile" TabId) and Task 2.1 (adds "boss" OverlayId)
+- `client-budokan/src/App.tsx` — modified by Task 2.1 (BossRevealPage) and Task 2.2 (ProfilePage) to register new page components

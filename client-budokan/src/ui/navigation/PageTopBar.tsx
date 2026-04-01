@@ -27,7 +27,7 @@ const PageTopBar: React.FC<PageTopBarProps> = ({
           onClick={onBack}
           className="flex flex-col text-left hover:opacity-80 transition-opacity"
         >
-          <span className="font-['Fredericka_the_Great'] text-white text-base md:text-lg leading-tight">
+          <span className="font-['Chakra_Petch'] text-white text-base md:text-lg leading-tight">
             {title}
           </span>
           {subtitle && (
