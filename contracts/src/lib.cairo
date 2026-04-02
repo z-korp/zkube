@@ -9,6 +9,7 @@ pub mod models {
     pub mod game;
     pub mod mutator;
     pub mod player;
+    pub mod weekly;
 }
 
 pub mod types {
@@ -65,6 +66,7 @@ pub mod helpers {
     pub mod controller;
     pub mod daily;
     pub mod dispatchers;
+    pub mod weekly;
     pub mod encoding;
     pub mod game_helpers;
     pub mod game_libs;

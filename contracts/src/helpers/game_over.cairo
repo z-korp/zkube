@@ -10,6 +10,8 @@ use zkube::events::{RunEnded, ZoneClearBonus};
 use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
 use zkube::helpers::config::ConfigUtilsTrait;
 use zkube::helpers::daily;
+use zkube::helpers::weekly;
+use zkube::models::weekly::current_week_id;
 use zkube::models::daily::{
     DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait, GameChallenge,
 };
@@ -80,6 +82,22 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
         best_run.best_game_id = game.game_id;
     }
     world.write_model(@best_run);
+
+    if mode == 1 {
+        let is_eligible = match world.dns_address(@"config_system") {
+            Option::Some(config_address) => {
+                let config = IConfigSystemDispatcher { contract_address: config_address };
+                config.is_star_eligible(settings.settings_id)
+            },
+            Option::None => false,
+        };
+        if is_eligible {
+            let week_id = current_week_id(get_block_timestamp());
+            weekly::update_weekly_leaderboard(
+                ref world, week_id, player, run_data.total_score,
+            );
+        }
+    }
 
     // Emit run ended event
     world

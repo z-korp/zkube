@@ -53,6 +53,9 @@ pub trait IDailyChallengeSystem<T> {
 
     /// Get a player's entry for a challenge
     fn get_player_entry(self: @T, challenge_id: u32, player: ContractAddress) -> DailyEntry;
+
+    /// Settle weekly endless leaderboard (permissionless — anyone can call after week ends)
+    fn settle_weekly_endless(ref self: T, week_id: u32);
 }
 
 /// Minimal ERC20 interface for LORDS transfer_from / transfer
@@ -84,6 +87,8 @@ mod daily_challenge_system {
         GameChallenge,
     };
     use zkube::models::game::{Game, GameTrait};
+    use zkube::models::weekly::{WeeklyEndless, WeeklyEndlessLeaderboard, current_week_id};
+    use zkube::helpers::weekly::MAX_WEEKLY_LEADERBOARD_SIZE;
     use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
@@ -445,6 +450,38 @@ mod daily_challenge_system {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             world.read_model((challenge_id, player))
         }
+
+        fn settle_weekly_endless(ref self: ContractState, week_id: u32) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let timestamp = get_block_timestamp();
+            let current_week = current_week_id(timestamp);
+            assert!(week_id < current_week, "Week has not ended yet");
+
+            let mut weekly: WeeklyEndless = world.read_model(week_id);
+            assert!(!weekly.settled, "Week already settled");
+
+            let total = weekly.total_participants;
+            let cap = if total < MAX_WEEKLY_LEADERBOARD_SIZE {
+                total
+            } else {
+                MAX_WEEKLY_LEADERBOARD_SIZE
+            };
+
+            let mut rank: u32 = 1;
+            while rank <= cap {
+                let lb: WeeklyEndlessLeaderboard = world.read_model((week_id, rank));
+                if lb.player.is_non_zero() {
+                    let star_reward = InternalImpl::compute_weekly_star_reward(rank, total);
+                    if star_reward > 0 {
+                        InternalImpl::mint_zstar(ref self, ref world, lb.player, star_reward);
+                    }
+                }
+                rank += 1;
+            };
+
+            weekly.settled = true;
+            world.write_model(@weekly);
+        }
     }
 
     #[generate_trait]
@@ -491,6 +528,26 @@ mod daily_challenge_system {
                     }
                 },
                 Option::None => {},
+            }
+        }
+
+        fn compute_weekly_star_reward(rank: u32, total_participants: u32) -> u256 {
+            if total_participants == 0 {
+                return 0;
+            }
+            let percentile_x100: u32 = (rank * 100) / total_participants;
+            if percentile_x100 < 2 {
+                30
+            } else if percentile_x100 < 5 {
+                20
+            } else if percentile_x100 < 10 {
+                15
+            } else if percentile_x100 < 25 {
+                10
+            } else if percentile_x100 < 50 {
+                3
+            } else {
+                0
             }
         }
 
