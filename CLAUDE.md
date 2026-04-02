@@ -204,7 +204,7 @@ Mint (NFT) → Create (game_id, mode) → Play (move) → Level Complete (auto-a
 - **Extraction**: `uint256.uint256ToBN({ low, high })` from `Transfer` event keys.
 
 ## Namespace
-- **Current**: `zkube_jc_sepolia_v1`
+- **Current**: `zkube_v2_1_0`
 
 ## Development Commands
 ### Frontend

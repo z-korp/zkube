@@ -19,7 +19,7 @@ pub const VERSION: felt252 = 'v1.3.0';
 
 // Tournament / Namespace
 pub fn DEFAULT_NS() -> ByteArray {
-    "zkube_jc_sepolia_v1"
+    "zkube_v2_1_0"
 }
 
 pub fn SCORE_MODEL() -> ByteArray {

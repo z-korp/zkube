@@ -4,62 +4,52 @@ description = "Reversed tetris fully onchain."
 cover_uri = "file://assets/cover.png"
 icon_uri = "file://assets/icon.png"
 website = "https://app.zkube.xyz"
-seed = "zkube_jc_slot_v9"
+seed = "zkube_v2"
 
 [world.socials]
-x = "https://x.com/ohayo_dojo"
-discord = "https://discord.gg/FB2wR6uF"
+x = "https://x.com/zKube_game"
+discord = "https://discord.gg/pzzRSDZY"
 github = "https://github.com/z-korp/zkube"
 
 [namespace]
-default = "zkube_jc_sepolia_v1"
+default = "zkube_v2_1_0"
 
 [env]
-rpc_url = "https://api.cartridge.gg/x/zkube-djizus-slot/katana"
+rpc_url = "https://api.cartridge.gg/x/zkube-v2/katana"
 account_address = "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
 private_key = "0xc5b2fcab997346f3ea1c00b002ecf6f382c5f9c9659a3894eb783c5320f912"
-world_address = "0x02bdb0cc3800b7a2e618a26f364d1ee4ae914c7c616a1c43aa80a8835576e402"
 
 [writers]
-# Models — game state
-"zkube_jc_sepolia_v1-Game" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system", "zkube_jc_sepolia_v1-level_system", "zkube_jc_sepolia_v1-grid_system"]
-"zkube_jc_sepolia_v1-GameSeed" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-level_system"]
-"zkube_jc_sepolia_v1-GameLevel" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system", "zkube_jc_sepolia_v1-level_system"]
-"zkube_jc_sepolia_v1-GameCounter" = ["zkube_jc_sepolia_v1-game_system"]
-"zkube_jc_sepolia_v1-GameMetadata" = ["zkube_jc_sepolia_v1-game_system"]
-"zkube_jc_sepolia_v1-TokenMetadata" = ["zkube_jc_sepolia_v1-game_system"]
-"zkube_jc_sepolia_v1-PlayerMeta" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system"]
-"zkube_jc_sepolia_v1-PlayerBestRun" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system"]
-# Models — config
-"zkube_jc_sepolia_v1-GameSettings" = ["zkube_jc_sepolia_v1-config_system"]
-"zkube_jc_sepolia_v1-GameSettingsMetadata" = ["zkube_jc_sepolia_v1-config_system"]
-# Models — map entitlements
-"zkube_jc_sepolia_v1-MapEntitlement" = ["zkube_jc_sepolia_v1-config_system"]
-# Models — daily challenge
-"zkube_jc_sepolia_v1-DailyChallenge" = ["zkube_jc_sepolia_v1-daily_challenge_system"]
-"zkube_jc_sepolia_v1-DailyEntry" = ["zkube_jc_sepolia_v1-daily_challenge_system", "zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system"]
-"zkube_jc_sepolia_v1-DailyLeaderboard" = ["zkube_jc_sepolia_v1-daily_challenge_system", "zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system"]
-"zkube_jc_sepolia_v1-GameChallenge" = ["zkube_jc_sepolia_v1-game_system"]
-# Events
-"zkube_jc_sepolia_v1-StartGame" = ["zkube_jc_sepolia_v1-game_system"]
-"zkube_jc_sepolia_v1-LevelStarted" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system", "zkube_jc_sepolia_v1-level_system"]
-"zkube_jc_sepolia_v1-LevelCompleted" = ["zkube_jc_sepolia_v1-move_system", "zkube_jc_sepolia_v1-level_system"]
-"zkube_jc_sepolia_v1-RunEnded" = ["zkube_jc_sepolia_v1-game_system", "zkube_jc_sepolia_v1-move_system"]
-"zkube_jc_sepolia_v1-ConstraintProgress" = ["zkube_jc_sepolia_v1-game_system"]
+"zkube_v2_1_0" = [
+    "zkube_v2_1_0-game_system",
+    "zkube_v2_1_0-move_system",
+    "zkube_v2_1_0-grid_system",
+    "zkube_v2_1_0-level_system",
+    "zkube_v2_1_0-config_system",
+    "zkube_v2_1_0-daily_challenge_system",
+    "zkube_v2_1_0-renderer_systems",
+]
 
 [init_call_args]
-"zkube_jc_sepolia_v1-game_system" = [
-    "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
-    "0x045edce17818992bb6885a3f9b85bf901179cbab2bee32deae4d1862f16c23bc",
-    "1",
-    "0x0",
+"zkube_v2_1_0-game_system" = [
+    "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec", # creator
+    "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec", # denshokan (self on slot)
+    "0x1", "0x0", # renderer_address: Option::Some(0x0) — fallback to DNS
+    "0x0",        # vrf_address: no VRF on katana
 ]
-"zkube_jc_sepolia_v1-config_system" = [
-    "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
-    "0x0",
+"zkube_v2_1_0-config_system" = [
+    "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec", # creator (also treasury + zstar placeholder)
+    "0x0", # cube_token_address
 ]
-"zkube_jc_sepolia_v1-daily_challenge_system" = [
-    "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
-    "0x0",
-    "0x0",
+"zkube_v2_1_0-daily_challenge_system" = [
+    "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec", # admin
+    "0x0", # ticket_address
+    "0x0", # lords_address
+]
+
+[migration]
+order_inits = [
+    "zkube_v2_1_0-game_system",
+    "zkube_v2_1_0-config_system",
+    "zkube_v2_1_0-daily_challenge_system",
 ]
