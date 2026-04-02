@@ -17,7 +17,7 @@ export const useZoneProgress = (
 ): ZoneProgressResult => {
   const {
     setup: {
-      contractComponents: { GameSettings, GameSettingsMetadata, PlayerBestRun, MapEntitlement },
+      contractComponents: { GameSettingsMetadata, PlayerBestRun, MapEntitlement },
     },
   } = useDojo();
 
@@ -30,19 +30,11 @@ export const useZoneProgress = (
     }
   }, [playerAddress]);
 
-  const settingsEntityIds = useEntityQuery([Has(GameSettings)]);
   const metadataEntityIds = useEntityQuery([Has(GameSettingsMetadata)]);
   const bestRunEntityIds = useEntityQuery([Has(PlayerBestRun)]);
   const entitlementEntityIds = useEntityQuery([Has(MapEntitlement)]);
 
   return useMemo(() => {
-    const mapModeSettings = new Set<number>();
-    for (const entity of settingsEntityIds) {
-      const gameSetting = getComponentValue(GameSettings, entity);
-      if (!gameSetting || gameSetting.mode !== 0) continue;
-      mapModeSettings.add(gameSetting.settings_id);
-    }
-
     const metadataMap = new Map<
       number,
       { starCost: bigint; price: bigint; isFree: boolean; themeId: number; enabled: boolean }
@@ -52,7 +44,7 @@ export const useZoneProgress = (
       const metadata = getComponentValue(GameSettingsMetadata, entity);
       if (!metadata) continue;
       metadataMap.set(metadata.settings_id, {
-        starCost: BigInt((metadata as any).star_cost ?? 0),
+        starCost: BigInt(metadata.star_cost ?? 0),
         price: BigInt(metadata.price ?? 0),
         isFree: metadata.is_free,
         themeId: metadata.theme_id,
@@ -83,9 +75,15 @@ export const useZoneProgress = (
       entitlements.add(entitlement.settings_id);
     }
 
+    const seenThemes = new Set<number>();
     const zones: ZoneProgressData[] = Array.from(metadataMap.entries())
-      .filter(([settingsId, metadata]) => metadata.enabled && (mapModeSettings.size === 0 || mapModeSettings.has(settingsId)))
+      .filter(([_, metadata]) => metadata.enabled)
       .sort(([a], [b]) => a - b)
+      .filter(([_, metadata]) => {
+        if (seenThemes.has(metadata.themeId)) return false;
+        seenThemes.add(metadata.themeId);
+        return true;
+      })
       .map(([settingsId, metadata]) => {
         const bestRun = bestRunMap.get(settingsId);
         return {
@@ -107,5 +105,5 @@ export const useZoneProgress = (
 
     const totalStars = zones.reduce((sum, zone) => sum + zone.stars, 0);
     return { zones, totalStars, isLoading: false };
-  }, [ownerBigInt, zStarBalance, settingsEntityIds, metadataEntityIds, bestRunEntityIds, entitlementEntityIds, GameSettings, GameSettingsMetadata, PlayerBestRun, MapEntitlement]);
+  }, [ownerBigInt, zStarBalance, metadataEntityIds, bestRunEntityIds, entitlementEntityIds, GameSettingsMetadata, PlayerBestRun, MapEntitlement]);
 };

@@ -12,7 +12,7 @@ import { createLogger } from "@/utils/logger";
 export type SetupResult = Awaited<ReturnType<typeof setup>>;
 
 const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
-const namespace = VITE_PUBLIC_NAMESPACE || "zkube_jc_sepolia_v1";
+const namespace = VITE_PUBLIC_NAMESPACE || "zkube_v2_1_0";
 const arcadeNamespace = "zkube_v2_1_0";
 const log = createLogger("dojo/setup");
 

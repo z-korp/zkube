@@ -237,7 +237,7 @@ const HomePage: React.FC = () => {
               const isSelected = idx === activeZone && isSelectable;
               return (
                 <button
-                  key={`${z.zoneId}-${z.name}`}
+                  key={z.settingsId}
                   type="button"
                   onClick={() => {
                     if (isSelectable) setActiveZone(idx);
