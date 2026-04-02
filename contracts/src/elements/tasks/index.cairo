@@ -12,6 +12,8 @@ pub mod TaskId {
     pub const BOSS_DEFEAT: felt252 = 'BOSS_DEFEAT';
     pub const ZONE_COMPLETE: felt252 = 'ZONE_COMPLETE';
     pub const DAILY_PLAY: felt252 = 'DAILY_PLAY';
+    /// Incremented when a daily rotating quest completes — used by DailyFinisher meta-quest
+    pub const DAILY_QUEST_DONE: felt252 = 'DAILY_QUEST_DONE';
 }
 
 #[derive(Copy, Drop)]
@@ -27,6 +29,7 @@ pub enum Task {
     BossDefeat,
     ZoneComplete,
     DailyPlay,
+    DailyQuestDone,
 }
 
 impl TaskImpl of TaskTrait<Task> {
@@ -43,6 +46,7 @@ impl TaskImpl of TaskTrait<Task> {
             Task::BossDefeat => TaskId::BOSS_DEFEAT,
             Task::ZoneComplete => TaskId::ZONE_COMPLETE,
             Task::DailyPlay => TaskId::DAILY_PLAY,
+            Task::DailyQuestDone => TaskId::DAILY_QUEST_DONE,
         }
     }
 
@@ -59,6 +63,7 @@ impl TaskImpl of TaskTrait<Task> {
             Task::BossDefeat => format!("Defeat {} bosses", count),
             Task::ZoneComplete => format!("Complete {} zones", count),
             Task::DailyPlay => format!("Play daily challenge {} times", count),
+            Task::DailyQuestDone => format!("Complete {} daily quests", count),
         }
     }
 }

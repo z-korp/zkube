@@ -161,7 +161,7 @@ pub impl QuestDefsImpl of QuestDefsTrait {
             0,
             DAY,
             DAY,
-            array![task(ZTask::DailyPlay, 3)].span(),
+            array![task(ZTask::DailyQuestDone, 3)].span(),
             array![].span(),
             metadata(registry, "Daily Finisher", "Finish 3 daily quests", 2),
         )
@@ -173,9 +173,9 @@ pub impl QuestDefsImpl of QuestDefsTrait {
             0,
             WEEK,
             WEEK,
-            array![task(ZTask::GameStart, 25)].span(),
+            array![task(ZTask::LevelComplete, 30)].span(),
             array![].span(),
-            metadata(registry, "Weekly Grinder", "Start 25 runs this week", 5),
+            metadata(registry, "Weekly Grinder", "Complete 30 levels this week", 5),
         )
     }
 
@@ -185,7 +185,7 @@ pub impl QuestDefsImpl of QuestDefsTrait {
             0,
             WEEK,
             WEEK,
-            array![task(ZTask::DailyPlay, 7)].span(),
+            array![task(ZTask::DailyPlay, 3)].span(),
             array![].span(),
             metadata(registry, "Weekly Challenger", "Play daily challenge 7 times", 5),
         )

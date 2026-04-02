@@ -298,8 +298,7 @@ mod game_system {
 
             let mut contract = self.get_contract_mut();
             let world = contract.world(@DEFAULT_NS());
-            contract.quest.progress(world, player_id, Task::DailyPlay.identifier(), 1, true);
-            contract.achievement.progress(world, player_id, Task::DailyPlay.identifier(), 1, true);
+            contract.quest.progress(world, player_id, Task::DailyQuestDone.identifier(), 1, true);
         }
 
         fn on_quest_claim(
