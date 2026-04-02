@@ -48,7 +48,7 @@ pub fn update_weekly_leaderboard(
             insert_rank = rank;
         }
         rank += 1;
-    };
+    }
 
     if insert_rank == 0 {
         return;
@@ -74,7 +74,7 @@ pub fn update_weekly_leaderboard(
             }
             last = r;
             r += 1;
-        };
+        }
         if last < MAX_WEEKLY_LEADERBOARD_SIZE {
             last + 1
         } else {
@@ -90,7 +90,7 @@ pub fn update_weekly_leaderboard(
         };
         world.write_model(@shifted);
         r -= 1;
-    };
+    }
 
     let new_lb = WeeklyEndlessLeaderboard { week_id, rank: insert_rank, player, score: new_score };
     world.write_model(@new_lb);

@@ -124,11 +124,11 @@ mod config_system {
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
     use zkube::constants::DEFAULT_SETTINGS::DEFAULT_SETTINGS_ID;
+    use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::helpers::encoding::U256BytesUsedTraitImpl;
     use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
     use zkube::models::entitlement::MapEntitlement;
     use zkube::models::mutator::MutatorDef;
-    use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::types::difficulty::Difficulty;
     use super::IConfigSystem;
 
@@ -146,7 +146,7 @@ mod config_system {
         cube_token_address: ContractAddress,
         zstar_token_address: ContractAddress,
         treasury_address: ContractAddress,
-        star_eligible: Map::<u32, bool>,
+        star_eligible: Map<u32, bool>,
         #[substorage(v0)]
         settings: SettingsComponent::Storage,
         #[substorage(v0)]
@@ -708,7 +708,9 @@ mod config_system {
 
             let mut effective_price = metadata.price;
             if !metadata.star_cost.is_zero() {
-                let zstar_erc20 = IERC20Dispatcher { contract_address: self.zstar_token_address.read() };
+                let zstar_erc20 = IERC20Dispatcher {
+                    contract_address: self.zstar_token_address.read(),
+                };
                 let star_balance = zstar_erc20.balance_of(caller);
                 let discount_percent: u256 = (star_balance * 100_u256) / metadata.star_cost;
                 let charge_percent: u256 = if discount_percent >= 90_u256 {
@@ -720,7 +722,8 @@ mod config_system {
             }
 
             let erc20 = IERC20Dispatcher { contract_address: metadata.payment_token };
-            let success = erc20.transfer_from(caller, self.treasury_address.read(), effective_price);
+            let success = erc20
+                .transfer_from(caller, self.treasury_address.read(), effective_price);
             assert!(success, "Payment transfer failed");
 
             let entitlement = MapEntitlement {
@@ -739,7 +742,9 @@ mod config_system {
             let existing: MapEntitlement = world.read_model((caller, settings_id));
             assert!(existing.purchased_at == 0, "Map already purchased");
 
-            let zstar_erc20 = IERC20Dispatcher { contract_address: self.zstar_token_address.read() };
+            let zstar_erc20 = IERC20Dispatcher {
+                contract_address: self.zstar_token_address.read(),
+            };
             let star_balance = zstar_erc20.balance_of(caller);
             assert!(star_balance >= metadata.star_cost, "Not enough zStar");
 

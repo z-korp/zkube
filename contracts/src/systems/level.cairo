@@ -27,21 +27,21 @@ mod level_system {
     use dojo::world::{WorldStorage, WorldStorageTrait};
     use starknet::{ContractAddress, get_caller_address};
     use zkube::constants::DEFAULT_NS;
+    use zkube::elements::tasks::index::Task;
+    use zkube::elements::tasks::interface::TaskTrait;
     use zkube::events::{LevelCompleted, LevelStarted};
+    use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::game_libs::{GameLibsImpl, IGridSystemDispatcherTrait};
     use zkube::helpers::game_over;
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::random::RandomImpl;
-    use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::models::game::{Game, GameLevel, GameLevelTrait, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use zkube::systems::game::{IGameSystemDispatcher, IGameSystemDispatcherTrait};
-    use zkube::elements::tasks::index::Task;
-    use zkube::elements::tasks::interface::TaskTrait;
 
     #[storage]
     struct Storage {}
@@ -154,8 +154,7 @@ mod level_system {
 
             // Delta star minting: only mint the improvement over previous best
             if completed_level <= 10 && stars > 0 {
-                let mut best_run: PlayerBestRun = world
-                    .read_model((player, sid, 0_u8));
+                let mut best_run: PlayerBestRun = world.read_model((player, sid, 0_u8));
                 let previous_best = best_run.get_best_level_stars(completed_level);
                 if stars > previous_best {
                     let delta: u8 = stars - previous_best;

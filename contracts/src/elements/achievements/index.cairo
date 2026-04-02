@@ -19,10 +19,11 @@ pub impl AchievementDefsImpl of AchievementDefsTrait {
         array![
             Self::grinder_i(), Self::grinder_ii(), Self::grinder_iii(), Self::grinder_iv(),
             Self::sweeper_i(), Self::sweeper_ii(), Self::sweeper_iii(), Self::sweeper_iv(),
-            Self::combo_master_i(), Self::combo_master_ii(), Self::combo_master_iii(), Self::combo_master_iv(),
-            Self::boss_slayer_i(), Self::boss_slayer_ii(), Self::boss_slayer_iii(), Self::boss_slayer_iv(),
-            Self::explorer_i(), Self::explorer_ii(), Self::explorer_iii(), Self::explorer_iv(),
-            Self::challenger_i(), Self::challenger_ii(), Self::challenger_iii(), Self::challenger_iv(),
+            Self::combo_master_i(), Self::combo_master_ii(), Self::combo_master_iii(),
+            Self::combo_master_iv(), Self::boss_slayer_i(), Self::boss_slayer_ii(),
+            Self::boss_slayer_iii(), Self::boss_slayer_iv(), Self::explorer_i(),
+            Self::explorer_ii(), Self::explorer_iii(), Self::explorer_iv(), Self::challenger_i(),
+            Self::challenger_ii(), Self::challenger_iii(), Self::challenger_iv(),
         ]
             .span()
     }

@@ -340,3 +340,4 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
 }
 // Tests moved to contracts/src/tests/ - see test_packing.cairo for comprehensive packing tests
 
+

@@ -81,16 +81,16 @@ mod daily_challenge_system {
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
     use zkube::constants::DEFAULT_NS;
+    use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
+    use zkube::helpers::weekly::MAX_WEEKLY_LEADERBOARD_SIZE;
     use zkube::helpers::{daily, prize};
     use zkube::models::daily::{
         DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait, DailyLeaderboard,
         GameChallenge,
     };
     use zkube::models::game::{Game, GameTrait};
-    use zkube::models::weekly::{WeeklyEndless, WeeklyEndlessLeaderboard, current_week_id};
-    use zkube::helpers::weekly::MAX_WEEKLY_LEADERBOARD_SIZE;
-    use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
+    use zkube::models::weekly::{WeeklyEndless, WeeklyEndlessLeaderboard, current_week_id};
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use super::{
         IERC20MinimalDispatcher, IERC20MinimalDispatcherTrait, IZTicketBurnDispatcher,
@@ -233,7 +233,7 @@ mod daily_challenge_system {
                     }
                 }
                 rank += 1;
-            };
+            }
 
             challenge.settled = true;
             world.write_model(@challenge);
@@ -477,7 +477,7 @@ mod daily_challenge_system {
                     }
                 }
                 rank += 1;
-            };
+            }
 
             weekly.settled = true;
             world.write_model(@weekly);
@@ -516,7 +516,10 @@ mod daily_challenge_system {
         }
 
         fn mint_zstar(
-            ref self: ContractState, ref world: WorldStorage, recipient: ContractAddress, amount: u256,
+            ref self: ContractState,
+            ref world: WorldStorage,
+            recipient: ContractAddress,
+            amount: u256,
         ) {
             match world.dns_address(@"config_system") {
                 Option::Some(config_address) => {

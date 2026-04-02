@@ -2,7 +2,7 @@ use quest::types::metadata::{QuestMetadata, QuestMetadataTrait};
 use quest::types::reward::{QuestReward, RewardTrait};
 use quest::types::task::{Task, TaskTrait};
 use starknet::ContractAddress;
-use zkube::elements::tasks::index::{Task as ZTask};
+use zkube::elements::tasks::index::Task as ZTask;
 use zkube::elements::tasks::interface::TaskTrait as ZTaskTrait;
 
 pub const QUEST_LINE_CLEAR_I: felt252 = 'QUEST_LINE_CLEAR_I';
@@ -38,18 +38,11 @@ pub struct QuestDefinitionProps {
 pub impl QuestDefsImpl of QuestDefsTrait {
     fn all(registry: ContractAddress) -> Span<QuestDefinitionProps> {
         array![
-            Self::line_clear_i(registry),
-            Self::line_clear_ii(registry),
-            Self::line_clear_iii(registry),
-            Self::combo_i(registry),
-            Self::combo_ii(registry),
-            Self::combo_iii(registry),
-            Self::bonus_i(registry),
-            Self::bonus_ii(registry),
-            Self::daily_challenger(registry),
-            Self::daily_finisher(registry),
-            Self::weekly_grinder(registry),
-            Self::weekly_challenger(registry),
+            Self::line_clear_i(registry), Self::line_clear_ii(registry),
+            Self::line_clear_iii(registry), Self::combo_i(registry), Self::combo_ii(registry),
+            Self::combo_iii(registry), Self::bonus_i(registry), Self::bonus_ii(registry),
+            Self::daily_challenger(registry), Self::daily_finisher(registry),
+            Self::weekly_grinder(registry), Self::weekly_challenger(registry),
         ]
             .span()
     }
@@ -213,30 +206,14 @@ fn make_quest(
     conditions: Span<felt252>,
     metadata: QuestMetadata,
 ) -> QuestDefinitionProps {
-    QuestDefinitionProps {
-        id,
-        start,
-        end: 0,
-        duration,
-        interval,
-        tasks,
-        conditions,
-        metadata,
-    }
+    QuestDefinitionProps { id, start, end: 0, duration, interval, tasks, conditions, metadata }
 }
 
 fn metadata(
-    registry: ContractAddress,
-    name: ByteArray,
-    description: ByteArray,
-    reward_stars: u8,
+    registry: ContractAddress, name: ByteArray, description: ByteArray, reward_stars: u8,
 ) -> QuestMetadata {
     let rewards: Span<QuestReward> = array![
-        RewardTrait::new(
-            "Stars",
-            format!("{} star reward", reward_stars),
-            "fa-star",
-        ),
+        RewardTrait::new("Stars", format!("{} star reward", reward_stars), "fa-star"),
     ]
         .span();
 

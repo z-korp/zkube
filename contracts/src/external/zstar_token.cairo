@@ -15,7 +15,6 @@ pub mod ZStarToken {
     use openzeppelin_introspection::src5::SRC5Component;
     use openzeppelin_token::erc20::ERC20Component;
     use starknet::{ContractAddress, get_caller_address};
-
     use super::IZStarToken;
 
     const MINTER_ROLE: felt252 = 'MINTER_ROLE';
@@ -32,7 +31,8 @@ pub mod ZStarToken {
     #[abi(embed_v0)]
     impl ERC20MixinImpl = ERC20Component::ERC20MixinImpl<ContractState>;
     #[abi(embed_v0)]
-    impl AccessControlImpl = AccessControlComponent::AccessControlImpl<ContractState>;
+    impl AccessControlImpl =
+        AccessControlComponent::AccessControlImpl<ContractState>;
     #[abi(embed_v0)]
     impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
 
@@ -78,8 +78,7 @@ pub mod ZStarToken {
             from: ContractAddress,
             recipient: ContractAddress,
             amount: u256,
-        ) {
-        }
+        ) {}
     }
 
     #[constructor]

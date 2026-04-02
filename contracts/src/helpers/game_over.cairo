@@ -9,14 +9,13 @@ use starknet::{ContractAddress, get_block_timestamp};
 use zkube::events::{RunEnded, ZoneClearBonus};
 use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
 use zkube::helpers::config::ConfigUtilsTrait;
-use zkube::helpers::daily;
-use zkube::helpers::weekly;
-use zkube::models::weekly::current_week_id;
+use zkube::helpers::{daily, weekly};
 use zkube::models::daily::{
     DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait, GameChallenge,
 };
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
+use zkube::models::weekly::current_week_id;
 use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
 
 /// Handle game over: update player meta, emit event, submit daily result.
@@ -49,9 +48,7 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
     }
     if mode == 0 && run_data.zone_cleared && !best_run.map_cleared {
         world
-            .emit_event(
-                @ZoneClearBonus { player, settings_id: settings.settings_id, amount: 100 },
-            );
+            .emit_event(@ZoneClearBonus { player, settings_id: settings.settings_id, amount: 100 });
         player_meta.increment_xp(10000);
 
         match world.dns_address(@"config_system") {
@@ -93,9 +90,7 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
         };
         if is_eligible {
             let week_id = current_week_id(get_block_timestamp());
-            weekly::update_weekly_leaderboard(
-                ref world, week_id, player, run_data.total_score,
-            );
+            weekly::update_weekly_leaderboard(ref world, week_id, player, run_data.total_score);
         }
     }
 

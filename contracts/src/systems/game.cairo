@@ -63,8 +63,8 @@ mod game_system {
     };
     use zkube::elements::tasks::index::Task;
     use zkube::elements::tasks::interface::TaskTrait;
-    use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::events::StartGame;
+    use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::controller::Controller;
     use zkube::helpers::game_libs::{
@@ -385,10 +385,16 @@ mod game_system {
             run_data.bonus_charges -= 1;
             game.set_run_data(run_data);
             world.write_model(@game);
-            self.quest.progress(world, get_caller_address().into(), Task::BonusUsed.identifier(), 1, true);
+            self
+                .quest
+                .progress(
+                    world, get_caller_address().into(), Task::BonusUsed.identifier(), 1, true,
+                );
             self
                 .achievement
-                .progress(world, get_caller_address().into(), Task::BonusUsed.identifier(), 1, true);
+                .progress(
+                    world, get_caller_address().into(), Task::BonusUsed.identifier(), 1, true,
+                );
 
             post_action(token_address, token_id_felt);
         }
@@ -586,8 +592,7 @@ mod game_system {
             let mut player_meta: PlayerMeta = world.read_model(player);
             if !player_meta.exists() {
                 player_meta = PlayerMetaTrait::new(player);
-            } else if player_meta.last_active > 0
-                && timestamp - player_meta.last_active > 604800 {
+            } else if player_meta.last_active > 0 && timestamp - player_meta.last_active > 604800 {
                 match world.dns_address(@"config_system") {
                     Option::Some(config_address) => {
                         let config_dispatcher = IConfigSystemDispatcher {
@@ -617,7 +622,9 @@ mod game_system {
             self.achievement.progress(world, player.into(), Task::GameStart.identifier(), 1, true);
             if is_daily_game {
                 self.quest.progress(world, player.into(), Task::DailyPlay.identifier(), 1, true);
-                self.achievement.progress(world, player.into(), Task::DailyPlay.identifier(), 1, true);
+                self
+                    .achievement
+                    .progress(world, player.into(), Task::DailyPlay.identifier(), 1, true);
             }
 
             post_action(token_address, token_id_felt);

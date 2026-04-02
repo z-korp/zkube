@@ -21,6 +21,8 @@ mod move_system {
     use game_components_embeddable_game_standard::token::token::LifecycleTrait;
     use starknet::{get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
+    use zkube::elements::tasks::index::Task;
+    use zkube::elements::tasks::interface::TaskTrait;
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::game_libs::{
         GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
@@ -32,8 +34,6 @@ mod move_system {
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::PlayerBestRun;
     use zkube::systems::game::{IGameSystemDispatcher, IGameSystemDispatcherTrait};
-    use zkube::elements::tasks::index::Task;
-    use zkube::elements::tasks::interface::TaskTrait;
 
     #[storage]
     struct Storage {}
@@ -74,7 +74,9 @@ mod move_system {
             // Initialize GameLibs once for all dispatcher calls
             let libs = GameLibsImpl::new(world);
             let player = get_caller_address();
-            let game_address = world.dns_address(@"game_system").expect('GameSystem not found in DNS');
+            let game_address = world
+                .dns_address(@"game_system")
+                .expect('GameSystem not found in DNS');
             let game_dispatcher = IGameSystemDispatcher { contract_address: game_address };
 
             // Execute move via grid_system dispatcher (contains Controller logic)
@@ -91,8 +93,7 @@ mod move_system {
             let sid = settings.settings_id;
             if lines_cleared > 0 {
                 let lc_count: u128 = lines_cleared.into();
-                game_dispatcher
-                    .emit_progress(player, Task::LineClear.identifier(), lc_count, sid);
+                game_dispatcher.emit_progress(player, Task::LineClear.identifier(), lc_count, sid);
             }
             if game.combo_counter >= 3 {
                 game_dispatcher.emit_progress(player, Task::Combo3.identifier(), 1, sid);
@@ -184,28 +185,22 @@ mod move_system {
                 let is_complete = level_check::is_level_complete(@game_level, @run_data);
 
                 if is_complete {
-                    game_dispatcher
-                        .emit_progress(player, Task::LevelComplete.identifier(), 1, sid);
+                    game_dispatcher.emit_progress(player, Task::LevelComplete.identifier(), 1, sid);
                     if game_level.max_moves > 0 {
                         let perfect_threshold = game_level.max_moves * 40 / 100;
                         if run_data.level_moves.into() <= perfect_threshold {
                             game_dispatcher
-                                .emit_progress(
-                                    player, Task::PerfectLevel.identifier(), 1, sid,
-                                );
+                                .emit_progress(player, Task::PerfectLevel.identifier(), 1, sid);
                         }
                     }
                     if run_data.current_level >= 10 {
                         game_dispatcher
                             .emit_progress(player, Task::BossDefeat.identifier(), 1, sid);
                         // ZoneComplete only on FIRST clear — check PlayerBestRun.map_cleared
-                        let best_run: PlayerBestRun = world
-                            .read_model((player, sid, 0_u8));
+                        let best_run: PlayerBestRun = world.read_model((player, sid, 0_u8));
                         if !best_run.map_cleared {
                             game_dispatcher
-                                .emit_progress(
-                                    player, Task::ZoneComplete.identifier(), 1, sid,
-                                );
+                                .emit_progress(player, Task::ZoneComplete.identifier(), 1, sid);
                         }
                     }
                     libs.level.finalize_level(game_id);

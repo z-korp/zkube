@@ -2,8 +2,8 @@ pub mod constants;
 pub mod events;
 
 pub mod models {
-    pub mod cosmetic;
     pub mod config;
+    pub mod cosmetic;
     pub mod daily;
     pub mod entitlement;
     pub mod game;
@@ -43,8 +43,8 @@ pub mod elements {
     }
 
     pub mod tasks {
-        pub mod interface;
         pub mod index;
+        pub mod interface;
     }
 
     pub mod quests {
@@ -66,7 +66,6 @@ pub mod helpers {
     pub mod controller;
     pub mod daily;
     pub mod dispatchers;
-    pub mod weekly;
     pub mod encoding;
     pub mod game_helpers;
     pub mod game_libs;
@@ -83,6 +82,7 @@ pub mod helpers {
     pub mod renderer;
     pub mod scoring;
     pub mod token;
+    pub mod weekly;
 }
 
 pub mod systems {

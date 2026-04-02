@@ -21,7 +21,9 @@ pub struct PlayerMeta {
 pub impl PlayerMetaImpl of PlayerMetaTrait {
     /// Create a new PlayerMeta with default values
     fn new(player: ContractAddress) -> PlayerMeta {
-        PlayerMeta { player, data: MetaDataPackingTrait::new().pack(), best_level: 0, last_active: 0 }
+        PlayerMeta {
+            player, data: MetaDataPackingTrait::new().pack(), best_level: 0, last_active: 0,
+        }
     }
 
     /// Get unpacked meta data
@@ -161,9 +163,7 @@ pub impl PlayerBestRunImpl of PlayerBestRunTrait {
             }
 
             let shift: u8 = (level - 1) * 2;
-            let run_stars: u8 = (BitShift::shr(run_packed, shift.into()) & 0x3)
-                .try_into()
-                .unwrap();
+            let run_stars: u8 = (BitShift::shr(run_packed, shift.into()) & 0x3).try_into().unwrap();
             let current_best = self.get_best_level_stars(level);
             if run_stars > current_best {
                 self.set_best_level_stars(level, run_stars);
