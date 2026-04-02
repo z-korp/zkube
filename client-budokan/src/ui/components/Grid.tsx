@@ -7,14 +7,19 @@ import type { Block } from "@/types/types";
 import {
   removeCompleteRows,
   isGridFull,
+  removeBlocksSameWidth,
+  removeBlocksInRows,
+  getBlocksInRows,
   deepCompareBlocks,
   getBlocksSameRow,
+  getBlocksSameWidth,
   concatenateNewLineWithGridAndShiftGrid,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "motion/react";
+import { BonusType } from "@/dojo/game/types/bonusTypes";
 import ConfettiExplosion from "./ConfettiExplosion";
 import type { ConfettiExplosionRef } from "./ConfettiExplosion";
 import { useMusicPlayer } from "@/contexts/hooks";
@@ -36,9 +41,12 @@ interface GridProps {
   gridSize: number;
   gridWidth: number;
   gridHeight: number;
+  selectBlock: (block: Block) => void;
+  bonus: BonusType;
   account: Account | null;
   isTxProcessing: boolean;
   setIsTxProcessing: React.Dispatch<React.SetStateAction<boolean>>;
+  activeBonusLevel: number;
   levelTransitionPending: boolean;
   onCascadeComplete?: () => void;
 }
@@ -51,9 +59,12 @@ const Grid: React.FC<GridProps> = ({
   gridHeight,
   gridWidth,
   gridSize,
+  selectBlock,
+  bonus,
   account,
   isTxProcessing,
   setIsTxProcessing,
+  activeBonusLevel,
   levelTransitionPending,
   onCascadeComplete,
 }) => {
@@ -92,6 +103,7 @@ const Grid: React.FC<GridProps> = ({
   const [gameState, setGameState] = useState<GameState>(GameState.WAITING);
   const [isPlayerInDanger, setIsPlayerInDanger] = useState(false);
   const [lineExplodedCount, setLineExplodedCount] = useState(0);
+  const [blockBonus, setBlockBonus] = useState<Block | null>(null);
   const [explodingRows, setExplodingRows] = useState<Set<number>>(new Set());
   const { playExplode, playSwipe } = useMusicPlayer();
   const { themeTemplate } = useTheme();
@@ -101,7 +113,7 @@ const Grid: React.FC<GridProps> = ({
 
   const queue = useMoveStore((state) => state.queue);
   const isQueueProcessing = useMoveStore((state) => state.isQueueProcessing);
-  const { shouldBounce, animateText, resetAnimateText, setAnimateText, animatedPoints, setAnimatedPoints } =
+  const { shouldBounce, animateText, resetAnimateText, setAnimateText, animatedPoints, setAnimatedPoints, animatedCubes, setAnimatedCubes } =
     useGridAnimations(lineExplodedCount);
   const {
     transitioningBlocks,
@@ -235,6 +247,56 @@ const Grid: React.FC<GridProps> = ({
       return;
     }
 
+    // NON-GRID bonuses: Combo, Score — send tx directly, no block changes
+    // (Supply is handled directly from PlayScreen with a confirmation dialog)
+    if (bonus === BonusType.Combo) {
+      setIsTxProcessing(true);
+      setAnimateText(`+${activeBonusLevel + 1} combo`);
+      selectBlock(block);
+      return;
+    } else if (bonus === BonusType.Score) {
+      setIsTxProcessing(true);
+      setAnimatedPoints((activeBonusLevel + 1) * 10);
+      selectBlock(block);
+      return;
+    }
+
+    // GRID bonuses: Harvest, Wave — modify blocks, then gravity state machine
+    if (bonus === BonusType.Harvest) {
+      setBlockBonus(block);
+      getBlocksSameWidth(block, blocks).forEach((b) => {
+        if (gridPosition === null) return;
+        handleTriggerLocalExplosion(
+          gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
+          gridPosition.top + b.y * gridSize
+        );
+      });
+      setBlocks(removeBlocksSameWidth(block, blocks));
+    } else if (bonus === BonusType.Wave) {
+      setBlockBonus(block);
+      const rowCount = activeBonusLevel + 1;
+      const rows: number[] = [];
+      for (let i = 0; i < rowCount; i++) {
+        const r = block.y + i;
+        if (r < gridHeight) rows.push(r);
+      }
+      getBlocksInRows(rows, blocks).forEach((b) => {
+        if (gridPosition === null) return;
+        handleTriggerLocalExplosion(
+          gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
+          gridPosition.top + b.y * gridSize
+        );
+      });
+      setBlocks(removeBlocksInRows(rows, blocks));
+    }
+
+    // Grid bonuses enter gravity state machine
+    if (bonus === BonusType.Harvest || bonus === BonusType.Wave) {
+      setIsTxProcessing(true);
+      setIsMoving(true);
+      setGameState(GameState.GRAVITY_BONUS);
+      return;
+    }
     handleDragStart(e.clientX, block);
   };
 
@@ -364,6 +426,7 @@ const Grid: React.FC<GridProps> = ({
         resetDragRefs();
         setIsMoving(false);
         setExplodingRows(new Set());
+        setBlockBonus(null);
         gameStateRef.current = GameState.WAITING;
         setGameState(GameState.WAITING);
         setApplyData(false);
@@ -525,6 +588,7 @@ const Grid: React.FC<GridProps> = ({
     switch (gameState) {
       case GameState.GRAVITY:
       case GameState.GRAVITY2:
+      case GameState.GRAVITY_BONUS:
         if (!isMoving && transitioningBlocks.length === 0) {
           switch (gameState) {
             case GameState.GRAVITY:
@@ -532,6 +596,9 @@ const Grid: React.FC<GridProps> = ({
               break;
             case GameState.GRAVITY2:
               setGameState(GameState.LINE_CLEAR2);
+              break;
+            case GameState.GRAVITY_BONUS:
+              setGameState(GameState.LINE_CLEAR_BONUS);
               break;
           }
         } else {
@@ -585,6 +652,15 @@ const Grid: React.FC<GridProps> = ({
       case GameState.LINE_CLEAR2:
         clearCompleteLine(GameState.GRAVITY2, GameState.UPDATE_AFTER_MOVE);
         break;
+
+      case GameState.LINE_CLEAR_BONUS:
+        clearCompleteLine(
+          GameState.GRAVITY_BONUS,
+          GameState.UPDATE_AFTER_BONUS
+        );
+        break;
+
+      case GameState.UPDATE_AFTER_BONUS:
       case GameState.UPDATE_AFTER_MOVE:
         {
           // Calculate points for animation display
@@ -594,6 +670,9 @@ const Grid: React.FC<GridProps> = ({
           if (lineExplodedCount > 1) {
             setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
             setAnimatedPoints(pointsEarned);
+            // Cube bonuses match contract: 4→+1, 5→+3, 6→+5, 7→+10, 8→+25, 9+→+50
+            const cubesFromCombo = lineExplodedCount >= 9 ? 50 : lineExplodedCount >= 8 ? 25 : lineExplodedCount >= 7 ? 10 : lineExplodedCount >= 6 ? 5 : lineExplodedCount >= 5 ? 3 : lineExplodedCount >= 4 ? 1 : 0;
+            setAnimatedCubes(cubesFromCombo);
           }
 
           // All local cascading done — signal cascade complete
@@ -604,14 +683,24 @@ const Grid: React.FC<GridProps> = ({
           const inDanger = blocks.some((block) => block.y < 2);
           setIsPlayerInDanger(inDanger);
 
-          // Block input until chain data syncs
-          setIsTxProcessing(true);
-          setcurrentMove(null);
-          // Transition to CASCADE_COMPLETE instead of WAITING
-          // Chain sync effect will move us to WAITING once data arrives
-          gameStateRef.current = GameState.CASCADE_COMPLETE;
-          setGameState(GameState.CASCADE_COMPLETE);
-          onCascadeComplete?.();
+          if (gameState === GameState.UPDATE_AFTER_BONUS) {
+            selectBlock(blockBonus as Block);
+            setBlockBonus(null);
+            // Bonus: transition to CASCADE_COMPLETE, wait for chain sync
+            setIsTxProcessing(true);
+            gameStateRef.current = GameState.CASCADE_COMPLETE;
+            setGameState(GameState.CASCADE_COMPLETE);
+            onCascadeComplete?.();
+          } else if (gameState === GameState.UPDATE_AFTER_MOVE) {
+            // Block input until chain data syncs
+            setIsTxProcessing(true);
+            setcurrentMove(null);
+            // Transition to CASCADE_COMPLETE instead of WAITING
+            // Chain sync effect will move us to WAITING once data arrives
+            gameStateRef.current = GameState.CASCADE_COMPLETE;
+            setGameState(GameState.CASCADE_COMPLETE);
+            onCascadeComplete?.();
+          }
         }
         break;
 
@@ -678,7 +767,7 @@ const Grid: React.FC<GridProps> = ({
               />
             ))}
             <div className="flex items-center justify-center font-sans z-20 pointer-events-none">
-              <AnimatedText textEnum={animateText} pointsEarned={animatedPoints} reset={resetAnimateText} />
+              <AnimatedText textEnum={animateText} pointsEarned={animatedPoints} cubesEarned={animatedCubes} reset={resetAnimateText} />
             </div>
           </div>
         </div>

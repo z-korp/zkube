@@ -83,7 +83,8 @@ const BlockContainer: React.FC<BlockProps> = ({
         height: `${gridSize}px`,
         transition:
           state === GameState.GRAVITY ||
-          state === GameState.GRAVITY2
+          state === GameState.GRAVITY2 ||
+          state === GameState.GRAVITY_BONUS
             ? `top ${transitionDuration / 1000}s linear`
             : "none", // No transition in other states
         color: "white",

@@ -1,68 +1,44 @@
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
 import { Toaster } from "./ui/elements/sonner";
 import { TooltipProvider } from "@/ui/elements/tooltip";
-import { useNavigationStore, FULLSCREEN_PAGES } from "@/stores/navigationStore";
+import PageNavigator from "@/ui/navigation/PageNavigator";
+import { useNavigationStore } from "@/stores/navigationStore";
 import type { PageId } from "@/stores/navigationStore";
 import { getToastPlacement } from "@/utils/toast";
 import { useAccount } from "@starknet-react/core";
 import { Loading } from "@/ui/screens/Loading";
-import ThemeBackground from "@/ui/components/shared/ThemeBackground";
-import BottomTabBar from "@/ui/components/BottomTabBar";
-import PhoneFrame from "@/ui/components/shared/PhoneFrame";
 
 import HomePage from "@/ui/pages/HomePage";
 import PlayScreen from "@/ui/pages/PlayScreen";
 import MapPage from "@/ui/pages/MapPage";
-import MyGamesPage from "@/ui/pages/MyGamesPage";
-import MutatorRevealPage from "@/ui/pages/MutatorRevealPage";
 import SettingsPage from "@/ui/pages/SettingsPage";
+import MyGamesPage from "@/ui/pages/MyGamesPage";
 import LeaderboardPage from "@/ui/pages/LeaderboardPage";
-import DailyChallengePage from "@/ui/pages/DailyChallengePage";
 import ProfilePage from "@/ui/pages/ProfilePage";
+import DailyChallengePage from "@/ui/pages/DailyChallengePage";
 import BossRevealPage from "@/ui/pages/BossRevealPage";
+import MutatorRevealPage from "@/ui/pages/MutatorRevealPage";
 
-const pageComponents: Record<PageId, React.ReactNode> = {
+const pageComponents: Partial<Record<PageId, React.ReactNode>> = {
   home: <HomePage />,
   play: <PlayScreen />,
   map: <MapPage />,
-  mygames: <MyGamesPage />,
-  mutator: <MutatorRevealPage />,
-  profile: <ProfilePage />,
   ranks: <LeaderboardPage />,
   settings: <SettingsPage />,
+  mygames: <MyGamesPage />,
+  profile: <ProfilePage />,
   daily: <DailyChallengePage />,
   boss: <BossRevealPage />,
-};
-
-const TRANSITION_DURATION = 0.15;
-const EASE_OUT_CUBIC: [number, number, number, number] = [0.33, 1, 0.68, 1];
-const SLIDE_TRANSITION = {
-  duration: TRANSITION_DURATION,
-  ease: EASE_OUT_CUBIC,
+  mutator: <MutatorRevealPage />,
 };
 
 const CurrentPage: React.FC = () => {
   const currentPage = useNavigationStore((s) => s.currentPage);
-  const transitionDirection = useNavigationStore((s) => s.transitionDirection);
-  const isBack = transitionDirection === "back";
-
-  return (
-    <AnimatePresence initial={false}>
-      <motion.div
-        key={currentPage}
-        initial={{ x: isBack ? "-100%" : "100%" }}
-        animate={{ x: 0 }}
-        exit={{ x: isBack ? "100%" : "-100%" }}
-        transition={SLIDE_TRANSITION}
-        className="absolute inset-0 overflow-y-auto overflow-x-hidden"
-      >
-        {pageComponents[currentPage]}
-      </motion.div>
-    </AnimatePresence>
-  );
+  return pageComponents[currentPage] ?? pageComponents.home;
 };
 
+// starknet-react's isReconnecting is never set to true — auto-connect is fire-and-forget.
+// We gate on lastUsedConnector in localStorage to hold the loading screen until connected or timeout.
 function useAutoConnectGate(): boolean {
   const { status } = useAccount();
   const [waiting, setWaiting] = useState(
@@ -86,30 +62,14 @@ function useAutoConnectGate(): boolean {
 
 export default function App() {
   const waitingForAutoConnect = useAutoConnectGate();
-  const currentPage = useNavigationStore((s) => s.currentPage);
-  const showTabBar = !FULLSCREEN_PAGES.has(currentPage);
 
   if (waitingForAutoConnect) return <Loading />;
 
   return (
     <TooltipProvider>
-      <PhoneFrame>
-        <div className="relative flex h-full flex-col">
-          <ThemeBackground />
-          <div
-            className="relative flex-1 min-h-0 overflow-hidden"
-            style={showTabBar ? { paddingBottom: 0 } : undefined}
-          >
-            <div
-              className="absolute inset-0 overflow-hidden"
-              style={showTabBar ? { bottom: "4rem" } : undefined}
-            >
-              <CurrentPage />
-            </div>
-          </div>
-          {showTabBar && <BottomTabBar />}
-        </div>
-      </PhoneFrame>
+      <PageNavigator>
+        <CurrentPage />
+      </PageNavigator>
       <Toaster position={getToastPlacement()} />
     </TooltipProvider>
   );

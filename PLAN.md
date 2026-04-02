@@ -1,574 +1,737 @@
-# UX Flow & Layout Overhaul — Implementation Plan
-
-## Overview
-
-Major UX overhaul of the zKube client (`client-budokan/` only). This changes **flow and layout** — not the design system (fonts, colors, themes, cards stay). Key changes: remove "ON-CHAIN PUZZLE" subtitle & enlarge logo, add per-theme background images on home, replace the Map tab with a "My Games" tab, introduce a mutator dice-roll reveal page in the new-game flow, fix grid proportions (revert to width-only sizing), add a GameActionBar with bonus slots during gameplay, and hide the BottomTabBar during play.
-
-**Contracts are READ-ONLY. All changes in `client-budokan/`.**
-
-## Goals
-
-- Restore grid proportions to budokan-quality sizing (width-only ResizeObserver)
-- Replace Map tab with "My Games" showing all owned games (active + completed)
-- Implement new-game flow: mint → loading → mutator reveal → map → play
-- Add GameActionBar during gameplay with 3 bonus slots + map + surrender
-- Hide BottomTabBar and weird top bar during gameplay
-- Use per-theme `background.png` images on HomePage
-- Make logo bigger, remove "ON-CHAIN PUZZLE" subtitle
-
-## Non-Goals
-
-- **No design system changes** — fonts, colors, themes, cards, gradients all stay
-- **No contract changes** — all work in `client-budokan/` only
-- **No new data hooks** — `useGameTokensSlot`, `useZoneProgress`, `useZStarBalance` already exist
-- **No new game logic** — move/bonus/surrender system calls already exist in `systems.ts`
-- **No quest/achievement UI** — deferred
-- **No cosmetic shop** — deferred
-
-## Assumptions and Constraints
-
-- **Background images exist**: All 10 themes have `/public/assets/theme-N/background.png` (confirmed)
-- **Mutator definitions hardcoded**: Only 2 mutators exist (Tidecaller ID 1, Riptide ID 2). Hardcode in client config rather than syncing MutatorDef model from contract
-- **Bonus data in run_data**: Bits 101-117 of `run_data` contain `mode`, `bonus_type`, `bonus_charges`, `level_lines_cleared`, `bonus_slot` — but `runDataPacking.ts` currently only unpacks bits 0-100. Must extend.
-- **`useGameTokensSlot` returns all needed data** for My Games page (token_id, score, game_over, metadata with level)
-- **`actionbar/` directory exists but is empty** — ready for GameActionBar component
-- **BossRevealPage is the structural template** for MutatorRevealPage
-
-## Requirements
-
-### Functional
-
-- **F1**: HomePage shows larger logo (h-28+), no "ON-CHAIN PUZZLE" subtitle, per-theme background image
-- **F2**: Bottom tab bar reads: Home | My Games | Profile | Ranks | Settings
-- **F3**: My Games page lists all owned game NFTs (active at top, completed below), click to resume
-- **F4**: New game flow: mint → loading screen → mutator dice reveal → navigate to map → play
-- **F5**: PlayScreen has no BottomTabBar, no redundant top bar; uses GameActionBar at bottom
-- **F6**: GameActionBar shows: Map button | 3 bonus slots (type + charges) | Surrender | Settings
-- **F7**: Grid sizing uses width-only constraint (remove height-based `Math.min`), cells 28-64px
-- **F8**: Map page is accessed from GameActionBar (in-game), not from tab bar
-- **F9**: Compact HUD: single-row Level + Score + Combo + Constraints + Moves
-
-### Non-Functional
-
-- **NF1**: `pnpm build` succeeds with zero TypeScript errors
-- **NF2**: `pnpm test` passes all existing + new tests
-- **NF3**: Page transitions remain smooth (≤150ms with existing AnimatePresence)
-- **NF4**: Grid renders at ≥40px cell size on iPhone SE (375px width)
-
----
-
-## Technical Design
-
-### Navigation Architecture Change
-
-```
-CURRENT TABS:  Home | Map     | Profile | Ranks | Settings
-NEW TABS:      Home | MyGames | Profile | Ranks | Settings
-
-CURRENT OVERLAYS (full-screen, hide tabs): play | daily | boss
-NEW OVERLAYS:   play | daily | boss | mutator-reveal
-
-CURRENT FLOW:
-  Home → [NEW GAME] → Map (tab) → Play
-
-NEW FLOW:
-  Home → [NEW GAME] → Loading → MutatorReveal → Map (in-game overlay) → Play
-  Home → MyGames (tab) → [tap game card] → Map (in-game overlay) → Play
-```
-
-### Type Changes (`navigationStore.ts`)
-
-```typescript
-// BEFORE
-export type TabId = "home" | "map" | "profile" | "ranks" | "settings";
-export type OverlayId = "play" | "daily" | "boss";
-
-// AFTER
-export type TabId = "home" | "mygames" | "profile" | "ranks" | "settings";
-export type OverlayId = "play" | "daily" | "boss" | "mutator-reveal";
-```
-
-### RunData Extension (`runDataPacking.ts`)
-
-```
-Add bits 101-117 to RunData interface:
-  mode: boolean           (bit 101, 0=Map, 1=Endless)
-  bonusType: number       (bits 102-103, 0=None, 1=Hammer, 2=Totem, 3=Wave)
-  bonusCharges: number    (bits 104-107, 0-15)
-  levelLinesCleared: number (bits 108-115, 0-255)
-  bonusSlot: number       (bits 116-117, 0-2)
-```
-
-### Mutator Config (client-side)
-
-```typescript
-// New file: src/config/mutators.ts
-export interface MutatorDisplay {
-  id: number;
-  name: string;
-  description: string;
-  icon: string;     // emoji or asset path
-  effect: string;   // e.g. "+2 lines per clear"
-  color: string;    // accent color for the reveal
-}
-
-export const MUTATOR_DEFS: Record<number, MutatorDisplay> = {
-  1: {
-    id: 1,
-    name: "Tidecaller",
-    description: "The ocean surges with every line you clear",
-    icon: "🌊",
-    effect: "+2 bonus lines per clear",
-    color: "#2ECFB0",
-  },
-  2: {
-    id: 2,
-    name: "Riptide",
-    description: "Combo chains pull in devastating power",
-    icon: "🌀",
-    effect: "1.5× combo score, 1.3× endless ramp",
-    color: "#7EC8E3",
-  },
-};
-```
-
-### PlayScreen Layout (New)
-
-```
-┌─────────────────────────────────────┐
-│ [← Back]  Lv.X · Score   [⚙]      │  Top bar (h-11, minimal)
-├─────────────────────────────────────┤
-│ [LV.X ★★★] [MOVES 3/12] [SCORE    │  Compact HUD (single row)
-│  120/200]  [COMBO x3]  [Constraint]│
-├─────────────────────────────────────┤
-│                                     │
-│         ┌─────────────┐             │
-│         │  8×10 GRID  │             │  Grid (width-only sizing)
-│         │  (BIGGER!)  │             │
-│         └─────────────┘             │
-│         NEXT: [■][■][□][■]...      │  Next row preview
-│         ← Swipe to align →         │
-│                                     │
-├─────────────────────────────────────┤
-│ [🗺] │ [⚡1] [🔨2] [🌊0] │ [🏳] [⚙]│  GameActionBar (h-14)
-└─────────────────────────────────────┘
-  Map    Bonus slots        Surrender
-         (type + charges)   Settings
-```
-
-### MyGamesPage Layout
-
-```
-┌─────────────────────────────────────┐
-│  MY GAMES                           │  Header
-├─────────────────────────────────────┤
-│  Active (2)                         │  Section header
-│  ┌─────────────────────────────────┐│
-│  │ Game #142  Lv.7  Score: 1240   ││  Game card (active)
-│  │ Polynesian · Map Mode    [→]   ││  Click → navigate to map
-│  └─────────────────────────────────┘│
-│  ┌─────────────────────────────────┐│
-│  │ Game #138  Lv.3  Score: 420    ││
-│  │ Norse · Endless Mode     [→]   ││
-│  └─────────────────────────────────┘│
-├─────────────────────────────────────┤
-│  Completed (5)                      │  Section header
-│  ┌─────────────────────────────────┐│
-│  │ Game #130  Final: 3200  ★★★    ││  Game card (completed)
-│  │ Polynesian · Zone Cleared      ││  Dimmed, non-interactive
-│  └─────────────────────────────────┘│
-│  ...                                │
-└─────────────────────────────────────┘
-```
-
----
-
-## Implementation Plan
-
-### Phase 0: Foundation (Serial — Must Complete First)
-
-**Prerequisite for**: All subsequent phases.
-**Estimated complexity**: Low-medium. Type changes + new file stubs.
-
-| Task | Description | Files | Output | Test |
-|------|-------------|-------|--------|------|
-| 0.1 | Update `TabId` and `OverlayId` types. Change `"map"` → `"mygames"` in TabId. Add `"mutator-reveal"` to OverlayId. Update `FULLSCREEN_PAGES` to include `"mutator-reveal"`. Update `getBackTarget()`: `play → mygames`, `mutator-reveal → mygames`, `boss → mygames`. | `stores/navigationStore.ts` | Updated types + back navigation | `pnpm build` succeeds |
-| 0.2 | Update `BottomTabBar.tsx`: change Map tab to My Games (`{ id: "mygames", icon: "◫", label: "My Games" }`). | `ui/components/BottomTabBar.tsx` | Tab bar shows My Games | Visual: tab bar renders 5 tabs with "My Games" |
-| 0.3 | Create shell pages: `MyGamesPage.tsx` (renders "My Games — coming soon"), `MutatorRevealPage.tsx` (renders "Mutator Reveal — coming soon"). | `ui/pages/MyGamesPage.tsx`, `ui/pages/MutatorRevealPage.tsx` | Two new page files | `pnpm build` succeeds |
-| 0.4 | Update `App.tsx` page registry: import new pages, replace `map: <MapPage />` with `mygames: <MyGamesPage />`, add `"mutator-reveal": <MutatorRevealPage />`. Keep MapPage import (used as in-game overlay later). | `App.tsx` | All pages routable | Navigate to My Games tab works |
-| 0.5 | Extend `runDataPacking.ts`: add `mode` (bit 101), `bonusType` (102-103), `bonusCharges` (104-107), `levelLinesCleared` (108-115), `bonusSlot` (116-117) to `RunData` interface and `unpackRunData()`. Add corresponding getters to `Game` class. | `dojo/game/helpers/runDataPacking.ts`, `dojo/game/models/game.ts` | Bonus data accessible via `game.bonusType`, `game.bonusCharges`, `game.bonusSlot` | Unit test: `unpackRunData` with known packed value returns correct bonus fields |
-| 0.6 | Create `config/mutators.ts` with `MUTATOR_DEFS` record and `getMutatorDisplay(id)` function. | `config/mutators.ts` | Mutator display data | `pnpm build` succeeds |
-| 0.7 | Create empty `GameActionBar.tsx` in `ui/components/actionbar/`. Renders placeholder text for now. | `ui/components/actionbar/GameActionBar.tsx` | File exists, exports component | `pnpm build` succeeds |
-
-**Unit Tests for 0.5** (TDD — write first in `src/test/runDataPacking.test.ts`):
-```typescript
-describe("unpackRunData bonus fields", () => {
-  it("extracts mode from bit 101", () => {
-    const packed = 1n << 101n;
-    expect(unpackRunData(packed).mode).toBe(true); // Endless
-  });
-
-  it("extracts bonusType from bits 102-103", () => {
-    const packed = 2n << 102n; // Totem
-    expect(unpackRunData(packed).bonusType).toBe(2);
-  });
-
-  it("extracts bonusCharges from bits 104-107", () => {
-    const packed = 5n << 104n; // 5 charges
-    expect(unpackRunData(packed).bonusCharges).toBe(5);
-  });
-
-  it("extracts bonusSlot from bits 116-117", () => {
-    const packed = 2n << 116n; // slot 2
-    expect(unpackRunData(packed).bonusSlot).toBe(2);
-  });
-
-  it("extracts all bonus fields from combined packed value", () => {
-    // level=3, bonusType=1(Hammer), bonusCharges=3, bonusSlot=1
-    const packed = 3n | (1n << 102n) | (3n << 104n) | (1n << 116n);
-    const rd = unpackRunData(packed);
-    expect(rd.currentLevel).toBe(3);
-    expect(rd.bonusType).toBe(1);
-    expect(rd.bonusCharges).toBe(3);
-    expect(rd.bonusSlot).toBe(1);
-  });
-});
-```
-
-**Commit**: `feat: navigation foundation — update types, add page shells, extend runData with bonus fields`
-
----
-
-### Phase 1: Parallel Workstreams (after Phase 0)
-
-#### Workstream A: HomePage Overhaul
-**Dependencies**: Phase 0.1 (navigation types), 0.4 (App routing)
-**Can parallelize with**: Workstreams B, C, D
-
-| Task | Description | Files | Output |
-|------|-------------|-------|--------|
-| A.1 | Remove `ON-CHAIN PUZZLE` subtitle text (line 149 in current HomePage). Make logo bigger: `h-20` → `h-28 md:h-32`. | `ui/pages/HomePage.tsx` | Logo larger, no subtitle |
-| A.2 | Add per-theme background image to HomePage. Use `getThemeImages(themeId).background` as a full-bleed background behind the content, with a dark overlay gradient for text readability. The gradient overlay preserves the existing color feel while adding visual depth. | `ui/pages/HomePage.tsx` | Background image visible behind content |
-| A.3 | Update `handleStartGame()` flow: after `create()`, navigate to `"mutator-reveal"` instead of `"map"`. The mutator reveal page will then navigate to map. | `ui/pages/HomePage.tsx` | New game → mutator reveal page |
-| A.4 | Remove "CONTINUE" button logic from HomePage. Multi-game management moves to My Games page. Keep the "NEW GAME" button. | `ui/pages/HomePage.tsx` | No continue button, cleaner home |
-
-**Commit**: `feat: HomePage — bigger logo, theme bg image, remove subtitle, update game flow`
-
-#### Workstream B: MyGamesPage
-**Dependencies**: Phase 0.1, 0.3 (shell page), 0.4 (routing)
-**Can parallelize with**: Workstreams A, C, D
-
-| Task | Description | Files | Output |
-|------|-------------|-------|--------|
-| B.1 | Implement `MyGamesPage.tsx`: use `useGameTokensSlot` to fetch all owned games. Split into "Active" and "Completed" sections. Each card shows: game name, level, score, zone icon, mode (Map/Endless). Active games have a click handler → `navigate("map", tokenId)`. | `ui/pages/MyGamesPage.tsx` | Full game list with sections |
-| B.2 | Add pull-to-refresh via `refetch()` from `useGameTokensSlot`. Show loading skeleton while fetching. Empty state: "No games yet — start one from Home!" | `ui/pages/MyGamesPage.tsx` | Loading + empty states |
-| B.3 | Parse `metadata` JSON from `SlotGameTokenData` to extract level, score, zone attributes for display. Use `unpackRunData` for additional data if `run_data` is available via RECS. | `ui/pages/MyGamesPage.tsx` | Rich game card data |
-
-**Card Component Structure**:
-```tsx
-// Each game card
-<button onClick={() => navigate("map", game.token_id)}>
-  <div className="flex items-center gap-3">
-    <img src={getThemeImages(getThemeId(zoneId)).themeIcon} className="h-10 w-10" />
-    <div>
-      <p>Game #{tokenId}</p>
-      <p>Lv.{level} · Score: {score}</p>
-      <p>{zoneName} · {mode === 0 ? "Map" : "Endless"}</p>
-    </div>
-    {!game_over && <span>→</span>}
-  </div>
-</button>
-```
-
-**Commit**: `feat: MyGamesPage — list owned games with active/completed sections`
-
-#### Workstream C: MutatorRevealPage
-**Dependencies**: Phase 0.1, 0.3, 0.5 (runData extension), 0.6 (mutator config)
-**Can parallelize with**: Workstreams A, B, D
-
-| Task | Description | Files | Output |
-|------|-------------|-------|--------|
-| C.1 | Implement `MutatorRevealPage.tsx` following BossRevealPage pattern. Read `game.mutatorMask` via `useGame()`. Look up mutator display from `MUTATOR_DEFS`. | `ui/pages/MutatorRevealPage.tsx` | Shows mutator name + description |
-| C.2 | Add entrance animation: icon slides up with spring, text fades in staggered, particle burst via ConfettiExplosion on reveal. Use `motion/react` for all animations. Play `"start"` SFX on mount. | `ui/pages/MutatorRevealPage.tsx` | Animated reveal sequence |
-| C.3 | Add "CONTINUE TO MAP" button that navigates to `"map"` with `gameId`. Handle edge case: `mutatorMask === 0` (no mutator) — show "No mutator this run" with quick auto-advance (2s delay then navigate). | `ui/pages/MutatorRevealPage.tsx` | Navigation to map works |
-| C.4 | Add loading state: show spinner until `seed !== 0n` (game synced from Torii). This replaces the separate loading screen — the mutator reveal page IS the loading screen with a reveal at the end. | `ui/pages/MutatorRevealPage.tsx` | Loading → reveal transition |
-
-**Page Structure** (following BossRevealPage pattern at `ui/pages/BossRevealPage.tsx`):
-```tsx
-<div className="relative flex h-full min-h-0 flex-col px-5 py-4">
-  <BackButton />
-  <div className="mx-auto flex h-full w-full max-w-sm flex-col items-center justify-center">
-    {isLoading ? (
-      <LoadingSpinner />
-    ) : (
-      <>
-        <MutatorIcon />        {/* Animated icon with glow */}
-        <MutatorLabel />       {/* "MUTATOR DRAWN" */}
-        <MutatorName />        {/* e.g. "Tidecaller" */}
-        <MutatorDescription /> {/* Effect description */}
-        <EffectCard />         {/* "+2 lines per clear" */}
-        <ContinueButton />     {/* "CONTINUE TO MAP" */}
-      </>
-    )}
-  </div>
-</div>
-```
-
-**Commit**: `feat: MutatorRevealPage — animated mutator reveal with loading state`
-
-#### Workstream D: GameActionBar + Grid Fix
-**Dependencies**: Phase 0.5 (bonus data), 0.7 (shell component)
-**Can parallelize with**: Workstreams A, B, C
-
-| Task | Description | Files | Output |
-|------|-------------|-------|--------|
-| D.1 | Implement `GameActionBar.tsx`: bottom bar with Map icon, divider, 3 bonus slots, divider, Surrender icon, Settings icon. Each bonus slot shows type icon + charge count badge. Use theme colors throughout. | `ui/components/actionbar/GameActionBar.tsx` | Functional action bar |
-| D.2 | Fix grid sizing in `GameBoard.tsx`: remove `heightBasedSize` from `Math.min()`. Use width-only: `setGridSize(Math.max(28, Math.min(widthBasedSize, 64)))`. Increase max from 56→64. Remove `ROWS + 1.5` height calculation entirely. | `ui/components/GameBoard.tsx` | Bigger grid, width-only sizing |
-| D.3 | Create bonus type icons/display helper. Map `bonusType` (0-3) to icon + label: 0=None, 1=Hammer (🔨), 2=Totem (🗿), 3=Wave (🌊). | `config/bonuses.ts` | Bonus display config |
-
-**GameActionBar Component**:
-```tsx
-interface GameActionBarProps {
-  onMapPress: () => void;
-  onSurrender: () => void;
-  onSettings: () => void;
-  onBonusActivate: (slotIndex: number) => void;
-  bonusType: number;       // 0=None, 1=Hammer, 2=Totem, 3=Wave
-  bonusCharges: number;    // 0-15
-  bonusSlot: number;       // active slot 0-2
-  colors: ThemeColors;
-}
-
-// Renders:
-// [🗺 Map] | [Bonus1] [Bonus2] [Bonus3] | [🏳 Surrender] [⚙]
-```
-
-**Grid Fix Detail**:
-```typescript
-// BEFORE (GameBoard.tsx line 40-46):
-const widthBasedSize = Math.floor((w - padding) / COLS);
-const heightBasedSize = h > 0 ? Math.floor((h - padding) / (ROWS + 1.5)) : widthBasedSize;
-setGridSize(Math.max(28, Math.min(widthBasedSize, heightBasedSize, 56)));
-
-// AFTER:
-const widthBasedSize = Math.floor((w - padding) / COLS);
-setGridSize(Math.max(28, Math.min(widthBasedSize, 64)));
-```
-
-**Commit**: `feat: GameActionBar with bonus slots, fix grid sizing to width-only`
-
----
-
-### Phase 2: Integration (after all Phase 1 workstreams)
-
-**Dependencies**: Workstreams A, B, C, D all complete
-
-| Task | Description | Files | Output |
-|------|-------------|-------|--------|
-| 2.1 | Integrate GameActionBar into PlayScreen. Remove the current top-bar duplication. Keep minimal top bar (back + level + score + settings). Add GameActionBar at bottom. Wire bonus activation to `applyBonus` system call. Wire Map button to `navigate("map")`. Wire Surrender. | `ui/pages/PlayScreen.tsx` | Action bar visible during gameplay |
-| 2.2 | Move Settings dialog OUT of PlayScreen top bar and INTO GameActionBar's settings button. Remove duplicate settings UI. | `ui/pages/PlayScreen.tsx` | Single settings access point |
-| 2.3 | Update MapPage to work as in-game overlay (accessed from GameActionBar). Ensure `goBack()` from map returns to `"play"` (not `"mygames"`). Add conditional back target: if previous page was `"play"`, go back to `"play"` with same gameId. | `stores/navigationStore.ts`, `ui/pages/MapPage.tsx` | Map accessible from gameplay |
-| 2.4 | Wire `game.bonusType`, `game.bonusCharges`, `game.bonusSlot` from `useGame()` into GameActionBar props in PlayScreen. | `ui/pages/PlayScreen.tsx` | Live bonus data in action bar |
-| 2.5 | Compact GameHud to single row: remove the constraint sub-section, move constraint progress into inline badges next to score/moves. Level badge + Stars + Moves counter + Score bar + Combo badge + Constraint indicators — all in one row. | `ui/components/hud/GameHud.tsx` | Compact single-row HUD |
-| 2.6 | Fix `getBackTarget()` for new flow. Map navigated from play should go back to play. Map navigated from mygames should go back to mygames. Use `previousPage` to determine context. | `stores/navigationStore.ts` | Context-aware back navigation |
-
-**Updated `getBackTarget` logic**:
-```typescript
-const getBackTarget = (page: PageId, previous: PageId | null): PageId => {
-  switch (page) {
-    case "play":
-      return "mygames";           // Play → My Games
-    case "daily":
-      return "home";
-    case "boss":
-      return "map";
-    case "mutator-reveal":
-      return "mygames";           // Cancel mutator → My Games
-    case "map":
-      return previous === "play" ? "play" : "mygames"; // Context-aware
-    default:
-      return "home";
-  }
-};
-```
-
-**Commit**: `feat: integrate GameActionBar into PlayScreen, compact HUD, context-aware map navigation`
-
----
-
-### Phase 3: Polish & QA (after Phase 2)
-
-| Task | Description | Files | Output |
-|------|-------------|-------|--------|
-| 3.1 | Full flow test: Home → New Game → MutatorReveal (loading+reveal) → Map → Play (with action bar + bonus slots) → Surrender → My Games. Verify all transitions work. | All pages | End-to-end flow works |
-| 3.2 | Full flow test: My Games → tap active game → Map → Play → Game Over → dialog → My Games. Verify completed games appear in My Games. | All pages | Resume flow works |
-| 3.3 | Grid proportion test: verify cell size ≥40px on 375px viewport (iPhone SE). Verify grid fills ~70% of screen height. Compare before/after screenshots. | `GameBoard.tsx` | Grid visually improved |
-| 3.4 | Clean up dead code: remove any remaining references to `"map"` as TabId. Remove CONTINUE button remnants from HomePage. | Multiple files | No dead code |
-| 3.5 | Update `CLAUDE.md` navigation section and CLAUDE.md with new page types and flow. | `client-budokan/CLAUDE.md` | Docs updated |
-
-**Commit**: `chore: QA polish, dead code cleanup, update documentation`
-
----
-
-## Testing and Validation
-
-### Unit Tests (TDD)
-
-| Test File | Tests | Coverage |
-|---|---|---|
-| `src/test/runDataPacking.test.ts` | 5 new tests: mode, bonusType, bonusCharges, bonusSlot, combined | `unpackRunData()` bonus fields |
-
-### Build Verification
-
-```bash
-cd client-budokan && pnpm build
-```
-Must complete with zero TypeScript errors.
-
-### Test Execution
-
-```bash
-cd client-budokan && pnpm test
-```
-Must pass all tests (existing + new runData tests).
-
-### Manual Flow Verification (agent-executable via Playwright)
-
-**Flow 1: New Game**
-1. Navigate to `https://localhost:5125`
-2. Verify HomePage shows large logo, no "ON-CHAIN PUZZLE" text
-3. Verify background image is visible behind content
-4. Verify BottomTabBar shows: Home | My Games | Profile | Ranks | Settings
-5. Click "NEW GAME" → verify MutatorRevealPage shows loading then mutator
-6. Click "CONTINUE TO MAP" → verify MapPage renders with level nodes
-7. Click current level → verify BottomSheetPreview shows
-8. Click "PLAY" → verify PlayScreen renders with GameActionBar at bottom
-9. Verify grid cells are visibly larger than before (≥40px)
-10. Verify GameActionBar shows bonus slots with type icons
-11. Verify no BottomTabBar visible during gameplay
-
-**Flow 2: My Games**
-1. Click "My Games" tab → verify page shows game list
-2. Verify active games at top, completed games below
-3. Click active game card → verify navigates to MapPage
-4. Click back → verify returns to My Games
-
-**Flow 3: In-Game Map**
-1. During gameplay, click Map icon in GameActionBar
-2. Verify MapPage shows
-3. Click back → verify returns to PlayScreen (not My Games)
-
----
-
-## Verification Checklist
-
-- [ ] `pnpm build` succeeds with zero errors
-- [ ] `pnpm test` passes all tests
-- [ ] `TabId` type no longer includes `"map"`, includes `"mygames"`
-- [ ] `OverlayId` type includes `"mutator-reveal"`
-- [ ] BottomTabBar shows "My Games" (not "Map")
-- [ ] HomePage: no "ON-CHAIN PUZZLE" text visible
-- [ ] HomePage: logo is h-28+ (not h-20)
-- [ ] HomePage: background image from theme visible
-- [ ] MyGamesPage: shows active + completed game sections
-- [ ] MutatorRevealPage: shows loading then mutator animation
-- [ ] PlayScreen: GameActionBar visible at bottom
-- [ ] PlayScreen: no BottomTabBar visible
-- [ ] PlayScreen: grid cells are ≥40px on 375px viewport
-- [ ] GameActionBar: shows bonus type + charges
-- [ ] Map accessible from GameActionBar during gameplay
-- [ ] Back from in-game map returns to PlayScreen
-- [ ] `runDataPacking.ts` unpacks `bonusType`, `bonusCharges`, `bonusSlot`
-- [ ] `Game` class has `bonusType`, `bonusCharges`, `bonusSlot` getters
-
----
-
-## Commit Strategy (Atomic)
-
-| # | Commit Message | Scope | Depends On |
-|---|---|---|---|
-| 1 | `feat: navigation foundation — update types, add page shells, extend runData with bonus fields` | Phase 0 (all) | — |
-| 2 | `feat: HomePage — bigger logo, theme bg image, remove subtitle, update game flow` | Workstream A | #1 |
-| 3 | `feat: MyGamesPage — list owned games with active/completed sections` | Workstream B | #1 |
-| 4 | `feat: MutatorRevealPage — animated mutator reveal with loading state` | Workstream C | #1 |
-| 5 | `feat: GameActionBar with bonus slots, fix grid sizing to width-only` | Workstream D | #1 |
-| 6 | `feat: integrate GameActionBar into PlayScreen, compact HUD, context-aware map navigation` | Phase 2 | #2, #3, #4, #5 |
-| 7 | `chore: QA polish, dead code cleanup, update documentation` | Phase 3 | #6 |
-
-Commits 2, 3, 4, 5 can be executed **in parallel** after commit 1. Commits 6-7 are serial.
-
----
-
-## Risk Assessment
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| MapPage used as both tab and overlay causes dual-rendering bugs | Medium | Medium | MapPage already renders correctly as standalone page. The change is where it's accessed from (GameActionBar vs tab), not how it renders. Back navigation uses `previousPage` for context. |
-| Grid width-only sizing causes overflow on very short viewports (landscape) | Low | Medium | Keep `max-h` constraint on grid container. On landscape, grid will be smaller but correct. Test on 320px height. |
-| `runDataPacking` bit positions don't match contract after recent changes | Medium | High | Compare with Cairo `RunDataBits` in `contracts/src/helpers/packing.cairo`. Cross-check with deployed game data. |
-| `useGameTokensSlot` returns stale data (game finished but still shows active) | Low | Low | Already polls via `refreshTrigger`. Add refetch on page focus. |
-| Mutator reveal blocks gameplay if seed takes too long to sync | Medium | Medium | 5s timeout auto-advances to map. Loading spinner shown. User can press back to cancel. |
-| Bonus type/charges show 0 for games created before bonus system | High | Low | Handle gracefully: hide bonus slots when `bonusType === 0`. Show "No bonus this run" state. |
-
----
-
-## Open Questions
-
-- [ ] **RunData bit positions**: Verify bits 101-117 match the current Cairo contract. The CLAUDE.md layout may have shifted if new fields were added. Cross-check with `contracts/src/helpers/packing.cairo`.
-- [ ] **Bonus activation flow**: Does `applyBonus` system call need rowIndex/lineIndex? If so, bonus activation from GameActionBar needs to enter a "targeting mode" before applying. This may need a follow-up task.
-- [ ] **Background image quality**: The 10 `background.png` files are 1.3-1.6MB each. Consider generating WebP versions or adding lazy loading to avoid slow home page loads on mobile.
+# PLAN: Adapt client-budokan to v2 Contracts
+
+> **Goal**: Make `client-budokan/` (budokan base, great UI/UX) work with the current v2 contracts, porting useful new features from `new-client-budokan/` (reference only).
+>
+> **Constraints**: Contracts are READ-ONLY. `new-client-budokan/` is reference-only. All work happens IN `client-budokan/`.
 
 ---
 
 ## Decision Log
 
-| Decision | Rationale | Alternatives Considered |
-|----------|-----------|------------------------|
-| Hardcode mutator definitions (MUTATOR_DEFS) rather than syncing MutatorDef model from Torii | Only 2 mutators exist. Adding RECS model sync adds complexity and sync delay for minimal benefit. Easy to extend later. | Add MutatorDef to contractModels.ts + setup.ts — overkill for 2 items |
-| MutatorRevealPage doubles as loading screen | Avoids a separate loading page. User sees something interesting while game syncs. Reduces total page count. | Separate Loading → MutatorReveal — extra page transition |
-| MapPage stays as shared component, not duplicated | Map renders identically whether accessed from GameActionBar or My Games. Only the back-navigation target differs, handled by `previousPage` context. | Duplicate MapPage for in-game vs standalone — unnecessary code duplication |
-| Width-only grid sizing (remove height constraint) | The height constraint is the root cause of the "grid SUCKS" complaint. Budokan used width-only and it worked. Height overflow handled by scroll/clamp on the container. | Adjust height divisor (e.g. ROWS + 0.5) — half-measure, still constrains grid |
-| Keep existing Map tab page as an overlay accessed from gameplay | User explicitly wants map as in-game view (from action bar), not as a persistent tab. "My Games" replaces it in the tab bar. | Keep map as tab AND in-game overlay — confusing dual access, user explicitly rejected map tab |
-| Extend RunData with bonus fields rather than reading them separately | Bonus data is packed in the same `run_data` felt252. Unpacking it at the same time is natural, efficient, and consistent. | Separate `useBonusData` hook — unnecessary indirection |
+| # | Decision | Rationale |
+|---|----------|-----------|
+| D1 | Full `number → bigint` migration for `gameId` | Contracts use `felt252`. Boundary-casting is fragile with large token IDs. New-client already did this. |
+| D2 | Wire `apply_bonus` to `game_system` | v2 contracts moved `apply_bonus` to `game_system`. Budokan UI has bonus buttons. Core gameplay feature. |
+| D3 | Include `create_run` entrypoint | Single system call wrapper, low effort, needed for re-runs after game over. |
+| D4 | Replace old quest context with hook-based approach | Budokan's `contexts/quests.tsx` is 350+ lines of complex SDK model parsing. New-client uses simple RECS hooks. Much simpler. |
+| D5 | CUBE token → zStar token | v2 replaces CUBE (ERC20 fungible) with zStar (soul-bound ERC20). All CUBE references become zStar. |
+| D6 | Remove skill tree + draft systems entirely | v2 contracts have no `draft_system` or `skill_tree_system`. These are dead code. |
 
 ---
 
-## File Reference Summary
+## Phase 0: Environment & Config
 
-### Files to MODIFY
+### 0.1 Update `.env.slot`
+- **Target**: `client-budokan/.env.slot`
+- **Source**: `new-client-budokan/.env.slot`
+- **Changes**:
+  - `VITE_PUBLIC_NAMESPACE`: `zkube_budo_v1_2_0` → `zkube_v2_1_0`
+  - `VITE_PUBLIC_WORLD_ADDRESS`: old → `0x04b615220ebc7d2abf241adc90ede0885739cead167a36f7e94916d4577b493f`
+  - `VITE_PUBLIC_GAME_TOKEN_ADDRESS`: old → `0x054b2962dfc4363d2140827e12bd29f936973f1b52f07f8362ca26a87c6f9aec`
+  - `VITE_PUBLIC_MASTER_ADDRESS`: old → `0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec`
+  - `VITE_PUBLIC_MASTER_PRIVATE_KEY`: old → `0xc5b2fcab997346f3ea1c00b002ecf6f382c5f9c9659a3894eb783c5320f912`
+  - REMOVE: `VITE_PUBLIC_CUBE_TOKEN_ADDRESS`
+  - ADD: `VITE_PUBLIC_ZSTAR_TOKEN_ADDRESS=0x06e5f1a7bf27f6075006ea9835d6614c7889779e9db19d5edf5c7e894c77868b`
+- **Verification**: `grep NAMESPACE client-budokan/.env.slot` shows `zkube_v2_1_0`
 
-| File | Changes |
-|------|---------|
-| `stores/navigationStore.ts` | TabId: map→mygames, OverlayId: +mutator-reveal, getBackTarget context-aware |
-| `App.tsx` | Import new pages, update pageComponents record |
-| `ui/components/BottomTabBar.tsx` | Map tab → My Games tab |
-| `ui/pages/HomePage.tsx` | Logo bigger, remove subtitle, bg image, flow to mutator-reveal |
-| `ui/pages/PlayScreen.tsx` | Integrate GameActionBar, remove top-bar duplication, wire bonus data |
-| `ui/components/GameBoard.tsx` | Width-only grid sizing, increase max cell size |
-| `ui/components/hud/GameHud.tsx` | Compact single-row layout |
-| `ui/pages/MapPage.tsx` | Context-aware back navigation |
-| `dojo/game/helpers/runDataPacking.ts` | Extend RunData with bonus fields (bits 101-117) |
-| `dojo/game/models/game.ts` | Add bonusType, bonusCharges, bonusSlot getters |
+### 0.2 Update `src/constants.ts`
+- **Target**: `client-budokan/src/constants.ts`
+- **Changes**:
+  - Change namespace fallback: `"zkube_budo_v1_2_0"` → `"zkube_v2_1_0"`
+  - REMOVE: `QUEST_REWARDS` object (old quest system)
+  - REMOVE: `QUEST_FAMILIES` object (old quest system)
+  - REMOVE: `QuestFamilyConfig` / `QuestFamilyId` import
+  - Keep only: `export const NAMESPACE = import.meta.env.VITE_PUBLIC_NAMESPACE || "zkube_v2_1_0";`
+- **Verification**: File is ~1 line. No old quest constants remain.
 
-### Files to CREATE
+### 0.3 Copy manifest
+- **Source**: `new-client-budokan/src/config/manifest_slot.json`
+- **Target**: `client-budokan/src/config/manifest_slot.json`
+- **Action**: Direct copy (manifest must match deployed contracts)
+- **Verification**: `jq '.world.address' client-budokan/src/config/manifest_slot.json` matches `.env.slot` world address
 
-| File | Purpose |
-|------|---------|
-| `ui/pages/MyGamesPage.tsx` | List of all owned games with active/completed sections |
-| `ui/pages/MutatorRevealPage.tsx` | Animated mutator reveal + loading screen |
-| `ui/components/actionbar/GameActionBar.tsx` | Bottom action bar during gameplay with bonus slots |
-| `config/mutators.ts` | Mutator display definitions (hardcoded) |
-| `config/bonuses.ts` | Bonus type display definitions (icon, label, color) |
-| `src/test/runDataPacking.test.ts` | Unit tests for extended RunData unpacking |
+### 0.4 Add new config files (copy from new-client)
+- **Source → Target** (direct copy, no modifications needed):
+  - `new-client-budokan/src/config/questDefs.ts` → `client-budokan/src/config/questDefs.ts`
+  - `new-client-budokan/src/config/achievementDefs.ts` → `client-budokan/src/config/achievementDefs.ts`
+  - `new-client-budokan/src/config/mutatorConfig.ts` → `client-budokan/src/config/mutatorConfig.ts`
+  - `new-client-budokan/src/config/profileData.ts` → `client-budokan/src/config/profileData.ts`
+  - `new-client-budokan/src/config/bossIdentities.ts` → `client-budokan/src/config/bossIdentities.ts`
+- **Verification**: `ls client-budokan/src/config/` shows all 5 new files + manifest files + themes.ts + metagame.ts
 
-### Files UNCHANGED (for reference only)
+### 0.5 Update `src/config/manifest.ts`
+- **Target**: `client-budokan/src/config/manifest.ts`
+- **Changes**: Ensure it imports the correct `manifest_slot.json` (likely already correct, but verify the import path)
+- **Verification**: Build does not error on manifest import
 
-| File | Why Referenced |
-|------|---------------|
-| `ui/pages/BossRevealPage.tsx` | **Template** for MutatorRevealPage structure |
-| `ui/screens/Loading.tsx` | **Pattern** for loading animation |
-| `ui/components/ConfettiExplosion.tsx` | **Used** in MutatorRevealPage for particle reveal |
-| `hooks/useGameTokensSlot.ts` | **Used** in MyGamesPage (already returns all needed data) |
-| `hooks/useGame.tsx` | **Used** in MutatorRevealPage for game.mutatorMask |
-| `config/themes.ts` | **Used** everywhere — `getThemeImages().background` for HomePage bg |
-| `dojo/systems.ts` | **Used** for `applyBonus` in GameActionBar |
+**COMMIT**: `chore: update env, manifest, and config files for v2 contracts`
+
+---
+
+## Phase 1: Dojo Layer (Core Data Layer)
+
+> This is the foundation. Everything else depends on these files being correct.
+
+### 1.1 Replace `contractModels.ts`
+- **Target**: `client-budokan/src/dojo/contractModels.ts`
+- **Source**: `new-client-budokan/src/dojo/contractModels.ts`
+- **Action**: Copy the ENTIRE file from new-client. It defines all v2 models.
+- **Key differences from current budokan**:
+  - REMOVES: `DraftState`, `PlayerSkillTree`
+  - ADDS: `PlayerBestRun`, `MapEntitlement`, `DailyChallenge`, `DailyEntry`, `DailyLeaderboard`, `GameChallenge`, `QuestAdvancement`, `QuestCompletion`, `AchievementAdvancement`, `AchievementCompletion`
+  - CHANGES `Game.game_id`: `RecsType.Number` → `RecsType.BigInt`
+  - CHANGES `GameSettingsMetadata`: adds `theme_id`, `is_free`, `enabled`, `price`, `payment_token`, `star_cost`
+  - CHANGES `GameSettings`: removes consumable costs (`hammer_cost`, `wave_cost`, `totem_cost`, `extra_moves_cost`, `cube_multiplier_x100`), adds `boss_upgrades_enabled`, `reroll_base_cost`, `starting_charges`
+  - CHANGES `GameSeed`: adds `level_seed: RecsType.BigInt`
+  - CHANGES `PlayerMeta`: adds `last_active: RecsType.Number`
+  - ADDS `ARCADE_NAMESPACE` constant for quest/achievement models
+- **Verification**: `pnpm tsc --noEmit` passes (no type errors from model changes)
+
+### 1.2 Replace `contractSystems.ts`
+- **Target**: `client-budokan/src/dojo/contractSystems.ts`
+- **Source**: `new-client-budokan/src/dojo/contractSystems.ts` (base), then ADD bonus support
+- **Action**:
+  1. Copy new-client's file as base
+  2. ADD `apply_bonus` support back on `game_system` (not separate `bonus_system`):
+     - Add `BonusTx` interface: `{ game_id: BigNumberish, bonus: number, row_index: number, block_index: number }`
+     - Add `bonus` function inside `game()` that calls `contract.address` (game_system) with entrypoint `"apply_bonus"` and calldata `[game_id, bonus, row_index, block_index]`
+     - Add `bonus` to the `game()` return object
+  3. REMOVE from budokan: `draft()`, `skill_tree()`, `bonus_system` contract lookup, `level_system` contract lookup
+  4. KEEP from new-client: `configSystem()`, `daily_challenge()`
+- **Key changes from budokan**:
+  - `Create` interface: adds `mode: number`
+  - `Surrender`, `Move`: `game_id` type `number` → `BigNumberish`
+  - ADDS: `CreateRun`, `AddCustomGameSettings`, `PurchaseMap`, daily challenge interfaces
+  - REMOVES: `DraftReroll`, `DraftSelect`, `SkillTreeUpgrade`, `SkillTreeChooseBranch`, `SkillTreeRespec`, `StartNextLevel`
+  - `free_mint` calldata: changes to use `CairoOption.None` for optional params instead of literal `1` values
+- **Verification**: TypeScript compiles. All system functions exist.
+
+### 1.3 Replace `setup.ts`
+- **Target**: `client-budokan/src/dojo/setup.ts`
+- **Source**: `new-client-budokan/src/dojo/setup.ts`
+- **Action**: Copy entire file from new-client.
+- **Key changes**:
+  - Namespace fallback: `"zkube_budo_v1_2_0"` → `"zkube_v2_1_0"`
+  - ADD: `arcadeNamespace` constant = `"zkube_v2_1_0"`
+  - `modelsToSync`: expand from 5 to 16 models:
+    - REMOVE: `DraftState`, `PlayerSkillTree`
+    - ADD: `GameSettings`, `PlayerMeta`, `PlayerBestRun`, `GameSettingsMetadata`, `MapEntitlement`, `DailyChallenge`, `DailyEntry`, `DailyLeaderboard`, `GameChallenge`
+    - ADD arcade: `QuestAdvancement`, `QuestCompletion`, `AchievementAdvancement`, `AchievementCompletion`
+  - `modelsToWatch`: same expansion
+- **Verification**: App starts and Torii sync begins without errors in console.
+
+### 1.4 Replace `systems.ts`
+- **Target**: `client-budokan/src/dojo/systems.ts`
+- **Source**: `new-client-budokan/src/dojo/systems.ts` (base), then ADD bonus support
+- **Action**:
+  1. Copy new-client's file as base
+  2. ADD `applyBonus` wrapper (matches budokan pattern with `setMoveComplete` Zustand integration)
+  3. ADD `applyBonus` to return object
+  4. Key changes from budokan:
+     - `freeMint` returns `{ game_id: bigint }` not `{ game_id: number }`
+     - `create` logs `mode` parameter
+     - REMOVES: `startNextLevel`, `claimQuest`, `rerollDraft`, `selectDraft`, `upgradeSkill`, `chooseBranch`, `respecBranch`
+     - ADDS: `createRun`, `addCustomGameSettings`, `purchaseMap`, `createDailyChallenge`, `registerEntry`, `submitResult`, `settleChallenge`, `claimPrize`, `withdrawUnclaimed`
+- **Verification**: `SystemCalls` type has all expected methods.
+
+### 1.5 Replace `runDataPacking.ts`
+- **Target**: `client-budokan/src/dojo/game/helpers/runDataPacking.ts`
+- **Source**: `new-client-budokan/src/dojo/game/helpers/runDataPacking.ts`
+- **Action**: Copy ENTIRE file from new-client. This is a COMPLETE replacement — the bit layout changed entirely.
+- **Key changes**:
+  - REMOVES all v1.2 fields: `constraint_3_progress`, `bonus_used_this_level`, `total_cubes`, `run_completed`, `free_moves`, `no_bonus_constraint`, `active_slot_count`, `slots`, `level_transition_pending`
+  - REMOVES all skill slot types: `SkillSlot` interface, `unpackSlot()`, `getActiveSlots()`, `getBonusSlots()`, `getWorldEventSlots()`, `hasSkill()`, `getSlotBySkillId()`, `getRerollCost()`, `SKILL_TREE_COSTS`, `getSkillUpgradeCost()`, `getTotalCostToLevel()`, `SKILL_IDS`, `isBonusSkill()`, `isWorldEventSkill()`
+  - ADDS v2 fields: `zoneCleared`, `currentDifficulty`, `zoneId`, `activeMutatorId`, `mode`, `bonusType`, `bonusCharges`, `levelLinesCleared`, `bonusSlot`
+  - `totalScore`: 16-bit → 32-bit (position shift from 73 to 48)
+  - RunData interface completely rewritten
+- **Verification**: Unit test (added in 1.7)
+
+### 1.6 Add new packing helpers
+- **Source → Target** (direct copy):
+  - `new-client-budokan/src/dojo/game/helpers/metaDataPacking.ts` → `client-budokan/src/dojo/game/helpers/metaDataPacking.ts`
+  - `new-client-budokan/src/dojo/game/helpers/levelStarsPacking.ts` → `client-budokan/src/dojo/game/helpers/levelStarsPacking.ts`
+- **Verification**: Files exist, imports resolve.
+
+### 1.7 Add packing unit tests (TDD)
+- **Source → Target** (direct copy):
+  - `new-client-budokan/src/test/metaDataPacking.test.ts` → `client-budokan/src/test/metaDataPacking.test.ts`
+  - `new-client-budokan/src/test/levelStarsPacking.test.ts` → `client-budokan/src/test/levelStarsPacking.test.ts`
+- **ADD NEW**: `client-budokan/src/test/runDataPacking.test.ts` — write test for v2 layout covering:
+  - Zero data unpacking
+  - current_level in bits 0-7
+  - total_score in bits 48-79 (32-bit)
+  - zone_cleared at bit 80
+  - mode at bit 101
+  - bonus_type at bits 102-103
+  - bonus_charges at bits 104-107
+- **Verification**: `pnpm test` — all 3 test files pass.
+
+### 1.8 Replace `game.ts` (Game class)
+- **Target**: `client-budokan/src/dojo/game/models/game.ts`
+- **Source**: `new-client-budokan/src/dojo/game/models/game.ts`
+- **Action**: Copy ENTIRE file from new-client.
+- **Key changes**:
+  - `id` type: `number` → `bigint`
+  - Constructor: `this.id = BigInt(game.game_id ?? 0)` instead of `this.id = game.game_id`
+  - REMOVES getters: `bonusUsedThisLevel`, `totalCubes`, `freeMoves`, `activeSlotCount`, `slots`, `runCompleted`, `cubesAvailable`, `levelTransitionPending` (old packed bit)
+  - REMOVES methods: `getTotalBonuses()`, `hasBonuses()`
+  - ADDS getters: `zoneId`, `currentDifficulty`, `endlessDepth`, `zoneCleared`, `activeMutatorId`, `mutatorMask`, `bonusType`, `bonusCharges`, `bonusSlot`, `mode`
+  - CHANGES `levelTransitionPending`: now `!this.over && this.blocksRaw === 0n` (derived, not packed)
+  - REMOVES `SkillSlot` import
+- **Verification**: TypeScript compiles. `Game` class has all v2 getters.
+
+### 1.9 Update `constants.ts` (game constants)
+- **Target**: `client-budokan/src/dojo/game/constants.ts`
+- **Source**: `new-client-budokan/src/dojo/game/constants.ts`
+- **Action**: Copy from new-client. Removes skill system constants.
+- **REMOVES**: `MAX_LOADOUT_SLOTS`, `TOTAL_SKILLS`, `MAX_SKILL_LEVEL`, `BRANCH_POINT_LEVEL`, `BRANCH_SPLIT_LEVEL`
+- **KEEPS**: grid constants, `LEVEL_CAP`, `BOSS_INTERVAL`, `BOSS_LEVELS`, `PRE_BOSS_LEVELS`
+- **Verification**: No imports reference removed constants.
+
+### 1.10 Add Torii token helper
+- **Source**: `new-client-budokan/src/dojo/torii/tokens.ts`
+- **Target**: `client-budokan/src/dojo/torii/tokens.ts` (new directory + file)
+- **Action**: Create `client-budokan/src/dojo/torii/` directory, copy file.
+- **Verification**: File exists at correct path.
+
+**COMMIT**: `feat: replace dojo layer with v2 contract models, systems, and packing`
+
+---
+
+## Phase 2: Remove Dead v1.2 Code
+
+### 2.1 Delete dead pages
+- **DELETE**:
+  - `client-budokan/src/ui/pages/DraftPage.tsx`
+  - `client-budokan/src/ui/pages/SkillTreePage.tsx`
+  - `client-budokan/src/ui/pages/InGameShopPage.tsx`
+  - `client-budokan/src/ui/pages/QuestsPage.tsx`
+  - `client-budokan/src/ui/pages/TutorialPage.tsx`
+- **Verification**: Files no longer exist. Build may have import errors (fixed in Phase 6).
+
+### 2.2 Delete dead hooks
+- **DELETE**:
+  - `client-budokan/src/hooks/useDraft.tsx`
+  - `client-budokan/src/hooks/useSkillTree.tsx`
+  - `client-budokan/src/hooks/useCubeBalance.tsx` (replaced by useZStarBalance)
+- **Verification**: Files no longer exist.
+
+### 2.3 Delete dead types
+- **DELETE**:
+  - `client-budokan/src/dojo/game/types/bonus.ts` (v1.2 5-bonus system, v2 uses 3 bonuses: Hammer/Totem/Wave)
+  - `client-budokan/src/dojo/game/types/skillData.ts`
+  - `client-budokan/src/dojo/game/types/skillEffects.ts`
+  - `client-budokan/src/types/questFamily.ts`
+- **Verification**: Files no longer exist.
+
+### 2.4 Delete dead dojo models
+- **DELETE**:
+  - `client-budokan/src/dojo/models/quest.ts` (old arcade SDK quest model classes, 300+ lines)
+- **Verification**: File no longer exists.
+
+### 2.5 Replace old quests context
+- **Target**: `client-budokan/src/contexts/quests.tsx`
+- **Action**: Gut the 350+ line old SDK-based implementation. Replace with a thin stub that doesn't crash:
+  ```typescript
+  import type React from "react";
+  import { createContext, useContext } from "react";
+  interface QuestsContextType { status: "loading" | "success"; }
+  const QuestsContext = createContext<QuestsContextType>({ status: "loading" });
+  export function QuestsProvider({ children }: { children: React.ReactNode }) {
+    return <QuestsContext.Provider value={{ status: "success" }}>{children}</QuestsContext.Provider>;
+  }
+  export function useQuestsContext() { return useContext(QuestsContext); }
+  ```
+- **Verification**: Build compiles. QuestsProvider still wraps children in `main.tsx`.
+
+### 2.6 Delete dead store
+- **DELETE**: `client-budokan/src/stores/cubeBalanceStore.ts` (replaced by zStar token balance via Torii subscription)
+- **Verification**: File no longer exists.
+
+### 2.7 Clean up dead component references
+- **Action**: Search for and remove imports of deleted files in any remaining components:
+  - `BringCubesDialog.tsx`, `ShopDialog.tsx`, `InGameShopDialog.tsx`, `ShopButton.tsx` — if these reference CUBE token, either delete or stub
+  - Any `Quest/` components that reference old quest system
+- **Verification**: `pnpm tsc --noEmit` passes with no unresolved imports.
+
+**COMMIT**: `chore: remove dead v1.2 code (draft, skill tree, CUBE token, old quests)`
+
+---
+
+## Phase 3: Port New Hooks
+
+### 3.1 Add `useTokenBalance` hook
+- **Source**: `new-client-budokan/src/hooks/useTokenBalance.ts`
+- **Target**: `client-budokan/src/hooks/useTokenBalance.ts`
+- **Action**: Copy from new-client. This is the generic Torii token balance subscription hook.
+- **Dependencies**: `src/dojo/torii/tokens.ts` (added in 1.10)
+- **Verification**: Import resolves, TypeScript compiles.
+
+### 3.2 Add `useZStarBalance` hook
+- **Source**: `new-client-budokan/src/hooks/useZStarBalance.ts`
+- **Target**: `client-budokan/src/hooks/useZStarBalance.ts`
+- **Action**: Copy from new-client.
+- **Dependencies**: `useTokenBalance`, `VITE_PUBLIC_ZSTAR_TOKEN_ADDRESS` env var
+- **Verification**: Hook returns `{ balance, isLoading }`.
+
+### 3.3 Replace `useNftBalance` hook
+- **Target**: `client-budokan/src/hooks/useNftBalance.ts`
+- **Source**: `new-client-budokan/src/hooks/useNftBalance.ts`
+- **Action**: Replace with new-client version (Torii subscription instead of RPC polling).
+- **Key change**: `useReadContract` polling → `useTokenBalance` subscription
+- **Note**: Verify env var name matches — new-client uses `VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS`; may need to align with `.env.slot` which has `VITE_PUBLIC_GAME_TOKEN_ADDRESS`
+- **Verification**: NFT balance displays correctly.
+
+### 3.4 Replace `usePlayerMeta` hook
+- **Target**: `client-budokan/src/hooks/usePlayerMeta.tsx`
+- **Source**: `new-client-budokan/src/hooks/usePlayerMeta.tsx`
+- **Action**: Copy from new-client.
+- **Key changes**:
+  - Old interface `PlayerMetaData` with 14 fields (bonuses, bags, bridging, shrink, shuffle, cubes) → new simple `{ totalRuns, dailyStars, lifetimeXp }`
+  - Uses `unpackMetaData` from new `metaDataPacking.ts` helper
+  - Adds `lastActive` field from component
+- **Dependencies**: `src/dojo/game/helpers/metaDataPacking.ts` (added in 1.6)
+- **Verification**: Hook returns `{ playerMeta, isLoading }` with correct v2 fields.
+
+### 3.5 Update `useGame` hook (gameId type)
+- **Target**: `client-budokan/src/hooks/useGame.tsx`
+- **Source**: `new-client-budokan/src/hooks/useGame.tsx`
+- **Action**: Copy from new-client.
+- **Key change**: `gameId: number | undefined` → `gameId: bigint | undefined`
+- **Verification**: Hook accepts `bigint` gameId.
+
+### 3.6 Add `usePlayerBestRun` hook
+- **Source**: `new-client-budokan/src/hooks/usePlayerBestRun.ts`
+- **Target**: `client-budokan/src/hooks/usePlayerBestRun.ts`
+- **Action**: Copy from new-client.
+- **Dependencies**: `levelStarsPacking.ts` (added in 1.6), `PlayerBestRun` component (added in 1.1)
+- **Verification**: Import resolves.
+
+### 3.7 Add `useZoneProgress` hook
+- **Source**: `new-client-budokan/src/hooks/useZoneProgress.ts`
+- **Target**: `client-budokan/src/hooks/useZoneProgress.ts`
+- **Action**: Copy from new-client.
+- **Dependencies**: `levelStarsPacking.ts`, `profileData.ts` (added in 0.4), `PlayerBestRun` + `MapEntitlement` + `GameSettingsMetadata` components
+- **Verification**: Import resolves.
+
+### 3.8 Add `useQuests` hook
+- **Source**: `new-client-budokan/src/hooks/useQuests.ts`
+- **Target**: `client-budokan/src/hooks/useQuests.ts`
+- **Action**: Copy from new-client.
+- **Dependencies**: `questDefs.ts` (added in 0.4), `QuestAdvancement` + `QuestCompletion` components (added in 1.1)
+- **Verification**: Import resolves.
+
+### 3.9 Add `useAchievements` hook
+- **Source**: `new-client-budokan/src/hooks/useAchievements.ts`
+- **Target**: `client-budokan/src/hooks/useAchievements.ts`
+- **Action**: Copy from new-client.
+- **Dependencies**: `achievementDefs.ts` (added in 0.4), `AchievementAdvancement` + `AchievementCompletion` components
+- **Verification**: Import resolves.
+
+### 3.10 Add daily challenge hooks
+- **Source → Target** (direct copy):
+  - `new-client-budokan/src/hooks/useCurrentChallenge.tsx` → `client-budokan/src/hooks/useCurrentChallenge.tsx`
+  - `new-client-budokan/src/hooks/useDailyLeaderboard.tsx` → `client-budokan/src/hooks/useDailyLeaderboard.tsx`
+  - `new-client-budokan/src/hooks/usePlayerEntry.tsx` → `client-budokan/src/hooks/usePlayerEntry.tsx`
+- **Dependencies**: `DailyChallenge`, `DailyLeaderboard`, `DailyEntry` components (added in 1.1)
+- **Verification**: All 3 hooks import correctly.
+
+### 3.11 Update `useGrid` hook (gameId type propagation)
+- **Target**: `client-budokan/src/hooks/useGrid.tsx`
+- **Changes**: Update `gameId` parameter type from `number | undefined` to `bigint | undefined` to match updated `useGame`.
+- **Verification**: TypeScript compiles, grid still renders.
+
+### 3.12 Update `useGameLevel` hook (gameId type propagation)
+- **Target**: `client-budokan/src/hooks/useGameLevel.tsx`
+- **Changes**: Update `gameId` parameter type from `number | undefined` to `bigint | undefined`. Update `getEntityIdFromKeys` call to use bigint directly.
+- **Verification**: TypeScript compiles.
+
+### 3.13 Update `useGameTokensSlot` (gameId type + RunData fields)
+- **Target**: `client-budokan/src/hooks/useGameTokensSlot.ts`
+- **Changes**:
+  - Game `game_id` is now `BigInt`, update extraction logic
+  - RunData fields changed — update any references to old RunData fields (e.g., `totalCubes`, `runCompleted`, slot data)
+  - Replace with v2 RunData fields (`zoneId`, `mode`, `bonusType`, etc.)
+- **Verification**: TypeScript compiles.
+
+**COMMIT**: `feat: port new hooks (token balance, zStar, quests, achievements, daily, zone progress)`
+
+---
+
+## Phase 4: Port New Pages (Stubs)
+
+> These pages come from new-client but use budokan's UI patterns. Copy the LOGIC, adapt LAYOUT to budokan's design language.
+
+### 4.1 Port `ProfilePage.tsx`
+- **Source**: `new-client-budokan/src/ui/pages/ProfilePage.tsx`
+- **Target**: `client-budokan/src/ui/pages/ProfilePage.tsx`
+- **Action**: Copy from new-client. Uses `usePlayerMeta`, `useZStarBalance`, `useZoneProgress`, `useQuests`, `useAchievements`.
+- **Dependencies**: All Phase 3 hooks, config files from Phase 0.
+- **Note**: May need UI adaptation to budokan's styling. Copy as-is first, refine later.
+- **Verification**: Page renders without crash when navigated to.
+
+### 4.2 Port `DailyChallengePage.tsx`
+- **Source**: `new-client-budokan/src/ui/pages/DailyChallengePage.tsx`
+- **Target**: `client-budokan/src/ui/pages/DailyChallengePage.tsx`
+- **Action**: Copy from new-client.
+- **Dependencies**: `useCurrentChallenge`, `useDailyLeaderboard`, `usePlayerEntry` hooks.
+- **Verification**: Page renders without crash.
+
+### 4.3 Port `BossRevealPage.tsx`
+- **Source**: `new-client-budokan/src/ui/pages/BossRevealPage.tsx`
+- **Target**: `client-budokan/src/ui/pages/BossRevealPage.tsx`
+- **Action**: Copy from new-client.
+- **Dependencies**: `bossIdentities.ts` config.
+- **Verification**: Page renders without crash.
+
+### 4.4 Port `MutatorRevealPage.tsx`
+- **Source**: `new-client-budokan/src/ui/pages/MutatorRevealPage.tsx`
+- **Target**: `client-budokan/src/ui/pages/MutatorRevealPage.tsx`
+- **Action**: Copy from new-client.
+- **Dependencies**: `mutatorConfig.ts` config.
+- **Verification**: Page renders without crash.
+
+### 4.5 Port shared components (as needed by pages)
+- **Action**: Check if new pages reference components that don't exist in budokan. If so, copy from new-client:
+  - `new-client-budokan/src/ui/components/shared/ThemeBackground.tsx`
+  - `new-client-budokan/src/ui/components/shared/PhoneFrame.tsx`
+  - `new-client-budokan/src/ui/components/BottomTabBar.tsx`
+  - Any profile tab components referenced by ProfilePage
+- **Note**: Only copy what's needed. Don't port the entire `shared/` directory blindly.
+- **Verification**: All new pages render without missing component errors.
+
+**COMMIT**: `feat: add ProfilePage, DailyChallengePage, BossRevealPage, MutatorRevealPage`
+
+---
+
+## Phase 5: Update Existing Pages
+
+### 5.1 Update `HomePage.tsx`
+- **Target**: `client-budokan/src/ui/pages/HomePage.tsx`
+- **Changes**:
+  - Replace CUBE balance display with zStar balance (`useZStarBalance`)
+  - Add mode selection (Map vs Endless) before game creation
+  - Update `freeMint` call to use new `mint_game` calldata format
+  - Update `create` call to pass `mode` parameter
+  - `game_id` handling: `number` → `bigint` throughout
+  - Remove any references to skill tree, draft, CUBE tokens
+  - Add zone selection if multiple zones are unlocked (`useZoneProgress`)
+- **Verification**: Home page loads, shows zStar balance, can start a game.
+
+### 5.2 Update `PlayScreen.tsx`
+- **Target**: `client-budokan/src/ui/pages/PlayScreen.tsx`
+- **Changes**:
+  - `gameId` type: `number` → `bigint` (from navigation store)
+  - Update `create` call to pass `mode` parameter
+  - Remove `startNextLevel` calls (auto-advance in move)
+  - Remove draft event handling (`pendingDraftEvent`)
+  - Remove skill tree references
+  - Update bonus button to use v2 bonus system (Hammer/Totem/Wave from `game.bonusType`, charges from `game.bonusCharges`)
+  - Remove CUBE earned animations (zStar is minted server-side, not earned per-move)
+  - Update game over dialog to show v2 fields (zoneCleared, totalScore, etc.)
+  - Update level complete dialog to show v2 fields
+- **Verification**: Can play a game: drag blocks, bonuses work, level transitions work.
+
+### 5.3 Update `MapPage.tsx`
+- **Target**: `client-budokan/src/ui/pages/MapPage.tsx`
+- **Changes**:
+  - Use `usePlayerBestRun` for star display per level
+  - Use `levelStarsPacking.ts` helper for unpacking
+  - Level cap is now 10 per zone (not 50 global)
+  - `gameId` type: `number` → `bigint`
+  - Remove references to draft events
+  - Update star display to use v2 `getLevelStars` (10 levels x 2 bits, not 50)
+- **Verification**: Map shows 10 levels, star ratings from best run.
+
+### 5.4 Update `LeaderboardPage.tsx`
+- **Target**: `client-budokan/src/ui/pages/LeaderboardPage.tsx`
+- **Changes**:
+  - Update to show v2 leaderboard data
+  - `gameId` type: `number` → `bigint` if used
+  - Ensure `useLeaderboardSlot` works with new namespace
+- **Verification**: Leaderboard page loads, shows rankings.
+
+### 5.5 Update `MyGamesPage.tsx`
+- **Target**: `client-budokan/src/ui/pages/MyGamesPage.tsx`
+- **Changes**:
+  - `gameId` type: `number` → `bigint` in game card data
+  - Update RunData field references (mode, zoneId, etc.)
+  - Remove CUBE balance references
+- **Verification**: My games page loads, shows owned games.
+
+### 5.6 Update `SettingsPage.tsx`
+- **Target**: `client-budokan/src/ui/pages/SettingsPage.tsx`
+- **Changes**: Minimal — mostly UI. Remove any CUBE references.
+- **Verification**: Settings page loads.
+
+**COMMIT**: `feat: update existing pages for v2 contracts (gameId bigint, v2 RunData, zStar)`
+
+---
+
+## Phase 6: Navigation & Routing
+
+### 6.1 Update `navigationStore.ts`
+- **Target**: `client-budokan/src/stores/navigationStore.ts`
+- **Source**: `new-client-budokan/src/stores/navigationStore.ts`
+- **Changes**:
+  - `PageId` type: Replace `"quests" | "tutorial" | "draft" | "skilltree"` with `"profile" | "ranks" | "daily" | "boss" | "mutator"`
+  - Add `TabId` and `OverlayId` types
+  - Add `FULLSCREEN_PAGES` set
+  - `gameId` type: `number | null` → `bigint | null`
+  - Add `selectedMode: number` state + `setSelectedMode`
+  - REMOVE: `pendingDraftEvent`, `PendingDraftEvent`, `DraftEventType`
+  - UPDATE `PendingLevelCompletion`: remove `prevTotalCubes`, `totalCubes`
+  - UPDATE `getBackTarget`: new routing (play→map, daily→home, boss→map, map→mygames, mutator→mygames)
+- **Verification**: TypeScript compiles. Navigation functions work.
+
+### 6.2 Update `App.tsx`
+- **Target**: `client-budokan/src/App.tsx`
+- **Source**: `new-client-budokan/src/App.tsx` (reference for structure)
+- **Changes**:
+  - REMOVE imports: `DraftPage`, `SkillTreePage`, `QuestsPage`, `TutorialPage`, `InGameShopPage`
+  - ADD imports: `ProfilePage`, `DailyChallengePage`, `BossRevealPage`, `MutatorRevealPage`
+  - UPDATE `pageComponents` record to match new `PageId`:
+    - `home`, `play`, `map`, `mygames`, `mutator`, `profile`, `ranks`, `settings`, `daily`, `boss`
+  - ADD: `AnimatePresence` slide transitions from new-client (optional, nice-to-have)
+  - ADD: `BottomTabBar` and `FULLSCREEN_PAGES` logic for tab bar visibility
+  - ADD: `ThemeBackground` and `PhoneFrame` components if ported in 4.5
+- **Verification**: All pages reachable. No 404s or blank screens.
+
+### 6.3 Update `main.tsx` if needed
+- **Target**: `client-budokan/src/main.tsx`
+- **Changes**: Remove any references to dead providers or imports. `QuestsProvider` should still wrap (using stub from 2.5).
+- **Verification**: App starts without errors.
+
+**COMMIT**: `feat: update navigation and routing for v2 pages`
+
+---
+
+## Phase 7: Build, Test, Verify
+
+### 7.1 TypeScript compilation
+- **Command**: `pnpm tsc --noEmit` (in `client-budokan/`)
+- **Expected**: Zero errors
+- **Fix strategy**: Address any remaining type errors from gameId migration, missing imports, etc.
+
+### 7.2 Unit tests
+- **Command**: `pnpm test` (in `client-budokan/`)
+- **Expected**: All packing tests pass (metaDataPacking, levelStarsPacking, runDataPacking)
+
+### 7.3 Development build
+- **Command**: `pnpm slot` (in `client-budokan/`)
+- **Expected**: Vite dev server starts on port 5125 without build errors
+
+### 7.4 Smoke test (manual checklist for future Playwright)
+- [ ] App loads at `https://localhost:5125`
+- [ ] Home page renders with zStar balance (0 if no games)
+- [ ] Can navigate to all pages via bottom tab bar
+- [ ] Profile page shows quests/achievements (empty state OK)
+- [ ] Settings page renders
+- [ ] Leaderboard page renders
+- [ ] Can mint a game (freeMint)
+- [ ] Can create and play a game (drag blocks)
+- [ ] Level transitions work (auto-advance)
+- [ ] Bonus button appears when bonus_charges > 0
+- [ ] Game over dialog shows correctly
+- [ ] Map page shows 10 levels with star ratings
+- [ ] Console has no critical errors
+
+**COMMIT**: `fix: resolve build errors and ensure all tests pass`
+
+---
+
+## Commit Strategy (Atomic)
+
+| # | Commit | Phase | Files Changed |
+|---|--------|-------|---------------|
+| 1 | `chore: update env, manifest, and config files for v2 contracts` | 0 | ~8 files |
+| 2 | `feat: replace dojo layer with v2 contract models, systems, and packing` | 1 | ~12 files |
+| 3 | `chore: remove dead v1.2 code (draft, skill tree, CUBE token, old quests)` | 2 | ~15 files deleted/gutted |
+| 4 | `feat: port new hooks (token balance, zStar, quests, achievements, daily, zone progress)` | 3 | ~15 files |
+| 5 | `feat: add ProfilePage, DailyChallengePage, BossRevealPage, MutatorRevealPage` | 4 | ~5-10 files |
+| 6 | `feat: update existing pages for v2 contracts (gameId bigint, v2 RunData, zStar)` | 5 | ~6 files |
+| 7 | `feat: update navigation and routing for v2 pages` | 6 | ~3 files |
+| 8 | `fix: resolve build errors and ensure all tests pass` | 7 | variable |
+
+---
+
+## Dependency Graph
+
+```
+Phase 0 (config/env)
+  └── Phase 1 (dojo layer) ←── CRITICAL PATH
+        ├── Phase 2 (delete dead code)
+        │     └── Phase 6 (navigation) ──→ Phase 7 (verify)
+        └── Phase 3 (new hooks)
+              ├── Phase 4 (new pages) ──→ Phase 6
+              └── Phase 5 (update pages) ──→ Phase 6
+```
+
+Phases 2, 3 can run in PARALLEL after Phase 1.
+Phases 4, 5 can run in PARALLEL after Phase 3.
+Phase 6 depends on Phases 2 + 4 + 5.
+Phase 7 is the final gate.
+
+---
+
+## Risk Register
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| `gameId` number→bigint breaks many components silently | HIGH | Search all `gameId` references with grep, update systematically |
+| RunData unpacking mismatch with contracts | HIGH | Unit tests against known packed values from contract tests |
+| Torii sync doesn't find new models | MEDIUM | Verify namespace matches, check Torii logs for sync errors |
+| Old quest context breaks provider tree | MEDIUM | Stub immediately in Phase 2, replace with hooks in Phase 3 |
+| Bonus system not wired correctly | MEDIUM | Test apply_bonus manually after Phase 1, verify tx succeeds |
+| Missing shared components in ported pages | LOW | Copy from new-client on demand, don't pre-copy |
+| `manifest_slot.json` stale after redeploy | LOW | Re-run deploy script, copy fresh manifest |
+
+---
+
+## ADDENDUM: Phase 3 — gameId `number → bigint` Migration (Detailed)
+
+> This was identified as a pervasive change across 13 files with 37 occurrences. Separated into its own phase for systematic execution.
+
+### Scope: Complete file list with exact changes
+
+**File 1: `src/dojo/contractSystems.ts`** (6 occurrences — handled in Phase 1.2)
+- `Surrender.game_id: number` → `BigNumberish`
+- `Create.token_id: number` → `BigNumberish`
+- `Move.game_id: number` → `BigNumberish`
+- `BonusTx.game_id: number` → `BigNumberish`
+- `StartNextLevel.game_id: number` → REMOVED
+- `DraftReroll.game_id: number` → REMOVED
+
+**File 2: `src/dojo/systems.ts`** (1 occurrence — handled in Phase 1.4)
+- `freeMint` return type: `Promise<{ game_id: number }>` → `Promise<{ game_id: bigint }>`
+
+**File 3: `src/dojo/game/models/game.ts`** (handled in Phase 1.8)
+- `Game.id: number` → `bigint`
+- Constructor: `this.id = game.game_id` → `this.id = BigInt(game.game_id ?? 0)`
+
+**File 4: `src/stores/navigationStore.ts`** (2 occurrences — handled in Phase 8.1)
+- `gameId: number | null` → `bigint | null`
+- `navigate: (page: PageId, gameId?: number)` → `navigate: (page: PageId, gameId?: bigint)`
+
+**File 5: `src/stores/moveTxStore.ts`** (2 occurrences)
+- `gameId: number` → `gameId: bigint`
+- `clearQueueForGame: (gameId: number)` → `clearQueueForGame: (gameId: bigint)`
+
+**File 6: `src/hooks/useGame.tsx`** (1 occurrence — handled in Phase 4.5)
+- `gameId: number | undefined` → `bigint | undefined`
+
+**File 7: `src/hooks/useGrid.tsx`** (1 occurrence)
+- `gameId: number | undefined` → `bigint | undefined`
+
+**File 8: `src/hooks/useGameLevel.tsx`** (2 occurrences)
+- `gameId: number` → `bigint` (interface)
+- `gameId: number | undefined` → `bigint | undefined` (hook param)
+
+**File 9: `src/hooks/useLeaderboardSlot.ts`** (1 occurrence)
+- `game_id: number` in leaderboard entry type → `game_id: bigint`
+
+**File 10: `src/dojo/models/gameEvent.ts`** (12 occurrences)
+- ALL `game_id: number` fields in StartGame, BonusUsed, MoveComplete, LevelCompleted, RunEnded, ConstraintProgress, GameOverEvent → `game_id: bigint`
+- ALL constructors: `game_id: number` param → `game_id: bigint`
+
+**File 11: `src/ui/components/Grid.tsx`** (1 occurrence)
+- `gameId: number` prop → `gameId: bigint`
+
+**File 12: `src/ui/components/map/LevelPreview.tsx`** (1 occurrence)
+- `gameId: number | null` prop → `gameId: bigint | null`
+
+**File 13: `src/ui/components/Shop/PendingLevelUpDialog.tsx`** (1 occurrence)
+- `gameId: number` prop → `gameId: bigint`
+
+### Migration strategy
+1. Update types FIRST (interfaces, stores, models)
+2. Update hooks SECOND (they consume the types)
+3. Update components LAST (they consume the hooks)
+4. At each boundary, use `BigInt()` for conversion where raw numbers enter
+
+### Verification
+- `grep -rn 'gameId.*: number\|game_id.*: number' src/ --include='*.ts' --include='*.tsx'` returns 0 results (excluding test files)
+- `pnpm tsc --noEmit` passes
+
+---
+
+## ADDENDUM: `level.ts` GameSettings Interface Update
+
+> Discovered during deep comparison: the `GameSettings` interface in `src/dojo/game/types/level.ts` differs between clients.
+
+### Changes (budokan → new-client):
+
+**REMOVE from `GameSettings` interface and `DEFAULT_SETTINGS`:**
+- `hammerCost: number` (was 5)
+- `waveCost: number` (was 5)
+- `totemCost: number` (was 5)
+- `extraMovesCost: number` (was 10)
+
+**ADD to `GameSettings` interface and `DEFAULT_SETTINGS`:**
+- `bossUpgradesEnabled: boolean` (default `true`)
+- `rerollBaseCost: number` (default `5`)
+- `startingCharges: number` (default `1`)
+
+**UPDATE `parseGameSettings()` function:**
+- REMOVE: `hammerCost`, `waveCost`, `totemCost`, `extraMovesCost` parsing
+- ADD: `bossUpgradesEnabled` parsing (from `raw.boss_upgrades_enabled`, same pattern as `constraintsEnabled`)
+- ADD: `rerollBaseCost` parsing (from `raw.reroll_base_cost`)
+- ADD: `startingCharges` parsing (from `raw.starting_charges`)
+
+**Target**: `client-budokan/src/dojo/game/types/level.ts`
+**Source**: `new-client-budokan/src/dojo/game/types/level.ts`
+**Action**: Copy from new-client (files are 99% identical, only the interface + defaults + parser differ)
+**Verification**: `parseGameSettings` handles all v2 fields. TypeScript compiles.
+
+**This belongs in Phase 1 (Dojo Layer), task 1.11.**
+
+---
+
+## ADDENDUM: `useNftBalance` env var clarification
+
+The budokan `useNftBalance.ts` reads from `VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS` (not in `.env.slot`).
+The new-client `useNftBalance.ts` also reads from `VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS`.
+But `.env.slot` has `VITE_PUBLIC_GAME_TOKEN_ADDRESS`.
+
+**Resolution**: Either:
+- (a) Add `VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS` to `.env.slot` pointing to the ERC721 game token, OR
+- (b) Update `useNftBalance.ts` to read from `VITE_PUBLIC_GAME_TOKEN_ADDRESS`
+
+The correct approach depends on whether there's a separate credits token. Since v2 uses ERC721 `FullTokenContract` for game NFTs, and the address in `.env.slot` is the game token, option (b) is cleaner: update the hook to use `VITE_PUBLIC_GAME_TOKEN_ADDRESS`.
+
+**This belongs in Phase 4 (Port New Hooks), task 3.3.**
+
+---
+
+## Updated Phase Summary (10 Phases)
+
+| Phase | Name | Tasks | Depends On |
+|-------|------|-------|------------|
+| 0 | Environment & Config | .env.slot, constants.ts, manifest | — |
+| 1 | Dojo Layer | contractModels, contractSystems, setup, systems, runData, game.ts, level.ts, torii helper | Phase 0 |
+| 2 | Remove Dead v1.2 Code | Delete 5 pages, 3 hooks, 4 types, quest model, quest context, cube store | Phase 1 |
+| 3 | gameId number→bigint | 13 files, 37 occurrences (types→hooks→components) | Phase 1 |
+| 4 | Port New Hooks | useTokenBalance, useZStarBalance, useNftBalance, usePlayerMeta, useGame, usePlayerBestRun, useZoneProgress, useQuests, useAchievements, daily hooks, useGrid, useGameLevel, useGameTokensSlot | Phase 1 |
+| 5 | Port New Config Files | questDefs, achievementDefs, mutatorConfig, profileData, bossIdentities | Phase 0 |
+| 6 | Port New Pages | ProfilePage, DailyChallengePage, BossRevealPage, MutatorRevealPage, shared components | Phases 4+5 |
+| 7 | Update Existing Pages | HomePage, PlayScreen, MapPage, LeaderboardPage, MyGamesPage, SettingsPage | Phases 3+4 |
+| 8 | Navigation & Routing | navigationStore, App.tsx, main.tsx | Phases 2+6+7 |
+| 9 | Build, Test, Verify | tsc, vitest, dev server, smoke test | Phase 8 |
+
+### Parallelism
+- Phases 2, 3, 4, 5 can ALL run in parallel after Phase 1
+- Phases 6, 7 can run in parallel after Phases 3+4+5
+- Phase 8 depends on 2+6+7
+- Phase 9 is sequential gate
+
+### Commit Strategy (10 atomic commits)
+1. `chore: update env, manifest, and config files for v2 contracts` (Phase 0+5)
+2. `feat: replace dojo layer with v2 models, systems, packing, and game class` (Phase 1)
+3. `chore: remove dead v1.2 code (draft, skill tree, CUBE, old quests)` (Phase 2)
+4. `refactor: migrate gameId from number to bigint across 13 files` (Phase 3)
+5. `feat: port new hooks (token balance, zStar, quests, achievements, daily, zone)` (Phase 4)
+6. `feat: add ProfilePage, DailyChallengePage, BossRevealPage, MutatorRevealPage` (Phase 6)
+7. `feat: update existing pages for v2 (mode selection, bonus system, zStar)` (Phase 7)
+8. `feat: update navigation store and routing for v2 page structure` (Phase 8)
+9. `fix: resolve build errors and type mismatches` (Phase 9)
+10. `test: add runDataPacking tests and verify all packing tests pass` (Phase 9)

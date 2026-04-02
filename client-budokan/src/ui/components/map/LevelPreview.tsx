@@ -6,6 +6,7 @@ import type { MapNodeData } from "@/hooks/useMapData";
 import type { Game } from "@/dojo/game/models/game";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import GameButton from "@/ui/components/shared/GameButton";
+import CubeIcon from "@/ui/components/CubeIcon";
 
 export interface LevelPreviewProps {
   node: MapNodeData;
@@ -92,6 +93,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
   }
 
   const canPlay =
+    node.type !== "draft" &&
     gameId !== null &&
     (node.state === "current" || node.state === "available");
 
@@ -118,14 +120,20 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
           <X size={18} />
         </button>
 
-        <h3 className="pr-8 font-['Chakra_Petch'] text-xl text-white">
-          {node.type === "boss"
+        <h3 className="pr-8 font-['Fredericka_the_Great'] text-xl text-white">
+          {node.type === "draft"
+            ? `Zone ${node.zone} Draft`
+            : node.type === "boss"
               ? `Boss Level ${node.contractLevel}`
               : `Level ${node.contractLevel}`}
         </h3>
 
-        {node.state === "cleared" || node.state === "visited" ? (
-          <div className="mt-4 space-y-3 text-sm font-['Chakra_Petch']">
+        {node.type === "draft" ? (
+          <p className="mt-4 text-sm text-slate-200/90">
+            Draft event: choose your run direction before pushing to the boss.
+          </p>
+        ) : node.state === "cleared" || node.state === "visited" ? (
+          <div className="mt-4 space-y-3 text-sm font-['Fredericka_the_Great']">
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Difficulty</span>
               <span
@@ -137,7 +145,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
             <div className="flex items-center justify-between rounded-lg bg-emerald-500/15 px-3 py-2.5">
               <span className="text-emerald-200">✓ Cleared</span>
               <span className="text-lg">
-                {Array.from({ length: stars }).map((_, i) => <span key={i}>⭐</span>)}
+                {Array.from({ length: stars }).map((_, i) => <CubeIcon key={i} size="sm" />)}
                 {stars === 0 && (
                   <span className="text-slate-500 text-sm">—</span>
                 )}
@@ -161,7 +169,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
             )}
           </div>
         ) : (
-          <div className="mt-4 space-y-3 text-sm font-['Chakra_Petch']">
+          <div className="mt-4 space-y-3 text-sm font-['Fredericka_the_Great']">
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Difficulty</span>
               <span
@@ -202,15 +210,15 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
               <div className="space-y-1 pt-1">
                 <p className="mb-1 text-slate-400">Moves</p>
                 {[
-                  { stars: 3, threshold: cube3Threshold },
-                  { stars: 2, threshold: cube2Threshold },
-                  { stars: 1, threshold: maxMoves },
-                ].map(({ stars, threshold }) => (
+                  { cubes: 5, threshold: cube3Threshold },
+                  { cubes: 3, threshold: cube2Threshold },
+                  { cubes: 1, threshold: maxMoves },
+                ].map(({ cubes, threshold }) => (
                   <div
-                    key={stars}
+                    key={cubes}
                     className="flex items-center justify-between rounded-md bg-slate-800/60 px-2 py-1 text-slate-300"
                   >
-                    <span className="inline-flex">{Array.from({ length: stars }).map((_, i) => <span key={i}>⭐</span>)}</span>
+                    <span className="inline-flex">{Array.from({ length: cubes }).map((_, i) => <CubeIcon key={i} size="sm" />)}</span>
                     <span className="text-lg">≤ {threshold}</span>
                   </div>
                 ))}

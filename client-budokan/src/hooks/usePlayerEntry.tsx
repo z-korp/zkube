@@ -10,10 +10,6 @@ const normalizeEntityId = (entityId: string): Entity => {
   return `0x${hex}` as Entity;
 };
 
-/**
- * Hook to get a player's daily challenge entry
- * Compound key: (challenge_id, player_address)
- */
 export function usePlayerEntry(
   challengeId: number | undefined,
   playerAddress: string | undefined,

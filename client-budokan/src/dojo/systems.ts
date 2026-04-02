@@ -262,6 +262,24 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
+  const applyBonus = async ({ account, ...props }: SystemTypes.BonusTx) => {
+    log.debug("applyBonus", { account: account.address, ...props });
+    const setMoveComplete = useMoveStore.getState().setMoveComplete;
+    setMoveComplete(false);
+
+    try {
+      await handleTransaction(
+        account,
+        () => client.game.bonus({ account, ...props }),
+        "Bonus has been applied.",
+      );
+      setMoveComplete(true);
+    } catch (error) {
+      setMoveComplete(true);
+      throw error;
+    }
+  };
+
   const addCustomGameSettings = async ({
     account,
     ...props
@@ -377,6 +395,7 @@ export function systems({ client }: { client: IWorld }) {
     createRun,
     surrender,
     move,
+    applyBonus,
     addCustomGameSettings,
     purchaseMap,
     createDailyChallenge,

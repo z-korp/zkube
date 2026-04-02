@@ -37,27 +37,45 @@ client-budokan/
 │   │       │   └── constraint.ts
 │   │       └── elements/bonuses/ # Bonus implementations
 │   ├── ui/                   # React components
-│   │   ├── pages/            # Page components (6 pages)
-│   │   │   ├── HomePage.tsx       # Zone selector + play button
-│   │   │   ├── PlayScreen.tsx     # Gameplay (grid + HUD)
-│   │   │   ├── MapPage.tsx        # 10-level zone map with winding path
-│   │   │   ├── LeaderboardPage.tsx # Single ranked leaderboard
-│   │   │   ├── DailyChallengePage.tsx # Daily challenge
-│   │   │   └── SettingsPage.tsx   # Audio + theme + account
+│   │   ├── pages/            # Page components (11 pages)
+│   │   │   ├── HomePage.tsx
+│   │   │   ├── PlayScreen.tsx
+│   │   │   ├── MapPage.tsx
+│   │   │   ├── ShopPage.tsx
+│   │   │   ├── InGameShopPage.tsx
+│   │   │   ├── QuestsPage.tsx
+│   │   │   ├── MyGamesPage.tsx
+│   │   │   ├── LeaderboardPage.tsx
+│   │   │   ├── SettingsPage.tsx
+│   │   │   └── TutorialPage.tsx
 │   │   ├── screens/          # Legacy screens
 │   │   │   └── Loading.tsx   # Loading screen
-│   │   ├── components/       # Reusable components
-│   │   │   ├── BottomTabBar.tsx  # Persistent bottom tab navigation
-│   │   │   ├── GameBoard.tsx     # Game board container
-│   │   │   ├── Grid.tsx          # Grid renderer with drag/drop
-│   │   │   ├── Block.tsx         # Individual block component
-│   │   │   ├── NextLine.tsx      # Next line preview
-│   │   │   ├── GameOverDialog.tsx  # Game over bottom sheet
-│   │   │   ├── VictoryDialog.tsx   # Zone cleared victory
-│   │   │   ├── LevelCompleteDialog.tsx # Level complete overlay
-│   │   │   ├── Connect.tsx       # Wallet connect button
-│   │   │   ├── hud/GameHud.tsx   # In-game HUD (score, moves, constraints)
-│   │   │   └── map/              # Map components (LevelPreview, ZoneBackground)
+│   │   ├── components/       # Reusable components (50+)
+│   │   │   ├── GameBoard.tsx # Game board container
+│   │   │   ├── Grid.tsx      # Grid renderer with drag/drop
+│   │   │   ├── Block.tsx     # Individual block component
+│   │   │   ├── NextLine.tsx  # Next line preview
+│   │   │   ├── LevelHeader.tsx # Level progress header
+│   │   │   ├── BonusButton.tsx # Bonus action buttons
+│   │   │   ├── GameOverDialog.tsx
+│   │   │   ├── VictoryDialog.tsx # Level 50 victory modal
+│   │   │   ├── LevelCompleteDialog.tsx
+│   │   │   ├── CubeBalance.tsx # CUBE token balance
+│   │   │   ├── Connect.tsx   # Wallet connect button
+│   │   │   ├── Shop/         # Shop components
+│   │   │   │   ├── ShopDialog.tsx
+│   │   │   │   ├── InGameShopDialog.tsx
+│   │   │   │   ├── ShopButton.tsx
+│   │   │   │   └── BringCubesDialog.tsx
+│   │   │   ├── Quest/        # Quest components
+│   │   │   │   ├── QuestsDialog.tsx
+│   │   │   │   ├── QuestCard.tsx
+│   │   │   │   ├── QuestsButton.tsx
+│   │   │   │   └── QuestTimer.tsx
+│   │   │   └── Tutorial/     # Tutorial components
+│   │   ├── containers/       # Container components
+│   │   │   ├── Header.tsx
+│   │   │   └── GameBonus.tsx
 │   │   ├── modules/          # Feature modules
 │   │   │   └── MusicPlayer.tsx
 │   │   ├── elements/         # Basic UI primitives (shadcn-based)
@@ -367,20 +385,14 @@ GRAVITY_BONUS → LINE_CLEAR_BONUS → UPDATE_AFTER_BONUS
 WAITING
 ```
 
-## Navigation
-
-Tab-based navigation via Zustand store (no URL routing):
+## Routes
 
 ```typescript
-type TabId = "home" | "map" | "ranks" | "settings";  // persistent bottom tab bar
-type OverlayId = "play" | "daily";                     // tab bar hidden
-type PageId = TabId | OverlayId;
-
-// Bottom tab bar visible on: home, map, ranks, settings
-// Hidden on: play (full immersion)
+<Routes>
+  <Route path="/" element={<Home />} />
+  <Route path="play/:gameId" element={<Play />} />
+</Routes>
 ```
-
-Pages are rendered in `App.tsx` with `AnimatePresence` slide transitions.
 
 ## Environment Variables
 

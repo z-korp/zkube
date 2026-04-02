@@ -10,10 +10,6 @@ export interface DailyLeaderboardEntry {
   playerName?: string;
 }
 
-/**
- * Hook to get the leaderboard for a specific daily challenge
- * Queries all DailyLeaderboard entities and filters by challenge_id
- */
 export function useDailyLeaderboard(challengeId: number | undefined) {
   const {
     setup: {
@@ -46,14 +42,12 @@ export function useDailyLeaderboard(challengeId: number | undefined) {
     return entries.sort((a, b) => a.rank - b.rank);
   }, [allEntities, challengeId, DailyLeaderboard]);
 
-  // Collect addresses for username lookup
   const addresses = useMemo(() => {
     return rawEntries.map((e) => e.player);
   }, [rawEntries]);
 
   const { usernames } = useGetUsernames(addresses);
 
-  // Merge usernames
   const entries = useMemo(() => {
     return rawEntries.map((entry) => {
       if (usernames) {
@@ -61,7 +55,7 @@ export function useDailyLeaderboard(challengeId: number | undefined) {
         const name = usernames.get(normalized);
         if (name) return { ...entry, playerName: name };
       }
-      // Fallback: truncate address
+
       const addr = entry.player;
       const truncated =
         addr.length > 13

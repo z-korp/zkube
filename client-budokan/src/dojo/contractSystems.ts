@@ -47,6 +47,13 @@ export interface Move extends Signer {
   final_index: number;
 }
 
+export interface BonusTx extends Signer {
+  game_id: BigNumberish;
+  bonus: number;
+  row_index: number;
+  block_index: number;
+}
+
 export interface AddCustomGameSettings extends Signer {
   name: string;
   description: string;
@@ -256,6 +263,27 @@ export function setupWorld(config: Config) {
       }
     };
 
+    const bonus = async ({
+      account,
+      game_id,
+      bonus,
+      row_index,
+      block_index,
+    }: BonusTx) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "apply_bonus",
+            calldata: [game_id, bonus, row_index, block_index],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing apply_bonus:", error);
+        throw error;
+      }
+    };
+
     const createRun = async ({ account, game_id }: CreateRun) => {
       try {
         if (isSlotMode) {
@@ -294,6 +322,7 @@ export function setupWorld(config: Config) {
       createRun,
       surrender,
       move,
+      bonus,
     };
   }
 

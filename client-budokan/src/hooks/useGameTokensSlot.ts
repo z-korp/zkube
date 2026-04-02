@@ -165,7 +165,6 @@ export const useGameTokensSlot = ({
         // Get owned token IDs
         const ownedTokenIds = new Set<bigint>(
           erc721Tokens.map((token) => {
-            // tokenId is hex string like "0x0000...0001"
             return BigInt(token.tokenId);
           })
         );

@@ -34,14 +34,14 @@ const NavButton: React.FC<NavButtonProps> = ({
       disabled={disabled}
       whileHover={disabled ? undefined : { scale: 1.03, y: -1 }}
       whileTap={disabled ? undefined : { scale: 0.97, y: 1 }}
-      className={`relative w-full max-w-[340px] py-4 md:py-5 rounded-xl border-2 border-b-4 text-white font-['Chakra_Petch'] text-lg md:text-xl tracking-wide shadow-lg ${
+      className={`relative w-full max-w-[340px] py-4 md:py-5 rounded-xl border-2 border-b-4 text-white font-['Fredericka_the_Great'] text-lg md:text-xl tracking-wide shadow-lg ${
         VARIANT_CLASSES[variant]
       } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:border-b-2 active:mt-[2px]"}`}
       style={{ textShadow: "0 2px 4px rgba(0,0,0,0.4)" }}
     >
       {label}
       {badge !== undefined && (
-        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-['Chakra_Petch'] min-w-[22px] h-[22px] flex items-center justify-center rounded-full px-1.5 shadow-md">
+        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-['Fredericka_the_Great'] min-w-[22px] h-[22px] flex items-center justify-center rounded-full px-1.5 shadow-md">
           {badge}
         </span>
       )}

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render } from "@testing-library/react";
 import type { HTMLAttributes } from "react";
 import Grid from "./Grid";
+import type { BonusType } from "../../dojo/game/types/bonusTypes";
 import { useMoveStore } from "../../stores/moveTxStore";
 
 vi.mock("motion/react", () => ({
@@ -76,16 +77,25 @@ vi.mock("@/hooks/useTransitionBlocks", () => ({
 
 describe("Grid drag interactions", () => {
   const baseProps = {
-    gameId: 1n,
+    gameId: 1,
     initialData: [{ id: 1, x: 0, y: 9, width: 1 }],
     nextLineData: [],
     setNextLineHasBeenConsumed: vi.fn(),
     gridSize: 20,
     gridWidth: 8,
     gridHeight: 10,
+    selectBlock: vi.fn(),
+    bonus: "None" as BonusType,
     account: null,
     isTxProcessing: false,
     setIsTxProcessing: vi.fn(),
+    score: 0,
+    combo: 0,
+    maxCombo: 0,
+    setOptimisticScore: vi.fn(),
+    setOptimisticCombo: vi.fn(),
+    setOptimisticMaxCombo: vi.fn(),
+    activeBonusLevel: 0,
     levelTransitionPending: false,
   };
 

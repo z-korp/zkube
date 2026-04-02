@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
 import { useMemo, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Flame, Gem, Star, Trophy } from "lucide-react";
+import CubeIcon from "@/ui/components/CubeIcon";
 
 interface VictoryDialogProps {
   isOpen: boolean;
@@ -38,14 +39,16 @@ const VictoryDialog: React.FC<VictoryDialogProps> = ({
 
   // Generate tweet URL for victory
   const tweetUrl = useMemo(() => {
+    const cubesDisplay = "💰".repeat(Math.min(game.totalCubes, 10)) + (game.totalCubes > 10 ? `+${game.totalCubes - 10}` : "");
     const tweetMsg = `🏆 I BEAT zKube! All 50 levels COMPLETE!
+${cubesDisplay} ${game.totalCubes} ZKUBE earned
 💎 ${game.totalScore.toLocaleString()} total points
 🔥 ${game.maxComboRun} max combo
 Can you beat all 50 levels? 😎
 Play now: app.zkube.xyz
 @zkorp_ @zkube_game`;
     return `https://x.com/intent/tweet?text=${encodeURIComponent(tweetMsg)}&url=app.zkube.xyz`;
-  }, [game.totalScore, game.maxComboRun]);
+  }, [game.totalCubes, game.totalScore, game.maxComboRun]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -135,6 +138,15 @@ Play now: app.zkube.xyz
             animate={animationPhase >= 2 ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
+            {/* Total Cubes */}
+            <div className="flex flex-col items-center gap-1 bg-yellow-900/30 px-4 py-3 rounded-lg flex-1 border border-yellow-500/30">
+              <div className="text-3xl flex gap-2 items-center text-yellow-400">
+                {game.totalCubes}
+                <CubeIcon />
+              </div>
+              <div className="text-xs text-yellow-400/80">Cubes</div>
+            </div>
+
             {/* Total Score */}
             <div className="flex flex-col items-center gap-1 bg-cyan-900/30 px-4 py-3 rounded-lg flex-1 border border-cyan-500/30">
               <div className="text-3xl flex gap-2 items-center text-cyan-400">

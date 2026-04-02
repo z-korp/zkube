@@ -21,6 +21,7 @@ export interface ZoneLayout {
 
 export interface UseMapLayoutParams {
   seed: bigint;
+  totalZones: number;
   nodesPerZone: number;
 }
 
@@ -79,6 +80,7 @@ function buildZoneLayout(
   // Evenly space nodes vertically with guaranteed monotonic ascent
   const yStep = (Y_BOTTOM - Y_TOP) / Math.max(lastNode, 1);
 
+  // First node (entry draft) is centered — treat as lane 1 for alternation
   let lane = 1;
 
   for (let i = 0; i < nodesPerZone; i++) {
@@ -88,6 +90,7 @@ function buildZoneLayout(
     const isFirst = i === 0;
     const isLast = i === lastNode;
 
+    // Boss and entry-draft get centered
     if (isFirst || isLast) {
       points.push({ x: 0.5, y });
       lane = 1; // reset to center for next alternation
@@ -141,7 +144,14 @@ function buildZoneLayout(
 
 export function useMapLayout({
   seed,
+  totalZones,
   nodesPerZone,
-}: UseMapLayoutParams): ZoneLayout {
-  return useMemo(() => buildZoneLayout(seed, 0, nodesPerZone), [seed, nodesPerZone]);
+}: UseMapLayoutParams): ZoneLayout[] {
+  return useMemo(
+    () =>
+      Array.from({ length: totalZones }, (_, zoneIndex) =>
+        buildZoneLayout(seed, zoneIndex, nodesPerZone),
+      ),
+    [seed, totalZones, nodesPerZone],
+  );
 }

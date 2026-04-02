@@ -1,0 +1,1 @@
+export { getSkillEffectDescription } from "../skillEffectsStub";

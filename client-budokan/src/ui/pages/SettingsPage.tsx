@@ -1,30 +1,35 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { Check, Copy } from "lucide-react";
+import {
+  Check,
+  Copy,
+  Palette,
+  UserRound,
+} from "lucide-react";
 import { useDisconnect } from "@starknet-react/core";
+import { THEME_IDS, THEME_META } from "@/config/themes";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { useNavigationStore } from "@/stores/navigationStore";
+import GameButton from "@/ui/components/shared/GameButton";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
-import { getThemeColors, type ThemeId } from "@/config/themes";
-
-const ZONE_THEMES: { themeId: ThemeId; name: string }[] = [
-  { themeId: "theme-1", name: "Polynesian" },
-  { themeId: "theme-5", name: "Feudal Japan" },
-  { themeId: "theme-7", name: "Ancient Persia" },
-];
+import PageTopBar from "@/ui/navigation/PageTopBar";
+import ImageAssets from "@/ui/theme/ImageAssets";
 
 const truncateAddress = (address: string): string => {
   if (address.length <= 14) return address;
   return `${address.slice(0, 8)}...${address.slice(-6)}`;
 };
 
+const toPercent = (value: number): number => Math.round(value * 100);
+
 const SettingsPage: React.FC = () => {
+  const goBack = useNavigationStore((state) => state.goBack);
   const { account } = useAccountCustom();
   const { username } = useControllerUsername();
   const { disconnect } = useDisconnect();
   const { themeTemplate, setThemeTemplate } = useTheme();
-  const colors = getThemeColors(themeTemplate);
   const { musicVolume, effectsVolume, setMusicVolume, setEffectsVolume } =
     useMusicPlayer();
 
@@ -35,6 +40,7 @@ const SettingsPage: React.FC = () => {
 
   const handleCopyAddress = async () => {
     if (!accountAddress) return;
+
     try {
       await navigator.clipboard.writeText(accountAddress);
       setCopied(true);
@@ -44,186 +50,165 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  const ToggleSwitch = ({
-    checked,
-    onClick,
-  }: {
-    checked: boolean;
-    onClick: () => void;
-  }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className="relative h-[22px] w-10 rounded-full border transition-all"
-      style={{
-        backgroundColor: checked ? colors.accent : `${colors.textMuted}26`,
-        borderColor: checked ? `${colors.accent}80` : colors.border,
-      }}
-    >
-      <span
-        className="absolute top-[2px] h-[16px] w-[16px] rounded-full transition-all"
-        style={{
-          backgroundColor: colors.text,
-          left: checked ? 22 : 2,
-          boxShadow: colors.glow,
-        }}
-      />
-    </button>
-  );
-
   return (
-    <div className="flex h-full flex-col">
-      <div className="pt-4 pb-2 px-4">
-        <h1 className="font-display text-[18px] font-extrabold text-center" style={{ color: colors.text }}>
-          Settings
-        </h1>
-      </div>
+    <div className="h-screen-viewport flex flex-col overflow-hidden">
+      <PageTopBar title="SETTINGS" onBack={goBack} />
 
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
-        <div className="max-w-[500px] mx-auto flex flex-col gap-3">
-          <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-            <h2 className="mb-2 text-[10px] uppercase tracking-[0.15em]" style={{ color: colors.textMuted }}>
-              ACCOUNT
-            </h2>
-            <div
-              className="rounded-xl border p-3"
-              style={{ backgroundColor: colors.surface, borderColor: colors.border }}
-            >
-              {accountAddress ? (
-                <>
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="font-display text-xs font-bold" style={{ color: colors.text }}>
-                        {resolvedUsername}
-                      </p>
-                      <p className="mt-0.5 text-[9px]" style={{ color: colors.textMuted }}>
-                        {truncateAddress(accountAddress)}
-                      </p>
-                    </div>
-                    <span className="text-[10px]" style={{ color: colors.accent }}>
-                      Cartridge ✓
-                    </span>
-                  </div>
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4">
+        <div className="max-w-[760px] mx-auto flex flex-col gap-4 pb-20">
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22 }}
+            className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-lg">🎵</span>
+              <h2 className="font-['Fredericka_the_Great'] text-lg text-white tracking-wide">
+                AUDIO
+              </h2>
+            </div>
 
-                  <div className="mt-3 flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleCopyAddress}
-                      className="flex items-center gap-1 rounded-md border px-2 py-1 text-[10px]"
-                      style={{ borderColor: colors.border, color: colors.textMuted }}
-                    >
-                      {copied ? <Check size={11} /> : <Copy size={11} />}
-                      {copied ? "Copied" : "Copy"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => disconnect()}
-                      className="rounded-md border px-2 py-1 text-[10px]"
-                      style={{ borderColor: `${colors.accent2}80`, color: colors.accent2 }}
-                    >
-                      Disconnect
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <p className="text-sm" style={{ color: colors.textMuted }}>
-                  Connect a wallet to manage your account.
-                </p>
-              )}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <span className="text-base shrink-0">🎵</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={toPercent(musicVolume)}
+                  onChange={(event) =>
+                    setMusicVolume(Number(event.target.value) / 100)
+                  }
+                  className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-slate-600 accent-cyan-400"
+                />
+                <span className="font-['Fredericka_the_Great'] text-cyan-200 text-lg tracking-wider w-8 text-right">
+                  {toPercent(musicVolume)}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="text-base shrink-0">🔔</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={toPercent(effectsVolume)}
+                  onChange={(event) =>
+                    setEffectsVolume(Number(event.target.value) / 100)
+                  }
+                  className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-slate-600 accent-emerald-400"
+                />
+                <span className="font-['Fredericka_the_Great'] text-emerald-200 text-lg tracking-wider w-8 text-right">
+                  {toPercent(effectsVolume)}
+                </span>
+              </div>
             </div>
           </motion.section>
 
           <motion.section
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.03 }}
+            transition={{ duration: 0.25, delay: 0.04 }}
+            className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
           >
-            <h2 className="mb-2 text-[10px] uppercase tracking-[0.15em]" style={{ color: colors.textMuted }}>
-              PREVIEW THEME
-            </h2>
-            <div className="flex gap-2">
-              {ZONE_THEMES.map(({ themeId, name }) => {
+            <div className="flex items-center gap-2 mb-3">
+              <Palette size={18} className="text-amber-300" />
+              <h2 className="font-['Fredericka_the_Great'] text-lg text-white tracking-wide">
+                THEME
+              </h2>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {THEME_IDS.map((themeId) => {
+                const themeAssets = ImageAssets(themeId);
                 const isSelected = themeTemplate === themeId;
-                const dotColor = getThemeColors(themeId).accent;
+
                 return (
-                  <button
+                  <motion.button
                     key={themeId}
                     type="button"
+                    whileTap={{ scale: 0.93 }}
                     onClick={() => setThemeTemplate(themeId)}
-                    className="flex flex-1 flex-col items-center rounded-xl border px-2 py-2"
-                    style={{
-                      borderColor: isSelected ? colors.accent : colors.border,
-                      backgroundColor: isSelected ? `${colors.accent}26` : colors.surface,
-                    }}
+                    title={THEME_META[themeId].name}
+                    className={`relative rounded-xl border overflow-hidden transition-colors w-14 h-14 flex items-center justify-center ${
+                      isSelected
+                        ? "border-yellow-300 bg-yellow-500/15"
+                        : "border-slate-600/70 bg-slate-900/40 hover:border-slate-400"
+                    }`}
                   >
-                    <span
-                      className="h-5 w-5 rounded-full"
-                      style={{ backgroundColor: dotColor }}
+                    <img
+                      src={themeAssets.themeIcon}
+                      alt={THEME_META[themeId].name}
+                      className="w-full h-full object-cover"
+                      draggable={false}
                     />
-                    <span className="mt-1 text-[8px]" style={{ color: isSelected ? colors.accent : colors.textMuted }}>
-                      {name.split(" ")[0]}
-                    </span>
-                  </button>
+                    {isSelected && (
+                      <Check
+                        size={14}
+                        className="absolute bottom-1 right-1 text-yellow-200 drop-shadow-md"
+                      />
+                    )}
+                  </motion.button>
                 );
               })}
             </div>
           </motion.section>
 
           <motion.section
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.04 }}
+            transition={{ duration: 0.25, delay: 0.08 }}
+            className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
           >
-            <h2 className="mb-2 text-[10px] uppercase tracking-[0.15em]" style={{ color: colors.textMuted }}>
-              AUDIO
-            </h2>
-            <div className="space-y-2">
-              {[
-                {
-                  label: "Music",
-                  isOn: musicVolume > 0,
-                  toggle: () => setMusicVolume(musicVolume > 0 ? 0 : 0.7),
-                },
-                {
-                  label: "Sound Effects",
-                  isOn: effectsVolume > 0,
-                  toggle: () => setEffectsVolume(effectsVolume > 0 ? 0 : 0.7),
-                },
-              ].map((audio) => (
-                <div
-                  key={audio.label}
-                  className="flex items-center justify-between rounded-xl border px-3 py-2"
-                  style={{ backgroundColor: colors.surface, borderColor: colors.border }}
-                >
-                  <span className="text-sm" style={{ color: colors.text }}>
-                    {audio.label}
-                  </span>
-                  <ToggleSwitch checked={audio.isOn} onClick={audio.toggle} />
-                </div>
-              ))}
+            <div className="flex items-center gap-2 mb-3">
+              <UserRound size={18} className="text-indigo-300" />
+              <h2 className="font-['Fredericka_the_Great'] text-lg text-white tracking-wide">
+                ACCOUNT
+              </h2>
             </div>
+
+            {accountAddress ? (
+              <div className="space-y-3">
+                <div className="rounded-lg border border-slate-700/50 bg-slate-900/50 p-3">
+                  <p className="text-xs text-slate-400 mb-1">Username</p>
+                  <p className="text-white text-sm">{resolvedUsername}</p>
+                </div>
+
+                <div className="rounded-lg border border-slate-700/50 bg-slate-900/50 p-3">
+                  <p className="text-xs text-slate-400 mb-1">Wallet Address</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-white text-sm truncate">
+                      {truncateAddress(accountAddress)}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleCopyAddress}
+                      className="inline-flex items-center gap-1 text-xs text-slate-200 hover:text-white"
+                      title={copied ? "Copied" : "Copy address"}
+                    >
+                      {copied ? <Check size={14} /> : <Copy size={14} />}
+                      {copied ? "Copied" : "Copy"}
+                    </button>
+                  </div>
+                </div>
+
+                <GameButton
+                  label="DISCONNECT"
+                  variant="danger"
+                  onClick={() => disconnect()}
+                />
+              </div>
+            ) : (
+              <div className="rounded-lg border border-slate-700/50 bg-slate-900/50 p-4 text-sm text-slate-300">
+                Connect a wallet to manage your account settings.
+              </div>
+            )}
           </motion.section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-          >
-            <h2 className="mb-2 text-[10px] uppercase tracking-[0.15em]" style={{ color: colors.textMuted }}>
-              ABOUT
-            </h2>
-            <div
-              className="rounded-xl border p-3"
-              style={{ backgroundColor: colors.surface, borderColor: colors.border }}
-            >
-              <p className="text-[11px]" style={{ color: colors.text }}>
-                zKube v1.0 · Dojo 1.8.0
-              </p>
-              <p className="mt-1 text-[9px]" style={{ color: colors.textMuted }}>
-                Fully on-chain · Starknet
-              </p>
-            </div>
-          </motion.section>
+
         </div>
       </div>
     </div>

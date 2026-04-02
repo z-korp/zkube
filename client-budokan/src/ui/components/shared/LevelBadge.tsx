@@ -21,7 +21,7 @@ const LevelBadge: React.FC<LevelBadgeProps> = ({
     <div
       className={`${config.container} rounded-full border-2 border-yellow-500 bg-slate-900 flex items-center justify-center shadow-[0_0_8px_rgba(250,204,21,0.3)]`}
     >
-      <span className={`font-['Chakra_Petch'] ${config.text} text-yellow-400 leading-none`}>
+      <span className={`font-['Fredericka_the_Great'] ${config.text} text-yellow-400 leading-none`}>
         {level}
       </span>
     </div>

@@ -5,6 +5,7 @@ import { Button } from "@/ui/elements/button";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import type { InfoStep, InfoItem } from "./tutorialSteps";
+import CubeIcon from "@/ui/components/CubeIcon";
 
 interface TutorialInfoStepProps {
   step: InfoStep;
@@ -30,13 +31,44 @@ const TutorialInfoStep: React.FC<TutorialInfoStepProps> = ({
   const imgAssets = ImageAssets(themeTemplate);
 
   const getIconForItem = (item: InfoItem): string => {
-    if (item.icon === "tsunami") return imgAssets.tsunami;
+    if (item.icon === "wave") return imgAssets.wave;
     if (item.icon === "supply") return imgAssets.supply;
     if (item.icon === "bonus") return imgAssets.combo;
     if (item.icon === "levelup") return imgAssets.score;
-    if (item.icon === "refill") return imgAssets.tsunami;
+    if (item.icon === "refill") return imgAssets.wave;
     return imgAssets.logo;
   };
+
+  const renderBonusesInfo = () => (
+    <div className="space-y-4">
+      {step.items.map((item, index) => (
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: index * 0.15 }}
+          className="flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700"
+        >
+          <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-slate-700/50 rounded-lg">
+            <img
+              src={getIconForItem(item)}
+              alt={item.name}
+              className="w-8 h-8 opacity-60"
+            />
+          </div>
+          <div className="flex-1">
+            <div className="font-semibold text-purple-400">{item.name}</div>
+            <div className={`text-slate-400 ${isMdOrLarger ? "text-sm" : "text-xs"}`}>
+              {item.desc}
+            </div>
+          </div>
+          <div className="text-xs text-slate-500 px-2 py-1 bg-slate-900/50 rounded">
+            Locked
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
 
   const renderCubesInfo = () => (
     <div className="space-y-3">
@@ -50,7 +82,9 @@ const TutorialInfoStep: React.FC<TutorialInfoStepProps> = ({
         >
           <div className="flex items-center gap-2">
             {Array.from({ length: item.cubes || 1 }).map((_, i) => (
-              <span key={i} className="text-xl">⭐</span>
+              <span key={i} className="text-xl">
+                <CubeIcon size="lg" />
+              </span>
             ))}
           </div>
           <div className={`text-slate-300 ${isMdOrLarger ? "text-sm" : "text-xs"} text-right`}>
@@ -123,6 +157,8 @@ const TutorialInfoStep: React.FC<TutorialInfoStepProps> = ({
 
   const renderContent = () => {
     switch (step.infoType) {
+      case "bonuses":
+        return renderBonusesInfo();
       case "cubes":
         return renderCubesInfo();
       case "shop":

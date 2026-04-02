@@ -1,10 +1,10 @@
 import { useTokenBalance } from "./useTokenBalance";
 
-const { VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS } = import.meta.env;
+const { VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
 
 export const useNftBalance = (address: string) => {
   const { balance, isLoading } = useTokenBalance(
-    VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+    VITE_PUBLIC_GAME_TOKEN_ADDRESS,
     address
   );
 

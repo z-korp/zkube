@@ -96,18 +96,15 @@ export interface ThemeColors {
   dangerZone: string;
   dangerZoneAlpha: number;
   accent: string;
-  accent2: string;
-  surface: string;
-  border: string;
-  glow: string;
-  text: string;
-  textMuted: string;
-  bgGradient: string;
   blocks: Record<1 | 2 | 3 | 4, BlockColors>;
   particles: {
     primary: string[];
     explosion: string[];
   };
+}
+
+function hex(n: number): string {
+  return `#${n.toString(16).padStart(6, "0")}`;
 }
 
 function darken(hexColor: string, amount: number): string {
@@ -136,13 +133,6 @@ function lighten(hexColor: string, amount: number): string {
     .padStart(2, "0")}`;
 }
 
-function hexToRgba(hexColor: string, alpha: number): string {
-  const r = parseInt(hexColor.slice(1, 3), 16);
-  const g = parseInt(hexColor.slice(3, 5), 16);
-  const b = parseInt(hexColor.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
 const POLYNESIAN_COLORS: ThemeColors = {
   background: "#041A44",
   backgroundGradientStart: lighten("#041A44", 0.06),
@@ -158,13 +148,6 @@ const POLYNESIAN_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#A9D8FF",
-  accent2: "#FFD93D",
-  surface: hexToRgba("#A9D8FF", 0.08),
-  border: hexToRgba("#A9D8FF", 0.15),
-  glow: `0 0 40px ${hexToRgba("#A9D8FF", 0.3)}`,
-  text: "#E0F0F5",
-  textMuted: hexToRgba("#E0F0F5", 0.5),
-  bgGradient: `linear-gradient(170deg, ${darken("#041A44", 0.3)} 0%, #041A44 40%, ${lighten("#041A44", 0.08)} 70%, ${lighten("#041A44", 0.15)} 100%)`,
   blocks: {
     1: {
       fill: "#7EC8E3",
@@ -208,13 +191,6 @@ const ANCIENT_EGYPT_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#D4AF37",
-  accent2: "#FF6B4A",
-  surface: hexToRgba("#D4AF37", 0.08),
-  border: hexToRgba("#D4AF37", 0.15),
-  glow: `0 0 40px ${hexToRgba("#D4AF37", 0.3)}`,
-  text: "#F5EDE3",
-  textMuted: hexToRgba("#F5EDE3", 0.5),
-  bgGradient: `linear-gradient(170deg, ${darken("#120C08", 0.3)} 0%, #120C08 40%, ${lighten("#120C08", 0.08)} 70%, ${lighten("#120C08", 0.15)} 100%)`,
   blocks: {
     1: {
       fill: "#F0CF7A",
@@ -258,13 +234,6 @@ const NORSE_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#7EB8DA",
-  accent2: "#C4A2FF",
-  surface: hexToRgba("#7EB8DA", 0.08),
-  border: hexToRgba("#7EB8DA", 0.15),
-  glow: `0 0 40px ${hexToRgba("#7EB8DA", 0.3)}`,
-  text: "#E5EDF5",
-  textMuted: hexToRgba("#E5EDF5", 0.5),
-  bgGradient: `linear-gradient(170deg, ${darken("#0A1520", 0.3)} 0%, #0A1520 40%, ${lighten("#0A1520", 0.08)} 70%, ${lighten("#0A1520", 0.15)} 100%)`,
   blocks: {
     1: {
       fill: "#A9C4DF",
@@ -308,13 +277,6 @@ const ANCIENT_GREECE_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#3B6FA0",
-  accent2: "#FFD93D",
-  surface: hexToRgba("#3B6FA0", 0.08),
-  border: hexToRgba("#3B6FA0", 0.15),
-  glow: `0 0 40px ${hexToRgba("#3B6FA0", 0.3)}`,
-  text: "#E8ECF5",
-  textMuted: hexToRgba("#E8ECF5", 0.5),
-  bgGradient: `linear-gradient(170deg, ${darken("#1A2030", 0.3)} 0%, #1A2030 40%, ${lighten("#1A2030", 0.08)} 70%, ${lighten("#1A2030", 0.15)} 100%)`,
   blocks: {
     1: {
       fill: "#BFD5E8",
@@ -358,13 +320,6 @@ const FEUDAL_JAPAN_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#C41E3A",
-  accent2: "#FFD700",
-  surface: hexToRgba("#C41E3A", 0.08),
-  border: hexToRgba("#C41E3A", 0.15),
-  glow: `0 0 40px ${hexToRgba("#C41E3A", 0.3)}`,
-  text: "#F5E6D3",
-  textMuted: hexToRgba("#F5E6D3", 0.5),
-  bgGradient: `linear-gradient(170deg, ${darken("#0D0D12", 0.3)} 0%, #0D0D12 40%, ${lighten("#0D0D12", 0.08)} 70%, ${lighten("#0D0D12", 0.15)} 100%)`,
   blocks: {
     1: {
       fill: "#E19AA3",
@@ -408,13 +363,6 @@ const ANCIENT_CHINA_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#50C878",
-  accent2: "#FFD93D",
-  surface: hexToRgba("#50C878", 0.08),
-  border: hexToRgba("#50C878", 0.15),
-  glow: `0 0 40px ${hexToRgba("#50C878", 0.3)}`,
-  text: "#E0F5E8",
-  textMuted: hexToRgba("#E0F5E8", 0.5),
-  bgGradient: `linear-gradient(170deg, ${darken("#0A1A0A", 0.3)} 0%, #0A1A0A 40%, ${lighten("#0A1A0A", 0.08)} 70%, ${lighten("#0A1A0A", 0.15)} 100%)`,
   blocks: {
     1: {
       fill: "#9CD8B6",
@@ -458,13 +406,6 @@ const ANCIENT_PERSIA_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#1E90FF",
-  accent2: "#FFB347",
-  surface: hexToRgba("#1E90FF", 0.08),
-  border: hexToRgba("#1E90FF", 0.15),
-  glow: `0 0 40px ${hexToRgba("#1E90FF", 0.3)}`,
-  text: "#E8ECF5",
-  textMuted: hexToRgba("#E8ECF5", 0.5),
-  bgGradient: `linear-gradient(170deg, ${darken("#0A0F2A", 0.3)} 0%, #0A0F2A 40%, ${lighten("#0A0F2A", 0.08)} 70%, ${lighten("#0A0F2A", 0.15)} 100%)`,
   blocks: {
     1: {
       fill: "#9EB7DF",
@@ -508,13 +449,6 @@ const MAYAN_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#4CAF50",
-  accent2: "#FFD93D",
-  surface: hexToRgba("#4CAF50", 0.08),
-  border: hexToRgba("#4CAF50", 0.15),
-  glow: `0 0 40px ${hexToRgba("#4CAF50", 0.3)}`,
-  text: "#E5F0E5",
-  textMuted: hexToRgba("#E5F0E5", 0.5),
-  bgGradient: `linear-gradient(170deg, ${darken("#0A1A0A", 0.3)} 0%, #0A1A0A 40%, ${lighten("#0A1A0A", 0.08)} 70%, ${lighten("#0A1A0A", 0.15)} 100%)`,
   blocks: {
     1: {
       fill: "#A9BE72",
@@ -558,13 +492,6 @@ const PUEBLO_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#40C8B8",
-  accent2: "#E07850",
-  surface: hexToRgba("#40C8B8", 0.08),
-  border: hexToRgba("#40C8B8", 0.15),
-  glow: `0 0 40px ${hexToRgba("#40C8B8", 0.3)}`,
-  text: "#F0E8E0",
-  textMuted: hexToRgba("#F0E8E0", 0.5),
-  bgGradient: `linear-gradient(170deg, ${darken("#2A1F14", 0.3)} 0%, #2A1F14 40%, ${lighten("#2A1F14", 0.08)} 70%, ${lighten("#2A1F14", 0.15)} 100%)`,
   blocks: {
     1: {
       fill: "#E0A07A",
@@ -608,13 +535,6 @@ const INCA_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#D4AF37",
-  accent2: "#FF6B4A",
-  surface: hexToRgba("#D4AF37", 0.08),
-  border: hexToRgba("#D4AF37", 0.15),
-  glow: `0 0 40px ${hexToRgba("#D4AF37", 0.3)}`,
-  text: "#F0EDE5",
-  textMuted: hexToRgba("#F0EDE5", 0.5),
-  bgGradient: `linear-gradient(170deg, ${darken("#1A1A2A", 0.3)} 0%, #1A1A2A 40%, ${lighten("#1A1A2A", 0.08)} 70%, ${lighten("#1A1A2A", 0.15)} 100%)`,
   blocks: {
     1: {
       fill: "#C7BCA9",
@@ -774,6 +694,7 @@ export function getThemeImages(themeId: ThemeId) {
     gridBg: `${base}/grid-bg.png`,
     mapBg: `${base}/map-bg.png`,
     mapNodeLevel: `${base}/map-node-level.png`,
+    mapNodeDraft: `${base}/map-node-draft.png`,
     mapNodeBoss: `${base}/map-node-boss.png`,
     mapNodeCompleted: `${base}/map-node-completed.png`,
     themeIcon: `${base}/theme-icon.png`,
