@@ -88,9 +88,11 @@ pub fn update_score(ref run_data: RunData, points: u16) {
 
     // Accumulate total score (cap at max u32)
     let new_total: u64 = run_data.total_score.into() + points.into();
-    run_data.total_score = if new_total > 0xFFFFFFFF {
-        0xFFFFFFFF
-    } else {
-        new_total.try_into().unwrap()
-    };
+    run_data
+        .total_score =
+            if new_total > 0xFFFFFFFF {
+                0xFFFFFFFF
+            } else {
+                new_total.try_into().unwrap()
+            };
 }

@@ -300,10 +300,7 @@ impl U8IntoConstraintType of Into<u8, ConstraintType> {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        ConstraintContext, ConstraintContextTrait, ConstraintType,
-        LevelConstraintTrait,
-    };
+    use super::{ConstraintContext, ConstraintContextTrait, ConstraintType, LevelConstraintTrait};
 
     #[test]
     fn test_constraint_none() {

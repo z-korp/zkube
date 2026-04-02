@@ -59,9 +59,7 @@ mod tests {
 
     #[test]
     fn test_ranking_metric_roundtrip() {
-        let metrics = array![
-            RankingMetric::Score, RankingMetric::Level, RankingMetric::Composite,
-        ];
+        let metrics = array![RankingMetric::Score, RankingMetric::Level, RankingMetric::Composite];
         let mut i: u32 = 0;
         while i < metrics.len() {
             let metric = *metrics.at(i);

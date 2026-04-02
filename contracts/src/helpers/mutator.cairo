@@ -62,11 +62,17 @@ pub impl MutatorEffectsImpl of MutatorEffectsTrait {
 
     /// Apply mutator-driven level modifiers.
     fn apply_mutator_to_level(mutator_def: @MutatorDef, ref config: LevelConfig) {
-        config.max_moves = apply_bias_offset_u16(config.max_moves, *mutator_def.moves_modifier, 1, 65535);
-        config.points_required = apply_bias_percent_u16(
-            config.points_required, *mutator_def.ratio_modifier, 1, 65535,
-        );
-        config.difficulty = apply_difficulty_offset(config.difficulty, *mutator_def.difficulty_offset);
+        config
+            .max_moves =
+                apply_bias_offset_u16(config.max_moves, *mutator_def.moves_modifier, 1, 65535);
+        config
+            .points_required =
+                apply_bias_percent_u16(
+                    config.points_required, *mutator_def.ratio_modifier, 1, 65535,
+                );
+        config
+            .difficulty =
+                apply_difficulty_offset(config.difficulty, *mutator_def.difficulty_offset);
     }
 
     /// Apply mutator-driven score multiplier.

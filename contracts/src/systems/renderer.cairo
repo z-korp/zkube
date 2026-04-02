@@ -67,22 +67,18 @@ mod renderer_systems {
             // Status
             details
                 .append(
-                    GameDetail {
-                        name: 'STATUS', value: if game.over {
-                            'OVER'
-                        } else {
-                            'ACTIVE'
-                        },
-                    },
+                    GameDetail { name: 'STATUS', value: if game.over {
+                        'OVER'
+                    } else {
+                        'ACTIVE'
+                    } },
                 );
 
             // Level
-            details
-                .append(GameDetail { name: 'LEVEL', value: run_data.current_level.into() });
+            details.append(GameDetail { name: 'LEVEL', value: run_data.current_level.into() });
 
             // Score
-            details
-                .append(GameDetail { name: 'SCORE', value: run_data.total_score.into() });
+            details.append(GameDetail { name: 'SCORE', value: run_data.total_score.into() });
 
             details.span()
         }
@@ -124,7 +120,7 @@ mod renderer_systems {
                 let token_id = *token_ids.at(i);
                 names.append(self.token_name(token_id));
                 i += 1;
-            };
+            }
 
             names
         }
@@ -143,7 +139,7 @@ mod renderer_systems {
                 let token_id = *token_ids.at(i);
                 descriptions.append(self.token_description(token_id));
                 i += 1;
-            };
+            }
 
             descriptions
         }
@@ -162,7 +158,7 @@ mod renderer_systems {
                 let token_id = *token_ids.at(i);
                 details_batch.append(self.game_details(token_id));
                 i += 1;
-            };
+            }
 
             details_batch
         }
@@ -305,20 +301,16 @@ mod renderer_systems {
 
             details
                 .append(
-                    GameDetail {
-                        name: 'STATUS', value: if game.over {
-                            'OVER'
-                        } else {
-                            'ACTIVE'
-                        },
-                    },
+                    GameDetail { name: 'STATUS', value: if game.over {
+                        'OVER'
+                    } else {
+                        'ACTIVE'
+                    } },
                 );
 
-            details
-                .append(GameDetail { name: 'LEVEL', value: run_data.current_level.into() });
+            details.append(GameDetail { name: 'LEVEL', value: run_data.current_level.into() });
 
-            details
-                .append(GameDetail { name: 'SCORE', value: run_data.total_score.into() });
+            details.append(GameDetail { name: 'SCORE', value: run_data.total_score.into() });
 
             details.span()
         }

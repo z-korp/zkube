@@ -28,10 +28,15 @@ pub struct MutatorDef {
 pub impl MutatorDefImpl of MutatorDefTrait {
     #[inline(always)]
     fn exists(self: @MutatorDef) -> bool {
-        *self.name != 0 || *self.zone_id != 0 || *self.moves_modifier != 0
-            || *self.ratio_modifier != 0 || *self.difficulty_offset != 0
-            || *self.combo_score_mult_x100 != 0 || *self.star_threshold_modifier != 0
-            || *self.endless_ramp_mult_x100 != 0 || *self.line_clear_bonus != 0
+        *self.name != 0
+            || *self.zone_id != 0
+            || *self.moves_modifier != 0
+            || *self.ratio_modifier != 0
+            || *self.difficulty_offset != 0
+            || *self.combo_score_mult_x100 != 0
+            || *self.star_threshold_modifier != 0
+            || *self.endless_ramp_mult_x100 != 0
+            || *self.line_clear_bonus != 0
             || *self.perfect_clear_bonus != 0
             || *self.starting_rows != 0
     }

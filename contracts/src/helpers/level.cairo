@@ -57,7 +57,6 @@ pub mod BossLevel {
             _ => 0,
         }
     }
-
 }
 
 #[generate_trait]
@@ -92,7 +91,9 @@ pub impl LevelGenerator of LevelGeneratorTrait {
                 .unwrap();
 
             let variance_percent = settings.get_variance_percent(calc_level);
-            let variance_factor = Self::calculate_variance_factor(level_seed, variance_percent.into());
+            let variance_factor = Self::calculate_variance_factor(
+                level_seed, variance_percent.into(),
+            );
 
             (
                 Self::apply_factor(base_points, variance_factor),
@@ -140,13 +141,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         };
 
         let mut config = LevelConfig {
-            level,
-            points_required,
-            max_moves,
-            difficulty,
-            constraint,
-            constraint_2,
-            constraint_3,
+            level, points_required, max_moves, difficulty, constraint, constraint_2, constraint_3,
         };
 
         MutatorEffectsTrait::apply_mutator_to_level(mutator_def, ref config);
@@ -977,8 +972,8 @@ mod tests {
     #[test]
     fn test_different_seeds_different_configs() {
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        // Endless levels are seed-independent by design; use a zone level where variance/constraints
-        // are seeded.
+        // Endless levels are seed-independent by design; use a zone level where
+        // variance/constraints are seeded.
         let config1 = LevelGeneratorTrait::generate(TEST_SEED, 9, settings, @default_mutator());
         let config2 = LevelGeneratorTrait::generate(
             DIFFERENT_SEED, 9, settings, @default_mutator(),

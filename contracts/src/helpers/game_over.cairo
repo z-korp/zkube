@@ -8,11 +8,11 @@ use starknet::{ContractAddress, get_block_timestamp};
 use zkube::events::RunEnded;
 use zkube::helpers::config::ConfigUtilsTrait;
 use zkube::helpers::daily;
-use zkube::models::game::{Game, GameTrait};
-use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
 use zkube::models::daily::{
     DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait, GameChallenge,
 };
+use zkube::models::game::{Game, GameTrait};
+use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
 
 /// Handle game over: update player meta, emit event, submit daily result.
 /// Used by game_system (surrender) and move_system (level failed/game over).
@@ -44,16 +44,17 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
     };
     let mut best_run: PlayerBestRun = world.read_model((player, settings.settings_id, mode));
     if best_run.is_new_best(mode, run_data.total_score, total_stars) {
-        best_run = PlayerBestRun {
-            player,
-            settings_id: settings.settings_id,
-            mode,
-            best_score: run_data.total_score,
-            best_stars: total_stars,
-            best_level: run_data.current_level,
-            map_cleared: run_data.zone_cleared,
-            best_game_id: game.game_id,
-        };
+        best_run =
+            PlayerBestRun {
+                player,
+                settings_id: settings.settings_id,
+                mode,
+                best_score: run_data.total_score,
+                best_stars: total_stars,
+                best_level: run_data.current_level,
+                map_cleared: run_data.zone_cleared,
+                best_game_id: game.game_id,
+            };
         world.write_model(@best_run);
     }
 

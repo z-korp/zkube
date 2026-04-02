@@ -89,7 +89,10 @@ pub struct PlayerBestRun {
 pub impl PlayerBestRunImpl of PlayerBestRunTrait {
     /// Check whether a best-run record has been initialized.
     fn exists(self: @PlayerBestRun) -> bool {
-        *self.best_game_id != 0 || *self.best_score > 0 || *self.best_stars > 0 || *self.best_level > 0
+        *self.best_game_id != 0
+            || *self.best_score > 0
+            || *self.best_stars > 0
+            || *self.best_level > 0
             || *self.map_cleared
     }
 

@@ -17,11 +17,10 @@ mod move_system {
     use game_components_embeddable_game_standard::token::interface::{
         IMinigameTokenDispatcher, IMinigameTokenDispatcherTrait,
     };
-    use game_components_embeddable_game_standard::token::token::LifecycleTrait;
     use game_components_embeddable_game_standard::token::structs::TokenMetadata;
+    use game_components_embeddable_game_standard::token::token::LifecycleTrait;
     use starknet::{get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
-
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::game_libs::{
         GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
@@ -113,7 +112,9 @@ mod move_system {
                 if trigger_type == 1 {
                     // Combo streak (per-level): award one charge each exact threshold hit.
                     if game.combo_counter > 0 && game.combo_counter % threshold == 0 {
-                        let next_charges = InternalImpl::add_bonus_charges(run_data.bonus_charges, 1);
+                        let next_charges = InternalImpl::add_bonus_charges(
+                            run_data.bonus_charges, 1,
+                        );
                         if next_charges != run_data.bonus_charges {
                             run_data.bonus_charges = next_charges;
                             run_data_changed = true;
@@ -182,8 +183,7 @@ mod move_system {
                     @mutator_def, run_data.total_score,
                 );
                 let target_difficulty = LevelGeneratorTrait::get_endless_difficulty_for_score(
-                    ramped_score,
-                    @settings,
+                    ramped_score, @settings,
                 );
                 let target_difficulty_u8: u8 = target_difficulty.into();
 

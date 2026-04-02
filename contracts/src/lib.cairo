@@ -3,24 +3,24 @@ pub mod events;
 
 pub mod models {
     pub mod config;
-    pub mod mutator;
+    pub mod daily;
     pub mod entitlement;
     pub mod game;
+    pub mod mutator;
     pub mod player;
-    pub mod daily;
 }
 
 pub mod types {
-    pub mod bonus;
     pub mod block;
+    pub mod bonus;
     pub mod constraint;
+    pub mod daily;
 
     pub mod difficulty;
+    pub mod level;
     pub mod mode;
     pub mod mutator;
-    pub mod level;
     pub mod width;
-    pub mod daily;
 }
 
 pub mod elements {
@@ -57,8 +57,8 @@ pub mod helpers {
     pub mod math;
     pub mod mutator;
     pub mod packer;
-    pub mod prize;
     pub mod packing;
+    pub mod prize;
     pub mod random;
     pub mod renderer;
     pub mod scoring;
@@ -67,12 +67,12 @@ pub mod helpers {
 
 pub mod systems {
     pub mod config;
+    pub mod daily_challenge;
     pub mod game;
     pub mod grid;
     pub mod level;
     pub mod moves;
     pub mod renderer;
-    pub mod daily_challenge;
 }
 
 pub mod external {

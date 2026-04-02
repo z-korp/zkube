@@ -74,7 +74,7 @@ pub struct GameLevel {
     pub constraint3_value: u8,
     pub constraint3_count: u8,
     // Mutator
-    pub mutator_id: u8, // Active mutator for this level (0=none)
+    pub mutator_id: u8 // Active mutator for this level (0=none)
 }
 use zkube::types::level::LevelConfig;
 

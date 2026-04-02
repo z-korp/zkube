@@ -36,8 +36,8 @@ mod game_system {
     use game_components_embeddable_game_standard::token::interface::{
         IMinigameTokenDispatcher, IMinigameTokenDispatcherTrait,
     };
-    use game_components_embeddable_game_standard::token::token::LifecycleTrait;
     use game_components_embeddable_game_standard::token::structs::TokenMetadata;
+    use game_components_embeddable_game_standard::token::token::LifecycleTrait;
     use openzeppelin_introspection::src5::SRC5Component;
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
@@ -51,15 +51,15 @@ mod game_system {
     use zkube::helpers::game_over;
     use zkube::helpers::random::RandomImpl;
     use zkube::models::config::GameSettingsMetadata;
+    use zkube::models::daily::{DailyChallenge, DailyEntry, DailyEntryTrait, GameChallenge};
     use zkube::models::entitlement::MapEntitlement;
     use zkube::models::game::{Game, GameAssert, GameSeed, GameTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
-    use zkube::models::daily::{DailyChallenge, DailyEntry, DailyEntryTrait, GameChallenge};
-    use zkube::types::mutator::{FULL_MUTATOR_MASK, MutatorTrait};
-    use zkube::types::bonus::{Bonus, BonusTrait};
     use zkube::systems::daily_challenge::{
         IDailyChallengeSystemDispatcher, IDailyChallengeSystemDispatcherTrait,
     };
+    use zkube::types::bonus::{Bonus, BonusTrait};
+    use zkube::types::mutator::{FULL_MUTATOR_MASK, MutatorTrait};
 
     component!(path: MinigameComponent, storage: minigame, event: MinigameEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -186,7 +186,7 @@ mod game_system {
                 let score = self.score(token_id);
                 scores.append(score);
                 i += 1;
-            };
+            }
 
             scores
         }
@@ -204,7 +204,7 @@ mod game_system {
                 let over = self.game_over(token_id);
                 statuses.append(over);
                 i += 1;
-            };
+            }
 
             statuses
         }
@@ -248,12 +248,7 @@ mod game_system {
             post_action(token_address, token_id_felt);
         }
 
-        fn apply_bonus(
-            ref self: ContractState,
-            game_id: felt252,
-            row_index: u8,
-            block_index: u8,
-        ) {
+        fn apply_bonus(ref self: ContractState, game_id: felt252, row_index: u8, block_index: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let token_address = self.token_address();
@@ -375,8 +370,11 @@ mod game_system {
             if !is_daily_game {
                 let metadata: GameSettingsMetadata = world.read_model(settings.settings_id);
                 if !metadata.is_free {
-                    let entitlement: MapEntitlement = world.read_model((player, settings.settings_id));
-                    assert!(entitlement.purchased_at != 0, "Map not purchased - unlock this map first");
+                    let entitlement: MapEntitlement = world
+                        .read_model((player, settings.settings_id));
+                    assert!(
+                        entitlement.purchased_at != 0, "Map not purchased - unlock this map first",
+                    );
                 }
             }
 
@@ -416,13 +414,15 @@ mod game_system {
             let mut run_data = game.get_run_data();
             run_data.bonus_slot = bonus_slot;
             run_data.bonus_type = bonus_type;
-            run_data.bonus_charges = if starting_charges > 15 { 15 } else { starting_charges };
+            run_data.bonus_charges = if starting_charges > 15 {
+                15
+            } else {
+                starting_charges
+            };
             game.set_run_data(run_data);
 
             // Store the seed separately
-            let game_seed = GameSeed {
-                game_id, seed, level_seed: seed, vrf_enabled,
-            };
+            let game_seed = GameSeed { game_id, seed, level_seed: seed, vrf_enabled };
             world.write_model(@game_seed);
 
             // Initialize or update player meta

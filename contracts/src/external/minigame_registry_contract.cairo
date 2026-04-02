@@ -17,8 +17,7 @@ pub mod MinigameRegistryContract {
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::{ContractAddress, get_caller_address};
-    use super::GameMetadata;
-    use super::{IMINIGAME_REGISTRY_ID, IMinigameRegistry};
+    use super::{GameMetadata, IMINIGAME_REGISTRY_ID, IMinigameRegistry};
 
     component!(path: ERC721Component, storage: erc721, event: ERC721Event);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);

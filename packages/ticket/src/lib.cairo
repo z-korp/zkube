@@ -46,19 +46,21 @@ pub trait IZTicket<T> {
 /// Standard ERC20 interface for transfer_from and burn calls
 #[starknet::interface]
 trait IERC20<T> {
-    fn transfer_from(ref self: T, sender: ContractAddress, recipient: ContractAddress, amount: u256) -> bool;
+    fn transfer_from(
+        ref self: T, sender: ContractAddress, recipient: ContractAddress, amount: u256,
+    ) -> bool;
     fn burn(ref self: T, account: ContractAddress, amount: u256);
 }
 
 #[starknet::contract]
 pub mod z_ticket {
+    use core::num::traits::Zero;
     use openzeppelin_access::ownable::OwnableComponent;
     use openzeppelin_introspection::src5::SRC5Component;
     use openzeppelin_token::erc1155::{ERC1155Component, ERC1155HooksEmptyImpl};
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use starknet::{ContractAddress, get_caller_address};
     use super::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use core::num::traits::Zero;
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
     component!(path: ERC1155Component, storage: erc1155, event: ERC1155Event);
@@ -148,9 +150,7 @@ pub mod z_ticket {
             // Mint zTickets to caller
             self
                 .erc1155
-                .mint_with_acceptance_check(
-                    caller, TICKET_TOKEN_ID, amount, array![].span(),
-                );
+                .mint_with_acceptance_check(caller, TICKET_TOKEN_ID, amount, array![].span());
         }
 
         fn purchase_with_cubes(ref self: ContractState, amount: u256) {
@@ -167,9 +167,7 @@ pub mod z_ticket {
             // Mint zTickets to caller
             self
                 .erc1155
-                .mint_with_acceptance_check(
-                    caller, TICKET_TOKEN_ID, amount, array![].span(),
-                );
+                .mint_with_acceptance_check(caller, TICKET_TOKEN_ID, amount, array![].span());
         }
 
         // === Admin ===

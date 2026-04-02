@@ -85,7 +85,6 @@ pub impl LevelConfigImpl of LevelConfigTrait {
             progress.try_into().unwrap()
         }
     }
-
 }
 
 #[cfg(test)]
@@ -102,7 +101,7 @@ mod tests {
             difficulty: Difficulty::Medium,
             constraint: LevelConstraintTrait::combo_lines(2, 1),
             constraint_2: LevelConstraintTrait::none(), // No secondary constraint
-            constraint_3: LevelConstraintTrait::none(), // No tertiary constraint
+            constraint_3: LevelConstraintTrait::none() // No tertiary constraint
         }
     }
 
@@ -231,5 +230,4 @@ mod tests {
         assert!(config.score_progress_percent(50) == 100, "50/50 should be 100%");
         assert!(config.score_progress_percent(60) == 100, "Over goal should be 100%");
     }
-
 }

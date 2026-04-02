@@ -97,7 +97,9 @@ mod level_system {
             let base_seed: GameSeed = world.read_model(game_id);
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
 
-            let level_config = LevelGeneratorTrait::generate_endless_level(base_seed.seed, settings);
+            let level_config = LevelGeneratorTrait::generate_endless_level(
+                base_seed.seed, settings,
+            );
             let mut game_level = GameLevelTrait::from_level_config(game_id, level_config);
 
             let mut run_data = game.get_run_data();
@@ -120,10 +122,7 @@ mod level_system {
             world.write_model(@game);
         }
 
-        fn finalize_level(
-            ref self: ContractState,
-            game_id: felt252,
-        ) -> (u8, u8, bool) {
+        fn finalize_level(ref self: ContractState, game_id: felt252) -> (u8, u8, bool) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let mut game: Game = world.read_model(game_id);

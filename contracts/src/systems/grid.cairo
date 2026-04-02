@@ -22,11 +22,7 @@ pub trait IGridSystem<T> {
     /// Execute a move (swipe) on the grid.
     /// Returns (lines_cleared, is_grid_full)
     fn execute_move(
-        ref self: T,
-        game_id: felt252,
-        row_index: u8,
-        start_index: u8,
-        final_index: u8,
+        ref self: T, game_id: felt252, row_index: u8, start_index: u8, final_index: u8,
     ) -> (u8, bool);
 
     /// Insert a new line if the grid is empty.
@@ -45,14 +41,11 @@ mod grid_system {
     use dojo::model::ModelStorage;
     use dojo::world::WorldStorage;
     use zkube::constants::{self, DEFAULT_NS};
-
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::controller::Controller;
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::mutator::MutatorEffectsTrait;
-    use zkube::helpers::scoring::{
-        process_lines_cleared, update_score,
-    };
+    use zkube::helpers::scoring::{process_lines_cleared, update_score};
     use zkube::models::config::GameSettings;
     use zkube::models::game::{Game, GameLevel, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
@@ -90,7 +83,8 @@ mod grid_system {
             // Fill grid until it has at least the configured starting rows.
             let div: u256 = BitShift::shl(
                 1_u256, starting_rows.into() * constants::ROW_BIT_COUNT.into(),
-            ) - 1;
+            )
+                - 1;
             loop {
                 if game.blocks.into() / div > 0 {
                     break;
@@ -103,7 +97,7 @@ mod grid_system {
                 let mut counter: u8 = 0;
                 let mut _cascade: u8 = 0;
                 InternalImpl::assess_game(ref game.blocks, ref counter, ref _cascade);
-            };
+            }
 
             world.write_model(@game);
         }
@@ -133,7 +127,8 @@ mod grid_system {
             // Fill grid until it has at least the configured starting rows.
             let div: u256 = BitShift::shl(
                 1_u256, starting_rows.into() * constants::ROW_BIT_COUNT.into(),
-            ) - 1;
+            )
+                - 1;
             loop {
                 if game.blocks.into() / div > 0 {
                     break;
@@ -148,7 +143,7 @@ mod grid_system {
                 let mut counter: u8 = 0;
                 let mut _cascade: u8 = 0;
                 InternalImpl::assess_game(ref game.blocks, ref counter, ref _cascade);
-            };
+            }
 
             world.write_model(@game);
         }
@@ -169,7 +164,8 @@ mod grid_system {
 
             let mut run_data = game.get_run_data();
             let mutator_def = InternalImpl::read_mutator_def(world, run_data.active_mutator_id);
-            let score_difficulty: Difficulty = if run_data.mode == 1 && run_data.current_difficulty != 0 {
+            let score_difficulty: Difficulty = if run_data.mode == 1
+                && run_data.current_difficulty != 0 {
                 run_data.current_difficulty.into()
             } else {
                 game_level.difficulty.into()
@@ -299,9 +295,7 @@ mod grid_system {
             // Count destroyed blocks of target size using total count approach
             // Positional diff is wrong because blocks shift (gravity, new line insertion)
             let blocks_destroyed_of_target_size = if track_break_blocks {
-                let count_after = InternalImpl::count_blocks_of_size(
-                    new_blocks, break_target_size,
-                );
+                let count_after = InternalImpl::count_blocks_of_size(new_blocks, break_target_size);
                 let total_available: u8 = break_count_before + break_added_count;
                 if total_available > count_after {
                     total_available - count_after
@@ -390,7 +384,9 @@ mod grid_system {
             let mut game: Game = world.read_model(game_id);
             let mut lines_cleared: u8 = 0;
             let mut _cascade_depth: u8 = 0;
-            let points = InternalImpl::assess_game(ref game.blocks, ref lines_cleared, ref _cascade_depth);
+            let points = InternalImpl::assess_game(
+                ref game.blocks, ref lines_cleared, ref _cascade_depth,
+            );
 
             world.write_model(@game);
 
@@ -444,9 +440,7 @@ mod grid_system {
         }
 
         /// Apply gravity and assess lines until stable, tracking cascade depth.
-        fn assess_game(
-            ref blocks: felt252, ref counter: u8, ref cascade_depth: u8,
-        ) -> u16 {
+        fn assess_game(ref blocks: felt252, ref counter: u8, ref cascade_depth: u8) -> u16 {
             let mut points = 0;
             let mut upper_blocks = 0;
             loop {
@@ -457,7 +451,7 @@ mod grid_system {
                     }
                     inner_blocks = blocks;
                     blocks = Controller::apply_gravity(blocks);
-                };
+                }
                 blocks = Controller::assess_lines(blocks, ref counter, ref points, true);
                 if upper_blocks == blocks {
                     break points;
@@ -543,7 +537,7 @@ mod grid_system {
                     count += 1;
                 }
                 i += 1;
-            };
+            }
             count
         }
 
@@ -563,7 +557,7 @@ mod grid_system {
                     count += 1;
                 }
                 col += 1;
-            };
+            }
             count
         }
 
@@ -583,14 +577,12 @@ mod grid_system {
 
                 let idx: u8 = row * constants::DEFAULT_GRID_WIDTH + col;
                 let shift: u256 = idx.into() * constants::BLOCK_BIT_COUNT.into();
-                let val: u8 = (BitShift::shr(blocks_u256, shift) & 0x7_u256)
-                    .try_into()
-                    .unwrap();
+                let val: u8 = (BitShift::shr(blocks_u256, shift) & 0x7_u256).try_into().unwrap();
                 if val > 0 {
                     count += 1;
                 }
                 col += 1;
-            };
+            }
 
             count
         }

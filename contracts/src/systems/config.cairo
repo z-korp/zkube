@@ -82,11 +82,7 @@ pub trait IConfigSystem<T> {
     fn has_map_access(self: @T, player: ContractAddress, settings_id: u32) -> bool;
     /// Admin: set map pricing
     fn set_map_pricing(
-        ref self: T,
-        settings_id: u32,
-        is_free: bool,
-        price: u256,
-        payment_token: ContractAddress,
+        ref self: T, settings_id: u32, is_free: bool, price: u256, payment_token: ContractAddress,
     );
     /// Admin: set map enabled/disabled
     fn set_map_enabled(ref self: T, settings_id: u32, enabled: bool);
@@ -97,6 +93,7 @@ pub trait IConfigSystem<T> {
 
 #[dojo::contract]
 mod config_system {
+    use core::num::traits::Zero;
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
     use game_components_embeddable_game_standard::minigame::extensions::settings::interface::{
@@ -113,7 +110,6 @@ mod config_system {
     use openzeppelin_introspection::src5::SRC5Component;
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
-    use core::num::traits::Zero;
     use zkube::constants::DEFAULT_NS;
     use zkube::constants::DEFAULT_SETTINGS::DEFAULT_SETTINGS_ID;
     use zkube::helpers::encoding::U256BytesUsedTraitImpl;
@@ -315,7 +311,7 @@ mod config_system {
                 let settings_id = *settings_ids.at(i);
                 exists_batch.append(self.settings_exist(settings_id));
                 i += 1;
-            };
+            }
 
             exists_batch
         }
@@ -353,7 +349,7 @@ mod config_system {
                 let settings_id = *settings_ids.at(i);
                 details_batch.append(self.settings_details(settings_id));
                 i += 1;
-            };
+            }
 
             details_batch
         }
@@ -687,20 +683,17 @@ mod config_system {
             assert!(existing.purchased_at == 0, "Map already purchased");
 
             let erc20 = IERC20Dispatcher { contract_address: metadata.payment_token };
-            let success = erc20.transfer_from(caller, starknet::get_contract_address(), metadata.price);
+            let success = erc20
+                .transfer_from(caller, starknet::get_contract_address(), metadata.price);
             assert!(success, "Payment transfer failed");
 
             let entitlement = MapEntitlement {
-                player: caller,
-                settings_id,
-                purchased_at: get_block_timestamp(),
+                player: caller, settings_id, purchased_at: get_block_timestamp(),
             };
             world.write_model(@entitlement);
         }
 
-        fn has_map_access(
-            self: @ContractState, player: ContractAddress, settings_id: u32,
-        ) -> bool {
+        fn has_map_access(self: @ContractState, player: ContractAddress, settings_id: u32) -> bool {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let metadata: GameSettingsMetadata = world.read_model(settings_id);
             if metadata.is_free {
@@ -745,7 +738,6 @@ mod config_system {
             let settings = world.read_model(settings_id);
             settings.exists()
         }
-
     }
 
     #[generate_trait]
@@ -968,7 +960,6 @@ mod config_system {
 
             // Boss ID validation
             assert!(boss_id <= 10, "boss_id must be 0-10 (0=no boss, 1-10=boss identities)");
-
         }
     }
 
@@ -996,7 +987,9 @@ mod config_system {
             GameSetting { name: 'TIER7', value: game_settings.tier_7_threshold.into() },
             GameSetting { name: 'CONS_EN', value: game_settings.constraints_enabled.into() },
             GameSetting { name: 'CONS_START', value: game_settings.constraint_start_level.into() },
-            GameSetting { name: 'LINES_BUDGET', value: game_settings.constraint_lines_budgets.into() },
+            GameSetting {
+                name: 'LINES_BUDGET', value: game_settings.constraint_lines_budgets.into(),
+            },
             GameSetting { name: 'CHANCES', value: game_settings.constraint_chances.into() },
             GameSetting { name: 'VE_S1', value: game_settings.veryeasy_size1_weight.into() },
             GameSetting { name: 'VE_S2', value: game_settings.veryeasy_size2_weight.into() },

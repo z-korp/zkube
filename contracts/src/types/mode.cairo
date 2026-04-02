@@ -3,7 +3,7 @@ use core::traits::Into;
 #[derive(Copy, Drop, Serde, PartialEq, Introspect, Debug)]
 pub enum GameMode {
     Map, // 0 — 10-level progression with constraints
-    Endless, // 1 — Pure survival, score-based difficulty
+    Endless // 1 — Pure survival, score-based difficulty
 }
 
 #[generate_trait]

@@ -1,5 +1,4 @@
 use core::traits::Into;
-
 use zkube::elements::bonuses::{hammer, totem, wave};
 
 #[derive(Drop, Copy, Serde, Introspect, PartialEq)]
@@ -7,7 +6,7 @@ pub enum Bonus {
     None,
     Hammer, // Destroy single block at target position
     Totem, // Destroy all blocks of same size across grid
-    Wave, // Destroy entire target row
+    Wave // Destroy entire target row
 }
 
 #[generate_trait]

@@ -92,8 +92,7 @@ fn test_run_data_zone_id_is_4_bits_and_active_mutator_id_is_u8() {
     let unpacked = RunDataPackingTrait::unpack(data.pack());
     assert!(unpacked.zone_id == 15, "zone_id should still be 15 after roundtrip");
     assert!(
-        unpacked.active_mutator_id == 255,
-        "active_mutator_id should still be 255 after roundtrip",
+        unpacked.active_mutator_id == 255, "active_mutator_id should still be 255 after roundtrip",
     );
 }
 

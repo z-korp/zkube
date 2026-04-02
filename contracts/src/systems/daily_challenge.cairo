@@ -72,11 +72,11 @@ pub trait IZTicketBurn<T> {
 
 #[dojo::contract]
 mod daily_challenge_system {
+    use core::num::traits::Zero;
     use dojo::model::ModelStorage;
     use dojo::world::WorldStorage;
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
-    use core::num::traits::Zero;
     use zkube::constants::DEFAULT_NS;
     use zkube::helpers::{daily, prize};
     use zkube::models::daily::{
@@ -154,9 +154,7 @@ mod daily_challenge_system {
 
             // Transfer LORDS from caller to this contract as prize pool
             if prize_amount > 0 {
-                let lords = IERC20MinimalDispatcher {
-                    contract_address: self.lords_address.read(),
-                };
+                let lords = IERC20MinimalDispatcher { contract_address: self.lords_address.read() };
                 let success = lords.transfer_from(caller, get_contract_address(), prize_amount);
                 assert!(success, "LORDS transfer failed");
             }
@@ -263,7 +261,7 @@ mod daily_challenge_system {
                     }
                 }
                 rank += 1;
-            };
+            }
 
             let unclaimed = if challenge.prize_pool > total_claimed {
                 challenge.prize_pool - total_claimed
@@ -274,9 +272,7 @@ mod daily_challenge_system {
             assert!(unclaimed > 0, "No unclaimed prizes to withdraw");
 
             // Transfer unclaimed LORDS back to admin
-            let lords = IERC20MinimalDispatcher {
-                contract_address: self.lords_address.read(),
-            };
+            let lords = IERC20MinimalDispatcher { contract_address: self.lords_address.read() };
             let success = lords.transfer(caller, unclaimed);
             assert!(success, "LORDS withdrawal transfer failed");
         }
@@ -291,9 +287,7 @@ mod daily_challenge_system {
             assert!(challenge.is_active(timestamp), "Challenge is not active");
 
             // Burn 1 zTicket from player
-            let ticket = IZTicketBurnDispatcher {
-                contract_address: self.ticket_address.read(),
-            };
+            let ticket = IZTicketBurnDispatcher { contract_address: self.ticket_address.read() };
             ticket.burn_from(player, 1);
 
             // Read existing entry (zero model if first time)
@@ -401,9 +395,7 @@ mod daily_challenge_system {
             world.write_model(@entry);
 
             // Transfer LORDS from contract to winner
-            let lords = IERC20MinimalDispatcher {
-                contract_address: self.lords_address.read(),
-            };
+            let lords = IERC20MinimalDispatcher { contract_address: self.lords_address.read() };
             let success = lords.transfer(player, entry.prize_amount);
             assert!(success, "LORDS transfer to winner failed");
         }

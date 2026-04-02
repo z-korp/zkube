@@ -34,7 +34,7 @@ pub impl BonusImpl of BonusTrait {
                 break;
             }
             shift *= modulo;
-        };
+        }
         let new_blocks: u256 = blocks.into() & ~mask;
         new_blocks.try_into().unwrap()
     }

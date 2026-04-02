@@ -5,9 +5,9 @@ use zkube::types::level::LevelConfig;
 /// Mutator eligibility for different game modes
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub enum MutatorEligibility {
-    Universal,   // Available in both Map and Endless modes
-    MapOnly,     // Only available in Map mode
-    EndlessOnly, // Only available in Endless mode
+    Universal, // Available in both Map and Endless modes
+    MapOnly, // Only available in Map mode
+    EndlessOnly // Only available in Endless mode
 }
 
 /// Context passed to mutator scoring hooks
@@ -122,7 +122,7 @@ fn pow2(mut exp: u32) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use super::{MutatorTrait, MUTATOR_NONE, count_set_bits, nth_set_bit};
+    use super::{MUTATOR_NONE, MutatorTrait, count_set_bits, nth_set_bit};
 
     #[test]
     fn test_mutator_none_always_valid() {

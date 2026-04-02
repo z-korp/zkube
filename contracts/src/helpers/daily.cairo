@@ -2,10 +2,10 @@
 //! Contains leaderboard update logic used by both game_over.cairo (auto-submit)
 //! and daily_challenge_system.cairo (manual submit).
 
+use core::num::traits::Zero;
 use dojo::model::ModelStorage;
 use dojo::world::WorldStorage;
 use starknet::ContractAddress;
-use core::num::traits::Zero;
 use zkube::models::daily::DailyLeaderboard;
 
 /// Max leaderboard size cap
@@ -18,10 +18,7 @@ pub const MAX_LEADERBOARD_SIZE: u32 = 250;
 /// - game_over::auto_submit_daily_result (inline during game over)
 /// - daily_challenge_system::submit_result (manual backup submission)
 pub fn update_daily_leaderboard(
-    ref world: WorldStorage,
-    challenge_id: u32,
-    player: ContractAddress,
-    new_value: u32,
+    ref world: WorldStorage, challenge_id: u32, player: ContractAddress, new_value: u32,
 ) {
     // Walk the leaderboard from rank 1 to find insertion point
     let mut insert_rank: u32 = 0;
@@ -44,7 +41,7 @@ pub fn update_daily_leaderboard(
             insert_rank = rank;
         }
         rank += 1;
-    };
+    }
 
     // If player didn't beat anyone and no empty slot, they don't make the board
     if insert_rank == 0 {
@@ -75,9 +72,13 @@ pub fn update_daily_leaderboard(
             }
             last = r;
             r += 1;
-        };
+        }
         // Cap: don't push beyond MAX_LEADERBOARD_SIZE
-        if last < MAX_LEADERBOARD_SIZE { last + 1 } else { MAX_LEADERBOARD_SIZE }
+        if last < MAX_LEADERBOARD_SIZE {
+            last + 1
+        } else {
+            MAX_LEADERBOARD_SIZE
+        }
     };
 
     // Shift down: move entries from shift_end-1 down to insert_rank
@@ -89,7 +90,7 @@ pub fn update_daily_leaderboard(
         };
         world.write_model(@shifted);
         r -= 1;
-    };
+    }
 
     // Insert the new entry
     let new_lb = DailyLeaderboard { challenge_id, rank: insert_rank, player, value: new_value };

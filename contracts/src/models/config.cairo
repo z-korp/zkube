@@ -224,9 +224,11 @@ pub mod GameSettingsDefaults {
     // Thresholds stored as felt252 — will be unpacked by helper functions
     // Default thresholds: [0, 15, 40, 80, 150, 280, 500, 900]
     // Tier 0 (VeryEasy) = 0 is implicit, only tiers 1-7 stored
-    pub const ENDLESS_DIFFICULTY_THRESHOLDS: felt252 = 0;  // Unpacked via helper; 0 = use hardcoded defaults
+    pub const ENDLESS_DIFFICULTY_THRESHOLDS: felt252 =
+        0; // Unpacked via helper; 0 = use hardcoded defaults
     // Multipliers stored as u64 — 8 × u8, value/10 = multiplier
-    // Default: [10, 12, 14, 17, 20, 25, 33, 40] → [1.0×, 1.2×, 1.4×, 1.7×, 2.0×, 2.5×, 3.3×, 4.0×]
+    // Default: [10, 12, 14, 17, 20, 25, 33, 40] → [1.0×, 1.2×, 1.4×, 1.7×, 2.0×, 2.5×,
+    // 3.3×, 4.0×]
     pub const ENDLESS_SCORE_MULTIPLIERS: u64 = 0;
 
     // Bonus Slot Defaults
@@ -625,7 +627,8 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         if self.bonus_1_type > 3 || self.bonus_2_type > 3 || self.bonus_3_type > 3 {
             return false;
         }
-        if self.bonus_1_trigger_type > 3 || self.bonus_2_trigger_type > 3
+        if self.bonus_1_trigger_type > 3
+            || self.bonus_2_trigger_type > 3
             || self.bonus_3_trigger_type > 3 {
             return false;
         }
@@ -638,7 +641,8 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         if self.bonus_3_trigger_type > 0 && self.bonus_3_trigger_threshold == 0 {
             return false;
         }
-        if self.bonus_1_starting_charges > 15 || self.bonus_2_starting_charges > 15
+        if self.bonus_1_starting_charges > 15
+            || self.bonus_2_starting_charges > 15
             || self.bonus_3_starting_charges > 15 {
             return false;
         }
@@ -747,7 +751,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
 
         // Boss ID validation
         assert!(self.boss_id <= 10, "boss_id must be 0-10 (0=no boss, 1-10=boss identities)");
-
     }
 
     /// Linear interpolation helper

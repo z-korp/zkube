@@ -718,8 +718,12 @@ mod tests {
     #[test]
     fn test_create_line_fallback() {
         let easy: Difficulty = Difficulty::Easy;
-        assert_eq!(Controller::create_line_fallback('SEED', easy), 0b001_010_010_001_001_001_000_000);
-        assert_eq!(Controller::create_line_fallback('DEES', easy), 0b010_010_001_001_000_001_010_010);
+        assert_eq!(
+            Controller::create_line_fallback('SEED', easy), 0b001_010_010_001_001_001_000_000,
+        );
+        assert_eq!(
+            Controller::create_line_fallback('DEES', easy), 0b010_010_001_001_000_001_010_010,
+        );
     }
 
     // =========================================================================
@@ -817,12 +821,8 @@ mod tests {
         assert(!Controller::check_row_coherence(0b010_010_011_000_000_000_000_000), 'cont 2->3');
         assert(!Controller::check_row_coherence(0b011_011_010_000_000_000_000_000), 'cont 3->2');
         assert(!Controller::check_row_coherence(0b010_010_010_000_000_000_000_000), 'overflow s2');
-        assert(
-            !Controller::check_row_coherence(0b011_011_011_011_011_000_000_000), 'overflow s3',
-        );
-        assert(
-            !Controller::check_row_coherence(0b100_100_100_100_100_000_000_000), 'overflow s4',
-        );
+        assert(!Controller::check_row_coherence(0b011_011_011_011_011_000_000_000), 'overflow s3');
+        assert(!Controller::check_row_coherence(0b100_100_100_100_100_000_000_000), 'overflow s4');
     }
 
     // =========================================================================
@@ -1019,12 +1019,8 @@ mod tests {
     #[test]
     fn test_boundary_valid_moves() {
         let bitmap: felt252 = 0b000_000_000_001_000_000_000_000;
-        assert_eq!(
-            Controller::swipe(bitmap, 0, 4, true, 3), 0b001_000_000_000_000_000_000_000,
-        );
-        assert_eq!(
-            Controller::swipe(bitmap, 0, 4, false, 4), 0b000_000_000_000_000_000_000_001,
-        );
+        assert_eq!(Controller::swipe(bitmap, 0, 4, true, 3), 0b001_000_000_000_000_000_000_000);
+        assert_eq!(Controller::swipe(bitmap, 0, 4, false, 4), 0b000_000_000_000_000_000_000_001);
     }
 
     // =========================================================================

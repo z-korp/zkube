@@ -145,8 +145,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                self.zone_id.into() & RunDataBits::FOUR_BITS_MASK,
-                RunDataBits::ZONE_ID_POS.into(),
+                self.zone_id.into() & RunDataBits::FOUR_BITS_MASK, RunDataBits::ZONE_ID_POS.into(),
             );
         packed = packed
             | BitShift::shl(
@@ -155,8 +154,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                self.mode.into() & RunDataBits::BOOL_MASK,
-                RunDataBits::MODE_POS.into(),
+                self.mode.into() & RunDataBits::BOOL_MASK, RunDataBits::MODE_POS.into(),
             );
         packed = packed
             | BitShift::shl(
@@ -327,5 +325,6 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
         }
     }
 }
-
 // Tests moved to contracts/src/tests/ - see test_packing.cairo for comprehensive packing tests
+
+

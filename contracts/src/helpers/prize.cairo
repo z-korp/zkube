@@ -37,7 +37,10 @@ fn pow_1_5(base: u256) -> u256 {
     let sqrt_base = isqrt(base);
 
     // x^1.5 = x * sqrt(x), scaled by SCALE for precision
-    base * sqrt_base * SCALE / base // Simplifies to sqrt_base * SCALE, but we want base * sqrt(base)
+    base
+        * sqrt_base
+        * SCALE
+        / base // Simplifies to sqrt_base * SCALE, but we want base * sqrt(base)
 }
 
 /// Integer square root using Babylonian method
@@ -54,7 +57,7 @@ fn isqrt(n: u256) -> u256 {
     while y < x {
         x = y;
         y = (x + n / x) / 2;
-    };
+    }
     x
 }
 
@@ -75,7 +78,7 @@ fn calculate_total_shares(num_winners: u32) -> u256 {
     while rank <= num_winners {
         total += calculate_share(rank, num_winners);
         rank += 1;
-    };
+    }
     total
 }
 
@@ -126,14 +129,14 @@ pub fn calculate_all_prizes(num_winners: u32, total_pool: u256) -> Array<(u32, u
             distributed = total_pool;
         }
         rank += 1;
-    };
+    }
 
     prizes
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{calculate_num_winners, calculate_prize, calculate_all_prizes, isqrt};
+    use super::{calculate_all_prizes, calculate_num_winners, calculate_prize, isqrt};
 
     #[test]
     fn test_num_winners() {
@@ -190,7 +193,7 @@ mod tests {
             let (_, amount) = *prizes.at(i);
             total += amount;
             i += 1;
-        };
+        }
         assert!(total <= pool, "Total distributed <= pool");
         // Should distribute most of the pool (within rounding)
         assert!(total > pool * 99 / 100, "Should distribute >99% of pool");
