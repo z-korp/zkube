@@ -19,10 +19,15 @@ pub trait IGameSystem<T> {
     /// (level, level_score, level_moves, combo, max_combo,
     ///  reserved_1, reserved_2, reserved_3, reserved_4, over)
     fn get_game_data(self: @T, game_id: felt252) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool);
+
+    /// Emit progression update for quest + achievement tasks.
+    fn emit_progress(ref self: T, player: starknet::ContractAddress, task_id: felt252, count: u128);
 }
 
 #[dojo::contract]
 mod game_system {
+    use achievement::component::Component as AchievementComponent;
+    use achievement::component::Component::AchievementTrait;
     use core::num::traits::Zero;
     use core::traits::Into;
     use dojo::event::EventStorage;
@@ -39,9 +44,18 @@ mod game_system {
     use game_components_embeddable_game_standard::token::structs::TokenMetadata;
     use game_components_embeddable_game_standard::token::token::LifecycleTrait;
     use openzeppelin_introspection::src5::SRC5Component;
+    use quest::component::Component as QuestComponent;
+    use quest::component::Component::QuestTrait;
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
+    use zkube::elements::achievements::index::AchievementPointsTrait;
+    use zkube::elements::quests::index::{
+        QUEST_BONUS_I, QUEST_BONUS_II, QUEST_COMBO_I, QUEST_COMBO_II, QUEST_COMBO_III,
+        QUEST_DAILY_CHALLENGER, QUEST_LINE_CLEAR_I, QUEST_LINE_CLEAR_II, QUEST_LINE_CLEAR_III,
+    };
+    use zkube::elements::tasks::index::Task;
+    use zkube::elements::tasks::interface::TaskTrait;
     use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::events::StartGame;
     use zkube::helpers::config::ConfigUtilsTrait;
@@ -64,11 +78,15 @@ mod game_system {
     use zkube::types::mutator::{FULL_MUTATOR_MASK, MutatorTrait};
 
     component!(path: MinigameComponent, storage: minigame, event: MinigameEvent);
+    component!(path: AchievementComponent, storage: achievement, event: AchievementEvent);
+    component!(path: QuestComponent, storage: quest, event: QuestEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
 
     #[abi(embed_v0)]
     impl MinigameImpl = MinigameComponent::MinigameImpl<ContractState>;
     impl MinigameInternalImpl = MinigameComponent::InternalImpl<ContractState>;
+    impl AchievementInternalImpl = AchievementComponent::InternalImpl<ContractState>;
+    impl QuestInternalImpl = QuestComponent::InternalImpl<ContractState>;
 
     #[abi(embed_v0)]
     impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
@@ -77,6 +95,10 @@ mod game_system {
     struct Storage {
         #[substorage(v0)]
         minigame: MinigameComponent::Storage,
+        #[substorage(v0)]
+        achievement: AchievementComponent::Storage,
+        #[substorage(v0)]
+        quest: QuestComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
         /// VRF provider address. If zero, use pseudo-random (for slot/katana).
@@ -89,6 +111,10 @@ mod game_system {
     enum Event {
         #[flat]
         MinigameEvent: MinigameComponent::Event,
+        #[flat]
+        AchievementEvent: AchievementComponent::Event,
+        #[flat]
+        QuestEvent: QuestComponent::Event,
         #[flat]
         SRC5Event: SRC5Component::Event,
     }
@@ -212,6 +238,75 @@ mod game_system {
         }
     }
 
+    impl AchievementHooksImpl of AchievementTrait<ContractState> {
+        fn on_completion(
+            ref self: AchievementComponent::ComponentState<ContractState>,
+            player_id: felt252,
+            achievement_id: felt252,
+        ) {
+            let mut contract = self.get_contract_mut();
+            let mut world: WorldStorage = contract.world(@DEFAULT_NS());
+            let player: ContractAddress = player_id.try_into().unwrap();
+            let mut player_meta: PlayerMeta = world.read_model(player);
+            if !player_meta.exists() {
+                player_meta = PlayerMetaTrait::new(player);
+            }
+
+            player_meta.increment_xp(AchievementPointsTrait::xp_for(achievement_id));
+            world.write_model(@player_meta);
+        }
+
+        fn on_claim(
+            ref self: AchievementComponent::ComponentState<ContractState>,
+            player_id: felt252,
+            achievement_id: felt252,
+        ) {
+            let _ = player_id;
+            let _ = achievement_id;
+        }
+    }
+
+    impl QuestHooksImpl of QuestTrait<ContractState> {
+        fn on_quest_unlock(
+            ref self: QuestComponent::ComponentState<ContractState>,
+            player_id: felt252,
+            quest_id: felt252,
+            interval_id: u64,
+        ) {
+            let _ = player_id;
+            let _ = quest_id;
+            let _ = interval_id;
+        }
+
+        fn on_quest_complete(
+            ref self: QuestComponent::ComponentState<ContractState>,
+            player_id: felt252,
+            quest_id: felt252,
+            interval_id: u64,
+        ) {
+            let _ = interval_id;
+            if !InternalImpl::is_daily_rotating_quest(quest_id) {
+                return;
+            }
+
+            let mut contract = self.get_contract_mut();
+            let world = contract.world(@DEFAULT_NS());
+            contract.quest.progress(world, player_id, Task::DailyPlay.identifier(), 1, true);
+            contract.achievement.progress(world, player_id, Task::DailyPlay.identifier(), 1, true);
+        }
+
+        fn on_quest_claim(
+            ref self: QuestComponent::ComponentState<ContractState>,
+            player_id: felt252,
+            quest_id: felt252,
+            interval_id: u64,
+        ) {
+            let _ = player_id;
+            let _ = quest_id;
+            let _ = interval_id;
+        }
+    }
+
     #[abi(embed_v0)]
     impl GameSystemImpl of super::IGameSystem<ContractState> {
         fn create(ref self: ContractState, game_id: felt252, mode: u8) {
@@ -283,8 +378,28 @@ mod game_system {
             run_data.bonus_charges -= 1;
             game.set_run_data(run_data);
             world.write_model(@game);
+            self.quest.progress(world, get_caller_address().into(), Task::BonusUsed.identifier(), 1, true);
+            self
+                .achievement
+                .progress(world, get_caller_address().into(), Task::BonusUsed.identifier(), 1, true);
 
             post_action(token_address, token_id_felt);
+        }
+
+        fn emit_progress(
+            ref self: ContractState, player: ContractAddress, task_id: felt252, count: u128,
+        ) {
+            let world: WorldStorage = self.world(@DEFAULT_NS());
+            let caller = get_caller_address();
+
+            let move_system = world.dns_address(@"move_system").unwrap_or(core::num::traits::Zero::zero());
+            let level_system = world.dns_address(@"level_system").unwrap_or(core::num::traits::Zero::zero());
+
+            assert(caller == move_system || caller == level_system, 'Unauthorized progress emitter');
+
+            let player_id: felt252 = player.into();
+            self.quest.progress(world, player_id, task_id, count, true);
+            self.achievement.progress(world, player_id, task_id, count, true);
         }
 
         fn get_player_name(self: @ContractState, game_id: felt252) -> felt252 {
@@ -323,6 +438,18 @@ mod game_system {
 
     #[generate_trait]
     pub impl InternalImpl of InternalTrait {
+        fn is_daily_rotating_quest(quest_id: felt252) -> bool {
+            quest_id == QUEST_LINE_CLEAR_I
+                || quest_id == QUEST_LINE_CLEAR_II
+                || quest_id == QUEST_LINE_CLEAR_III
+                || quest_id == QUEST_COMBO_I
+                || quest_id == QUEST_COMBO_II
+                || quest_id == QUEST_COMBO_III
+                || quest_id == QUEST_BONUS_I
+                || quest_id == QUEST_BONUS_II
+                || quest_id == QUEST_DAILY_CHALLENGER
+        }
+
         fn create_game(ref self: ContractState, game_id: felt252, mode: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let player = get_caller_address();
@@ -457,6 +584,13 @@ mod game_system {
             player_meta.increment_runs();
             player_meta.last_active = timestamp;
             world.write_model(@player_meta);
+
+            self.quest.progress(world, player.into(), Task::GameStart.identifier(), 1, true);
+            self.achievement.progress(world, player.into(), Task::GameStart.identifier(), 1, true);
+            if is_daily_game {
+                self.quest.progress(world, player.into(), Task::DailyPlay.identifier(), 1, true);
+                self.achievement.progress(world, player.into(), Task::DailyPlay.identifier(), 1, true);
+            }
 
             post_action(token_address, token_id_felt);
 

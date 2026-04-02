@@ -25,6 +25,10 @@ pub mod types {
 }
 
 pub mod elements {
+    pub mod achievements {
+        pub mod index;
+    }
+
     pub mod bonuses {
         pub mod hammer;
         pub mod interface;
@@ -38,8 +42,17 @@ pub mod elements {
     }
 
     pub mod tasks {
+        pub mod interface;
         pub mod index;
     }
+
+    pub mod quests {
+        pub mod index;
+    }
+}
+
+pub mod components {
+    pub mod progression;
 }
 
 pub mod interfaces {

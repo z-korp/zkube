@@ -23,7 +23,7 @@ pub trait ILevelSystem<T> {
 mod level_system {
     use dojo::event::EventStorage;
     use dojo::model::ModelStorage;
-    use dojo::world::WorldStorage;
+    use dojo::world::{WorldStorage, WorldStorageTrait};
     use starknet::{ContractAddress, get_caller_address};
     use zkube::constants::DEFAULT_NS;
     use zkube::events::{LevelCompleted, LevelStarted};
@@ -35,6 +35,9 @@ mod level_system {
     use zkube::helpers::random::RandomImpl;
     use zkube::models::game::{Game, GameLevel, GameLevelTrait, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
+    use zkube::systems::game::{IGameSystemDispatcher, IGameSystemDispatcherTrait};
+    use zkube::elements::tasks::index::Task;
+    use zkube::elements::tasks::interface::TaskTrait;
 
     #[storage]
     struct Storage {}
@@ -152,6 +155,10 @@ mod level_system {
                         total_score,
                     },
                 );
+
+            let game_address = world.dns_address(@"game_system").expect('GameSystem not found in DNS');
+            let game_dispatcher = IGameSystemDispatcher { contract_address: game_address };
+            game_dispatcher.emit_progress(player, Task::LevelComplete.identifier(), 1);
 
             InternalImpl::advance_level(ref world, game_id, player);
 

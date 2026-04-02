@@ -10,7 +10,7 @@ pub trait IMoveSystem<T> {
 #[dojo::contract]
 mod move_system {
     use dojo::model::ModelStorage;
-    use dojo::world::WorldStorage;
+    use dojo::world::{WorldStorage, WorldStorageTrait};
     use game_components_embeddable_game_standard::minigame::minigame::{
         assert_token_ownership, post_action, pre_action,
     };
@@ -30,6 +30,9 @@ mod move_system {
     use zkube::helpers::{game_over, level_check, token};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
     use zkube::models::mutator::MutatorDef;
+    use zkube::systems::game::{IGameSystemDispatcher, IGameSystemDispatcherTrait};
+    use zkube::elements::tasks::index::Task;
+    use zkube::elements::tasks::interface::TaskTrait;
 
     #[storage]
     struct Storage {}
@@ -70,6 +73,8 @@ mod move_system {
             // Initialize GameLibs once for all dispatcher calls
             let libs = GameLibsImpl::new(world);
             let player = get_caller_address();
+            let game_address = world.dns_address(@"game_system").expect('GameSystem not found in DNS');
+            let game_dispatcher = IGameSystemDispatcher { contract_address: game_address };
 
             // Execute move via grid_system dispatcher (contains Controller logic)
             let (lines_cleared, is_grid_full) = libs
@@ -81,6 +86,19 @@ mod move_system {
             let mut game_level: GameLevel = world.read_model(game_id);
             let mut run_data = game.get_run_data();
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+
+            if lines_cleared > 0 {
+                game_dispatcher.emit_progress(player, Task::LineClear.identifier(), lines_cleared.into());
+            }
+            if game.combo_counter >= 3 {
+                game_dispatcher.emit_progress(player, Task::Combo3.identifier(), 1);
+            }
+            if game.combo_counter >= 4 {
+                game_dispatcher.emit_progress(player, Task::Combo4.identifier(), 1);
+            }
+            if game.combo_counter >= 5 {
+                game_dispatcher.emit_progress(player, Task::Combo5.identifier(), 1);
+            }
 
             // Mutator-driven non-bonus effects (scoring/pressure) still read from MutatorDef.
             let mut run_data_changed = false;
@@ -162,6 +180,17 @@ mod move_system {
                 let is_complete = level_check::is_level_complete(@game_level, @run_data);
 
                 if is_complete {
+                    game_dispatcher.emit_progress(player, Task::LevelComplete.identifier(), 1);
+                    if game_level.max_moves > 0 {
+                        let perfect_threshold = game_level.max_moves * 40 / 100;
+                        if run_data.level_moves.into() <= perfect_threshold {
+                            game_dispatcher.emit_progress(player, Task::PerfectLevel.identifier(), 1);
+                        }
+                    }
+                    if run_data.current_level >= 10 {
+                        game_dispatcher.emit_progress(player, Task::BossDefeat.identifier(), 1);
+                        game_dispatcher.emit_progress(player, Task::ZoneComplete.identifier(), 1);
+                    }
                     libs.level.finalize_level(game_id);
                 } else if is_grid_full {
                     let mut updated_game: Game = world.read_model(game_id);
