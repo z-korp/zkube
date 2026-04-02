@@ -28,18 +28,14 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
         run_data.total_score.try_into().unwrap()
     };
 
-    // Update player meta with best level
     let mut player_meta: PlayerMeta = world.read_model(player);
     if !player_meta.exists() {
         player_meta = PlayerMetaTrait::new(player);
     }
     player_meta.update_best_level(run_data.current_level);
 
-    world.write_model(@player_meta);
-
     let settings = ConfigUtilsTrait::get_game_settings(world, game.game_id);
 
-    // Upsert best run per player × settings × mode.
     let total_stars = if mode == 0 {
         calculate_total_stars(game)
     } else {
@@ -50,12 +46,17 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
         best_run.update_best_level_stars(game.level_stars);
     }
     if mode == 0 && run_data.zone_cleared && !best_run.map_cleared {
-        world.emit_event(@ZoneClearBonus { player, settings_id: settings.settings_id, amount: 100 });
+        world
+            .emit_event(
+                @ZoneClearBonus { player, settings_id: settings.settings_id, amount: 100 },
+            );
+        player_meta.increment_xp(10000);
 
-        // TODO(workstream-a): route this through a dedicated rewards system.
         match world.dns_address(@"config_system") {
             Option::Some(config_address) => {
-                let config_dispatcher = IConfigSystemDispatcher { contract_address: config_address };
+                let config_dispatcher = IConfigSystemDispatcher {
+                    contract_address: config_address,
+                };
                 let zstar_address = config_dispatcher.get_zstar_address();
                 if !zstar_address.is_zero() {
                     let zstar = IZStarTokenDispatcher { contract_address: zstar_address };
@@ -65,6 +66,8 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
             Option::None => {},
         }
     }
+
+    world.write_model(@player_meta);
 
     if best_run.is_new_best(mode, run_data.total_score, total_stars) {
         best_run.player = player;

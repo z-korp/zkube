@@ -447,7 +447,7 @@ mod game_system {
                     Option::None => {},
                 }
 
-                // TODO(workstream-a): wire welcome-back XP reward (+500).
+                player_meta.increment_xp(500);
             }
             // Initialize GameLibs once for all dispatcher calls
             let libs = GameLibsImpl::new(world);
