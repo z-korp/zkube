@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { ChevronLeft } from "lucide-react";
 
-import { getThemeColors } from "@/config/themes";
+import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
 import { getBossDisplay } from "@/config/bossIdentities";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
@@ -11,7 +11,7 @@ import { useGameLevel } from "@/hooks/useGameLevel";
 import { ConstraintType } from "@/dojo/game/types/constraint";
 
 interface ConstraintDisplay {
-  emoji: string;
+  icon: string;
   title: string;
   description: string;
 }
@@ -20,31 +20,31 @@ function toConstraintDisplay(type: ConstraintType, value: number, count: number)
   switch (type) {
     case ConstraintType.ComboLines:
       return {
-        emoji: "🔥",
+        icon: "/assets/common/constraints/constraint-combo.png",
         title: `Clear ${count} combo line${count > 1 ? "s" : ""}`,
         description: `Make ${value}+ line clears in one move to build chain pressure`,
       };
     case ConstraintType.BreakBlocks:
       return {
-        emoji: "💎",
+        icon: "/assets/common/constraints/constraint-break-blocks.png",
         title: `Break ${count} size-${value} blocks`,
         description: "Target exact block sizes under intense board pressure",
       };
     case ConstraintType.ComboStreak:
       return {
-        emoji: "⚡",
+        icon: "/assets/common/constraints/constraint-combo.png",
         title: `Reach ${value}x combo streak`,
         description: "Maintain momentum with precise consecutive clears",
       };
     case ConstraintType.KeepGridBelow:
       return {
-        emoji: "📊",
+        icon: "/assets/common/constraints/constraint-keep-grid-below.png",
         title: `Keep grid below ${value} rows`,
         description: "Control vertical growth and never let the board overflow",
       };
     default:
       return {
-        emoji: "🎯",
+        icon: "/assets/common/constraints/constraint-clear-lines.png",
         title: "Adaptive objective",
         description: "Face a dynamic boss condition this encounter",
       };
@@ -53,7 +53,9 @@ function toConstraintDisplay(type: ConstraintType, value: number, count: number)
 
 const BossRevealPage: React.FC = () => {
   const { themeTemplate } = useTheme();
-  const colors = getThemeColors(themeTemplate);
+  const themeId = themeTemplate as ThemeId;
+  const colors = getThemeColors(themeId);
+  const themeImages = getThemeImages(themeId);
   const { playSfx } = useMusicPlayer();
 
   const gameId = useNavigationStore((s) => s.gameId);
@@ -74,12 +76,12 @@ const BossRevealPage: React.FC = () => {
     if (!gameLevel) {
       return [
         {
-          emoji: "🔥",
+          icon: "/assets/common/constraints/constraint-combo.png",
           title: "Combo pressure",
           description: "Stack line chains to survive the opening barrage",
         },
         {
-          emoji: "📊",
+          icon: "/assets/common/constraints/constraint-keep-grid-below.png",
           title: "Grid control",
           description: "Keep your board stable while damage ramps up",
         },
@@ -110,13 +112,15 @@ const BossRevealPage: React.FC = () => {
 
       <div className="mx-auto flex h-full w-full max-w-sm flex-col items-center justify-center">
         <div
-          style={{
-            fontSize: 64,
-            marginBottom: 8,
-            filter: "drop-shadow(0 0 20px rgba(255,59,59,0.5))",
-          }}
+          className="mb-2"
         >
-          {boss.emoji}
+          <img
+            src={themeImages.mapNodeBoss}
+            alt="Boss"
+            className="h-20 w-20"
+            style={{ filter: `drop-shadow(0 0 20px ${colors.accent}80)` }}
+            draggable={false}
+          />
         </div>
 
         <p
@@ -147,14 +151,14 @@ const BossRevealPage: React.FC = () => {
         <div className="mt-5 flex w-full flex-col gap-2">
           {constraints.map((constraint) => (
             <div
-              key={`${constraint.emoji}-${constraint.title}`}
+              key={`${constraint.icon}-${constraint.title}`}
               className="flex items-center gap-2.5 rounded-[10px] px-3.5 py-2.5"
               style={{
                 background: "rgba(255,59,59,0.08)",
                 border: "1px solid rgba(255,59,59,0.2)",
               }}
             >
-              <span style={{ fontSize: 18 }}>{constraint.emoji}</span>
+              <img src={constraint.icon} alt="Constraint" className="h-5 w-5" draggable={false} />
               <div>
                 <p className="font-display text-[11px] font-bold" style={{ color: colors.text }}>
                   {constraint.title}

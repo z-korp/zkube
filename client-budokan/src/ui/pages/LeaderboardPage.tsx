@@ -6,7 +6,11 @@ import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
 import { getThemeColors } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 
-const MEDALS = ["🥇", "🥈", "🥉"];
+const TROPHY_IMAGES: Record<number, string> = {
+  1: "/assets/trophies/gold.png",
+  2: "/assets/trophies/silver.png",
+  3: "/assets/trophies/bronze.png",
+};
 
 const LeaderboardPage: React.FC = () => {
   const { themeTemplate } = useTheme();
@@ -95,8 +99,17 @@ const LeaderboardPage: React.FC = () => {
                   borderColor: entry.isYou ? `${colors.accent}4D` : colors.border,
                 }}
               >
-                <div className="w-8 text-center font-display text-base font-black" style={{ color: entry.rank <= 3 ? colors.accent2 : colors.textMuted }}>
-                  {entry.rank <= 3 ? MEDALS[entry.rank - 1] : entry.rank}
+                <div className="flex w-8 items-center justify-center text-center font-display text-base font-black" style={{ color: entry.rank <= 3 ? colors.accent2 : colors.textMuted }}>
+                  {entry.rank <= 3 ? (
+                    <img
+                      src={TROPHY_IMAGES[entry.rank]}
+                      alt={`Rank ${entry.rank}`}
+                      className="h-6 w-6"
+                      draggable={false}
+                    />
+                  ) : (
+                    entry.rank
+                  )}
                 </div>
 
                 <div className="min-w-0 flex-1">

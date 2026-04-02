@@ -1,7 +1,20 @@
 import ProgressBar from "@/ui/components/shared/ProgressBar";
-import type { ThemeColors } from "@/config/themes";
+import { getThemeImages, type ThemeColors, type ThemeId } from "@/config/themes";
 import type { ZoneProgressData } from "@/config/profileData";
 import { RECENT_ACTIVITY } from "@/config/profileData";
+
+const THEME_BY_ZONE: Record<number, ThemeId> = {
+  1: "theme-1",
+  2: "theme-2",
+  3: "theme-3",
+  4: "theme-4",
+  5: "theme-5",
+  6: "theme-6",
+  7: "theme-7",
+  8: "theme-8",
+  9: "theme-9",
+  10: "theme-10",
+};
 
 interface OverviewTabProps {
   colors: ThemeColors;
@@ -79,7 +92,12 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm">{zone.emoji}</span>
+                    <img
+                      src={getThemeImages(THEME_BY_ZONE[zone.zoneId] ?? "theme-1").themeIcon}
+                      alt={zone.name}
+                      className="h-6 w-6 rounded-md"
+                      draggable={false}
+                    />
                     <p className="font-display text-[11px] font-bold" style={{ color: colors.text }}>
                       {zone.name}
                     </p>

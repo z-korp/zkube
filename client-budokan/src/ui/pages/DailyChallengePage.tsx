@@ -13,6 +13,12 @@ import GameButton from "@/ui/components/shared/GameButton";
 import { getBlockColors, getThemeColors } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 
+const TROPHY_IMAGES: Record<number, string> = {
+  1: "/assets/trophies/gold.png",
+  2: "/assets/trophies/silver.png",
+  3: "/assets/trophies/bronze.png",
+};
+
 const CountdownPill: React.FC<{ endTime: number; accent: string; border: string; text: string }> = ({ endTime, accent, border, text }) => {
   const [sec, setSec] = useState(() =>
     Math.max(0, endTime - Math.floor(Date.now() / 1000)),
@@ -183,8 +189,14 @@ const DailyChallengePage: React.FC = () => {
                       className="flex items-center justify-between pt-1 first:pt-0"
                       style={{ borderTop: idx > 0 ? `1px solid ${colors.border}` : "none" }}
                     >
-                      <span className="text-[11px]" style={{ color: colors.text }}>
-                        {["🥇", "🥈", "🥉"][idx]} {le.playerName}
+                      <span className="flex items-center gap-1.5 text-[11px]" style={{ color: colors.text }}>
+                        <img
+                          src={TROPHY_IMAGES[idx + 1]}
+                          alt={`Rank ${idx + 1}`}
+                          className="h-5 w-5"
+                          draggable={false}
+                        />
+                        {le.playerName}
                       </span>
                       <span className="font-display text-[11px] font-bold" style={{ color: colors.accent2 }}>
                         {le.value.toLocaleString()}

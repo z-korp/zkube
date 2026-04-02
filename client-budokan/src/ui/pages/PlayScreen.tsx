@@ -25,7 +25,7 @@ import {
 import { Button } from "@/ui/elements/button";
 import { Slider } from "@/ui/elements/slider";
 import { generateLevelConfig } from "@/dojo/game/types/level";
-import { getBlockColors, getThemeColors, type ThemeId } from "@/config/themes";
+import { getBlockColors, getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
 
 const PlayScreen: React.FC = () => {
   const {
@@ -107,6 +107,7 @@ const PlayScreen: React.FC = () => {
     const zoneThemes: Record<number, ThemeId> = { 1: "theme-1", 2: "theme-5", 3: "theme-7" };
     return zoneThemes[game.zoneId] ?? "theme-1";
   }, [game?.zoneId, game]);
+  const mapThemeImages = useMemo(() => getThemeImages(mapThemeId), [mapThemeId]);
 
   useEffect(() => {
     if (seed === 0n || !game) return;
@@ -395,7 +396,10 @@ const PlayScreen: React.FC = () => {
         )}
 
         {game && isGameOn && !isGridLoading && !isGameLoading && (
-          <div className="flex min-h-0 w-full flex-col items-center">
+          <div
+            className="flex min-h-0 w-full flex-col items-center rounded-xl bg-center bg-cover"
+            style={{ backgroundImage: `url(${mapThemeImages.gridBg})` }}
+          >
             <GameBoard
               initialGrid={grid}
               nextLine={game.isOver() ? [] : game.next_row}

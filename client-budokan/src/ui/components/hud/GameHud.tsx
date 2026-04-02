@@ -18,14 +18,12 @@ interface GameHudProps {
   maxMoves: number;
 }
 
-const CONSTRAINT_EMOJI: Record<ConstraintType, string> = {
-  [ConstraintType.None]: "",
-  [ConstraintType.ComboLines]: "🔥",
-  [ConstraintType.BreakBlocks]: "🧱",
-  [ConstraintType.ComboStreak]: "⚡",
-  [ConstraintType.FillAndClear]: "🌊",
-  [ConstraintType.NoBonusUsed]: "🚫",
-  [ConstraintType.KeepGridBelow]: "📊",
+const CONSTRAINT_ICONS: Record<number, string> = {
+  [ConstraintType.ComboLines]: "/assets/common/constraints/constraint-combo.png",
+  [ConstraintType.BreakBlocks]: "/assets/common/constraints/constraint-break-blocks.png",
+  [ConstraintType.ComboStreak]: "/assets/common/constraints/constraint-combo.png",
+  [ConstraintType.FillAndClear]: "/assets/common/constraints/constraint-clear-lines.png",
+  [ConstraintType.KeepGridBelow]: "/assets/common/constraints/constraint-keep-grid-below.png",
 };
 
 interface ConstraintData {
@@ -179,7 +177,14 @@ const GameHud: React.FC<GameHudProps> = ({
                 return (
                   <div key={`constraint-${i}`} className="flex items-center justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-1.5">
-                      <span>{CONSTRAINT_EMOJI[c.type]}</span>
+                      {CONSTRAINT_ICONS[c.type] ? (
+                        <img
+                          src={CONSTRAINT_ICONS[c.type]}
+                          alt="Constraint"
+                          className="h-5 w-5"
+                          draggable={false}
+                        />
+                      ) : null}
                       <span className="truncate text-[10px]" style={{ color: colors.text }}>
                         {description}
                       </span>

@@ -11,6 +11,7 @@ import {
 } from "@/hooks/useMapData";
 import { useMapLayout } from "@/hooks/useMapLayout";
 import {
+  getThemeImages,
   getThemeColors,
   THEME_META,
   type ThemeColors,
@@ -22,27 +23,10 @@ import { useNavigationStore } from "@/stores/navigationStore";
 import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
 import { Difficulty } from "@/dojo/game/types/difficulty";
 import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
-import ZoneBackground from "@/ui/components/map/ZoneBackground";
 
 
 const VB_W = 60;
 const VB_H = 100;
-
-const NODE_R = 5;
-const BOSS_R = 6;
-
-const ZONE_EMOJI_BY_THEME: Record<ThemeId, string> = {
-  "theme-1": "🌊",
-  "theme-2": "🏛️",
-  "theme-3": "⚔️",
-  "theme-4": "🏺",
-  "theme-5": "⛩️",
-  "theme-6": "🐉",
-  "theme-7": "🕌",
-  "theme-8": "🌿",
-  "theme-9": "🥁",
-  "theme-10": "⛰️",
-};
 
 const getPathType = (
   fromState: NodeState,
@@ -80,7 +64,7 @@ const MapPage: React.FC = () => {
   const themeId: ThemeId = game ? (zoneThemes[game.zoneId] ?? "theme-1") : "theme-1";
   const colors = getThemeColors(themeId);
   const zoneName = THEME_META[themeId].name;
-  const zoneEmoji = ZONE_EMOJI_BY_THEME[themeId] ?? "🌊";
+  const themeImages = getThemeImages(themeId);
   const earnedStars = game
     ? (() => {
         let total = 0;
@@ -137,7 +121,15 @@ const MapPage: React.FC = () => {
             <ChevronLeft size={20} />
           </button>
           <span className="font-display text-base font-extrabold" style={{ color: colors.text }}>
-            {zoneEmoji} {zoneName}
+            <span className="inline-flex items-center gap-2">
+              <img
+                src={themeImages.themeIcon}
+                alt={zoneName}
+                className="h-7 w-7 rounded-md"
+                draggable={false}
+              />
+              {zoneName}
+            </span>
           </span>
         </div>
         <div className="flex items-center gap-1">
@@ -163,7 +155,14 @@ const MapPage: React.FC = () => {
       {game && (
         <>
           <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-            <ZoneBackground zone={1} themeId={themeId} />
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `url(${themeImages.mapBg})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            />
 
         <div className="relative mx-auto w-full max-w-[400px]" style={{ height: "110vh" }}>
           <svg
@@ -229,153 +228,66 @@ const MapPage: React.FC = () => {
               );
             })}
 
+          </svg>
+
+          <div className="pointer-events-none absolute inset-0">
             {mapData.nodes.map((node) => {
               const pt = layout.points[node.nodeInZone];
               if (!pt) return null;
 
-              const cx = pt.x * VB_W;
-              const cy = pt.y * VB_H;
               const isBoss = node.type === "boss";
-              const r = isBoss ? BOSS_R : NODE_R;
               const isInteractive = node.state !== "locked";
               const isCleared = node.state === "cleared" || node.state === "visited";
               const isCurrent = node.state === "current";
 
-              const stars = game && node.contractLevel
-                ? game.getLevelStars(node.contractLevel)
-                : 0;
+              const image = isBoss
+                ? themeImages.mapNodeBoss
+                : isCleared
+                  ? themeImages.mapNodeCompleted
+                  : themeImages.mapNodeLevel;
+
+              const sizeClass = isBoss ? "h-14 w-14" : "h-12 w-12";
 
               return (
-                <g
+                <button
                   key={`node-${node.nodeInZone}`}
+                  type="button"
                   onClick={() => {
                     if (isInteractive) setSelectedNode(node);
                   }}
+                  className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2"
                   style={{
+                    left: `${pt.x * 100}%`,
+                    top: `${pt.y * 100}%`,
                     cursor: isInteractive ? "pointer" : "default",
                   }}
-                  opacity={node.state === "locked" ? 0.35 : 1}
-                  filter={isCurrent ? "url(#node-glow)" : undefined}
+                  disabled={!isInteractive}
                 >
-                  {isBoss ? (
-                    <rect
-                      x={cx - r}
-                      y={cy - r}
-                      width={r * 2}
-                      height={r * 2}
-                      rx={1.8}
-                      ry={1.8}
-                      fill={
+                  <div className="relative">
+                    <img
+                      src={image}
+                      alt={isBoss ? `Boss level ${node.contractLevel}` : `Level ${node.contractLevel}`}
+                      className={`${sizeClass} ${node.state === "locked" ? "opacity-30 grayscale" : ""}`}
+                      style={
                         isCurrent
-                          ? `url(#node-gradient)`
-                          : isCleared
-                            ? colors.surface
-                            : "rgba(255,255,255,0.03)"
+                          ? {
+                              filter: `drop-shadow(0 0 10px ${colors.accent}) drop-shadow(0 0 22px ${colors.accent2}80)`,
+                            }
+                          : undefined
                       }
-                      stroke={
-                        isCurrent
-                          ? colors.accent
-                          : isCleared
-                            ? colors.border
-                            : "rgba(255,255,255,0.06)"
-                      }
-                      strokeWidth={isCurrent ? 0.8 : 0.4}
+                      draggable={false}
                     />
-                  ) : (
-                    <circle
-                      cx={cx}
-                      cy={cy}
-                      r={r}
-                      fill={
-                        isCurrent
-                          ? `url(#node-gradient)`
-                          : isCleared
-                            ? colors.surface
-                            : "rgba(255,255,255,0.03)"
-                      }
-                      stroke={
-                        isCurrent
-                          ? colors.accent
-                          : isCleared
-                            ? colors.border
-                            : "rgba(255,255,255,0.06)"
-                      }
-                      strokeWidth={isCurrent ? 0.8 : 0.4}
-                    />
-                  )}
-
-                  {isCurrent && (
-                    <text
-                      x={cx}
-                      y={cy - r - 2.2}
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                      fontSize={2.2}
-                      fill={colors.accent}
-                      fontWeight="bold"
+                    <span
+                      className="absolute inset-0 flex items-center justify-center font-display text-sm font-black"
+                      style={{ color: isCurrent ? "#0a1628" : colors.text }}
                     >
-                      ▼
-                    </text>
-                  )}
-
-                  <text
-                    x={cx}
-                    y={cy + 0.2}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fill={isCurrent ? "#0a1628" : isCleared ? colors.text : colors.textMuted}
-                    fontSize={isBoss ? 4 : 2.8}
-                    fontWeight="bold"
-                  >
-                    {isBoss ? "👹" : node.contractLevel}
-                  </text>
-
-                  {isCleared && stars > 0 && (
-                    <g>
-                      {Array.from({ length: 3 }).map((_, i) => {
-                        const starX = cx - 2.5 + i * 2.5;
-                        const starY = cy - r - 2;
-                        const filled = i < stars;
-                        return (
-                          <text
-                            key={i}
-                            x={starX}
-                            y={starY}
-                            textAnchor="middle"
-                            dominantBaseline="central"
-                            fontSize={2}
-                            fill={filled ? "#fbbf24" : "rgba(255,255,255,0.15)"}
-                          >
-                            ★
-                          </text>
-                        );
-                      })}
-                    </g>
-                  )}
-
-                  {isBoss && !isCleared && (
-                    <text
-                      x={cx}
-                      y={cy + r + 2.1}
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                      fontSize={1.8}
-                      fill={colors.accent}
-                      fontWeight="700"
-                    >
-                      BOSS
-                    </text>
-                  )}
-                </g>
+                      {node.contractLevel}
+                    </span>
+                  </div>
+                </button>
               );
             })}
-            <defs>
-              <linearGradient id="node-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor={colors.accent} />
-                <stop offset="100%" stopColor={colors.accent2} />
-              </linearGradient>
-            </defs>
-          </svg>
+          </div>
           </div>
           </div>
 

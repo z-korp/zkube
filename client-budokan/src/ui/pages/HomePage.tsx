@@ -7,7 +7,7 @@ import { useDojo } from "@/dojo/useDojo";
 import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
-import { getThemeColors, loadThemeTemplate } from "@/config/themes";
+import { getThemeColors, getThemeImages, loadThemeTemplate, type ThemeId } from "@/config/themes";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
@@ -40,32 +40,29 @@ const ZONE_CONFIG = [
     settingsId: 0,
     themeId: "theme-1" as const,
     name: "Polynesian",
-    emoji: "🌊",
   },
   {
     zoneId: 2,
     settingsId: 1,
     themeId: "theme-5" as const,
     name: "Feudal Japan",
-    emoji: "⛩️",
   },
   {
     zoneId: 3,
     settingsId: 2,
     themeId: "theme-7" as const,
     name: "Ancient Persia",
-    emoji: "🕌",
   },
 ] as const;
 
 const EXTRA_LOCKED_ZONES = [
-  { name: "Ancient Egypt", emoji: "🏛️" },
-  { name: "Norse", emoji: "⚔️" },
-  { name: "Ancient Greece", emoji: "🏺" },
-  { name: "Ancient China", emoji: "🐉" },
-  { name: "Mayan", emoji: "🌿" },
-  { name: "Tribal", emoji: "🥁" },
-  { name: "Inca", emoji: "⛰️" },
+  { name: "Ancient Egypt", themeId: "theme-2" as const },
+  { name: "Norse", themeId: "theme-3" as const },
+  { name: "Ancient Greece", themeId: "theme-4" as const },
+  { name: "Ancient China", themeId: "theme-6" as const },
+  { name: "Mayan", themeId: "theme-8" as const },
+  { name: "Tribal", themeId: "theme-9" as const },
+  { name: "Inca", themeId: "theme-10" as const },
 ] as const;
 
 const HomePage: React.FC = () => {
@@ -244,26 +241,25 @@ const HomePage: React.FC = () => {
 
   const zonesForDisplay = [
     ...unlockedZones,
-    ...EXTRA_LOCKED_ZONES.map((zoneName, idx) => ({
-      zoneId: idx + 4,
-      settingsId: -1,
-      themeId: "theme-1" as const,
-      name: zoneName.name,
-      emoji: zoneName.emoji,
-      unlocked: false,
-      stars: 0,
-    })),
+      ...EXTRA_LOCKED_ZONES.map((zoneName, idx) => ({
+        zoneId: idx + 4,
+        settingsId: -1,
+        themeId: zoneName.themeId as ThemeId,
+        name: zoneName.name,
+        unlocked: false,
+        stars: 0,
+      })),
   ];
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden px-4 pb-3 pt-6">
       <div className="mb-5 text-center">
-        <h1
-          className="font-display text-4xl font-black tracking-wider"
-          style={{ color: colors.text, textShadow: colors.glow }}
-        >
-          zKube
-        </h1>
+        <img
+          src={getThemeImages(zone.themeId).logo}
+          alt="zKube"
+          className="mx-auto h-20 drop-shadow-[0_0_24px_rgba(255,255,255,0.35)]"
+          draggable={false}
+        />
         <p
           className="mt-1 text-[10px] uppercase tracking-[0.3em]"
           style={{ color: colors.accent }}
@@ -371,12 +367,17 @@ const HomePage: React.FC = () => {
                     opacity: isSelectable ? 1 : 0.4,
                     boxShadow: isSelected ? colors.glow : "none",
                   }}
-                >
+                  >
                   <div className="flex items-center gap-3">
-                    <span className="text-xl">{z.emoji}</span>
-                    <div>
-                      <p className="font-display text-[13px] font-bold" style={{ color: colors.text }}>
-                        {z.name}
+                     <img
+                       src={getThemeImages(z.themeId).themeIcon}
+                       alt={z.name}
+                       className="h-8 w-8 rounded-md"
+                       draggable={false}
+                     />
+                     <div>
+                       <p className="font-display text-[13px] font-bold" style={{ color: colors.text }}>
+                         {z.name}
                       </p>
                       <div className="mt-0.5 flex items-center gap-1">
                         {Array.from({ length: 3 }).map((_, i) => (
