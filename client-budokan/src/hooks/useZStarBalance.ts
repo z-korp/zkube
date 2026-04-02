@@ -1,31 +1,18 @@
-import { useReadContract } from "@starknet-react/core";
-import { erc20ABI } from "@/utils/erc20";
-import { BlockTag } from "starknet";
+import { useTokenBalance } from "./useTokenBalance";
 
 const { VITE_PUBLIC_ZSTAR_TOKEN_ADDRESS } = import.meta.env;
 
 export const useZStarBalance = (address: string | undefined) => {
-  const {
-    refetch,
-    data: balance,
-    isLoading,
-    isError,
-    error,
-  } = useReadContract({
-    address: VITE_PUBLIC_ZSTAR_TOKEN_ADDRESS,
-    abi: erc20ABI,
-    functionName: "balance_of",
-    args: address ? [address] : undefined,
-    watch: true,
-    refetchInterval: 5000,
-    blockIdentifier: BlockTag.PENDING,
-  });
+  const { balance, isLoading } = useTokenBalance(
+    VITE_PUBLIC_ZSTAR_TOKEN_ADDRESS,
+    address
+  );
 
   return {
-    refetch,
+    refetch: () => {},
     isLoading,
-    isError,
-    error,
-    balance: balance ? Number(BigInt(balance.toString())) : 0,
+    isError: false,
+    error: null,
+    balance: Number(balance),
   };
 };
