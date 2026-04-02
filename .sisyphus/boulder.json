@@ -1,27 +1,9 @@
 {
-  "active_plan": "/home/djizus/projects/zkube/.sisyphus/plans/zkube-launch-redesign.md",
-  "started_at": "2026-03-27T22:08:26.102Z",
+  "active_plan": "/home/djizus/projects/zkube/.sisyphus/plans/progression-system.md",
+  "started_at": "2026-04-02T14:28:30.251Z",
   "session_ids": [
-    "ses_2cfcbfca9fferkTJofFceugpEL",
-    "ses_2cf950e44ffeab55Y7sSAmfddc",
-    "ses_2c0dada50ffematCPYw2lgrWke",
-    "ses_2c0da9ed4ffe0ozJ1nudRKvfho",
-    "ses_2c0d79f92ffekT5Vtd7HYMGox2",
-    "ses_2c0d54362ffeR58E4VY1VTskCh",
-    "ses_2c0cac962ffehx4PGbENi2gmmz",
-    "ses_2c0b170c3ffeGe9ZP3S8cNO8yM",
-    "ses_2c0af7b3affesybuohWOsDouVK",
-    "ses_2c0aad7b8ffe5e30FA6cXeYZqz",
-    "ses_2b54b1942ffehDdSNjI1Xx1o2V",
-    "ses_2b52dc8f7ffef0x6ToVFfx5pIB",
-    "ses_2b50cf75effejXZQFeDWa5YeYG",
-    "ses_2b4fa4b14ffeObYHAOuPcuOIxP",
-    "ses_2b4e32bc5ffeZNy9hPM34YT2TE",
-    "ses_2b4e252d8ffeoUedfKD5Y0rSGQ",
-    "ses_2b4e37fbeffeRzMRF29vm5wYFH",
-    "ses_2b4dbfff3ffe6hElF1NB0bjXf8"
+    "ses_2b2fe6377ffeyCaimDM2AomLTW"
   ],
-  "plan_name": "zkube-launch-redesign",
-  "agent": "atlas",
-  "task_sessions": {}
+  "plan_name": "progression-system",
+  "agent": "atlas"
 }

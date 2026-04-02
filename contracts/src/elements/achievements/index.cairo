@@ -15,7 +15,7 @@ pub struct AchievementDefinitionProps {
 
 #[generate_trait]
 pub impl AchievementDefsImpl of AchievementDefsTrait {
-    fn all() -> Span<AchievementDefinitionProps> {
+    fn all() -> Array<AchievementDefinitionProps> {
         array![
             Self::grinder_i(), Self::grinder_ii(), Self::grinder_iii(), Self::grinder_iv(),
             Self::sweeper_i(), Self::sweeper_ii(), Self::sweeper_iii(), Self::sweeper_iv(),
@@ -25,7 +25,6 @@ pub impl AchievementDefsImpl of AchievementDefsTrait {
             Self::explorer_ii(), Self::explorer_iii(), Self::explorer_iv(), Self::challenger_i(),
             Self::challenger_ii(), Self::challenger_iii(), Self::challenger_iv(),
         ]
-            .span()
     }
 
     fn grinder_i() -> AchievementDefinitionProps {

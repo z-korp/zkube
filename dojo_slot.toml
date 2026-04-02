@@ -4,7 +4,7 @@ description = "Reversed tetris fully onchain."
 cover_uri = "file://assets/cover.png"
 icon_uri = "file://assets/icon.png"
 website = "https://app.zkube.xyz"
-seed = "zkube_v2"
+seed = "zkube_v2_2"
 
 [world.socials]
 x = "https://x.com/zKube_game"
@@ -15,9 +15,10 @@ github = "https://github.com/z-korp/zkube"
 default = "zkube_v2_1_0"
 
 [env]
-rpc_url = "https://api.cartridge.gg/x/zkube-v2/katana"
+rpc_url = "https://api.cartridge.gg/x/zkube-djizus-slot/katana"
 account_address = "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
 private_key = "0xc5b2fcab997346f3ea1c00b002ecf6f382c5f9c9659a3894eb783c5320f912"
+world_address = "0x04b615220ebc7d2abf241adc90ede0885739cead167a36f7e94916d4577b493f"
 
 [writers]
 "zkube_v2_1_0" = [
@@ -33,13 +34,13 @@ private_key = "0xc5b2fcab997346f3ea1c00b002ecf6f382c5f9c9659a3894eb783c5320f912"
 [init_call_args]
 "zkube_v2_1_0-game_system" = [
     "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec", # creator
-    "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec", # denshokan (self on slot)
-    "0x1", "0x0", # renderer_address: Option::Some(0x0) — fallback to DNS
+    "0x054b2962dfc4363d2140827e12bd29f936973f1b52f07f8362ca26a87c6f9aec", # denshokan
+    "0x1",        # renderer_address: Option::None — fallback to DNS
     "0x0",        # vrf_address: no VRF on katana
 ]
 "zkube_v2_1_0-config_system" = [
     "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec", # creator (also treasury + zstar placeholder)
-    "0x0", # cube_token_address
+    "0x06e5f1a7bf27f6075006ea9835d6614c7889779e9db19d5edf5c7e894c77868b", # cube_token_address
 ]
 "zkube_v2_1_0-daily_challenge_system" = [
     "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec", # admin
@@ -47,8 +48,9 @@ private_key = "0xc5b2fcab997346f3ea1c00b002ecf6f382c5f9c9659a3894eb783c5320f912"
 ]
 
 [migration]
+disable_multicall = true
 order_inits = [
-    "zkube_v2_1_0-game_system",
     "zkube_v2_1_0-config_system",
+    "zkube_v2_1_0-game_system",
     "zkube_v2_1_0-daily_challenge_system",
 ]

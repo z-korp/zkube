@@ -54,12 +54,13 @@ mod game_system {
     use quest::component::Component as QuestComponent;
     use quest::component::Component::QuestTrait;
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
-    use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
+    use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
     use zkube::constants::DEFAULT_NS;
-    use zkube::elements::achievements::index::AchievementPointsTrait;
+    use zkube::elements::achievements::index::{AchievementDefsTrait, AchievementPointsTrait};
     use zkube::elements::quests::index::{
         QUEST_BONUS_I, QUEST_BONUS_II, QUEST_COMBO_I, QUEST_COMBO_II, QUEST_COMBO_III,
         QUEST_DAILY_CHALLENGER, QUEST_LINE_CLEAR_I, QUEST_LINE_CLEAR_II, QUEST_LINE_CLEAR_III,
+        QuestDefsTrait,
     };
     use zkube::elements::tasks::index::Task;
     use zkube::elements::tasks::interface::TaskTrait;
@@ -145,6 +146,7 @@ mod game_system {
     ) {
         let mut world: WorldStorage = self.world(@DEFAULT_NS());
         let (config_system_address, _) = world.dns(@"config_system").unwrap();
+        let registry_address = get_contract_address();
 
         // Use provided renderer address or default to 'renderer_systems'
         let final_renderer_address = match renderer_address {
@@ -185,6 +187,31 @@ mod game_system {
                     Option::None,
                     Option::None,
                     1,
+                );
+        }
+
+        let mut achievements = AchievementDefsTrait::all();
+        while let Option::Some(props) = achievements.pop_front() {
+            self
+                .achievement
+                .create(world, props.id, props.start, props.end, props.tasks, props.metadata, true);
+        }
+
+        let mut quests = QuestDefsTrait::all(registry_address);
+        while let Option::Some(props) = quests.pop_front() {
+            self
+                .quest
+                .create(
+                    world,
+                    props.id,
+                    props.start,
+                    props.end,
+                    props.duration,
+                    props.interval,
+                    props.tasks,
+                    props.conditions,
+                    props.metadata,
+                    true,
                 );
         }
 

@@ -36,7 +36,7 @@ pub struct QuestDefinitionProps {
 
 #[generate_trait]
 pub impl QuestDefsImpl of QuestDefsTrait {
-    fn all(registry: ContractAddress) -> Span<QuestDefinitionProps> {
+    fn all(registry: ContractAddress) -> Array<QuestDefinitionProps> {
         array![
             Self::line_clear_i(registry), Self::line_clear_ii(registry),
             Self::line_clear_iii(registry), Self::combo_i(registry), Self::combo_ii(registry),
@@ -44,7 +44,6 @@ pub impl QuestDefsImpl of QuestDefsTrait {
             Self::daily_challenger(registry), Self::daily_finisher(registry),
             Self::weekly_grinder(registry), Self::weekly_challenger(registry),
         ]
-            .span()
     }
 
     fn line_clear_i(registry: ContractAddress) -> QuestDefinitionProps {

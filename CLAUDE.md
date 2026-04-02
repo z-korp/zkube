@@ -222,10 +222,25 @@ DOJO_PRIVATE_KEY="..." sozo migrate -P slot
 ```
 
 ## Slot Deployment
-- **World**: `0x02bdb0cc3800b7a2e618a26f364d1ee4ae914c7c616a1c43aa80a8835576e402`
-- **Token**: `0x045a583128eeccc8f2a365243abc1940f17063ff33a6df1db784b4da40643a84`
-- **Seed**: `zkube_jc_slot_v9`
+- **World**: `0x04b615220ebc7d2abf241adc90ede0885739cead167a36f7e94916d4577b493f`
+- **Token**: `0x054b2962dfc4363d2140827e12bd29f936973f1b52f07f8362ca26a87c6f9aec`
+- **ZStarToken**: `0x06e5f1a7bf27f6075006ea9835d6614c7889779e9db19d5edf5c7e894c77868b`
+- **MinigameRegistryContract**: `0x0253abbdfa5108a2f51defd8e5d2ed9f77359d78ab93be0ef1d8df4debf91b81`
+- **game_system**: `0x05176e87f00366750f666bfec76ff2301b105bac8853052d1aacb44eba2bd0cb`
+- **config_system**: `0x03dd7d60bd65a428be7329ea73bf2dc22d8ae4b3e83dfcca4c733e9e8ea62609`
+- **Seed**: `zkube_v2_2`
 - **Torii**: Must index `FullTokenContract` for ERC721 balance tracking.
+
+### Deployment Learnings
+- `dojo_dev.toml` must exist even when deploying with `-P slot`; a minimal base file is enough for `sozo`.
+- `dojo_slot.toml` `init_call_args` for `game_system` are easy to break: `Option::None` serializes to a single felt `0x1`, while `Option::Some(x)` serializes to `0x0, x`. A stray extra felt causes `Input too long for arguments` during `dojo_init`.
+- `game_system.dojo_init` now registers all quest and achievement definitions on init. The working pattern is: minigame initializer first, then `achievement.create(...)` / `quest.create(...)`, then write `vrf_address`.
+- With `cartridge-gg/arcade`, adding quest/achievement creation is not enough. Their Dojo model/event resources must also be listed in `contracts/Scarb.toml` `build-external-contracts`, otherwise migration fails at init with `Resource ... is registered but not as event` when `world.emit_event(...)` runs inside arcade `create()`.
+- The fix was to mirror the `nums` pattern and include these arcade external resources in `build-external-contracts`:
+  - achievement models/events: `m_AchievementDefinition`, `m_AchievementCompletion`, `m_AchievementAdvancement`, `m_AchievementAssociation`, `e_TrophyCreation`, `e_TrophyProgression`, `e_AchievementCompleted`, `e_AchievementClaimed`
+  - quest models/events: `m_QuestDefinition`, `m_QuestCompletion`, `m_QuestAdvancement`, `m_QuestAssociation`, `m_QuestCondition`, `e_QuestCreation`, `e_QuestProgression`, `e_QuestUnlocked`, `e_QuestCompleted`, `e_QuestClaimed`
+- Current deploy path that succeeded: `./scripts/deploy_slot.sh` → declares/deploys registry/token/zstar → updates `dojo_slot.toml` → runs `sozo migrate` successfully → copies manifest to `contracts/manifest_slot.json` and updates client envs.
+- `game_system` and `FullTokenContract` currently exceed Starknet mainnet CASM bytecode limits, but Slot/Katana accepted the deployment. This remains a Sepolia/Mainnet risk to solve separately.
 
 ## What Does NOT Exist
 - No skill tree or permanent character upgrades.
