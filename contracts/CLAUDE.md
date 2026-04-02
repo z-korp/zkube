@@ -1,15 +1,16 @@
 # zKube Smart Contracts Reference
 
 ## Overview
-Cairo 2.13.1 contracts using Dojo 1.8.0. zKube is a fully on-chain puzzle game where players manipulate blocks on an 8x10 grid. The game features themed zones (10 levels + boss), an endless survival mode, and daily challenges. Stars are the primary progression signal; there is no in-game skill tree or economy.
+Cairo 2.13.1 contracts using Dojo 1.8.0. zKube is a fully on-chain puzzle game where players manipulate blocks on an 8x10 grid. The game features themed zones (10 levels + boss), an endless survival mode, and daily challenges. zStar (soul-bound ERC20) and XP are the dual progression signals. Quest and achievement systems powered by cartridge-gg/arcade.
 
 ## Directory Structure
-- **src/models/** (6 files): Data structures for game state, players, and configuration.
-- **src/systems/** (7 files): Logic for gameplay, moves, grid manipulation, and admin config.
-- **src/helpers/** (20 files): Utilities for bit-packing, level generation, scoring, and randomness.
+- **src/models/** (9 files): Data structures for game state, players, configuration, weekly leaderboard, cosmetics.
+- **src/systems/** (7 files): Logic for gameplay, moves, grid manipulation, admin config, daily challenges.
+- **src/helpers/** (21 files): Utilities for bit-packing, level generation, scoring, randomness, weekly leaderboard.
 - **src/types/** (9 files): Enums and structs for constraints, difficulties, and game modes.
-- **src/elements/** (2 subdirs): Data tables for block weights and bonus implementations.
-- **src/external/** (2 files): Interfaces for the Minigame Standard and Token contracts.
+- **src/elements/** (4 subdirs): Block weights, bonus implementations, task/quest/achievement definitions.
+- **src/external/** (3 files): FullTokenContract, MinigameRegistryContract, ZStarToken.
+- **src/components/** (1 file): ProgressionComponent (arcade quest/achievement integration).
 
 ## Models
 
@@ -43,13 +44,15 @@ Key: `game_id: felt252`
 
 ### PlayerMeta
 Key: `player: ContractAddress`
-- `data: felt252`: 32 bits packed (see MetaData layout).
+- `data: felt252`: 64 bits packed (see MetaData layout: `total_runs`, `daily_stars`, `lifetime_xp`).
 - `best_level: u8`: Highest level reached across all runs.
+- `last_active: u64`: Timestamp of last game creation (for Welcome Back bonus).
 
 ### PlayerBestRun
 Keys: `player: ContractAddress`, `settings_id: u32`, `mode: u8`
 - `best_score: u32`, `best_stars: u8`, `best_level: u8`: High scores.
 - `map_cleared: bool`: True if L10 boss was beaten.
+- `best_level_stars: felt252`: Per-level best stars (2 bits x 10 levels), for delta minting.
 - `best_game_id: felt252`: ID of the record-breaking run.
 
 ### GameSettings
@@ -89,6 +92,15 @@ Key: `mutator_id: u8`
 - **DailyLeaderboard**: `challenge_id`, `rank (u32)`, `player`, `value (u32)`.
 - **GameChallenge**: `game_id`, `challenge_id`.
 
+### Weekly Models
+- **WeeklyEndless**: `week_id (u32)`, `total_participants (u32)`, `settled (bool)`.
+- **WeeklyEndlessLeaderboard**: `week_id`, `rank (u32)`, `player`, `score (u32)`.
+- **WeeklyEndlessEntry**: `week_id`, `player`, `best_score (u32)`, `submitted (bool)`.
+
+### Progression Models
+- **CosmeticUnlock**: `player`, `cosmetic_id (u32)`, `purchased_at (u64)`.
+- **CosmeticDef**: `cosmetic_id (u32)`, `name`, `star_cost (u256)`, `category (u8)`, `enabled (bool)`.
+
 ## Bit Layouts
 
 ### RunData (118 bits)
@@ -109,16 +121,18 @@ Key: `mutator_id: u8`
 - `108-115`: `level_lines_cleared` (u8)
 - `116-117`: `bonus_slot` (u2, 0-2)
 
-### MetaData (32 bits)
+### MetaData (64 bits)
 - `0-15`: `total_runs` (u16)
 - `16-31`: `daily_stars` (u16)
+- `32-63`: `lifetime_xp` (u32) -- never decremented, saturates at u32 max
 
 ## Systems
 
 ### game_system
-- `create(game_id, mode)`: Initializes a new game. Reads `settings_id` from token metadata.
+- `create(game_id, mode)`: Initializes a new game. Reads `settings_id` from token metadata. Checks Welcome Back bonus (7+ days inactive = +5 zStar + 500 XP). Emits GameStart + DailyPlay progress.
 - `create_run(game_id, mode)`: Internal logic for starting a run.
 - `surrender(game_id)`: Ends the current run.
+- `emit_progress(player, task_id, count, settings_id)`: Emit quest + achievement progress (gated by star-eligibility).
 - `apply_bonus(game_id, row, block)`: Uses active bonus charge.
 - `dojo_init`: Registers with MinigameRegistry; sets `vrf_address`.
 
@@ -137,15 +151,21 @@ Key: `mutator_id: u8`
 - `finalize_level(game_id)`: Calculates stars, emits `LevelCompleted`, and advances to next level in the same transaction.
 
 ### config_system
-- `add_custom_game_settings(...)`: Admin tool for map creation.
-- `purchase_map(settings_id)`: Transfers ERC20 to unlock gated maps.
-- `dojo_init`: Registers Polynesian Map (ID 0), Polynesian Endless (ID 1), and Mutators: Tidecaller (ID 1), Riptide (ID 2).
+- `add_custom_game_settings(...)`: Permissionless map creation (EGC standard).
+- `purchase_map(settings_id)`: USDC payment with star discount (90% cap). Sends to treasury.
+- `unlock_with_stars(settings_id)`: Burns zStar to unlock a zone.
+- `set_star_eligible(settings_id, eligible)`: Admin whitelist for star-earning settings.
+- `is_star_eligible(settings_id)`: Check if settings earn progression rewards.
+- `set_zstar_address(address)`: Set the zStar token contract address.
+- `set_treasury(address)`: Set the USDC payment treasury wallet.
+- `dojo_init`: Registers Polynesian Map (ID 0), Polynesian Endless (ID 1), Mutators, and star-eligible whitelist.
 
 ### daily_challenge_system
 - `create_daily_challenge(...)`: Admin only. Shared seed for all players.
 - `register_entry(challenge_id)`: Burns 1 zTicket.
-- `submit_result(challenge_id, game_id)`: Updates leaderboard.
-- `settle_challenge(challenge_id)`: Finalizes prizes.
+- `submit_result(challenge_id, game_id)`: Updates leaderboard. Mints 3 zStar on first submission.
+- `settle_challenge(challenge_id)`: Permissionless. Finalizes LORDS prizes + percentile-based zStar payouts.
+- `settle_weekly_endless(week_id)`: Permissionless. Weekly endless leaderboard settlement with percentile-based zStar payouts.
 
 ## Types
 
@@ -176,6 +196,15 @@ Key: `mutator_id: u8`
 - **Mode-Awareness**: Logic branches between Map mode (10 levels, constraints) and Endless mode (survival, score-based difficulty).
 - **Bonus System**: Maps have 3 bonus slots in `GameSettings`. One is rolled at game creation based on `seed % 3`. Charges are awarded via `trigger_type` (Combo/Lines/Score) during moves.
 - **VRF/Pseudo**: `RandomImpl` uses Cartridge VRF on Sepolia/Mainnet and Poseidon-based pseudo-randomness on Slot/Katana.
+
+## Progression Components
+- **ZStarToken**: Soul-bound ERC20 (`external/zstar_token.cairo`). DECIMALS: 0. Mint/burn only, transfers blocked via `before_update` hook. AccessControl with MINTER_ROLE and BURNER_ROLE.
+- **AchievementComponent + QuestComponent**: Embedded in `game_system` via arcade library. 12 quest definitions, 24 achievement definitions, 12 task IDs.
+- **ProgressionComponent**: Starknet component in `components/progression.cairo` bridging arcade components.
+- **Star Eligibility**: `config_system.star_eligible` map. Only whitelisted settings earn progression rewards.
+- **Delta Star Minting**: `level_system.finalize_level` compares this run's stars against `PlayerBestRun.best_level_stars` and mints only the improvement.
+- **Zone Clear Bonus**: +100 zStar + 10,000 XP on first boss defeat per zone (in `game_over.cairo`).
+- **Welcome Back**: +5 zStar + 500 XP after 7+ days inactive (in `game_system.create_game`).
 
 ## Build & Deploy
 ```bash

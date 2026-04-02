@@ -3,11 +3,11 @@
 This document captures all locked design decisions for zKube, a fully on-chain puzzle game built with Dojo/Starknet.
 
 ## Product Thesis
-Fast, fair, skill-first puzzle score-survival game. Short runs, strong replayability, competitive daily loop. Stars are the only progression signal. No economy, no skills, no draft.
+Fast, fair, skill-first puzzle score-survival game. Short runs, strong replayability, competitive daily loop. zStar and XP are the dual progression signals. Grind-or-pay zone unlock. Quests and achievements drive engagement.
 
 ## Core Pillars
 1. **Fast**: 5-10 minute zone clear.
-2. **Fair**: Player-owned losses; no hidden mechanics or pay-to-win.
+2. **Fair**: Player-owned losses; no hidden mechanics. Payment only skips cosmetic/zone grind.
 3. **Readable**: Players should immediately understand why they won or lost.
 4. **Replayable**: Seeds, bonuses, mutators, endless mode, and daily challenges ensure variety.
 5. **Low Friction**: Optimized for both mobile and desktop play.
@@ -177,22 +177,25 @@ mutator_system.register_mutator(4, 'Maelstrom', zone_id: 2, combo_score_mult: 20
 ```
 
 ## Progression Model
-- **Stars**: The ONLY progression signal.
-- **No Economy**: No currency, no spending, no pay-to-win.
-- **Permanent Progression**: Zone clears, star collection, personal bests, and leaderboard rank.
-- **Success**: Clearing L10 boss (Map) or reaching new depths (Endless).
+- **zStar (soul-bound ERC20)**: Primary progression currency. Earned from level completion (delta-minted), zone clear bonus (+100), quest rewards, daily challenge participation, and leaderboard payouts. Burned to unlock zones.
+- **XP**: Permanent reputation metric. Earned from star mints (100 XP/star), achievement completion (500-10,000 XP), zone clear bonus (+10,000 XP). Never decreases. Determines player level.
+- **Quests**: 12 quests (9 daily rotating + finisher + 2 weekly). Rewards: 1-5 zStar per quest.
+- **Achievements**: 24 achievements across 6 categories x 4 tiers. Rewards: XP only.
+- **Zone Unlock**: Burn zStar (grind path) or pay USDC with star discount, 90% cap (pay path).
 
-## Monetization (Post-Alpha)
+## Monetization
 - **Free-to-Start**: Zone 1 + Daily Challenges are free.
-- **One-Time Unlock**: Zones 2-10 and all themes unlocked via a single purchase (target: 8.99 EUR).
-- **Fairness**: Never monetize retries, competitive advantage, or fairness.
+- **Zone Unlock**: Each zone has a star_cost (grindable) and a USDC price (skippable). Star discount: up to 90% off USDC price based on zStar balance.
+- **Pricing**: Zone 2: 120 stars or $2.99, Zone 3: 200 stars or $3.99, escalating for zones 4-10.
+- **Treasury**: All USDC payments go to a configured treasury wallet.
+- **Fairness**: Payment only unlocks cosmetic zones. No gameplay advantage.
 
 ## What Does NOT Exist
 - No skill system, draft, or skill tree.
-- No cube token or in-game economy.
-- No quest system or achievements (removed in redesign).
+- No tradeable game currency (zStar is soul-bound).
 - No in-game shop or consumables.
 - No permanent power progression.
+- No seasonal battle pass (future consideration).
 
 ## One-Sentence Rule
 > Does this make the next run more fun, fair, and replayable within the first 10 minutes?
