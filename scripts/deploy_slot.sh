@@ -11,9 +11,11 @@ set -e
 # 4. Deploy FullTokenContract with registry address
 # 5. Update dojo_slot.toml with denshokan address
 # 6. Run sozo migrate to deploy Dojo world and initialize systems
-# 7. Update torii config and client .env.slot with deployed addresses
+# 7. Deploy ZStarToken with admin = account
+# 8. Update dojo_slot.toml init args with zstar address
+# 9. Update torii config and client .env.slot with deployed addresses
 
-NAMESPACE="zkube_jc_sepolia_v1"
+NAMESPACE="zkube_v2_1_0"
 PROFILE="slot"
 CONTRACTS_DIR="./contracts"
 # Dojo 1.8+ stores manifest at workspace root as manifest_<profile>.json
@@ -192,18 +194,58 @@ if [ -z "$TOKEN_ADDRESS" ]; then
 fi
 print_info "  FullTokenContract deployed at: $TOKEN_ADDRESS"
 
-# Wait for contracts to be properly indexed by katana before migration
+# Wait for nonce to sync
+sleep 2
+
+#-----------------
+# Step 5: Declare and deploy ZStarToken
+#-----------------
+print_info "Step 5: Declaring ZStarToken..."
+ZSTAR_OUTPUT=$(sozo declare -P $PROFILE \
+    --account-address "$ACCOUNT_ADDRESS" \
+    --private-key "$PRIVATE_KEY" \
+    --rpc-url "$RPC_URL" \
+    "${TARGET_DIR}/zkube_ZStarToken.contract_class.json" 2>&1) || true
+
+ZSTAR_CLASS=$(extract_class_hash "$ZSTAR_OUTPUT")
+if [ -z "$ZSTAR_CLASS" ]; then
+    print_error "Failed to get ZStarToken class hash"
+    echo "$ZSTAR_OUTPUT"
+    exit 1
+fi
+print_info "  ZStarToken class: $ZSTAR_CLASS"
+
+sleep 1
+
+print_info "  Deploying ZStarToken (admin=$ACCOUNT_ADDRESS)..."
+ZSTAR_DEPLOY_OUTPUT=$(sozo deploy -P $PROFILE \
+    --account-address "$ACCOUNT_ADDRESS" \
+    --private-key "$PRIVATE_KEY" \
+    --rpc-url "$RPC_URL" \
+    "$ZSTAR_CLASS" \
+    --constructor-calldata "$ACCOUNT_ADDRESS" \
+    2>&1) || true
+
+ZSTAR_ADDRESS=$(extract_address "$ZSTAR_DEPLOY_OUTPUT")
+if [ -z "$ZSTAR_ADDRESS" ]; then
+    print_error "Failed to get ZStarToken address"
+    echo "$ZSTAR_DEPLOY_OUTPUT"
+    exit 1
+fi
+print_info "  ZStarToken deployed at: $ZSTAR_ADDRESS"
+
 print_info "  Waiting for contracts to be indexed..."
 sleep 5
 
 #-----------------
-# Step 6: Update dojo configs with denshokan address
+# Step 6: Update dojo configs with deployed addresses
 #-----------------
-print_info "Step 5: Updating dojo configuration..."
+print_info "Step 6: Updating dojo configuration..."
 
 if [ -f "$DOJO_CONFIG" ]; then
-    sed -i "s|\"0x[0-9a-fA-F]*\",  # denshokan_address|\"$TOKEN_ADDRESS\",  # denshokan_address|" "$DOJO_CONFIG"
-    print_info "  Updated $DOJO_CONFIG with denshokan_address"
+    sed -i "s|\"0x[0-9a-fA-F]*\", # denshokan.*|\"$TOKEN_ADDRESS\", # denshokan|" "$DOJO_CONFIG"
+    sed -i "s|\"0x[0-9a-fA-F]*\", # cube_token_address|\"$ZSTAR_ADDRESS\", # cube_token_address|" "$DOJO_CONFIG"
+    print_info "  Updated $DOJO_CONFIG with denshokan + zstar addresses"
 fi
 
 #-----------------
@@ -291,8 +333,6 @@ fi
 print_info "Step 9: Updating torii configuration..."
 
 # Build contracts array for Torii config
-TORII_CONTRACTS="\"erc721:$TOKEN_ADDRESS\""
-
 cat > "$TORII_CONFIG" << EOF
 world_address = "$WORLD_ADDRESS"
 rpc = "$RPC_URL"
@@ -302,16 +342,12 @@ pending = true
 transactions = true
 namespaces = ["$NAMESPACE"]
 contracts = [
-  $TORII_CONTRACTS
+  "erc721:$TOKEN_ADDRESS",
+  "erc20:$ZSTAR_ADDRESS",
 ]
 
 [events]
 raw = true
-
-[sql]
-historical = [
-  "$NAMESPACE-TrophyProgression",
-]
 EOF
 
 print_info "  Updated $TORII_CONFIG"
@@ -355,6 +391,7 @@ VITE_PUBLIC_FEE_TOKEN_ADDRESS=0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1
 # Contract addresses
 VITE_PUBLIC_WORLD_ADDRESS=$WORLD_ADDRESS
 VITE_PUBLIC_GAME_TOKEN_ADDRESS=$TOKEN_ADDRESS
+VITE_PUBLIC_ZSTAR_TOKEN_ADDRESS=$ZSTAR_ADDRESS
 EOF
 
 print_info "  Updated $CLIENT_ENV"
@@ -372,6 +409,7 @@ echo "-------------------"
 echo "World:                    $WORLD_ADDRESS"
 echo "FullTokenContract:        $TOKEN_ADDRESS"
 echo "MinigameRegistryContract: $REGISTRY_ADDRESS"
+echo "ZStarToken:               $ZSTAR_ADDRESS"
 echo "game_system:              $GAME_SYSTEM"
 echo "config_system:            $CONFIG_SYSTEM"
 echo ""
