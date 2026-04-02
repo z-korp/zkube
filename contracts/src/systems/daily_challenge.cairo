@@ -74,7 +74,7 @@ pub trait IZTicketBurn<T> {
 mod daily_challenge_system {
     use core::num::traits::Zero;
     use dojo::model::ModelStorage;
-    use dojo::world::WorldStorage;
+    use dojo::world::{WorldStorage, WorldStorageTrait};
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
     use zkube::constants::DEFAULT_NS;
@@ -84,6 +84,9 @@ mod daily_challenge_system {
         GameChallenge,
     };
     use zkube::models::game::{Game, GameTrait};
+    use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
+    use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
+    use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use super::{
         IERC20MinimalDispatcher, IERC20MinimalDispatcherTrait, IZTicketBurnDispatcher,
         IZTicketBurnDispatcherTrait,
@@ -182,18 +185,13 @@ mod daily_challenge_system {
 
         fn settle_challenge(ref self: ContractState, challenge_id: u32) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
-            let caller = get_caller_address();
             let timestamp = get_block_timestamp();
-
-            // Admin-only
-            self.assert_admin(caller);
 
             let mut challenge: DailyChallenge = world.read_model(challenge_id);
             assert!(challenge.exists(), "Challenge does not exist");
             assert!(challenge.has_ended(timestamp), "Challenge has not ended yet");
             assert!(!challenge.settled, "Challenge already settled");
 
-            // Calculate number of winners based on unique players
             let num_winners = prize::calculate_num_winners(challenge.total_entries);
             let capped_winners = if num_winners > daily::MAX_LEADERBOARD_SIZE {
                 daily::MAX_LEADERBOARD_SIZE
@@ -201,17 +199,14 @@ mod daily_challenge_system {
                 num_winners
             };
 
-            // Calculate and write prizes for each winner
             if capped_winners > 0 && challenge.prize_pool > 0 {
                 let prizes = prize::calculate_all_prizes(capped_winners, challenge.prize_pool);
                 let mut i: u32 = 0;
                 while i < prizes.len() {
                     let (rank, prize_amount) = *prizes.at(i);
 
-                    // Read leaderboard entry for this rank
                     let lb: DailyLeaderboard = world.read_model((challenge_id, rank));
                     if lb.player.is_non_zero() {
-                        // Write prize to player's entry
                         let mut entry: DailyEntry = world.read_model((challenge_id, lb.player));
                         entry.rank = rank;
                         entry.prize_amount = prize_amount;
@@ -221,6 +216,19 @@ mod daily_challenge_system {
                     i += 1;
                 };
             }
+
+            let total_participants = challenge.total_entries;
+            let mut rank: u32 = 1;
+            while rank <= capped_winners {
+                let lb: DailyLeaderboard = world.read_model((challenge_id, rank));
+                if lb.player.is_non_zero() {
+                    let star_reward = InternalImpl::compute_star_reward(rank, total_participants);
+                    if star_reward > 0 {
+                        InternalImpl::mint_zstar(ref self, ref world, lb.player, star_reward);
+                    }
+                }
+                rank += 1;
+            };
 
             challenge.settled = true;
             world.write_model(@challenge);
@@ -365,6 +373,8 @@ mod daily_challenge_system {
                 InternalImpl::compute_ranking_value(0, best_stars, entry.best_score)
             };
 
+            let is_first_submission = entry.best_game_id == 0;
+
             if ranking_value > current_best {
                 // Update entry with new bests
                 entry.best_score = score;
@@ -375,6 +385,16 @@ mod daily_challenge_system {
 
                 // Update leaderboard via shared helper
                 daily::update_daily_leaderboard(ref world, challenge_id, player, ranking_value);
+            }
+
+            if is_first_submission {
+                InternalImpl::mint_zstar(ref self, ref world, player, 3);
+                let mut player_meta: PlayerMeta = world.read_model(player);
+                if !player_meta.exists() {
+                    player_meta = PlayerMetaTrait::new(player);
+                }
+                player_meta.increment_xp(300);
+                world.write_model(@player_meta);
             }
         }
 
@@ -452,11 +472,46 @@ mod daily_challenge_system {
             stars
         }
 
-        /// Assert caller is admin
         #[inline(always)]
         fn assert_admin(self: @ContractState, caller: ContractAddress) {
             let admin = self.admin_address.read();
             assert!(caller == admin, "Caller is not admin");
+        }
+
+        fn mint_zstar(
+            ref self: ContractState, ref world: WorldStorage, recipient: ContractAddress, amount: u256,
+        ) {
+            match world.dns_address(@"config_system") {
+                Option::Some(config_address) => {
+                    let config = IConfigSystemDispatcher { contract_address: config_address };
+                    let zstar_address = config.get_zstar_address();
+                    if !zstar_address.is_zero() {
+                        let zstar = IZStarTokenDispatcher { contract_address: zstar_address };
+                        zstar.mint(recipient, amount);
+                    }
+                },
+                Option::None => {},
+            }
+        }
+
+        fn compute_star_reward(rank: u32, total_participants: u32) -> u256 {
+            if total_participants == 0 {
+                return 0;
+            }
+            let percentile_x100: u32 = (rank * 100) / total_participants;
+            if percentile_x100 < 2 {
+                10 // top 1%
+            } else if percentile_x100 < 5 {
+                7 // top 5%
+            } else if percentile_x100 < 10 {
+                5 // top 10%
+            } else if percentile_x100 < 25 {
+                3 // top 25%
+            } else if percentile_x100 < 50 {
+                1 // top 50%
+            } else {
+                0
+            }
         }
     }
 }
