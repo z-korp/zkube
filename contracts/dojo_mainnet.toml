@@ -41,7 +41,6 @@ account_address = "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01f
 ]
 "zkube_v2_1_0-daily_challenge_system" = [
     "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7", # admin
-    "0x0", # ticket_address
     "0x0", # lords_address
 ]
 

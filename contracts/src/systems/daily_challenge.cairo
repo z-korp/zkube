@@ -31,9 +31,6 @@ pub trait IDailyChallengeSystem<T> {
 
     // === Player ===
 
-    /// Register an entry for a daily challenge (burns 1 zTicket)
-    /// First registration creates the entry; subsequent ones add attempts
-    /// @param challenge_id: The challenge to enter
     fn register_entry(ref self: T, challenge_id: u32);
 
     /// Submit a game result for a daily challenge (backup for auto-submit)
@@ -67,12 +64,6 @@ pub trait IERC20Minimal<T> {
     fn transfer(ref self: T, recipient: ContractAddress, amount: u256) -> bool;
 }
 
-/// zTicket burn interface (authorized burn)
-#[starknet::interface]
-pub trait IZTicketBurn<T> {
-    fn burn_from(ref self: T, account: ContractAddress, amount: u256);
-}
-
 #[dojo::contract]
 mod daily_challenge_system {
     use core::num::traits::Zero;
@@ -92,36 +83,24 @@ mod daily_challenge_system {
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::models::weekly::{WeeklyEndless, WeeklyEndlessLeaderboard, current_week_id};
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
-    use super::{
-        IERC20MinimalDispatcher, IERC20MinimalDispatcherTrait, IZTicketBurnDispatcher,
-        IZTicketBurnDispatcherTrait,
-    };
+    use super::{IERC20MinimalDispatcher, IERC20MinimalDispatcherTrait};
 
     /// Grace period after settlement before admin can withdraw unclaimed prizes (30 days)
     const WITHDRAWAL_GRACE_PERIOD: u64 = 2_592_000; // 30 * 24 * 60 * 60
 
     #[storage]
     struct Storage {
-        /// Auto-incrementing challenge ID counter
         next_challenge_id: u32,
-        /// Admin address (can create challenges and settle them)
         admin_address: ContractAddress,
-        /// zTicket ERC1155 contract address
-        ticket_address: ContractAddress,
-        /// LORDS ERC20 contract address
         lords_address: ContractAddress,
     }
 
     fn dojo_init(
-        ref self: ContractState,
-        admin_address: ContractAddress,
-        ticket_address: ContractAddress,
-        lords_address: ContractAddress,
+        ref self: ContractState, admin_address: ContractAddress, lords_address: ContractAddress,
     ) {
         assert!(!admin_address.is_zero(), "Admin address cannot be zero");
         self.next_challenge_id.write(1);
         self.admin_address.write(admin_address);
-        self.ticket_address.write(ticket_address);
         self.lords_address.write(lords_address);
     }
 
@@ -299,11 +278,6 @@ mod daily_challenge_system {
             assert!(challenge.exists(), "Challenge does not exist");
             assert!(challenge.is_active(timestamp), "Challenge is not active");
 
-            // Burn 1 zTicket from player
-            let ticket = IZTicketBurnDispatcher { contract_address: self.ticket_address.read() };
-            ticket.burn_from(player, 1);
-
-            // Read existing entry (zero model if first time)
             let mut entry: DailyEntry = world.read_model((challenge_id, player));
             let is_first_registration = !entry.exists();
 
