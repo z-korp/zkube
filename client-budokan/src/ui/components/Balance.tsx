@@ -1,10 +1,8 @@
 import { useLerpNumber } from "@/hooks/useLerpNumber";
-import { erc20ABI } from "@/utils/erc20";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { symbolImages } from "@/utils/tokenImages";
-import { useReadContract } from "@starknet-react/core";
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
-import { BlockTag } from "starknet";
 
 interface BalanceProps {
   address: string;
@@ -21,29 +19,18 @@ const FixedWidthDigit: React.FC<{ value: string }> = ({ value }) =>
 
 const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-  const [targetBalance, setTargetBalance] = useState<number | undefined>(
-    undefined
-  ); // don't change this to 0, it will cause a flicker
 
-  // useBalance doesn't work on Katana, don't know why
-  const { data, isError, error } = useReadContract({
-    functionName: "balanceOf",
-    args: [address as string],
-    abi: erc20ABI,
-    address: token_address,
-    watch: true,
-    blockIdentifier: BlockTag.PENDING,
-    refetchInterval: 2000,
-  });
-  useEffect(() => {
-    if (data !== undefined) {
-      const formattedBalance = parseFloat(
-        formatUnits(data as bigint, 18, symbol === "ETH" ? 6 : 2)
-      );
+  const { balance: rawBalance, isLoading } = useTokenBalance(token_address, address);
 
-      setTargetBalance(formattedBalance);
-    }
-  }, [data, symbol]);
+  const targetBalance = useMemo(() => {
+    if (rawBalance === 0n && isLoading) return undefined;
+    return parseFloat(
+      formatUnits(rawBalance, 18, symbol === "ETH" ? 6 : 2)
+    );
+  }, [rawBalance, isLoading, symbol]);
+
+  const isError = false;
+  const data = rawBalance;
 
   const decimalNumber = useMemo(() => {
     return symbol === "ETH" ? 6 : 2;
