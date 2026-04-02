@@ -6,6 +6,7 @@ export type ContractComponents = Awaited<
 >;
 
 const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
+const ARCADE_NAMESPACE = "zkube_v2_1_0";
 
 export function defineContractComponents(world: World) {
   return {
@@ -403,6 +404,83 @@ export function defineContractComponents(world: World) {
               "u32",   // challenge_id
             ],
             customTypes: [],
+          },
+        }
+      );
+    })(),
+    QuestAdvancement: (() => {
+      return defineComponent(
+        world,
+        {
+          player_id: RecsType.BigInt,
+          quest_id: RecsType.BigInt,
+          task_id: RecsType.BigInt,
+          interval_id: RecsType.Number,
+          count: RecsType.BigInt,
+          timestamp: RecsType.Number,
+        },
+        {
+          metadata: {
+            namespace: ARCADE_NAMESPACE,
+            name: "QuestAdvancement",
+            types: ["felt252", "felt252", "felt252", "u64", "u128", "u64"],
+          },
+        }
+      );
+    })(),
+    QuestCompletion: (() => {
+      return defineComponent(
+        world,
+        {
+          player_id: RecsType.BigInt,
+          quest_id: RecsType.BigInt,
+          interval_id: RecsType.Number,
+          timestamp: RecsType.Number,
+          unclaimed: RecsType.Boolean,
+          lock_count: RecsType.Number,
+        },
+        {
+          metadata: {
+            namespace: ARCADE_NAMESPACE,
+            name: "QuestCompletion",
+            types: ["felt252", "felt252", "u64", "u64", "bool", "u32"],
+          },
+        }
+      );
+    })(),
+    AchievementAdvancement: (() => {
+      return defineComponent(
+        world,
+        {
+          player_id: RecsType.BigInt,
+          achievement_id: RecsType.BigInt,
+          task_id: RecsType.BigInt,
+          count: RecsType.BigInt,
+          timestamp: RecsType.Number,
+        },
+        {
+          metadata: {
+            namespace: ARCADE_NAMESPACE,
+            name: "AchievementAdvancement",
+            types: ["felt252", "felt252", "felt252", "u128", "u64"],
+          },
+        }
+      );
+    })(),
+    AchievementCompletion: (() => {
+      return defineComponent(
+        world,
+        {
+          player_id: RecsType.BigInt,
+          achievement_id: RecsType.BigInt,
+          timestamp: RecsType.Number,
+          unclaimed: RecsType.Boolean,
+        },
+        {
+          metadata: {
+            namespace: ARCADE_NAMESPACE,
+            name: "AchievementCompletion",
+            types: ["felt252", "felt252", "u64", "bool"],
           },
         }
       );

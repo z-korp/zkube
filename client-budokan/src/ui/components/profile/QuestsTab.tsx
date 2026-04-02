@@ -1,10 +1,7 @@
 import type { ThemeColors } from "@/config/themes";
 import ProgressBar from "@/ui/components/shared/ProgressBar";
-import {
-  QUEST_DEFS,
-  type QuestDef,
-  type ZoneProgressData,
-} from "@/config/profileData";
+import type { ZoneProgressData } from "@/config/profileData";
+import { groupQuests, useQuests, type QuestStatus } from "@/hooks/useQuests";
 
 interface QuestsTabProps {
   colors: ThemeColors;
@@ -18,14 +15,14 @@ const formatPrice = (price: bigint | undefined): number => {
 };
 
 const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock }) => {
-  const daily = QUEST_DEFS.filter((quest) => quest.category === "daily");
-  const weekly = QUEST_DEFS.filter((quest) => quest.category === "weekly");
-  const milestones = QUEST_DEFS.filter((quest) => quest.category === "milestone");
+  const { quests } = useQuests();
+  const { daily, weekly, finisher } = groupQuests(quests);
+  const activeDaily = daily.filter((quest) => quest.active);
+  const activeWeekly = weekly.filter((quest) => quest.active);
 
-  const getQuestColor = (quest: QuestDef): string => {
-    if (quest.color === "accent2") return colors.accent2;
-    if (quest.color === "accent3") return "#FF6B8A";
-    if (quest.color === "accent4") return "#A78BFA";
+  const getQuestColor = (quest: QuestStatus): string => {
+    if (quest.type === "weekly") return "#A78BFA";
+    if (quest.type === "finisher") return "#FF6B8A";
     return colors.accent;
   };
 
@@ -119,9 +116,9 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
         </button>
       )}
 
-      <QuestSection colors={colors} title="Daily Quests" badge="Resets in 14:23" badgeColor={colors.accent} quests={daily} getQuestColor={getQuestColor} compact />
-      <QuestSection colors={colors} title="Weekly Quests" badge="4 days left" badgeColor="#A78BFA" quests={weekly} getQuestColor={getQuestColor} compact />
-      <QuestSection colors={colors} title="Milestones" quests={milestones} getQuestColor={getQuestColor} />
+      <QuestSection colors={colors} title="Daily Quests" badge="Rotating" badgeColor={colors.accent} quests={activeDaily} getQuestColor={getQuestColor} compact />
+      <QuestSection colors={colors} title="Weekly Quests" badge="Weekly" badgeColor="#A78BFA" quests={activeWeekly} getQuestColor={getQuestColor} compact />
+      <QuestSection colors={colors} title="Daily Finisher" quests={finisher} getQuestColor={getQuestColor} />
     </div>
   );
 };
@@ -129,8 +126,8 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
 interface QuestSectionProps {
   colors: ThemeColors;
   title: string;
-  quests: QuestDef[];
-  getQuestColor: (quest: QuestDef) => string;
+  quests: QuestStatus[];
+  getQuestColor: (quest: QuestStatus) => string;
   badge?: string;
   badgeColor?: string;
   compact?: boolean;
@@ -177,7 +174,7 @@ const QuestSection: React.FC<QuestSectionProps> = ({
 
 interface QuestCardProps {
   colors: ThemeColors;
-  quest: QuestDef;
+  quest: QuestStatus;
   color: string;
   compact: boolean;
 }
@@ -186,39 +183,46 @@ const QuestCard: React.FC<QuestCardProps> = ({ colors, quest, color, compact }) 
   <div
     className="rounded-[10px]"
     style={{
-      background: quest.done ? `${color}14` : colors.surface,
-      border: `1px solid ${quest.done ? `${color}40` : colors.border}`,
+      background: quest.completed ? `${color}14` : colors.surface,
+      border: `1px solid ${quest.completed ? `${color}40` : colors.border}`,
       padding: compact ? "8px 10px" : "10px 12px",
-      opacity: quest.done ? 0.72 : 1,
+      opacity: quest.claimed ? 0.72 : 1,
     }}
   >
     <div className="flex items-start gap-2">
       <span className={compact ? "text-base" : "text-lg"}>{quest.icon}</span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between">
-          <p
-            className="font-display text-[11px] font-bold"
-            style={{ color: quest.done ? color : colors.text, textDecoration: quest.done ? "line-through" : "none" }}
-          >
-            {quest.title}
-          </p>
-          {quest.done ? (
-            <span
-              className="rounded px-1.5 py-[1px] font-['DM_Sans'] text-[8px] font-bold"
-              style={{ color: colors.accent, background: `${colors.accent}20` }}
+            <p
+              className="font-display text-[11px] font-bold"
+              style={{ color: quest.completed ? color : colors.text, textDecoration: quest.claimed ? "line-through" : "none" }}
             >
-              CLAIMED
-            </span>
-          ) : (
-            <span className="font-display text-[9px] font-bold" style={{ color: colors.accent2 }}>
-              +{quest.reward}★
+              {quest.name}
+            </p>
+            {quest.claimed ? (
+              <span
+                className="rounded px-1.5 py-[1px] font-['DM_Sans'] text-[8px] font-bold"
+                style={{ color: colors.accent, background: `${colors.accent}20` }}
+              >
+                CLAIMED
+              </span>
+            ) : quest.completed ? (
+              <span
+                className="rounded px-1.5 py-[1px] font-['DM_Sans'] text-[8px] font-bold"
+                style={{ color: "#FF6B8A", background: "rgba(255,107,138,0.2)" }}
+              >
+                COMPLETE
+              </span>
+            ) : (
+              <span className="font-display text-[9px] font-bold" style={{ color: colors.accent2 }}>
+                +{quest.reward}★
             </span>
           )}
         </div>
         <p className="mb-1 mt-0.5 font-['DM_Sans'] text-[9px]" style={{ color: colors.textMuted }}>
-          {quest.desc}
+          {quest.description}
         </p>
-        {!quest.done && <ProgressBar value={quest.progress} max={quest.max} color={color} height={4} showLabel />}
+        {!quest.claimed && <ProgressBar value={quest.progress} max={quest.target} color={color} height={4} showLabel />}
       </div>
     </div>
   </div>

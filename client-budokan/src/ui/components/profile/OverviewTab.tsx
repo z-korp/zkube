@@ -1,7 +1,6 @@
 import ProgressBar from "@/ui/components/shared/ProgressBar";
 import { getThemeImages, type ThemeColors, type ThemeId } from "@/config/themes";
 import type { ZoneProgressData } from "@/config/profileData";
-import { RECENT_ACTIVITY } from "@/config/profileData";
 
 const formatPrice = (price: bigint | undefined): string => {
   if (price === undefined) return "0.0000";
@@ -173,34 +172,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
       </section>
 
-      <section>
-        <p
-          className="mb-2 font-['DM_Sans'] text-[10px] font-semibold uppercase tracking-[0.15em]"
-          style={{ color: colors.textMuted }}
-        >
-          Recent Activity
-        </p>
-
-        <div className="flex flex-col">
-          {RECENT_ACTIVITY.map((item, index) => (
-            <div
-              key={`${item.text}-${item.time}`}
-              className="flex items-center gap-2 py-1.5"
-              style={{
-                borderBottom: index < RECENT_ACTIVITY.length - 1 ? `1px solid ${colors.border}` : "none",
-              }}
-            >
-              <span className="w-5 text-center text-sm">{item.icon}</span>
-              <p className="flex-1 font-['DM_Sans'] text-[10px] font-medium" style={{ color: colors.text }}>
-                {item.text}
-              </p>
-              <span className="font-['DM_Sans'] text-[8px]" style={{ color: colors.textMuted }}>
-                {item.time}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 };

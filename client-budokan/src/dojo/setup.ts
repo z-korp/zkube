@@ -13,6 +13,7 @@ export type SetupResult = Awaited<ReturnType<typeof setup>>;
 
 const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
 const namespace = VITE_PUBLIC_NAMESPACE || "zkube_jc_sepolia_v1";
+const arcadeNamespace = "zkube_v2_1_0";
 const log = createLogger("dojo/setup");
 
 export async function setup({ ...config }: Config) {
@@ -50,6 +51,10 @@ export async function setup({ ...config }: Config) {
     `${namespace}-DailyEntry`,
     `${namespace}-DailyLeaderboard`,
     `${namespace}-GameChallenge`,
+    `${arcadeNamespace}-QuestAdvancement`,
+    `${arcadeNamespace}-QuestCompletion`,
+    `${arcadeNamespace}-AchievementAdvancement`,
+    `${arcadeNamespace}-AchievementCompletion`,
   ] as `${string}-${string}`[];
   const modelsToWatch = [
     `${namespace}-Game`,
@@ -64,6 +69,10 @@ export async function setup({ ...config }: Config) {
     `${namespace}-DailyEntry`,
     `${namespace}-DailyLeaderboard`,
     `${namespace}-GameChallenge`,
+    `${arcadeNamespace}-QuestAdvancement`,
+    `${arcadeNamespace}-QuestCompletion`,
+    `${arcadeNamespace}-AchievementAdvancement`,
+    `${arcadeNamespace}-AchievementCompletion`,
   ];
 
   log.info("Starting entity sync", {
