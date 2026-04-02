@@ -18,14 +18,6 @@ interface GameHudProps {
   maxMoves: number;
 }
 
-const CONSTRAINT_ICONS: Record<number, string> = {
-  [ConstraintType.ComboLines]: "/assets/common/constraints/constraint-combo.png",
-  [ConstraintType.BreakBlocks]: "/assets/common/constraints/constraint-break-blocks.png",
-  [ConstraintType.ComboStreak]: "/assets/common/constraints/constraint-combo.png",
-  [ConstraintType.FillAndClear]: "/assets/common/constraints/constraint-clear-lines.png",
-  [ConstraintType.KeepGridBelow]: "/assets/common/constraints/constraint-keep-grid-below.png",
-};
-
 interface ConstraintData {
   type: ConstraintType;
   value: number;
@@ -93,15 +85,15 @@ const GameHud: React.FC<GameHudProps> = ({
   const level = gameLevel?.level ?? 1;
 
   return (
-    <div className="w-full px-3 pb-2 pt-1 shrink-0">
+    <div className="w-full shrink-0 px-2 pb-1 pt-1">
       <div
-        className="mx-auto w-full max-w-[500px] rounded-xl border px-3 py-2"
+        className="mx-auto w-full max-w-[500px] rounded-xl border px-2.5 py-1.5"
         style={{ backgroundColor: colors.surface, borderColor: colors.border }}
       >
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        <div className="flex h-8 items-center justify-between gap-1.5 whitespace-nowrap">
+          <div className="flex items-center gap-1.5">
             <div
-              className="rounded-md border px-2 py-1 font-display text-[10px] font-bold tracking-[0.1em]"
+              className="rounded-full border px-2 py-0.5 font-display text-[10px] font-bold tracking-[0.08em]"
               style={{
                 color: colors.accent,
                 borderColor: `${colors.accent}66`,
@@ -110,11 +102,10 @@ const GameHud: React.FC<GameHudProps> = ({
             >
               LV.{level}
             </div>
-            <div className="flex gap-0.5">
+            <div className="flex gap-0.5 text-[11px] leading-none">
               {Array.from({ length: 3 }).map((_, i) => (
                 <span
                   key={i}
-                  className="text-xs"
                   style={{ color: i < starScore ? colors.accent2 : colors.textMuted }}
                 >
                   ★
@@ -123,79 +114,79 @@ const GameHud: React.FC<GameHudProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="text-center">
-              <p className="text-[9px]" style={{ color: colors.textMuted }}>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] uppercase tracking-[0.08em]" style={{ color: colors.textMuted }}>
                 MOVES
-              </p>
-              <p className="font-display text-[15px] font-bold" style={{ color: colors.text }}>
-                {Math.max(0, maxMoves - movesRemaining)}/{maxMoves}
-              </p>
+              </span>
+              <span className="font-display text-[13px] font-bold tabular-nums" style={{ color: colors.text }}>
+                {movesUsed}/{maxMoves}
+              </span>
             </div>
-            <div className="text-center">
-              <p className="text-[9px]" style={{ color: colors.textMuted }}>
+
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] uppercase tracking-[0.08em]" style={{ color: colors.textMuted }}>
                 SCORE
-              </p>
-              <p className="font-display text-[15px] font-bold" style={{ color: colors.accent2 }}>
+              </span>
+              <span className="font-display text-[13px] font-bold tabular-nums" style={{ color: colors.accent2 }}>
                 {animatedScore}/{targetScore}
-              </p>
+              </span>
             </div>
-            <div className="text-center">
-              <p className="text-[9px]" style={{ color: colors.textMuted }}>
+
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] uppercase tracking-[0.08em]" style={{ color: colors.textMuted }}>
                 COMBO
-              </p>
-              <p className="font-display text-[15px] font-bold" style={{ color: colors.accent }}>
-                x{combo}
-              </p>
+              </span>
+              <span className="font-display text-[13px] font-bold tabular-nums" style={{ color: colors.accent }}>
+                ×{combo}
+              </span>
+              {combo > 1 && <span className="text-[11px] leading-none">🔥</span>}
             </div>
           </div>
         </div>
 
         {constraints.length > 0 && (
-          <div
-            className="mt-2 rounded-lg border px-2.5 py-2"
-            style={{ backgroundColor: colors.surface, borderColor: colors.border }}
-          >
-            <div className="space-y-1.5">
-              {constraints.map((c, i) => {
-                const description = Constraint.fromContractValues(c.type, c.value, c.count).getDescription();
-                const progress =
-                  c.type === ConstraintType.NoBonusUsed
-                    ? bonusUsedThisLevel
+          <div className="mt-1.5 space-y-1">
+            {constraints.map((c, i) => {
+              const description = Constraint.fromContractValues(c.type, c.value, c.count).getDescription();
+              const progress =
+                c.type === ConstraintType.NoBonusUsed
+                  ? bonusUsedThisLevel
+                    ? 0
+                    : 1
+                  : c.type === ConstraintType.KeepGridBelow
+                    ? c.progress >= 1
                       ? 0
                       : 1
-                    : c.type === ConstraintType.KeepGridBelow
-                      ? c.progress >= 1
-                        ? 0
-                        : 1
-                      : c.progress;
-                const target =
-                  c.type === ConstraintType.NoBonusUsed || c.type === ConstraintType.KeepGridBelow
-                    ? 1
-                    : c.count;
+                    : c.progress;
+              const target =
+                c.type === ConstraintType.NoBonusUsed || c.type === ConstraintType.KeepGridBelow
+                  ? 1
+                  : c.count;
+              const clamped = Math.max(0, Math.min(1, target > 0 ? progress / target : 0));
 
-                return (
-                  <div key={`constraint-${i}`} className="flex items-center justify-between gap-2">
-                    <div className="flex min-w-0 items-center gap-1.5">
-                      {CONSTRAINT_ICONS[c.type] ? (
-                        <img
-                          src={CONSTRAINT_ICONS[c.type]}
-                          alt="Constraint"
-                          className="h-5 w-5"
-                          draggable={false}
-                        />
-                      ) : null}
-                      <span className="truncate text-[10px]" style={{ color: colors.text }}>
-                        {description}
-                      </span>
-                    </div>
-                    <span className="font-display text-[11px] font-bold" style={{ color: colors.accent }}>
+              return (
+                <div key={`constraint-${i}`}>
+                  <div className="mb-0.5 flex items-center justify-between gap-2">
+                    <span className="truncate text-[9px]" style={{ color: colors.textMuted }}>
+                      {description}
+                    </span>
+                    <span className="font-display text-[10px] tabular-nums" style={{ color: colors.accent }}>
                       {progress}/{target}
                     </span>
                   </div>
-                );
-              })}
-            </div>
+                  <div
+                    className="h-1 w-full overflow-hidden rounded-full"
+                    style={{ backgroundColor: `${colors.border}66` }}
+                  >
+                    <div
+                      className="h-full rounded-full transition-all duration-200"
+                      style={{ width: `${Math.round(clamped * 100)}%`, backgroundColor: colors.accent }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

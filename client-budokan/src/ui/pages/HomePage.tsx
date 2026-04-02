@@ -105,7 +105,7 @@ const HomePage: React.FC = () => {
         await create({ account, token_id: gameId, mode: selectedMode });
 
         showToast({ message: `Game started!`, type: "success" });
-        navigate("map", gameId);
+        navigate("mutator", gameId);
       } catch (error) {
         console.error("Error starting game:", error);
         showToast({
@@ -134,23 +134,30 @@ const HomePage: React.FC = () => {
     }
   }, [activeRunTokenId, navigate]);
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden px-4 pb-3 pt-6">
-      <div className="mb-5 text-center">
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden px-4 pb-3 pt-6">
+      <img
+        src={getThemeImages(getThemeId(zones[activeZone]?.zoneId ?? 1)).background}
+        alt=""
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20"
+        draggable={false}
+      />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: `linear-gradient(180deg, rgba(5, 10, 18, 0.55) 0%, rgba(5, 10, 18, 0.2) 35%, rgba(5, 10, 18, 0.6) 100%)`,
+        }}
+      />
+
+      <div className="relative z-10 mb-5 text-center">
         <img
           src={getThemeImages(getThemeId(zone?.zoneId ?? 1)).logo}
           alt="zKube"
-          className="mx-auto h-20 drop-shadow-[0_0_24px_rgba(255,255,255,0.35)]"
+          className="mx-auto h-28 md:h-32 drop-shadow-[0_0_24px_rgba(255,255,255,0.35)]"
           draggable={false}
         />
-        <p
-          className="mt-1 text-[10px] uppercase tracking-[0.3em]"
-          style={{ color: colors.accent }}
-        >
-          ON-CHAIN PUZZLE
-        </p>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto pb-1">
+      <div className="relative z-10 flex-1 space-y-3 overflow-y-auto pb-1">
         {account ? (
           <div
             className="flex items-center justify-between rounded-xl border p-3"

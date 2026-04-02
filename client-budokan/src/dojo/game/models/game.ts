@@ -59,14 +59,32 @@ export class Game {
   public get zoneId(): number {
     return this.runData.zoneId;
   }
+  public get currentDifficulty(): number {
+    return this.runData.currentDifficulty;
+  }
   public get endlessDepth(): number {
-    return this.runData.endlessDepth;
+    return this.runData.currentDifficulty;
   }
   public get zoneCleared(): boolean {
     return this.runData.zoneCleared;
   }
+  public get activeMutatorId(): number {
+    return this.runData.activeMutatorId;
+  }
   public get mutatorMask(): number {
-    return this.runData.mutatorMask;
+    return this.runData.activeMutatorId;
+  }
+  public get bonusType(): number {
+    return this.runData.bonusType;
+  }
+  public get bonusCharges(): number {
+    return this.runData.bonusCharges;
+  }
+  public get bonusSlot(): number {
+    return this.runData.bonusSlot;
+  }
+  public get mode(): number {
+    return this.runData.mode;
   }
 
   public get levelTransitionPending(): boolean {

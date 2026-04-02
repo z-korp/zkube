@@ -14,6 +14,8 @@ import PhoneFrame from "@/ui/components/shared/PhoneFrame";
 import HomePage from "@/ui/pages/HomePage";
 import PlayScreen from "@/ui/pages/PlayScreen";
 import MapPage from "@/ui/pages/MapPage";
+import MyGamesPage from "@/ui/pages/MyGamesPage";
+import MutatorRevealPage from "@/ui/pages/MutatorRevealPage";
 import SettingsPage from "@/ui/pages/SettingsPage";
 import LeaderboardPage from "@/ui/pages/LeaderboardPage";
 import DailyChallengePage from "@/ui/pages/DailyChallengePage";
@@ -24,6 +26,8 @@ const pageComponents: Record<PageId, React.ReactNode> = {
   home: <HomePage />,
   play: <PlayScreen />,
   map: <MapPage />,
+  mygames: <MyGamesPage />,
+  mutator: <MutatorRevealPage />,
   profile: <ProfilePage />,
   ranks: <LeaderboardPage />,
   settings: <SettingsPage />,

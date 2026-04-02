@@ -43,6 +43,7 @@ const MapPage: React.FC = () => {
   const navigate = useNavigationStore((s) => s.navigate);
   const goBack = useNavigationStore((s) => s.goBack);
   const gameId = useNavigationStore((s) => s.gameId);
+  const previousPage = useNavigationStore((s) => s.previousPage);
   const pendingPreviewLevel = useNavigationStore((s) => s.pendingPreviewLevel);
   const setPendingPreviewLevel = useNavigationStore((s) => s.setPendingPreviewLevel);
   const pendingLevelCompletion = useNavigationStore((s) => s.pendingLevelCompletion);
@@ -109,12 +110,20 @@ const MapPage: React.FC = () => {
     navigate("play", gameId);
   };
 
+  const handleBack = () => {
+    if (previousPage === "play" && gameId !== null) {
+      navigate("play", gameId);
+      return;
+    }
+    goBack();
+  };
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between px-3 h-11 shrink-0">
         <div className="flex items-center gap-1.5">
           <button
-            onClick={goBack}
+            onClick={handleBack}
             className="w-11 h-11 flex items-center justify-center rounded-lg transition-colors"
             style={{ color: colors.textMuted }}
           >

@@ -5,7 +5,7 @@ import { getThemeColors, type ThemeId } from "@/config/themes";
 
 const TABS: { id: TabId; icon: string; label: string }[] = [
   { id: "home", icon: "⬡", label: "Home" },
-  { id: "map", icon: "◈", label: "Map" },
+  { id: "mygames", icon: "◈", label: "Games" },
   { id: "profile", icon: "◉", label: "Profile" },
   { id: "ranks", icon: "◆", label: "Ranks" },
   { id: "settings", icon: "⚙", label: "Settings" },

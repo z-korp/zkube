@@ -1,361 +1,185 @@
-# Wire On-Chain Progression Data into Client
+# UX Flow & Layout Overhaul — Implementation Plan
 
 ## Overview
 
-Replace mock/placeholder data in `client-budokan/` with real on-chain state from Dojo RECS models (`PlayerMeta`, `PlayerBestRun`, `GameSettingsMetadata`) and an ERC20 balance query (`zStar`). Contracts are **READ-ONLY** — all changes are client-side.
+Major UX overhaul of the zKube client (`client-budokan/` only). This changes **flow and layout** — not the design system (fonts, colors, themes, cards stay). Key changes: remove "ON-CHAIN PUZZLE" subtitle & enlarge logo, add per-theme background images on home, replace the Map tab with a "My Games" tab, introduce a mutator dice-roll reveal page in the new-game flow, fix grid proportions (revert to width-only sizing), add a GameActionBar with bonus slots during gameplay, and hide the BottomTabBar during play.
+
+**Contracts are READ-ONLY. All changes in `client-budokan/`.**
 
 ## Goals
 
-- Unpack `PlayerMeta.data` for `total_runs`, `daily_stars`, `lifetime_xp`
-- Create `useZStarBalance` hook for soul-bound zStar ERC20 balance
-- Create `usePlayerBestRun` hook for per-zone star progress
-- Build `useZoneProgress` aggregate hook combining 4 data sources
-- Wire real data into ProfilePage (OverviewTab, zone progress, XP/level, stats)
-- Wire real data into HomePage (zone cards with real star counts)
+- Restore grid proportions to budokan-quality sizing (width-only ResizeObserver)
+- Replace Map tab with "My Games" showing all owned games (active + completed)
+- Implement new-game flow: mint → loading → mutator reveal → map → play
+- Add GameActionBar during gameplay with 3 bonus slots + map + surrender
+- Hide BottomTabBar and weird top bar during gameplay
+- Use per-theme `background.png` images on HomePage
+- Make logo bigger, remove "ON-CHAIN PUZZLE" subtitle
 
 ## Non-Goals
 
-- Modify any contract or Cairo code
-- Wire quest/achievement data from arcade models (deferred — see Phase 4)
-- Implement zone unlock transaction flows (already exist in `systems.ts`)
-- Create new UI components (only wire existing components with real data)
-- Replace `RECENT_ACTIVITY` mock data (no contract source exists)
-- Replace `XP_PER_STAR`, `LEVEL_THRESHOLDS`, `PLAYER_TITLES` (keep as client-side derivation constants)
+- **No design system changes** — fonts, colors, themes, cards, gradients all stay
+- **No contract changes** — all work in `client-budokan/` only
+- **No new data hooks** — `useGameTokensSlot`, `useZoneProgress`, `useZStarBalance` already exist
+- **No new game logic** — move/bonus/surrender system calls already exist in `systems.ts`
+- **No quest/achievement UI** — deferred
+- **No cosmetic shop** — deferred
 
 ## Assumptions and Constraints
 
-- **READ-ONLY contracts**: All changes confined to `client-budokan/`
-- **Torii streams all world models**: Even models not in `modelsToSync` reach RECS via subscription. Adding them to `modelsToSync` ensures initial batch loading.
-- **zStar DECIMALS=0**: Balance is a whole number, no decimal formatting needed
-- **Metagame SDK API unknown**: Quest/achievement wiring deferred until SDK API is investigated
-- **Arcade models are deployed**: Confirmed in `manifest_slot.json` — `QuestDefinition`, `AchievementDefinition`, etc. exist on-chain and Torii indexes them
+- **Background images exist**: All 10 themes have `/public/assets/theme-N/background.png` (confirmed)
+- **Mutator definitions hardcoded**: Only 2 mutators exist (Tidecaller ID 1, Riptide ID 2). Hardcode in client config rather than syncing MutatorDef model from contract
+- **Bonus data in run_data**: Bits 101-117 of `run_data` contain `mode`, `bonus_type`, `bonus_charges`, `level_lines_cleared`, `bonus_slot` — but `runDataPacking.ts` currently only unpacks bits 0-100. Must extend.
+- **`useGameTokensSlot` returns all needed data** for My Games page (token_id, score, game_over, metadata with level)
+- **`actionbar/` directory exists but is empty** — ready for GameActionBar component
+- **BossRevealPage is the structural template** for MutatorRevealPage
 
 ## Requirements
 
 ### Functional
 
-- **F1**: ProfilePage header shows real `lifetime_xp` (not `totalStars × XP_PER_STAR` proxy)
-- **F2**: ProfilePage header shows real zStar balance (★ count)
-- **F3**: OverviewTab stats grid shows real `total_runs` for "Games" count
-- **F4**: Zone progress cards show per-zone star counts from `PlayerBestRun.best_stars`
-- **F5**: Zone progress cards show real `star_cost` and `price` from `GameSettingsMetadata`
-- **F6**: Zone unlock discount calculation uses real zStar balance
-- **F7**: HomePage zone cards show real zone star progress and unlock status
+- **F1**: HomePage shows larger logo (h-28+), no "ON-CHAIN PUZZLE" subtitle, per-theme background image
+- **F2**: Bottom tab bar reads: Home | My Games | Profile | Ranks | Settings
+- **F3**: My Games page lists all owned game NFTs (active at top, completed below), click to resume
+- **F4**: New game flow: mint → loading screen → mutator dice reveal → navigate to map → play
+- **F5**: PlayScreen has no BottomTabBar, no redundant top bar; uses GameActionBar at bottom
+- **F6**: GameActionBar shows: Map button | 3 bonus slots (type + charges) | Surrender | Settings
+- **F7**: Grid sizing uses width-only constraint (remove height-based `Math.min`), cells 28-64px
+- **F8**: Map page is accessed from GameActionBar (in-game), not from tab bar
+- **F9**: Compact HUD: single-row Level + Score + Combo + Constraints + Moves
 
 ### Non-Functional
 
-- **NF1**: No new network requests — all data via existing Torii subscription + one ERC20 `balance_of` RPC call
-- **NF2**: All bit-unpacking logic has unit tests matching Cairo packing exactly
-- **NF3**: Hooks follow existing patterns (`normalizeEntityId`, `useComponentValue`, `useDeepMemo`)
+- **NF1**: `pnpm build` succeeds with zero TypeScript errors
+- **NF2**: `pnpm test` passes all existing + new tests
+- **NF3**: Page transitions remain smooth (≤150ms with existing AnimatePresence)
+- **NF4**: Grid renders at ≥40px cell size on iPhone SE (375px width)
 
 ---
 
 ## Technical Design
 
-### Data Flow Architecture
+### Navigation Architecture Change
 
 ```
-                         ┌──────────────────────────┐
-                         │    Torii (Indexer)        │
-                         │                          │
-                         │  Streams all world model  │
-                         │  updates via subscription │
-                         └─────────┬────────────────┘
-                                   │
-                          getSyncEntities()
-                                   │
-                    ┌──────────────▼──────────────┐
-                    │       RECS Store             │
-                    │                              │
-                    │  PlayerMeta (NEW in sync)    │
-                    │  PlayerBestRun (NEW model)   │
-                    │  GameSettingsMetadata (+star_cost)│
-                    │  MapEntitlement (existing)   │
-                    │  Game, GameSeed, etc.        │
-                    └──────────────┬───────────────┘
-                                   │
-              useComponentValue / runQuery
-                                   │
-         ┌─────────────────────────┼──────────────────────┐
-         │                         │                      │
-  usePlayerMeta()         usePlayerBestRun()      useZoneProgress()
-  (extended: unpack       (NEW: query per        (NEW: aggregate
-   data field)             zone+mode)              all zone data)
-                                                          │
-                                                   ┌──────┴──────┐
-                                                   │             │
-                                              ProfilePage   HomePage
-                                              (real stats)  (real zones)
+CURRENT TABS:  Home | Map     | Profile | Ranks | Settings
+NEW TABS:      Home | MyGames | Profile | Ranks | Settings
 
-         ┌──────────────────┐
-         │  Starknet RPC    │
-         │  (via starknet-  │
-         │   react)         │
-         └────────┬─────────┘
-                  │
-           useReadContract()
-                  │
-         useZStarBalance()
-         (NEW: ERC20 balance_of)
+CURRENT OVERLAYS (full-screen, hide tabs): play | daily | boss
+NEW OVERLAYS:   play | daily | boss | mutator-reveal
+
+CURRENT FLOW:
+  Home → [NEW GAME] → Map (tab) → Play
+
+NEW FLOW:
+  Home → [NEW GAME] → Loading → MutatorReveal → Map (in-game overlay) → Play
+  Home → MyGames (tab) → [tap game card] → Map (in-game overlay) → Play
 ```
 
-### RECS Model Changes
+### Type Changes (`navigationStore.ts`)
 
-#### 1. Fix `PlayerMeta` — add `last_active`
-
-**File**: `src/dojo/contractModels.ts`
-
-Current:
 ```typescript
-PlayerMeta: defineComponent(world, {
-  player: RecsType.BigInt,
-  data: RecsType.BigInt,
-  best_level: RecsType.Number,
-}, { metadata: { types: ["ContractAddress", "felt252", "u8"] } })
+// BEFORE
+export type TabId = "home" | "map" | "profile" | "ranks" | "settings";
+export type OverlayId = "play" | "daily" | "boss";
+
+// AFTER
+export type TabId = "home" | "mygames" | "profile" | "ranks" | "settings";
+export type OverlayId = "play" | "daily" | "boss" | "mutator-reveal";
 ```
 
-Target:
+### RunData Extension (`runDataPacking.ts`)
+
+```
+Add bits 101-117 to RunData interface:
+  mode: boolean           (bit 101, 0=Map, 1=Endless)
+  bonusType: number       (bits 102-103, 0=None, 1=Hammer, 2=Totem, 3=Wave)
+  bonusCharges: number    (bits 104-107, 0-15)
+  levelLinesCleared: number (bits 108-115, 0-255)
+  bonusSlot: number       (bits 116-117, 0-2)
+```
+
+### Mutator Config (client-side)
+
 ```typescript
-PlayerMeta: defineComponent(world, {
-  player: RecsType.BigInt,
-  data: RecsType.BigInt,
-  best_level: RecsType.Number,
-  last_active: RecsType.Number,  // ADD
-}, { metadata: { types: ["ContractAddress", "felt252", "u8", "u64"] } })  // ADD "u64"
-```
-
-#### 2. Fix `GameSettingsMetadata` — add `star_cost`
-
-**File**: `src/dojo/contractModels.ts`
-
-Add after `payment_token`:
-```typescript
-star_cost: RecsType.BigInt,  // ADD
-// types array: append "u256"
-```
-
-#### 3. New `PlayerBestRun` RECS component
-
-**File**: `src/dojo/contractModels.ts`
-
-Cairo model:
-```cairo
-struct PlayerBestRun {
-    #[key] player: ContractAddress,
-    #[key] settings_id: u32,
-    #[key] mode: u8,
-    best_score: u32,
-    best_stars: u8,
-    best_level: u8,
-    map_cleared: bool,
-    best_level_stars: felt252,  // 2 bits × 10 levels
-    best_game_id: felt252,
+// New file: src/config/mutators.ts
+export interface MutatorDisplay {
+  id: number;
+  name: string;
+  description: string;
+  icon: string;     // emoji or asset path
+  effect: string;   // e.g. "+2 lines per clear"
+  color: string;    // accent color for the reveal
 }
-```
 
-RECS definition:
-```typescript
-PlayerBestRun: defineComponent(world, {
-  player: RecsType.BigInt,
-  settings_id: RecsType.Number,
-  mode: RecsType.Number,
-  best_score: RecsType.Number,
-  best_stars: RecsType.Number,
-  best_level: RecsType.Number,
-  map_cleared: RecsType.Boolean,
-  best_level_stars: RecsType.BigInt,
-  best_game_id: RecsType.BigInt,
-}, {
-  metadata: {
-    namespace: VITE_PUBLIC_NAMESPACE,
-    name: "PlayerBestRun",
-    types: ["ContractAddress", "u32", "u8", "u32", "u8", "u8", "bool", "felt252", "felt252"],
+export const MUTATOR_DEFS: Record<number, MutatorDisplay> = {
+  1: {
+    id: 1,
+    name: "Tidecaller",
+    description: "The ocean surges with every line you clear",
+    icon: "🌊",
+    effect: "+2 bonus lines per clear",
+    color: "#2ECFB0",
   },
-})
-```
-
-### Bit Packing Specifications
-
-#### MetaData (PlayerMeta.data) — 64 bits
-
-```
-Bits 0-15:   total_runs    (u16)  mask: 0xFFFF
-Bits 16-31:  daily_stars   (u16)  mask: 0xFFFF
-Bits 32-63:  lifetime_xp   (u32)  mask: 0xFFFFFFFF
-```
-
-TypeScript (new file `metaDataPacking.ts`):
-```typescript
-export interface MetaData {
-  totalRuns: number;
-  dailyStars: number;
-  lifetimeXp: number;
-}
-
-export function unpackMetaData(packed: bigint): MetaData {
-  return {
-    totalRuns:  Number((packed >> 0n)  & 0xFFFFn),
-    dailyStars: Number((packed >> 16n) & 0xFFFFn),
-    lifetimeXp: Number((packed >> 32n) & 0xFFFFFFFFn),
-  };
-}
-```
-
-Matches Cairo `MetaDataPacking::unpack` at `contracts/src/helpers/packing.cairo:291-340`.
-
-#### best_level_stars (PlayerBestRun) — 20 bits
-
-```
-Bits (level-1)*2 to (level-1)*2+1: stars for level (0-3)
-10 levels × 2 bits = 20 bits total
-```
-
-TypeScript (new file `levelStarsPacking.ts`):
-```typescript
-export function getLevelStars(packed: bigint, level: number): number {
-  if (level < 1 || level > 10) return 0;
-  const shift = BigInt((level - 1) * 2);
-  return Number((packed >> shift) & 0x3n);
-}
-
-export function unpackAllLevelStars(packed: bigint): number[] {
-  return Array.from({ length: 10 }, (_, i) => getLevelStars(packed, i + 1));
-}
-
-export function sumStars(packed: bigint): number {
-  return unpackAllLevelStars(packed).reduce((sum, s) => sum + s, 0);
-}
-```
-
-Matches Cairo `get_best_level_stars` at `contracts/src/models/player.cairo:140-145`.
-
-### Hook Specifications
-
-#### `usePlayerMeta` (EXTEND existing)
-
-**File**: `src/hooks/usePlayerMeta.tsx`
-
-```typescript
-export interface PlayerMeta {
-  player: string;
-  bestLevel: number;
-  // NEW fields:
-  totalRuns: number;
-  dailyStars: number;
-  lifetimeXp: number;
-  lastActive: number;  // unix timestamp
-}
-```
-
-Changes:
-- Import `unpackMetaData` from `metaDataPacking.ts`
-- Unpack `component.data` via `unpackMetaData(BigInt(component.data))`
-- Read `component.last_active` for lastActive
-
-#### `useZStarBalance` (NEW)
-
-**File**: `src/hooks/useZStarBalance.ts`
-
-Pattern: Clone `useNftBalance.ts` but use `erc20ABI` and `VITE_PUBLIC_ZSTAR_TOKEN_ADDRESS`.
-
-```typescript
-import { useReadContract } from "@starknet-react/core";
-import { erc20ABI } from "@/utils/erc20";
-import { BlockTag } from "starknet";
-
-const { VITE_PUBLIC_ZSTAR_TOKEN_ADDRESS } = import.meta.env;
-
-export const useZStarBalance = (address: string | undefined) => {
-  const { refetch, data: balance, isLoading, isError, error } = useReadContract({
-    address: VITE_PUBLIC_ZSTAR_TOKEN_ADDRESS,
-    abi: erc20ABI,
-    functionName: "balance_of",
-    args: address ? [address] : undefined,
-    watch: true,
-    refetchInterval: 5000,
-    blockIdentifier: BlockTag.PENDING,
-  });
-
-  return {
-    refetch,
-    isLoading,
-    isError,
-    error,
-    balance: balance ? Number(BigInt(balance.toString())) : 0,
-  };
+  2: {
+    id: 2,
+    name: "Riptide",
+    description: "Combo chains pull in devastating power",
+    icon: "🌀",
+    effect: "1.5× combo score, 1.3× endless ramp",
+    color: "#7EC8E3",
+  },
 };
 ```
 
-Note: Returns `number` not `bigint` since DECIMALS=0 and values are small.
+### PlayScreen Layout (New)
 
-#### `usePlayerBestRun` (NEW)
-
-**File**: `src/hooks/usePlayerBestRun.ts`
-
-Strategy: Use `runQuery([Has(PlayerBestRun)])` to scan all entities, filter by player address. Returns a map keyed by `${settings_id}-${mode}`.
-
-```typescript
-export interface PlayerBestRunData {
-  settingsId: number;
-  mode: number;
-  bestScore: number;
-  bestStars: number;
-  bestLevel: number;
-  mapCleared: boolean;
-  levelStars: number[];  // unpacked array of 10 star values
-  bestGameId: bigint;
-}
-
-export const usePlayerBestRun = (playerAddress: string | undefined) => {
-  // Uses runQuery([Has(PlayerBestRun)]) + getComponentValue
-  // Filters by player address match
-  // Unpacks best_level_stars via unpackAllLevelStars()
-  // Returns Map<string, PlayerBestRunData> keyed by "settingsId-mode"
-};
+```
+┌─────────────────────────────────────┐
+│ [← Back]  Lv.X · Score   [⚙]      │  Top bar (h-11, minimal)
+├─────────────────────────────────────┤
+│ [LV.X ★★★] [MOVES 3/12] [SCORE    │  Compact HUD (single row)
+│  120/200]  [COMBO x3]  [Constraint]│
+├─────────────────────────────────────┤
+│                                     │
+│         ┌─────────────┐             │
+│         │  8×10 GRID  │             │  Grid (width-only sizing)
+│         │  (BIGGER!)  │             │
+│         └─────────────┘             │
+│         NEXT: [■][■][□][■]...      │  Next row preview
+│         ← Swipe to align →         │
+│                                     │
+├─────────────────────────────────────┤
+│ [🗺] │ [⚡1] [🔨2] [🌊0] │ [🏳] [⚙]│  GameActionBar (h-14)
+└─────────────────────────────────────┘
+  Map    Bonus slots        Surrender
+         (type + charges)   Settings
 ```
 
-#### `useZoneProgress` (NEW)
+### MyGamesPage Layout
 
-**File**: `src/hooks/useZoneProgress.ts`
-
-Aggregate hook combining 4 data sources into `ZoneProgressData[]`:
-
-```typescript
-export const useZoneProgress = (
-  playerAddress: string | undefined,
-  zStarBalance: number,
-) => {
-  // 1. runQuery([Has(GameSettingsMetadata)]) → all zones with star_cost, price, is_free
-  // 2. runQuery([Has(PlayerBestRun)]) filtered by player → per-zone best_stars, map_cleared
-  // 3. runQuery([Has(MapEntitlement)]) filtered by player → which zones are unlocked
-  // 4. zStarBalance parameter → for discount calculation
-  //
-  // Returns ZoneProgressData[] matching the existing interface
-};
 ```
-
-This replaces the inline zone calculation currently in `ProfilePage.tsx` (lines 110-134) and `HomePage.tsx`.
-
-### ProfilePage Data Flow (Current vs Target)
-
-| Data Point | Current Source | Target Source |
-|---|---|---|
-| `xp` | `totalStars × XP_PER_STAR` (proxy) | `PlayerMeta.data → lifetimeXp` |
-| `level` | Derived from proxy XP | Derived from real `lifetimeXp` |
-| `title` | Derived from proxy level | Derived from real level |
-| `totalStars` | `bestLevel × 3` (proxy for zone 1 only) | Sum of `PlayerBestRun.best_stars` across all zones |
-| `zones[].stars` | `zoneId === 1 ? zoneStars : 0` (only zone 1) | `PlayerBestRun.best_stars` per zone |
-| `zones[].starCost` | `ZONE_UNLOCK_PRICES[zoneId].starCost` (mock) | `GameSettingsMetadata.star_cost` |
-| `zones[].ethPrice` | `ZONE_UNLOCK_PRICES[zoneId].ethPrice` (mock) | `GameSettingsMetadata.price` |
-| `zones[].unlocked` | `mapEntitlements.has(settingsId)` | Same (already real) |
-| `zones[].cleared` | `stars >= 30` | `PlayerBestRun.map_cleared` |
-| Stats: Games | `games.length` (owned NFTs) | `PlayerMeta.data → totalRuns` |
-| Stats: Best Combo | `"--"` | `"--"` (deferred — requires achievement data) |
-| Stats: Lines | `"--"` | `"--"` (deferred — requires achievement data) |
-| Stats: Bosses | `"--"` | `"--"` (deferred — requires achievement data) |
-| Quests | `QUEST_DEFS` (all mock) | Mock (Phase 4 — deferred) |
-| Achievements | `ACHIEVEMENT_DEFS` (all mock) | Mock (Phase 4 — deferred) |
-| zStar ★ display | `totalStars` (proxy) | `useZStarBalance` (real ERC20 balance) |
+┌─────────────────────────────────────┐
+│  MY GAMES                           │  Header
+├─────────────────────────────────────┤
+│  Active (2)                         │  Section header
+│  ┌─────────────────────────────────┐│
+│  │ Game #142  Lv.7  Score: 1240   ││  Game card (active)
+│  │ Polynesian · Map Mode    [→]   ││  Click → navigate to map
+│  └─────────────────────────────────┘│
+│  ┌─────────────────────────────────┐│
+│  │ Game #138  Lv.3  Score: 420    ││
+│  │ Norse · Endless Mode     [→]   ││
+│  └─────────────────────────────────┘│
+├─────────────────────────────────────┤
+│  Completed (5)                      │  Section header
+│  ┌─────────────────────────────────┐│
+│  │ Game #130  Final: 3200  ★★★    ││  Game card (completed)
+│  │ Polynesian · Zone Cleared      ││  Dimmed, non-interactive
+│  └─────────────────────────────────┘│
+│  ...                                │
+└─────────────────────────────────────┘
+```
 
 ---
 
@@ -363,322 +187,226 @@ This replaces the inline zone calculation currently in `ProfilePage.tsx` (lines 
 
 ### Phase 0: Foundation (Serial — Must Complete First)
 
-**Prerequisite for**: All subsequent phases
+**Prerequisite for**: All subsequent phases.
+**Estimated complexity**: Low-medium. Type changes + new file stubs.
 
-| Task | Description | Files | Output |
-|------|-------------|-------|--------|
-| 0.1 | Add `PlayerBestRun` RECS component to `contractModels.ts` | `src/dojo/contractModels.ts` | New component definition with 9 fields |
-| 0.2 | Add `last_active` to `PlayerMeta` RECS component | `src/dojo/contractModels.ts` | Field + type added |
-| 0.3 | Add `star_cost` to `GameSettingsMetadata` RECS component | `src/dojo/contractModels.ts` | Field + type added |
-| 0.4 | Add `PlayerMeta`, `PlayerBestRun`, `GameSettings` to `modelsToSync` and `modelsToWatch` in `setup.ts` | `src/dojo/setup.ts` | 3 models added to both arrays |
-| 0.5 | Create `metaDataPacking.ts` with `unpackMetaData()` + unit tests | `src/dojo/game/helpers/metaDataPacking.ts`, `src/test/metaDataPacking.test.ts` | Tested unpacking function |
-| 0.6 | Create `levelStarsPacking.ts` with `getLevelStars()`, `unpackAllLevelStars()`, `sumStars()` + unit tests | `src/dojo/game/helpers/levelStarsPacking.ts`, `src/test/levelStarsPacking.test.ts` | Tested unpacking functions |
+| Task | Description | Files | Output | Test |
+|------|-------------|-------|--------|------|
+| 0.1 | Update `TabId` and `OverlayId` types. Change `"map"` → `"mygames"` in TabId. Add `"mutator-reveal"` to OverlayId. Update `FULLSCREEN_PAGES` to include `"mutator-reveal"`. Update `getBackTarget()`: `play → mygames`, `mutator-reveal → mygames`, `boss → mygames`. | `stores/navigationStore.ts` | Updated types + back navigation | `pnpm build` succeeds |
+| 0.2 | Update `BottomTabBar.tsx`: change Map tab to My Games (`{ id: "mygames", icon: "◫", label: "My Games" }`). | `ui/components/BottomTabBar.tsx` | Tab bar shows My Games | Visual: tab bar renders 5 tabs with "My Games" |
+| 0.3 | Create shell pages: `MyGamesPage.tsx` (renders "My Games — coming soon"), `MutatorRevealPage.tsx` (renders "Mutator Reveal — coming soon"). | `ui/pages/MyGamesPage.tsx`, `ui/pages/MutatorRevealPage.tsx` | Two new page files | `pnpm build` succeeds |
+| 0.4 | Update `App.tsx` page registry: import new pages, replace `map: <MapPage />` with `mygames: <MyGamesPage />`, add `"mutator-reveal": <MutatorRevealPage />`. Keep MapPage import (used as in-game overlay later). | `App.tsx` | All pages routable | Navigate to My Games tab works |
+| 0.5 | Extend `runDataPacking.ts`: add `mode` (bit 101), `bonusType` (102-103), `bonusCharges` (104-107), `levelLinesCleared` (108-115), `bonusSlot` (116-117) to `RunData` interface and `unpackRunData()`. Add corresponding getters to `Game` class. | `dojo/game/helpers/runDataPacking.ts`, `dojo/game/models/game.ts` | Bonus data accessible via `game.bonusType`, `game.bonusCharges`, `game.bonusSlot` | Unit test: `unpackRunData` with known packed value returns correct bonus fields |
+| 0.6 | Create `config/mutators.ts` with `MUTATOR_DEFS` record and `getMutatorDisplay(id)` function. | `config/mutators.ts` | Mutator display data | `pnpm build` succeeds |
+| 0.7 | Create empty `GameActionBar.tsx` in `ui/components/actionbar/`. Renders placeholder text for now. | `ui/components/actionbar/GameActionBar.tsx` | File exists, exports component | `pnpm build` succeeds |
 
-**Tests for 0.5** (TDD — write first):
+**Unit Tests for 0.5** (TDD — write first in `src/test/runDataPacking.test.ts`):
 ```typescript
-describe("unpackMetaData", () => {
-  it("unpacks zero data", () => {
-    const result = unpackMetaData(0n);
-    expect(result).toEqual({ totalRuns: 0, dailyStars: 0, lifetimeXp: 0 });
+describe("unpackRunData bonus fields", () => {
+  it("extracts mode from bit 101", () => {
+    const packed = 1n << 101n;
+    expect(unpackRunData(packed).mode).toBe(true); // Endless
   });
 
-  it("unpacks total_runs in bits 0-15", () => {
-    const packed = 42n; // 42 in bits 0-15
-    expect(unpackMetaData(packed).totalRuns).toBe(42);
+  it("extracts bonusType from bits 102-103", () => {
+    const packed = 2n << 102n; // Totem
+    expect(unpackRunData(packed).bonusType).toBe(2);
   });
 
-  it("unpacks daily_stars in bits 16-31", () => {
-    const packed = 100n << 16n; // 100 in bits 16-31
-    expect(unpackMetaData(packed).dailyStars).toBe(100);
+  it("extracts bonusCharges from bits 104-107", () => {
+    const packed = 5n << 104n; // 5 charges
+    expect(unpackRunData(packed).bonusCharges).toBe(5);
   });
 
-  it("unpacks lifetime_xp in bits 32-63", () => {
-    const packed = 5000n << 32n; // 5000 in bits 32-63
-    expect(unpackMetaData(packed).lifetimeXp).toBe(5000);
+  it("extracts bonusSlot from bits 116-117", () => {
+    const packed = 2n << 116n; // slot 2
+    expect(unpackRunData(packed).bonusSlot).toBe(2);
   });
 
-  it("unpacks all fields simultaneously", () => {
-    // total_runs=10, daily_stars=20, lifetime_xp=3000
-    const packed = 10n | (20n << 16n) | (3000n << 32n);
-    expect(unpackMetaData(packed)).toEqual({ totalRuns: 10, dailyStars: 20, lifetimeXp: 3000 });
-  });
-
-  it("handles max values", () => {
-    const packed = 0xFFFFn | (0xFFFFn << 16n) | (0xFFFFFFFFn << 32n);
-    expect(unpackMetaData(packed)).toEqual({ totalRuns: 65535, dailyStars: 65535, lifetimeXp: 4294967295 });
+  it("extracts all bonus fields from combined packed value", () => {
+    // level=3, bonusType=1(Hammer), bonusCharges=3, bonusSlot=1
+    const packed = 3n | (1n << 102n) | (3n << 104n) | (1n << 116n);
+    const rd = unpackRunData(packed);
+    expect(rd.currentLevel).toBe(3);
+    expect(rd.bonusType).toBe(1);
+    expect(rd.bonusCharges).toBe(3);
+    expect(rd.bonusSlot).toBe(1);
   });
 });
 ```
 
-**Tests for 0.6** (TDD — write first):
-```typescript
-describe("getLevelStars", () => {
-  it("returns 0 for empty packed value", () => {
-    expect(getLevelStars(0n, 1)).toBe(0);
-  });
+**Commit**: `feat: navigation foundation — update types, add page shells, extend runData with bonus fields`
 
-  it("extracts stars for level 1 (bits 0-1)", () => {
-    expect(getLevelStars(0x3n, 1)).toBe(3); // 3 stars
-    expect(getLevelStars(0x2n, 1)).toBe(2); // 2 stars
-  });
+---
 
-  it("extracts stars for level 5 (bits 8-9)", () => {
-    const packed = 2n << 8n; // 2 stars at level 5
-    expect(getLevelStars(packed, 5)).toBe(2);
-  });
+### Phase 1: Parallel Workstreams (after Phase 0)
 
-  it("extracts stars for level 10 (bits 18-19)", () => {
-    const packed = 3n << 18n; // 3 stars at level 10
-    expect(getLevelStars(packed, 10)).toBe(3);
-  });
+#### Workstream A: HomePage Overhaul
+**Dependencies**: Phase 0.1 (navigation types), 0.4 (App routing)
+**Can parallelize with**: Workstreams B, C, D
 
-  it("returns 0 for out-of-range levels", () => {
-    expect(getLevelStars(0xFFFFFn, 0)).toBe(0);
-    expect(getLevelStars(0xFFFFFn, 11)).toBe(0);
-  });
-});
+| Task | Description | Files | Output |
+|------|-------------|-------|--------|
+| A.1 | Remove `ON-CHAIN PUZZLE` subtitle text (line 149 in current HomePage). Make logo bigger: `h-20` → `h-28 md:h-32`. | `ui/pages/HomePage.tsx` | Logo larger, no subtitle |
+| A.2 | Add per-theme background image to HomePage. Use `getThemeImages(themeId).background` as a full-bleed background behind the content, with a dark overlay gradient for text readability. The gradient overlay preserves the existing color feel while adding visual depth. | `ui/pages/HomePage.tsx` | Background image visible behind content |
+| A.3 | Update `handleStartGame()` flow: after `create()`, navigate to `"mutator-reveal"` instead of `"map"`. The mutator reveal page will then navigate to map. | `ui/pages/HomePage.tsx` | New game → mutator reveal page |
+| A.4 | Remove "CONTINUE" button logic from HomePage. Multi-game management moves to My Games page. Keep the "NEW GAME" button. | `ui/pages/HomePage.tsx` | No continue button, cleaner home |
 
-describe("unpackAllLevelStars", () => {
-  it("unpacks all 10 levels", () => {
-    // L1=3, L2=2, L3=1, rest=0
-    const packed = 0x3n | (0x2n << 2n) | (0x1n << 4n);
-    const stars = unpackAllLevelStars(packed);
-    expect(stars).toEqual([3, 2, 1, 0, 0, 0, 0, 0, 0, 0]);
-  });
+**Commit**: `feat: HomePage — bigger logo, theme bg image, remove subtitle, update game flow`
 
-  it("handles all 3-star", () => {
-    // All 10 levels at 3 stars: 0b11 repeated 10 times
-    const packed = (1n << 20n) - 1n; // 20 bits all 1s
-    expect(unpackAllLevelStars(packed)).toEqual([3, 3, 3, 3, 3, 3, 3, 3, 3, 3]);
-  });
-});
+#### Workstream B: MyGamesPage
+**Dependencies**: Phase 0.1, 0.3 (shell page), 0.4 (routing)
+**Can parallelize with**: Workstreams A, C, D
 
-describe("sumStars", () => {
-  it("sums correctly", () => {
-    const packed = 0x3n | (0x2n << 2n) | (0x1n << 4n); // 3+2+1=6
-    expect(sumStars(packed)).toBe(6);
-  });
-});
+| Task | Description | Files | Output |
+|------|-------------|-------|--------|
+| B.1 | Implement `MyGamesPage.tsx`: use `useGameTokensSlot` to fetch all owned games. Split into "Active" and "Completed" sections. Each card shows: game name, level, score, zone icon, mode (Map/Endless). Active games have a click handler → `navigate("map", tokenId)`. | `ui/pages/MyGamesPage.tsx` | Full game list with sections |
+| B.2 | Add pull-to-refresh via `refetch()` from `useGameTokensSlot`. Show loading skeleton while fetching. Empty state: "No games yet — start one from Home!" | `ui/pages/MyGamesPage.tsx` | Loading + empty states |
+| B.3 | Parse `metadata` JSON from `SlotGameTokenData` to extract level, score, zone attributes for display. Use `unpackRunData` for additional data if `run_data` is available via RECS. | `ui/pages/MyGamesPage.tsx` | Rich game card data |
+
+**Card Component Structure**:
+```tsx
+// Each game card
+<button onClick={() => navigate("map", game.token_id)}>
+  <div className="flex items-center gap-3">
+    <img src={getThemeImages(getThemeId(zoneId)).themeIcon} className="h-10 w-10" />
+    <div>
+      <p>Game #{tokenId}</p>
+      <p>Lv.{level} · Score: {score}</p>
+      <p>{zoneName} · {mode === 0 ? "Map" : "Endless"}</p>
+    </div>
+    {!game_over && <span>→</span>}
+  </div>
+</button>
 ```
 
-**Commit**: `feat: add PlayerBestRun RECS component, fix PlayerMeta/GameSettingsMetadata fields, add packing helpers with tests`
+**Commit**: `feat: MyGamesPage — list owned games with active/completed sections`
 
----
-
-### Phase 1: Core Hooks (Parallel Workstreams — after Phase 0)
-
-#### Workstream A: Extend usePlayerMeta
-
-**Dependencies**: Phase 0 (metaDataPacking.ts, PlayerMeta RECS fix)
-**Can parallelize with**: Workstreams B, C
+#### Workstream C: MutatorRevealPage
+**Dependencies**: Phase 0.1, 0.3, 0.5 (runData extension), 0.6 (mutator config)
+**Can parallelize with**: Workstreams A, B, D
 
 | Task | Description | Files | Output |
 |------|-------------|-------|--------|
-| A.1 | Extend `PlayerMeta` interface to include new fields | `src/hooks/usePlayerMeta.tsx` | Updated interface |
-| A.2 | Unpack `data` field using `unpackMetaData()` in the useMemo | `src/hooks/usePlayerMeta.tsx` | `totalRuns`, `dailyStars`, `lifetimeXp` exposed |
-| A.3 | Expose `lastActive` from `component.last_active` | `src/hooks/usePlayerMeta.tsx` | `lastActive` field |
+| C.1 | Implement `MutatorRevealPage.tsx` following BossRevealPage pattern. Read `game.mutatorMask` via `useGame()`. Look up mutator display from `MUTATOR_DEFS`. | `ui/pages/MutatorRevealPage.tsx` | Shows mutator name + description |
+| C.2 | Add entrance animation: icon slides up with spring, text fades in staggered, particle burst via ConfettiExplosion on reveal. Use `motion/react` for all animations. Play `"start"` SFX on mount. | `ui/pages/MutatorRevealPage.tsx` | Animated reveal sequence |
+| C.3 | Add "CONTINUE TO MAP" button that navigates to `"map"` with `gameId`. Handle edge case: `mutatorMask === 0` (no mutator) — show "No mutator this run" with quick auto-advance (2s delay then navigate). | `ui/pages/MutatorRevealPage.tsx` | Navigation to map works |
+| C.4 | Add loading state: show spinner until `seed !== 0n` (game synced from Torii). This replaces the separate loading screen — the mutator reveal page IS the loading screen with a reveal at the end. | `ui/pages/MutatorRevealPage.tsx` | Loading → reveal transition |
 
-**Implementation detail**: The `component.data` from RECS is a BigInt. Pass directly to `unpackMetaData(BigInt(component.data))`.
+**Page Structure** (following BossRevealPage pattern at `ui/pages/BossRevealPage.tsx`):
+```tsx
+<div className="relative flex h-full min-h-0 flex-col px-5 py-4">
+  <BackButton />
+  <div className="mx-auto flex h-full w-full max-w-sm flex-col items-center justify-center">
+    {isLoading ? (
+      <LoadingSpinner />
+    ) : (
+      <>
+        <MutatorIcon />        {/* Animated icon with glow */}
+        <MutatorLabel />       {/* "MUTATOR DRAWN" */}
+        <MutatorName />        {/* e.g. "Tidecaller" */}
+        <MutatorDescription /> {/* Effect description */}
+        <EffectCard />         {/* "+2 lines per clear" */}
+        <ContinueButton />     {/* "CONTINUE TO MAP" */}
+      </>
+    )}
+  </div>
+</div>
+```
 
-**Commit**: `feat: extend usePlayerMeta to unpack total_runs, daily_stars, lifetime_xp, last_active`
+**Commit**: `feat: MutatorRevealPage — animated mutator reveal with loading state`
 
-#### Workstream B: Create useZStarBalance
-
-**Dependencies**: Phase 0 (none technically, but logical grouping)
-**Can parallelize with**: Workstreams A, C
-
-| Task | Description | Files | Output |
-|------|-------------|-------|--------|
-| B.1 | Create `useZStarBalance` hook following `useNftBalance` pattern | `src/hooks/useZStarBalance.ts` | Working hook |
-
-**Pattern source**: `src/hooks/useNftBalance.ts` — identical pattern but with:
-- `erc20ABI` instead of `erc721ABI`
-- `VITE_PUBLIC_ZSTAR_TOKEN_ADDRESS` instead of `VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS`
-- Returns `number` (not `bigint`) since DECIMALS=0
-
-**Environment**: `VITE_PUBLIC_ZSTAR_TOKEN_ADDRESS` already exists in `.env.slot` as `0x06e5f1a7bf27f6075006ea9835d6614c7889779e9db19d5edf5c7e894c77868b`.
-
-**Commit**: `feat: add useZStarBalance hook for zStar ERC20 balance`
-
-#### Workstream C: Create usePlayerBestRun
-
-**Dependencies**: Phase 0 (PlayerBestRun RECS component, levelStarsPacking.ts)
-**Can parallelize with**: Workstreams A, B
-
-| Task | Description | Files | Output |
-|------|-------------|-------|--------|
-| C.1 | Create `usePlayerBestRun` hook using `runQuery` scan pattern | `src/hooks/usePlayerBestRun.ts` | Working hook |
-
-**Query strategy**: Use `runQuery([Has(PlayerBestRun)])` to scan ALL PlayerBestRun entities, filter by matching `BigInt(entity.player) === BigInt(playerAddress)`. This follows the exact pattern used in `HomePage.tsx:109-125` for MapEntitlement.
-
-**Return type**: `Map<string, PlayerBestRunData>` keyed by `"${settingsId}-${mode}"` for O(1) lookup.
-
-**Commit**: `feat: add usePlayerBestRun hook for per-zone star progress`
-
----
-
-### Phase 2: Aggregate Hook + Config Update (after Phase 1)
-
-**Dependencies**: Workstreams A, B, C all complete
+#### Workstream D: GameActionBar + Grid Fix
+**Dependencies**: Phase 0.5 (bonus data), 0.7 (shell component)
+**Can parallelize with**: Workstreams A, B, C
 
 | Task | Description | Files | Output |
 |------|-------------|-------|--------|
-| 2.1 | Create `useZoneProgress` aggregate hook | `src/hooks/useZoneProgress.ts` | `ZoneProgressData[]` from real data |
-| 2.2 | Remove `ZONE_UNLOCK_PRICES` mock from `profileData.ts` | `src/config/profileData.ts` | Mock prices removed |
-| 2.3 | Update `ZoneProgressData` type: `ethPrice` → `price` (BigInt/u256 from contract) | `src/config/profileData.ts` | Type updated |
+| D.1 | Implement `GameActionBar.tsx`: bottom bar with Map icon, divider, 3 bonus slots, divider, Surrender icon, Settings icon. Each bonus slot shows type icon + charge count badge. Use theme colors throughout. | `ui/components/actionbar/GameActionBar.tsx` | Functional action bar |
+| D.2 | Fix grid sizing in `GameBoard.tsx`: remove `heightBasedSize` from `Math.min()`. Use width-only: `setGridSize(Math.max(28, Math.min(widthBasedSize, 64)))`. Increase max from 56→64. Remove `ROWS + 1.5` height calculation entirely. | `ui/components/GameBoard.tsx` | Bigger grid, width-only sizing |
+| D.3 | Create bonus type icons/display helper. Map `bonusType` (0-3) to icon + label: 0=None, 1=Hammer (🔨), 2=Totem (🗿), 3=Wave (🌊). | `config/bonuses.ts` | Bonus display config |
 
-**useZoneProgress implementation**:
+**GameActionBar Component**:
+```tsx
+interface GameActionBarProps {
+  onMapPress: () => void;
+  onSurrender: () => void;
+  onSettings: () => void;
+  onBonusActivate: (slotIndex: number) => void;
+  bonusType: number;       // 0=None, 1=Hammer, 2=Totem, 3=Wave
+  bonusCharges: number;    // 0-15
+  bonusSlot: number;       // active slot 0-2
+  colors: ThemeColors;
+}
 
+// Renders:
+// [🗺 Map] | [Bonus1] [Bonus2] [Bonus3] | [🏳 Surrender] [⚙]
+```
+
+**Grid Fix Detail**:
 ```typescript
-export const useZoneProgress = (
-  playerAddress: string | undefined,
-  zStarBalance: number,
-): { zones: ZoneProgressData[]; totalStars: number; isLoading: boolean } => {
-  const { setup: { contractComponents: { GameSettingsMetadata, PlayerBestRun, MapEntitlement } } } = useDojo();
+// BEFORE (GameBoard.tsx line 40-46):
+const widthBasedSize = Math.floor((w - padding) / COLS);
+const heightBasedSize = h > 0 ? Math.floor((h - padding) / (ROWS + 1.5)) : widthBasedSize;
+setGridSize(Math.max(28, Math.min(widthBasedSize, heightBasedSize, 56)));
 
-  const ownerBigInt = useMemo(() => playerAddress ? BigInt(playerAddress) : null, [playerAddress]);
+// AFTER:
+const widthBasedSize = Math.floor((w - padding) / COLS);
+setGridSize(Math.max(28, Math.min(widthBasedSize, 64)));
+```
 
-  return useMemo(() => {
-    if (!ownerBigInt) return { zones: [], totalStars: 0, isLoading: true };
+**Commit**: `feat: GameActionBar with bonus slots, fix grid sizing to width-only`
 
-    // 1. Get all GameSettingsMetadata entities
-    const metadataEntities = Array.from(runQuery([Has(GameSettingsMetadata)]));
-    const metadataMap = new Map<number, { star_cost: bigint; price: bigint; is_free: boolean; theme_id: number; enabled: boolean }>();
-    for (const entity of metadataEntities) {
-      const m = getComponentValue(GameSettingsMetadata, entity);
-      if (m) metadataMap.set(m.settings_id, { star_cost: BigInt(m.star_cost), price: BigInt(m.price), is_free: m.is_free, theme_id: m.theme_id, enabled: m.enabled });
-    }
+---
 
-    // 2. Get player's best runs (mode=0 for Map)
-    const bestRunEntities = Array.from(runQuery([Has(PlayerBestRun)]));
-    const bestRunMap = new Map<number, PlayerBestRunData>();
-    for (const entity of bestRunEntities) {
-      const br = getComponentValue(PlayerBestRun, entity);
-      if (br && BigInt(br.player) === ownerBigInt && br.mode === 0) {
-        bestRunMap.set(br.settings_id, {
-          bestStars: br.best_stars,
-          mapCleared: br.map_cleared,
-          levelStars: unpackAllLevelStars(BigInt(br.best_level_stars)),
-        });
-      }
-    }
+### Phase 2: Integration (after all Phase 1 workstreams)
 
-    // 3. Get entitlements
-    const entitlementEntities = Array.from(runQuery([Has(MapEntitlement)]));
-    const entitlements = new Set<number>();
-    for (const entity of entitlementEntities) {
-      const e = getComponentValue(MapEntitlement, entity);
-      if (e && BigInt(e.player) === ownerBigInt) entitlements.add(e.settings_id);
-    }
+**Dependencies**: Workstreams A, B, C, D all complete
 
-    // 4. Build ZoneProgressData[] (sorted by settings_id)
-    const zones: ZoneProgressData[] = Array.from(metadataMap.entries())
-      .filter(([_, meta]) => meta.enabled)
-      .sort(([a], [b]) => a - b)
-      .map(([settingsId, meta]) => {
-        const bestRun = bestRunMap.get(settingsId);
-        const stars = bestRun?.bestStars ?? 0;
-        const unlocked = meta.is_free || entitlements.has(settingsId);
+| Task | Description | Files | Output |
+|------|-------------|-------|--------|
+| 2.1 | Integrate GameActionBar into PlayScreen. Remove the current top-bar duplication. Keep minimal top bar (back + level + score + settings). Add GameActionBar at bottom. Wire bonus activation to `applyBonus` system call. Wire Map button to `navigate("map")`. Wire Surrender. | `ui/pages/PlayScreen.tsx` | Action bar visible during gameplay |
+| 2.2 | Move Settings dialog OUT of PlayScreen top bar and INTO GameActionBar's settings button. Remove duplicate settings UI. | `ui/pages/PlayScreen.tsx` | Single settings access point |
+| 2.3 | Update MapPage to work as in-game overlay (accessed from GameActionBar). Ensure `goBack()` from map returns to `"play"` (not `"mygames"`). Add conditional back target: if previous page was `"play"`, go back to `"play"` with same gameId. | `stores/navigationStore.ts`, `ui/pages/MapPage.tsx` | Map accessible from gameplay |
+| 2.4 | Wire `game.bonusType`, `game.bonusCharges`, `game.bonusSlot` from `useGame()` into GameActionBar props in PlayScreen. | `ui/pages/PlayScreen.tsx` | Live bonus data in action bar |
+| 2.5 | Compact GameHud to single row: remove the constraint sub-section, move constraint progress into inline badges next to score/moves. Level badge + Stars + Moves counter + Score bar + Combo badge + Constraint indicators — all in one row. | `ui/components/hud/GameHud.tsx` | Compact single-row HUD |
+| 2.6 | Fix `getBackTarget()` for new flow. Map navigated from play should go back to play. Map navigated from mygames should go back to mygames. Use `previousPage` to determine context. | `stores/navigationStore.ts` | Context-aware back navigation |
 
-        return {
-          zoneId: meta.theme_id,
-          settingsId,
-          name: ZONE_NAMES[meta.theme_id] ?? `Zone ${meta.theme_id}`,
-          emoji: ZONE_EMOJIS[meta.theme_id] ?? "🗺️",
-          stars,
-          maxStars: 30,
-          unlocked,
-          cleared: bestRun?.mapCleared ?? false,
-          isFree: meta.is_free,
-          starCost: Number(meta.star_cost),
-          price: meta.price,
-          currentStars: zStarBalance,
-          levelStars: bestRun?.levelStars,
-        };
-      });
-
-    const totalStars = zones.reduce((sum, z) => sum + z.stars, 0);
-    return { zones, totalStars, isLoading: false };
-  }, [ownerBigInt, zStarBalance, GameSettingsMetadata, PlayerBestRun, MapEntitlement]);
+**Updated `getBackTarget` logic**:
+```typescript
+const getBackTarget = (page: PageId, previous: PageId | null): PageId => {
+  switch (page) {
+    case "play":
+      return "mygames";           // Play → My Games
+    case "daily":
+      return "home";
+    case "boss":
+      return "map";
+    case "mutator-reveal":
+      return "mygames";           // Cancel mutator → My Games
+    case "map":
+      return previous === "play" ? "play" : "mygames"; // Context-aware
+    default:
+      return "home";
+  }
 };
 ```
 
-**Commit**: `feat: add useZoneProgress aggregate hook, remove mock zone prices`
+**Commit**: `feat: integrate GameActionBar into PlayScreen, compact HUD, context-aware map navigation`
 
 ---
 
-### Phase 3: Wire Pages (after Phase 2)
+### Phase 3: Polish & QA (after Phase 2)
 
-#### Task 3.1: Wire ProfilePage
+| Task | Description | Files | Output |
+|------|-------------|-------|--------|
+| 3.1 | Full flow test: Home → New Game → MutatorReveal (loading+reveal) → Map → Play (with action bar + bonus slots) → Surrender → My Games. Verify all transitions work. | All pages | End-to-end flow works |
+| 3.2 | Full flow test: My Games → tap active game → Map → Play → Game Over → dialog → My Games. Verify completed games appear in My Games. | All pages | Resume flow works |
+| 3.3 | Grid proportion test: verify cell size ≥40px on 375px viewport (iPhone SE). Verify grid fills ~70% of screen height. Compare before/after screenshots. | `GameBoard.tsx` | Grid visually improved |
+| 3.4 | Clean up dead code: remove any remaining references to `"map"` as TabId. Remove CONTINUE button remnants from HomePage. | Multiple files | No dead code |
+| 3.5 | Update `CLAUDE.md` navigation section and CLAUDE.md with new page types and flow. | `client-budokan/CLAUDE.md` | Docs updated |
 
-**File**: `src/ui/pages/ProfilePage.tsx`
-
-Changes:
-1. Import `useZStarBalance` and `useZoneProgress`
-2. Replace inline zone calculation (lines 105-134) with `useZoneProgress(address, zStarBalance)`
-3. Replace `xp = totalStars * XP_PER_STAR` with `playerMeta.lifetimeXp`
-4. Replace `totalStars` in header with `zStarBalance`
-5. Pass `playerMeta.totalRuns` to OverviewTab as `totalGames` instead of `games.length`
-
-**File**: `src/ui/components/profile/OverviewTab.tsx`
-
-Changes:
-1. Remove import of `RECENT_ACTIVITY` (keep static for now — no contract source)
-2. Update `totalGames` prop usage (already correct, value just changes upstream)
-
-**Commit**: `feat: wire real PlayerMeta, zStar, and zone data into ProfilePage`
-
-#### Task 3.2: Wire HomePage
-
-**File**: `src/ui/pages/HomePage.tsx`
-
-Changes:
-1. Import `useZStarBalance` and `useZoneProgress`
-2. Replace inline `mapMetadataById` computation (lines 127-149) with data from `useZoneProgress`
-3. Replace static `ZONE_CONFIG` (lines 37-56) with dynamic zone list from `useZoneProgress`
-4. Show real star counts on zone cards
-
-**Note**: HomePage already queries `MapEntitlement` and `GameSettingsMetadata` inline. `useZoneProgress` consolidates this into a single hook, reducing code duplication between HomePage and ProfilePage.
-
-**Commit**: `feat: wire real zone progress data into HomePage`
-
----
-
-### Phase 4: Quest/Achievement Wiring (DEFERRED — Conditional)
-
-**Status**: BLOCKED — requires metagame-sdk API investigation
-
-**Precondition**: Determine whether `metagame-sdk@0.1.22` provides:
-- React hooks or query methods for `QuestDefinition`, `QuestAdvancement`, `QuestCompletion`
-- React hooks or query methods for `AchievementDefinition`, `AchievementAdvancement`, `AchievementCompletion`
-
-**Investigation task** (run before starting):
-```bash
-# Check metagame-sdk exports
-node -e "const m = require('metagame-sdk'); console.log(Object.keys(m))"
-# Or check TypeScript types
-ls node_modules/metagame-sdk/dist/
-```
-
-**If metagame-sdk provides hooks**: Wire them into QuestsTab and AchievementsTab, replacing mock `QUEST_DEFS` and `ACHIEVEMENT_DEFS`.
-
-**If metagame-sdk does NOT provide hooks**: Two options:
-1. **Option A** (Recommended): Add arcade models to RECS (`contractModels.ts` + `setup.ts`) and build custom hooks. The models are already deployed and indexed by Torii.
-2. **Option B**: Use raw Torii GraphQL queries (like `useGameTokensSlot` pattern) to query arcade models directly.
-
-**Arcade Models to add (if Option A)**:
-```typescript
-// QuestDefinition, QuestAdvancement, QuestCompletion
-// AchievementDefinition, AchievementAdvancement, AchievementCompletion
-// Plus supporting: QuestCondition, QuestAssociation, AchievementAssociation
-```
-
-**Stats that become available when achievements are wired**:
-- "Lines" → `AchievementAdvancement` for Sweeper category (LineClear task progress)
-- "Bosses" → `AchievementAdvancement` for Boss Slayer category (BossDefeat task progress)
-- "Best Combo" → `AchievementAdvancement` for Combo Master category (Combo task progress)
-
-**Not planned**: This will be a separate planning session once the SDK is investigated.
+**Commit**: `chore: QA polish, dead code cleanup, update documentation`
 
 ---
 
@@ -688,51 +416,70 @@ ls node_modules/metagame-sdk/dist/
 
 | Test File | Tests | Coverage |
 |---|---|---|
-| `src/test/metaDataPacking.test.ts` | 6 tests: zero, each field isolated, combined, max values | `unpackMetaData()` |
-| `src/test/levelStarsPacking.test.ts` | 8 tests: zero, per-level, boundaries, full unpack, sum | `getLevelStars()`, `unpackAllLevelStars()`, `sumStars()` |
-
-### Integration Verification
-
-After all phases complete, verify via the running app:
-
-1. **ProfilePage header**: Shows real XP value (not `totalStars × 100`), level derived from real XP
-2. **ProfilePage ★ count**: Shows zStar ERC20 balance (matches `starkli call <zstar_addr> balance_of <player>`)
-3. **OverviewTab Games stat**: Shows total_runs from PlayerMeta (not owned NFT count)
-4. **Zone progress cards**: Show per-zone stars from PlayerBestRun (not all-zero for zones > 1)
-5. **Zone unlock prices**: Show `star_cost` from GameSettingsMetadata (not hardcoded values)
-6. **HomePage zone cards**: Reflect same real data as ProfilePage zones
+| `src/test/runDataPacking.test.ts` | 5 new tests: mode, bonusType, bonusCharges, bonusSlot, combined | `unpackRunData()` bonus fields |
 
 ### Build Verification
 
 ```bash
 cd client-budokan && pnpm build
 ```
-
-Must complete without TypeScript errors.
+Must complete with zero TypeScript errors.
 
 ### Test Execution
 
 ```bash
 cd client-budokan && pnpm test
 ```
+Must pass all tests (existing + new runData tests).
 
-Must pass all new unit tests plus no regressions.
+### Manual Flow Verification (agent-executable via Playwright)
+
+**Flow 1: New Game**
+1. Navigate to `https://localhost:5125`
+2. Verify HomePage shows large logo, no "ON-CHAIN PUZZLE" text
+3. Verify background image is visible behind content
+4. Verify BottomTabBar shows: Home | My Games | Profile | Ranks | Settings
+5. Click "NEW GAME" → verify MutatorRevealPage shows loading then mutator
+6. Click "CONTINUE TO MAP" → verify MapPage renders with level nodes
+7. Click current level → verify BottomSheetPreview shows
+8. Click "PLAY" → verify PlayScreen renders with GameActionBar at bottom
+9. Verify grid cells are visibly larger than before (≥40px)
+10. Verify GameActionBar shows bonus slots with type icons
+11. Verify no BottomTabBar visible during gameplay
+
+**Flow 2: My Games**
+1. Click "My Games" tab → verify page shows game list
+2. Verify active games at top, completed games below
+3. Click active game card → verify navigates to MapPage
+4. Click back → verify returns to My Games
+
+**Flow 3: In-Game Map**
+1. During gameplay, click Map icon in GameActionBar
+2. Verify MapPage shows
+3. Click back → verify returns to PlayScreen (not My Games)
 
 ---
 
 ## Verification Checklist
 
-- [ ] `pnpm test` passes (new packing tests + no regressions)
-- [ ] `pnpm build` succeeds with no type errors
-- [ ] `PlayerMeta` RECS component has 4 fields: `player`, `data`, `best_level`, `last_active`
-- [ ] `GameSettingsMetadata` RECS component includes `star_cost: RecsType.BigInt`
-- [ ] `PlayerBestRun` RECS component defined with 9 fields
-- [ ] `setup.ts` `modelsToSync` includes `PlayerMeta`, `PlayerBestRun`, `GameSettings`
-- [ ] `usePlayerMeta` returns `totalRuns`, `dailyStars`, `lifetimeXp`, `lastActive`
-- [ ] `useZStarBalance` calls `balance_of` on `VITE_PUBLIC_ZSTAR_TOKEN_ADDRESS`
-- [ ] `usePlayerBestRun` scans entities and unpacks `best_level_stars`
-- [ ] ProfilePage no longer imports `ZONE_UNLOCK_PRICES`
-- [ ] ProfilePage XP derived from `lifetimeXp`, not `totalStars × XP_PER_STAR`
+- [ ] `pnpm build` succeeds with zero errors
+- [ ] `pnpm test` passes all tests
+- [ ] `TabId` type no longer includes `"map"`, includes `"mygames"`
+- [ ] `OverlayId` type includes `"mutator-reveal"`
+- [ ] BottomTabBar shows "My Games" (not "Map")
+- [ ] HomePage: no "ON-CHAIN PUZZLE" text visible
+- [ ] HomePage: logo is h-28+ (not h-20)
+- [ ] HomePage: background image from theme visible
+- [ ] MyGamesPage: shows active + completed game sections
+- [ ] MutatorRevealPage: shows loading then mutator animation
+- [ ] PlayScreen: GameActionBar visible at bottom
+- [ ] PlayScreen: no BottomTabBar visible
+- [ ] PlayScreen: grid cells are ≥40px on 375px viewport
+- [ ] GameActionBar: shows bonus type + charges
+- [ ] Map accessible from GameActionBar during gameplay
+- [ ] Back from in-game map returns to PlayScreen
+- [ ] `runDataPacking.ts` unpacks `bonusType`, `bonusCharges`, `bonusSlot`
+- [ ] `Game` class has `bonusType`, `bonusCharges`, `bonusSlot` getters
 
 ---
 
@@ -740,15 +487,15 @@ Must pass all new unit tests plus no regressions.
 
 | # | Commit Message | Scope | Depends On |
 |---|---|---|---|
-| 1 | `feat: add PlayerBestRun RECS model, fix PlayerMeta + GameSettingsMetadata fields, add packing helpers with tests` | contractModels.ts, setup.ts, metaDataPacking.ts, levelStarsPacking.ts, 2 test files | — |
-| 2 | `feat: extend usePlayerMeta to unpack data field (totalRuns, dailyStars, lifetimeXp, lastActive)` | usePlayerMeta.tsx | #1 |
-| 3 | `feat: add useZStarBalance hook for zStar ERC20 balance` | useZStarBalance.ts | #1 |
-| 4 | `feat: add usePlayerBestRun hook for per-zone star progress` | usePlayerBestRun.ts | #1 |
-| 5 | `feat: add useZoneProgress aggregate hook, remove mock zone prices` | useZoneProgress.ts, profileData.ts | #2, #3, #4 |
-| 6 | `feat: wire real progression data into ProfilePage` | ProfilePage.tsx, OverviewTab.tsx | #5 |
-| 7 | `feat: wire real zone progress into HomePage` | HomePage.tsx | #5 |
+| 1 | `feat: navigation foundation — update types, add page shells, extend runData with bonus fields` | Phase 0 (all) | — |
+| 2 | `feat: HomePage — bigger logo, theme bg image, remove subtitle, update game flow` | Workstream A | #1 |
+| 3 | `feat: MyGamesPage — list owned games with active/completed sections` | Workstream B | #1 |
+| 4 | `feat: MutatorRevealPage — animated mutator reveal with loading state` | Workstream C | #1 |
+| 5 | `feat: GameActionBar with bonus slots, fix grid sizing to width-only` | Workstream D | #1 |
+| 6 | `feat: integrate GameActionBar into PlayScreen, compact HUD, context-aware map navigation` | Phase 2 | #2, #3, #4, #5 |
+| 7 | `chore: QA polish, dead code cleanup, update documentation` | Phase 3 | #6 |
 
-Commits 2, 3, 4 can be executed in parallel after commit 1. Commits 5, 6, 7 are serial.
+Commits 2, 3, 4, 5 can be executed **in parallel** after commit 1. Commits 6-7 are serial.
 
 ---
 
@@ -756,21 +503,20 @@ Commits 2, 3, 4 can be executed in parallel after commit 1. Commits 5, 6, 7 are 
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
-| `PlayerBestRun` entities not synced from Torii on initial load | Medium | High — zones show 0 stars | Add to `modelsToSync` for batch initial load. Verify with Torii logs. |
-| `GameSettingsMetadata.star_cost` not indexed by Torii | Low | Medium — unlock prices wrong | Already in manifest. Torii indexes all world models. Verify via GraphQL. |
-| `erc20ABI` `balance_of` returns u256 with different serialization than expected | Low | Medium — balance shows 0 | Test against known non-zero balance. The ABI already works for CUBE token. |
-| RECS field order mismatch causes deserialization errors | Medium | High — all PlayerBestRun data wrong | Test with deployed data. Field names (not positions) drive RECS mapping. |
-| Metagame SDK has no quest/achievement query API | Medium | Low — quests stay as mock | Explicitly deferred. No impact on Phases 0-3. |
-| `PlayerMeta.data` is 0 for players who haven't played since progression system deployed | High | Medium — shows 0 for everything | Handle gracefully: display "—" or "0" for unpacked fields when data is 0n |
+| MapPage used as both tab and overlay causes dual-rendering bugs | Medium | Medium | MapPage already renders correctly as standalone page. The change is where it's accessed from (GameActionBar vs tab), not how it renders. Back navigation uses `previousPage` for context. |
+| Grid width-only sizing causes overflow on very short viewports (landscape) | Low | Medium | Keep `max-h` constraint on grid container. On landscape, grid will be smaller but correct. Test on 320px height. |
+| `runDataPacking` bit positions don't match contract after recent changes | Medium | High | Compare with Cairo `RunDataBits` in `contracts/src/helpers/packing.cairo`. Cross-check with deployed game data. |
+| `useGameTokensSlot` returns stale data (game finished but still shows active) | Low | Low | Already polls via `refreshTrigger`. Add refetch on page focus. |
+| Mutator reveal blocks gameplay if seed takes too long to sync | Medium | Medium | 5s timeout auto-advances to map. Loading spinner shown. User can press back to cancel. |
+| Bonus type/charges show 0 for games created before bonus system | High | Low | Handle gracefully: hide bonus slots when `bonusType === 0`. Show "No bonus this run" state. |
 
 ---
 
 ## Open Questions
 
-- [ ] **Metagame SDK API**: What query hooks does `metagame-sdk@0.1.22` expose for quest/achievement data? Determines Phase 4 approach.
-- [ ] **Stats data source**: "Lines cleared", "Bosses defeated", "Best combo" — no direct model stores these as lifetime counters. They exist as achievement progress in arcade models. Wire from achievements in Phase 4, or add contract-side lifetime counters?
-- [ ] **Recent Activity**: No contract event source for a "recent activity feed". Keep static mock, or build from game history (expensive scan)?
-- [ ] **Zone settings_id mapping**: Current `ZONE_CONFIG` hardcodes `settingsId: 0` for Polynesian, `settingsId: 1` for Feudal Japan. The `useZoneProgress` hook dynamically reads all `GameSettingsMetadata` entities. Verify the mapping matches deployed config.
+- [ ] **RunData bit positions**: Verify bits 101-117 match the current Cairo contract. The CLAUDE.md layout may have shifted if new fields were added. Cross-check with `contracts/src/helpers/packing.cairo`.
+- [ ] **Bonus activation flow**: Does `applyBonus` system call need rowIndex/lineIndex? If so, bonus activation from GameActionBar needs to enter a "targeting mode" before applying. This may need a follow-up task.
+- [ ] **Background image quality**: The 10 `background.png` files are 1.3-1.6MB each. Consider generating WebP versions or adding lazy loading to avoid slow home page loads on mobile.
 
 ---
 
@@ -778,9 +524,51 @@ Commits 2, 3, 4 can be executed in parallel after commit 1. Commits 5, 6, 7 are 
 
 | Decision | Rationale | Alternatives Considered |
 |----------|-----------|------------------------|
-| Use `runQuery` scan for PlayerBestRun instead of per-key queries | Simpler code, don't need to know all settings_ids upfront. Matches existing MapEntitlement pattern. | `useComponentValue` per (player, settingsId, mode) — 20+ hook calls |
-| Return `number` from useZStarBalance (not `bigint`) | DECIMALS=0, values are small integers. Simplifies downstream usage. | Return `bigint` for precision — unnecessary for whole numbers |
-| Defer quest/achievement wiring to Phase 4 | Metagame SDK API is unknown. Mock data is acceptable UX. Avoids blocking real data wiring. | Add arcade models to RECS immediately — risk of scope creep |
-| Keep `XP_PER_STAR`, `LEVEL_THRESHOLDS` as client constants | XP-to-level derivation is intentionally client-side. No contract stores "player level". | Query contract for level — doesn't exist |
-| Keep `ZONE_NAMES`, `ZONE_EMOJIS` as client constants | Display-only data tied to `theme_id`. Contract stores theme_id, client maps to name/emoji. | Store names in GameSettingsMetadata.name — already exists but may not match display names |
-| Add PlayerMeta to modelsToSync | Without it, PlayerMeta only arrives via streaming after a write. New players visiting profile before playing would see nothing. | Rely on streaming only — bad UX for first visit |
+| Hardcode mutator definitions (MUTATOR_DEFS) rather than syncing MutatorDef model from Torii | Only 2 mutators exist. Adding RECS model sync adds complexity and sync delay for minimal benefit. Easy to extend later. | Add MutatorDef to contractModels.ts + setup.ts — overkill for 2 items |
+| MutatorRevealPage doubles as loading screen | Avoids a separate loading page. User sees something interesting while game syncs. Reduces total page count. | Separate Loading → MutatorReveal — extra page transition |
+| MapPage stays as shared component, not duplicated | Map renders identically whether accessed from GameActionBar or My Games. Only the back-navigation target differs, handled by `previousPage` context. | Duplicate MapPage for in-game vs standalone — unnecessary code duplication |
+| Width-only grid sizing (remove height constraint) | The height constraint is the root cause of the "grid SUCKS" complaint. Budokan used width-only and it worked. Height overflow handled by scroll/clamp on the container. | Adjust height divisor (e.g. ROWS + 0.5) — half-measure, still constrains grid |
+| Keep existing Map tab page as an overlay accessed from gameplay | User explicitly wants map as in-game view (from action bar), not as a persistent tab. "My Games" replaces it in the tab bar. | Keep map as tab AND in-game overlay — confusing dual access, user explicitly rejected map tab |
+| Extend RunData with bonus fields rather than reading them separately | Bonus data is packed in the same `run_data` felt252. Unpacking it at the same time is natural, efficient, and consistent. | Separate `useBonusData` hook — unnecessary indirection |
+
+---
+
+## File Reference Summary
+
+### Files to MODIFY
+
+| File | Changes |
+|------|---------|
+| `stores/navigationStore.ts` | TabId: map→mygames, OverlayId: +mutator-reveal, getBackTarget context-aware |
+| `App.tsx` | Import new pages, update pageComponents record |
+| `ui/components/BottomTabBar.tsx` | Map tab → My Games tab |
+| `ui/pages/HomePage.tsx` | Logo bigger, remove subtitle, bg image, flow to mutator-reveal |
+| `ui/pages/PlayScreen.tsx` | Integrate GameActionBar, remove top-bar duplication, wire bonus data |
+| `ui/components/GameBoard.tsx` | Width-only grid sizing, increase max cell size |
+| `ui/components/hud/GameHud.tsx` | Compact single-row layout |
+| `ui/pages/MapPage.tsx` | Context-aware back navigation |
+| `dojo/game/helpers/runDataPacking.ts` | Extend RunData with bonus fields (bits 101-117) |
+| `dojo/game/models/game.ts` | Add bonusType, bonusCharges, bonusSlot getters |
+
+### Files to CREATE
+
+| File | Purpose |
+|------|---------|
+| `ui/pages/MyGamesPage.tsx` | List of all owned games with active/completed sections |
+| `ui/pages/MutatorRevealPage.tsx` | Animated mutator reveal + loading screen |
+| `ui/components/actionbar/GameActionBar.tsx` | Bottom action bar during gameplay with bonus slots |
+| `config/mutators.ts` | Mutator display definitions (hardcoded) |
+| `config/bonuses.ts` | Bonus type display definitions (icon, label, color) |
+| `src/test/runDataPacking.test.ts` | Unit tests for extended RunData unpacking |
+
+### Files UNCHANGED (for reference only)
+
+| File | Why Referenced |
+|------|---------------|
+| `ui/pages/BossRevealPage.tsx` | **Template** for MutatorRevealPage structure |
+| `ui/screens/Loading.tsx` | **Pattern** for loading animation |
+| `ui/components/ConfettiExplosion.tsx` | **Used** in MutatorRevealPage for particle reveal |
+| `hooks/useGameTokensSlot.ts` | **Used** in MyGamesPage (already returns all needed data) |
+| `hooks/useGame.tsx` | **Used** in MutatorRevealPage for game.mutatorMask |
+| `config/themes.ts` | **Used** everywhere — `getThemeImages().background` for HomePage bg |
+| `dojo/systems.ts` | **Used** for `applyBonus` in GameActionBar |

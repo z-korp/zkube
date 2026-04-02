@@ -22,24 +22,22 @@ import { BOSS_INTERVAL } from "@/dojo/game/constants";
  */
 
 export interface RunData {
-  // Core game progress
   currentLevel: number;
   levelScore: number;
   levelMoves: number;
   constraintProgress: number;
   constraint2Progress: number;
-
-  // Run stats
   maxComboRun: number;
-
-  // Score (u32 — can exceed 65535)
   totalScore: number;
-
-  // Zone system
   zoneCleared: boolean;
-  endlessDepth: number;
-  zoneId: number; // 0-15
-  mutatorMask: number; // 0-255
+  currentDifficulty: number;
+  zoneId: number;
+  activeMutatorId: number;
+  mode: number;
+  bonusType: number;
+  bonusCharges: number;
+  levelLinesCleared: number;
+  bonusSlot: number;
 }
 
 // Bit positions (matching Cairo's RunDataBits exactly)
@@ -53,10 +51,15 @@ const TOTAL_SCORE_POS = 48;
 const ZONE_CLEARED_POS = 80;
 const ENDLESS_DEPTH_POS = 81;
 const ZONE_ID_POS = 89;
-const MUTATOR_MASK_POS = 93;
+const ACTIVE_MUTATOR_ID_POS = 93;
+const MODE_POS = 101;
+const BONUS_TYPE_POS = 102;
+const BONUS_CHARGES_POS = 104;
+const LEVEL_LINES_CLEARED_POS = 108;
+const BONUS_SLOT_POS = 116;
 
-// Bit masks (after shifting to position 0)
 const MASK_1BIT = 0x1n;
+const MASK_2BIT = 0x3n;
 const MASK_4BIT = 0xFn;
 const MASK_8BIT = 0xFFn;
 const MASK_32BIT = 0xFFFFFFFFn;
@@ -82,9 +85,14 @@ export function unpackRunData(packed: bigint): RunData {
     maxComboRun: extractBits(packed, MAX_COMBO_RUN_POS, MASK_8BIT),
     totalScore: extractBits(packed, TOTAL_SCORE_POS, MASK_32BIT),
     zoneCleared: extractBool(packed, ZONE_CLEARED_POS),
-    endlessDepth: extractBits(packed, ENDLESS_DEPTH_POS, MASK_8BIT),
+    currentDifficulty: extractBits(packed, ENDLESS_DEPTH_POS, MASK_8BIT),
     zoneId: extractBits(packed, ZONE_ID_POS, MASK_4BIT),
-    mutatorMask: extractBits(packed, MUTATOR_MASK_POS, MASK_8BIT),
+    activeMutatorId: extractBits(packed, ACTIVE_MUTATOR_ID_POS, MASK_8BIT),
+    mode: extractBits(packed, MODE_POS, MASK_1BIT),
+    bonusType: extractBits(packed, BONUS_TYPE_POS, MASK_2BIT),
+    bonusCharges: extractBits(packed, BONUS_CHARGES_POS, MASK_4BIT),
+    levelLinesCleared: extractBits(packed, LEVEL_LINES_CLEARED_POS, MASK_8BIT),
+    bonusSlot: extractBits(packed, BONUS_SLOT_POS, MASK_2BIT),
   };
 }
 
@@ -101,9 +109,14 @@ export function createInitialRunData(): RunData {
     maxComboRun: 0,
     totalScore: 0,
     zoneCleared: false,
-    endlessDepth: 0,
+    currentDifficulty: 0,
     zoneId: 0,
-    mutatorMask: 0,
+    activeMutatorId: 0,
+    mode: 0,
+    bonusType: 0,
+    bonusCharges: 0,
+    levelLinesCleared: 0,
+    bonusSlot: 0,
   };
 }
 

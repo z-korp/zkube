@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
-import { ChevronLeft, Settings, Volume2, VolumeX, Flag } from "lucide-react";
+import { ChevronLeft, Flag } from "lucide-react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useGame } from "@/hooks/useGame";
@@ -12,6 +12,7 @@ import { useNavigationStore } from "@/stores/navigationStore";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import GameHud from "@/ui/components/hud/GameHud";
 import GameBoard from "@/ui/components/GameBoard";
+import GameActionBar from "@/ui/components/actionbar/GameActionBar";
 import GameOverDialog from "@/ui/components/GameOverDialog";
 import VictoryDialog from "@/ui/components/VictoryDialog";
 import Connect from "@/ui/components/Connect";
@@ -23,7 +24,6 @@ import {
   DialogTitle,
 } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
-import { Slider } from "@/ui/elements/slider";
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import { getBlockColors, getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
 
@@ -45,13 +45,6 @@ const PlayScreen: React.FC = () => {
     setMusicContext,
     setMusicPlaylist,
     playSfx,
-    musicVolume,
-    effectsVolume,
-    setMusicVolume,
-    setEffectsVolume,
-    isPlaying,
-    playTheme,
-    stopTheme,
   } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
   const colors = getThemeColors(themeTemplate);
@@ -68,7 +61,7 @@ const PlayScreen: React.FC = () => {
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isGameLoading, setIsGameLoading] = useState(true);
   const [cascadeComplete, setCascadeComplete] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSurrenderDialogOpen, setIsSurrenderDialogOpen] = useState(false);
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
   const prevGameStateRef = useRef<{
     level: number;
@@ -203,7 +196,7 @@ const PlayScreen: React.FC = () => {
     if (!account || !game) return;
     try {
       playSfx("click");
-      setIsSettingsOpen(false);
+      setIsSurrenderDialogOpen(false);
       await surrender({ account, game_id: game.id });
     } catch (error) {
       console.error("Surrender failed:", error);
@@ -266,7 +259,7 @@ const PlayScreen: React.FC = () => {
       )}
 
       <div
-        className="flex h-11 shrink-0 items-center justify-between border-b px-2"
+        className="flex h-10 shrink-0 items-center border-b px-2"
         style={{ borderColor: colors.border, backgroundColor: colors.surface }}
       >
         <div className="flex items-center gap-1.5">
@@ -283,86 +276,46 @@ const PlayScreen: React.FC = () => {
           {game && (
             <>
               <span className="text-xs" style={{ color: colors.textMuted }}>·</span>
+              <span className="text-[11px] uppercase tracking-[0.08em]" style={{ color: colors.textMuted }}>
+                Score
+              </span>
               <span className="font-display text-sm tabular-nums" style={{ color: colors.accent2 }}>
-                {game.totalScore}
+                {game.totalScore.toLocaleString()}
               </span>
             </>
           )}
         </div>
-        <button
-          onClick={() => setIsSettingsOpen(true)}
-          className="flex h-11 w-11 items-center justify-center rounded-lg transition-colors"
-          style={{ color: colors.textMuted }}
-        >
-          <Settings size={16} />
-        </button>
       </div>
 
-      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+      <Dialog open={isSurrenderDialogOpen} onOpenChange={setIsSurrenderDialogOpen}>
         <DialogContent
           aria-describedby={undefined}
-          className="sm:max-w-[400px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-6 py-8 font-['Chakra_Petch']"
+          className="sm:max-w-[380px] w-[94%] flex flex-col mx-auto rounded-lg px-6 py-6"
         >
-          <DialogTitle className="text-2xl text-center mb-4 text-slate-100">
-            Settings
+          <DialogTitle className="text-xl text-center mb-2 text-slate-100">
+            Surrender Run?
           </DialogTitle>
+          <DialogDescription className="text-center text-slate-300 mb-5">
+            This will end your current run immediately.
+          </DialogDescription>
 
-          <div className="space-y-4 mb-6">
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-500/20">
-              <div className="flex items-center gap-3 mb-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0"
-                  onClick={() => (isPlaying ? stopTheme() : playTheme())}
-                >
-                  {isPlaying ? (
-                    <Volume2 className="h-4 w-4" />
-                  ) : (
-                    <VolumeX className="h-4 w-4" />
-                  )}
-                </Button>
-                <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                  <span className="text-xs text-muted-foreground">Music</span>
-                  <Slider
-                    value={[musicVolume]}
-                    onValueChange={(value) => setMusicVolume(value[0])}
-                    max={1}
-                    step={0.05}
-                  />
-                </div>
-                <span className="text-xs tabular-nums text-muted-foreground w-8 text-right shrink-0">
-                  {Math.round(musicVolume * 100)}%
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 shrink-0" />
-                <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                  <span className="text-xs text-muted-foreground">Effects</span>
-                  <Slider
-                    value={[effectsVolume]}
-                    onValueChange={(value) => setEffectsVolume(value[0])}
-                    max={1}
-                    step={0.05}
-                  />
-                </div>
-                <span className="text-xs tabular-nums text-muted-foreground w-8 text-right shrink-0">
-                  {Math.round(effectsVolume * 100)}%
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {game && !game.over && (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setIsSurrenderDialogOpen(false)}
+            >
+              Cancel
+            </Button>
             <Button
               variant="destructive"
-              className="w-full py-3 text-base flex items-center justify-center gap-2"
+              className="flex-1 flex items-center justify-center gap-2"
               onClick={handleSurrender}
             >
               <Flag className="h-4 w-4" />
-              Surrender Run
+              Surrender
             </Button>
-          )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -381,9 +334,9 @@ const PlayScreen: React.FC = () => {
         />
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden px-1 py-1">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {(isGameLoading || isGridLoading) && (
-          <div className="flex flex-col items-center justify-center gap-4 py-12">
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-1 py-12">
             <img
               src={imgAssets.loader}
               alt="Loading"
@@ -397,7 +350,7 @@ const PlayScreen: React.FC = () => {
 
         {game && isGameOn && !isGridLoading && !isGameLoading && (
           <div
-            className="flex min-h-0 w-full flex-col items-center rounded-xl bg-center bg-cover"
+            className="flex min-h-0 flex-1 w-full flex-col items-center overflow-hidden rounded-xl bg-center bg-cover px-1 py-1"
             style={{ backgroundImage: `url(${mapThemeImages.gridBg})` }}
           >
             <GameBoard
@@ -407,32 +360,6 @@ const PlayScreen: React.FC = () => {
               game={game}
               onCascadeComplete={handleCascadeComplete}
             />
-
-            <div className="mt-1 flex items-center justify-center gap-1.5">
-              <span className="mr-1 text-[9px]" style={{ color: colors.textMuted }}>
-                NEXT
-              </span>
-              {nextRowBlocks.map((block, idx) => {
-                const validBlock = block >= 1 && block <= 4;
-                const blockColor = validBlock
-                  ? getBlockColors(themeTemplate, block as 1 | 2 | 3 | 4).fill
-                  : "transparent";
-                return (
-                  <div
-                    key={`next-preview-${idx}`}
-                    className="h-3.5 w-3.5 rounded-[3px] border"
-                    style={{
-                      borderColor: validBlock ? `${blockColor}66` : colors.border,
-                      backgroundColor: validBlock ? `${blockColor}CC` : `${colors.textMuted}1A`,
-                    }}
-                  />
-                );
-              })}
-            </div>
-
-            <p className="mt-1.5 text-center text-[10px]" style={{ color: colors.textMuted }}>
-              ← Swipe rows to align blocks →
-            </p>
           </div>
         )}
 
@@ -446,6 +373,48 @@ const PlayScreen: React.FC = () => {
               onCascadeComplete={handleCascadeComplete}
             />
           </div>
+        )}
+
+        {game && isGameOn && !isGridLoading && !isGameLoading && (
+          <>
+            <div className="shrink-0 px-2 pb-1 pt-1.5">
+              <div className="mt-1 flex items-center justify-center gap-1.5">
+                <span className="mr-1 text-[9px]" style={{ color: colors.textMuted }}>
+                  NEXT
+                </span>
+                {nextRowBlocks.map((block, idx) => {
+                  const validBlock = block >= 1 && block <= 4;
+                  const blockColor = validBlock
+                    ? getBlockColors(themeTemplate, block as 1 | 2 | 3 | 4).fill
+                    : "transparent";
+                  return (
+                    <div
+                      key={`next-preview-${idx}`}
+                      className="h-3.5 w-3.5 rounded-[3px] border"
+                      style={{
+                        borderColor: validBlock ? `${blockColor}66` : colors.border,
+                        backgroundColor: validBlock ? `${blockColor}CC` : `${colors.textMuted}1A`,
+                      }}
+                    />
+                  );
+                })}
+              </div>
+
+              <p className="mt-1.5 text-center text-[10px]" style={{ color: colors.textMuted }}>
+                ← Swipe rows to align blocks →
+              </p>
+            </div>
+
+            <GameActionBar
+              onMap={() => navNavigate("map", gameId ?? undefined)}
+              onSurrender={() => setIsSurrenderDialogOpen(true)}
+              bonusType={game?.bonusType ?? 0}
+              bonusCharges={game?.bonusCharges ?? 0}
+              bonusSlot={game?.bonusSlot ?? 0}
+              onBonusActivate={() => undefined}
+              disabled={!isGameOn}
+            />
+          </>
         )}
       </div>
     </div>

@@ -1,12 +1,11 @@
 import { create } from "zustand";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 
-export type TabId = "home" | "map" | "profile" | "ranks" | "settings";
-export type OverlayId = "play" | "daily" | "boss";
+export type TabId = "home" | "mygames" | "profile" | "ranks" | "settings";
+export type OverlayId = "play" | "daily" | "boss" | "mutator" | "map";
 export type PageId = TabId | OverlayId;
 
-/** Pages where the bottom tab bar is hidden (full immersion). */
-export const FULLSCREEN_PAGES: ReadonlySet<PageId> = new Set(["play", "boss"]);
+export const FULLSCREEN_PAGES: ReadonlySet<PageId> = new Set(["play", "boss", "mutator", "map"]);
 
 export interface PendingLevelCompletion {
   level: number;
@@ -42,7 +41,9 @@ const getBackTarget = (page: PageId): PageId => {
     case "boss":
       return "map";
     case "map":
-      return "home";
+      return "mygames";
+    case "mutator":
+      return "mygames";
     default:
       return "home";
   }
