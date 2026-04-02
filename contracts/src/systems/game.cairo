@@ -42,6 +42,7 @@ mod game_system {
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
+    use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::events::StartGame;
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::controller::Controller;
@@ -55,6 +56,7 @@ mod game_system {
     use zkube::models::entitlement::MapEntitlement;
     use zkube::models::game::{Game, GameAssert, GameSeed, GameTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
+    use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use zkube::systems::daily_challenge::{
         IDailyChallengeSystemDispatcher, IDailyChallengeSystemDispatcherTrait,
     };
@@ -429,6 +431,23 @@ mod game_system {
             let mut player_meta: PlayerMeta = world.read_model(player);
             if !player_meta.exists() {
                 player_meta = PlayerMetaTrait::new(player);
+            } else if player_meta.last_active > 0
+                && timestamp - player_meta.last_active > 604800 {
+                match world.dns_address(@"config_system") {
+                    Option::Some(config_address) => {
+                        let config_dispatcher = IConfigSystemDispatcher {
+                            contract_address: config_address,
+                        };
+                        let zstar_address = config_dispatcher.get_zstar_address();
+                        if !zstar_address.is_zero() {
+                            let zstar = IZStarTokenDispatcher { contract_address: zstar_address };
+                            zstar.mint(player, 5);
+                        }
+                    },
+                    Option::None => {},
+                }
+
+                // TODO(workstream-a): wire welcome-back XP reward (+500).
             }
             // Initialize GameLibs once for all dispatcher calls
             let libs = GameLibsImpl::new(world);
@@ -436,6 +455,7 @@ mod game_system {
             world.write_model(@game);
 
             player_meta.increment_runs();
+            player_meta.last_active = timestamp;
             world.write_model(@player_meta);
 
             post_action(token_address, token_id_felt);

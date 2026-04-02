@@ -78,8 +78,12 @@ pub trait IConfigSystem<T> {
     fn get_game_settings_metadata(self: @T, settings_id: u32) -> GameSettingsMetadata;
     /// Purchase access to a paid map
     fn purchase_map(ref self: T, settings_id: u32);
+    /// Unlock map access by burning zStar
+    fn unlock_with_stars(ref self: T, settings_id: u32);
     /// Check if a player has access to a map (free or purchased)
     fn has_map_access(self: @T, player: ContractAddress, settings_id: u32) -> bool;
+    /// Get configured zStar token address
+    fn get_zstar_address(self: @T) -> ContractAddress;
     /// Admin: set map pricing
     fn set_map_pricing(
         ref self: T, settings_id: u32, is_free: bool, price: u256, payment_token: ContractAddress,
@@ -88,6 +92,11 @@ pub trait IConfigSystem<T> {
     fn set_map_enabled(ref self: T, settings_id: u32, enabled: bool);
     /// Admin: set map theme
     fn set_map_theme(ref self: T, settings_id: u32, theme_id: u8);
+    fn set_star_eligible(ref self: T, settings_id: u32, eligible: bool);
+    fn is_star_eligible(self: @T, settings_id: u32) -> bool;
+    fn set_zstar_address(ref self: T, token: ContractAddress);
+    fn set_treasury(ref self: T, treasury: ContractAddress);
+    fn get_treasury(self: @T) -> ContractAddress;
     fn settings_exists(self: @T, settings_id: u32) -> bool;
 }
 
@@ -108,7 +117,10 @@ mod config_system {
     };
     use openzeppelin_interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin_introspection::src5::SRC5Component;
-    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+    use starknet::storage::{
+        Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
+        StoragePointerWriteAccess,
+    };
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
     use zkube::constants::DEFAULT_SETTINGS::DEFAULT_SETTINGS_ID;
@@ -116,6 +128,7 @@ mod config_system {
     use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
     use zkube::models::entitlement::MapEntitlement;
     use zkube::models::mutator::MutatorDef;
+    use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::types::difficulty::Difficulty;
     use super::IConfigSystem;
 
@@ -131,6 +144,9 @@ mod config_system {
     struct Storage {
         settings_counter: u32,
         cube_token_address: ContractAddress,
+        zstar_token_address: ContractAddress,
+        treasury_address: ContractAddress,
+        star_eligible: Map::<u32, bool>,
         #[substorage(v0)]
         settings: SettingsComponent::Storage,
         #[substorage(v0)]
@@ -163,6 +179,8 @@ mod config_system {
         let mut world: WorldStorage = self.world(@DEFAULT_NS());
         self.settings.initializer();
         self.cube_token_address.write(cube_token_address);
+        self.zstar_token_address.write(cube_token_address);
+        self.treasury_address.write(creator_address);
 
         let current_timestamp = get_block_timestamp();
 
@@ -197,6 +215,7 @@ mod config_system {
             enabled: true,
             price: 0,
             payment_token: Zero::zero(),
+            star_cost: 0,
         };
         world.write_model(@polynesian_map_settings);
         world.write_model(@polynesian_map_metadata);
@@ -232,6 +251,7 @@ mod config_system {
             enabled: true,
             price: 0,
             payment_token: Zero::zero(),
+            star_cost: 0,
         };
         world.write_model(@polynesian_endless_settings);
         world.write_model(@polynesian_endless_metadata);
@@ -270,6 +290,8 @@ mod config_system {
 
         // Counter starts at 1 so next custom settings will be 2+
         self.settings_counter.write(1_u32);
+        self.star_eligible.write(0_u32, true);
+        self.star_eligible.write(1_u32, true);
 
         let (game_systems_address, _) = world.dns(@"game_system").unwrap();
         let minigame_dispatcher = IMinigameDispatcher { contract_address: game_systems_address };
@@ -386,6 +408,7 @@ mod config_system {
                 enabled: true,
                 price: 0,
                 payment_token: Zero::zero(),
+                star_cost: 0,
             };
 
             // Save to world
@@ -621,6 +644,7 @@ mod config_system {
                 enabled: true,
                 price: 0,
                 payment_token: Zero::zero(),
+                star_cost: 0,
             };
 
             // Save to world
@@ -682,10 +706,45 @@ mod config_system {
             let existing: MapEntitlement = world.read_model((caller, settings_id));
             assert!(existing.purchased_at == 0, "Map already purchased");
 
+            let mut effective_price = metadata.price;
+            if !metadata.star_cost.is_zero() {
+                let zstar_erc20 = IERC20Dispatcher { contract_address: self.zstar_token_address.read() };
+                let star_balance = zstar_erc20.balance_of(caller);
+                let discount_percent: u256 = (star_balance * 100_u256) / metadata.star_cost;
+                let charge_percent: u256 = if discount_percent >= 90_u256 {
+                    10
+                } else {
+                    100_u256 - discount_percent
+                };
+                effective_price = (metadata.price * charge_percent) / 100_u256;
+            }
+
             let erc20 = IERC20Dispatcher { contract_address: metadata.payment_token };
-            let success = erc20
-                .transfer_from(caller, starknet::get_contract_address(), metadata.price);
+            let success = erc20.transfer_from(caller, self.treasury_address.read(), effective_price);
             assert!(success, "Payment transfer failed");
+
+            let entitlement = MapEntitlement {
+                player: caller, settings_id, purchased_at: get_block_timestamp(),
+            };
+            world.write_model(@entitlement);
+        }
+
+        fn unlock_with_stars(ref self: ContractState, settings_id: u32) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let caller = get_caller_address();
+            let metadata: GameSettingsMetadata = world.read_model(settings_id);
+            assert!(metadata.enabled, "Map is not available");
+            assert!(!metadata.star_cost.is_zero(), "No star cost set");
+
+            let existing: MapEntitlement = world.read_model((caller, settings_id));
+            assert!(existing.purchased_at == 0, "Map already purchased");
+
+            let zstar_erc20 = IERC20Dispatcher { contract_address: self.zstar_token_address.read() };
+            let star_balance = zstar_erc20.balance_of(caller);
+            assert!(star_balance >= metadata.star_cost, "Not enough zStar");
+
+            let zstar = IZStarTokenDispatcher { contract_address: self.zstar_token_address.read() };
+            zstar.burn(caller, metadata.star_cost);
 
             let entitlement = MapEntitlement {
                 player: caller, settings_id, purchased_at: get_block_timestamp(),
@@ -702,6 +761,22 @@ mod config_system {
 
             let entitlement: MapEntitlement = world.read_model((player, settings_id));
             entitlement.purchased_at != 0
+        }
+
+        fn get_zstar_address(self: @ContractState) -> ContractAddress {
+            self.zstar_token_address.read()
+        }
+
+        fn set_zstar_address(ref self: ContractState, token: ContractAddress) {
+            self.zstar_token_address.write(token);
+        }
+
+        fn set_treasury(ref self: ContractState, treasury: ContractAddress) {
+            self.treasury_address.write(treasury);
+        }
+
+        fn get_treasury(self: @ContractState) -> ContractAddress {
+            self.treasury_address.read()
         }
 
         fn set_map_pricing(
@@ -731,6 +806,14 @@ mod config_system {
             let mut metadata: GameSettingsMetadata = world.read_model(settings_id);
             metadata.theme_id = theme_id;
             world.write_model(@metadata);
+        }
+
+        fn set_star_eligible(ref self: ContractState, settings_id: u32, eligible: bool) {
+            self.star_eligible.write(settings_id, eligible);
+        }
+
+        fn is_star_eligible(self: @ContractState, settings_id: u32) -> bool {
+            self.star_eligible.read(settings_id)
         }
 
         fn settings_exists(self: @ContractState, settings_id: u32) -> bool {

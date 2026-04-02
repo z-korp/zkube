@@ -67,6 +67,7 @@ pub mod DEFAULT_SETTINGS {
             enabled: true,
             price: 0,
             payment_token: core::num::traits::Zero::zero(),
+            star_cost: 0,
         }
     }
 }

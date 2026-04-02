@@ -28,6 +28,8 @@ openzeppelin_access.workspace = true
 alexandria_math.workspace = true
 alexandria_encoding.workspace = true
 origami_random.workspace = true
+achievement.workspace = true
+quest.workspace = true
 game_components_embeddable_game_standard.workspace = true
 game_components_utilities.workspace = true
 game_components_interfaces.workspace = true
@@ -39,6 +41,7 @@ build-external-contracts = [
     "dojo::world::world_contract::world",
     "zkube::external::full_token_contract::FullTokenContract",
     "zkube::external::minigame_registry_contract::MinigameRegistryContract",
+    "zkube::external::zstar_token::ZStarToken",
 ]
 
 [dev-dependencies]

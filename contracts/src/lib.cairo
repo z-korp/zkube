@@ -2,6 +2,7 @@ pub mod constants;
 pub mod events;
 
 pub mod models {
+    pub mod cosmetic;
     pub mod config;
     pub mod daily;
     pub mod entitlement;
@@ -34,6 +35,10 @@ pub mod elements {
     pub mod difficulties {
         pub mod data;
         pub mod interface;
+    }
+
+    pub mod tasks {
+        pub mod index;
     }
 }
 
@@ -78,6 +83,7 @@ pub mod systems {
 pub mod external {
     pub mod full_token_contract;
     pub mod minigame_registry_contract;
+    pub mod zstar_token;
 }
 
 #[cfg(test)]

@@ -56,6 +56,16 @@ pub struct RunEnded {
     pub ended_at: u64,
 }
 
+/// Emitted when a player clears a zone for the first time.
+#[derive(Copy, Drop, Serde)]
+#[dojo::event(historical: true)]
+pub struct ZoneClearBonus {
+    #[key]
+    pub player: ContractAddress,
+    pub settings_id: u32,
+    pub amount: u256,
+}
+
 /// Emitted when constraint progress is updated
 #[derive(Copy, Drop, Serde)]
 #[dojo::event(historical: true)]

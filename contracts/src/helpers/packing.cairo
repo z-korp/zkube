@@ -256,13 +256,14 @@ pub impl RunDataPacking of RunDataPackingTrait {
 // PlayerMeta packing
 // =============================================================================
 
-/// PlayerMeta.data layout (32 bits used, 220 reserved):
+/// PlayerMeta.data layout (64 bits used, 188 reserved):
 /// ┌─────────────────────────────────────────────────────────────────────┐
 /// │ Bits    │ Field                 │ Size │ Description                │
 /// ├─────────┼───────────────────────┼──────┼────────────────────────────┤
 /// │ 0-15    │ total_runs            │ 16   │ Lifetime run count         │
 /// │ 16-31   │ daily_stars           │ 16   │ Lifetime daily stars       │
-/// │ 32-251  │ reserved              │ 220  │ Future features            │
+/// │ 32-63   │ lifetime_xp           │ 32   │ Lifetime XP                │
+/// │ 64-251  │ reserved              │ 188  │ Future features            │
 /// └─────────────────────────────────────────────────────────────────────┘
 
 /// Unpacked player meta data structure
@@ -271,6 +272,7 @@ pub struct MetaData {
     // Stats
     pub total_runs: u16,
     pub daily_stars: u16,
+    pub lifetime_xp: u32,
 }
 
 /// Bit positions and masks for meta_data
@@ -278,17 +280,19 @@ mod MetaDataBits {
     // Bit positions
     pub const TOTAL_RUNS_POS: u8 = 0;
     pub const DAILY_STARS_POS: u8 = 16;
+    pub const LIFETIME_XP_POS: u8 = 32;
 
     // Masks
     pub const TOTAL_RUNS_MASK: u256 = 0xFFFF; // 16 bits
     pub const DAILY_STARS_MASK: u256 = 0xFFFF; // 16 bits
+    pub const LIFETIME_XP_MASK: u256 = 0xFFFFFFFF; // 32 bits
 }
 
 #[generate_trait]
 pub impl MetaDataPacking of MetaDataPackingTrait {
     /// Create a new MetaData with initial values
     fn new() -> MetaData {
-        MetaData { total_runs: 0, daily_stars: 0 }
+        MetaData { total_runs: 0, daily_stars: 0, lifetime_xp: 0 }
     }
 
     /// Pack MetaData into a felt252
@@ -304,6 +308,11 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
             | BitShift::shl(
                 self.daily_stars.into() & MetaDataBits::DAILY_STARS_MASK,
                 MetaDataBits::DAILY_STARS_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                self.lifetime_xp.into() & MetaDataBits::LIFETIME_XP_MASK,
+                MetaDataBits::LIFETIME_XP_POS.into(),
             );
 
         packed.try_into().unwrap()
@@ -322,9 +331,12 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
                 & MetaDataBits::DAILY_STARS_MASK)
                 .try_into()
                 .unwrap(),
+            lifetime_xp: (BitShift::shr(data, MetaDataBits::LIFETIME_XP_POS.into())
+                & MetaDataBits::LIFETIME_XP_MASK)
+                .try_into()
+                .unwrap(),
         }
     }
 }
 // Tests moved to contracts/src/tests/ - see test_packing.cairo for comprehensive packing tests
-
 

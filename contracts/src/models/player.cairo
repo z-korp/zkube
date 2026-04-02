@@ -1,3 +1,4 @@
+use alexandria_math::BitShift;
 use starknet::ContractAddress;
 use zkube::helpers::packing::{MetaData, MetaDataPacking, MetaDataPackingTrait};
 
@@ -12,13 +13,15 @@ pub struct PlayerMeta {
     pub data: felt252,
     /// Highest level ever reached (any run) - used for unlocks
     pub best_level: u8,
+    /// Last active timestamp (seconds)
+    pub last_active: u64,
 }
 
 #[generate_trait]
 pub impl PlayerMetaImpl of PlayerMetaTrait {
     /// Create a new PlayerMeta with default values
     fn new(player: ContractAddress) -> PlayerMeta {
-        PlayerMeta { player, data: MetaDataPackingTrait::new().pack(), best_level: 0 }
+        PlayerMeta { player, data: MetaDataPackingTrait::new().pack(), best_level: 0, last_active: 0 }
     }
 
     /// Get unpacked meta data
@@ -56,6 +59,22 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
         self.set_meta_data(meta);
     }
 
+    /// Increment lifetime XP with saturating arithmetic (u32 max).
+    fn increment_xp(ref self: PlayerMeta, amount: u32) {
+        let mut meta = self.get_meta_data();
+        let next_xp: u64 = meta.lifetime_xp.into() + amount.into();
+        if next_xp > 4294967295_u64 {
+            meta.lifetime_xp = 4294967295;
+        } else {
+            meta.lifetime_xp = next_xp.try_into().unwrap();
+        }
+        self.set_meta_data(meta);
+    }
+
+    fn get_lifetime_xp(self: PlayerMeta) -> u32 {
+        self.get_meta_data().lifetime_xp
+    }
+
 
     /// Check if player exists (has played at least once)
     fn exists(self: PlayerMeta) -> bool {
@@ -81,6 +100,8 @@ pub struct PlayerBestRun {
     pub best_level: u8,
     /// Whether map was fully cleared (Map mode, L10 boss beaten)
     pub map_cleared: bool,
+    /// Packed best stars by level (2 bits per level, levels 1-10)
+    pub best_level_stars: felt252,
     /// Game ID of the best run
     pub best_game_id: felt252,
 }
@@ -94,6 +115,7 @@ pub impl PlayerBestRunImpl of PlayerBestRunTrait {
             || *self.best_stars > 0
             || *self.best_level > 0
             || *self.map_cleared
+            || *self.best_level_stars != 0
     }
 
     /// Check if this run beats the existing best. Returns true if it should replace.
@@ -110,6 +132,44 @@ pub impl PlayerBestRunImpl of PlayerBestRunTrait {
             let new_rank: u64 = stars.into() * 65536 + score.into();
             let old_rank: u64 = (*self.best_stars).into() * 65536 + (*self.best_score).into();
             new_rank > old_rank
+        }
+    }
+
+    fn get_best_level_stars(self: @PlayerBestRun, level: u8) -> u8 {
+        assert(level >= 1 && level <= 10, 'invalid level');
+        let shift: u8 = (level - 1) * 2;
+        let packed: u256 = (*self.best_level_stars).into();
+        (BitShift::shr(packed, shift.into()) & 0x3).try_into().unwrap()
+    }
+
+    fn set_best_level_stars(ref self: PlayerBestRun, level: u8, stars: u8) {
+        assert(level >= 1 && level <= 10, 'invalid level');
+        let shift: u8 = (level - 1) * 2;
+        let mut packed: u256 = self.best_level_stars.into();
+        let current: u256 = BitShift::shr(packed, shift.into()) & 0x3;
+        packed = packed - BitShift::shl(current, shift.into());
+        packed = packed | BitShift::shl((stars & 0x3).into(), shift.into());
+        self.best_level_stars = packed.try_into().unwrap();
+    }
+
+    fn update_best_level_stars(ref self: PlayerBestRun, run_level_stars: felt252) {
+        let run_packed: u256 = run_level_stars.into();
+        let mut level: u8 = 1;
+        loop {
+            if level > 10 {
+                break;
+            }
+
+            let shift: u8 = (level - 1) * 2;
+            let run_stars: u8 = (BitShift::shr(run_packed, shift.into()) & 0x3)
+                .try_into()
+                .unwrap();
+            let current_best = self.get_best_level_stars(level);
+            if run_stars > current_best {
+                self.set_best_level_stars(level, run_stars);
+            }
+
+            level += 1;
         }
     }
 }
@@ -130,6 +190,7 @@ mod tests {
         let data = meta.get_meta_data();
         assert!(data.total_runs == 0, "Should have 0 runs");
         assert!(data.daily_stars == 0, "Should have 0 daily stars");
+        assert!(data.lifetime_xp == 0, "Should have 0 lifetime xp");
     }
 
     #[test]
@@ -171,5 +232,45 @@ mod tests {
         meta.increment_daily_stars();
         let data = meta.get_meta_data();
         assert!(data.daily_stars == 2, "Should have 2 daily stars");
+    }
+
+    #[test]
+    fn test_increment_xp() {
+        let player: ContractAddress = 'PLAYER'.try_into().unwrap();
+        let mut meta = PlayerMetaTrait::new(player);
+
+        meta.increment_xp(25);
+        assert!(meta.get_lifetime_xp() == 25, "Should have 25 xp");
+
+        meta.increment_xp(100);
+        assert!(meta.get_lifetime_xp() == 125, "Should have 125 xp");
+    }
+
+    #[test]
+    fn test_xp_saturation() {
+        let player: ContractAddress = 'PLAYER'.try_into().unwrap();
+        let mut meta = PlayerMetaTrait::new(player);
+
+        meta.increment_xp(4294967295);
+        assert!(meta.get_lifetime_xp() == 4294967295, "Should saturate at u32 max");
+
+        meta.increment_xp(1);
+        assert!(meta.get_lifetime_xp() == 4294967295, "Should remain saturated at u32 max");
+    }
+
+    #[test]
+    fn test_xp_preserves_other_fields() {
+        let player: ContractAddress = 'PLAYER'.try_into().unwrap();
+        let mut meta = PlayerMetaTrait::new(player);
+
+        meta.increment_runs();
+        meta.increment_runs();
+        meta.increment_daily_stars();
+        meta.increment_xp(42);
+
+        let data = meta.get_meta_data();
+        assert!(data.total_runs == 2, "total_runs should be preserved");
+        assert!(data.daily_stars == 1, "daily_stars should be preserved");
+        assert!(data.lifetime_xp == 42, "lifetime_xp should be updated");
     }
 }

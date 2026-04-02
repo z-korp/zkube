@@ -20,6 +20,8 @@ pub struct GameSettingsMetadata {
     pub price: u256,
     /// ERC20 token address for payment (zero for free maps)
     pub payment_token: ContractAddress,
+    /// zStar amount required for star-based unlock (0 = disabled)
+    pub star_cost: u256,
 }
 
 /// Extended GameSettings with all configurable game parameters

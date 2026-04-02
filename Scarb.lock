@@ -2,6 +2,15 @@
 version = 1
 
 [[package]]
+name = "achievement"
+version = "0.0.0"
+source = "git+https://github.com/cartridge-gg/arcade.git?rev=fc2e81c#fc2e81c8d4cee706bb26cb2396d941fd0657c277"
+dependencies = [
+ "dojo",
+ "graffiti",
+]
+
+[[package]]
 name = "alexandria_bytes"
 version = "0.9.0"
 source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.9.0#2b04d3ff2a302b40d092ad68b2920f28792582eb"
@@ -126,7 +135,7 @@ dependencies = [
 [[package]]
 name = "graffiti"
 version = "0.1.0"
-source = "git+https://github.com/Provable-Games/graffiti#085657596d0779299f1087bbf139a9fe8e5e71b4"
+source = "git+https://github.com/z-korp/graffiti#e0608cf9790c00e0e8b0eb99a63a55ef588785ce"
 
 [[package]]
 name = "interfaces"
@@ -180,6 +189,15 @@ version = "1.1.2"
 source = "git+https://github.com/dojoengine/origami?tag=v1.7.0#1ddafcb8c33fe9697c4a44e0557967026d4eeba8"
 
 [[package]]
+name = "quest"
+version = "0.0.0"
+source = "git+https://github.com/cartridge-gg/arcade.git?rev=fc2e81c#fc2e81c8d4cee706bb26cb2396d941fd0657c277"
+dependencies = [
+ "dojo",
+ "graffiti",
+]
+
+[[package]]
 name = "ticket"
 version = "1.2.0"
 dependencies = [
@@ -192,6 +210,7 @@ dependencies = [
 name = "zkube"
 version = "1.2.0"
 dependencies = [
+ "achievement",
  "alexandria_encoding",
  "alexandria_math",
  "dojo",
@@ -205,4 +224,5 @@ dependencies = [
  "openzeppelin_introspection",
  "openzeppelin_token",
  "origami_random",
+ "quest",
 ]
