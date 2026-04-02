@@ -11,7 +11,7 @@ interface UnlockModalProps {
 const UnlockModal: React.FC<UnlockModalProps> = ({ colors, zone, onClose }) => {
   const starCost = zone.starCost ?? 1;
   const currentStars = zone.currentStars ?? 0;
-  const basePrice = zone.ethPrice ?? 0;
+  const basePrice = zone.price !== undefined ? Number(zone.price) / 1e18 : 0;
   const discount = Math.min(100, Math.floor((currentStars / starCost) * 100));
   const finalPrice = (basePrice * (1 - discount / 100)).toFixed(4);
   const starPercent = Math.min(100, Math.floor((currentStars / starCost) * 100));

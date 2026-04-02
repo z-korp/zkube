@@ -57,6 +57,7 @@ export function defineContractComponents(world: World) {
           enabled: RecsType.Boolean,
           price: RecsType.BigInt,
           payment_token: RecsType.String,
+          star_cost: RecsType.BigInt,
         },
         {
           metadata: {
@@ -73,6 +74,7 @@ export function defineContractComponents(world: World) {
               "bool",
               "u256",
               "ContractAddress",
+              "u256",
             ],
           },
         }
@@ -234,12 +236,38 @@ export function defineContractComponents(world: World) {
           player: RecsType.BigInt,
           data: RecsType.BigInt,
           best_level: RecsType.Number,
+          last_active: RecsType.Number,
         },
         {
           metadata: {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "PlayerMeta",
-            types: ["ContractAddress", "felt252", "u8"],
+            types: ["ContractAddress", "felt252", "u8", "u64"],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+
+    PlayerBestRun: (() => {
+      return defineComponent(
+        world,
+        {
+          player: RecsType.BigInt,
+          settings_id: RecsType.Number,
+          mode: RecsType.Number,
+          best_score: RecsType.Number,
+          best_stars: RecsType.Number,
+          best_level: RecsType.Number,
+          map_cleared: RecsType.Boolean,
+          best_level_stars: RecsType.BigInt,
+          best_game_id: RecsType.BigInt,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "PlayerBestRun",
+            types: ["ContractAddress", "u32", "u8", "u32", "u8", "u8", "bool", "felt252", "felt252"],
             customTypes: [],
           },
         }

@@ -3,6 +3,11 @@ import { getThemeImages, type ThemeColors, type ThemeId } from "@/config/themes"
 import type { ZoneProgressData } from "@/config/profileData";
 import { RECENT_ACTIVITY } from "@/config/profileData";
 
+const formatPrice = (price: bigint | undefined): string => {
+  if (price === undefined) return "0.0000";
+  return (Number(price) / 1e18).toFixed(4);
+};
+
 const THEME_BY_ZONE: Record<number, ThemeId> = {
   1: "theme-1",
   2: "theme-2",
@@ -75,7 +80,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         <div className="flex flex-col gap-1.5">
           {zones.map((zone) => {
             const discount = zone.starCost
-              ? Math.floor(((zone.currentStars ?? 0) / zone.starCost) * 100)
+              ? Math.min(100, Math.floor(((zone.currentStars ?? 0) / zone.starCost) * 100))
               : 0;
 
             return (
@@ -134,7 +139,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                         or
                       </span>
                       <span className="font-display text-[8px] font-bold" style={{ color: colors.accent }}>
-                        {zone.ethPrice} ETH
+                        {formatPrice(zone.price)} ETH
                       </span>
                     </div>
                   )}

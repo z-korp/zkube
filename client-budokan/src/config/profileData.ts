@@ -37,20 +37,9 @@ export const ZONE_NAMES: Record<number, string> = {
   10: "Inca",
 };
 
-export const ZONE_UNLOCK_PRICES: Record<number, { starCost: number; ethPrice: number }> = {
-  2: { starCost: 120, ethPrice: 0.015 },
-  3: { starCost: 200, ethPrice: 0.02 },
-  4: { starCost: 280, ethPrice: 0.026 },
-  5: { starCost: 360, ethPrice: 0.031 },
-  6: { starCost: 460, ethPrice: 0.037 },
-  7: { starCost: 560, ethPrice: 0.043 },
-  8: { starCost: 660, ethPrice: 0.049 },
-  9: { starCost: 760, ethPrice: 0.056 },
-  10: { starCost: 900, ethPrice: 0.065 },
-};
-
 export interface ZoneProgressData {
   zoneId: number;
+  settingsId: number;
   name: string;
   emoji: string;
   stars: number;
@@ -59,8 +48,9 @@ export interface ZoneProgressData {
   cleared: boolean;
   isFree: boolean;
   starCost?: number;
-  ethPrice?: number;
+  price?: bigint;
   currentStars?: number;
+  levelStars?: number[];
 }
 
 export interface QuestDef {

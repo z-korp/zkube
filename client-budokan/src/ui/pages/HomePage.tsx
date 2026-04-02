@@ -1,17 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 
-import { Has, getComponentValue, runQuery } from "@dojoengine/recs";
-
 import { useDojo } from "@/dojo/useDojo";
-import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { getThemeColors, getThemeImages, loadThemeTemplate, type ThemeId } from "@/config/themes";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
-import { usePlayerMeta } from "@/hooks/usePlayerMeta";
+import { useZStarBalance } from "@/hooks/useZStarBalance";
+import { useZoneProgress } from "@/hooks/useZoneProgress";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { showToast } from "@/utils/toast";
 import Connect from "@/ui/components/Connect";
@@ -25,56 +23,19 @@ const normalizeAddress = (address: string | undefined): string | undefined => {
   return `0x${hex}`;
 };
 
-const toAddressBigInt = (address: string | undefined): bigint | null => {
-  if (!address) return null;
-  try {
-    return BigInt(address);
-  } catch {
-    return null;
-  }
+const getThemeId = (zoneId: number): ThemeId => {
+  const normalized = Math.min(10, Math.max(1, zoneId));
+  return `theme-${normalized}` as ThemeId;
 };
-
-const ZONE_CONFIG = [
-  {
-    zoneId: 1,
-    settingsId: 0,
-    themeId: "theme-1" as const,
-    name: "Polynesian",
-  },
-  {
-    zoneId: 2,
-    settingsId: 1,
-    themeId: "theme-5" as const,
-    name: "Feudal Japan",
-  },
-  {
-    zoneId: 3,
-    settingsId: 2,
-    themeId: "theme-7" as const,
-    name: "Ancient Persia",
-  },
-] as const;
-
-const EXTRA_LOCKED_ZONES = [
-  { name: "Ancient Egypt", themeId: "theme-2" as const },
-  { name: "Norse", themeId: "theme-3" as const },
-  { name: "Ancient Greece", themeId: "theme-4" as const },
-  { name: "Ancient China", themeId: "theme-6" as const },
-  { name: "Mayan", themeId: "theme-8" as const },
-  { name: "Tribal", themeId: "theme-9" as const },
-  { name: "Inca", themeId: "theme-10" as const },
-] as const;
 
 const HomePage: React.FC = () => {
   const { account } = useAccountCustom();
   const {
     setup: {
-      contractComponents: { MapEntitlement, GameSettingsMetadata },
       systemCalls: { freeMint, create },
     },
   } = useDojo();
   const { username } = useControllerUsername();
-  const { playerMeta } = usePlayerMeta();
   const { themeTemplate, setThemeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
   const navigate = useNavigationStore((s) => s.navigate);
@@ -82,6 +43,8 @@ const HomePage: React.FC = () => {
   const setSelectedMode = useNavigationStore((s) => s.setSelectedMode);
   const [isStartingGame, setIsStartingGame] = useState(false);
   const [activeZone, setActiveZone] = useState(0);
+  const { balance: zStarBalance } = useZStarBalance(account?.address);
+  const { zones, totalStars } = useZoneProgress(account?.address, zStarBalance);
 
   useEffect(() => {
     setThemeTemplate(loadThemeTemplate(), false);
@@ -101,54 +64,7 @@ const HomePage: React.FC = () => {
     return ownedGames.filter((g) => !g.game_over);
   }, [ownedGames]);
 
-  const ownerAddressAsBigInt = useMemo(
-    () => toAddressBigInt(account?.address),
-    [account?.address],
-  );
-
-  const mapEntitlements = useMemo(() => {
-    if (!MapEntitlement || ownerAddressAsBigInt === null) return new Set<number>();
-    try {
-      const entities = Array.from(runQuery([Has(MapEntitlement)]));
-      const owned = new Set<number>();
-      for (const entity of entities) {
-        const entitlement = getComponentValue(MapEntitlement, entity);
-        if (!entitlement) continue;
-        if (BigInt(entitlement.player) === ownerAddressAsBigInt) {
-          owned.add(entitlement.settings_id);
-        }
-      }
-      return owned;
-    } catch {
-      return new Set<number>();
-    }
-  }, [MapEntitlement, ownerAddressAsBigInt]);
-
-  const mapMetadataById = useMemo(() => {
-    if (!GameSettingsMetadata)
-      return new Map<number, { is_free: boolean; enabled: boolean; price: bigint }>();
-    try {
-      const entities = Array.from(runQuery([Has(GameSettingsMetadata)]));
-      const metadataMap = new Map<
-        number,
-        { is_free: boolean; enabled: boolean; price: bigint }
-      >();
-      for (const entity of entities) {
-        const metadata = getComponentValue(GameSettingsMetadata, entity);
-        if (!metadata) continue;
-        metadataMap.set(metadata.settings_id, {
-          is_free: metadata.is_free,
-          enabled: metadata.enabled,
-          price: BigInt(metadata.price),
-        });
-      }
-      return metadataMap;
-    } catch {
-      return new Map<number, { is_free: boolean; enabled: boolean; price: bigint }>();
-    }
-  }, [GameSettingsMetadata]);
-
-  const zone = ZONE_CONFIG[activeZone];
+  const zone = zones[activeZone] ?? zones[0];
   const colors = getThemeColors(themeTemplate);
 
   const hasActiveRun = useMemo(() => {
@@ -164,17 +80,13 @@ const HomePage: React.FC = () => {
     async (settingsId: number) => {
       if (!account || isStartingGame) return;
 
-      const settingsMeta = mapMetadataById.get(settingsId);
-      const isFreeMap = settingsMeta?.is_free ?? settingsId === DEFAULT_SETTINGS_ID;
-      const isEnabled = settingsMeta?.enabled ?? true;
-      const isOwned = mapEntitlements.has(settingsId);
-
-      if (!isEnabled) {
-        showToast({ message: "This zone is currently disabled.", type: "error" });
+      const selectedZone = zones.find((zoneData) => zoneData.settingsId === settingsId);
+      if (!selectedZone) {
+        showToast({ message: "Zone data is still loading.", type: "error" });
         return;
       }
 
-      if (!isFreeMap && !isOwned) {
+      if (!selectedZone.unlocked) {
         showToast({ message: "This zone is locked.", type: "error" });
         return;
       }
@@ -209,10 +121,9 @@ const HomePage: React.FC = () => {
       create,
       freeMint,
       isStartingGame,
-      mapEntitlements,
-      mapMetadataById,
       navigate,
       selectedMode,
+      zones,
       username,
     ],
   );
@@ -222,40 +133,11 @@ const HomePage: React.FC = () => {
       navigate("map", activeRunTokenId);
     }
   }, [activeRunTokenId, navigate]);
-
-
-
-  const profileStars = Math.min(30, Math.max(0, (playerMeta?.bestLevel ?? 0) * 3));
-
-  const unlockedZones = ZONE_CONFIG.map((z) => {
-    const settingsMeta = mapMetadataById.get(z.settingsId);
-    const isEnabled = settingsMeta?.enabled ?? true;
-    const isFreeMap = settingsMeta?.is_free ?? z.settingsId === DEFAULT_SETTINGS_ID;
-    const isOwned = mapEntitlements.has(z.settingsId);
-    return {
-      ...z,
-      unlocked: isEnabled && (isFreeMap || isOwned),
-      stars: profileStars,
-    };
-  });
-
-  const zonesForDisplay = [
-    ...unlockedZones,
-      ...EXTRA_LOCKED_ZONES.map((zoneName, idx) => ({
-        zoneId: idx + 4,
-        settingsId: -1,
-        themeId: zoneName.themeId as ThemeId,
-        name: zoneName.name,
-        unlocked: false,
-        stars: 0,
-      })),
-  ];
-
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden px-4 pb-3 pt-6">
       <div className="mb-5 text-center">
         <img
-          src={getThemeImages(zone.themeId).logo}
+          src={getThemeImages(getThemeId(zone?.zoneId ?? 1)).logo}
           alt="zKube"
           className="mx-auto h-20 drop-shadow-[0_0_24px_rgba(255,255,255,0.35)]"
           draggable={false}
@@ -292,7 +174,7 @@ const HomePage: React.FC = () => {
                   {username || "Player"}
                 </p>
                 <p className="text-[10px]" style={{ color: colors.textMuted }}>
-                  {profileStars} ★ collected
+                  {totalStars} ★ collected
                 </p>
               </div>
             </div>
@@ -350,7 +232,7 @@ const HomePage: React.FC = () => {
           </p>
 
           <div className="space-y-2">
-            {zonesForDisplay.map((z, idx) => {
+            {zones.map((z, idx) => {
               const isSelectable = z.unlocked;
               const isSelected = idx === activeZone && isSelectable;
               return (
@@ -370,10 +252,10 @@ const HomePage: React.FC = () => {
                   >
                   <div className="flex items-center gap-3">
                      <img
-                       src={getThemeImages(z.themeId).themeIcon}
-                       alt={z.name}
-                       className="h-8 w-8 rounded-md"
-                       draggable={false}
+                        src={getThemeImages(getThemeId(z.zoneId)).themeIcon}
+                        alt={z.name}
+                        className="h-8 w-8 rounded-md"
+                        draggable={false}
                      />
                      <div>
                        <p className="font-display text-[13px] font-bold" style={{ color: colors.text }}>
@@ -428,8 +310,8 @@ const HomePage: React.FC = () => {
         <motion.button
           whileTap={{ scale: 0.98 }}
           type="button"
-          disabled={isStartingGame}
-          onClick={() => handleStartGame(zone.settingsId)}
+          disabled={isStartingGame || !zone}
+          onClick={() => zone && handleStartGame(zone.settingsId)}
           className="flex w-full items-center justify-center rounded-xl px-4 py-3 font-display text-base font-black tracking-[0.1em] disabled:opacity-50"
           style={{
             background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent}CC)`,

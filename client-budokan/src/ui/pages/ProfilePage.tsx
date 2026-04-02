@@ -1,15 +1,14 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { ChevronLeft } from "lucide-react";
-import { Has, getComponentValue, runQuery } from "@dojoengine/recs";
 
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { getThemeColors } from "@/config/themes";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
+import { useZStarBalance } from "@/hooks/useZStarBalance";
+import { useZoneProgress } from "@/hooks/useZoneProgress";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
-import { useDojo } from "@/dojo/useDojo";
 
 import ProgressBar from "@/ui/components/shared/ProgressBar";
 import OverviewTab from "@/ui/components/profile/OverviewTab";
@@ -18,33 +17,13 @@ import AchievementsTab from "@/ui/components/profile/AchievementsTab";
 import UnlockModal from "@/ui/components/profile/UnlockModal";
 
 import {
-  XP_PER_STAR,
   LEVEL_THRESHOLDS,
   PLAYER_TITLES,
-  ZONE_EMOJIS,
-  ZONE_NAMES,
-  ZONE_UNLOCK_PRICES,
   QUEST_DEFS,
   type ZoneProgressData,
 } from "@/config/profileData";
 
 const TABS = ["Overview", "Quests", "Achievements"] as const;
-
-const normalizeAddress = (address: string | undefined): string | undefined => {
-  if (!address) return undefined;
-  if (!address.startsWith("0x")) return address;
-  const hex = address.slice(2).replace(/^0+/, "") || "0";
-  return `0x${hex}`;
-};
-
-const toAddressBigInt = (address: string | undefined): bigint | null => {
-  if (!address) return null;
-  try {
-    return BigInt(address);
-  } catch {
-    return null;
-  }
-};
 
 const getLevelFromXp = (xp: number): number => {
   let level = 1;
@@ -72,76 +51,17 @@ const ProfilePage: React.FC = () => {
   const { playerMeta } = usePlayerMeta();
   const { account } = useAccountCustom();
   const isConnected = Boolean(account);
+  const { balance: zStarBalance } = useZStarBalance(account?.address);
+  const { zones, totalStars } = useZoneProgress(account?.address, zStarBalance);
 
-  const {
-    setup: {
-      contractComponents: { MapEntitlement },
-    },
-  } = useDojo();
-
-  const owner = normalizeAddress(account?.address);
-  const { games } = useGameTokensSlot({ owner: isConnected ? owner : undefined, limit: isConnected ? 100 : 0 });
-
-  const ownerAddressAsBigInt = useMemo(() => toAddressBigInt(account?.address), [account?.address]);
-
-  const mapEntitlements = useMemo(() => {
-    if (!MapEntitlement || ownerAddressAsBigInt === null) return new Set<number>();
-    try {
-      const entities = Array.from(runQuery([Has(MapEntitlement)]));
-      const owned = new Set<number>();
-      for (const entity of entities) {
-        const entitlement = getComponentValue(MapEntitlement, entity);
-        if (!entitlement) continue;
-        if (BigInt(entitlement.player) === ownerAddressAsBigInt) {
-          owned.add(entitlement.settings_id);
-        }
-      }
-      return owned;
-    } catch {
-      return new Set<number>();
-    }
-  }, [MapEntitlement, ownerAddressAsBigInt]);
-
-  const zoneStars = useMemo(() => {
-    const bestLevel = playerMeta?.bestLevel ?? 0;
-    return Math.min(bestLevel, 10) * 3;
-  }, [playerMeta?.bestLevel]);
-
-  const zones = useMemo<ZoneProgressData[]>(() => {
-    const totalStarsProxy = zoneStars;
-
-    return Array.from({ length: 10 }).map((_, index) => {
-      const zoneId = index + 1;
-      const unlocked = zoneId === 1 || mapEntitlements.has(zoneId - 1) || mapEntitlements.has(zoneId);
-      const isFree = zoneId === 1;
-      const stars = zoneId === 1 ? zoneStars : 0;
-      const pricing = ZONE_UNLOCK_PRICES[zoneId];
-
-      return {
-        zoneId,
-        name: ZONE_NAMES[zoneId],
-        emoji: ZONE_EMOJIS[zoneId],
-        stars,
-        maxStars: 30,
-        unlocked,
-        cleared: stars >= 30,
-        isFree,
-        starCost: pricing?.starCost,
-        ethPrice: pricing?.ethPrice,
-        currentStars: pricing ? totalStarsProxy : undefined,
-      };
-    });
-  }, [mapEntitlements, zoneStars]);
-
-  const totalStars = zones.reduce((sum, zone) => sum + zone.stars, 0);
-  const xp = totalStars * XP_PER_STAR;
+  const xp = playerMeta?.lifetimeXp ?? 0;
   const level = getLevelFromXp(xp);
   const levelStartXp = LEVEL_THRESHOLDS[Math.max(level - 1, 0)] ?? 0;
   const nextLevelXp = LEVEL_THRESHOLDS[level] ?? levelStartXp + 5000;
   const title = getTitleForLevel(level);
   const nextTitle = getTitleForLevel(level + 1);
   const questsPendingCount = QUEST_DEFS.filter((quest) => !quest.done).length;
-  const nextLockedZone = zones.find((zone) => !zone.unlocked && zone.starCost && zone.ethPrice) ?? null;
+  const nextLockedZone = zones.find((zone) => !zone.unlocked && zone.starCost && zone.price !== undefined) ?? null;
 
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
   const [unlockZone, setUnlockZone] = useState<ZoneProgressData | null>(null);
@@ -200,10 +120,10 @@ const ProfilePage: React.FC = () => {
 
           <div className="text-right">
             <p className="font-display text-lg font-black" style={{ color: colors.accent2 }}>
-              ★ {totalStars}
+              ★ {zStarBalance}
             </p>
             <p className="font-['DM_Sans'] text-[8px]" style={{ color: colors.textMuted }}>
-              total stars
+              zStar balance
             </p>
           </div>
         </div>
@@ -258,7 +178,7 @@ const ProfilePage: React.FC = () => {
             colors={colors}
             zones={zones}
             totalStars={totalStars}
-            totalGames={games.length}
+            totalGames={playerMeta?.totalRuns ?? 0}
             bestCombo="--"
             onUnlock={setUnlockZone}
           />

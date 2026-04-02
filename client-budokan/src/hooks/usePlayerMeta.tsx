@@ -4,6 +4,7 @@ import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import type { Entity } from "@dojoengine/recs";
 import { useAccount } from "@starknet-react/core";
+import { unpackMetaData } from "@/dojo/game/helpers/metaDataPacking";
 
 // Normalize entity ID to match Torii's format (no leading zeros after 0x)
 const normalizeEntityId = (entityId: string): Entity => {
@@ -15,6 +16,10 @@ const normalizeEntityId = (entityId: string): Entity => {
 export interface PlayerMeta {
   player: string;
   bestLevel: number;
+  totalRuns: number;
+  dailyStars: number;
+  lifetimeXp: number;
+  lastActive: number;
 }
 
 export const usePlayerMeta = () => {
@@ -37,10 +42,15 @@ export const usePlayerMeta = () => {
 
   const playerMeta = useMemo((): PlayerMeta | null => {
     if (!component) return null;
+    const unpackedMeta = unpackMetaData(BigInt(component.data));
 
     return {
       player: address || "",
       bestLevel: component.best_level || 0,
+      totalRuns: unpackedMeta.totalRuns,
+      dailyStars: unpackedMeta.dailyStars,
+      lifetimeXp: unpackedMeta.lifetimeXp,
+      lastActive: component.last_active || 0,
     };
   }, [component, address]);
 

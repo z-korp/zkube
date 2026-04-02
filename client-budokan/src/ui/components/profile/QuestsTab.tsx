@@ -12,6 +12,11 @@ interface QuestsTabProps {
   onUnlock: (zone: ZoneProgressData) => void;
 }
 
+const formatPrice = (price: bigint | undefined): number => {
+  if (price === undefined) return 0;
+  return Number(price) / 1e18;
+};
+
 const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock }) => {
   const daily = QUEST_DEFS.filter((quest) => quest.category === "daily");
   const weekly = QUEST_DEFS.filter((quest) => quest.category === "weekly");
@@ -25,10 +30,11 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
   };
 
   const discount = nextLockedZone?.starCost
-    ? Math.floor(((nextLockedZone.currentStars ?? 0) / nextLockedZone.starCost) * 100)
+    ? Math.min(100, Math.floor(((nextLockedZone.currentStars ?? 0) / nextLockedZone.starCost) * 100))
     : 0;
-  const discountedPrice = nextLockedZone?.ethPrice
-    ? (nextLockedZone.ethPrice * (1 - discount / 100)).toFixed(4)
+  const basePrice = formatPrice(nextLockedZone?.price);
+  const discountedPrice = basePrice
+    ? (basePrice * (1 - discount / 100)).toFixed(4)
     : "0.0000";
 
   return (
@@ -91,7 +97,7 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
                     className="font-display text-[8px]"
                     style={{ color: colors.textMuted, textDecoration: "line-through" }}
                   >
-                    {nextLockedZone.ethPrice}
+                    {basePrice.toFixed(4)}
                   </span>
                   <span
                     className="rounded px-1 py-[1px] font-display text-[7px] font-bold"
