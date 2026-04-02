@@ -21,6 +21,7 @@ pub trait ILevelSystem<T> {
 
 #[dojo::contract]
 mod level_system {
+    use core::num::traits::Zero;
     use dojo::event::EventStorage;
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
@@ -33,8 +34,11 @@ mod level_system {
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::random::RandomImpl;
+    use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::models::game::{Game, GameLevel, GameLevelTrait, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
+    use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
+    use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use zkube::systems::game::{IGameSystemDispatcher, IGameSystemDispatcherTrait};
     use zkube::elements::tasks::index::Task;
     use zkube::elements::tasks::interface::TaskTrait;
@@ -144,6 +148,45 @@ mod level_system {
             }
             world.write_model(@game);
 
+            // Get settings for star-eligibility check and delta minting
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+            let sid = settings.settings_id;
+
+            // Delta star minting: only mint the improvement over previous best
+            if completed_level <= 10 && stars > 0 {
+                let mut best_run: PlayerBestRun = world
+                    .read_model((player, sid, 0_u8));
+                let previous_best = best_run.get_best_level_stars(completed_level);
+                if stars > previous_best {
+                    let delta: u8 = stars - previous_best;
+                    // Mint delta zStar + XP via config dispatcher
+                    match world.dns_address(@"config_system") {
+                        Option::Some(config_address) => {
+                            let config = IConfigSystemDispatcher {
+                                contract_address: config_address,
+                            };
+                            if config.is_star_eligible(sid) {
+                                let zstar_address = config.get_zstar_address();
+                                if !zstar_address.is_zero() {
+                                    let zstar = IZStarTokenDispatcher {
+                                        contract_address: zstar_address,
+                                    };
+                                    zstar.mint(player, delta.into());
+                                }
+                                // XP: 100 per star
+                                let mut player_meta: PlayerMeta = world.read_model(player);
+                                if !player_meta.exists() {
+                                    player_meta = PlayerMetaTrait::new(player);
+                                }
+                                player_meta.increment_xp(delta.into() * 100);
+                                world.write_model(@player_meta);
+                            }
+                        },
+                        Option::None => {},
+                    }
+                }
+            }
+
             world
                 .emit_event(
                     @LevelCompleted {
@@ -156,9 +199,11 @@ mod level_system {
                     },
                 );
 
-            let game_address = world.dns_address(@"game_system").expect('GameSystem not found in DNS');
+            let game_address = world
+                .dns_address(@"game_system")
+                .expect('GameSystem not found in DNS');
             let game_dispatcher = IGameSystemDispatcher { contract_address: game_address };
-            game_dispatcher.emit_progress(player, Task::LevelComplete.identifier(), 1);
+            game_dispatcher.emit_progress(player, Task::LevelComplete.identifier(), 1, sid);
 
             InternalImpl::advance_level(ref world, game_id, player);
 

@@ -30,6 +30,7 @@ mod move_system {
     use zkube::helpers::{game_over, level_check, token};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
     use zkube::models::mutator::MutatorDef;
+    use zkube::models::player::PlayerBestRun;
     use zkube::systems::game::{IGameSystemDispatcher, IGameSystemDispatcherTrait};
     use zkube::elements::tasks::index::Task;
     use zkube::elements::tasks::interface::TaskTrait;
@@ -87,17 +88,20 @@ mod move_system {
             let mut run_data = game.get_run_data();
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
 
+            let sid = settings.settings_id;
             if lines_cleared > 0 {
-                game_dispatcher.emit_progress(player, Task::LineClear.identifier(), lines_cleared.into());
+                let lc_count: u128 = lines_cleared.into();
+                game_dispatcher
+                    .emit_progress(player, Task::LineClear.identifier(), lc_count, sid);
             }
             if game.combo_counter >= 3 {
-                game_dispatcher.emit_progress(player, Task::Combo3.identifier(), 1);
+                game_dispatcher.emit_progress(player, Task::Combo3.identifier(), 1, sid);
             }
             if game.combo_counter >= 4 {
-                game_dispatcher.emit_progress(player, Task::Combo4.identifier(), 1);
+                game_dispatcher.emit_progress(player, Task::Combo4.identifier(), 1, sid);
             }
             if game.combo_counter >= 5 {
-                game_dispatcher.emit_progress(player, Task::Combo5.identifier(), 1);
+                game_dispatcher.emit_progress(player, Task::Combo5.identifier(), 1, sid);
             }
 
             // Mutator-driven non-bonus effects (scoring/pressure) still read from MutatorDef.
@@ -180,16 +184,29 @@ mod move_system {
                 let is_complete = level_check::is_level_complete(@game_level, @run_data);
 
                 if is_complete {
-                    game_dispatcher.emit_progress(player, Task::LevelComplete.identifier(), 1);
+                    game_dispatcher
+                        .emit_progress(player, Task::LevelComplete.identifier(), 1, sid);
                     if game_level.max_moves > 0 {
                         let perfect_threshold = game_level.max_moves * 40 / 100;
                         if run_data.level_moves.into() <= perfect_threshold {
-                            game_dispatcher.emit_progress(player, Task::PerfectLevel.identifier(), 1);
+                            game_dispatcher
+                                .emit_progress(
+                                    player, Task::PerfectLevel.identifier(), 1, sid,
+                                );
                         }
                     }
                     if run_data.current_level >= 10 {
-                        game_dispatcher.emit_progress(player, Task::BossDefeat.identifier(), 1);
-                        game_dispatcher.emit_progress(player, Task::ZoneComplete.identifier(), 1);
+                        game_dispatcher
+                            .emit_progress(player, Task::BossDefeat.identifier(), 1, sid);
+                        // ZoneComplete only on FIRST clear — check PlayerBestRun.map_cleared
+                        let best_run: PlayerBestRun = world
+                            .read_model((player, sid, 0_u8));
+                        if !best_run.map_cleared {
+                            game_dispatcher
+                                .emit_progress(
+                                    player, Task::ZoneComplete.identifier(), 1, sid,
+                                );
+                        }
                     }
                     libs.level.finalize_level(game_id);
                 } else if is_grid_full {

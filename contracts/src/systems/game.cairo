@@ -21,7 +21,14 @@ pub trait IGameSystem<T> {
     fn get_game_data(self: @T, game_id: felt252) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool);
 
     /// Emit progression update for quest + achievement tasks.
-    fn emit_progress(ref self: T, player: starknet::ContractAddress, task_id: felt252, count: u128);
+    /// Gated by star-eligibility — non-eligible settings are silently skipped.
+    fn emit_progress(
+        ref self: T,
+        player: starknet::ContractAddress,
+        task_id: felt252,
+        count: u128,
+        settings_id: u32,
+    );
 }
 
 #[dojo::contract]
@@ -387,15 +394,36 @@ mod game_system {
         }
 
         fn emit_progress(
-            ref self: ContractState, player: ContractAddress, task_id: felt252, count: u128,
+            ref self: ContractState,
+            player: ContractAddress,
+            task_id: felt252,
+            count: u128,
+            settings_id: u32,
         ) {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let caller = get_caller_address();
 
-            let move_system = world.dns_address(@"move_system").unwrap_or(core::num::traits::Zero::zero());
-            let level_system = world.dns_address(@"level_system").unwrap_or(core::num::traits::Zero::zero());
+            let move_system = world
+                .dns_address(@"move_system")
+                .unwrap_or(core::num::traits::Zero::zero());
+            let level_system = world
+                .dns_address(@"level_system")
+                .unwrap_or(core::num::traits::Zero::zero());
 
-            assert(caller == move_system || caller == level_system, 'Unauthorized progress emitter');
+            assert(
+                caller == move_system || caller == level_system, 'Unauthorized progress emitter',
+            );
+
+            // Only emit progress for star-eligible settings (official zones)
+            match world.dns_address(@"config_system") {
+                Option::Some(config_address) => {
+                    let config = IConfigSystemDispatcher { contract_address: config_address };
+                    if !config.is_star_eligible(settings_id) {
+                        return;
+                    }
+                },
+                Option::None => { return; },
+            }
 
             let player_id: felt252 = player.into();
             self.quest.progress(world, player_id, task_id, count, true);
