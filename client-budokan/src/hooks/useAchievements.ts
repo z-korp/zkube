@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Has, getComponentValue, runQuery } from "@dojoengine/recs";
+import { Has, getComponentValue } from "@dojoengine/recs";
+import { useEntityQuery } from "@dojoengine/react";
 import { useAccount } from "@starknet-react/core";
 import { useDojo } from "@/dojo/useDojo";
 import { ACHIEVEMENT_DEFS, type AchievementCategory, type AchievementDef } from "@/config/achievementDefs";
@@ -32,10 +33,12 @@ export const useAchievements = (): UseAchievementsResult => {
     }
   }, [address]);
 
+  const advancementEntityIds = useEntityQuery([Has(AchievementAdvancement)]);
+  const completionEntityIds = useEntityQuery([Has(AchievementCompletion)]);
+
   const achievements = useMemo<AchievementStatus[]>(() => {
     const advancementByKey = new Map<string, bigint>();
-    const advancementEntities = Array.from(runQuery([Has(AchievementAdvancement)]));
-    for (const entity of advancementEntities) {
+    for (const entity of advancementEntityIds) {
       const advancement = getComponentValue(AchievementAdvancement, entity);
       if (!advancement || ownerBigInt === null || BigInt(advancement.player_id) !== ownerBigInt) continue;
 
@@ -44,8 +47,7 @@ export const useAchievements = (): UseAchievementsResult => {
     }
 
     const completionById = new Map<string, { unclaimed: boolean }>();
-    const completionEntities = Array.from(runQuery([Has(AchievementCompletion)]));
-    for (const entity of completionEntities) {
+    for (const entity of completionEntityIds) {
       const completion = getComponentValue(AchievementCompletion, entity);
       if (!completion || ownerBigInt === null || BigInt(completion.player_id) !== ownerBigInt) continue;
 
@@ -66,7 +68,7 @@ export const useAchievements = (): UseAchievementsResult => {
         claimed: completion ? !completion.unclaimed : false,
       };
     });
-  }, [ownerBigInt, AchievementAdvancement, AchievementCompletion]);
+  }, [ownerBigInt, advancementEntityIds, completionEntityIds, AchievementAdvancement, AchievementCompletion]);
 
   return { achievements, isLoading: false };
 };

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Has, getComponentValue, runQuery } from "@dojoengine/recs";
+import { Has, getComponentValue } from "@dojoengine/recs";
+import { useEntityQuery } from "@dojoengine/react";
 import { useDojo } from "@/dojo/useDojo";
 import { unpackAllLevelStars } from "@/dojo/game/helpers/levelStarsPacking";
 
@@ -30,12 +31,13 @@ export const usePlayerBestRun = (playerAddress: string | undefined) => {
     }
   }, [playerAddress]);
 
+  const entityIds = useEntityQuery([Has(PlayerBestRun)]);
+
   const bestRuns = useMemo(() => {
     const result = new Map<string, PlayerBestRunData>();
     if (!ownerBigInt) return result;
 
-    const entities = Array.from(runQuery([Has(PlayerBestRun)]));
-    for (const entity of entities) {
+    for (const entity of entityIds) {
       const bestRun = getComponentValue(PlayerBestRun, entity);
       if (!bestRun || BigInt(bestRun.player) !== ownerBigInt) continue;
 
@@ -54,7 +56,7 @@ export const usePlayerBestRun = (playerAddress: string | undefined) => {
     }
 
     return result;
-  }, [PlayerBestRun, ownerBigInt]);
+  }, [entityIds, PlayerBestRun, ownerBigInt]);
 
   return {
     bestRuns,

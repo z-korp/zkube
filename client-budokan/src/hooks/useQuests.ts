@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Has, getComponentValue, runQuery } from "@dojoengine/recs";
+import { Has, getComponentValue } from "@dojoengine/recs";
+import { useEntityQuery } from "@dojoengine/react";
 import { useAccount } from "@starknet-react/core";
 import { useDojo } from "@/dojo/useDojo";
 import { QUEST_DEFS, getQuestIntervalId, isQuestActive, type QuestDef, type QuestType } from "@/config/questDefs";
@@ -34,12 +35,14 @@ export const useQuests = (): UseQuestsResult => {
     }
   }, [address]);
 
+  const advancementEntityIds = useEntityQuery([Has(QuestAdvancement)]);
+  const completionEntityIds = useEntityQuery([Has(QuestCompletion)]);
+
   const quests = useMemo<QuestStatus[]>(() => {
     const nowSeconds = Math.floor(Date.now() / 1000);
 
     const advancementByKey = new Map<string, bigint>();
-    const advancementEntities = Array.from(runQuery([Has(QuestAdvancement)]));
-    for (const entity of advancementEntities) {
+    for (const entity of advancementEntityIds) {
       const advancement = getComponentValue(QuestAdvancement, entity);
       if (!advancement || ownerBigInt === null || BigInt(advancement.player_id) !== ownerBigInt) continue;
 
@@ -48,8 +51,7 @@ export const useQuests = (): UseQuestsResult => {
     }
 
     const completionByKey = new Map<string, { unclaimed: boolean }>();
-    const completionEntities = Array.from(runQuery([Has(QuestCompletion)]));
-    for (const entity of completionEntities) {
+    for (const entity of completionEntityIds) {
       const completion = getComponentValue(QuestCompletion, entity);
       if (!completion || ownerBigInt === null || BigInt(completion.player_id) !== ownerBigInt) continue;
 
@@ -75,7 +77,7 @@ export const useQuests = (): UseQuestsResult => {
         active: isQuestActive(quest, nowSeconds),
       };
     });
-  }, [ownerBigInt, QuestAdvancement, QuestCompletion]);
+  }, [ownerBigInt, advancementEntityIds, completionEntityIds, QuestAdvancement, QuestCompletion]);
 
   return { quests, isLoading: false };
 };

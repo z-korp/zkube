@@ -19,7 +19,6 @@ export interface PlayerMeta {
   totalRuns: number;
   dailyStars: number;
   lifetimeXp: number;
-  lastActive: number;
 }
 
 export const usePlayerMeta = () => {
@@ -50,7 +49,6 @@ export const usePlayerMeta = () => {
       totalRuns: unpackedMeta.totalRuns,
       dailyStars: unpackedMeta.dailyStars,
       lifetimeXp: unpackedMeta.lifetimeXp,
-      lastActive: component.last_active || 0,
     };
   }, [component, address]);
 

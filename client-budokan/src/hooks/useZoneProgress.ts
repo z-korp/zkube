@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Has, getComponentValue, runQuery } from "@dojoengine/recs";
+import { Has, getComponentValue } from "@dojoengine/recs";
+import { useEntityQuery } from "@dojoengine/react";
 import { useDojo } from "@/dojo/useDojo";
 import { unpackAllLevelStars } from "@/dojo/game/helpers/levelStarsPacking";
 import { ZONE_EMOJIS, ZONE_NAMES, type ZoneProgressData } from "@/config/profileData";
@@ -29,40 +30,42 @@ export const useZoneProgress = (
     }
   }, [playerAddress]);
 
+  const settingsEntityIds = useEntityQuery([Has(GameSettings)]);
+  const metadataEntityIds = useEntityQuery([Has(GameSettingsMetadata)]);
+  const bestRunEntityIds = useEntityQuery([Has(PlayerBestRun)]);
+  const entitlementEntityIds = useEntityQuery([Has(MapEntitlement)]);
+
   return useMemo(() => {
-    const gameSettingsEntities = Array.from(runQuery([Has(GameSettings)]));
     const mapModeSettings = new Set<number>();
-    for (const entity of gameSettingsEntities) {
+    for (const entity of settingsEntityIds) {
       const gameSetting = getComponentValue(GameSettings, entity);
       if (!gameSetting || gameSetting.mode !== 0) continue;
       mapModeSettings.add(gameSetting.settings_id);
     }
 
-    const metadataEntities = Array.from(runQuery([Has(GameSettingsMetadata)]));
     const metadataMap = new Map<
       number,
       { starCost: bigint; price: bigint; isFree: boolean; themeId: number; enabled: boolean }
     >();
 
-    for (const entity of metadataEntities) {
+    for (const entity of metadataEntityIds) {
       const metadata = getComponentValue(GameSettingsMetadata, entity);
       if (!metadata) continue;
       metadataMap.set(metadata.settings_id, {
-        starCost: BigInt(metadata.star_cost),
-        price: BigInt(metadata.price),
+        starCost: BigInt((metadata as any).star_cost ?? 0),
+        price: BigInt(metadata.price ?? 0),
         isFree: metadata.is_free,
         themeId: metadata.theme_id,
         enabled: metadata.enabled,
       });
     }
 
-    const bestRunEntities = Array.from(runQuery([Has(PlayerBestRun)]));
     const bestRunMap = new Map<
       number,
       { bestStars: number; mapCleared: boolean; levelStars: number[] }
     >();
 
-    for (const entity of bestRunEntities) {
+    for (const entity of bestRunEntityIds) {
       const bestRun = getComponentValue(PlayerBestRun, entity);
       if (!bestRun || ownerBigInt === null || BigInt(bestRun.player) !== ownerBigInt || bestRun.mode !== 0) continue;
 
@@ -73,9 +76,8 @@ export const useZoneProgress = (
       });
     }
 
-    const entitlementEntities = Array.from(runQuery([Has(MapEntitlement)]));
     const entitlements = new Set<number>();
-    for (const entity of entitlementEntities) {
+    for (const entity of entitlementEntityIds) {
       const entitlement = getComponentValue(MapEntitlement, entity);
       if (!entitlement || ownerBigInt === null || BigInt(entitlement.player) !== ownerBigInt) continue;
       entitlements.add(entitlement.settings_id);
@@ -105,5 +107,5 @@ export const useZoneProgress = (
 
     const totalStars = zones.reduce((sum, zone) => sum + zone.stars, 0);
     return { zones, totalStars, isLoading: false };
-  }, [ownerBigInt, zStarBalance, GameSettings, GameSettingsMetadata, PlayerBestRun, MapEntitlement]);
+  }, [ownerBigInt, zStarBalance, settingsEntityIds, metadataEntityIds, bestRunEntityIds, entitlementEntityIds, GameSettings, GameSettingsMetadata, PlayerBestRun, MapEntitlement]);
 };
