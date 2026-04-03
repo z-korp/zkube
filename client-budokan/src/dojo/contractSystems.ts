@@ -106,6 +106,12 @@ export interface AddCustomGameSettings extends Signer {
   boss_id: number;
 }
 
+export interface QuestClaim extends Signer {
+  player: string;
+  quest_id: string;
+  interval_id: number;
+}
+
 export interface PurchaseMap extends Signer {
   settings_id: number;
 }
@@ -334,6 +340,43 @@ export function setupWorld(config: Config) {
       }
     };
 
+    const questClaim = async ({ account, player, quest_id, interval_id }: QuestClaim) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "quest_claim",
+            calldata: CallData.compile({
+              player,
+              quest_id,
+              interval_id,
+            }),
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing quest_claim:", error);
+        throw error;
+      }
+    };
+
+    const questClaims = async (account: Account, params: { player: string; quest_id: string; interval_id: number }[]) => {
+      try {
+        const calls = params.map(({ player, quest_id, interval_id }) => ({
+          contractAddress: contract.address,
+          entrypoint: "quest_claim",
+          calldata: CallData.compile({
+            player,
+            quest_id,
+            interval_id,
+          }),
+        }));
+        return await account.execute(calls);
+      } catch (error) {
+        console.error("Error executing quest_claims:", error);
+        throw error;
+      }
+    };
+
     return {
       address: contract.address,
       free_mint,
@@ -342,6 +385,8 @@ export function setupWorld(config: Config) {
       surrender,
       move,
       bonus,
+      questClaim,
+      questClaims,
     };
   }
 

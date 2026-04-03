@@ -1,8 +1,11 @@
+import { useState, useCallback } from "react";
 import type { ThemeColors } from "@/config/themes";
 import ProgressBar from "@/ui/components/shared/ProgressBar";
 import type { ZoneProgressData } from "@/config/profileData";
 import { groupQuests, useQuests, type QuestStatus } from "@/hooks/useQuests";
 import { motion } from "motion/react";
+import { useDojo } from "@/dojo/useDojo";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 const containerVariants: any = {
   hidden: { opacity: 0 },
@@ -33,6 +36,26 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
   const { daily, weekly, finisher } = groupQuests(quests);
   const activeDaily = daily.filter((quest) => quest.active);
   const activeWeekly = weekly.filter((quest) => quest.active);
+  const { account } = useAccountCustom();
+  const { setup: { systemCalls } } = useDojo();
+  const [claimingId, setClaimingId] = useState<string | null>(null);
+
+  const handleClaim = useCallback(async (quest: QuestStatus) => {
+    if (!account?.address || claimingId) return;
+    setClaimingId(quest.id);
+    try {
+      await systemCalls.questClaim({
+        account,
+        player: account.address,
+        quest_id: quest.id,
+        interval_id: quest.intervalId,
+      });
+    } catch (error) {
+      console.error("Failed to claim quest:", error);
+    } finally {
+      setClaimingId(null);
+    }
+  }, [account, systemCalls, claimingId]);
 
   const getQuestColor = (quest: QuestStatus): string => {
     if (quest.type === "weekly") return "#A78BFA";
@@ -131,9 +154,9 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
         </motion.button>
       )}
 
-      <QuestSection colors={colors} title="Daily Quests" badge="Rotating" badgeColor={colors.accent} quests={activeDaily} getQuestColor={getQuestColor} compact />
-      <QuestSection colors={colors} title="Weekly Quests" badge="Weekly" badgeColor="#A78BFA" quests={activeWeekly} getQuestColor={getQuestColor} compact />
-      <QuestSection colors={colors} title="Daily Finisher" quests={finisher} getQuestColor={getQuestColor} />
+        <QuestSection colors={colors} title="Daily Quests" badge="Rotating" badgeColor={colors.accent} quests={activeDaily} getQuestColor={getQuestColor} compact onClaim={handleClaim} claimingId={claimingId} />
+        <QuestSection colors={colors} title="Weekly Quests" badge="Weekly" badgeColor="#A78BFA" quests={activeWeekly} getQuestColor={getQuestColor} compact onClaim={handleClaim} claimingId={claimingId} />
+        <QuestSection colors={colors} title="Daily Finisher" quests={finisher} getQuestColor={getQuestColor} onClaim={handleClaim} claimingId={claimingId} />
     </motion.div>
   );
 };
@@ -146,6 +169,8 @@ interface QuestSectionProps {
   badge?: string;
   badgeColor?: string;
   compact?: boolean;
+  onClaim?: (quest: QuestStatus) => void;
+  claimingId?: string | null;
 }
 
 const QuestSection: React.FC<QuestSectionProps> = ({
@@ -156,18 +181,20 @@ const QuestSection: React.FC<QuestSectionProps> = ({
   badge,
   badgeColor,
   compact = false,
+  onClaim,
+  claimingId,
 }) => (
   <motion.section variants={itemVariants}>
     <div className="mb-2 flex items-center justify-between">
       <p
-        className="font-['DM_Sans'] text-[10px] font-semibold uppercase tracking-[0.15em]"
+        className="font-sans text-[10px] font-semibold uppercase tracking-[0.15em]"
         style={{ color: colors.textMuted }}
       >
         {title}
       </p>
       {badge && (
         <span
-          className="rounded px-1.5 py-0.5 font-['DM_Sans'] text-[8px] font-semibold"
+          className="rounded px-1.5 py-0.5 font-sans text-[8px] font-semibold"
           style={{
             color: badgeColor,
             background: `${badgeColor}1A`,
@@ -181,7 +208,7 @@ const QuestSection: React.FC<QuestSectionProps> = ({
 
     <div className="flex flex-col gap-1.5">
       {quests.map((quest) => (
-        <QuestCard key={quest.id} colors={colors} quest={quest} color={getQuestColor(quest)} compact={compact} />
+        <QuestCard key={quest.id} colors={colors} quest={quest} color={getQuestColor(quest)} compact={compact} onClaim={onClaim} claimingId={claimingId} />
       ))}
     </div>
   </motion.section>
@@ -192,22 +219,27 @@ interface QuestCardProps {
   quest: QuestStatus;
   color: string;
   compact: boolean;
+  onClaim?: (quest: QuestStatus) => void;
+  claimingId?: string | null;
 }
 
-const QuestCard: React.FC<QuestCardProps> = ({ colors, quest, color, compact }) => (
-  <div
-    className="rounded-[10px]"
-    style={{
-      background: quest.completed ? `${color}14` : colors.surface,
-      border: `1px solid ${quest.completed ? `${color}40` : colors.border}`,
-      padding: compact ? "8px 10px" : "10px 12px",
-      opacity: quest.claimed ? 0.72 : 1,
-    }}
-  >
-    <div className="flex items-start gap-2">
-      <span className={compact ? "text-base" : "text-lg"}>{quest.icon}</span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between">
+const QuestCard: React.FC<QuestCardProps> = ({ colors, quest, color, compact, onClaim, claimingId }) => {
+  const isClaiming = claimingId === quest.id;
+
+  return (
+    <div
+      className="rounded-[10px]"
+      style={{
+        background: quest.completed ? `${color}14` : colors.surface,
+        border: `1px solid ${quest.completed ? `${color}40` : colors.border}`,
+        padding: compact ? "8px 10px" : "10px 12px",
+        opacity: quest.claimed ? 0.72 : 1,
+      }}
+    >
+      <div className="flex items-start gap-2">
+        <span className={compact ? "text-base" : "text-lg"}>{quest.icon}</span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between">
             <p
               className="font-display text-[11px] font-bold"
               style={{ color: quest.completed ? color : colors.text, textDecoration: quest.claimed ? "line-through" : "none" }}
@@ -216,31 +248,38 @@ const QuestCard: React.FC<QuestCardProps> = ({ colors, quest, color, compact }) 
             </p>
             {quest.claimed ? (
               <span
-                className="rounded px-1.5 py-[1px] font-['DM_Sans'] text-[8px] font-bold"
+                className="rounded px-1.5 py-[1px] font-sans text-[8px] font-bold"
                 style={{ color: colors.accent, background: `${colors.accent}20` }}
               >
                 CLAIMED
               </span>
-            ) : quest.completed ? (
-              <span
-                className="rounded px-1.5 py-[1px] font-['DM_Sans'] text-[8px] font-bold"
-                style={{ color: "#FF6B8A", background: "rgba(255,107,138,0.2)" }}
+            ) : quest.completed && onClaim ? (
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onClaim(quest)}
+                disabled={isClaiming}
+                className="rounded-md px-2.5 py-1 font-display text-[9px] font-bold text-white disabled:opacity-50"
+                style={{
+                  background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent2})`,
+                  boxShadow: `0 0 8px ${colors.accent}40`,
+                }}
               >
-                COMPLETE
-              </span>
+                {isClaiming ? "..." : `CLAIM +${quest.reward}★`}
+              </motion.button>
             ) : (
               <span className="font-display text-[9px] font-bold" style={{ color: colors.accent2 }}>
                 +{quest.reward}★
-            </span>
-          )}
+              </span>
+            )}
+          </div>
+          <p className="mb-1 mt-0.5 font-sans text-[9px]" style={{ color: colors.textMuted }}>
+            {quest.description}
+          </p>
+          {!quest.claimed && <ProgressBar value={quest.progress} max={quest.target} color={color} height={4} showLabel />}
         </div>
-        <p className="mb-1 mt-0.5 font-['DM_Sans'] text-[9px]" style={{ color: colors.textMuted }}>
-          {quest.description}
-        </p>
-        {!quest.claimed && <ProgressBar value={quest.progress} max={quest.target} color={color} height={4} showLabel />}
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default QuestsTab;

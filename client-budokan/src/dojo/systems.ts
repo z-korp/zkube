@@ -418,6 +418,14 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
+  const questClaim = async ({ account, ...props }: SystemTypes.QuestClaim) => {
+    await handleTransaction(
+      account,
+      () => client.game.questClaim({ account, ...props }),
+      "Quest reward claimed!",
+    );
+  };
+
   return {
     freeMint,
     create,
@@ -435,5 +443,6 @@ export function systems({ client }: { client: IWorld }) {
     settleWeeklyEndless,
     claimPrize,
     withdrawUnclaimed,
+    questClaim,
   };
 }
