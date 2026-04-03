@@ -14,19 +14,12 @@ const TROPHY_IMAGES: Record<number, string> = {
   3: "/assets/trophies/bronze.png",
 };
 
-const containerVariants: any = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.06,
-    },
-  },
-};
-
-const itemVariants: any = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+const rowVariants: any = {
+  hidden: { opacity: 0, x: -20 },
+  visible: (i: number) => ({
+    opacity: 1, x: 0,
+    transition: { delay: i * 0.04, type: "spring", stiffness: 300, damping: 24 }
+  })
 };
 
 const LeaderboardPage: React.FC = () => {
@@ -71,9 +64,15 @@ const LeaderboardPage: React.FC = () => {
   return (
     <div className="flex h-full flex-col pb-[72px]">
       <div className="px-4 pt-4 pb-2">
-        <h1 className="font-display text-[18px] font-extrabold text-center" style={{ color: colors.text }}>
+        <motion.h1 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 24 }}
+          className="font-display text-[18px] font-extrabold text-center" 
+          style={{ color: colors.text }}
+        >
           Leaderboard
-        </h1>
+        </motion.h1>
         <div className="mt-2 flex">
           {([
             { id: "zone", label: "Zone" },
@@ -83,14 +82,20 @@ const LeaderboardPage: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className="flex-1 border-b-2 py-2 font-sans text-[11px]"
+              className="relative flex-1 py-2 font-sans text-[11px]"
               style={{
                 color: activeTab === tab.id ? colors.accent : colors.textMuted,
-                borderBottomColor: activeTab === tab.id ? colors.accent : "transparent",
                 fontWeight: activeTab === tab.id ? 700 : 500,
               }}
             >
               {tab.label}
+              {activeTab === tab.id && (
+                <motion.div
+                  layoutId="leaderboard-tab-indicator"
+                  className="absolute bottom-0 left-0 right-0 h-0.5"
+                  style={{ backgroundColor: colors.accent }}
+                />
+              )}
             </button>
           ))}
         </div>
@@ -103,21 +108,26 @@ const LeaderboardPage: React.FC = () => {
             <p className="font-sans text-sm font-medium">Loading rankings...</p>
           </div>
         ) : rankRows.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center" style={{ color: colors.textMuted }}>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center justify-center py-16 text-center" 
+            style={{ color: colors.textMuted }}
+          >
             <Trophy className="h-12 w-12 mb-4 opacity-50" />
             <p className="font-display text-lg mb-1" style={{ color: colors.text }}>No entries yet</p>
             <p className="font-sans text-sm">Finish a run to claim rank #1.</p>
-          </div>
+          </motion.div>
         ) : (
           <motion.div 
-            variants={containerVariants}
             initial="hidden"
-            animate="show"
+            animate="visible"
             className="mx-auto max-w-[500px] space-y-2"
           >
-            {rankRows.map((entry) => (
+            {rankRows.map((entry, index) => (
               <motion.div
-                variants={itemVariants}
+                custom={index}
+                variants={rowVariants}
                 key={entry.id}
                 className="flex items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-xl shadow-lg shadow-black/20"
                 style={{

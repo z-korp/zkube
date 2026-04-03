@@ -76,7 +76,12 @@ const SettingsPage: React.FC = () => {
             </div>
 
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 24 }}
+                className="flex items-center gap-3"
+              >
                 <span className="text-base shrink-0">🎵</span>
                 <input
                   type="range"
@@ -93,9 +98,14 @@ const SettingsPage: React.FC = () => {
                 <span className="font-display text-lg tracking-wider w-8 text-right" style={{ color: colors.accent }}>
                   {toPercent(musicVolume)}
                 </span>
-              </div>
+              </motion.div>
 
-              <div className="flex items-center gap-3">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 24 }}
+                className="flex items-center gap-3"
+              >
                 <span className="text-base shrink-0">🔔</span>
                 <input
                   type="range"
@@ -112,7 +122,7 @@ const SettingsPage: React.FC = () => {
                 <span className="font-display text-lg tracking-wider w-8 text-right" style={{ color: colors.accent2 }}>
                   {toPercent(effectsVolume)}
                 </span>
-              </div>
+              </motion.div>
             </div>
           </motion.section>
 
@@ -129,13 +139,16 @@ const SettingsPage: React.FC = () => {
               </h2>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {THEME_IDS.map((themeId) => {
+              <div className="flex flex-wrap gap-2">
+              {THEME_IDS.map((themeId, index) => {
                 const themeAssets = ImageAssets(themeId);
                 const isSelected = themeTemplate === themeId;
 
                 return (
                   <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 + index * 0.03, type: "spring", stiffness: 300, damping: 24 }}
                     key={themeId}
                     type="button"
                     whileTap={{ scale: 0.93 }}
@@ -208,11 +221,13 @@ const SettingsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <GameButton
-                  label="DISCONNECT"
-                  variant="danger"
-                  onClick={() => disconnect()}
-                />
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <GameButton
+                    label="DISCONNECT"
+                    variant="danger"
+                    onClick={() => disconnect()}
+                  />
+                </motion.div>
               </div>
             ) : (
               <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 font-sans text-sm" style={{ color: colors.textMuted }}>

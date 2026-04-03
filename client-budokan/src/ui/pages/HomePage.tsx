@@ -269,7 +269,9 @@ const HomePage: React.FC = () => {
               const isSelectable = z.unlocked;
               const isSelected = idx === activeZone && isSelectable;
               return (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   key={z.settingsId}
                   type="button"
                   onClick={() => {
@@ -328,7 +330,7 @@ const HomePage: React.FC = () => {
                   }}>
                     {isSelectable ? "→" : "🔒"}
                   </span>
-                </button>
+                </motion.button>
               );
             })}
           </div>

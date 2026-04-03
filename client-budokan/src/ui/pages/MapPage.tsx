@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft } from "lucide-react";
+import { motion } from "motion/react";
 import { useGame } from "@/hooks/useGame";
 import { useGameLevel } from "@/hooks/useGameLevel";
 import {
@@ -157,7 +158,12 @@ const MapPage: React.FC = () => {
 
   return (
     <div className="h-screen-viewport flex flex-col">
-      <div className="flex items-center gap-2 px-4 pt-3 pb-2">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex items-center gap-2 px-4 pt-3 pb-2"
+      >
         <button
           onClick={goBack}
           className="flex h-10 w-10 items-center justify-center rounded-xl"
@@ -176,7 +182,7 @@ const MapPage: React.FC = () => {
             Polynesian · Level {currentLevel}
           </p>
         </div>
-      </div>
+      </motion.div>
 
       <div className="relative flex-1 min-h-0 overflow-hidden">
         <ZoneBackground zone={1} themeId={"theme-1" as ThemeId} />
@@ -230,21 +236,35 @@ const MapPage: React.FC = () => {
                       return (
                         <g key={`main-${edge.from}-${edge.to}`}>
                           {pathTheme.pathStyle === "double" && (
-                            <path
+                            <motion.path
                               d={d}
                               fill="none"
                               stroke={stroke}
                               strokeWidth={sw + 1.6}
                               strokeLinecap="round"
+                              initial={!dash ? { pathLength: 0 } : undefined}
+                              animate={!dash ? { pathLength: 1 } : undefined}
+                              transition={{
+                                delay: 0.3 + edge.from * 0.05,
+                                duration: 0.5,
+                                ease: "easeInOut"
+                              }}
                               opacity={opacity * 0.35}
                             />
                           )}
-                          <path
+                          <motion.path
                             d={d}
                             fill="none"
                             stroke={stroke}
                             strokeWidth={sw}
                             strokeLinecap="round"
+                            initial={!dash ? { pathLength: 0 } : undefined}
+                            animate={!dash ? { pathLength: 1 } : undefined}
+                            transition={{
+                              delay: 0.3 + edge.from * 0.05,
+                              duration: 0.5,
+                              ease: "easeInOut"
+                            }}
                             opacity={opacity}
                             strokeDasharray={dash}
                           />
@@ -272,30 +292,8 @@ const MapPage: React.FC = () => {
                             : themeImages.mapNodeLevel;
                       const r = node.type === "boss" ? 7.5 : 5;
 
-                      return (
-                        <g
-                          key={`node-${node.nodeInZone}`}
-                          onClick={() => {
-                            if (!isInteractive) {
-                              return;
-                            }
-
-                            if (canOpenPreview(node)) {
-                              setSelectedNode(node);
-                            }
-                          }}
-                          style={{
-                            cursor: isInteractive ? "pointer" : "default",
-                            transformOrigin: `${cx}px ${cy}px`,
-                            ...(node.state === "current"
-                              ? {
-                                  animation:
-                                    "map-node-pulse 2s ease-in-out infinite",
-                                }
-                              : {}),
-                          }}
-                          opacity={colors.alpha}
-                        >
+                      const nodeContent = (
+                        <>
                           <clipPath id={`node-clip-${node.nodeInZone}`}>
                             <circle cx={cx} cy={cy} r={r} />
                           </clipPath>
@@ -308,14 +306,34 @@ const MapPage: React.FC = () => {
                             preserveAspectRatio="xMidYMid slice"
                             clipPath={`url(#node-clip-${node.nodeInZone})`}
                           />
-                          <circle
-                            cx={cx}
-                            cy={cy}
-                            r={r}
-                            fill="none"
-                            stroke={colors.border}
-                            strokeWidth={node.type === "boss" ? 0.6 : 0.4}
-                          />
+                          {node.type === "boss" ? (
+                            <motion.circle
+                              cx={cx}
+                              cy={cy}
+                              r={r}
+                              fill="none"
+                              stroke={colors.border}
+                              strokeWidth={0.6}
+                              animate={{
+                                strokeWidth: [0.6, 1.0, 0.6],
+                                opacity: [0.8, 1, 0.8],
+                              }}
+                              transition={{
+                                duration: 3,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                              }}
+                            />
+                          ) : (
+                            <circle
+                              cx={cx}
+                              cy={cy}
+                              r={r}
+                              fill="none"
+                              stroke={colors.border}
+                              strokeWidth={0.4}
+                            />
+                          )}
 
                           <>
                             <circle
@@ -354,25 +372,78 @@ const MapPage: React.FC = () => {
                                   const starX = cx - 2.5 + i * 2.5;
                                   const starY = cy + r + 2.5;
                                   return (
-                                    <text
+                                    <motion.text
                                       key={i}
+                                      initial={{ opacity: 0, scale: 0 }}
+                                      animate={{
+                                        opacity: 1,
+                                        scale: 1,
+                                        fill: filled
+                                          ? "#FACC15"
+                                          : "rgba(255,255,255,0.3)"
+                                      }}
+                                      transition={{
+                                        delay: node.nodeInZone * 0.06 + 0.3 + i * 0.1,
+                                        type: "spring",
+                                        stiffness: 300,
+                                        damping: 20
+                                      }}
+                                      style={{ transformOrigin: `${starX}px ${starY}px` }}
                                       x={starX}
                                       y={starY}
                                       fontSize={2}
                                       textAnchor="middle"
-                                      fill={
-                                        filled
-                                          ? "#FACC15"
-                                          : "rgba(255,255,255,0.3)"
-                                      }
                                     >
                                       ★
-                                    </text>
+                                    </motion.text>
                                   );
                                 })}
                               </g>
                             )}
-                        </g>
+                        </>
+                      );
+
+                      return (
+                        <motion.g
+                          key={`node-${node.nodeInZone}`}
+                          onClick={() => {
+                            if (!isInteractive) {
+                              return;
+                            }
+
+                            if (canOpenPreview(node)) {
+                              setSelectedNode(node);
+                            }
+                          }}
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: colors.alpha }}
+                          transition={{
+                            delay: node.nodeInZone * 0.06,
+                            type: "spring",
+                            stiffness: 260,
+                            damping: 20
+                          }}
+                          style={{
+                            cursor: isInteractive ? "pointer" : "default",
+                            transformOrigin: `${cx}px ${cy}px`,
+                          }}
+                        >
+                          {node.state === "current" ? (
+                            <motion.g
+                              animate={{ scale: [1, 1.08, 1] }}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                              }}
+                              style={{ transformOrigin: `${cx}px ${cy}px` }}
+                            >
+                              {nodeContent}
+                            </motion.g>
+                          ) : (
+                            <g>{nodeContent}</g>
+                          )}
+                        </motion.g>
                       );
                     })}
           </svg>

@@ -7,8 +7,8 @@ interface PageNavigatorProps {
   children: React.ReactNode;
 }
 
-const TRANSITION_DURATION = 0.15;
-const EASE_OUT_CUBIC: [number, number, number, number] = [0.33, 1, 0.68, 1];
+const TRANSITION_DURATION = 0.25;
+const EASE_OUT_CUBIC: [number, number, number, number] = [0.32, 0.72, 0, 1];
 const SLIDE_TRANSITION = { duration: TRANSITION_DURATION, ease: EASE_OUT_CUBIC };
 
 const PageNavigator: React.FC<PageNavigatorProps> = ({ children }) => {
@@ -24,9 +24,9 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ children }) => {
         <AnimatePresence initial={false}>
           <motion.div
             key={currentPage}
-            initial={{ x: isBack ? "-100%" : "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: isBack ? "100%" : "-100%" }}
+            initial={{ opacity: 0, x: isBack ? "-30%" : "30%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: isBack ? "30%" : "-30%" }}
             transition={SLIDE_TRANSITION}
             className="absolute inset-0 overflow-y-auto overflow-x-hidden"
           >

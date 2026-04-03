@@ -172,10 +172,9 @@ const ProfilePage: React.FC = () => {
               key={tabName}
               type="button"
               onClick={() => setTab(tabName)}
-              className="flex-1 border-b-2 py-2 text-center font-sans text-[11px] font-medium"
+              className="relative flex-1 py-2 text-center font-sans text-[11px] font-medium"
               style={{
                 color: active ? colors.accent : colors.textMuted,
-                borderBottomColor: active ? colors.accent : "transparent",
               }}
             >
               {tabName}
@@ -186,6 +185,13 @@ const ProfilePage: React.FC = () => {
                 >
                   {questsPendingCount}
                 </span>
+              )}
+              {active && (
+                <motion.div
+                  layoutId="profile-tab-indicator"
+                  className="absolute bottom-0 left-0 right-0 h-0.5"
+                  style={{ backgroundColor: colors.accent }}
+                />
               )}
             </button>
           );

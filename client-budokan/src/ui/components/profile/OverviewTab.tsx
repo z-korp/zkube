@@ -1,6 +1,20 @@
 import ProgressBar from "@/ui/components/shared/ProgressBar";
 import { getThemeImages, type ThemeColors, type ThemeId } from "@/config/themes";
 import type { ZoneProgressData } from "@/config/profileData";
+import { motion } from "motion/react";
+
+const containerVariants: any = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05 },
+  },
+};
+
+const itemVariants: any = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+};
 
 const formatPrice = (price: bigint | undefined): string => {
   if (price === undefined) return "0.0000";
@@ -45,10 +59,11 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   ];
 
   return (
-    <div className="flex flex-col gap-3.5 pb-2">
+    <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-3.5 pb-2">
       <div className="grid grid-cols-4 gap-1.5">
         {stats.map((stat) => (
-          <div
+          <motion.div
+            variants={itemVariants}
             key={stat.label}
             className="rounded-[10px] px-1 py-2 text-center"
             style={{ background: colors.surface, border: `1px solid ${colors.border}` }}
@@ -59,12 +74,12 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             <p className="font-['DM_Sans'] text-[8px]" style={{ color: colors.textMuted }}>
               {stat.label}
             </p>
-          </div>
+          </motion.div>
         ))}
       </div>
 
       <section>
-        <div className="mb-2 flex items-center justify-between">
+        <motion.div variants={itemVariants} className="mb-2 flex items-center justify-between">
           <p
             className="font-['DM_Sans'] text-[10px] font-semibold uppercase tracking-[0.15em]"
             style={{ color: colors.textMuted }}
@@ -74,7 +89,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           <p className="font-display text-[10px] font-bold" style={{ color: colors.accent2 }}>
             ★ {totalStars} total
           </p>
-        </div>
+        </motion.div>
 
         <div className="flex flex-col gap-1.5">
           {zones.map((zone) => {
@@ -83,7 +98,8 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
               : 0;
 
             return (
-              <button
+              <motion.button
+                variants={itemVariants}
                 key={zone.zoneId}
                 type="button"
                 onClick={() => !zone.unlocked && onUnlock(zone)}
@@ -166,13 +182,13 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                     </div>
                   </div>
                 )}
-              </button>
+              </motion.button>
             );
           })}
         </div>
       </section>
 
-    </div>
+    </motion.div>
   );
 };
 

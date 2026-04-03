@@ -1,6 +1,20 @@
 import type { ThemeColors } from "@/config/themes";
 import ProgressBar from "@/ui/components/shared/ProgressBar";
 import { ACHIEVEMENT_CATEGORIES, useAchievements } from "@/hooks/useAchievements";
+import { motion } from "motion/react";
+
+const containerVariants: any = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05 },
+  },
+};
+
+const itemVariants: any = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+};
 
 interface AchievementsTabProps {
   colors: ThemeColors;
@@ -26,8 +40,9 @@ const AchievementsTab: React.FC<AchievementsTabProps> = ({ colors }) => {
   const total = achievements.length;
 
   return (
-    <div className="flex flex-col gap-3.5 pb-2">
-      <div
+    <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-3.5 pb-2">
+      <motion.div
+        variants={itemVariants}
         className="flex items-center justify-between rounded-xl px-3.5 py-2.5"
         style={{ background: colors.surface, border: `1px solid ${colors.border}` }}
       >
@@ -58,14 +73,14 @@ const AchievementsTab: React.FC<AchievementsTabProps> = ({ colors }) => {
             );
           })}
         </div>
-      </div>
+      </motion.div>
 
       {ACHIEVEMENT_CATEGORIES.map((category) => {
         const categoryAchievements = achievements.filter((achievement) => achievement.category === category);
         const unlocked = categoryAchievements.filter((achievement) => achievement.completed).length;
 
         return (
-          <section key={category}>
+          <motion.section variants={itemVariants} key={category}>
             <div className="mb-2 flex items-center justify-between">
               <p
                 className="font-['DM_Sans'] text-[10px] font-semibold uppercase tracking-[0.15em]"
@@ -138,10 +153,10 @@ const AchievementsTab: React.FC<AchievementsTabProps> = ({ colors }) => {
                 );
               })}
             </div>
-          </section>
+          </motion.section>
         );
       })}
-    </div>
+    </motion.div>
   );
 };
 

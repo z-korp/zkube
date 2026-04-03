@@ -12,6 +12,7 @@ import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
 import GameButton from "@/ui/components/shared/GameButton";
 import { getBlockColors, getThemeColors } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import { motion } from "motion/react";
 
 const TROPHY_IMAGES: Record<number, string> = {
   1: "/assets/trophies/gold.png",
@@ -35,12 +36,14 @@ const CountdownPill: React.FC<{ endTime: number; accent: string; border: string;
   const s = (sec % 60).toString().padStart(2, "0");
 
   return (
-    <div
+    <motion.div 
+      animate={{ scale: [1, 1.05, 1] }}
+      transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
       className="rounded-lg border px-3 py-1 font-display text-[11px] font-bold shadow-sm backdrop-blur-md"
       style={{ borderColor: `${accent}80`, backgroundColor: border, color: text, boxShadow: `0 0 10px ${accent}33` }}
     >
       {sec > 0 ? `${h}:${m}:${s}` : "ENDED"}
-    </div>
+    </motion.div>
   );
 };
 
@@ -176,15 +179,30 @@ const DailyChallengePage: React.FC = () => {
                 )}
               </div>
 
-              <div
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 24 }}
                 className="rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 shadow-lg shadow-black/20 backdrop-blur-xl"
               >
                 <p className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.15em] text-white/60">
                   TODAY'S TOP 3
                 </p>
-                <div className="space-y-1.5">
+                <motion.div 
+                  initial="hidden"
+                  animate="show"
+                  variants={{
+                    hidden: { opacity: 0 },
+                    show: { opacity: 1, transition: { staggerChildren: 0.05 } }
+                  }}
+                  className="space-y-1.5"
+                >
                   {leaderboard.slice(0, 3).map((le, idx) => (
-                    <div
+                    <motion.div
+                      variants={{
+                        hidden: { opacity: 0, x: -10 },
+                        show: { opacity: 1, x: 0 }
+                      }}
                       key={le.rank}
                       className="flex items-center justify-between pt-1.5 first:pt-0"
                       style={{ borderTop: idx > 0 ? `1px solid rgba(255,255,255,0.06)` : "none" }}
@@ -201,10 +219,10 @@ const DailyChallengePage: React.FC = () => {
                       <span className="font-display text-[13px] font-bold tracking-wide" style={{ color: colors.accent }}>
                         {le.value.toLocaleString()}
                       </span>
-                    </div>
+                    </motion.div>
                   ))}
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
 
               <div className="flex justify-center py-2">
                 <div className="text-center">
@@ -239,7 +257,11 @@ const DailyChallengePage: React.FC = () => {
               </div>
 
               {isActive && !isRegistered && account && (
-                <button
+                <motion.button
+                  animate={{ boxShadow: [`0 8px 20px -4px ${colors.accent}66`, `0 8px 30px 0px ${colors.accent}99`, `0 8px 20px -4px ${colors.accent}66`] }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   type="button"
                   disabled={registering}
                   onClick={handleRegister}
@@ -247,11 +269,11 @@ const DailyChallengePage: React.FC = () => {
                   style={{
                     background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent}E6)`,
                     color: "#0a1628",
-                    boxShadow: `0 8px 20px -4px ${colors.accent}66, inset 0 2px 0 rgba(255,255,255,0.4)`,
+                    boxShadow: `inset 0 2px 0 rgba(255,255,255,0.4)`,
                   }}
                 >
                   {registering ? "REGISTERING..." : "START DAILY"}
-                </button>
+                </motion.button>
               )}
 
               {isRegistered && entry && (

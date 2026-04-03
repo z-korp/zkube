@@ -2,6 +2,20 @@ import type { ThemeColors } from "@/config/themes";
 import ProgressBar from "@/ui/components/shared/ProgressBar";
 import type { ZoneProgressData } from "@/config/profileData";
 import { groupQuests, useQuests, type QuestStatus } from "@/hooks/useQuests";
+import { motion } from "motion/react";
+
+const containerVariants: any = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05 },
+  },
+};
+
+const itemVariants: any = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+};
 
 interface QuestsTabProps {
   colors: ThemeColors;
@@ -35,9 +49,10 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
     : "0.0000";
 
   return (
-    <div className="flex flex-col gap-3.5 pb-2">
+    <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-3.5 pb-2">
       {nextLockedZone && (
-        <button
+        <motion.button
+          variants={itemVariants}
           type="button"
           onClick={() => onUnlock(nextLockedZone)}
           className="w-full rounded-[14px] border px-3 py-3 text-left"
@@ -113,13 +128,13 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
           <p className="text-center font-['DM_Sans'] text-[8px] font-semibold" style={{ color: colors.accent }}>
             Tap for details →
           </p>
-        </button>
+        </motion.button>
       )}
 
       <QuestSection colors={colors} title="Daily Quests" badge="Rotating" badgeColor={colors.accent} quests={activeDaily} getQuestColor={getQuestColor} compact />
       <QuestSection colors={colors} title="Weekly Quests" badge="Weekly" badgeColor="#A78BFA" quests={activeWeekly} getQuestColor={getQuestColor} compact />
       <QuestSection colors={colors} title="Daily Finisher" quests={finisher} getQuestColor={getQuestColor} />
-    </div>
+    </motion.div>
   );
 };
 
@@ -142,7 +157,7 @@ const QuestSection: React.FC<QuestSectionProps> = ({
   badgeColor,
   compact = false,
 }) => (
-  <section>
+  <motion.section variants={itemVariants}>
     <div className="mb-2 flex items-center justify-between">
       <p
         className="font-['DM_Sans'] text-[10px] font-semibold uppercase tracking-[0.15em]"
@@ -169,7 +184,7 @@ const QuestSection: React.FC<QuestSectionProps> = ({
         <QuestCard key={quest.id} colors={colors} quest={quest} color={getQuestColor(quest)} compact={compact} />
       ))}
     </div>
-  </section>
+  </motion.section>
 );
 
 interface QuestCardProps {

@@ -107,15 +107,25 @@ const MyGamesPage: React.FC = () => {
           </p>
         </div>
       ) : games.length === 0 ? (
-        <div className="flex flex-1 items-center justify-center px-6 text-center">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 24 }}
+          className="flex flex-1 items-center justify-center px-6 text-center"
+        >
           <p className="font-display text-xl" style={{ color: colors.accent }}>
             Start your first game from Home!
           </p>
-        </div>
+        </motion.div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
           <section className="min-h-0">
-            <div className="mb-2 flex items-center justify-between">
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 24 }}
+              className="mb-2 flex items-center justify-between"
+            >
               <p
                 className="font-sans text-[11px] uppercase tracking-[0.15em] text-white/60"
               >
@@ -124,7 +134,7 @@ const MyGamesPage: React.FC = () => {
               <span className="font-sans text-[11px] font-bold" style={{ color: colors.accent }}>
                 {activeGames.length}
               </span>
-            </div>
+            </motion.div>
 
             {activeGames.length === 0 ? (
               <p className="font-sans text-xs text-white/60">
@@ -180,9 +190,13 @@ const MyGamesPage: React.FC = () => {
                               · {runData.levelMoves} moves
                             </p>
                           </div>
-                          <span className="font-display text-[13px] font-black tracking-wider" style={{ color: colors.accent }}>
+                          <motion.span 
+                            whileHover={{ x: 4 }}
+                            className="font-display text-[13px] font-black tracking-wider" 
+                            style={{ color: colors.accent }}
+                          >
                             PLAY →
-                          </span>
+                          </motion.span>
                         </button>
                       </GameCard>
                     </motion.div>
@@ -193,7 +207,10 @@ const MyGamesPage: React.FC = () => {
           </section>
 
           <section className="min-h-0 flex-1 overflow-hidden">
-            <button
+            <motion.button
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 24 }}
               type="button"
               onClick={() => setShowCompleted((prev) => !prev)}
               className="mb-2 flex w-full items-center justify-between"
@@ -204,7 +221,7 @@ const MyGamesPage: React.FC = () => {
               <span className="font-sans text-[11px] font-bold" style={{ color: colors.accent }}>
                 {completedGames.length} {showCompleted ? "▾" : "▸"}
               </span>
-            </button>
+            </motion.button>
 
             {showCompleted && (
               <motion.div initial="hidden" animate="visible" className="max-h-full space-y-2 overflow-y-auto pr-1">

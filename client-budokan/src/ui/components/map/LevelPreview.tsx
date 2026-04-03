@@ -99,7 +99,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
 
   return (
     <motion.div
-      className="absolute inset-0 z-30 flex items-center justify-center bg-black/65 px-4"
+      className="absolute inset-0 z-30 flex items-center justify-center bg-black/65 backdrop-blur-sm px-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -107,9 +107,10 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
     >
       <motion.div
         className="relative w-full max-w-sm rounded-2xl border border-sky-300/25 bg-slate-900/95 p-5 shadow-2xl"
-        initial={{ opacity: 0, y: 24, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.22, ease: "easeOut" }}
+        initial={{ opacity: 0, scale: 0.85, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 10 }}
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
         onClick={(event) => event.stopPropagation()}
       >
         <button
