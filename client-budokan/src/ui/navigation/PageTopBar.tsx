@@ -21,7 +21,7 @@ const PageTopBar: React.FC<PageTopBarProps> = ({
   const displayBalance = cubeBalanceOverride ?? walletBalance;
 
   return (
-    <div className="flex items-center justify-between px-2 md:px-4 h-12 md:h-13 lg:h-14 bg-slate-900/70 backdrop-blur-sm border-b border-slate-700/50">
+    <div className="flex items-center justify-between px-2 md:px-4 h-12 md:h-13 lg:h-14 bg-black/40 backdrop-blur-xl border-b border-white/[0.08]">
       <div className="flex items-center gap-1">
         <button
           onClick={onBack}
@@ -34,7 +34,7 @@ const PageTopBar: React.FC<PageTopBarProps> = ({
           onClick={onBack}
           className="flex flex-col text-left hover:opacity-80 transition-opacity"
         >
-          <span className="font-['Fredericka_the_Great'] text-white text-base md:text-lg leading-tight">
+          <span className="font-display text-white text-base md:text-lg leading-tight">
             {title}
           </span>
           {subtitle && (
@@ -49,7 +49,7 @@ const PageTopBar: React.FC<PageTopBarProps> = ({
         {rightSlot}
         <div className="flex items-center gap-1.5">
           <CubeIcon />
-          <span className="font-['Fredericka_the_Great'] text-yellow-400 text-lg tracking-wide">
+          <span className="font-display text-yellow-400 text-lg tracking-wide">
             {displayBalance.toString()}
           </span>
         </div>

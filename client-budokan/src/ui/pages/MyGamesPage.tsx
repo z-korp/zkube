@@ -47,7 +47,7 @@ const getStars = (game: GameTokenWithExtra, level: number, zoneCleared: boolean)
   return 0;
 };
 
-const cardVariants = {
+const cardVariants: any = {
   hidden: { opacity: 0, x: 24 },
   visible: (index: number) => ({
     opacity: 1,
@@ -86,8 +86,8 @@ const MyGamesPage: React.FC = () => {
 
   if (!account) {
     return (
-      <div className="flex h-full items-center justify-center px-6 text-center">
-        <p className="font-display text-lg" style={{ color: colors.textMuted }}>
+      <div className="flex h-full items-center justify-center px-6 pb-[72px] text-center">
+        <p className="font-display text-xl" style={{ color: colors.accent }}>
           Connect to see your games
         </p>
       </div>
@@ -95,20 +95,20 @@ const MyGamesPage: React.FC = () => {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col px-4 pb-4 pt-4">
-      <h1 className="mb-3 text-center font-display text-[24px] font-black" style={{ color: colors.text }}>
+    <div className="flex h-full min-h-0 flex-col px-4 pb-[72px] pt-4">
+      <h1 className="mb-3 text-center font-display text-[24px] font-black text-white">
         My Games
       </h1>
 
       {loading ? (
         <div className="flex flex-1 items-center justify-center">
-          <p className="text-sm" style={{ color: colors.textMuted }}>
+          <p className="font-sans text-sm text-white/60">
             Loading your runs...
           </p>
         </div>
       ) : games.length === 0 ? (
         <div className="flex flex-1 items-center justify-center px-6 text-center">
-          <p className="font-display text-base" style={{ color: colors.textMuted }}>
+          <p className="font-display text-xl" style={{ color: colors.accent }}>
             Start your first game from Home!
           </p>
         </div>
@@ -117,18 +117,17 @@ const MyGamesPage: React.FC = () => {
           <section className="min-h-0">
             <div className="mb-2 flex items-center justify-between">
               <p
-                className="text-[11px] uppercase tracking-[0.15em]"
-                style={{ color: colors.textMuted }}
+                className="font-sans text-[11px] uppercase tracking-[0.15em] text-white/60"
               >
                 Active games
               </p>
-              <span className="text-[11px]" style={{ color: colors.accent }}>
+              <span className="font-sans text-[11px] font-bold" style={{ color: colors.accent }}>
                 {activeGames.length}
               </span>
             </div>
 
             {activeGames.length === 0 ? (
-              <p className="text-xs" style={{ color: colors.textMuted }}>
+              <p className="font-sans text-xs text-white/60">
                 No active runs.
               </p>
             ) : (
@@ -140,8 +139,8 @@ const MyGamesPage: React.FC = () => {
                   const stars = getStars(rawGame, runData.currentLevel, runData.zoneCleared);
 
                   return (
-                    <motion.div key={rawGame.token_id.toString()} custom={index} variants={cardVariants}>
-                      <GameCard variant="solid" className="border-white/15" padding="p-0">
+                    <motion.div key={rawGame.token_id.toString()} custom={index} variants={cardVariants as any}>
+                      <GameCard variant="solid" className="rounded-2xl border border-white/[0.08] bg-white/[0.04] shadow-lg shadow-black/20 backdrop-blur-xl" padding="p-0">
                         <button
                           type="button"
                           onClick={() => navigate("map", rawGame.token_id)}
@@ -150,21 +149,38 @@ const MyGamesPage: React.FC = () => {
                           <img
                             src={getThemeImages(themeId).themeIcon}
                             alt={THEME_META[themeId].name}
-                            className="h-11 w-11 rounded-md"
+                            className="h-11 w-11 rounded-xl object-cover shadow-md"
                             draggable={false}
                           />
                           <div className="min-w-0 flex-1">
-                            <p className="truncate font-display text-[13px] font-bold" style={{ color: colors.text }}>
+                            <p className="truncate font-display text-[14px] font-bold tracking-wide text-white">
                               {THEME_META[themeId].name} · {modeLabel}
                             </p>
-                            <p className="mt-0.5 text-[11px]" style={{ color: colors.textMuted }}>
+                            <p className="mt-0.5 font-sans text-[11px] font-medium text-white/60">
                               Lv.{Math.max(1, runData.currentLevel)} · Score: {runData.totalScore.toLocaleString()}
                             </p>
-                            <p className="mt-0.5 text-[10px]" style={{ color: colors.textMuted }}>
-                              {"★".repeat(stars)}{"☆".repeat(3 - stars)} · {runData.levelMoves} moves
+                            <p className="mt-0.5 flex items-center gap-1 font-sans text-[10px] font-medium text-white/60">
+                              <span className="flex items-center">
+                                {Array.from({ length: 3 }).map((_, i) => {
+                                  const isFilled = i < stars;
+                                  return (
+                                    <span
+                                      key={i}
+                                      className="text-[11px] transition-colors"
+                                      style={{ 
+                                        color: isFilled ? "#FACC15" : "rgba(255,255,255,0.6)",
+                                        textShadow: isFilled ? "0 0 6px rgba(250,204,21,0.6)" : "none"
+                                      }}
+                                    >
+                                      ★
+                                    </span>
+                                  );
+                                })}
+                              </span>
+                              · {runData.levelMoves} moves
                             </p>
                           </div>
-                          <span className="font-display text-xs font-black" style={{ color: colors.accent2 }}>
+                          <span className="font-display text-[13px] font-black tracking-wider" style={{ color: colors.accent }}>
                             PLAY →
                           </span>
                         </button>
@@ -182,10 +198,10 @@ const MyGamesPage: React.FC = () => {
               onClick={() => setShowCompleted((prev) => !prev)}
               className="mb-2 flex w-full items-center justify-between"
             >
-              <p className="text-[11px] uppercase tracking-[0.15em]" style={{ color: colors.textMuted }}>
+              <p className="font-sans text-[11px] uppercase tracking-[0.15em] text-white/60">
                 Completed games
               </p>
-              <span className="text-[11px]" style={{ color: colors.accent }}>
+              <span className="font-sans text-[11px] font-bold" style={{ color: colors.accent }}>
                 {completedGames.length} {showCompleted ? "▾" : "▸"}
               </span>
             </button>
@@ -202,35 +218,46 @@ const MyGamesPage: React.FC = () => {
                     <motion.div
                       key={rawGame.token_id.toString()}
                       custom={index}
-                      variants={cardVariants}
+                      variants={cardVariants as any}
                       className="opacity-65"
                     >
-                      <GameCard variant="solid" className="border-white/10 grayscale" padding="p-0">
+                      <GameCard variant="solid" className="rounded-2xl border border-white/[0.08] bg-white/[0.04] shadow-lg shadow-black/20 backdrop-blur-xl grayscale" padding="p-0">
                         <div className="flex items-center gap-3 px-3 py-3">
                           <img
                             src={getThemeImages(themeId).themeIcon}
                             alt={THEME_META[themeId].name}
-                            className="h-11 w-11 rounded-md"
+                            className="h-11 w-11 rounded-xl object-cover shadow-md"
                             draggable={false}
                           />
                           <div className="min-w-0 flex-1">
-                            <p className="truncate font-display text-[13px] font-bold" style={{ color: colors.text }}>
+                            <p className="truncate font-display text-[14px] font-bold tracking-wide text-white">
                               {THEME_META[themeId].name} · {modeLabel}
                             </p>
-                            <p className="mt-0.5 text-[11px]" style={{ color: colors.textMuted }}>
+                            <p className="mt-0.5 font-sans text-[11px] font-medium text-white/60">
                               Lv.{Math.max(1, runData.currentLevel)} · Score: {runData.totalScore.toLocaleString()}
                             </p>
-                            <p className="mt-0.5 text-[10px]" style={{ color: colors.textMuted }}>
-                              {"★".repeat(stars)}{"☆".repeat(3 - stars)}
+                            <p className="mt-0.5 flex items-center gap-1 font-sans text-[10px] font-medium text-white/60">
+                              <span className="flex items-center">
+                                {Array.from({ length: 3 }).map((_, i) => {
+                                  const isFilled = i < stars;
+                                  return (
+                                    <span
+                                      key={i}
+                                      className="text-[11px] transition-colors"
+                                      style={{ 
+                                        color: isFilled ? "#FACC15" : "rgba(255,255,255,0.6)",
+                                        textShadow: isFilled ? "0 0 6px rgba(250,204,21,0.6)" : "none"
+                                      }}
+                                    >
+                                      ★
+                                    </span>
+                                  );
+                                })}
+                              </span>
                             </p>
                           </div>
                           <span
-                            className="rounded-md border px-2 py-1 text-[9px] font-bold tracking-[0.06em]"
-                            style={{
-                              color: colors.textMuted,
-                              borderColor: `${colors.textMuted}44`,
-                              backgroundColor: `${colors.textMuted}1A`,
-                            }}
+                            className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 font-sans text-[9px] font-bold tracking-[0.06em] shadow-sm backdrop-blur-md text-white/60"
                           >
                             GAME OVER
                           </span>

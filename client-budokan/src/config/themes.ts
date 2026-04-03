@@ -96,6 +96,12 @@ export interface ThemeColors {
   dangerZone: string;
   dangerZoneAlpha: number;
   accent: string;
+  accent2: string;
+  text: string;
+  textMuted: string;
+  surface: string;
+  border: string;
+  glow: string;
   blocks: Record<1 | 2 | 3 | 4, BlockColors>;
   particles: {
     primary: string[];
@@ -133,6 +139,17 @@ function lighten(hexColor: string, amount: number): string {
     .padStart(2, "0")}`;
 }
 
+function uiColors(accent: string, accent2: string): Pick<ThemeColors, "accent2" | "text" | "textMuted" | "surface" | "border" | "glow"> {
+  return {
+    accent2,
+    text: "#ffffff",
+    textMuted: "rgba(255,255,255,0.5)",
+    surface: "rgba(255,255,255,0.04)",
+    border: "rgba(255,255,255,0.08)",
+    glow: `0 0 16px ${accent}40`,
+  };
+}
+
 const POLYNESIAN_COLORS: ThemeColors = {
   background: "#041A44",
   backgroundGradientStart: lighten("#041A44", 0.06),
@@ -148,6 +165,7 @@ const POLYNESIAN_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#A9D8FF",
+  ...uiColors("#A9D8FF", "#7EC8E3"),
   blocks: {
     1: {
       fill: "#7EC8E3",
@@ -191,6 +209,7 @@ const ANCIENT_EGYPT_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#D4AF37",
+  ...uiColors("#D4AF37", "#F0CF7A"),
   blocks: {
     1: {
       fill: "#F0CF7A",
@@ -234,6 +253,7 @@ const NORSE_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#7EB8DA",
+  ...uiColors("#7EB8DA", "#A9C4DF"),
   blocks: {
     1: {
       fill: "#A9C4DF",
@@ -277,6 +297,7 @@ const ANCIENT_GREECE_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#3B6FA0",
+  ...uiColors("#3B6FA0", "#BFD5E8"),
   blocks: {
     1: {
       fill: "#BFD5E8",
@@ -320,6 +341,7 @@ const FEUDAL_JAPAN_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#C41E3A",
+  ...uiColors("#C41E3A", "#E19AA3"),
   blocks: {
     1: {
       fill: "#E19AA3",
@@ -363,6 +385,7 @@ const ANCIENT_CHINA_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#50C878",
+  ...uiColors("#50C878", "#9CD8B6"),
   blocks: {
     1: {
       fill: "#9CD8B6",
@@ -406,6 +429,7 @@ const ANCIENT_PERSIA_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#1E90FF",
+  ...uiColors("#1E90FF", "#9EB7DF"),
   blocks: {
     1: {
       fill: "#9EB7DF",
@@ -449,6 +473,7 @@ const MAYAN_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#4CAF50",
+  ...uiColors("#4CAF50", "#A9BE72"),
   blocks: {
     1: {
       fill: "#A9BE72",
@@ -492,6 +517,7 @@ const PUEBLO_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#40C8B8",
+  ...uiColors("#40C8B8", "#E0A07A"),
   blocks: {
     1: {
       fill: "#E0A07A",
@@ -535,6 +561,7 @@ const INCA_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#D4AF37",
+  ...uiColors("#D4AF37", "#C7BCA9"),
   blocks: {
     1: {
       fill: "#C7BCA9",

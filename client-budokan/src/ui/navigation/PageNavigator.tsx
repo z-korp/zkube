@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useNavigationStore } from "@/stores/navigationStore";
 import ThemeBackground from "@/ui/components/shared/ThemeBackground";
+import BottomNav from "@/ui/navigation/BottomNav";
 
 interface PageNavigatorProps {
   children: React.ReactNode;
@@ -32,6 +33,7 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ children }) => {
             {children}
           </motion.div>
         </AnimatePresence>
+        <BottomNav />
       </div>
     </div>
   );

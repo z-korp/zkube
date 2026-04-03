@@ -36,8 +36,8 @@ const CountdownPill: React.FC<{ endTime: number; accent: string; border: string;
 
   return (
     <div
-      className="rounded-lg border px-3 py-1 font-display text-[11px] font-bold"
-      style={{ borderColor: `${accent}80`, backgroundColor: border, color: text }}
+      className="rounded-lg border px-3 py-1 font-display text-[11px] font-bold shadow-sm backdrop-blur-md"
+      style={{ borderColor: `${accent}80`, backgroundColor: border, color: text, boxShadow: `0 0 10px ${accent}33` }}
     >
       {sec > 0 ? `${h}:${m}:${s}` : "ENDED"}
     </div>
@@ -123,12 +123,12 @@ const DailyChallengePage: React.FC = () => {
   }, [account, challenge, claiming, systemCalls]);
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col pb-[72px]">
       <div className="flex items-center gap-2 px-3 pt-3 pb-2">
         <button
           onClick={goBack}
           className="h-11 w-11 rounded-lg"
-          style={{ color: colors.textMuted }}
+          style={{ color: colors.accent }}
         >
           <ChevronLeft size={20} />
         </button>
@@ -138,17 +138,18 @@ const DailyChallengePage: React.FC = () => {
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         <div className="mx-auto flex w-full max-w-[500px] flex-col gap-3">
           {challengeLoading && (
-            <div className="rounded-xl border p-8 text-center" style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
-              <Loader2 size={24} className="mx-auto animate-spin" style={{ color: colors.textMuted }} />
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-8 text-center shadow-lg shadow-black/20 backdrop-blur-xl">
+              <Loader2 size={24} className="mx-auto animate-spin" style={{ color: colors.accent }} />
             </div>
           )}
 
           {!challengeLoading && !challenge && (
-            <div className="rounded-xl border p-8 text-center" style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
-              <p className="mb-1 font-display text-lg" style={{ color: colors.text }}>
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-8 text-center shadow-lg shadow-black/20 backdrop-blur-xl">
+              <img src="/assets/trophies/gold.png" alt="Trophy" className="mx-auto mb-4 h-16 w-16 opacity-80" draggable={false} />
+              <p className="mb-1 font-display text-xl text-white">
                 No Active Challenge
               </p>
-              <p className="text-sm" style={{ color: colors.textMuted }}>
+              <p className="font-sans text-sm text-white/60">
                 Check back later for the next daily challenge.
               </p>
             </div>
@@ -158,10 +159,10 @@ const DailyChallengePage: React.FC = () => {
             <>
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="font-display text-[16px] font-extrabold" style={{ color: colors.text }}>
+                  <p className="font-display text-[20px] font-extrabold tracking-wide text-white">
                     ⚡ Daily Challenge
                   </p>
-                  <p className="text-[10px]" style={{ color: colors.textMuted }}>
+                  <p className="font-sans text-[11px] font-medium text-white/60">
                     {new Date(challenge.start_time * 1000).toLocaleDateString()} · Same seed for all
                   </p>
                 </div>
@@ -169,36 +170,35 @@ const DailyChallengePage: React.FC = () => {
                   <CountdownPill
                     endTime={challenge.end_time}
                     accent={colors.accent}
-                    border={colors.surface}
+                    border="rgba(255,255,255,0.04)"
                     text={colors.accent}
                   />
                 )}
               </div>
 
               <div
-                className="rounded-[10px] border px-3 py-2"
-                style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 shadow-lg shadow-black/20 backdrop-blur-xl"
               >
-                <p className="mb-1.5 text-[9px] uppercase tracking-[0.15em]" style={{ color: colors.textMuted }}>
+                <p className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.15em] text-white/60">
                   TODAY'S TOP 3
                 </p>
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {leaderboard.slice(0, 3).map((le, idx) => (
                     <div
                       key={le.rank}
-                      className="flex items-center justify-between pt-1 first:pt-0"
-                      style={{ borderTop: idx > 0 ? `1px solid ${colors.border}` : "none" }}
+                      className="flex items-center justify-between pt-1.5 first:pt-0"
+                      style={{ borderTop: idx > 0 ? `1px solid rgba(255,255,255,0.06)` : "none" }}
                     >
-                      <span className="flex items-center gap-1.5 text-[11px]" style={{ color: colors.text }}>
+                      <span className="flex items-center gap-2 font-sans text-[11px] font-medium text-white">
                         <img
                           src={TROPHY_IMAGES[idx + 1]}
                           alt={`Rank ${idx + 1}`}
-                          className="h-5 w-5"
+                          className="h-5 w-5 drop-shadow-md"
                           draggable={false}
                         />
                         {le.playerName}
                       </span>
-                      <span className="font-display text-[11px] font-bold" style={{ color: colors.accent2 }}>
+                      <span className="font-display text-[13px] font-bold tracking-wide" style={{ color: colors.accent }}>
                         {le.value.toLocaleString()}
                       </span>
                     </div>
@@ -206,11 +206,11 @@ const DailyChallengePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex justify-center py-1">
+              <div className="flex justify-center py-2">
                 <div className="text-center">
                   <div
-                    className="inline-block rounded-[10px] border p-1.5"
-                    style={{ backgroundColor: "rgba(0,0,0,0.3)", borderColor: colors.border }}
+                    className="inline-block rounded-2xl border border-white/[0.08] bg-white/[0.02] p-2 shadow-lg shadow-black/20 backdrop-blur-xl"
+                    style={{ boxShadow: `0 0 20px ${colors.accent}1A, inset 0 0 10px ${colors.accent}0D` }}
                   >
                     <div className="grid grid-cols-8 gap-1">
                       {previewGrid.map((block, idx) => {
@@ -221,17 +221,18 @@ const DailyChallengePage: React.FC = () => {
                         return (
                           <div
                             key={`preview-${idx}`}
-                            className="h-[22px] w-[22px] rounded-[3px] border"
+                            className="h-[22px] w-[22px] rounded-[4px] border"
                             style={{
-                              borderColor: validBlock ? `${blockColor}4D` : `${colors.border}66`,
-                              backgroundColor: validBlock ? `${blockColor}88` : "rgba(255,255,255,0.02)",
+                              borderColor: validBlock ? `${blockColor}66` : `rgba(255,255,255,0.06)`,
+                              backgroundColor: validBlock ? `${blockColor}99` : "rgba(255,255,255,0.02)",
+                              boxShadow: validBlock ? `0 0 8px ${blockColor}4D` : "none",
                             }}
                           />
                         );
                       })}
                     </div>
                   </div>
-                  <p className="mt-2 text-[10px]" style={{ color: colors.textMuted }}>
+                  <p className="mt-3 font-sans text-[11px] font-medium text-white/60">
                     {challenge.total_entries} players today
                   </p>
                 </div>
@@ -242,11 +243,11 @@ const DailyChallengePage: React.FC = () => {
                   type="button"
                   disabled={registering}
                   onClick={handleRegister}
-                  className="w-full rounded-xl py-3 font-display text-sm font-black tracking-[0.1em] disabled:opacity-50"
+                  className="flex w-full items-center justify-center rounded-2xl px-4 py-4 font-display text-[17px] font-black tracking-[0.12em] shadow-xl disabled:opacity-50"
                   style={{
-                    background: `linear-gradient(135deg, ${colors.accent2}, ${colors.accent2}CC)`,
+                    background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent}E6)`,
                     color: "#0a1628",
-                    boxShadow: `0 0 30px ${colors.accent2}40`,
+                    boxShadow: `0 8px 20px -4px ${colors.accent}66, inset 0 2px 0 rgba(255,255,255,0.4)`,
                   }}
                 >
                   {registering ? "REGISTERING..." : "START DAILY"}
@@ -254,15 +255,15 @@ const DailyChallengePage: React.FC = () => {
               )}
 
               {isRegistered && entry && (
-                <div className="rounded-xl border p-3" style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
-                  <p className="text-[11px]" style={{ color: colors.text }}>
-                    Your best: {entry.best_score} · Rank {entry.rank > 0 ? `#${entry.rank}` : "—"}
+                <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-4 shadow-lg shadow-black/20 backdrop-blur-xl">
+                  <p className="font-sans text-[12px] font-medium text-white">
+                    Your best: <span className="font-display text-[14px] font-bold" style={{ color: colors.accent }}>{entry.best_score}</span> · Rank {entry.rank > 0 ? `#${entry.rank}` : "—"}
                   </p>
-                  <p className="mt-1 text-[10px]" style={{ color: colors.textMuted }}>
+                  <p className="mt-1 font-sans text-[11px] text-white/60">
                     Prize Pool: {prizePool.toString()}
                   </p>
                   {canClaim && (
-                    <div className="mt-2">
+                    <div className="mt-3">
                       <GameButton
                         label={claiming ? "CLAIMING..." : `CLAIM PRIZE (${playerPrize.toString()})`}
                         variant="primary"

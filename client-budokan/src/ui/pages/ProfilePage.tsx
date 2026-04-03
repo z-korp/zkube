@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "motion/react";
 import { ChevronLeft } from "lucide-react";
 
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
@@ -24,6 +25,21 @@ import {
 } from "@/config/profileData";
 
 const TABS = ["Overview", "Quests", "Achievements"] as const;
+
+const containerVariants: any = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+    },
+  },
+};
+
+const itemVariants: any = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+};
 
 const getLevelFromXp = (xp: number): number => {
   let level = 1;
@@ -68,7 +84,7 @@ const ProfilePage: React.FC = () => {
   const [unlockZone, setUnlockZone] = useState<ZoneProgressData | null>(null);
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col px-4 pb-2 pt-2">
+    <div className="relative flex h-full min-h-0 flex-col px-4 pb-[72px] pt-2">
       <div className="mb-2 flex items-center gap-1">
         <button
           type="button"
@@ -83,14 +99,17 @@ const ProfilePage: React.FC = () => {
         </p>
       </div>
 
-      <section
-        className="mb-2 rounded-[14px] p-3"
-        style={{
-          background: `linear-gradient(135deg, ${colors.accent}1A, ${colors.accent2}14)`,
-          border: `1px solid ${colors.border}`,
-        }}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+        className="flex-1 flex flex-col min-h-0"
       >
-        <div className="mb-2.5 flex items-center gap-2.5">
+        <motion.section
+          variants={itemVariants}
+          className="mb-2 rounded-2xl p-3 backdrop-blur-xl bg-white/[0.04] border border-white/[0.08] shadow-lg shadow-black/20"
+        >
+          <div className="mb-2.5 flex items-center gap-2.5">
           <div className="relative">
             <div
               className="flex h-12 w-12 items-center justify-center rounded-[14px] font-display text-xl font-black"
@@ -114,7 +133,7 @@ const ProfilePage: React.FC = () => {
             <p className="truncate font-display text-sm font-extrabold" style={{ color: colors.text }}>
               {username ?? "Player"}
             </p>
-            <p className="font-['DM_Sans'] text-[9px]" style={{ color: colors.textMuted }}>
+            <p className="font-sans text-[9px]" style={{ color: colors.textMuted }}>
               Level {level} · {title}
             </p>
           </div>
@@ -123,7 +142,7 @@ const ProfilePage: React.FC = () => {
             <p className="font-display text-lg font-black" style={{ color: colors.accent2 }}>
               ★ {zStarBalance}
             </p>
-            <p className="font-['DM_Sans'] text-[8px]" style={{ color: colors.textMuted }}>
+            <p className="font-sans text-[8px]" style={{ color: colors.textMuted }}>
               zStar balance
             </p>
           </div>
@@ -131,7 +150,7 @@ const ProfilePage: React.FC = () => {
 
         <div>
           <div className="mb-1 flex items-center justify-between">
-            <p className="font-['DM_Sans'] text-[8px]" style={{ color: colors.textMuted }}>
+            <p className="font-sans text-[8px]" style={{ color: colors.textMuted }}>
               Level {level}
             </p>
             <p className="font-display text-[8px] font-bold" style={{ color: colors.accent }}>
@@ -139,13 +158,13 @@ const ProfilePage: React.FC = () => {
             </p>
           </div>
           <ProgressBar value={xp - levelStartXp} max={Math.max(nextLevelXp - levelStartXp, 1)} color={colors.accent} height={6} glow />
-          <p className="mt-1 font-['DM_Sans'] text-[7px]" style={{ color: colors.textMuted }}>
+          <p className="mt-1 font-sans text-[7px]" style={{ color: colors.textMuted }}>
             {(nextLevelXp - xp).toLocaleString()} XP to Level {level + 1} · "{nextTitle}"
           </p>
         </div>
-      </section>
+        </motion.section>
 
-      <div className="mb-1 flex">
+        <motion.div variants={itemVariants} className="mb-1 flex">
         {TABS.map((tabName) => {
           const active = tab === tabName;
           return (
@@ -153,7 +172,7 @@ const ProfilePage: React.FC = () => {
               key={tabName}
               type="button"
               onClick={() => setTab(tabName)}
-              className="flex-1 border-b-2 py-2 text-center font-['DM_Sans'] text-[11px] font-medium"
+              className="flex-1 border-b-2 py-2 text-center font-sans text-[11px] font-medium"
               style={{
                 color: active ? colors.accent : colors.textMuted,
                 borderBottomColor: active ? colors.accent : "transparent",
@@ -171,9 +190,9 @@ const ProfilePage: React.FC = () => {
             </button>
           );
         })}
-      </div>
+        </motion.div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-0.5">
+        <motion.div variants={itemVariants} className="min-h-0 flex-1 overflow-y-auto px-0.5">
         {tab === "Overview" && (
           <OverviewTab
             colors={colors}
@@ -190,7 +209,8 @@ const ProfilePage: React.FC = () => {
         )}
 
         {tab === "Achievements" && <AchievementsTab colors={colors} />}
-      </div>
+        </motion.div>
+      </motion.div>
 
       {unlockZone && <UnlockModal colors={colors} zone={unlockZone} onClose={() => setUnlockZone(null)} />}
 
@@ -199,7 +219,7 @@ const ProfilePage: React.FC = () => {
           className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full px-3 py-1"
           style={{ background: "rgba(0,0,0,0.45)", border: `1px solid ${colors.border}` }}
         >
-          <p className="font-['DM_Sans'] text-[8px]" style={{ color: colors.textMuted }}>
+          <p className="font-sans text-[8px]" style={{ color: colors.textMuted }}>
             Connect to load your profile data
           </p>
         </div>

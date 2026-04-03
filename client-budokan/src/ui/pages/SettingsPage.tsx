@@ -7,7 +7,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { useDisconnect } from "@starknet-react/core";
-import { THEME_IDS, THEME_META } from "@/config/themes";
+import { THEME_IDS, THEME_META, getThemeColors } from "@/config/themes";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import useAccountCustom from "@/hooks/useAccountCustom";
@@ -30,6 +30,7 @@ const SettingsPage: React.FC = () => {
   const { username } = useControllerUsername();
   const { disconnect } = useDisconnect();
   const { themeTemplate, setThemeTemplate } = useTheme();
+  const colors = getThemeColors(themeTemplate);
   const { musicVolume, effectsVolume, setMusicVolume, setEffectsVolume } =
     useMusicPlayer();
 
@@ -55,16 +56,16 @@ const SettingsPage: React.FC = () => {
       <PageTopBar title="SETTINGS" onBack={goBack} />
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4">
-        <div className="max-w-[760px] mx-auto flex flex-col gap-4 pb-20">
+        <div className="max-w-[760px] mx-auto flex flex-col gap-4 pb-[72px]">
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.22 }}
-            className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
+            className="backdrop-blur-xl bg-white/[0.04] border border-white/[0.08] rounded-2xl shadow-lg shadow-black/20 p-4"
           >
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg">🎵</span>
-              <h2 className="font-['Fredericka_the_Great'] text-lg text-white tracking-wide">
+              <h2 className="font-display text-lg tracking-wide" style={{ color: colors.text }}>
                 AUDIO
               </h2>
             </div>
@@ -81,9 +82,10 @@ const SettingsPage: React.FC = () => {
                   onChange={(event) =>
                     setMusicVolume(Number(event.target.value) / 100)
                   }
-                  className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-slate-600 accent-cyan-400"
+                  className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-white/10"
+                  style={{ accentColor: colors.accent }}
                 />
-                <span className="font-['Fredericka_the_Great'] text-cyan-200 text-lg tracking-wider w-8 text-right">
+                <span className="font-display text-lg tracking-wider w-8 text-right" style={{ color: colors.accent }}>
                   {toPercent(musicVolume)}
                 </span>
               </div>
@@ -99,9 +101,10 @@ const SettingsPage: React.FC = () => {
                   onChange={(event) =>
                     setEffectsVolume(Number(event.target.value) / 100)
                   }
-                  className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-slate-600 accent-emerald-400"
+                  className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-white/10"
+                  style={{ accentColor: colors.accent2 }}
                 />
-                <span className="font-['Fredericka_the_Great'] text-emerald-200 text-lg tracking-wider w-8 text-right">
+                <span className="font-display text-lg tracking-wider w-8 text-right" style={{ color: colors.accent2 }}>
                   {toPercent(effectsVolume)}
                 </span>
               </div>
@@ -112,11 +115,11 @@ const SettingsPage: React.FC = () => {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.04 }}
-            className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
+            className="backdrop-blur-xl bg-white/[0.04] border border-white/[0.08] rounded-2xl shadow-lg shadow-black/20 p-4"
           >
             <div className="flex items-center gap-2 mb-3">
-              <Palette size={18} className="text-amber-300" />
-              <h2 className="font-['Fredericka_the_Great'] text-lg text-white tracking-wide">
+              <Palette size={18} style={{ color: colors.accent }} />
+              <h2 className="font-display text-lg tracking-wide" style={{ color: colors.text }}>
                 THEME
               </h2>
             </div>
@@ -135,9 +138,12 @@ const SettingsPage: React.FC = () => {
                     title={THEME_META[themeId].name}
                     className={`relative rounded-xl border overflow-hidden transition-colors w-14 h-14 flex items-center justify-center ${
                       isSelected
-                        ? "border-yellow-300 bg-yellow-500/15"
-                        : "border-slate-600/70 bg-slate-900/40 hover:border-slate-400"
+                        ? "bg-white/10"
+                        : "border-white/[0.08] bg-white/[0.02] hover:border-white/[0.15]"
                     }`}
+                    style={{
+                      borderColor: isSelected ? colors.accent : undefined,
+                    }}
                   >
                     <img
                       src={themeAssets.themeIcon}
@@ -148,7 +154,8 @@ const SettingsPage: React.FC = () => {
                     {isSelected && (
                       <Check
                         size={14}
-                        className="absolute bottom-1 right-1 text-yellow-200 drop-shadow-md"
+                        className="absolute bottom-1 right-1 drop-shadow-md"
+                        style={{ color: colors.accent }}
                       />
                     )}
                   </motion.button>
@@ -161,32 +168,33 @@ const SettingsPage: React.FC = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.08 }}
-            className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
+            className="backdrop-blur-xl bg-white/[0.04] border border-white/[0.08] rounded-2xl shadow-lg shadow-black/20 p-4"
           >
             <div className="flex items-center gap-2 mb-3">
-              <UserRound size={18} className="text-indigo-300" />
-              <h2 className="font-['Fredericka_the_Great'] text-lg text-white tracking-wide">
+              <UserRound size={18} style={{ color: colors.accent2 }} />
+              <h2 className="font-display text-lg tracking-wide" style={{ color: colors.text }}>
                 ACCOUNT
               </h2>
             </div>
 
             {accountAddress ? (
               <div className="space-y-3">
-                <div className="rounded-lg border border-slate-700/50 bg-slate-900/50 p-3">
-                  <p className="text-xs text-slate-400 mb-1">Username</p>
-                  <p className="text-white text-sm">{resolvedUsername}</p>
+                <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3">
+                  <p className="font-sans text-xs mb-1" style={{ color: colors.textMuted }}>Username</p>
+                  <p className="font-sans text-sm font-medium" style={{ color: colors.text }}>{resolvedUsername}</p>
                 </div>
 
-                <div className="rounded-lg border border-slate-700/50 bg-slate-900/50 p-3">
-                  <p className="text-xs text-slate-400 mb-1">Wallet Address</p>
+                <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3">
+                  <p className="font-sans text-xs mb-1" style={{ color: colors.textMuted }}>Wallet Address</p>
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-white text-sm truncate">
+                    <p className="font-sans text-sm font-medium truncate" style={{ color: colors.text }}>
                       {truncateAddress(accountAddress)}
                     </p>
                     <button
                       type="button"
                       onClick={handleCopyAddress}
-                      className="inline-flex items-center gap-1 text-xs text-slate-200 hover:text-white"
+                      className="inline-flex items-center gap-1 font-sans text-xs transition-colors"
+                      style={{ color: copied ? colors.accent : colors.textMuted }}
                       title={copied ? "Copied" : "Copy address"}
                     >
                       {copied ? <Check size={14} /> : <Copy size={14} />}
@@ -202,7 +210,7 @@ const SettingsPage: React.FC = () => {
                 />
               </div>
             ) : (
-              <div className="rounded-lg border border-slate-700/50 bg-slate-900/50 p-4 text-sm text-slate-300">
+              <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 font-sans text-sm" style={{ color: colors.textMuted }}>
                 Connect a wallet to manage your account settings.
               </div>
             )}

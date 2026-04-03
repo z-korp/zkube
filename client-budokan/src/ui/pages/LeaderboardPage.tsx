@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { motion } from "motion/react";
+import { Trophy, Loader2 } from "lucide-react";
 import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
@@ -10,6 +12,21 @@ const TROPHY_IMAGES: Record<number, string> = {
   1: "/assets/trophies/gold.png",
   2: "/assets/trophies/silver.png",
   3: "/assets/trophies/bronze.png",
+};
+
+const containerVariants: any = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+    },
+  },
+};
+
+const itemVariants: any = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
 };
 
 const LeaderboardPage: React.FC = () => {
@@ -52,7 +69,7 @@ const LeaderboardPage: React.FC = () => {
         });
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col pb-[72px]">
       <div className="px-4 pt-4 pb-2">
         <h1 className="font-display text-[18px] font-extrabold text-center" style={{ color: colors.text }}>
           Leaderboard
@@ -66,7 +83,7 @@ const LeaderboardPage: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className="flex-1 border-b-2 py-2 text-[11px]"
+              className="flex-1 border-b-2 py-2 font-sans text-[11px]"
               style={{
                 color: activeTab === tab.id ? colors.accent : colors.textMuted,
                 borderBottomColor: activeTab === tab.id ? colors.accent : "transparent",
@@ -81,22 +98,31 @@ const LeaderboardPage: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         {loading ? (
-          <div className="py-8 text-center text-sm" style={{ color: colors.textMuted }}>
-            Loading...
+          <div className="flex flex-col items-center justify-center py-16" style={{ color: colors.textMuted }}>
+            <Loader2 className="h-8 w-8 animate-spin mb-4" style={{ color: colors.accent }} />
+            <p className="font-sans text-sm font-medium">Loading rankings...</p>
           </div>
         ) : rankRows.length === 0 ? (
-          <div className="py-8 text-center text-sm" style={{ color: colors.textMuted }}>
-            No entries yet. Finish a run to claim rank #1.
+          <div className="flex flex-col items-center justify-center py-16 text-center" style={{ color: colors.textMuted }}>
+            <Trophy className="h-12 w-12 mb-4 opacity-50" />
+            <p className="font-display text-lg mb-1" style={{ color: colors.text }}>No entries yet</p>
+            <p className="font-sans text-sm">Finish a run to claim rank #1.</p>
           </div>
         ) : (
-          <div className="mx-auto max-w-[500px] space-y-1.5">
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="mx-auto max-w-[500px] space-y-2"
+          >
             {rankRows.map((entry) => (
-              <div
+              <motion.div
+                variants={itemVariants}
                 key={entry.id}
-                className="flex items-center gap-2 rounded-[10px] border px-3 py-2.5"
+                className="flex items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-xl shadow-lg shadow-black/20"
                 style={{
-                  backgroundColor: entry.isYou ? `${colors.accent}1F` : colors.surface,
-                  borderColor: entry.isYou ? `${colors.accent}4D` : colors.border,
+                  backgroundColor: entry.isYou ? `${colors.accent}1F` : "rgba(255,255,255,0.04)",
+                  borderColor: entry.isYou ? `${colors.accent}4D` : "rgba(255,255,255,0.08)",
                 }}
               >
                 <div className="flex w-8 items-center justify-center text-center font-display text-base font-black" style={{ color: entry.rank <= 3 ? colors.accent2 : colors.textMuted }}>
@@ -128,12 +154,12 @@ const LeaderboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="font-display text-[13px] font-extrabold" style={{ color: colors.text }}>
+                <div className="font-display text-[14px] font-extrabold tracking-wide" style={{ color: colors.text }}>
                   {entry.score.toLocaleString()}
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
