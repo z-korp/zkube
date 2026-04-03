@@ -227,6 +227,7 @@ export function systems({ client }: { client: IWorld }) {
   const createRun = async ({ account, ...props }: SystemTypes.CreateRun) => {
     log.debug("createRun params", {
       game_id: props.game_id,
+      mode: props.mode,
     });
     await handleTransaction(
       account,
@@ -305,6 +306,20 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
+  const unlockWithStars = async ({
+    account,
+    ...props
+  }: SystemTypes.UnlockWithStars) => {
+    if (!client.config) {
+      throw new Error("Config system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.config!.unlock_with_stars({ account, ...props }),
+      "Map unlocked with stars.",
+    );
+  };
+
   const createDailyChallenge = async ({
     account,
     ...props
@@ -361,6 +376,20 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
+  const settleWeeklyEndless = async ({
+    account,
+    ...props
+  }: SystemTypes.SettleWeeklyEndless) => {
+    if (!client.daily_challenge) {
+      throw new Error("Daily challenge system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.daily_challenge!.settle_weekly_endless({ account, ...props }),
+      "Weekly endless settled.",
+    );
+  };
+
   const claimPrize = async ({
     account,
     ...props
@@ -398,10 +427,12 @@ export function systems({ client }: { client: IWorld }) {
     applyBonus,
     addCustomGameSettings,
     purchaseMap,
+    unlockWithStars,
     createDailyChallenge,
     registerEntry,
     submitResult,
     settleChallenge,
+    settleWeeklyEndless,
     claimPrize,
     withdrawUnclaimed,
   };

@@ -33,6 +33,7 @@ export interface Create extends Signer {
 
 export interface CreateRun extends Signer {
   game_id: BigNumberish;
+  mode: number;
 }
 
 export interface FreeMint extends Signer {
@@ -49,7 +50,6 @@ export interface Move extends Signer {
 
 export interface BonusTx extends Signer {
   game_id: BigNumberish;
-  bonus: number;
   row_index: number;
   block_index: number;
 }
@@ -91,18 +91,34 @@ export interface AddCustomGameSettings extends Signer {
   early_level_threshold: number;
   mid_level_threshold: number;
   level_cap: number;
-  boss_upgrades_enabled: number;
-  reroll_base_cost: number;
-  starting_charges: number;
+  bonus_1_type: number;
+  bonus_1_trigger_type: number;
+  bonus_1_trigger_threshold: number;
+  bonus_1_starting_charges: number;
+  bonus_2_type: number;
+  bonus_2_trigger_type: number;
+  bonus_2_trigger_threshold: number;
+  bonus_2_starting_charges: number;
+  bonus_3_type: number;
+  bonus_3_trigger_type: number;
+  bonus_3_trigger_threshold: number;
+  bonus_3_starting_charges: number;
+  boss_id: number;
 }
 
 export interface PurchaseMap extends Signer {
   settings_id: number;
 }
 
+export interface UnlockWithStars extends Signer {
+  settings_id: number;
+}
+
 export interface CreateDailyChallenge extends Signer {
   settings_id: number;
   ranking_metric: number;
+  zone_id: number;
+  mutator_id: number;
   prize_amount_low: string;
   prize_amount_high: string;
 }
@@ -126,6 +142,10 @@ export interface ClaimPrize extends Signer {
 
 export interface WithdrawUnclaimed extends Signer {
   challenge_id: number;
+}
+
+export interface SettleWeeklyEndless extends Signer {
+  week_id: number;
 }
 
 export type IWorld = ReturnType<typeof setupWorld>;
@@ -266,7 +286,6 @@ export function setupWorld(config: Config) {
     const bonus = async ({
       account,
       game_id,
-      bonus,
       row_index,
       block_index,
     }: BonusTx) => {
@@ -275,7 +294,7 @@ export function setupWorld(config: Config) {
           {
             contractAddress: contract.address,
             entrypoint: "apply_bonus",
-            calldata: [game_id, bonus, row_index, block_index],
+            calldata: [game_id, row_index, block_index],
           },
         ]);
       } catch (error) {
@@ -284,14 +303,14 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const createRun = async ({ account, game_id }: CreateRun) => {
+    const createRun = async ({ account, game_id, mode }: CreateRun) => {
       try {
         if (isSlotMode) {
           return await account.execute([
             {
               contractAddress: contract.address,
               entrypoint: "create_run",
-              calldata: [game_id],
+              calldata: [game_id, mode],
             },
           ]);
         }
@@ -306,7 +325,7 @@ export function setupWorld(config: Config) {
           {
             contractAddress: contract.address,
             entrypoint: "create_run",
-            calldata: [game_id],
+            calldata: [game_id, mode],
           },
         ]);
       } catch (error) {
@@ -374,9 +393,19 @@ export function setupWorld(config: Config) {
       early_level_threshold,
       mid_level_threshold,
       level_cap,
-      boss_upgrades_enabled,
-      reroll_base_cost,
-      starting_charges,
+      bonus_1_type,
+      bonus_1_trigger_type,
+      bonus_1_trigger_threshold,
+      bonus_1_starting_charges,
+      bonus_2_type,
+      bonus_2_trigger_type,
+      bonus_2_trigger_threshold,
+      bonus_2_starting_charges,
+      bonus_3_type,
+      bonus_3_trigger_type,
+      bonus_3_trigger_threshold,
+      bonus_3_starting_charges,
+      boss_id,
     }: AddCustomGameSettings) => {
       try {
         return await account.execute([
@@ -420,9 +449,19 @@ export function setupWorld(config: Config) {
               early_level_threshold,
               mid_level_threshold,
               level_cap,
-              boss_upgrades_enabled,
-              reroll_base_cost,
-              starting_charges,
+              bonus_1_type,
+              bonus_1_trigger_type,
+              bonus_1_trigger_threshold,
+              bonus_1_starting_charges,
+              bonus_2_type,
+              bonus_2_trigger_type,
+              bonus_2_trigger_threshold,
+              bonus_2_starting_charges,
+              bonus_3_type,
+              bonus_3_trigger_type,
+              bonus_3_trigger_threshold,
+              bonus_3_starting_charges,
+              boss_id,
             ]),
           },
         ]);
@@ -447,10 +486,26 @@ export function setupWorld(config: Config) {
       }
     };
 
+    const unlock_with_stars = async ({ account, settings_id }: UnlockWithStars) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "unlock_with_stars",
+            calldata: [settings_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing unlock_with_stars:", error);
+        throw error;
+      }
+    };
+
     return {
       address: contract.address,
       add_custom_game_settings,
       purchase_map,
+      unlock_with_stars,
     };
   }
 
@@ -468,6 +523,8 @@ export function setupWorld(config: Config) {
       account,
       settings_id,
       ranking_metric,
+      zone_id,
+      mutator_id,
       prize_amount_low,
       prize_amount_high,
     }: CreateDailyChallenge) => {
@@ -476,7 +533,14 @@ export function setupWorld(config: Config) {
           {
             contractAddress: contract.address,
             entrypoint: "create_daily_challenge",
-            calldata: [settings_id, ranking_metric, prize_amount_low, prize_amount_high],
+            calldata: [
+              settings_id,
+              ranking_metric,
+              zone_id,
+              mutator_id,
+              prize_amount_low,
+              prize_amount_high,
+            ],
           },
         ]);
       } catch (error) {
@@ -560,12 +624,28 @@ export function setupWorld(config: Config) {
       }
     };
 
+    const settle_weekly_endless = async ({ account, week_id }: SettleWeeklyEndless) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "settle_weekly_endless",
+            calldata: [week_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing settle_weekly_endless:", error);
+        throw error;
+      }
+    };
+
     return {
       address: contract.address,
       create_daily_challenge,
       register_entry,
       submit_result,
       settle_challenge,
+      settle_weekly_endless,
       claim_prize,
       withdraw_unclaimed,
     };

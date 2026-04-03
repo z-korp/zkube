@@ -388,6 +388,62 @@ export function defineContractComponents(world: World) {
         }
       );
     })(),
+    WeeklyEndless: (() => {
+      return defineComponent(
+        world,
+        {
+          week_id: RecsType.BigInt,
+          total_participants: RecsType.Number,
+          settled: RecsType.Boolean,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "WeeklyEndless",
+            types: ["u32", "u32", "bool"],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+    WeeklyEndlessLeaderboard: (() => {
+      return defineComponent(
+        world,
+        {
+          week_id: RecsType.BigInt,
+          rank: RecsType.Number,
+          player: RecsType.BigInt,
+          score: RecsType.Number,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "WeeklyEndlessLeaderboard",
+            types: ["u32", "u32", "ContractAddress", "u32"],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+    WeeklyEndlessEntry: (() => {
+      return defineComponent(
+        world,
+        {
+          week_id: RecsType.BigInt,
+          player: RecsType.BigInt,
+          best_score: RecsType.Number,
+          submitted: RecsType.Boolean,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "WeeklyEndlessEntry",
+            types: ["u32", "ContractAddress", "u32", "bool"],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
     GameChallenge: (() => {
       return defineComponent(
         world,

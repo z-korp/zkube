@@ -1,5 +1,7 @@
 import type { ThemeColors } from "@/config/themes";
 import type { ZoneProgressData } from "@/config/profileData";
+import { useDojo } from "@/dojo/useDojo";
+import useAccountCustom from "@/hooks/useAccountCustom";
 import ProgressBar from "@/ui/components/shared/ProgressBar";
 
 interface UnlockModalProps {
@@ -9,12 +11,45 @@ interface UnlockModalProps {
 }
 
 const UnlockModal: React.FC<UnlockModalProps> = ({ colors, zone, onClose }) => {
+  const {
+    setup: { systemCalls, client },
+  } = useDojo();
+  const { account } = useAccountCustom();
+  const settingsId = zone.settingsId;
+
   const starCost = zone.starCost ?? 1;
   const currentStars = zone.currentStars ?? 0;
   const basePrice = zone.price !== undefined ? Number(zone.price) / 1e18 : 0;
   const discount = Math.min(100, Math.floor((currentStars / starCost) * 100));
   const finalPrice = (basePrice * (1 - discount / 100)).toFixed(4);
   const starPercent = Math.min(100, Math.floor((currentStars / starCost) * 100));
+
+  const handleUnlockWithStars = async () => {
+    if (!account) return;
+
+    try {
+      const unlockWithStars = (systemCalls as { unlockWithStars?: (args: { account: typeof account; settings_id: number }) => Promise<unknown> }).unlockWithStars;
+      if (unlockWithStars) {
+        await unlockWithStars({ account, settings_id: settingsId });
+      } else if (client.config) {
+        await client.config.unlock_with_stars({ account, settings_id: settingsId });
+      }
+      onClose?.();
+    } catch (error) {
+      console.error("Failed to unlock with stars:", error);
+    }
+  };
+
+  const handlePurchaseMap = async () => {
+    if (!account) return;
+
+    try {
+      await systemCalls.purchaseMap({ account, settings_id: settingsId });
+      onClose?.();
+    } catch (error) {
+      console.error("Failed to purchase map:", error);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
@@ -100,6 +135,7 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ colors, zone, onClose }) => {
             {currentStars >= starCost ? (
               <button
                 type="button"
+                onClick={handleUnlockWithStars}
                 className="mt-2 w-full rounded-lg py-2 font-display text-[10px] font-extrabold tracking-[0.05em]"
                 style={{ background: colors.accent2, color: colors.background }}
               >
@@ -178,6 +214,7 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ colors, zone, onClose }) => {
 
             <button
               type="button"
+              onClick={handlePurchaseMap}
               className="mt-auto w-full rounded-lg py-2 font-display text-[10px] font-extrabold tracking-[0.05em]"
               style={{
                 background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent}CC)`,

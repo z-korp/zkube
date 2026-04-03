@@ -6,7 +6,7 @@ import Grid from "./Grid";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
 import type { Block } from "@/types/types";
-import { Bonus, BonusType } from "@/dojo/game/types/bonusTypes";
+import { BonusType } from "@/dojo/game/types/bonusTypes";
 import { Game } from "@/dojo/game/models/game";
 import { useMusicPlayer } from "@/contexts/hooks";
 
@@ -68,7 +68,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   }, [COLS]);
 
   const handleBonusTx = useCallback(
-    async (bonusType: BonusType, rowIndex: number, colIndex: number) => {
+    async (_bonusType: BonusType, rowIndex: number, colIndex: number) => {
       if (!account) return;
 
       setIsTxProcessing(true);
@@ -76,7 +76,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
         await applyBonus({
           account: account as Account,
           game_id: game.id,
-          bonus: new Bonus(bonusType).into(),
           row_index: ROWS - rowIndex - 1,
           block_index: colIndex,
         });
