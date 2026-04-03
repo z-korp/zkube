@@ -17,20 +17,22 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ children }) => {
   const isBack = transitionDirection === "back";
 
   return (
-    <div className="fixed inset-0 overflow-hidden">
-      <ThemeBackground />
-      <AnimatePresence initial={false}>
-        <motion.div
-          key={currentPage}
-          initial={{ x: isBack ? "-100%" : "100%" }}
-          animate={{ x: 0 }}
-          exit={{ x: isBack ? "100%" : "-100%" }}
-          transition={SLIDE_TRANSITION}
-          className="absolute inset-0 overflow-y-auto overflow-x-hidden"
-        >
-          {children}
-        </motion.div>
-      </AnimatePresence>
+    <div className="fixed inset-0 flex items-center justify-center bg-black">
+      <div className="relative w-full h-full max-w-[430px] overflow-hidden">
+        <ThemeBackground />
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={currentPage}
+            initial={{ x: isBack ? "-100%" : "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: isBack ? "100%" : "-100%" }}
+            transition={SLIDE_TRANSITION}
+            className="absolute inset-0 overflow-y-auto overflow-x-hidden"
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
