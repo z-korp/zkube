@@ -284,7 +284,7 @@ const PlayScreen: React.FC = () => {
           level={game.level}
           levelScore={game.isOver() ? 0 : game.levelScore}
           targetScore={targetScore}
-          movesRemaining={maxMoves - game.levelMoves}
+          movesRemaining={game?.mode === 1 ? game.levelMoves : maxMoves - game.levelMoves}
           totalCubes={0}
           combo={game.isOver() ? 0 : game.combo}
           constraintProgress={game.constraintProgress}

@@ -212,9 +212,25 @@ const GameHud: React.FC<GameHudProps> = ({
   const cube3MarkerPos = maxMoves > 0 ? (cube3Threshold / maxMoves) * 100 : 0;
   const cube2MarkerPos = maxMoves > 0 ? (cube2Threshold / maxMoves) * 100 : 0;
 
-  const normalizedDifficulty = Math.max(0, Math.min(currentDifficulty, ENDLESS_TIERS.length - 1));
-  const currentTier = ENDLESS_TIERS[normalizedDifficulty] ?? ENDLESS_TIERS[0];
-  const nextTier = ENDLESS_TIERS[normalizedDifficulty + 1] ?? null;
+  // Contract Difficulty enum: None=0, Increasing=1, VeryEasy=2..Master=9
+  // ENDLESS_TIERS indices:   VeryEasy=0..Master=7
+  // Offset = 2
+  const tierIndex = Math.max(0, Math.min(currentDifficulty - 2, ENDLESS_TIERS.length - 1));
+
+  // Derive tier from totalScore directly for progress bar consistency
+  // (contract uses ramped score for difficulty, which can differ from stored totalScore)
+  let scoreTierIndex = 0;
+  for (let i = ENDLESS_TIERS.length - 1; i >= 0; i--) {
+    if (animatedTotalScore >= ENDLESS_TIERS[i].threshold) {
+      scoreTierIndex = i;
+      break;
+    }
+  }
+
+  // Use whichever is higher (contract may be ahead due to ramp multiplier)
+  const effectiveTierIndex = Math.max(tierIndex, scoreTierIndex);
+  const currentTier = ENDLESS_TIERS[effectiveTierIndex] ?? ENDLESS_TIERS[0];
+  const nextTier = ENDLESS_TIERS[effectiveTierIndex + 1] ?? null;
   const endlessTierProgress = nextTier
     ? Math.max(
       0,
