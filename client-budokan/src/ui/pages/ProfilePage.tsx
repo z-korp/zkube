@@ -119,7 +119,7 @@ const ProfilePage: React.FC = () => {
                 boxShadow: colors.glow,
               }}
             >
-              ZK
+              {(username || "PL").slice(0, 2).toUpperCase()}
             </div>
             <div
               className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-md border-2 font-display text-[9px] font-black"

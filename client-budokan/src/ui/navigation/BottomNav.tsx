@@ -1,4 +1,4 @@
-import { Home, User, Trophy, Settings } from "lucide-react";
+import { Home, Gamepad2, User, Trophy, Settings } from "lucide-react";
 import { useNavigationStore, FULLSCREEN_PAGES } from "@/stores/navigationStore";
 import type { PageId } from "@/stores/navigationStore";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
@@ -16,6 +16,7 @@ const BottomNav = () => {
 
   const tabs: { id: PageId; icon: React.ElementType; label: string }[] = [
     { id: "home", icon: Home, label: "Home" },
+    { id: "mygames", icon: Gamepad2, label: "Games" },
     { id: "profile", icon: User, label: "Profile" },
     { id: "ranks", icon: Trophy, label: "Leaderboard" },
     { id: "settings", icon: Settings, label: "Settings" },

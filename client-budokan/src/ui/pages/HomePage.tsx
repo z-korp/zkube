@@ -194,7 +194,7 @@ const HomePage: React.FC = () => {
                     color: "#0a1628",
                   }}
                 >
-                  ZK
+                  {(username || "PL").slice(0, 2).toUpperCase()}
                 </div>
                 <div className="min-w-0">
                   <p

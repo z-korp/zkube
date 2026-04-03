@@ -1,6 +1,5 @@
 import {
   THEME_IDS,
-  THEME_META,
   getThemeColors,
   getThemeImages,
   type ThemeId,
@@ -20,11 +19,10 @@ const toThemeId = (themeId: string): ThemeId => {
   return DEFAULT_THEME;
 };
 
-export const ZoneBackground: React.FC<ZoneBackgroundProps> = ({ zone, themeId }) => {
+export const ZoneBackground: React.FC<ZoneBackgroundProps> = ({ themeId }) => {
   const safeThemeId = toThemeId(themeId);
   const theme = getThemeColors(safeThemeId);
   const images = getThemeImages(safeThemeId);
-  const meta = THEME_META[safeThemeId];
 
   return (
     <div
@@ -34,7 +32,7 @@ export const ZoneBackground: React.FC<ZoneBackgroundProps> = ({ zone, themeId })
       <img
         src={images.mapBg}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover opacity-60"
+        className="absolute inset-0 h-full w-full object-cover opacity-30"
         loading="eager"
       />
 
@@ -48,7 +46,7 @@ export const ZoneBackground: React.FC<ZoneBackgroundProps> = ({ zone, themeId })
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(180deg, ${theme.background}40 0%, transparent 20%, transparent 80%, ${theme.background}90 100%)`,
+          background: `radial-gradient(130% 95% at 50% 50%, transparent 38%, ${theme.background}cc 100%), linear-gradient(180deg, ${theme.background}cc 0%, ${theme.background}66 24%, ${theme.background}66 76%, ${theme.background}f0 100%)`,
         }}
       />
 

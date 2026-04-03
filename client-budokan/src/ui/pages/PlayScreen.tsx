@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/ui/elements/dialog";
 import { generateLevelConfig } from "@/dojo/game/types/level";
+import { getBonusType } from "@/config/mutatorConfig";
 
 const V2_BONUS_TO_LEGACY: Record<number, BonusType> = {
   0: BonusType.None,
@@ -215,14 +216,15 @@ const PlayScreen: React.FC = () => {
   const bonusSlots = useMemo(() => {
     if (bonusType <= 0) return [];
     const mapped = V2_BONUS_TO_LEGACY[bonusType] ?? BonusType.None;
+    const bonusInfo = getBonusType(bonusType);
     return [
       {
         type: mapped,
         count: bonusCharges,
         level: activeBonusLevel,
         bagSize: bonusCharges,
-        icon: "/assets/common/skills/skills-wave-t1.png",
-        tooltip: `Bonus charges: ${bonusCharges}`,
+        icon: bonusInfo.icon,
+        tooltip: `${bonusInfo.name}: ${bonusInfo.description} (${bonusCharges} charges)`,
         onClick: () => {
           if (bonusCharges <= 0) return;
           setActiveBonus((prev) => (prev === mapped ? BonusType.None : mapped));
@@ -231,9 +233,10 @@ const PlayScreen: React.FC = () => {
     ];
   }, [bonusType, bonusCharges, activeBonusLevel]);
 
+  const bonusInfo = getBonusType(bonusType);
   const bonusDescription =
     activeBonus !== BonusType.None && bonusCharges > 0
-      ? "Tap a block to use bonus"
+      ? `TAP A BLOCK TO USE ${bonusInfo.name.toUpperCase()}`
       : "";
 
   useEffect(() => {
@@ -290,6 +293,7 @@ const PlayScreen: React.FC = () => {
           bonusUsedThisLevel={false}
           gameLevel={gameLevel}
           maxMoves={maxMoves}
+          activeMutatorId={game.activeMutatorId}
         />
       )}
 

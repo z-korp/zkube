@@ -1,12 +1,11 @@
 import { ChevronLeft } from "lucide-react";
-import { useLegacyBalance } from "@/hooks/useLegacyBalance";
-import CubeIcon from "@/ui/components/CubeIcon";
+import { useZStarBalance } from "@/hooks/useZStarBalance";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 interface PageTopBarProps {
   title: string;
   subtitle?: string;
   onBack: () => void;
-  cubeBalance?: bigint;
   rightSlot?: React.ReactNode;
 }
 
@@ -14,11 +13,10 @@ const PageTopBar: React.FC<PageTopBarProps> = ({
   title,
   subtitle,
   onBack,
-  cubeBalance: cubeBalanceOverride,
   rightSlot,
 }) => {
-  const { cubeBalance: walletBalance } = useLegacyBalance();
-  const displayBalance = cubeBalanceOverride ?? walletBalance;
+  const { account } = useAccountCustom();
+  const { balance: zStarBalance } = useZStarBalance(account?.address);
 
   return (
     <div className="flex items-center justify-between px-2 md:px-4 h-12 md:h-13 lg:h-14 bg-black/40 backdrop-blur-xl border-b border-white/[0.08]">
@@ -48,9 +46,9 @@ const PageTopBar: React.FC<PageTopBarProps> = ({
       <div className="flex items-center gap-2">
         {rightSlot}
         <div className="flex items-center gap-1.5">
-          <CubeIcon />
+          <span className="text-yellow-400 text-lg">★</span>
           <span className="font-display text-yellow-400 text-lg tracking-wide">
-            {displayBalance.toString()}
+            {zStarBalance.toString()}
           </span>
         </div>
       </div>

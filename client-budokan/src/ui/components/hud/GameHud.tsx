@@ -5,6 +5,7 @@ import { useLerpNumber } from "@/hooks/useLerpNumber";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
 import { getCommonAssetPath } from "@/config/themes";
+import { getMutatorDef } from "@/config/mutatorConfig";
 import CubeIcon from "@/ui/components/CubeIcon";
 import {
   Tooltip,
@@ -26,6 +27,7 @@ interface GameHudProps {
   bonusUsedThisLevel: boolean;
   gameLevel: GameLevelData | null;
   maxMoves: number;
+  activeMutatorId?: number;
 }
 
 const RING_SIZE_MOBILE = 44;
@@ -139,9 +141,12 @@ const GameHud: React.FC<GameHudProps> = ({
   bonusUsedThisLevel,
   gameLevel,
   maxMoves,
+  activeMutatorId = 0,
 }) => {
   const isDesktop = useSyncExternalStore(subscribeResize, getIsDesktop, () => false);
   const ringSize = isDesktop ? RING_SIZE_DESKTOP : RING_SIZE_MOBILE;
+
+  const mutator = getMutatorDef(activeMutatorId);
 
   const [movesInfoOpen, setMovesInfoOpen] = useState(false);
   const movesInfoRef = useRef<HTMLDivElement>(null);
@@ -235,6 +240,12 @@ const GameHud: React.FC<GameHudProps> = ({
           <div className="w-8 h-8 rounded-full border-2 border-yellow-500 bg-slate-900 flex items-center justify-center shadow-[0_0_8px_rgba(250,204,21,0.3)]">
             <span className="font-['Fredericka_the_Great'] text-base text-yellow-400 leading-none">{level}</span>
           </div>
+          {activeMutatorId > 0 && (
+            <div className="flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 ml-1">
+              <span className="text-xs">{mutator.icon}</span>
+              <span className="font-sans text-[9px] font-medium text-white/80">{mutator.name}</span>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-1 col-span-2">

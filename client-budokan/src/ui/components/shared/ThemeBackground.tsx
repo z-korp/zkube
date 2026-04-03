@@ -15,7 +15,7 @@ const ThemeBackground: React.FC = () => {
           draggable={false}
         />
       </div>
-      <div className="fixed inset-0 -z-10 bg-black/30" />
+      <div className="fixed inset-0 -z-10 bg-black/50 backdrop-blur-[2px]" />
     </>
   );
 };

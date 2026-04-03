@@ -5,6 +5,7 @@ import {
   Copy,
   Palette,
   UserRound,
+  ChevronLeft,
 } from "lucide-react";
 import { useDisconnect } from "@starknet-react/core";
 import { THEME_IDS, THEME_META, getThemeColors } from "@/config/themes";
@@ -14,7 +15,6 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { useNavigationStore } from "@/stores/navigationStore";
 import GameButton from "@/ui/components/shared/GameButton";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
-import PageTopBar from "@/ui/navigation/PageTopBar";
 import ImageAssets from "@/ui/theme/ImageAssets";
 
 const truncateAddress = (address: string): string => {
@@ -53,7 +53,12 @@ const SettingsPage: React.FC = () => {
 
   return (
     <div className="h-screen-viewport flex flex-col overflow-hidden">
-      <PageTopBar title="SETTINGS" onBack={goBack} />
+      <div className="flex items-center gap-2 px-4 pt-3 pb-2">
+        <button onClick={goBack} className="h-10 w-10 rounded-xl flex items-center justify-center text-white/60 hover:text-white">
+          <ChevronLeft size={20} />
+        </button>
+        <h1 className="font-display text-lg font-bold text-white">Settings</h1>
+      </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4">
         <div className="max-w-[760px] mx-auto flex flex-col gap-4 pb-[72px]">
