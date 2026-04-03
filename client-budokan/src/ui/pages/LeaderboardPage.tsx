@@ -62,14 +62,13 @@ const LeaderboardPage: React.FC = () => {
         });
 
   return (
-    <div className="flex h-full flex-col pb-[72px]">
+    <div className="flex h-full flex-col overflow-hidden">
       <div className="px-4 pt-4 pb-2">
         <motion.h1 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 24 }}
-          className="font-display text-[18px] font-extrabold text-center" 
-          style={{ color: colors.text }}
+          className="text-center font-sans text-xl font-bold tracking-wide text-white" 
         >
           Leaderboard
         </motion.h1>
@@ -101,7 +100,7 @@ const LeaderboardPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
+      <div className="mx-2 mt-1 mb-[72px] rounded-2xl border border-white/[0.06] bg-black/40 backdrop-blur-sm p-3 overflow-y-auto flex-1 min-h-0">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-16" style={{ color: colors.textMuted }}>
             <Loader2 className="h-8 w-8 animate-spin mb-4" style={{ color: colors.accent }} />

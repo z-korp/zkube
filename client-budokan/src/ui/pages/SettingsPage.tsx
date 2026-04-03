@@ -1,67 +1,27 @@
-import { useState } from "react";
 import { motion } from "motion/react";
 import {
   Check,
-  Copy,
   Palette,
-  UserRound,
-  ChevronLeft,
 } from "lucide-react";
-import { useDisconnect } from "@starknet-react/core";
 import { THEME_IDS, THEME_META, getThemeColors } from "@/config/themes";
 import { useMusicPlayer } from "@/contexts/hooks";
-import { useControllerUsername } from "@/hooks/useControllerUsername";
-import useAccountCustom from "@/hooks/useAccountCustom";
-import { useNavigationStore } from "@/stores/navigationStore";
-import GameButton from "@/ui/components/shared/GameButton";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";
-
-const truncateAddress = (address: string): string => {
-  if (address.length <= 14) return address;
-  return `${address.slice(0, 8)}...${address.slice(-6)}`;
-};
 
 const toPercent = (value: number): number => Math.round(value * 100);
 
 const SettingsPage: React.FC = () => {
-  const goBack = useNavigationStore((state) => state.goBack);
-  const { account } = useAccountCustom();
-  const { username } = useControllerUsername();
-  const { disconnect } = useDisconnect();
   const { themeTemplate, setThemeTemplate } = useTheme();
   const colors = getThemeColors(themeTemplate);
   const { musicVolume, effectsVolume, setMusicVolume, setEffectsVolume } =
     useMusicPlayer();
 
-  const [copied, setCopied] = useState(false);
-
-  const accountAddress = account?.address;
-  const resolvedUsername = username ?? "Controller User";
-
-  const handleCopyAddress = async () => {
-    if (!accountAddress) return;
-
-    try {
-      await navigator.clipboard.writeText(accountAddress);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1400);
-    } catch {
-      setCopied(false);
-    }
-  };
-
   return (
     <div className="h-screen-viewport flex flex-col overflow-hidden">
-      <div className="flex items-center gap-2 px-4 pt-3 pb-2">
-        <button onClick={goBack} className="h-10 w-10 rounded-xl flex items-center justify-center text-white/60 hover:text-white">
-          <ChevronLeft size={20} />
-        </button>
-        <h1 className="font-display text-lg font-bold text-white">Settings</h1>
-      </div>
+      <h1 className="pt-4 pb-2 text-center font-sans text-xl font-bold tracking-wide text-white">Settings</h1>
 
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4">
-        <div className="max-w-[760px] mx-auto flex flex-col gap-4 pb-[72px]">
+      <div className="mx-2 mt-1 mb-[72px] rounded-2xl border border-white/[0.06] bg-black/40 backdrop-blur-sm p-3 overflow-y-auto flex-1 min-h-0">
+        <div className="max-w-[760px] mx-auto flex flex-col gap-4">
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -181,62 +141,6 @@ const SettingsPage: React.FC = () => {
               })}
             </div>
           </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, delay: 0.08 }}
-            className="backdrop-blur-xl bg-white/[0.04] border border-white/[0.08] rounded-2xl shadow-lg shadow-black/20 p-4"
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <UserRound size={18} style={{ color: colors.accent2 }} />
-              <h2 className="font-display text-lg tracking-wide" style={{ color: colors.text }}>
-                ACCOUNT
-              </h2>
-            </div>
-
-            {accountAddress ? (
-              <div className="space-y-3">
-                <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3">
-                  <p className="font-sans text-xs mb-1" style={{ color: colors.textMuted }}>Username</p>
-                  <p className="font-sans text-sm font-medium" style={{ color: colors.text }}>{resolvedUsername}</p>
-                </div>
-
-                <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3">
-                  <p className="font-sans text-xs mb-1" style={{ color: colors.textMuted }}>Wallet Address</p>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-sans text-sm font-medium truncate" style={{ color: colors.text }}>
-                      {truncateAddress(accountAddress)}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleCopyAddress}
-                      className="inline-flex items-center gap-1 font-sans text-xs transition-colors"
-                      style={{ color: copied ? colors.accent : colors.textMuted }}
-                      title={copied ? "Copied" : "Copy address"}
-                    >
-                      {copied ? <Check size={14} /> : <Copy size={14} />}
-                      {copied ? "Copied" : "Copy"}
-                    </button>
-                  </div>
-                </div>
-
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <GameButton
-                    label="DISCONNECT"
-                    variant="danger"
-                    onClick={() => disconnect()}
-                  />
-                </motion.div>
-              </div>
-            ) : (
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 font-sans text-sm" style={{ color: colors.textMuted }}>
-                Connect a wallet to manage your account settings.
-              </div>
-            )}
-          </motion.section>
-
-
         </div>
       </div>
     </div>

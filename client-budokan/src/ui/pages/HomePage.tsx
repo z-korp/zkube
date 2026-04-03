@@ -150,7 +150,7 @@ const HomePage: React.FC = () => {
   }, [activeRunTokenId, navigate]);
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden px-4 pb-[72px] pt-8">
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[72px] pt-8">
       <img
         src={getThemeImages(getThemeId(zones[activeZone]?.zoneId ?? 1)).background}
         alt=""
@@ -175,173 +175,175 @@ const HomePage: React.FC = () => {
         />
       </div>
 
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
-        className="relative z-10 flex-1 space-y-4 overflow-y-auto pb-2 hide-scrollbar"
-      >
-        <motion.div variants={itemVariants}>
-          {account ? (
-            <div
-              className="flex items-center justify-between rounded-2xl border border-white/[0.08] bg-white/[0.04] p-3 shadow-lg shadow-black/20 backdrop-blur-xl ring-1 ring-white/[0.06]"
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <div
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl font-display text-sm font-black shadow-inner"
+      <div className="mx-2 mt-1 rounded-2xl border border-white/[0.06] bg-black/40 backdrop-blur-sm p-3 overflow-y-auto flex-1 min-h-0">
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="relative z-10 space-y-4 pb-2 hide-scrollbar"
+        >
+          <motion.div variants={itemVariants}>
+            {account ? (
+              <div
+                className="flex items-center justify-between rounded-2xl border border-white/[0.08] bg-white/[0.04] p-3 shadow-lg shadow-black/20 backdrop-blur-xl ring-1 ring-white/[0.06]"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <div
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl font-display text-sm font-black shadow-inner"
+                    style={{
+                      background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent})`,
+                      color: "#0a1628",
+                    }}
+                  >
+                    {(username || "PL").slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p
+                      className="truncate font-sans text-[14px] font-bold tracking-wide text-white"
+                    >
+                      {username || "Player"}
+                    </p>
+                    <p className="font-sans text-[11px] font-medium text-white/60">
+                      <span className="text-yellow-400 drop-shadow-[0_0_4px_rgba(250,204,21,0.5)]">★</span> {totalStars} collected
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className="shrink-0 rounded-lg px-2.5 py-1 font-sans text-[10px] font-bold tracking-wider"
                   style={{
-                    background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent})`,
-                    color: "#0a1628",
+                    color: colors.accent,
+                    backgroundColor: `${colors.accent}1A`,
+                    border: `1px solid ${colors.accent}33`,
                   }}
                 >
-                  {(username || "PL").slice(0, 2).toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <p
-                    className="truncate font-sans text-[14px] font-bold tracking-wide text-white"
-                  >
-                    {username || "Player"}
-                  </p>
-                  <p className="font-sans text-[11px] font-medium text-white/60">
-                    <span className="text-yellow-400 drop-shadow-[0_0_4px_rgba(250,204,21,0.5)]">★</span> {totalStars} collected
-                  </p>
-                </div>
+                  CONNECTED
+                </span>
+              </div>
+            ) : (
+              <div
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-3 shadow-lg shadow-black/20 backdrop-blur-xl"
+              >
+                <Connect />
+              </div>
+            )}
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              type="button"
+              onClick={() => navigate("daily")}
+              className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border px-4 py-3.5 text-left shadow-lg shadow-black/20"
+              style={{
+                background: `linear-gradient(135deg, ${colors.accent}26, ${colors.accent}1A)`,
+                borderColor: `${colors.accent}4D`,
+              }}
+            >
+              <div className="pointer-events-none absolute inset-[-100%_0] w-[300%] animate-shimmer bg-gradient-to-r from-transparent via-white/[0.07] to-transparent bg-[length:50%_100%]" />
+              <div className="relative z-10">
+                <p className="font-display text-[13px] font-bold tracking-[0.08em]" style={{ color: colors.accent }}>
+                  <span className="mr-1 inline-block animate-pulse">⚡</span> DAILY CHALLENGE
+                </p>
+                <p className="mt-0.5 font-sans text-[11px] font-medium text-white/60">
+                  24h remaining · {Math.max(42, (ownedGames?.length ?? 0) * 3)} players
+                </p>
               </div>
               <span
-                className="shrink-0 rounded-lg px-2.5 py-1 font-sans text-[10px] font-bold tracking-wider"
-                style={{
-                  color: colors.accent,
-                  backgroundColor: `${colors.accent}1A`,
-                  border: `1px solid ${colors.accent}33`,
-                }}
+                className="relative z-10 rounded-xl px-3.5 py-1.5 font-display text-[11px] font-bold tracking-wider shadow-lg transition-transform group-hover:scale-105"
+                style={{ backgroundColor: colors.accent, color: "#0a1628" }}
               >
-                CONNECTED
+                PLAY
               </span>
-            </div>
-          ) : (
-            <div
-              className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-3 shadow-lg shadow-black/20 backdrop-blur-xl"
+            </motion.button>
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <p
+              className="mb-2.5 ml-1 font-sans text-[11px] font-bold uppercase tracking-[0.2em] text-white/60"
             >
-              <Connect />
-            </div>
-          )}
-        </motion.div>
+              Select Zone
+            </p>
 
-        <motion.div variants={itemVariants}>
-          <motion.button
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.98 }}
-            type="button"
-            onClick={() => navigate("daily")}
-            className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border px-4 py-3.5 text-left shadow-lg shadow-black/20"
-            style={{
-              background: `linear-gradient(135deg, ${colors.accent}26, ${colors.accent}1A)`,
-              borderColor: `${colors.accent}4D`,
-            }}
-          >
-            <div className="pointer-events-none absolute inset-[-100%_0] w-[300%] animate-shimmer bg-gradient-to-r from-transparent via-white/[0.07] to-transparent bg-[length:50%_100%]" />
-            <div className="relative z-10">
-              <p className="font-display text-[13px] font-bold tracking-[0.08em]" style={{ color: colors.accent }}>
-                <span className="mr-1 inline-block animate-pulse">⚡</span> DAILY CHALLENGE
-              </p>
-              <p className="mt-0.5 font-sans text-[11px] font-medium text-white/60">
-                24h remaining · {Math.max(42, (ownedGames?.length ?? 0) * 3)} players
-              </p>
-            </div>
-            <span
-              className="relative z-10 rounded-xl px-3.5 py-1.5 font-display text-[11px] font-bold tracking-wider shadow-lg transition-transform group-hover:scale-105"
-              style={{ backgroundColor: colors.accent, color: "#0a1628" }}
-            >
-              PLAY
-            </span>
-          </motion.button>
-        </motion.div>
-
-        <motion.div variants={itemVariants}>
-          <p
-            className="mb-2.5 ml-1 font-sans text-[11px] font-bold uppercase tracking-[0.2em] text-white/60"
-          >
-            Select Zone
-          </p>
-
-          <div className="space-y-2.5">
-            {zones.map((z, idx) => {
-              const isSelectable = z.unlocked;
-              const isSelected = idx === activeZone && isSelectable;
-              return (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  key={z.settingsId}
-                  type="button"
-                  onClick={() => {
-                    if (isSelectable) setActiveZone(idx);
-                  }}
-                  className="flex w-full items-center justify-between rounded-2xl border px-3.5 py-3.5 text-left transition-all duration-300"
-                  style={{
-                    backgroundColor: isSelectable ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)",
-                    borderColor: isSelected ? colors.accent : isSelectable ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)",
-                    opacity: isSelectable ? 1 : 0.5,
-                    boxShadow: isSelected ? `0 0 20px ${colors.accent}33, inset 0 0 10px ${colors.accent}1A` : "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-                    backdropFilter: "blur(16px)",
-                  }}
-                >
-                  <div className="flex items-center gap-3.5">
-                    <div className="relative">
-                      <img
-                        src={getThemeImages(getThemeId(z.zoneId)).themeIcon}
-                        alt={z.name}
-                        className="h-10 w-10 rounded-xl object-cover shadow-md"
-                        draggable={false}
-                      />
-                      {isSelected && (
-                        <div className="absolute inset-0 rounded-xl ring-2 ring-inset" style={{ borderColor: colors.accent }} />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-display text-[14px] font-bold tracking-wide text-white">
-                        {z.name}
-                      </p>
-                      <div className="mt-1 flex items-center gap-1">
-                        {Array.from({ length: 3 }).map((_, i) => {
-                          const isFilled = z.stars > i * 10;
-                          return (
-                            <span
-                              key={i}
-                              className="text-[11px] transition-colors"
-                              style={{ 
-                                color: isFilled ? "#FACC15" : "rgba(255,255,255,0.6)",
-                                textShadow: isFilled ? "0 0 6px rgba(250,204,21,0.6)" : "none"
-                              }}
-                            >
-                              ★
-                            </span>
-                          );
-                        })}
-                        <span className="ml-1.5 font-sans text-[10px] font-medium text-white/60">
-                          {z.stars}/30
-                        </span>
+            <div className="space-y-2.5">
+              {zones.map((z, idx) => {
+                const isSelectable = z.unlocked;
+                const isSelected = idx === activeZone && isSelectable;
+                return (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    key={z.settingsId}
+                    type="button"
+                    onClick={() => {
+                      if (isSelectable) setActiveZone(idx);
+                    }}
+                    className="flex w-full items-center justify-between rounded-2xl border px-3.5 py-3.5 text-left transition-all duration-300"
+                    style={{
+                      backgroundColor: isSelectable ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)",
+                      borderColor: isSelected ? colors.accent : isSelectable ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)",
+                      opacity: isSelectable ? 1 : 0.5,
+                      boxShadow: isSelected ? `0 0 20px ${colors.accent}33, inset 0 0 10px ${colors.accent}1A` : "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                      backdropFilter: "blur(16px)",
+                    }}
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="relative">
+                        <img
+                          src={getThemeImages(getThemeId(z.zoneId)).themeIcon}
+                          alt={z.name}
+                          className="h-10 w-10 rounded-xl object-cover shadow-md"
+                          draggable={false}
+                        />
+                        {isSelected && (
+                          <div className="absolute inset-0 rounded-xl ring-2 ring-inset" style={{ borderColor: colors.accent }} />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-display text-[14px] font-bold tracking-wide text-white">
+                          {z.name}
+                        </p>
+                        <div className="mt-1 flex items-center gap-1">
+                          {Array.from({ length: 3 }).map((_, i) => {
+                            const isFilled = z.stars > i * 10;
+                            return (
+                              <span
+                                key={i}
+                                className="text-[11px] transition-colors"
+                                style={{ 
+                                  color: isFilled ? "#FACC15" : "rgba(255,255,255,0.6)",
+                                  textShadow: isFilled ? "0 0 6px rgba(250,204,21,0.6)" : "none"
+                                }}
+                              >
+                                ★
+                              </span>
+                            );
+                          })}
+                          <span className="ml-1.5 font-sans text-[10px] font-medium text-white/60">
+                            {z.stars}/30
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <span className="text-lg transition-transform" style={{ 
-                    color: isSelectable ? colors.accent : "rgba(255,255,255,0.6)",
-                    transform: isSelected ? "translateX(2px)" : "none"
-                  }}>
-                    {isSelectable ? "→" : "🔒"}
-                  </span>
-                </motion.button>
-              );
-            })}
-          </div>
-        </motion.div>
+                    <span className="text-lg transition-transform" style={{ 
+                      color: isSelectable ? colors.accent : "rgba(255,255,255,0.6)",
+                      transform: isSelected ? "translateX(2px)" : "none"
+                    }}>
+                      {isSelectable ? "→" : "🔒"}
+                    </span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </motion.div>
 
-        <motion.div variants={itemVariants}>
-          <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
+          <motion.div variants={itemVariants}>
+            <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
+          </motion.div>
         </motion.div>
-      </motion.div>
+      </div>
 
-      <div className="relative z-20 mt-2 flex flex-col gap-2.5">
+      <div className="relative z-20 mt-2 flex flex-col gap-2.5 px-4">
         {account && hasActiveRun ? (
           <motion.button
             initial={{ opacity: 0, y: 10 }}

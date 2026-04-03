@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  ChevronLeft,
-  Loader2,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { useNavigationStore } from "@/stores/navigationStore";
 import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
 import { usePlayerEntry } from "@/hooks/usePlayerEntry";
 import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
@@ -48,7 +44,6 @@ const CountdownPill: React.FC<{ endTime: number; accent: string; border: string;
 };
 
 const DailyChallengePage: React.FC = () => {
-  const goBack = useNavigationStore((s) => s.goBack);
   const { account } = useAccountCustom();
   const { themeTemplate } = useTheme();
   const colors = getThemeColors(themeTemplate);
@@ -126,19 +121,10 @@ const DailyChallengePage: React.FC = () => {
   }, [account, challenge, claiming, systemCalls]);
 
   return (
-    <div className="flex h-full flex-col pb-[72px]">
-      <div className="flex items-center gap-2 px-3 pt-3 pb-2">
-        <button
-          onClick={goBack}
-          className="h-11 w-11 rounded-lg"
-          style={{ color: colors.accent }}
-        >
-          <ChevronLeft size={20} />
-        </button>
-        <div className="flex-1" />
-      </div>
+    <div className="flex h-full flex-col overflow-hidden">
+      <h1 className="pt-4 pb-2 text-center font-sans text-xl font-bold tracking-wide text-white">Daily Challenge</h1>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
+      <div className="mx-2 mt-1 mb-[72px] rounded-2xl border border-white/[0.06] bg-black/40 backdrop-blur-sm p-3 overflow-y-auto flex-1 min-h-0">
         <div className="mx-auto flex w-full max-w-[500px] flex-col gap-3">
           {challengeLoading && (
             <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-8 text-center shadow-lg shadow-black/20 backdrop-blur-xl">
