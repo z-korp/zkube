@@ -79,7 +79,6 @@ const MutatorRevealPage: React.FC = () => {
   return (
     <motion.div
       className="relative flex h-full min-h-0 flex-col px-5 py-4"
-      style={{ background: "linear-gradient(180deg, #000 0%, rgba(0,0,0,0.82) 100%)" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -99,13 +98,13 @@ const MutatorRevealPage: React.FC = () => {
               className="h-9 w-9 animate-spin rounded-full border-2 border-t-transparent"
               style={{ borderColor: `${colors.accent}66`, borderTopColor: "transparent" }}
             />
-            <p className="font-['DM_Sans'] text-[11px] uppercase tracking-[0.16em]" style={{ color: colors.textMuted }}>
+            <p className="font-sans text-[11px] uppercase tracking-[0.16em]" style={{ color: colors.textMuted }}>
               Syncing run...
             </p>
           </div>
         ) : (
           <>
-            <div className="mb-4 flex h-28 w-28 items-center justify-center rounded-full" style={{ background: `${colors.accent}14` }}>
+            <div className="mb-4 flex h-28 w-28 items-center justify-center rounded-full backdrop-blur-xl" style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${colors.accent}30` }}>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`${displayIcon}-${rollKey}-${isSettled}`}
@@ -137,7 +136,7 @@ const MutatorRevealPage: React.FC = () => {
             </div>
 
             <motion.p
-              className="font-['DM_Sans'] text-[10px] font-semibold uppercase tracking-[0.3em]"
+              className="font-sans text-[10px] font-semibold uppercase tracking-[0.3em]"
               style={{ color: colors.accent }}
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: isSettled ? 0 : 30, opacity: isSettled ? 1 : 0 }}
@@ -161,13 +160,13 @@ const MutatorRevealPage: React.FC = () => {
                 (effect, index) => (
                   <motion.div
                     key={`${effect}-${index}`}
-                    className="rounded-[10px] px-3.5 py-2.5"
-                    style={{ background: `${colors.accent}14`, border: `1px solid ${colors.accent}40` }}
+                    className="rounded-xl px-3.5 py-2.5 backdrop-blur-xl"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
                     initial={{ y: 10, opacity: 0 }}
                     animate={{ y: isSettled ? 0 : 10, opacity: isSettled ? 1 : 0 }}
                     transition={{ delay: isSettled ? 0.55 + index * 0.1 : 0, duration: 0.3 }}
                   >
-                    <p className="font-['DM_Sans'] text-[11px]" style={{ color: colors.text }}>
+                    <p className="font-sans text-[11px]" style={{ color: colors.text }}>
                       {effect}
                     </p>
                   </motion.div>
@@ -176,8 +175,8 @@ const MutatorRevealPage: React.FC = () => {
 
               {bonusTypeId > 0 && (
                 <motion.div
-                  className="mt-1 rounded-[10px] px-3.5 py-2.5"
-                  style={{ background: `${colors.accent2}17`, border: `1px solid ${colors.accent2}55` }}
+                  className="mt-1 rounded-xl px-3.5 py-2.5 backdrop-blur-xl"
+                  style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${colors.accent2}40` }}
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: isSettled ? 0 : 10, opacity: isSettled ? 1 : 0 }}
                   transition={{ delay: isSettled ? 0.75 + mutator.effects.length * 0.1 : 0, duration: 0.3 }}
@@ -187,11 +186,11 @@ const MutatorRevealPage: React.FC = () => {
                   </p>
                   <div className="mt-1 flex items-center gap-2">
                     <img src={bonus.icon} alt={bonus.name} className="h-5 w-5" draggable={false} />
-                    <p className="font-['DM_Sans'] text-[10px]" style={{ color: colors.text }}>
+                    <p className="font-sans text-[10px]" style={{ color: colors.text }}>
                       {bonus.description}
                     </p>
                   </div>
-                  <p className="mt-1 font-['DM_Sans'] text-[10px]" style={{ color: colors.textMuted }}>
+                  <p className="mt-1 font-sans text-[10px]" style={{ color: colors.textMuted }}>
                     {bonusCharges} charge{bonusCharges === 1 ? "" : "s"} available
                   </p>
                 </motion.div>
@@ -201,7 +200,10 @@ const MutatorRevealPage: React.FC = () => {
             <motion.button
               disabled={gameId === null}
               onClick={() => {
-                if (gameId !== null) navigate("map", gameId);
+                if (gameId !== null) {
+                  const isEndless = game?.mode === 1;
+                  navigate(isEndless ? "play" : "map", gameId);
+                }
               }}
               className="mt-6 w-full rounded-xl py-3.5 font-display text-sm font-extrabold tracking-[0.1em] text-white transition-opacity disabled:opacity-50"
               style={{
@@ -224,7 +226,7 @@ const MutatorRevealPage: React.FC = () => {
               transition={pulseReady ? { duration: 1.8, repeat: Number.POSITIVE_INFINITY } : undefined}
               whileTap={{ scale: 0.98 }}
             >
-              ENTER MAP ▶
+              {game?.mode === 1 ? "START ENDLESS ▶" : "ENTER MAP ▶"}
             </motion.button>
           </>
         )}

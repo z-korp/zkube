@@ -294,6 +294,9 @@ const PlayScreen: React.FC = () => {
           gameLevel={gameLevel}
           maxMoves={maxMoves}
           activeMutatorId={game.activeMutatorId}
+          mode={game?.mode ?? 0}
+          totalScore={game?.totalScore ?? 0}
+          currentDifficulty={game?.currentDifficulty ?? 0}
         />
       )}
 
