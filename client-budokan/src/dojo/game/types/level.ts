@@ -44,9 +44,6 @@ export interface GameSettings {
   maxMoves: number;
   baseRatioX100: number;
   maxRatioX100: number;
-  // Cube Thresholds
-  cube3Percent: number;
-  cube2Percent: number;
   // Difficulty Progression (tier thresholds)
   tier1Threshold: number;  // Easy starts
   tier2Threshold: number;  // Medium starts
@@ -93,9 +90,29 @@ export interface GameSettings {
   midLevelThreshold: number;
   // Level Cap
   levelCap: number;
-  bossUpgradesEnabled: boolean;
-  rerollBaseCost: number;
-  startingCharges: number;
+  // Bonus Slots (3 slots, each with type/trigger/threshold/charges)
+  bonus1Type: number;
+  bonus1TriggerType: number;
+  bonus1TriggerThreshold: number;
+  bonus1StartingCharges: number;
+  bonus2Type: number;
+  bonus2TriggerType: number;
+  bonus2TriggerThreshold: number;
+  bonus2StartingCharges: number;
+  bonus3Type: number;
+  bonus3TriggerType: number;
+  bonus3TriggerThreshold: number;
+  bonus3StartingCharges: number;
+  // Boss
+  bossId: number;
+  // Mutators
+  allowedMutators: number;
+  // Endless mode
+  endlessDifficultyThresholds: number[];
+  endlessScoreMultipliers: number[];
+  // Legacy compat (kept for client-side star threshold calc)
+  cube3Percent: number;
+  cube2Percent: number;
 }
 
 /**
@@ -110,9 +127,6 @@ export const DEFAULT_SETTINGS: GameSettings = {
   maxMoves: 60,
   baseRatioX100: 80, // 0.80
   maxRatioX100: 180, // 1.80
-  // Cube Thresholds
-  cube3Percent: 40,
-  cube2Percent: 70,
   // Difficulty Progression (non-linear tier thresholds)
   tier1Threshold: 4,   // Easy starts at level 4
   tier2Threshold: 8,   // Medium starts at level 8
@@ -160,9 +174,15 @@ export const DEFAULT_SETTINGS: GameSettings = {
   midLevelThreshold: 25,
   // Level Cap
   levelCap: 50,
-  bossUpgradesEnabled: true,
-  rerollBaseCost: 5,
-  startingCharges: 1,
+  bonus1Type: 1, bonus1TriggerType: 1, bonus1TriggerThreshold: 5, bonus1StartingCharges: 1,
+  bonus2Type: 3, bonus2TriggerType: 3, bonus2TriggerThreshold: 30, bonus2StartingCharges: 1,
+  bonus3Type: 2, bonus3TriggerType: 2, bonus3TriggerThreshold: 10, bonus3StartingCharges: 1,
+  bossId: 1,
+  allowedMutators: 1,
+  endlessDifficultyThresholds: [0, 15, 40, 80, 150, 280, 500, 900],
+  endlessScoreMultipliers: [10, 12, 14, 17, 20, 25, 33, 40],
+  cube3Percent: 40,
+  cube2Percent: 70,
 };
 
 export interface LevelConfig {
@@ -894,10 +914,26 @@ function unpackConstraintChances(packed: bigint | number): {
   };
 }
 
-/**
- * Convert raw RECS GameSettings to our interface
- * Handles packed constraint fields from the contract
- */
+function unpackEndlessThresholds(packed: bigint | number | string): number[] {
+  const p = BigInt(packed);
+  if (p === 0n) return DEFAULT_SETTINGS.endlessDifficultyThresholds;
+  const thresholds: number[] = [0];
+  for (let i = 0; i < 7; i++) {
+    thresholds.push(Number((p >> BigInt(i * 16)) & 0xFFFFn));
+  }
+  return thresholds;
+}
+
+function unpackEndlessMultipliers(packed: bigint | number | string): number[] {
+  const p = BigInt(packed);
+  if (p === 0n) return DEFAULT_SETTINGS.endlessScoreMultipliers;
+  const multipliers: number[] = [];
+  for (let i = 0; i < 8; i++) {
+    multipliers.push(Number((p >> BigInt(i * 8)) & 0xFFn));
+  }
+  return multipliers;
+}
+
 export function parseGameSettings(raw: any): GameSettings {
   if (!raw) return DEFAULT_SETTINGS;
 
@@ -937,8 +973,6 @@ export function parseGameSettings(raw: any): GameSettings {
     maxMoves: raw.max_moves ?? DEFAULT_SETTINGS.maxMoves,
     baseRatioX100: raw.base_ratio_x100 ?? DEFAULT_SETTINGS.baseRatioX100,
     maxRatioX100: raw.max_ratio_x100 ?? DEFAULT_SETTINGS.maxRatioX100,
-    cube3Percent: raw.cube_3_percent ?? DEFAULT_SETTINGS.cube3Percent,
-    cube2Percent: raw.cube_2_percent ?? DEFAULT_SETTINGS.cube2Percent,
     // Difficulty tier thresholds
     tier1Threshold: raw.tier_1_threshold ?? DEFAULT_SETTINGS.tier1Threshold,
     tier2Threshold: raw.tier_2_threshold ?? DEFAULT_SETTINGS.tier2Threshold,
@@ -990,11 +1024,27 @@ export function parseGameSettings(raw: any): GameSettings {
     midLevelThreshold:
       raw.mid_level_threshold ?? DEFAULT_SETTINGS.midLevelThreshold,
     levelCap: raw.level_cap ?? DEFAULT_SETTINGS.levelCap,
-    bossUpgradesEnabled:
-      raw.boss_upgrades_enabled !== undefined
-        ? raw.boss_upgrades_enabled !== 0
-        : DEFAULT_SETTINGS.bossUpgradesEnabled,
-    rerollBaseCost: raw.reroll_base_cost ?? DEFAULT_SETTINGS.rerollBaseCost,
-    startingCharges: raw.starting_charges ?? DEFAULT_SETTINGS.startingCharges,
+    bonus1Type: raw.bonus_1_type ?? DEFAULT_SETTINGS.bonus1Type,
+    bonus1TriggerType: raw.bonus_1_trigger_type ?? DEFAULT_SETTINGS.bonus1TriggerType,
+    bonus1TriggerThreshold: raw.bonus_1_trigger_threshold ?? DEFAULT_SETTINGS.bonus1TriggerThreshold,
+    bonus1StartingCharges: raw.bonus_1_starting_charges ?? DEFAULT_SETTINGS.bonus1StartingCharges,
+    bonus2Type: raw.bonus_2_type ?? DEFAULT_SETTINGS.bonus2Type,
+    bonus2TriggerType: raw.bonus_2_trigger_type ?? DEFAULT_SETTINGS.bonus2TriggerType,
+    bonus2TriggerThreshold: raw.bonus_2_trigger_threshold ?? DEFAULT_SETTINGS.bonus2TriggerThreshold,
+    bonus2StartingCharges: raw.bonus_2_starting_charges ?? DEFAULT_SETTINGS.bonus2StartingCharges,
+    bonus3Type: raw.bonus_3_type ?? DEFAULT_SETTINGS.bonus3Type,
+    bonus3TriggerType: raw.bonus_3_trigger_type ?? DEFAULT_SETTINGS.bonus3TriggerType,
+    bonus3TriggerThreshold: raw.bonus_3_trigger_threshold ?? DEFAULT_SETTINGS.bonus3TriggerThreshold,
+    bonus3StartingCharges: raw.bonus_3_starting_charges ?? DEFAULT_SETTINGS.bonus3StartingCharges,
+    bossId: raw.boss_id ?? DEFAULT_SETTINGS.bossId,
+    allowedMutators: raw.allowed_mutators ?? DEFAULT_SETTINGS.allowedMutators,
+    endlessDifficultyThresholds: raw.endless_difficulty_thresholds
+      ? unpackEndlessThresholds(raw.endless_difficulty_thresholds)
+      : DEFAULT_SETTINGS.endlessDifficultyThresholds,
+    endlessScoreMultipliers: raw.endless_score_multipliers
+      ? unpackEndlessMultipliers(raw.endless_score_multipliers)
+      : DEFAULT_SETTINGS.endlessScoreMultipliers,
+    cube3Percent: raw.cube_3_percent ?? DEFAULT_SETTINGS.cube3Percent,
+    cube2Percent: raw.cube_2_percent ?? DEFAULT_SETTINGS.cube2Percent,
   };
 }
