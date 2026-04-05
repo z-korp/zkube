@@ -93,6 +93,15 @@ const PlayScreen: React.FC = () => {
     [game?.id, gameLevel, seed],
   );
 
+  const levelConfig = useMemo(() => {
+    if (!game) return null;
+    return generateLevelConfig(seed, game.level);
+  }, [seed, game?.level, game]);
+
+  const targetScore =
+    gameLevel?.pointsRequired ?? levelConfig?.pointsRequired ?? 0;
+  const maxMoves = gameLevel?.maxMoves ?? levelConfig?.maxMoves ?? 0;
+
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
@@ -240,15 +249,6 @@ const PlayScreen: React.FC = () => {
       console.error("Surrender failed:", error);
     }
   }, [account, game, playSfx, surrender]);
-
-  const levelConfig = useMemo(() => {
-    if (!game) return null;
-    return generateLevelConfig(seed, game.level);
-  }, [seed, game?.level, game]);
-
-  const targetScore =
-    gameLevel?.pointsRequired ?? levelConfig?.pointsRequired ?? 0;
-  const maxMoves = gameLevel?.maxMoves ?? levelConfig?.maxMoves ?? 0;
 
   const isGridLoading =
     !!game && !game.isOver() && (!grid || grid.length === 0);
