@@ -101,6 +101,7 @@ const ProfilePage: React.FC = () => {
 
       <div className="mx-4 mt-2 mb-4 flex-1 min-h-0 overflow-y-auto hide-scrollbar">
         <motion.div
+          key="profile-container"
           variants={containerVariants}
           initial="hidden"
           animate="show"

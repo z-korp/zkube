@@ -32,11 +32,6 @@ const pageComponents: Partial<Record<PageId, React.ReactNode>> = {
   mutator: <MutatorRevealPage />,
 };
 
-const CurrentPage: React.FC = () => {
-  const currentPage = useNavigationStore((s) => s.currentPage);
-  return pageComponents[currentPage] ?? pageComponents.home;
-};
-
 // starknet-react's isReconnecting is never set to true — auto-connect is fire-and-forget.
 // We gate on lastUsedConnector in localStorage to hold the loading screen until connected or timeout.
 function useAutoConnectGate(): boolean {
@@ -61,6 +56,7 @@ function useAutoConnectGate(): boolean {
 }
 
 export default function App() {
+  const currentPage = useNavigationStore((s) => s.currentPage);
   const waitingForAutoConnect = useAutoConnectGate();
 
   if (waitingForAutoConnect) return <Loading />;
@@ -68,7 +64,7 @@ export default function App() {
   return (
     <TooltipProvider>
       <PageNavigator>
-        <CurrentPage />
+        {pageComponents[currentPage] ?? pageComponents.home}
       </PageNavigator>
       <Toaster position={getToastPlacement()} />
     </TooltipProvider>

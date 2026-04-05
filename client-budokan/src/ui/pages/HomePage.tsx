@@ -196,6 +196,7 @@ const HomePage: React.FC = () => {
 
       <div className="relative z-10 flex flex-1 min-h-0 flex-col px-4">
         <motion.div
+          key="home-container"
           variants={containerVariants}
           initial="hidden"
           animate="show"
@@ -249,7 +250,7 @@ const HomePage: React.FC = () => {
               <motion.div variants={itemVariants} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="ml-1 font-sans text-[11px] font-bold uppercase tracking-[0.18em] text-white/80">Select Zone</p>
-                  <div className="w-[48%] max-w-[160px]">
+                  <div className="w-[56%] min-w-[176px] max-w-[208px]">
                     <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
                   </div>
                 </div>
@@ -288,11 +289,9 @@ const HomePage: React.FC = () => {
                           <div className="relative z-10 w-full">
                             <p className="font-sans text-xl font-extrabold leading-tight text-white drop-shadow-md">{z.name}</p>
                             <div className="mt-1 flex items-center justify-between">
-                              <div className="flex items-center gap-0.5 text-[11px]">
-                                {Array.from({ length: 3 }).map((_, i) => (
-                                  <span key={i} style={{ color: z.stars > i * 10 ? "#FACC15" : "rgba(255,255,255,0.45)" }}>★</span>
-                                ))}
-                              </div>
+                              <p className="font-sans text-[11px] font-bold text-[#FACC15]">
+                                {z.stars}/{z.maxStars} ★
+                              </p>
                               {!isSelectable && <span className="text-sm">🔒</span>}
                             </div>
                           </div>
