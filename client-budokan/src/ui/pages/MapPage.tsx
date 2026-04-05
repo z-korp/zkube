@@ -23,10 +23,12 @@ import { useMusicPlayer } from "@/contexts/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useDojo } from "@/dojo/useDojo";
+import { useActiveStoryGame } from "@/hooks/useActiveStoryGame";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
 import LevelPreview from "@/ui/components/map/LevelPreview";
 import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
 import ZoneBackground from "@/ui/components/map/ZoneBackground";
+import { showToast } from "@/utils/toast";
 
 const SWIPE_THRESHOLD = 50;
 const VB_W = 60;
@@ -41,6 +43,7 @@ const STATE_COLORS: Record<
   current: { fill: "#0f2743", border: "#3b82f6", alpha: 1, text: "#bfdbfe" },
   available: { fill: "#1e293b", border: "#f97316", alpha: 1, text: "#fed7aa" },
   visited: { fill: "#1e3a2f", border: "#4ade80", alpha: 0.85, text: "#bbf7d0" },
+  playing: { fill: "#7c2d12", border: "#fb923c", alpha: 1, text: "#ffedd5" },
 };
 
 const canOpenPreview = (node: MapNodeData): boolean => node.state !== "locked";
@@ -57,7 +60,7 @@ const getPathType = (
   }
   if (
     fromState === "cleared" &&
-    (toState === "current" || toState === "available")
+    (toState === "current" || toState === "available" || toState === "playing")
   ) {
     return "active";
   }
@@ -65,6 +68,9 @@ const getPathType = (
 };
 
 const getLabel = (node: MapNodeData): string => {
+  if (node.state === "playing") {
+    return "▶";
+  }
   if (node.type === "boss") {
     return node.state === "cleared" ? "✓" : "★";
   }
@@ -98,6 +104,7 @@ const MapPage: React.FC = () => {
       systemCalls: { replayLevel },
     },
   } = useDojo();
+  const activeStoryRun = useActiveStoryGame();
 
   const { game, seed } = useGame({
     gameId: gameId ?? undefined,
@@ -118,6 +125,12 @@ const MapPage: React.FC = () => {
   const mapData = useMapData({
     seed,
     currentZone,
+    activeStoryNode: activeStoryRun
+      ? {
+          zoneId: activeStoryRun.zoneId,
+          level: activeStoryRun.level,
+        }
+      : null,
     zones: zones.map((zone) => ({
       zoneId: zone.zoneId,
       unlocked: zone.unlocked,
@@ -224,6 +237,24 @@ const MapPage: React.FC = () => {
   const handlePlay = async () => {
     if (!account || !selectedNode || selectedNode.contractLevel == null) return;
 
+    if (activeStoryRun && activeStoryRun.gameId !== 0n) {
+      const isPlayingNode =
+        selectedNode.zone === activeStoryRun.zoneId &&
+        selectedNode.contractLevel === activeStoryRun.level;
+
+      if (isPlayingNode) {
+        setSelectedNode(null);
+        navigate("play", activeStoryRun.gameId);
+        return;
+      }
+
+      showToast({
+        message: `Run in progress on Zone ${activeStoryRun.zoneId}, Level ${activeStoryRun.level}.`,
+        type: "error",
+      });
+      return;
+    }
+
     try {
       const result = await replayLevel({
         account,
@@ -266,11 +297,16 @@ const MapPage: React.FC = () => {
           >
             World Map
           </h1>
-          <p className="font-sans text-[10px]" style={{ color: colors.textMuted }}>
-            Zone {activeZone + 1} · {zones[activeZone]?.name ?? "Unknown"}
-          </p>
-        </div>
-      </motion.div>
+            <p className="font-sans text-[10px]" style={{ color: colors.textMuted }}>
+              Zone {activeZone + 1} · {zones[activeZone]?.name ?? "Unknown"}
+            </p>
+            {activeStoryRun && activeStoryRun.gameId !== 0n && (
+              <p className="mt-1 font-sans text-[10px] font-bold text-amber-300">
+                Active run: Zone {activeStoryRun.zoneId}, Level {activeStoryRun.level}
+              </p>
+            )}
+          </div>
+        </motion.div>
 
       <div
         className="relative flex-1 min-h-0 overflow-hidden"
@@ -390,7 +426,14 @@ const MapPage: React.FC = () => {
                       const cx = pt.x * VB_W;
                       const cy = pt.y * VB_H;
                       const stateColors = STATE_COLORS[node.state];
-                      const isInteractive = node.state !== "locked";
+                      const isPlayingNode =
+                        activeStoryRun !== null &&
+                        node.zone === activeStoryRun.zoneId &&
+                        node.contractLevel === activeStoryRun.level;
+                      const blockedByActiveRun =
+                        activeStoryRun !== null && !isPlayingNode;
+                      const isInteractive =
+                        node.state !== "locked" && !blockedByActiveRun;
                       const label = getLabel(node);
 
                       const isCleared =
@@ -407,6 +450,19 @@ const MapPage: React.FC = () => {
                         <motion.g
                           key={`node-${zoneIdx}-${node.nodeInZone}`}
                           onClick={() => {
+                            if (activeStoryRun && !isPlayingNode) {
+                              showToast({
+                                message: `Run in progress on Zone ${activeStoryRun.zoneId}, Level ${activeStoryRun.level}.`,
+                                type: "error",
+                              });
+                              return;
+                            }
+
+                            if (activeStoryRun && isPlayingNode) {
+                              navigate("play", activeStoryRun.gameId);
+                              return;
+                            }
+
                             if (!isInteractive) return;
                             if (canOpenPreview(node)) {
                               setSelectedNode(node);
@@ -443,8 +499,32 @@ const MapPage: React.FC = () => {
                             r={r}
                             fill="none"
                             stroke={stateColors.border}
-                            strokeWidth={node.type === "boss" ? 0.6 : 0.4}
+                            strokeWidth={
+                              node.state === "playing"
+                                ? 1
+                                : node.type === "boss"
+                                  ? 0.6
+                                  : 0.4
+                            }
                           />
+
+                          {node.state === "playing" && (
+                            <motion.circle
+                              cx={cx}
+                              cy={cy}
+                              r={r + 1.8}
+                              fill="none"
+                              stroke="#fdba74"
+                              strokeWidth={0.45}
+                              initial={{ opacity: 0.9, scale: 1 }}
+                              animate={{ opacity: 0.25, scale: 1.35 }}
+                              transition={{
+                                duration: 1.2,
+                                repeat: Infinity,
+                                ease: "easeOut",
+                              }}
+                            />
+                          )}
 
                           <>
                             <circle

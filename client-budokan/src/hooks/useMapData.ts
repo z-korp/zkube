@@ -8,7 +8,13 @@ export type NodeState =
   | "cleared"
   | "current"
   | "available"
-  | "visited";
+  | "visited"
+  | "playing";
+
+export interface ActiveStoryNode {
+  zoneId: number;
+  level: number;
+}
 
 export interface MapNodeData {
   nodeIndex: number;
@@ -41,6 +47,7 @@ export interface UseMapDataParams {
   seed: bigint;
   currentZone: number;
   zones: StoryZoneMapState[];
+  activeStoryNode?: ActiveStoryNode | null;
 }
 
 export const NODES_PER_ZONE = 10;
@@ -75,9 +82,19 @@ function getNodeState(
   node: Omit<MapNodeData, "state" | "levelConfig" | "zoneTheme">,
   zoneState: StoryZoneMapState | undefined,
   currentZone: number,
+  activeStoryNode: ActiveStoryNode | null,
 ): NodeState {
   if (!zoneState?.unlocked) return "locked";
   const level = node.contractLevel ?? LEVELS_PER_ZONE;
+
+  if (
+    activeStoryNode !== null &&
+    node.zone === activeStoryNode.zoneId &&
+    level === activeStoryNode.level
+  ) {
+    return "playing";
+  }
+
   const highestCleared = zoneState.highestCleared ?? 0;
 
   if (level <= highestCleared) return "cleared";
@@ -90,7 +107,12 @@ function getNodeState(
   return "locked";
 }
 
-export function generateMapData({ seed, currentZone, zones }: UseMapDataParams): MapData {
+export function generateMapData({
+  seed,
+  currentZone,
+  zones,
+  activeStoryNode = null,
+}: UseMapDataParams): MapData {
   const zoneThemes: ThemeId[] = ["theme-1", "theme-2"];
   const zoneMap = new Map(zones.map((zone) => [zone.zoneId, zone]));
   const effectiveCurrentZone = Math.max(1, Math.min(TOTAL_ZONES, currentZone));
@@ -126,7 +148,7 @@ export function generateMapData({ seed, currentZone, zones }: UseMapDataParams):
     const zoneState = zoneMap.get(node.zone);
     const localLevel = node.contractLevel ?? LEVELS_PER_ZONE;
     const levelConfig = generateLevelConfig(seed, localLevel);
-    const state = getNodeState(node, zoneState, effectiveCurrentZone);
+    const state = getNodeState(node, zoneState, effectiveCurrentZone, activeStoryNode);
 
     return {
       ...node,
@@ -146,6 +168,14 @@ export function generateMapData({ seed, currentZone, zones }: UseMapDataParams):
   };
 }
 
-export function useMapData({ seed, currentZone, zones }: UseMapDataParams): MapData {
-  return useMemo(() => generateMapData({ seed, currentZone, zones }), [seed, currentZone, zones]);
+export function useMapData({
+  seed,
+  currentZone,
+  zones,
+  activeStoryNode = null,
+}: UseMapDataParams): MapData {
+  return useMemo(
+    () => generateMapData({ seed, currentZone, zones, activeStoryNode }),
+    [seed, currentZone, zones, activeStoryNode],
+  );
 }

@@ -109,7 +109,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
 
   const canPlay =
     node.type !== "draft" &&
-    (node.state === "current" || node.state === "available");
+    (node.state === "current" || node.state === "available" || node.state === "playing");
 
   const difficultyLabel = DIFFICULTY_LABELS[difficulty] ?? difficulty;
 

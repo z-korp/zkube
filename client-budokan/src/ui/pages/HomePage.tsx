@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { Has, getComponentValue } from "@dojoengine/recs";
-import { useEntityQuery } from "@dojoengine/react";
 
 import { useDojo } from "@/dojo/useDojo";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
@@ -12,6 +10,7 @@ import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import { useZStarBalance } from "@/hooks/useZStarBalance";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
+import { useActiveStoryGame } from "@/hooks/useActiveStoryGame";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { showToast } from "@/utils/toast";
 import Connect from "@/ui/components/Connect";
@@ -50,7 +49,6 @@ const HomePage: React.FC = () => {
   const { account } = useAccountCustom();
   const {
     setup: {
-      contractComponents: { ActiveStoryGame },
       systemCalls: { freeMint, create, startRun },
     },
   } = useDojo();
@@ -71,14 +69,7 @@ const HomePage: React.FC = () => {
 
   const shouldFetchMyGames = Boolean(account?.address);
   const normalizedOwner = normalizeAddress(account?.address);
-  const ownerBigInt = useMemo(() => {
-    if (!account?.address) return null;
-    try {
-      return BigInt(account.address);
-    } catch {
-      return null;
-    }
-  }, [account?.address]);
+  const activeStoryRun = useActiveStoryGame();
 
   const { games: ownedGames } = useGameTokensSlot({
     owner: shouldFetchMyGames ? normalizedOwner : undefined,
@@ -90,18 +81,7 @@ const HomePage: React.FC = () => {
     return ownedGames.filter((g) => !g.game_over);
   }, [ownedGames]);
 
-  const activeStoryGameEntityIds = useEntityQuery([Has(ActiveStoryGame)]);
-  const activeStoryGameId = useMemo(() => {
-    if (ownerBigInt === null) return null;
-    for (const entity of activeStoryGameEntityIds) {
-      const active = getComponentValue(ActiveStoryGame, entity);
-      if (!active) continue;
-      if (BigInt(active.player) !== ownerBigInt) continue;
-      const gameId = BigInt(active.game_id ?? 0);
-      if (gameId !== 0n) return gameId;
-    }
-    return null;
-  }, [ownerBigInt, activeStoryGameEntityIds, ActiveStoryGame]);
+  const activeStoryGameId = activeStoryRun?.gameId ?? null;
 
   const zone = zones[activeZone] ?? zones[0];
   const colors = getThemeColors(themeTemplate);
@@ -195,7 +175,7 @@ const HomePage: React.FC = () => {
       return;
     }
     if (selectedMode === 0 && activeStoryGameId) {
-      navigate("map", activeStoryGameId);
+      navigate("play", activeStoryGameId);
     }
   }, [selectedMode, activeRunTokenId, activeStoryGameId, navigate]);
 
