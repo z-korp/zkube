@@ -303,15 +303,16 @@ const HomePage: React.FC = () => {
               </motion.div>
             </>
           ) : (
-            <motion.div variants={itemVariants} className="mx-auto mt-[12vh] max-w-[340px] rounded-2xl border border-white/[0.16] bg-white/[0.08] px-5 py-6 text-center backdrop-blur-xl">
-              <p className="font-sans text-3xl font-black leading-tight text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.6)]">Match. Clear. Conquer.</p>
-              <p className="mt-3 font-sans text-base font-semibold text-white/85">
-                Start your journey in Story Mode, defeat the boss, and unlock the Endless arena.
+            <motion.div variants={itemVariants} className="mx-auto mt-[16vh] max-w-[340px] rounded-2xl border border-white/[0.16] bg-white/[0.08] px-5 py-7 text-center backdrop-blur-xl">
+              <p className="font-sans text-3xl font-black leading-tight text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.6)]">
+                Match. Chain. Conquer.
               </p>
-              <div className="mt-7">
-                <Connect />
+              <p className="mt-3 font-sans text-base font-semibold text-white/85">
+                Master the grid, defeat the zone bosses, and survive the endless arena.
+              </p>
+              <div className="mt-8">
+                <Connect ctaLabel="PLAY NOW" />
               </div>
-              <p className="mt-3 font-sans text-xs font-semibold text-white/55">Instant play with Cartridge</p>
             </motion.div>
           )}
         </motion.div>

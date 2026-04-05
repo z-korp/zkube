@@ -2,7 +2,12 @@ import { useConnect } from "@starknet-react/core";
 import { Gamepad2 } from "lucide-react";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 
-const Connect = () => {
+type ConnectProps = {
+  ctaLabel?: string;
+  pendingLabel?: string;
+};
+
+const Connect = ({ ctaLabel = "CONNECT WALLET", pendingLabel = "CONNECTING..." }: ConnectProps) => {
   const { connect, connectors, isPending } = useConnect();
 
   const handleConnect = () => {
@@ -18,7 +23,7 @@ const Connect = () => {
   return (
     <ArcadeButton onClick={handleConnect} disabled={isPending}>
       <Gamepad2 size={22} strokeWidth={2.5} />
-      {isPending ? "CONNECTING..." : "PLAY NOW"}
+      {isPending ? pendingLabel : ctaLabel}
     </ArcadeButton>
   );
 };
