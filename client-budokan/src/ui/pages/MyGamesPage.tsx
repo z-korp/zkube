@@ -6,6 +6,7 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { useGameTokensSlot, type SlotGameTokenData } from "@/hooks/useGameTokensSlot";
 import { useNavigationStore } from "@/stores/navigationStore";
 import GameCard from "@/ui/components/shared/GameCard";
+import Connect from "@/ui/components/Connect";
 import { getThemeColors, getThemeImages, THEME_META, type ThemeId } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 
@@ -86,21 +87,26 @@ const MyGamesPage: React.FC = () => {
 
   if (!account) {
     return (
-      <div className="flex h-full items-center justify-center px-6 pb-[72px] text-center">
-        <p className="font-display text-xl" style={{ color: colors.accent }}>
-          Connect to see your games
-        </p>
+      <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
+        <h1 className="px-6 pb-2 font-display text-2xl font-bold tracking-wide text-white">My Games</h1>
+        <div className="mx-4 mt-2 mb-4 flex-1 min-h-0 flex flex-col items-center justify-center text-center">
+          <span className="text-6xl mb-4 opacity-50">🎮</span>
+          <p className="font-display text-xl mb-6 text-white/80">
+            Connect to see your games
+          </p>
+          <div className="w-full max-w-[320px]">
+            <Connect />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <h1 className="pt-4 pb-2 text-center font-sans text-xl font-bold tracking-wide text-white">
-        My Games
-      </h1>
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
+      <h1 className="px-6 pb-2 font-display text-2xl font-bold tracking-wide text-white">My Games</h1>
 
-      <div className="mx-2 mt-1 mb-[72px] rounded-2xl border border-white/[0.06] bg-black/40 backdrop-blur-sm p-3 overflow-y-auto flex-1 min-h-0">
+      <div className="mx-4 mt-2 mb-4 flex-1 min-h-0 overflow-y-auto hide-scrollbar">
         {loading ? (
           <div className="flex flex-1 items-center justify-center h-full">
             <p className="font-sans text-sm text-white/60">

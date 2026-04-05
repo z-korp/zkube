@@ -200,17 +200,17 @@ const HomePage: React.FC = () => {
   }, [selectedMode, activeRunTokenId, activeStoryGameId, navigate]);
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[72px] pt-8">
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
       <img
         src={getThemeImages(getThemeId(zones[activeZone]?.zoneId ?? 1)).background}
         alt=""
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         draggable={false}
       />
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          background: `linear-gradient(180deg, rgba(5, 10, 18, 0.55) 0%, rgba(5, 10, 18, 0.2) 35%, rgba(5, 10, 18, 0.6) 100%)`,
+          background: `linear-gradient(180deg, rgba(5, 10, 18, 0.4) 0%, rgba(5, 10, 18, 0) 35%, rgba(5, 10, 18, 0.8) 100%)`,
         }}
       />
 
@@ -220,22 +220,22 @@ const HomePage: React.FC = () => {
           transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
           src={getThemeImages(getThemeId(zone?.zoneId ?? 1)).logo}
           alt="zKube"
-          className="mx-auto h-28 md:h-32 drop-shadow-[0_0_24px_rgba(255,255,255,0.35)]"
+          className="mx-auto h-32 md:h-40 drop-shadow-[0_0_32px_rgba(255,255,255,0.4)]"
           draggable={false}
         />
       </div>
 
-      <div className="mx-2 mt-1 rounded-2xl border border-white/[0.06] bg-black/40 backdrop-blur-sm p-3 overflow-y-auto flex-1 min-h-0">
+      <div className="relative z-10 flex flex-1 min-h-0 flex-col px-4">
         <motion.div 
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="relative z-10 space-y-4 pb-2 hide-scrollbar"
+          className="flex-1 space-y-4 overflow-y-auto hide-scrollbar pb-4"
         >
           <motion.div variants={itemVariants}>
             {account ? (
               <div
-                className="flex items-center justify-between rounded-2xl border border-white/[0.08] bg-white/[0.04] p-3 shadow-lg shadow-black/20 backdrop-blur-xl ring-1 ring-white/[0.06]"
+                className="flex items-center justify-between rounded-2xl border border-white/[0.12] bg-black/40 p-3 shadow-lg backdrop-blur-xl"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <div
@@ -270,170 +270,168 @@ const HomePage: React.FC = () => {
                 </span>
               </div>
             ) : (
-              <div
-                className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-3 shadow-lg shadow-black/20 backdrop-blur-xl"
-              >
-                <Connect />
+              <div className="mx-auto mt-[18vh] max-w-[280px] text-center">
+                <p className="font-display text-2xl font-bold tracking-[0.08em] text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.6)]">
+                  Match. Clear. Conquer.
+                </p>
+                <p className="mt-3 font-sans text-sm text-white/70">
+                  Connect your account to unlock Story Mode and daily challenges.
+                </p>
               </div>
             )}
           </motion.div>
 
-          <motion.div variants={itemVariants}>
-            <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              type="button"
-              onClick={() => navigate("daily")}
-              className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border px-4 py-3.5 text-left shadow-lg shadow-black/20"
-              style={{
-                background: `linear-gradient(135deg, ${colors.accent}26, ${colors.accent}1A)`,
-                borderColor: `${colors.accent}4D`,
-              }}
-            >
-              <div className="pointer-events-none absolute inset-[-100%_0] w-[300%] animate-shimmer bg-gradient-to-r from-transparent via-white/[0.07] to-transparent bg-[length:50%_100%]" />
-              <div className="relative z-10">
-                <p className="font-display text-[13px] font-bold tracking-[0.08em]" style={{ color: colors.accent }}>
-                  <span className="mr-1 inline-block animate-pulse">⚡</span> DAILY CHALLENGE
-                </p>
-                <p className="mt-0.5 font-sans text-[11px] font-medium text-white/60">
-                  24h remaining · {Math.max(42, (ownedGames?.length ?? 0) * 3)} players
-                </p>
-              </div>
-              <span
-                className="relative z-10 rounded-xl px-3.5 py-1.5 font-display text-[11px] font-bold tracking-wider shadow-lg transition-transform group-hover:scale-105"
-                style={{ backgroundColor: colors.accent, color: "#0a1628" }}
-              >
-                PLAY
-              </span>
-            </motion.button>
-          </motion.div>
-
-          <motion.div variants={itemVariants}>
-            <p
-              className="mb-2.5 ml-1 font-sans text-[11px] font-bold uppercase tracking-[0.2em] text-white/60"
-            >
-              Select Zone
-            </p>
-
-            <div className="space-y-2.5">
-              {zones.map((z, idx) => {
-                const isSelectable = z.unlocked;
-                const isSelected = idx === activeZone && isSelectable;
-                return (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    key={z.settingsId}
-                    type="button"
-                    onClick={() => {
-                      if (isSelectable) setActiveZone(idx);
-                    }}
-                    className="flex w-full items-center justify-between rounded-2xl border px-3.5 py-3.5 text-left transition-all duration-300"
-                    style={{
-                      backgroundColor: isSelectable ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)",
-                      borderColor: isSelected ? colors.accent : isSelectable ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)",
-                      opacity: isSelectable ? 1 : 0.5,
-                      boxShadow: isSelected ? `0 0 20px ${colors.accent}33, inset 0 0 10px ${colors.accent}1A` : "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-                      backdropFilter: "blur(16px)",
-                    }}
+          {account && (
+            <>
+              <motion.div variants={itemVariants}>
+                <motion.button
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="button"
+                  onClick={() => navigate("daily")}
+                  className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border px-4 py-3.5 text-left shadow-lg shadow-black/20 backdrop-blur-xl"
+                  style={{
+                    backgroundColor: "rgba(0,0,0,0.4)",
+                    borderColor: `${colors.accent}4D`,
+                  }}
+                >
+                  <div className="pointer-events-none absolute inset-[-100%_0] w-[300%] animate-shimmer bg-gradient-to-r from-transparent via-white/[0.07] to-transparent bg-[length:50%_100%]" />
+                  <div className="relative z-10">
+                    <p className="font-display text-[13px] font-bold tracking-[0.08em]" style={{ color: colors.accent }}>
+                      <span className="mr-1 inline-block animate-pulse">⚡</span> DAILY CHALLENGE
+                    </p>
+                    <p className="mt-0.5 font-sans text-[11px] font-medium text-white/60">
+                      24h remaining · {Math.max(42, (ownedGames?.length ?? 0) * 3)} players
+                    </p>
+                  </div>
+                  <span
+                    className="relative z-10 rounded-xl px-3.5 py-1.5 font-display text-[11px] font-bold tracking-wider shadow-lg transition-transform group-hover:scale-105"
+                    style={{ backgroundColor: colors.accent, color: "#0a1628" }}
                   >
-                    <div className="flex items-center gap-3.5">
-                      <div className="relative">
+                    PLAY
+                  </span>
+                </motion.button>
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <div className="flex items-center justify-between mb-3 ml-1">
+                  <p className="font-sans text-[11px] font-bold uppercase tracking-[0.2em] text-white/60">
+                    Select Zone
+                  </p>
+                  <div className="w-1/2 max-w-[140px]">
+                    <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
+                  </div>
+                </div>
+
+                <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 hide-scrollbar">
+                  {zones.map((z, idx) => {
+                    const isSelectable = z.unlocked;
+                    const isSelected = idx === activeZone && isSelectable;
+                    return (
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        key={z.settingsId}
+                        type="button"
+                        onClick={() => {
+                          if (isSelectable) setActiveZone(idx);
+                        }}
+                        className="relative flex h-40 w-32 shrink-0 snap-center snap-always flex-col items-start justify-end overflow-hidden rounded-3xl border p-3 text-left shadow-xl transition-all duration-300"
+                        style={{
+                          borderColor: isSelected ? colors.accent : "rgba(255,255,255,0.1)",
+                          opacity: isSelectable ? 1 : 0.6,
+                          boxShadow: isSelected ? `0 0 24px ${colors.accent}40, inset 0 0 12px ${colors.accent}20` : "0 8px 16px -4px rgba(0,0,0,0.5)",
+                        }}
+                      >
                         <img
                           src={getThemeImages(getThemeId(z.zoneId)).themeIcon}
-                          alt={z.name}
-                          className="h-10 w-10 rounded-xl object-cover shadow-md"
-                          draggable={false}
+                          alt=""
+                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 hover:scale-110"
                         />
-                        {isSelected && (
-                          <div className="absolute inset-0 rounded-xl ring-2 ring-inset" style={{ borderColor: colors.accent }} />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-display text-[14px] font-bold tracking-wide text-white">
-                          {z.name}
-                        </p>
-                        <div className="mt-1 flex items-center gap-1">
-                          {Array.from({ length: 3 }).map((_, i) => {
-                            const isFilled = z.stars > i * 10;
-                            return (
-                              <span
-                                key={i}
-                                className="text-[11px] transition-colors"
-                                style={{ 
-                                  color: isFilled ? "#FACC15" : "rgba(255,255,255,0.6)",
-                                  textShadow: isFilled ? "0 0 6px rgba(250,204,21,0.6)" : "none"
-                                }}
-                              >
-                                ★
-                              </span>
-                            );
-                          })}
-                          <span className="ml-1.5 font-sans text-[10px] font-medium text-white/60">
-                            {z.stars}/30
-                          </span>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+                        
+                        <div className="relative z-10 w-full">
+                          <p className="font-display text-[15px] font-bold leading-tight tracking-wide text-white drop-shadow-md">
+                            {z.name}
+                          </p>
+                          <div className="mt-1 flex items-center justify-between">
+                            <div className="flex items-center gap-0.5">
+                              {Array.from({ length: 3 }).map((_, i) => {
+                                const isFilled = z.stars > i * 10;
+                                return (
+                                  <span
+                                    key={i}
+                                    className="text-[10px] drop-shadow-sm"
+                                    style={{ color: isFilled ? "#FACC15" : "rgba(255,255,255,0.4)" }}
+                                  >
+                                    ★
+                                  </span>
+                                );
+                              })}
+                            </div>
+                            {!isSelectable && <span className="text-xs">🔒</span>}
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    <span className="text-lg transition-transform" style={{ 
-                      color: isSelectable ? colors.accent : "rgba(255,255,255,0.6)",
-                      transform: isSelected ? "translateX(2px)" : "none"
-                    }}>
-                      {isSelectable ? "→" : "🔒"}
-                    </span>
-                  </motion.button>
-                );
-              })}
-            </div>
-          </motion.div>
-
-          <motion.div variants={itemVariants}>
-            <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
-          </motion.div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            </>
+          )}
         </motion.div>
       </div>
 
-      <div className="relative z-20 mt-2 flex flex-col gap-2.5 px-4">
+      <div className="relative z-20 mt-auto flex flex-col gap-3 px-4">
         {account && hasActiveRun ? (
           <motion.button
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.1 }}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
             type="button"
             onClick={handleContinue}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3.5 font-display text-[15px] font-bold tracking-[0.1em] shadow-lg shadow-black/20 backdrop-blur-md"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-4 font-display text-[16px] font-bold tracking-[0.1em] shadow-lg backdrop-blur-md"
             style={{
-              backgroundColor: `${colors.accent}1A`,
-              borderColor: `${colors.accent}4D`,
+              backgroundColor: `${colors.accent}26`,
+              borderColor: `${colors.accent}66`,
               color: colors.accent,
+              boxShadow: `0 4px 20px ${colors.accent}33`,
             }}
           >
-            <Play size={16} strokeWidth={2.5} />
-            CONTINUE
+            <Play size={18} strokeWidth={2.5} />
+            CONTINUE RUN
           </motion.button>
         ) : null}
 
-        {account && (
+        {account ? (
           <motion.button
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, type: "spring", stiffness: 400, damping: 25 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 400, damping: 25 }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="button"
             disabled={isStartingGame || !zone}
             onClick={() => zone && handleStartGame(zone.settingsId)}
-            className="flex w-full items-center justify-center rounded-2xl px-4 py-4 font-display text-[17px] font-black tracking-[0.12em] shadow-xl disabled:opacity-50"
+            className="flex w-full items-center justify-center rounded-2xl px-4 py-[18px] font-display text-[18px] font-black tracking-[0.12em] shadow-xl disabled:opacity-50"
             style={{
               background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent}E6)`,
               color: "#0a1628",
-              boxShadow: `0 8px 20px -4px ${colors.accent}66, inset 0 2px 0 rgba(255,255,255,0.4)`,
+              boxShadow: `0 8px 24px -4px ${colors.accent}80, inset 0 2px 0 rgba(255,255,255,0.4)`,
             }}
           >
             {isStartingGame ? "STARTING..." : "NEW GAME"}
           </motion.button>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+          >
+            <Connect />
+          </motion.div>
         )}
       </div>
     </div>

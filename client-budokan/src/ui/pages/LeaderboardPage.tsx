@@ -62,17 +62,17 @@ const LeaderboardPage: React.FC = () => {
         });
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <div className="px-4 pt-4 pb-2">
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
+      <div className="px-6 pb-2">
         <motion.h1 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 24 }}
-          className="text-center font-sans text-xl font-bold tracking-wide text-white" 
+          className="font-display text-2xl font-bold tracking-wide text-white" 
         >
           Leaderboard
         </motion.h1>
-        <div className="mt-2 flex">
+        <div className="mt-4 flex bg-white/[0.04] backdrop-blur-xl border border-white/[0.12] rounded-full p-1 gap-1 relative shadow-[inset_0_2px_8px_rgba(0,0,0,0.6)]">
           {([
             { id: "zone", label: "Zone" },
             { id: "endless", label: "Endless" },
@@ -81,26 +81,26 @@ const LeaderboardPage: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className="relative flex-1 py-2 font-sans text-[11px]"
-              style={{
-                color: activeTab === tab.id ? colors.accent : colors.textMuted,
-                fontWeight: activeTab === tab.id ? 700 : 500,
-              }}
+              className={`relative flex-1 py-1.5 px-3 rounded-full text-[12px] font-bold transition-colors duration-200 z-10 font-sans tracking-wide uppercase ${
+                activeTab === tab.id
+                  ? "text-white"
+                  : "text-white/40 hover:text-white/60"
+              }`}
             >
-              {tab.label}
               {activeTab === tab.id && (
                 <motion.div
                   layoutId="leaderboard-tab-indicator"
-                  className="absolute bottom-0 left-0 right-0 h-0.5"
-                  style={{ backgroundColor: colors.accent }}
+                  className="absolute inset-0 bg-white/20 rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] border border-white/[0.08]"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
               )}
+              <span className="relative z-20 drop-shadow-sm">{tab.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="mx-2 mt-1 mb-[72px] rounded-2xl border border-white/[0.06] bg-black/40 backdrop-blur-sm p-3 overflow-y-auto flex-1 min-h-0">
+      <div className="mx-4 mt-2 mb-4 flex-1 min-h-0 overflow-y-auto hide-scrollbar">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-16" style={{ color: colors.textMuted }}>
             <Loader2 className="h-8 w-8 animate-spin mb-4" style={{ color: colors.accent }} />

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { Check, Copy, UserRound } from "lucide-react";
+import { Check, Copy, UserRound, Settings } from "lucide-react";
 import { useDisconnect } from "@starknet-react/core";
 
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
@@ -11,6 +11,7 @@ import { useZStarBalance } from "@/hooks/useZStarBalance";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useQuests } from "@/hooks/useQuests";
+import { useNavigationStore } from "@/stores/navigationStore";
 
 import ProgressBar from "@/ui/components/shared/ProgressBar";
 import OverviewTab from "@/ui/components/profile/OverviewTab";
@@ -75,6 +76,7 @@ const ProfilePage: React.FC = () => {
   const { balance: zStarBalance } = useZStarBalance(account?.address);
   const { zones, totalStars } = useZoneProgress(account?.address, zStarBalance);
   const { quests } = useQuests();
+  const navigate = useNavigationStore((s) => s.navigate);
 
   const xp = playerMeta?.lifetimeXp ?? 0;
   const level = getLevelFromXp(xp);
@@ -101,10 +103,20 @@ const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden">
-      <h1 className="pt-4 pb-2 text-center font-sans text-xl font-bold tracking-wide text-white">Profile</h1>
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
+      <div className="relative z-10 flex items-center justify-between px-6 pb-2">
+        <div className="w-8" /> {/* Spacer for centering */}
+        <h1 className="font-display text-2xl font-bold tracking-wide text-white">Profile</h1>
+        <button
+          onClick={() => navigate("settings")}
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] shadow-lg backdrop-blur-md transition-all hover:bg-white/[0.08] active:scale-95"
+          aria-label="Settings"
+        >
+          <Settings size={20} className="text-white/80" />
+        </button>
+      </div>
 
-      <div className="mx-2 mt-1 mb-[72px] rounded-2xl border border-white/[0.06] bg-black/40 backdrop-blur-sm p-3 overflow-y-auto flex-1 min-h-0">
+      <div className="mx-4 mt-2 mb-4 flex-1 min-h-0 overflow-y-auto hide-scrollbar">
         <motion.div
           variants={containerVariants}
           initial="hidden"

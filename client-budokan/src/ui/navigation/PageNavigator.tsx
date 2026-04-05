@@ -18,22 +18,25 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ children }) => {
   const isBack = transitionDirection === "back";
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black">
-      <div className="relative w-full h-full max-w-[430px] overflow-hidden">
-        <ThemeBackground />
-        <AnimatePresence initial={false}>
-          <motion.div
-            key={currentPage}
-            initial={{ opacity: 0, x: isBack ? "-30%" : "30%" }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: isBack ? "30%" : "-30%" }}
-            transition={SLIDE_TRANSITION}
-            className="absolute inset-0 overflow-y-auto overflow-x-hidden"
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
-        <BottomNav />
+    <div className="fixed inset-0 overflow-hidden bg-[#02050d]">
+      <ThemeBackground />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),rgba(0,0,0,0.65)_45%,rgba(0,0,0,0.92)_100%)]" />
+      <div className="relative flex h-full w-full items-center justify-center p-0 md:p-5">
+        <div className="relative h-full w-full overflow-hidden md:h-[calc(100%-20px)] md:max-w-[460px] md:rounded-[34px] md:border md:border-white/[0.16] md:shadow-[0_30px_80px_rgba(0,0,0,0.6)]">
+          <AnimatePresence initial={false}>
+            <motion.div
+              key={currentPage}
+              initial={{ opacity: 0, x: isBack ? "-30%" : "30%" }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: isBack ? "30%" : "-30%" }}
+              transition={SLIDE_TRANSITION}
+              className="absolute inset-0 overflow-y-auto overflow-x-hidden"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+          <BottomNav />
+        </div>
       </div>
     </div>
   );

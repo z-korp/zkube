@@ -1,4 +1,4 @@
-import { Home, Gamepad2, User, Trophy, Settings } from "lucide-react";
+import { Home, Gamepad2, User, Trophy } from "lucide-react";
 import { useNavigationStore, FULLSCREEN_PAGES } from "@/stores/navigationStore";
 import type { PageId } from "@/stores/navigationStore";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
@@ -18,13 +18,12 @@ const BottomNav = () => {
   const tabs: { id: PageId; icon: React.ElementType; label: string }[] = [
     { id: "home", icon: Home, label: "Home" },
     { id: "mygames", icon: Gamepad2, label: "Games" },
+    { id: "ranks", icon: Trophy, label: "Ranks" },
     { id: "profile", icon: User, label: "Profile" },
-    { id: "ranks", icon: Trophy, label: "Leaderboard" },
-    { id: "settings", icon: Settings, label: "Settings" },
   ];
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-50 flex h-14 items-center justify-around border-t border-white/[0.08] bg-black/60 px-2 backdrop-blur-xl">
+    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex h-16 w-[90%] max-w-[380px] items-center justify-around rounded-full border border-white/[0.12] bg-black/60 px-4 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
       {tabs.map((tab) => {
         const isActive = currentPage === tab.id;
         const Icon = tab.icon;
@@ -42,8 +41,8 @@ const BottomNav = () => {
             {isActive && (
               <motion.div
                 layoutId="bottom-nav-indicator"
-                className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 w-6 rounded-full"
-                style={{ backgroundColor: colors.accent }}
+                className="absolute -top-3 left-1/2 -translate-x-1/2 h-1 w-8 rounded-b-full shadow-[0_4px_12px_rgba(255,255,255,0.5)]"
+                style={{ backgroundColor: colors.accent, boxShadow: `0 2px 8px ${colors.accent}` }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
               />
             )}
