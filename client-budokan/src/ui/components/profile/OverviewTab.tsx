@@ -38,6 +38,7 @@ const THEME_BY_ZONE: Record<number, ThemeId> = {
 interface OverviewTabProps {
   colors: ThemeColors;
   zones: ZoneProgressData[];
+  nextLockedZone: ZoneProgressData | null;
   totalStars: number;
   totalGames: number;
   bestCombo: string;
@@ -47,6 +48,7 @@ interface OverviewTabProps {
 const OverviewTab: React.FC<OverviewTabProps> = ({
   colors,
   zones,
+  nextLockedZone,
   totalStars,
   totalGames,
   bestCombo,
@@ -61,6 +63,58 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-4 pb-2">
+      {nextLockedZone ? (
+        <motion.button
+          variants={itemVariants}
+          type="button"
+          onClick={() => onUnlock(nextLockedZone)}
+          className="w-full rounded-2xl border px-3.5 py-3 text-left backdrop-blur-xl"
+          style={{
+            background: `linear-gradient(135deg, ${colors.accent2}24, ${colors.accent}14)`,
+            borderColor: `${colors.accent2}4D`,
+          }}
+        >
+          <div className="mb-1.5 flex items-center justify-between">
+            <p className="font-sans text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: colors.accent2 }}>
+              Next Unlock
+            </p>
+            <p className="font-sans text-[11px] font-extrabold" style={{ color: colors.accent }}>
+              Tap for options
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-sans text-[18px] font-extrabold leading-tight" style={{ color: colors.text }}>
+                {nextLockedZone.name}
+              </p>
+              <p className="font-sans text-[12px] font-semibold" style={{ color: colors.textMuted }}>
+                Earn {nextLockedZone.starCost}★ or pay {formatPrice(nextLockedZone.price)} USDC
+              </p>
+            </div>
+
+            <div className="text-right">
+              <p className="font-sans text-[13px] font-extrabold" style={{ color: colors.accent2 }}>
+                {nextLockedZone.currentStars}/{nextLockedZone.starCost}★
+              </p>
+              <p className="font-sans text-[11px] font-semibold" style={{ color: colors.textMuted }}>
+                zStars ready
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-2">
+            <ProgressBar
+              value={nextLockedZone.currentStars ?? 0}
+              max={nextLockedZone.starCost ?? 1}
+              color={colors.accent2}
+              height={6}
+              glow
+            />
+          </div>
+        </motion.button>
+      ) : null}
+
       <div className="grid grid-cols-2 gap-2.5">
         {stats.map((stat) => (
           <motion.div

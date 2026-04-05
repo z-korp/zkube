@@ -222,6 +222,7 @@ const ProfilePage: React.FC = () => {
             <OverviewTab
               colors={colors}
               zones={zones}
+              nextLockedZone={nextLockedZone}
               totalStars={totalStars}
               totalGames={playerMeta?.totalRuns ?? 0}
               bestCombo="--"
@@ -230,7 +231,7 @@ const ProfilePage: React.FC = () => {
           )}
 
           {tab === "Quests" && (
-            <QuestsTab colors={colors} nextLockedZone={nextLockedZone} onUnlock={setUnlockZone} />
+            <QuestsTab colors={colors} />
           )}
 
           {tab === "Achievements" && <AchievementsTab colors={colors} />}

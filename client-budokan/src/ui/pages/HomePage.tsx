@@ -8,13 +8,13 @@ import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
+import { usePlayerBestRun } from "@/hooks/usePlayerBestRun";
 import { useZStarBalance } from "@/hooks/useZStarBalance";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
 import { useActiveStoryGame } from "@/hooks/useActiveStoryGame";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { showToast } from "@/utils/toast";
 import Connect from "@/ui/components/Connect";
-import { Play } from "lucide-react";
 import ModePill from "@/ui/components/shared/ModePill";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 
@@ -81,20 +81,30 @@ const HomePage: React.FC = () => {
     return ownedGames.filter((g) => !g.game_over);
   }, [ownedGames]);
 
+  const { bestRuns } = usePlayerBestRun(account?.address);
+
   const activeStoryGameId = activeStoryRun?.gameId ?? null;
+  const activeEndlessGameId = activeGames[0]?.token_id ?? null;
+  const endlessZoneOneUnlocked = Boolean(zones.find((zoneData) => zoneData.zoneId === 1)?.bossCleared);
+
+  const isZoneSelectable = useCallback(
+    (zoneData: (typeof zones)[number] | undefined) => {
+      if (!zoneData) return false;
+      if (selectedMode === 0) return zoneData.unlocked;
+      return zoneData.unlocked && zoneData.zoneId === 1 && endlessZoneOneUnlocked;
+    },
+    [endlessZoneOneUnlocked, selectedMode],
+  );
+
+  useEffect(() => {
+    if (!zones.length) return;
+    if (isZoneSelectable(zones[activeZone])) return;
+    const firstSelectableIndex = zones.findIndex((zoneData) => isZoneSelectable(zoneData));
+    setActiveZone(firstSelectableIndex >= 0 ? firstSelectableIndex : 0);
+  }, [activeZone, isZoneSelectable, zones]);
 
   const zone = zones[activeZone] ?? zones[0];
   const colors = getThemeColors(themeTemplate);
-
-  const hasActiveRun = useMemo(() => {
-    if (selectedMode === 1) return activeGames.length > 0;
-    return activeStoryGameId !== null;
-  }, [activeGames, selectedMode, activeStoryGameId]);
-
-  const activeRunTokenId = useMemo(() => {
-    if (!activeGames.length) return null;
-    return activeGames[0].token_id;
-  }, [activeGames]);
 
   const handleStartGame = useCallback(
     async (settingsId: number) => {
@@ -117,6 +127,14 @@ const HomePage: React.FC = () => {
             if (selectedZone.zoneId !== 1) {
               showToast({
                 message: "Only Endless Zone 1 is enabled in the MVP.",
+                type: "error",
+              });
+              return;
+            }
+
+            if (!selectedZone.bossCleared) {
+              showToast({
+                message: "Beat Story Zone 1 boss to unlock Endless.",
                 type: "error",
               });
               return;
@@ -169,15 +187,33 @@ const HomePage: React.FC = () => {
     ],
   );
 
-  const handleContinue = useCallback(() => {
-    if (selectedMode === 1 && activeRunTokenId) {
-      navigate("map", activeRunTokenId);
+  const hasActiveStoryRun = activeStoryGameId !== null;
+  const hasActiveEndlessRun = activeEndlessGameId !== null;
+  const selectedZonePlayable = isZoneSelectable(zone);
+
+  const handlePrimaryAction = useCallback(() => {
+    if (!zone || !account) return;
+
+    if (selectedMode === 0 && activeStoryGameId !== null) {
+      navigate("play", activeStoryGameId);
       return;
     }
-    if (selectedMode === 0 && activeStoryGameId) {
-      navigate("play", activeStoryGameId);
+
+    if (selectedMode === 1 && activeEndlessGameId !== null) {
+      navigate("map", activeEndlessGameId);
+      return;
     }
-  }, [selectedMode, activeRunTokenId, activeStoryGameId, navigate]);
+
+    handleStartGame(zone.settingsId);
+  }, [
+    account,
+    activeEndlessGameId,
+    activeStoryGameId,
+    handleStartGame,
+    navigate,
+    selectedMode,
+    zone,
+  ]);
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-10">
@@ -189,7 +225,7 @@ const HomePage: React.FC = () => {
           transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
           src={getThemeImages(themeTemplate).logo}
           alt="zKube"
-          className="mx-auto h-24 md:h-32 drop-shadow-[0_0_20px_rgba(255,255,255,0.35)]"
+          className="mx-auto h-32 md:h-44 drop-shadow-[0_0_28px_rgba(255,255,255,0.42)]"
           draggable={false}
         />
       </div>
@@ -262,8 +298,22 @@ const HomePage: React.FC = () => {
                 ) : (
                   <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 hide-scrollbar">
                     {zones.map((z, idx) => {
-                      const isSelectable = z.unlocked;
+                      const isEndlessMode = selectedMode === 1;
+                      const endlessSettingsId = z.zoneId * 2 - 1;
+                      const endlessBestScore = bestRuns.get(`${endlessSettingsId}-1`)?.bestScore ?? 0;
+                      const isSelectable = isEndlessMode
+                        ? z.unlocked && z.zoneId === 1 && endlessZoneOneUnlocked
+                        : z.unlocked;
                       const isSelected = idx === activeZone && isSelectable;
+                      const cardAccent = isEndlessMode ? "#FFB86B" : colors.accent;
+
+                      let statusText = `${z.stars}/${z.maxStars} ★`;
+                      if (isEndlessMode) {
+                        if (z.zoneId !== 1) statusText = "MVP soon";
+                        else if (!endlessZoneOneUnlocked) statusText = "Beat Story Boss";
+                        else statusText = `Best ${endlessBestScore.toLocaleString()}`;
+                      }
+
                       return (
                         <motion.button
                           whileHover={{ scale: 1.02 }}
@@ -275,9 +325,9 @@ const HomePage: React.FC = () => {
                           }}
                           className="relative flex h-44 w-36 shrink-0 snap-center flex-col items-start justify-end overflow-hidden rounded-3xl border p-3 text-left"
                           style={{
-                            borderColor: isSelected ? colors.accent : "rgba(255,255,255,0.18)",
-                            opacity: isSelectable ? 1 : 0.65,
-                            boxShadow: isSelected ? `0 0 22px ${colors.accent}55, inset 0 0 10px ${colors.accent}2A` : "0 10px 18px -8px rgba(0,0,0,0.6)",
+                            borderColor: isSelected ? cardAccent : "rgba(255,255,255,0.18)",
+                            opacity: isSelectable ? 1 : 0.58,
+                            boxShadow: isSelected ? `0 0 22px ${cardAccent}55, inset 0 0 10px ${cardAccent}2A` : "0 10px 18px -8px rgba(0,0,0,0.6)",
                           }}
                         >
                           <img
@@ -285,12 +335,22 @@ const HomePage: React.FC = () => {
                             alt=""
                             className="absolute inset-0 h-full w-full object-cover"
                           />
+                          {isEndlessMode ? <div className="absolute inset-0 bg-gradient-to-t from-[#2f1300]/90 via-[#341700]/45 to-transparent" /> : null}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                           <div className="relative z-10 w-full">
+                            <span
+                              className="mb-1 inline-flex rounded-full px-2 py-0.5 font-sans text-[9px] font-extrabold uppercase tracking-[0.12em]"
+                              style={{
+                                color: isEndlessMode ? "#241100" : "#0a1628",
+                                backgroundColor: isEndlessMode ? "#FFB86B" : colors.accent,
+                              }}
+                            >
+                              {isEndlessMode ? "Endless" : "Story"}
+                            </span>
                             <p className="font-sans text-xl font-extrabold leading-tight text-white drop-shadow-md">{z.name}</p>
                             <div className="mt-1 flex items-center justify-between">
-                              <p className="font-sans text-[11px] font-bold text-[#FACC15]">
-                                {z.stars}/{z.maxStars} ★
+                              <p className="font-sans text-[11px] font-bold" style={{ color: isEndlessMode ? "#FFCF9D" : "#FACC15" }}>
+                                {statusText}
                               </p>
                               {!isSelectable && <span className="text-sm">🔒</span>}
                             </div>
@@ -319,23 +379,39 @@ const HomePage: React.FC = () => {
       </div>
 
       <div className="relative z-20 mt-auto flex flex-col gap-2.5 px-4">
-        {account && hasActiveRun ? (
-          <button
-            type="button"
-            onClick={handleContinue}
-            className="w-full rounded-2xl border border-white/[0.18] bg-white/[0.14] px-4 py-3 font-sans text-base font-bold uppercase tracking-[0.08em] text-white backdrop-blur-xl"
-          >
-            <span className="inline-flex items-center gap-2">
-              <Play size={17} strokeWidth={2.5} />
-              Continue Run
-            </span>
-          </button>
-        ) : null}
-
         {account ? (
-          <ArcadeButton disabled={isStartingGame || !zone} onClick={() => zone && handleStartGame(zone.settingsId)}>
-            {isStartingGame ? "Starting..." : "New Game"}
-          </ArcadeButton>
+          <>
+            <ArcadeButton disabled={isStartingGame || !selectedZonePlayable} onClick={handlePrimaryAction}>
+              {isStartingGame
+                ? "Starting..."
+                : selectedMode === 0
+                  ? hasActiveStoryRun
+                    ? "Resume Story"
+                    : "Start Story"
+                  : hasActiveEndlessRun
+                    ? "Resume Endless"
+                    : "Play Endless"}
+            </ArcadeButton>
+
+            {selectedMode === 1 && hasActiveEndlessRun ? (
+              <button
+                type="button"
+                onClick={() => zone && handleStartGame(zone.settingsId)}
+                disabled={isStartingGame || !selectedZonePlayable}
+                className="w-full rounded-2xl border border-white/[0.16] bg-white/[0.08] px-4 py-2.5 font-sans text-xs font-extrabold uppercase tracking-[0.1em] text-white/90 backdrop-blur-xl disabled:cursor-not-allowed disabled:opacity-55"
+              >
+                Start New Endless
+              </button>
+            ) : null}
+
+            {selectedMode === 1 && zones.length > 0 && !selectedZonePlayable ? (
+              <p className="text-center font-sans text-[11px] font-semibold text-white/75">
+                {zone?.zoneId === 1
+                  ? "Defeat Zone 1 Story boss to unlock Endless."
+                  : "Only Endless Zone 1 is playable in the MVP."}
+              </p>
+            ) : null}
+          </>
         ) : null}
       </div>
     </div>

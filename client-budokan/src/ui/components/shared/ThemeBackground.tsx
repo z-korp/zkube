@@ -12,12 +12,12 @@ const ThemeBackground: React.FC = () => {
           key={themeTemplate}
           src={imgAssets.imageBackground}
           alt=""
-          className="w-full h-full object-cover"
+          className="h-full w-full object-cover opacity-[0.82]"
           data-theme={themeTemplate}
           draggable={false}
         />
       </div>
-      <div className="fixed inset-0 -z-10 bg-[linear-gradient(180deg,rgba(4,8,18,0.4)_0%,rgba(4,8,18,0.28)_42%,rgba(4,8,18,0.78)_100%)] backdrop-blur-[0.5px]" />
+      <div className="fixed inset-0 -z-10 bg-[linear-gradient(180deg,rgba(4,8,18,0.72)_0%,rgba(4,8,18,0.56)_40%,rgba(4,8,18,0.88)_100%)] backdrop-blur-[4px]" />
     </>
   );
 };

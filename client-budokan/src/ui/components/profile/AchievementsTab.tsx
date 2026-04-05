@@ -1,7 +1,8 @@
+import { motion } from "motion/react";
+
 import type { ThemeColors } from "@/config/themes";
 import ProgressBar from "@/ui/components/shared/ProgressBar";
 import { ACHIEVEMENT_CATEGORIES, useAchievements } from "@/hooks/useAchievements";
-import { motion } from "motion/react";
 
 const containerVariants: any = {
   hidden: { opacity: 0 },
@@ -28,128 +29,181 @@ const RARITY_BY_TIER = {
 } as const;
 
 const RARITY_COLORS = {
-  Common: "rgba(255,255,255,0.5)",
-  Rare: "#4DA6FF",
-  Epic: "#A78BFA",
-  Legendary: "#FFD93D",
+  Common: "rgba(255,255,255,0.7)",
+  Rare: "#7FC3FF",
+  Epic: "#B89BFF",
+  Legendary: "#FFD86E",
 } as const;
 
 const AchievementsTab: React.FC<AchievementsTabProps> = ({ colors }) => {
   const { achievements } = useAchievements();
+
   const totalUnlocked = achievements.filter((achievement) => achievement.completed).length;
   const total = achievements.length;
+  const completionRatio = total <= 0 ? 0 : totalUnlocked / total;
+  const completionPercent = Math.round(completionRatio * 100);
+
+  const radius = 34;
+  const circumference = 2 * Math.PI * radius;
+  const strokeOffset = circumference * (1 - completionRatio);
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-3.5 pb-2">
-      <motion.div
+      <motion.section
         variants={itemVariants}
-        className="flex items-center justify-between rounded-xl px-3.5 py-2.5"
-        style={{ background: colors.surface, border: `1px solid ${colors.border}` }}
+        className="rounded-2xl border px-4 py-3.5 backdrop-blur-xl"
+        style={{ background: "rgba(255,255,255,0.1)", borderColor: "rgba(255,255,255,0.18)" }}
       >
-        <div>
-          <p className="font-display text-[20px] font-black" style={{ color: colors.text }}>
-            {totalUnlocked}/{total}
-          </p>
-          <p className="font-sans text-[10px] font-semibold" style={{ color: colors.textMuted }}>
-            Achievements unlocked
-          </p>
+        <div className="flex items-center justify-between gap-3">
+          <div className="relative h-20 w-20 shrink-0">
+            <svg className="h-full w-full -rotate-90" viewBox="0 0 84 84" aria-hidden>
+              <circle cx="42" cy="42" r={radius} fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="8" />
+              <circle
+                cx="42"
+                cy="42"
+                r={radius}
+                fill="none"
+                stroke={colors.accent}
+                strokeWidth="8"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeOffset}
+                style={{ transition: "stroke-dashoffset 0.6s ease" }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <p className="font-sans text-[20px] font-black leading-none" style={{ color: colors.text }}>
+                {completionPercent}%
+              </p>
+              <p className="font-sans text-[10px] font-semibold" style={{ color: colors.textMuted }}>
+                complete
+              </p>
+            </div>
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <p className="font-sans text-[12px] font-bold uppercase tracking-[0.12em]" style={{ color: colors.textMuted }}>
+              Achievement Vault
+            </p>
+            <p className="mt-1 font-sans text-[20px] font-extrabold leading-tight" style={{ color: colors.text }}>
+              {totalUnlocked}/{total} unlocked
+            </p>
+            <p className="mt-0.5 font-sans text-[12px] font-semibold" style={{ color: colors.textMuted }}>
+              Finish categories to level up your player title faster.
+            </p>
+          </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="mt-3 flex flex-wrap gap-2">
           {(Object.keys(RARITY_COLORS) as Array<keyof typeof RARITY_COLORS>).map((rarity) => {
             const count = achievements.filter(
               (achievement) => achievement.completed && RARITY_BY_TIER[achievement.tier] === rarity,
             ).length;
 
             return (
-              <div key={rarity} className="text-center">
-                <p className="font-display text-[13px] font-extrabold" style={{ color: RARITY_COLORS[rarity] }}>
-                  {count}
-                </p>
-                <p className="font-sans text-[8px] font-bold" style={{ color: `${RARITY_COLORS[rarity]}99` }}>
-                  {rarity}
-                </p>
-              </div>
+              <span
+                key={rarity}
+                className="rounded-full border px-2 py-1 font-sans text-[10px] font-extrabold uppercase tracking-[0.08em]"
+                style={{ color: RARITY_COLORS[rarity], borderColor: `${RARITY_COLORS[rarity]}66`, background: `${RARITY_COLORS[rarity]}1A` }}
+              >
+                {rarity} {count}
+              </span>
             );
           })}
         </div>
-      </motion.div>
+      </motion.section>
 
       {ACHIEVEMENT_CATEGORIES.map((category) => {
         const categoryAchievements = achievements.filter((achievement) => achievement.category === category);
         const unlocked = categoryAchievements.filter((achievement) => achievement.completed).length;
 
         return (
-          <motion.section variants={itemVariants} key={category}>
-            <div className="mb-2 flex items-center justify-between">
-              <p
-                className="font-sans text-[11px] font-bold uppercase tracking-[0.15em]"
-                style={{ color: colors.textMuted }}
-              >
+          <motion.section
+            variants={itemVariants}
+            key={category}
+            className="rounded-2xl border p-3 backdrop-blur-xl"
+            style={{ background: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.15)" }}
+          >
+            <div className="mb-2.5 flex items-center justify-between">
+              <p className="font-sans text-[12px] font-extrabold uppercase tracking-[0.12em]" style={{ color: colors.text }}>
                 {category}
               </p>
-                <p className="font-display text-[10px] font-bold" style={{ color: colors.accent }}>
+              <p className="font-sans text-[11px] font-bold" style={{ color: colors.accent }}>
                 {unlocked}/{categoryAchievements.length}
-                </p>
-              </div>
+              </p>
+            </div>
 
-              <div className="grid grid-cols-2 gap-1.5">
+            <div className="flex flex-col gap-2.5">
               {categoryAchievements.map((achievement) => {
                 const rarity = RARITY_BY_TIER[achievement.tier];
                 const rarityColor = RARITY_COLORS[rarity];
+                const progressValue = Math.min(achievement.progress, achievement.target);
 
                 return (
-                  <div
+                  <article
                     key={achievement.id}
-                    className="relative overflow-hidden rounded-[10px] px-2 py-2"
+                    className="rounded-2xl border px-3 py-3 backdrop-blur-xl"
                     style={{
                       background: achievement.completed
-                        ? `${rarityColor}14`
-                        : "rgba(255,255,255,0.015)",
-                      border: `1px solid ${achievement.completed ? `${rarityColor}33` : "rgba(255,255,255,0.05)"}`,
-                      opacity: achievement.completed ? 1 : 0.4,
+                        ? `${rarityColor}1A`
+                        : "rgba(255,255,255,0.09)",
+                      borderColor: achievement.completed ? `${rarityColor}66` : "rgba(255,255,255,0.14)",
+                      boxShadow: achievement.completed ? `0 0 12px ${rarityColor}30` : "none",
                     }}
                   >
-                    {achievement.completed && (
+                    <div className="flex items-start gap-3">
                       <div
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-xl"
                         style={{
-                          position: "absolute",
-                          top: 0,
-                          right: 0,
-                          width: 32,
-                          height: 32,
-                          background: `radial-gradient(circle at top right, ${rarityColor}26, transparent)`,
+                          background: `${rarityColor}22`,
+                          borderColor: `${rarityColor}55`,
+                          filter: achievement.completed ? "none" : "grayscale(1)",
+                          opacity: achievement.completed ? 1 : 0.65,
                         }}
-                      />
-                    )}
-
-                    <div className="mb-1 flex items-center gap-1.5">
-                      <span className="text-base" style={{ filter: achievement.completed ? "none" : "grayscale(1)" }}>
-                        {achievement.icon}
-                      </span>
-                      <span
-                        className="font-sans text-[7px] font-bold uppercase tracking-[0.1em]"
-                        style={{ color: rarityColor }}
                       >
-                        {rarity}
-                      </span>
-                    </div>
-
-                    <p
-                      className="font-display text-[9px] font-bold leading-[1.2]"
-                      style={{ color: achievement.completed ? colors.text : colors.textMuted }}
-                    >
-                      {achievement.name}
-                    </p>
-                    <p className="mt-0.5 font-sans text-[9px] font-semibold leading-[1.3]" style={{ color: colors.textMuted }}>
-                      {achievement.description}
-                    </p>
-                    {!achievement.completed && (
-                      <div className="mt-1">
-                        <ProgressBar value={achievement.progress} max={achievement.target} color={rarityColor} height={3} />
+                        {achievement.icon}
                       </div>
-                    )}
-                  </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <div>
+                            <p className="font-sans text-[14px] font-extrabold" style={{ color: achievement.completed ? colors.text : "rgba(255,255,255,0.78)" }}>
+                              {achievement.name}
+                            </p>
+                            <p className="font-sans text-[12px] font-semibold" style={{ color: colors.textMuted }}>
+                              {achievement.description}
+                            </p>
+                          </div>
+
+                          <div className="text-right">
+                            <span
+                              className="inline-flex rounded-full border px-2 py-1 font-sans text-[10px] font-extrabold uppercase"
+                              style={{ color: rarityColor, borderColor: `${rarityColor}66`, background: `${rarityColor}1A` }}
+                            >
+                              {rarity}
+                            </span>
+                            <p className="mt-1 font-sans text-[11px] font-bold" style={{ color: colors.accent }}>
+                              +{achievement.xp} XP
+                            </p>
+                          </div>
+                        </div>
+
+                        {achievement.completed ? (
+                          <p className="mt-2 inline-flex rounded-full border border-emerald-300/40 bg-emerald-300/15 px-2 py-1 font-sans text-[10px] font-extrabold uppercase tracking-[0.08em] text-emerald-200">
+                            Unlocked
+                          </p>
+                        ) : (
+                          <div className="mt-2">
+                            <ProgressBar value={progressValue} max={achievement.target} color={rarityColor} height={6} />
+                            <div className="mt-1 flex items-center justify-between font-sans text-[11px] font-semibold" style={{ color: colors.textMuted }}>
+                              <span>{progressValue}/{achievement.target}</span>
+                              <span>Locked</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </article>
                 );
               })}
             </div>

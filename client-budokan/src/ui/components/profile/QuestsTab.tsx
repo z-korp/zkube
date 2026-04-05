@@ -1,9 +1,9 @@
-import { useState, useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { motion } from "motion/react";
+
 import type { ThemeColors } from "@/config/themes";
 import ProgressBar from "@/ui/components/shared/ProgressBar";
-import type { ZoneProgressData } from "@/config/profileData";
 import { groupQuests, useQuests, type QuestStatus } from "@/hooks/useQuests";
-import { motion } from "motion/react";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 
@@ -22,138 +22,117 @@ const itemVariants: any = {
 
 interface QuestsTabProps {
   colors: ThemeColors;
-  nextLockedZone: ZoneProgressData | null;
-  onUnlock: (zone: ZoneProgressData) => void;
 }
 
-const formatPrice = (price: bigint | undefined): number => {
-  if (price === undefined) return 0;
-  return Number(price) / 1e6;
-};
-
-const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock }) => {
+const QuestsTab: React.FC<QuestsTabProps> = ({ colors }) => {
   const { quests } = useQuests();
   const { daily, weekly, finisher } = groupQuests(quests);
+  const { account } = useAccountCustom();
+  const {
+    setup: { systemCalls },
+  } = useDojo();
+  const [claimingId, setClaimingId] = useState<bigint | null>(null);
+
   const activeDaily = daily.filter((quest) => quest.active);
   const activeWeekly = weekly.filter((quest) => quest.active);
-  const { account } = useAccountCustom();
-  const { setup: { systemCalls } } = useDojo();
-  const [claimingId, setClaimingId] = useState<string | null>(null);
+  const activeFinisher = finisher.filter((quest) => quest.active);
 
-  const handleClaim = useCallback(async (quest: QuestStatus) => {
-    if (!account?.address || claimingId) return;
-    setClaimingId(quest.id);
-    try {
-      await systemCalls.questClaim({
-        account,
-        player: account.address,
-        quest_id: quest.id,
-        interval_id: quest.intervalId,
-      });
-    } catch (error) {
-      console.error("Failed to claim quest:", error);
-    } finally {
-      setClaimingId(null);
-    }
-  }, [account, systemCalls, claimingId]);
+  const claimableCount = useMemo(
+    () => quests.filter((quest) => quest.active && quest.completed && !quest.claimed).length,
+    [quests],
+  );
+  const completedCount = useMemo(
+    () => quests.filter((quest) => quest.active && quest.completed).length,
+    [quests],
+  );
+
+  const handleClaim = useCallback(
+    async (quest: QuestStatus) => {
+      if (!account?.address || claimingId) return;
+      setClaimingId(quest.id);
+      try {
+        await systemCalls.questClaim({
+          account,
+          player: account.address,
+          quest_id: quest.id,
+          interval_id: quest.intervalId,
+        });
+      } catch (error) {
+        console.error("Failed to claim quest:", error);
+      } finally {
+        setClaimingId(null);
+      }
+    },
+    [account, claimingId, systemCalls],
+  );
 
   const getQuestColor = (quest: QuestStatus): string => {
-    if (quest.type === "weekly") return "#A78BFA";
-    if (quest.type === "finisher") return "#FF6B8A";
+    if (quest.type === "weekly") return "#B89BFF";
+    if (quest.type === "finisher") return "#FF7CA8";
     return colors.accent;
   };
 
-  const discount = nextLockedZone?.starCost
-    ? Math.min(100, Math.floor(((nextLockedZone.currentStars ?? 0) / nextLockedZone.starCost) * 100))
-    : 0;
-  const basePrice = formatPrice(nextLockedZone?.price);
-  const discountedPrice = basePrice
-    ? (basePrice * (1 - discount / 100)).toFixed(2)
-    : "0.00";
-
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-3.5 pb-2">
-      {nextLockedZone && (
-        <motion.button
-          variants={itemVariants}
-          type="button"
-          onClick={() => onUnlock(nextLockedZone)}
-          className="w-full rounded-[14px] border px-3 py-3 text-left"
-          style={{
-            background: `linear-gradient(135deg, ${colors.accent2}14, ${colors.accent}10)`,
-            borderColor: `${colors.accent2}44`,
-          }}
-        >
-          <div className="mb-2 flex items-center gap-2">
-            <span className="text-[22px]">{nextLockedZone.emoji}</span>
-            <div className="flex-1">
-              <p
-                className="font-sans text-[8px] font-semibold uppercase tracking-[0.15em]"
-                style={{ color: colors.accent2 }}
-              >
-                Next Unlock
-              </p>
-              <p className="font-sans text-[15px] font-extrabold" style={{ color: colors.text }}>
-                {nextLockedZone.name}
-              </p>
-            </div>
+    <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-4 pb-2">
+      <motion.section
+        variants={itemVariants}
+        className="rounded-2xl border px-4 py-3.5 backdrop-blur-xl"
+        style={{ background: "rgba(255,255,255,0.11)", borderColor: "rgba(255,255,255,0.18)" }}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-sans text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: colors.textMuted }}>
+              Quest Board
+            </p>
+            <p className="mt-1 font-sans text-[18px] font-extrabold" style={{ color: colors.text }}>
+              {claimableCount > 0 ? `${claimableCount} reward${claimableCount > 1 ? "s" : ""} ready` : "Keep your streak alive"}
+            </p>
           </div>
 
-          <div className="mb-2 flex gap-1.5">
-            <div className="flex-1 rounded-lg px-2 py-1.5" style={{ background: `${colors.accent2}1A` }}>
-              <p className="font-sans text-[7px] font-semibold" style={{ color: colors.accent2 }}>
-                ★ EARN IT
-              </p>
-              <ProgressBar
-                value={nextLockedZone.currentStars ?? 0}
-                max={nextLockedZone.starCost ?? 1}
-                color={colors.accent2}
-                height={4}
-                glow
-              />
-              <p className="mt-0.5 font-sans text-[10px] font-bold" style={{ color: colors.text }}>
-                {nextLockedZone.currentStars}/{nextLockedZone.starCost}★
-              </p>
-              <p className="font-sans text-[7px]" style={{ color: colors.textMuted }}>
-                {(nextLockedZone.starCost ?? 0) - (nextLockedZone.currentStars ?? 0)} stars to go
-              </p>
-            </div>
-
-            <div className="flex-1 rounded-lg px-2 py-1.5" style={{ background: `${colors.accent}1A` }}>
-              <p className="font-sans text-[7px] font-semibold" style={{ color: colors.accent }}>
-                ◆ SKIP AHEAD
-              </p>
-              <p className="font-sans text-[15px] font-black" style={{ color: colors.accent }}>
-                {discountedPrice} USDC
-              </p>
-              {discount > 0 && (
-                <div className="mt-0.5 flex items-center gap-1">
-                  <span
-                    className="font-sans text-[10px] font-semibold"
-                    style={{ color: colors.textMuted, textDecoration: "line-through" }}
-                  >
-                    {basePrice.toFixed(2)}
-                  </span>
-                  <span className="rounded px-1 py-[1px] font-sans text-[8px] font-bold" style={{ color: "#FF6B8A", background: "rgba(255,107,138,0.2)" }}>
-                    {discount}% OFF
-                  </span>
-                </div>
-              )}
-              <p className="font-sans text-[7px]" style={{ color: colors.textMuted }}>
-                Stars lower the price
-              </p>
-            </div>
+          <div className="text-right">
+            <p className="font-sans text-[20px] font-black leading-none" style={{ color: colors.accent }}>
+              {completedCount}
+            </p>
+            <p className="font-sans text-[11px] font-semibold" style={{ color: colors.textMuted }}>
+              completed
+            </p>
           </div>
+        </div>
+      </motion.section>
 
-          <p className="text-center font-sans text-[10px] font-bold" style={{ color: colors.accent }}>
-            Tap for details →
-          </p>
-        </motion.button>
-      )}
-
-        <QuestSection colors={colors} title="Daily Quests" badge="Rotating" badgeColor={colors.accent} quests={activeDaily} getQuestColor={getQuestColor} compact onClaim={handleClaim} claimingId={claimingId} />
-        <QuestSection colors={colors} title="Weekly Quests" badge="Weekly" badgeColor="#A78BFA" quests={activeWeekly} getQuestColor={getQuestColor} compact onClaim={handleClaim} claimingId={claimingId} />
-        <QuestSection colors={colors} title="Daily Finisher" quests={finisher} getQuestColor={getQuestColor} onClaim={handleClaim} claimingId={claimingId} />
+      <QuestSection
+        colors={colors}
+        title="Daily Quests"
+        subtitle="Refreshes in a rotating cycle"
+        badge="Daily"
+        badgeColor={colors.accent}
+        quests={activeDaily}
+        getQuestColor={getQuestColor}
+        onClaim={handleClaim}
+        claimingId={claimingId}
+      />
+      <QuestSection
+        colors={colors}
+        title="Weekly Quests"
+        subtitle="Long-run objectives with bigger rewards"
+        badge="Weekly"
+        badgeColor="#B89BFF"
+        quests={activeWeekly}
+        getQuestColor={getQuestColor}
+        onClaim={handleClaim}
+        claimingId={claimingId}
+      />
+      <QuestSection
+        colors={colors}
+        title="Daily Finisher"
+        subtitle="Complete dailies to unlock the bonus reward"
+        badge="Bonus"
+        badgeColor="#FF7CA8"
+        quests={activeFinisher}
+        getQuestColor={getQuestColor}
+        onClaim={handleClaim}
+        claimingId={claimingId}
+      />
     </motion.div>
   );
 };
@@ -161,118 +140,152 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
 interface QuestSectionProps {
   colors: ThemeColors;
   title: string;
+  subtitle: string;
   quests: QuestStatus[];
   getQuestColor: (quest: QuestStatus) => string;
-  badge?: string;
-  badgeColor?: string;
-  compact?: boolean;
-  onClaim?: (quest: QuestStatus) => void;
-  claimingId?: string | null;
+  badge: string;
+  badgeColor: string;
+  onClaim: (quest: QuestStatus) => void;
+  claimingId: bigint | null;
 }
 
 const QuestSection: React.FC<QuestSectionProps> = ({
   colors,
   title,
+  subtitle,
   quests,
   getQuestColor,
   badge,
   badgeColor,
-  compact = false,
   onClaim,
   claimingId,
-}) => (
-  <motion.section variants={itemVariants}>
-    <div className="mb-2 flex items-center justify-between">
-      <p
-        className="font-sans text-[10px] font-semibold uppercase tracking-[0.15em]"
-        style={{ color: colors.textMuted }}
-      >
-        {title}
-      </p>
-      {badge && (
+}) => {
+  const sortedQuests = [...quests].sort((a, b) => {
+    const aRank = a.claimed ? 2 : a.completed ? 0 : 1;
+    const bRank = b.claimed ? 2 : b.completed ? 0 : 1;
+    return aRank - bRank;
+  });
+
+  return (
+    <motion.section variants={itemVariants} className="rounded-2xl border p-3 backdrop-blur-xl" style={{ background: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.15)" }}>
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <p className="font-sans text-[12px] font-extrabold uppercase tracking-[0.12em]" style={{ color: colors.text }}>
+            {title}
+          </p>
+          <p className="mt-0.5 font-sans text-[11px] font-semibold" style={{ color: colors.textMuted }}>
+            {subtitle}
+          </p>
+        </div>
+
         <span
-          className="rounded px-1.5 py-0.5 font-sans text-[8px] font-semibold"
-          style={{
-            color: badgeColor,
-            background: `${badgeColor}1A`,
-            border: `1px solid ${badgeColor}33`,
-          }}
+          className="rounded-full px-2 py-1 font-sans text-[10px] font-extrabold uppercase tracking-[0.08em]"
+          style={{ color: badgeColor, background: `${badgeColor}22`, border: `1px solid ${badgeColor}55` }}
         >
           {badge}
         </span>
-      )}
-    </div>
+      </div>
 
-    <div className="flex flex-col gap-1.5">
-      {quests.map((quest) => (
-        <QuestCard key={quest.id} colors={colors} quest={quest} color={getQuestColor(quest)} compact={compact} onClaim={onClaim} claimingId={claimingId} />
-      ))}
-    </div>
-  </motion.section>
-);
+      {sortedQuests.length === 0 ? (
+        <p className="rounded-xl border border-white/[0.14] bg-white/[0.08] px-3 py-4 text-center font-sans text-sm font-semibold text-white/70">
+          No active quests right now.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {sortedQuests.map((quest) => (
+            <QuestCard
+              key={quest.id}
+              colors={colors}
+              quest={quest}
+              color={getQuestColor(quest)}
+              onClaim={onClaim}
+              claimingId={claimingId}
+            />
+          ))}
+        </div>
+      )}
+    </motion.section>
+  );
+};
 
 interface QuestCardProps {
   colors: ThemeColors;
   quest: QuestStatus;
   color: string;
-  compact: boolean;
-  onClaim?: (quest: QuestStatus) => void;
-  claimingId?: string | null;
+  onClaim: (quest: QuestStatus) => void;
+  claimingId: bigint | null;
 }
 
-const QuestCard: React.FC<QuestCardProps> = ({ colors, quest, color, compact, onClaim, claimingId }) => {
+const QuestCard: React.FC<QuestCardProps> = ({ colors, quest, color, onClaim, claimingId }) => {
   const isClaiming = claimingId === quest.id;
+  const progressValue = Math.min(quest.progress, quest.target);
 
   return (
     <div
-      className="rounded-[10px]"
+      className="rounded-2xl border px-3 py-3 backdrop-blur-xl"
       style={{
-        background: quest.completed ? `${color}14` : colors.surface,
-        border: `1px solid ${quest.completed ? `${color}40` : colors.border}`,
-        padding: compact ? "8px 10px" : "10px 12px",
-        opacity: quest.claimed ? 0.72 : 1,
+        background: quest.claimed
+          ? "rgba(255,255,255,0.06)"
+          : quest.completed
+            ? `${color}18`
+            : "rgba(255,255,255,0.11)",
+        borderColor: quest.completed ? `${color}4D` : "rgba(255,255,255,0.16)",
+        opacity: quest.claimed ? 0.7 : 1,
       }}
     >
-      <div className="flex items-start gap-2">
-        <span className={compact ? "text-base" : "text-lg"}>{quest.icon}</span>
+      <div className="flex items-start gap-3">
+        <div
+          className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl border"
+          style={{ background: `${color}22`, borderColor: `${color}55` }}
+        >
+          <span className="text-lg" style={{ filter: quest.claimed ? "grayscale(1)" : "none" }}>
+            {quest.icon}
+          </span>
+        </div>
+
         <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between">
-            <p
-              className="font-sans text-[12px] font-bold"
-              style={{ color: quest.completed ? color : colors.text, textDecoration: quest.claimed ? "line-through" : "none" }}
-            >
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-sans text-[14px] font-extrabold leading-tight" style={{ color: quest.completed ? color : colors.text }}>
               {quest.name}
             </p>
+
             {quest.claimed ? (
-              <span
-                className="rounded px-1.5 py-[1px] font-sans text-[8px] font-bold"
-                style={{ color: colors.accent, background: `${colors.accent}20` }}
-              >
-                CLAIMED
+              <span className="rounded-full px-2 py-1 font-sans text-[10px] font-extrabold uppercase" style={{ color: colors.textMuted, background: "rgba(255,255,255,0.12)" }}>
+                Claimed
               </span>
-            ) : quest.completed && onClaim ? (
+            ) : quest.completed ? (
               <motion.button
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={() => onClaim(quest)}
                 disabled={isClaiming}
-                className="rounded-md px-2.5 py-1 font-sans text-[10px] font-bold text-white disabled:opacity-50"
+                className="rounded-full px-3 py-1.5 font-sans text-[10px] font-extrabold uppercase text-[#0a1628] disabled:opacity-50"
                 style={{
                   background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent2})`,
-                  boxShadow: `0 0 8px ${colors.accent}40`,
+                  boxShadow: `0 0 12px ${colors.accent}55`,
                 }}
               >
-                {isClaiming ? "..." : `CLAIM +${quest.reward}★`}
+                {isClaiming ? "Claiming" : `Claim +${quest.reward}★`}
               </motion.button>
             ) : (
-              <span className="font-sans text-[10px] font-bold" style={{ color: colors.accent2 }}>
+              <span className="font-sans text-[12px] font-extrabold" style={{ color }}>
                 +{quest.reward}★
               </span>
             )}
           </div>
-          <p className="mb-1 mt-0.5 font-sans text-[9px]" style={{ color: colors.textMuted }}>
+
+          <p className="mt-0.5 font-sans text-[12px] font-semibold" style={{ color: colors.textMuted }}>
             {quest.description}
           </p>
-          {!quest.claimed && <ProgressBar value={quest.progress} max={quest.target} color={color} height={4} showLabel />}
+
+          {!quest.claimed ? (
+            <div className="mt-2">
+              <ProgressBar value={progressValue} max={quest.target} color={color} height={6} glow={quest.completed} />
+              <div className="mt-1 flex items-center justify-between font-sans text-[11px] font-semibold" style={{ color: colors.textMuted }}>
+                <span>{progressValue}/{quest.target}</span>
+                <span>{quest.completed ? "Ready to claim" : "In progress"}</span>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

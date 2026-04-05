@@ -5,7 +5,7 @@ interface ModePillProps {
   onModeChange: (mode: number) => void;
 }
 
-const MODE_LABELS = ["Map Mode", "Endless"] as const;
+const MODE_LABELS = ["Story", "Endless"] as const;
 
 const ModePill = ({ selectedMode, onModeChange }: ModePillProps) => {
   return (
@@ -18,14 +18,20 @@ const ModePill = ({ selectedMode, onModeChange }: ModePillProps) => {
             onClick={() => onModeChange(index)}
             className={`relative z-10 flex-1 whitespace-nowrap rounded-full px-3 py-1.5 font-sans text-[12px] font-bold uppercase tracking-wide transition-colors duration-200 ${
               isSelected
-                ? "text-white"
+                ? index === 1
+                  ? "text-[#FFE0C1]"
+                  : "text-white"
                 : "text-white/40 hover:text-white/60"
             }`}
           >
             {isSelected && (
               <motion.div
                 layoutId="mode-indicator"
-                className="absolute inset-0 bg-white/20 rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] border border-white/[0.08]"
+                className="absolute inset-0 rounded-full border shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]"
+                style={{
+                  background: index === 1 ? "linear-gradient(180deg, rgba(255,152,92,0.34), rgba(255,116,56,0.26))" : "rgba(255,255,255,0.2)",
+                  borderColor: index === 1 ? "rgba(255,188,133,0.55)" : "rgba(255,255,255,0.08)",
+                }}
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               />
             )}
