@@ -51,17 +51,17 @@ scarb build                    # Build all packages
 cd contracts && scarb test     # Run tests
 ```
 
-See [CLAUDE.md](./CLAUDE.md) for detailed development documentation.
+See [AGENTS.md](./AGENTS.md) for execution-critical guidance and [docs/PROJECT_REFERENCE.md](./docs/PROJECT_REFERENCE.md) for architecture/current behavior.
 
 ## Documentation
 
 | Document | Description |
 |----------|-------------|
-| [CLAUDE.md](./CLAUDE.md) | Project architecture and development guide |
-| [docs/GAME_DESIGN.md](./docs/GAME_DESIGN.md) | Complete game design document |
-| [docs/DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md) | Network deployment guide |
-| [contracts/CLAUDE.md](./contracts/CLAUDE.md) | Smart contract documentation |
-| [client-budokan/CLAUDE.md](./client-budokan/CLAUDE.md) | Frontend documentation |
+| [AGENTS.md](./AGENTS.md) | Primary agent instructions and high-signal workflow notes |
+| [CLAUDE.md](./CLAUDE.md) | Root pointer to canonical knowledge docs |
+| [docs/PROJECT_REFERENCE.md](./docs/PROJECT_REFERENCE.md) | Current architecture, MVP semantics, and config reference |
+| [docs/DEPLOY_RUNBOOK.md](./docs/DEPLOY_RUNBOOK.md) | Deploy/migrate runbook for Slot and contract changes |
+| [docs/ASSET_PIPELINE.md](./docs/ASSET_PIPELINE.md) | Asset generation commands and data sources |
 
 ## Technology Stack
 
