@@ -62,3 +62,8 @@ addresses.csv
 !assets/**/*.png
 !client-budokan/public/**/*.png
 !packages/**/*.png
+
+# Local agent/test workspaces
+new-client-budokan/
+.playwright-mcp/
+.opencode/
