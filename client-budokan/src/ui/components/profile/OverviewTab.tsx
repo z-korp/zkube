@@ -2,6 +2,7 @@ import ProgressBar from "@/ui/components/shared/ProgressBar";
 import { getThemeImages, type ThemeColors, type ThemeId } from "@/config/themes";
 import type { ZoneProgressData } from "@/config/profileData";
 import { motion } from "motion/react";
+import { formatUsdcAmount } from "@/utils/payment";
 
 const containerVariants: any = {
   hidden: { opacity: 0 },
@@ -17,8 +18,8 @@ const itemVariants: any = {
 };
 
 const formatPrice = (price: bigint | undefined): string => {
-  if (price === undefined) return "0.0000";
-  return (Number(price) / 1e18).toFixed(4);
+  if (price === undefined) return "0.00";
+  return formatUsdcAmount(price);
 };
 
 const THEME_BY_ZONE: Record<number, ThemeId> = {
@@ -154,7 +155,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                           or
                         </span>
                         <span className="font-sans text-[12px] font-extrabold" style={{ color: colors.accent }}>
-                          {formatPrice(zone.price)} ETH
+                          {formatPrice(zone.price)} USDC
                         </span>
                       </div>
                   )}

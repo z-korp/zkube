@@ -183,6 +183,8 @@ const MapPage: React.FC = () => {
     [zones],
   );
 
+  const activeZoneHasNodes = (zoneNodes[activeZone]?.length ?? 0) > 0;
+
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     pointerStartX.current = event.clientX;
     isSwiping.current = false;
@@ -281,7 +283,7 @@ const MapPage: React.FC = () => {
         <motion.div
           className="flex h-full"
           style={{ width: `${TOTAL_ZONES * 100}%` }}
-          animate={{ x: `${-activeZone * 100}vw` }}
+          animate={{ x: `-${(activeZone * 100) / TOTAL_ZONES}%` }}
           transition={{ type: "spring", stiffness: 280, damping: 32 }}
         >
           {zoneNodes.map((nodes, zoneIdx) => {
@@ -296,11 +298,7 @@ const MapPage: React.FC = () => {
             const zoneProgress = zoneProgressMap.get(zone);
 
             return (
-              <div
-                key={zone}
-                className="relative h-full flex-shrink-0"
-                style={{ width: "100vw" }}
-              >
+              <div key={zone} className="relative h-full flex-shrink-0" style={{ width: `${100 / TOTAL_ZONES}%` }}>
                 <ZoneBackground zone={zone} themeId={themeId} />
                 <div className="relative mx-auto h-full w-full max-w-[430px]">
                   <svg
@@ -582,6 +580,14 @@ const MapPage: React.FC = () => {
             gameLevel={pendingLevelCompletion.gameLevel}
             draftWillOpen={false}
           />
+        )}
+
+        {!activeZoneHasNodes && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+            <div className="rounded-2xl border border-white/20 bg-black/45 px-4 py-3 font-sans text-sm font-semibold text-white/80 backdrop-blur-md">
+              Loading map...
+            </div>
+          </div>
         )}
       </div>
     </div>

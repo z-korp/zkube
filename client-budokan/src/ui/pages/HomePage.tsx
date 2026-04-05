@@ -201,21 +201,15 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-10">
-      <img
-        src={getThemeImages(themeTemplate).background}
-        alt=""
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        draggable={false}
-      />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(5,10,18,0.2)_0%,rgba(5,10,18,0.1)_40%,rgba(5,10,18,0.58)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(5,10,18,0.12)_0%,rgba(5,10,18,0.05)_45%,rgba(5,10,18,0.56)_100%)]" />
 
-      <div className="relative z-10 mb-2 text-center">
+      <div className="relative z-10 mb-1 text-center">
         <motion.img
           animate={{ y: [0, -3, 0] }}
           transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
           src={getThemeImages(themeTemplate).logo}
           alt="zKube"
-          className="mx-auto h-28 md:h-36 drop-shadow-[0_0_20px_rgba(255,255,255,0.35)]"
+          className="mx-auto h-24 md:h-32 drop-shadow-[0_0_20px_rgba(255,255,255,0.35)]"
           draggable={false}
         />
       </div>
@@ -229,7 +223,7 @@ const HomePage: React.FC = () => {
         >
           {account ? (
             <>
-              <motion.div variants={itemVariants} className="flex items-center justify-between rounded-2xl border border-white/[0.16] bg-white/[0.12] px-3 py-2.5 backdrop-blur-xl">
+              <motion.div variants={itemVariants} className="flex items-center justify-between rounded-2xl border border-white/[0.16] bg-white/[0.08] px-3 py-2 backdrop-blur-xl">
                 <div className="flex min-w-0 items-center gap-3">
                   <div
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-sans text-sm font-black"
@@ -241,8 +235,8 @@ const HomePage: React.FC = () => {
                     {(username || "PL").slice(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate font-sans text-base font-bold text-white">{username || "Player"}</p>
-                    <p className="font-sans text-xs font-semibold text-white/80">★ {totalStars} collected</p>
+                    <p className="truncate font-sans text-[15px] font-bold text-white">{username || "Player"}</p>
+                    <p className="font-sans text-[11px] font-semibold text-white/75">★ {totalStars} collected</p>
                   </div>
                 </div>
                 <span className="rounded-full border px-2.5 py-1 font-sans text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: colors.accent, borderColor: `${colors.accent}66`, backgroundColor: `${colors.accent}22` }}>
@@ -256,13 +250,13 @@ const HomePage: React.FC = () => {
                 whileTap={{ scale: 0.99 }}
                 type="button"
                 onClick={() => navigate("daily")}
-                className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border border-white/[0.16] bg-white/[0.12] px-4 py-3 text-left shadow-lg backdrop-blur-xl"
+                className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border border-white/[0.16] bg-white/[0.08] px-4 py-3 text-left shadow-lg backdrop-blur-xl"
               >
                 <div className="pointer-events-none absolute inset-[-100%_0] w-[300%] animate-shimmer bg-gradient-to-r from-transparent via-white/[0.09] to-transparent bg-[length:50%_100%]" />
                 <div className="relative z-10">
-                  <p className="font-sans text-sm font-extrabold uppercase tracking-[0.08em]" style={{ color: colors.accent }}>
-                    ⚡ Daily Challenge
-                  </p>
+                    <p className="font-sans text-[13px] font-extrabold uppercase tracking-[0.08em]" style={{ color: colors.accent }}>
+                      ⚡ Daily Challenge
+                    </p>
                   <p className="mt-0.5 font-sans text-xs font-semibold text-white/80">
                     24h remaining · {Math.max(42, (ownedGames?.length ?? 0) * 3)} players
                   </p>
@@ -330,7 +324,7 @@ const HomePage: React.FC = () => {
               </motion.div>
             </>
           ) : (
-            <motion.div variants={itemVariants} className="mx-auto mt-[16vh] max-w-[340px] rounded-2xl border border-white/[0.16] bg-white/[0.1] px-5 py-6 text-center backdrop-blur-xl">
+            <motion.div variants={itemVariants} className="mx-auto mt-[16vh] max-w-[340px] rounded-2xl border border-white/[0.16] bg-white/[0.08] px-5 py-6 text-center backdrop-blur-xl">
               <p className="font-sans text-3xl font-black leading-tight text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.6)]">Match. Clear. Conquer.</p>
               <p className="mt-3 font-sans text-base font-semibold text-white/85">
                 Connect your account to unlock Story Mode and daily challenges.

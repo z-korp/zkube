@@ -5,7 +5,7 @@ import { Difficulty } from "@/dojo/game/types/difficulty";
 import type { MapNodeData } from "@/hooks/useMapData";
 import type { Game } from "@/dojo/game/models/game";
 import type { GameLevelData } from "@/hooks/useGameLevel";
-import GameButton from "@/ui/components/shared/GameButton";
+import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 import CubeIcon from "@/ui/components/CubeIcon";
 
 export interface LevelPreviewProps {
@@ -27,6 +27,17 @@ const DIFFICULTY_STYLES: Record<string, string> = {
   VeryHard: "text-red-400",
   Expert: "text-rose-400",
   Master: "text-red-500",
+};
+
+const DIFFICULTY_LABELS: Record<string, string> = {
+  VeryEasy: "Very Easy",
+  Easy: "Easy",
+  Medium: "Medium",
+  MediumHard: "Medium Hard",
+  Hard: "Hard",
+  VeryHard: "Very Hard",
+  Expert: "Expert",
+  Master: "Master",
 };
 
 export const LevelPreview: React.FC<LevelPreviewProps> = ({
@@ -100,6 +111,8 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
     node.type !== "draft" &&
     (node.state === "current" || node.state === "available");
 
+  const difficultyLabel = DIFFICULTY_LABELS[difficulty] ?? difficulty;
+
   return (
     <motion.div
       className="absolute inset-0 z-30 flex items-center justify-center bg-black/65 backdrop-blur-sm px-4"
@@ -109,7 +122,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
       onClick={onClose}
     >
       <motion.div
-        className="relative w-full max-w-sm rounded-2xl border border-sky-300/25 bg-slate-900/95 p-5 shadow-2xl"
+        className="relative w-full max-w-md rounded-2xl border border-white/20 bg-slate-950/90 p-5 shadow-2xl backdrop-blur-xl"
         initial={{ opacity: 0, scale: 0.85, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 10 }}
@@ -124,7 +137,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
           <X size={18} />
         </button>
 
-        <h3 className="pr-8 font-['Fredericka_the_Great'] text-xl text-white">
+        <h3 className="pr-8 font-display text-2xl text-white">
           {node.type === "draft"
             ? `Zone ${node.zone} Draft`
             : node.type === "boss"
@@ -137,13 +150,13 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
             Draft event: choose your run direction before pushing to the boss.
           </p>
         ) : node.state === "cleared" || node.state === "visited" ? (
-          <div className="mt-4 space-y-3 text-sm font-['Fredericka_the_Great']">
+          <div className="mt-4 space-y-3 text-sm font-sans">
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Difficulty</span>
               <span
                 className={`text-lg ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}
               >
-                {difficulty}
+                {difficultyLabel}
               </span>
             </div>
             <div className="flex items-center justify-between rounded-lg bg-emerald-500/15 px-3 py-2.5">
@@ -173,13 +186,13 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
             )}
           </div>
         ) : (
-          <div className="mt-4 space-y-3 text-sm font-['Fredericka_the_Great']">
+          <div className="mt-4 space-y-3 text-sm font-sans">
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Difficulty</span>
               <span
                 className={`text-lg ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}
               >
-                {difficulty}
+                {difficultyLabel}
               </span>
             </div>
 
@@ -211,19 +224,25 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
             </div>
 
             {maxMoves > 0 && (
-              <div className="space-y-1 pt-1">
-                <p className="mb-1 text-slate-400">Moves</p>
+              <div className="space-y-2 pt-1">
+                <p className="mb-1 text-slate-400">Star Goals</p>
                 {[
-                  { cubes: 5, threshold: cube3Threshold },
-                  { cubes: 3, threshold: cube2Threshold },
-                  { cubes: 1, threshold: maxMoves },
-                ].map(({ cubes, threshold }) => (
+                  { stars: 3, threshold: cube3Threshold },
+                  { stars: 2, threshold: cube2Threshold },
+                  { stars: 1, threshold: maxMoves },
+                ].map(({ stars, threshold }) => (
                   <div
-                    key={cubes}
-                    className="flex items-center justify-between rounded-md bg-slate-800/60 px-2 py-1 text-slate-300"
+                    key={stars}
+                    className="flex items-center justify-between rounded-md bg-slate-800/60 px-2.5 py-1.5 text-slate-200"
                   >
-                    <span className="inline-flex">{Array.from({ length: cubes }).map((_, i) => <CubeIcon key={i} size="sm" />)}</span>
-                    <span className="text-lg">≤ {threshold}</span>
+                    <span className="inline-flex items-center gap-0.5 text-yellow-300">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <span key={i} className={i < stars ? "opacity-100" : "opacity-25"}>
+                          ★
+                        </span>
+                      ))}
+                    </span>
+                    <span className="font-semibold">Finish in {threshold} moves</span>
                   </div>
                 ))}
               </div>
@@ -233,7 +252,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
 
         {canPlay && (
           <div className="mt-5">
-            <GameButton label="PLAY" variant="primary" onClick={onPlay} />
+            <ArcadeButton onClick={onPlay}>Play</ArcadeButton>
           </div>
         )}
       </motion.div>

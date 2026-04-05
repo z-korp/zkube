@@ -3,6 +3,9 @@ import type { ZoneProgressData } from "@/config/profileData";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import ProgressBar from "@/ui/components/shared/ProgressBar";
+import ArcadeButton from "@/ui/components/shared/ArcadeButton";
+import { formatUsdcAmount } from "@/utils/payment";
+import { X } from "lucide-react";
 
 interface UnlockModalProps {
   colors: ThemeColors;
@@ -15,20 +18,33 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ colors, zone, onClose }) => {
     setup: { systemCalls, client },
   } = useDojo();
   const { account } = useAccountCustom();
-  const settingsId = zone.settingsId;
 
+  const settingsId = zone.settingsId;
   const starCost = zone.starCost ?? 1;
   const currentStars = zone.currentStars ?? 0;
-  const basePrice = zone.price !== undefined ? Number(zone.price) / 1e18 : 0;
   const discount = Math.min(100, Math.floor((currentStars / starCost) * 100));
-  const finalPrice = (basePrice * (1 - discount / 100)).toFixed(4);
-  const starPercent = Math.min(100, Math.floor((currentStars / starCost) * 100));
+  const basePriceRaw = zone.price ?? 0n;
+  const finalPriceRaw = BigInt(
+    Math.max(0, Math.floor((Number(basePriceRaw) * (100 - discount)) / 100)),
+  );
+  const basePrice = formatUsdcAmount(basePriceRaw);
+  const finalPrice = formatUsdcAmount(finalPriceRaw);
+  const starsRemaining = Math.max(starCost - currentStars, 0);
+  const canUnlockWithStars = currentStars >= starCost;
 
   const handleUnlockWithStars = async () => {
     if (!account) return;
 
     try {
-      const unlockWithStars = (systemCalls as { unlockWithStars?: (args: { account: typeof account; settings_id: number }) => Promise<unknown> }).unlockWithStars;
+      const unlockWithStars = (
+        systemCalls as {
+          unlockWithStars?: (args: {
+            account: typeof account;
+            settings_id: number;
+          }) => Promise<unknown>;
+        }
+      ).unlockWithStars;
+
       if (unlockWithStars) {
         await unlockWithStars({ account, settings_id: settingsId });
       } else if (client.config) {
@@ -52,234 +68,135 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ colors, zone, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end">
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-2 md:items-center md:p-6">
       <button
         type="button"
         aria-label="Close unlock modal"
         onClick={onClose}
-        className="absolute inset-0"
-        style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
+        className="absolute inset-0 bg-black/65 backdrop-blur-md"
       />
 
       <div
-        className="relative rounded-t-[20px] px-[18px] pb-7 pt-5"
+        className="relative w-full max-w-[980px] rounded-3xl border border-white/[0.2] bg-slate-950/92 px-4 pb-5 pt-4 shadow-[0_30px_80px_rgba(0,0,0,0.6)] backdrop-blur-2xl md:px-6 md:pb-6"
         style={{
-          background: `linear-gradient(180deg, ${colors.backgroundGradientStart}, ${colors.background})`,
-          border: `1px solid ${colors.border}`,
-          borderBottom: "none",
+          background: `linear-gradient(180deg, ${colors.backgroundGradientStart}F2, ${colors.background}F0)`,
         }}
       >
-        <div className="mb-3 flex justify-center">
-          <div className="h-1 w-9 rounded bg-white/15" />
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={onClose}
+          className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/15 bg-black/25 text-white/80"
+        >
+          <X size={16} />
+        </button>
+
+        <div className="mb-3 flex justify-center md:hidden">
+          <div className="h-1 w-10 rounded bg-white/20" />
         </div>
 
-        <div className="mb-4 flex items-center gap-2.5">
-          <span className="text-[32px]">{zone.emoji}</span>
-          <div>
-            <p
-              className="font-['DM_Sans'] text-[8px] font-semibold uppercase tracking-[0.2em]"
-              style={{ color: colors.accent }}
-            >
+        <div className="mb-4 flex items-center gap-3">
+          <span className="text-[32px] md:text-[38px]">{zone.emoji}</span>
+          <div className="min-w-0 flex-1">
+            <p className="font-sans text-[11px] font-bold uppercase tracking-[0.14em]" style={{ color: colors.accent }}>
               Unlock Zone
             </p>
-            <p className="font-display text-lg font-black" style={{ color: colors.text }}>
-              {zone.name}
-            </p>
-            <p className="font-['DM_Sans'] text-[9px]" style={{ color: colors.textMuted }}>
-              10 levels · Boss battle · Endless mode
-            </p>
+            <p className="truncate font-display text-2xl font-black text-white md:text-3xl">{zone.name}</p>
+            <p className="font-sans text-sm font-semibold text-white/70">10 levels · Boss battle · Endless mode</p>
           </div>
         </div>
 
-        <div className="mb-3.5 h-px" style={{ background: colors.border }} />
-
-        <div className="mb-3.5 flex gap-2">
-          <div
-            className="relative flex flex-1 flex-col items-center overflow-hidden rounded-[14px] px-2.5 py-3"
-            style={{ background: `${colors.accent2}14`, border: `1px solid ${colors.accent2}33` }}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_1fr] md:gap-4">
+          <section
+            className="rounded-2xl border border-white/[0.14] bg-white/[0.06] p-4 backdrop-blur-xl"
+            style={{ boxShadow: `inset 0 0 12px ${colors.accent2}1F` }}
           >
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 2,
-                background: `linear-gradient(90deg, transparent, ${colors.accent2}66, transparent)`,
-              }}
-            />
-            <p
-              className="mb-2 font-['DM_Sans'] text-[9px] font-bold uppercase tracking-[0.15em]"
-              style={{ color: colors.accent2 }}
-            >
+            <p className="mb-2 font-sans text-xs font-bold uppercase tracking-[0.12em]" style={{ color: colors.accent2 }}>
               Earn It
             </p>
-            <span className="mb-0.5 text-2xl">⭐</span>
-            <p className="font-display text-xl font-black" style={{ color: colors.accent2 }}>
-              {starCost}
+            <p className="font-sans text-3xl font-black leading-none" style={{ color: colors.accent2 }}>
+              {starCost}★
             </p>
-            <p className="mb-2 font-['DM_Sans'] text-[8px]" style={{ color: colors.textMuted }}>
-              stars required
+            <p className="mb-3 mt-1 font-sans text-sm font-semibold text-white/70">Stars required</p>
+
+            <ProgressBar value={currentStars} max={starCost} color={colors.accent2} height={8} glow />
+            <p className="mt-2 font-sans text-sm font-bold" style={{ color: colors.accent2 }}>
+              {currentStars}/{starCost}★
+            </p>
+            <p className="mt-0.5 font-sans text-sm text-white/70">
+              {starsRemaining} stars to go
             </p>
 
-            <div className="w-full">
-              <ProgressBar value={currentStars} max={starCost} color={colors.accent2} height={5} glow />
-            </div>
-            <p className="mt-1 font-display text-[9px] font-bold" style={{ color: colors.accent2 }}>
-              {currentStars}/{starCost}
-            </p>
-            <p className="mt-0.5 font-['DM_Sans'] text-[7px]" style={{ color: colors.textMuted }}>
-              {Math.max(starCost - currentStars, 0)} more to go
-            </p>
-
-            {currentStars >= starCost ? (
-              <button
-                type="button"
-                onClick={handleUnlockWithStars}
-                className="mt-2 w-full rounded-lg py-2 font-display text-[10px] font-extrabold tracking-[0.05em]"
-                style={{ background: colors.accent2, color: colors.background }}
-              >
-                UNLOCK FREE
-              </button>
+            {canUnlockWithStars ? (
+              <div className="mt-3">
+                <ArcadeButton onClick={handleUnlockWithStars}>Unlock Free</ArcadeButton>
+              </div>
             ) : (
-              <p className="mt-2 text-center font-['DM_Sans'] text-[8px]" style={{ color: colors.textMuted }}>
-                Keep playing to earn stars
+              <p className="mt-3 font-sans text-sm font-semibold text-white/65">
+                Keep playing story levels to collect stars.
               </p>
             )}
+          </section>
+
+          <div className="hidden items-center justify-center md:flex">
+            <span className="font-sans text-xs font-bold uppercase tracking-[0.2em] text-white/50">OR</span>
           </div>
 
-          <div className="flex flex-col items-center justify-center px-0.5">
-            <div className="w-px flex-1 bg-white/10" />
-            <p className="py-1.5 font-['DM_Sans'] text-[9px] font-bold" style={{ color: colors.textMuted }}>
-              OR
-            </p>
-            <div className="w-px flex-1 bg-white/10" />
-          </div>
-
-          <div
-            className="relative flex flex-1 flex-col items-center overflow-hidden rounded-[14px] px-2.5 py-3"
-            style={{ background: `${colors.accent}14`, border: `1px solid ${colors.accent}33` }}
+          <section
+            className="rounded-2xl border border-white/[0.14] bg-white/[0.06] p-4 backdrop-blur-xl"
+            style={{ boxShadow: `inset 0 0 12px ${colors.accent}1F` }}
           >
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 2,
-                background: `linear-gradient(90deg, transparent, ${colors.accent}66, transparent)`,
-              }}
-            />
-            <p
-              className="mb-2 font-['DM_Sans'] text-[9px] font-bold uppercase tracking-[0.15em]"
-              style={{ color: colors.accent }}
-            >
-              Skip Ahead
-            </p>
-            <span className="mb-0.5 text-2xl">◆</span>
-
-            {discount > 0 ? (
-              <>
-                <p
-                  className="font-display text-[11px] font-semibold"
-                  style={{ color: colors.textMuted, textDecoration: "line-through" }}
-                >
-                  {basePrice} ETH
-                </p>
-                <p className="font-display text-xl font-black" style={{ color: colors.accent }}>
-                  {finalPrice}
-                </p>
-              </>
-            ) : (
-              <p className="font-display text-xl font-black" style={{ color: colors.accent }}>
-                {basePrice}
-              </p>
-            )}
-            <p className="mb-1 font-['DM_Sans'] text-[8px]" style={{ color: colors.textMuted }}>
-              ETH
+            <p className="mb-2 font-sans text-xs font-bold uppercase tracking-[0.12em]" style={{ color: colors.accent }}>
+              Buy with USDC
             </p>
 
             {discount > 0 && (
-              <span
-                className="mb-1 rounded px-1.5 py-[2px] font-display text-[9px] font-extrabold tracking-[0.03em] text-white"
-                style={{ background: "linear-gradient(135deg, #FF6B8A, rgba(255,107,138,0.85))" }}
-              >
-                {discount}% OFF
-              </span>
+              <p className="font-sans text-sm font-semibold text-white/50 line-through">
+                {basePrice} USDC
+              </p>
             )}
 
-            <p className="mb-1 text-center font-['DM_Sans'] text-[7px] leading-[1.4]" style={{ color: colors.textMuted }}>
-              {discount > 0 ? `Your ${currentStars}★ saved you ${discount}%` : "Price drops as you earn stars"}
+            <p className="font-sans text-3xl font-black leading-none" style={{ color: colors.accent }}>
+              {finalPrice} USDC
             </p>
 
-            <button
-              type="button"
-              onClick={handlePurchaseMap}
-              className="mt-auto w-full rounded-lg py-2 font-display text-[10px] font-extrabold tracking-[0.05em]"
-              style={{
-                background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent}CC)`,
-                color: colors.background,
-                boxShadow: `0 0 16px ${colors.accent}66`,
-              }}
-            >
-              BUY NOW
-            </button>
-          </div>
+            {discount > 0 ? (
+              <p className="mt-1 inline-flex rounded-full bg-pink-500/25 px-2 py-0.5 font-sans text-xs font-bold text-pink-200">
+                {discount}% discount from stars
+              </p>
+            ) : (
+              <p className="mt-1 font-sans text-sm text-white/70">Price lowers as you collect stars.</p>
+            )}
+
+            <div className="mt-4">
+              <ArcadeButton onClick={handlePurchaseMap}>Buy Now</ArcadeButton>
+            </div>
+          </section>
         </div>
 
-        <div
-          className="rounded-[10px] px-3 py-2.5"
-          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
-        >
-          <p
-            className="mb-2 font-['DM_Sans'] text-[8px] font-semibold uppercase tracking-[0.12em]"
-            style={{ color: colors.textMuted }}
-          >
+        <section className="mt-4 rounded-2xl border border-white/[0.1] bg-white/[0.04] p-3">
+          <p className="mb-2 font-sans text-xs font-bold uppercase tracking-[0.12em] text-white/70">
             Star Discount Scale
           </p>
-          <div className="mb-1.5 flex h-9 items-end gap-[3px]">
-            {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90].map((pct, index) => {
-              const active = starPercent >= pct;
-              const current = starPercent >= pct && starPercent < pct + 10;
 
+          <div className="mb-1.5 grid grid-cols-10 gap-1">
+            {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90].map((pct) => {
+              const active = discount >= pct;
               return (
                 <div
                   key={pct}
-                  className="relative flex-1 rounded-sm"
-                  style={{
-                    height: `${30 + index * 7}%`,
-                    background: active
-                      ? current
-                        ? "linear-gradient(180deg, #FF6B8A, rgba(255,107,138,0.55))"
-                        : `${colors.accent}66`
-                      : "rgba(255,255,255,0.05)",
-                  }}
-                >
-                  {current && (
-                    <span
-                      className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap font-display text-[7px] font-bold"
-                      style={{ color: "#FF6B8A" }}
-                    >
-                      YOU
-                    </span>
-                  )}
-                </div>
+                  className="h-3 rounded-full"
+                  style={{ background: active ? `${colors.accent}A6` : "rgba(255,255,255,0.08)" }}
+                />
               );
             })}
           </div>
 
-          <div className="flex items-center justify-between">
-            <span className="font-['DM_Sans'] text-[7px]" style={{ color: colors.textMuted }}>
-              0★ = Full price
-            </span>
-            <span className="font-['DM_Sans'] text-[7px]" style={{ color: colors.accent }}>
-              90%★ = 90% off
-            </span>
+          <div className="flex items-center justify-between text-xs font-semibold text-white/65">
+            <span>0★ = full price</span>
+            <span style={{ color: colors.accent }}>90%★ = 90% off</span>
           </div>
-          <p className="mt-1.5 text-center font-['DM_Sans'] text-[8px] font-semibold" style={{ color: colors.accent2 }}>
-            100% stars = FREE unlock · Every star counts toward a discount
-          </p>
-        </div>
+        </section>
       </div>
     </div>
   );

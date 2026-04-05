@@ -28,7 +28,7 @@ interface QuestsTabProps {
 
 const formatPrice = (price: bigint | undefined): number => {
   if (price === undefined) return 0;
-  return Number(price) / 1e18;
+  return Number(price) / 1e6;
 };
 
 const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock }) => {
@@ -68,8 +68,8 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
     : 0;
   const basePrice = formatPrice(nextLockedZone?.price);
   const discountedPrice = basePrice
-    ? (basePrice * (1 - discount / 100)).toFixed(4)
-    : "0.0000";
+    ? (basePrice * (1 - discount / 100)).toFixed(2)
+    : "0.00";
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-3.5 pb-2">
@@ -93,7 +93,7 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
               >
                 Next Unlock
               </p>
-              <p className="font-display text-[13px] font-extrabold" style={{ color: colors.text }}>
+              <p className="font-sans text-[15px] font-extrabold" style={{ color: colors.text }}>
                 {nextLockedZone.name}
               </p>
             </div>
@@ -111,7 +111,7 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
                 height={4}
                 glow
               />
-              <p className="mt-0.5 font-display text-[8px] font-bold" style={{ color: colors.text }}>
+              <p className="mt-0.5 font-sans text-[10px] font-bold" style={{ color: colors.text }}>
                 {nextLockedZone.currentStars}/{nextLockedZone.starCost}★
               </p>
               <p className="font-sans text-[7px]" style={{ color: colors.textMuted }}>
@@ -123,21 +123,18 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
               <p className="font-sans text-[7px] font-semibold" style={{ color: colors.accent }}>
                 ◆ SKIP AHEAD
               </p>
-              <p className="font-display text-[13px] font-black" style={{ color: colors.accent }}>
-                {discountedPrice} ETH
+              <p className="font-sans text-[15px] font-black" style={{ color: colors.accent }}>
+                {discountedPrice} USDC
               </p>
               {discount > 0 && (
                 <div className="mt-0.5 flex items-center gap-1">
                   <span
-                    className="font-display text-[8px]"
+                    className="font-sans text-[10px] font-semibold"
                     style={{ color: colors.textMuted, textDecoration: "line-through" }}
                   >
-                    {basePrice.toFixed(4)}
+                    {basePrice.toFixed(2)}
                   </span>
-                  <span
-                    className="rounded px-1 py-[1px] font-display text-[7px] font-bold"
-                    style={{ color: "#FF6B8A", background: "rgba(255,107,138,0.2)" }}
-                  >
+                  <span className="rounded px-1 py-[1px] font-sans text-[8px] font-bold" style={{ color: "#FF6B8A", background: "rgba(255,107,138,0.2)" }}>
                     {discount}% OFF
                   </span>
                 </div>
@@ -241,7 +238,7 @@ const QuestCard: React.FC<QuestCardProps> = ({ colors, quest, color, compact, on
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between">
             <p
-              className="font-display text-[11px] font-bold"
+              className="font-sans text-[12px] font-bold"
               style={{ color: quest.completed ? color : colors.text, textDecoration: quest.claimed ? "line-through" : "none" }}
             >
               {quest.name}
@@ -258,7 +255,7 @@ const QuestCard: React.FC<QuestCardProps> = ({ colors, quest, color, compact, on
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onClaim(quest)}
                 disabled={isClaiming}
-                className="rounded-md px-2.5 py-1 font-display text-[9px] font-bold text-white disabled:opacity-50"
+                className="rounded-md px-2.5 py-1 font-sans text-[10px] font-bold text-white disabled:opacity-50"
                 style={{
                   background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent2})`,
                   boxShadow: `0 0 8px ${colors.accent}40`,
@@ -267,7 +264,7 @@ const QuestCard: React.FC<QuestCardProps> = ({ colors, quest, color, compact, on
                 {isClaiming ? "..." : `CLAIM +${quest.reward}★`}
               </motion.button>
             ) : (
-              <span className="font-display text-[9px] font-bold" style={{ color: colors.accent2 }}>
+              <span className="font-sans text-[10px] font-bold" style={{ color: colors.accent2 }}>
                 +{quest.reward}★
               </span>
             )}
