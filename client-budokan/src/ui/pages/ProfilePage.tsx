@@ -18,6 +18,7 @@ import OverviewTab from "@/ui/components/profile/OverviewTab";
 import QuestsTab from "@/ui/components/profile/QuestsTab";
 import AchievementsTab from "@/ui/components/profile/AchievementsTab";
 import UnlockModal from "@/ui/components/profile/UnlockModal";
+import Connect from "@/ui/components/Connect";
 
 import {
   LEVEL_THRESHOLDS,
@@ -66,7 +67,6 @@ const ProfilePage: React.FC = () => {
   const { username } = useControllerUsername();
   const { playerMeta } = usePlayerMeta();
   const { account } = useAccountCustom();
-  const isConnected = Boolean(account);
   const { balance: zStarBalance } = useZStarBalance(account?.address);
   const { zones, totalStars } = useZoneProgress(account?.address, zStarBalance);
   const { quests } = useQuests();
@@ -83,6 +83,23 @@ const ProfilePage: React.FC = () => {
 
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
   const [unlockZone, setUnlockZone] = useState<ZoneProgressData | null>(null);
+
+  if (!account) {
+    return (
+      <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
+        <PageHeader title="Profile" />
+        <div className="mx-4 mt-2 mb-4 flex flex-1 min-h-0 flex-col items-center justify-center text-center">
+          <span className="mb-4 text-6xl opacity-50">👤</span>
+          <p className="mb-6 font-sans text-2xl font-semibold text-white/85">
+            Connect to view your profile
+          </p>
+          <div className="w-full max-w-[320px]">
+            <Connect />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
@@ -223,17 +240,6 @@ const ProfilePage: React.FC = () => {
       </div>
 
       {unlockZone && <UnlockModal colors={colors} zone={unlockZone} onClose={() => setUnlockZone(null)} />}
-
-      {!isConnected && (
-        <div
-          className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full px-3 py-1"
-          style={{ background: "rgba(0,0,0,0.45)", border: `1px solid ${colors.border}` }}
-        >
-          <p className="font-sans text-[10px] font-semibold" style={{ color: colors.textMuted }}>
-            Connect to sync your profile and progress
-          </p>
-        </div>
-      )}
 
     </div>
   );
