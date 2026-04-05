@@ -6,11 +6,21 @@ use game_components_embeddable_game_standard::token::interface::{
 use zkube::constants::DEFAULT_SETTINGS::DEFAULT_SETTINGS_ID;
 use zkube::helpers::token;
 use zkube::models::config::{GameSettings, GameSettingsTrait};
+use zkube::models::story::{StoryGame, StoryGameTrait};
 use zkube::types::difficulty::Difficulty;
 
 #[generate_trait]
 pub impl ConfigUtilsImpl of ConfigUtilsTrait {
     fn get_game_settings(world: WorldStorage, game_id: felt252) -> GameSettings {
+        let story_game: StoryGame = world.read_model(game_id);
+        if story_game.exists() {
+            let settings_id: u32 = ((story_game.zone_id - 1) * 2).into();
+            let settings: GameSettings = world.read_model(settings_id);
+            if settings.exists() {
+                return settings;
+            }
+        }
+
         let token_dispatcher: IMinigameTokenDispatcher = token::token_dispatcher(world);
         let settings_id = token_dispatcher.settings_id(game_id);
         let settings: GameSettings = world.read_model(settings_id);

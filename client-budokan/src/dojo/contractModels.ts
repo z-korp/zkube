@@ -464,6 +464,67 @@ export function defineContractComponents(world: World) {
         }
       );
     })(),
+    StoryProgress: (() => {
+      return defineComponent(
+        world,
+        {
+          player: RecsType.BigInt,
+          zone_id: RecsType.Number,
+          level_stars: RecsType.BigInt,
+          highest_cleared: RecsType.Number,
+          boss_cleared: RecsType.Boolean,
+          perfection_claimed: RecsType.Boolean,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "StoryProgress",
+            types: ["ContractAddress", "u32", "felt252", "u8", "bool", "bool"],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+    StoryGame: (() => {
+      return defineComponent(
+        world,
+        {
+          game_id: RecsType.BigInt,
+          player: RecsType.BigInt,
+          zone_id: RecsType.Number,
+          level: RecsType.Number,
+          is_replay: RecsType.Boolean,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "StoryGame",
+            types: ["felt252", "ContractAddress", "u32", "u8", "bool"],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+    ActiveStoryGame: (() => {
+      return defineComponent(
+        world,
+        {
+          player: RecsType.BigInt,
+          game_id: RecsType.BigInt,
+          zone_id: RecsType.Number,
+          level: RecsType.Number,
+          is_replay: RecsType.Boolean,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "ActiveStoryGame",
+            types: ["ContractAddress", "felt252", "u32", "u8", "bool"],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
     QuestAdvancement: (() => {
       return defineComponent(
         world,

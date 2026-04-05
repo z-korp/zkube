@@ -175,6 +175,7 @@ mod config_system {
         ref self: ContractState,
         creator_address: ContractAddress,
         cube_token_address: ContractAddress,
+        payment_token_address: ContractAddress,
     ) {
         let mut world: WorldStorage = self.world(@DEFAULT_NS());
         self.settings.initializer();
@@ -256,6 +257,42 @@ mod config_system {
         world.write_model(@polynesian_endless_settings);
         world.write_model(@polynesian_endless_metadata);
 
+        // Register Egypt Map mode settings (ID 2) for MVP Zone 2
+        let mut egypt_map_settings = GameSettingsTrait::new_with_defaults(2_u32, Difficulty::Increasing);
+        egypt_map_settings.level_cap = 10;
+        egypt_map_settings.base_moves = 18;
+        egypt_map_settings.max_moves = 48;
+        egypt_map_settings.bonus_1_type = 1;
+        egypt_map_settings.bonus_1_trigger_type = 1;
+        egypt_map_settings.bonus_1_trigger_threshold = 5;
+        egypt_map_settings.bonus_1_starting_charges = 1;
+        egypt_map_settings.bonus_2_type = 3;
+        egypt_map_settings.bonus_2_trigger_type = 3;
+        egypt_map_settings.bonus_2_trigger_threshold = 35;
+        egypt_map_settings.bonus_2_starting_charges = 1;
+        egypt_map_settings.bonus_3_type = 2;
+        egypt_map_settings.bonus_3_trigger_type = 2;
+        egypt_map_settings.bonus_3_trigger_threshold = 12;
+        egypt_map_settings.bonus_3_starting_charges = 1;
+        egypt_map_settings.allowed_mutators = 1;
+        egypt_map_settings.boss_id = 2;
+
+        let egypt_map_metadata = GameSettingsMetadata {
+            settings_id: 2_u32,
+            name: 'Ancient Egypt',
+            description: "Push into the Egyptian ruins...",
+            created_by: creator_address,
+            created_at: current_timestamp,
+            theme_id: 2,
+            is_free: false,
+            enabled: true,
+            price: 5000000,
+            payment_token: payment_token_address,
+            star_cost: 50,
+        };
+        world.write_model(@egypt_map_settings);
+        world.write_model(@egypt_map_metadata);
+
         let tidecaller = MutatorDef {
             mutator_id: 1,
             name: 'Tidecaller',
@@ -288,10 +325,11 @@ mod config_system {
         };
         world.write_model(@riptide);
 
-        // Counter starts at 1 so next custom settings will be 2+
-        self.settings_counter.write(1_u32);
+        // Counter starts at 2 so next custom settings will be 3+
+        self.settings_counter.write(2_u32);
         self.star_eligible.write(0_u32, true);
         self.star_eligible.write(1_u32, true);
+        self.star_eligible.write(2_u32, true);
 
         let (game_systems_address, _) = world.dns(@"game_system").unwrap();
         let minigame_dispatcher = IMinigameDispatcher { contract_address: game_systems_address };
@@ -310,6 +348,18 @@ mod config_system {
                     },
                     minigame_token_address,
                 );
+                self
+                    .settings
+                    .create_settings(
+                        game_systems_address,
+                        2_u32,
+                        GameSettingDetails {
+                            name: "Ancient Egypt",
+                            description: "Ancient Egypt map mode settings for MVP Zone 2.",
+                            settings: array![GameSetting { name: 'MODE', value: 'PROGRESSIVE' }].span(),
+                        },
+                        minigame_token_address,
+                    );
         }
     }
 
@@ -707,18 +757,22 @@ mod config_system {
             assert!(existing.purchased_at == 0, "Map already purchased");
 
             let mut effective_price = metadata.price;
+            let mut stars_to_burn: u256 = 0;
             if !metadata.star_cost.is_zero() {
                 let zstar_erc20 = IERC20Dispatcher {
                     contract_address: self.zstar_token_address.read(),
                 };
                 let star_balance = zstar_erc20.balance_of(caller);
-                let discount_percent: u256 = (star_balance * 100_u256) / metadata.star_cost;
-                let charge_percent: u256 = if discount_percent >= 90_u256 {
-                    10
-                } else {
-                    100_u256 - discount_percent
-                };
-                effective_price = (metadata.price * charge_percent) / 100_u256;
+                let (computed_burn, computed_price) = InternalImpl::compute_hybrid_terms(
+                    star_balance, metadata.star_cost, metadata.price,
+                );
+                stars_to_burn = computed_burn;
+                effective_price = computed_price;
+            }
+
+            if !stars_to_burn.is_zero() {
+                let zstar = IZStarTokenDispatcher { contract_address: self.zstar_token_address.read() };
+                zstar.burn(caller, stars_to_burn);
             }
 
             let erc20 = IERC20Dispatcher { contract_address: metadata.payment_token };
@@ -830,6 +884,25 @@ mod config_system {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
+        fn compute_hybrid_terms(
+            star_balance: u256, star_cost: u256, price: u256,
+        ) -> (u256, u256) {
+            if star_cost.is_zero() {
+                return (0, price);
+            }
+
+            let max_burnable_stars: u256 = (star_cost * 90_u256) / 100_u256;
+            let stars_to_burn = if star_balance > max_burnable_stars {
+                max_burnable_stars
+            } else {
+                star_balance
+            };
+            let discount_percent: u256 = (stars_to_burn * 100_u256) / star_cost;
+            let charge_percent: u256 = 100_u256 - discount_percent;
+            let effective_price = (price * charge_percent) / 100_u256;
+            (stars_to_burn, effective_price)
+        }
+
         /// Unpack constraint_lines_budgets field
         fn _unpack_lines_budgets(packed: u64) -> (u8, u8, u8, u8, u8, u8, u8, u8, u8, u8) {
             let veryeasy_min_lines: u8 = (packed & 0xF).try_into().unwrap();
@@ -1123,6 +1196,25 @@ mod config_system {
             Difficulty::VeryHard => 'VERY_HARD',
             Difficulty::Expert => 'EXPERT',
             Difficulty::Master => 'MASTER',
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::InternalTrait;
+
+        #[test]
+        fn test_compute_hybrid_terms_caps_burn_at_ninety_percent() {
+            let (burned, effective_price) = InternalTrait::compute_hybrid_terms(99, 100, 5000000);
+            assert!(burned == 90, "burn should cap at 90");
+            assert!(effective_price == 500000, "price should be 10% of full price");
+        }
+
+        #[test]
+        fn test_compute_hybrid_terms_partial_balance() {
+            let (burned, effective_price) = InternalTrait::compute_hybrid_terms(40, 75, 5000000);
+            assert!(burned == 40, "should burn full available stars when below cap");
+            assert!(effective_price == 2350000, "price should floor after discount");
         }
     }
 }

@@ -9,8 +9,8 @@ zkube/
 ├── Scarb.toml                    # Workspace root
 ├── contracts/                    # Cairo 2.13.1 + Dojo 1.8.0
 │   ├── src/
-│   │   ├── systems/              # 7 systems: game, moves, grid, level, config, renderer, daily_challenge
-│   │   ├── models/               # 9 model files: game, player, config, entitlement, daily, mutator, weekly, cosmetic
+│   │   ├── systems/              # 8 systems: game, moves, grid, level, config, renderer, daily_challenge, story
+│   │   ├── models/               # 10 model files: game, player, config, entitlement, daily, mutator, weekly, cosmetic, story
 │   │   ├── helpers/              # 21 helpers: controller, packing, level, boss, scoring, game_over, weekly, etc.
 │   │   ├── types/                # 9 type modules: difficulty, constraint, mode, mutator, level, block, width, daily, bonus
 │   │   ├── elements/             # Block weights, tasks (12), quests (12), achievements (24)
@@ -39,7 +39,9 @@ zkube/
 - **Libraries**: @dojoengine/sdk 1.9.0, @dojoengine/core 1.8.8, starknet.js 8.5.2, openzeppelin-contracts v3.0.0, alexandria v0.9.0, cartridge-gg/arcade (quest+achievement)
 
 ## Game Flow
-Mint (NFT) → Create (game_id, mode) → Play (move) → Level Complete (auto-advance) → Boss (L10) → Endless (L11+) → Game Over → Leaderboard
+- **Story Mode** (non-NFT): Start Run → Play Level → Level Complete (return to map) → Next Level → Boss (L10) → Zone Clear
+- **Endless Mode** (NFT): Mint → Create (game_id, mode=1) → Play → Score → Game Over → Leaderboard
+- **Unlock**: Story Zone 1 Boss Clear → Endless Zone 1 unlocked; Stars/USDC/Hybrid → Zone 2 unlocked
 
 ## Grid Representation
 - **Dimensions**: 8 columns x 10 rows
@@ -80,6 +82,21 @@ Mint (NFT) → Create (game_id, mode) → Play (move) → Level Complete (auto-a
 | `WeeklyEndlessLeaderboard` | `week_id, rank` | `player: ContractAddress`, `score: u32` |
 | `CosmeticUnlock` | `player, cosmetic_id` | `purchased_at: u64` |
 | `CosmeticDef` | `cosmetic_id: u32` | `name, star_cost, category, enabled` |
+| `StoryProgress` | `player, zone_id` | `level_stars: felt252` (2-bit x 10 levels), `highest_cleared: u8`, `boss_cleared: bool`, `perfection_claimed: bool` |
+| `StoryGame` | `game_id: felt252` | `player: ContractAddress`, `zone_id: u8`, `level: u8`, `is_replay: bool` |
+| `ActiveStoryGame` | `player: ContractAddress` | `game_id: felt252`, `zone_id: u8`, `level: u8`, `is_replay: bool` |
+
+## Story Mode (MVP)
+- **Non-NFT**: Story sessions use `world.uuid()`-style hash IDs, not ERC721 tokens
+- **System**: `story_system` with `start_run(zone_id)`, `replay_level(zone_id, level)`, `claim_perfection(zone_id)`
+- **Session Guard**: One active story game per player via `ActiveStoryGame` model
+- **Progression**: Sequential level unlock; `StoryProgress.highest_cleared` tracks progress per zone
+- **Replay**: Any unlocked level can be replayed; replay is single-level only (returns to map)
+- **Blocker Unlock**: Clearing a replayed level that was the current blocker unlocks the next level
+- **Stars**: 2-bit packed in `StoryProgress.level_stars`; delta-minted (only improvement over prior best)
+- **Boss Clear**: `StoryProgress.boss_cleared` set when level >= 10 cleared
+- **Perfection**: 30 stars (all 3-star on 10 levels) → claim 70 zStar + 7000 XP (one-time per zone)
+- **MVP Scope**: 2 zones only (Zone 1 free, Zone 2 locked behind 50 stars / USDC / hybrid)
 
 ## Level System
 - **Map Mode**: 10 levels per zone. L1-9 progressive difficulty, L10 Boss with dual/triple constraints.
@@ -134,7 +151,7 @@ Mint (NFT) → Create (game_id, mode) → Play (move) → Level Complete (auto-a
 ### Star Eligibility
 - **Storage**: `star_eligible: Map<u32, bool>` in config_system
 - **Purpose**: Only whitelisted settings earn zStar, quest progress, and achievement progress
-- **Default**: Settings 0 (Polynesian Map) and 1 (Polynesian Endless) whitelisted in dojo_init
+- **Default**: Settings 0 (Polynesian Map), 1 (Polynesian Endless), and 2 (Ancient Egypt Map) whitelisted in dojo_init
 - **GameStart always emits** (even non-eligible settings)
 
 ### Weekly Endless Leaderboard
@@ -161,8 +178,9 @@ Mint (NFT) → Create (game_id, mode) → Play (move) → Level Complete (auto-a
 | 10 | Inca | Mountainous stone citadel, gold highlights |
 
 ## Alpha Config (dojo_init)
-- **Settings 0**: Polynesian Map (level_cap 10, mutators allowed: 1)
-- **Settings 1**: Polynesian Endless (level_cap 255, mutators allowed: 2)
+- **Settings 0**: Polynesian Map (level_cap 10, mutators allowed: 1, free)
+- **Settings 1**: Polynesian Endless (level_cap 255, mutators allowed: 2, free, requires Zone 1 boss clear)
+- **Settings 2**: Ancient Egypt Map (level_cap 10, mutators allowed: 1, price: 5M USDC, star_cost: 50)
 - **Mutator 1**: Tidecaller (Zone 1, line_clear_bonus 2)
 - **Mutator 2**: Riptide (Zone 1, combo_score_mult_x100 150, endless_ramp_mult_x100 130)
 
@@ -170,6 +188,7 @@ Mint (NFT) → Create (game_id, mode) → Play (move) → Level Complete (auto-a
 - **Standard**: Uses `game_components_embeddable_game_standard` (branch: next).
 - **Token**: `FullTokenContract` (ERC721) where `token_id` is the `game_id`.
 - **Metadata**: `settings_id` baked into NFT metadata determines the map.
+- **Story Exception**: Story mode bypasses NFT pre/post action hooks; uses `StoryGame.player` for auth.
 
 ## Frontend Pages
 - **Home**: Zone selection and game initialization.
@@ -187,6 +206,8 @@ Mint (NFT) → Create (game_id, mode) → Play (move) → Level Complete (auto-a
 - `usePlayerMeta()`: Persistent progression and lifetime stats.
 - `useGameTokensSlot(owner)`: Owned game NFTs for slot-mode indexing.
 - `useLeaderboardSlot()`: Ranked leaderboard data from Torii.
+- `useMapData(zoneId)`: Story map node states from `StoryProgress` (locked/available/cleared).
+- `useZoneProgress()`: Zone unlock state, star counts, boss clear from `StoryProgress` + entitlements.
 
 ## State Management
 - **On-Chain**: RECS (Reactive ECS) via Dojo SDK.
@@ -199,9 +220,10 @@ Mint (NFT) → Create (game_id, mode) → Play (move) → Level Complete (auto-a
 - **Auto-Advance**: Level completion and next level initialization happen in a single `move` transaction.
 
 ## Entity ID
-- **Format**: `game_id` is a `felt252` (packed ERC721 `token_id`).
+- **Endless**: `game_id` is a `felt252` (packed ERC721 `token_id`).
+- **Story**: `game_id` is a Poseidon hash of (player, zone_id, level, timestamp, tx_hash).
 - **TS Handling**: `BigInt` in TypeScript, normalized to remove leading zeros for RECS lookups.
-- **Extraction**: `uint256.uint256ToBN({ low, high })` from `Transfer` event keys.
+- **Extraction**: `uint256.uint256ToBN({ low, high })` from `Transfer` event keys (endless only).
 
 ## Namespace
 - **Current**: `zkube_v2_1_0`
@@ -247,3 +269,6 @@ DOJO_PRIVATE_KEY="..." sozo migrate -P slot
 - No tradeable game currency (zStar is soul-bound, non-transferable).
 - No draft system or bonus selection during runs.
 - No seasonal battle pass (future consideration).
+- No story-mode NFTs (story uses player-progress model, not ERC721).
+- No daily challenge redesign (deferred post-MVP).
+- No more than 2 story zones or 1 endless zone in current MVP.

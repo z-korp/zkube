@@ -10,7 +10,7 @@ pub trait ILevelSystem<T> {
 
     /// Finalize the current level and immediately advance in the same transaction.
     /// Returns reserved legacy tuple: (0, 0, false).
-    fn finalize_level(ref self: T, game_id: felt252) -> (u8, u8, bool);
+    fn finalize_level(ref self: T, game_id: felt252, player: starknet::ContractAddress) -> (u8, u8, bool);
 
     /// Legacy compatibility entrypoint. Transitioning is now automatic.
     fn start_next_level(ref self: T, game_id: felt252);
@@ -40,6 +40,9 @@ mod level_system {
     use zkube::models::game::{Game, GameLevel, GameLevelTrait, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
+    use zkube::models::story::{
+        StoryGame, StoryGameTrait, StoryProgress, StoryProgressTrait,
+    };
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use zkube::systems::game::{IGameSystemDispatcher, IGameSystemDispatcherTrait};
 
@@ -129,8 +132,15 @@ mod level_system {
             world.write_model(@game);
         }
 
-        fn finalize_level(ref self: ContractState, game_id: felt252) -> (u8, u8, bool) {
+        fn finalize_level(
+            ref self: ContractState, game_id: felt252, player: ContractAddress,
+        ) -> (u8, u8, bool) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let caller = get_caller_address();
+            let move_system = world
+                .dns_address(@"move_system")
+                .expect('MoveSystem not found in DNS');
+            assert!(caller == move_system, "Unauthorized finalize");
 
             let mut game: Game = world.read_model(game_id);
             let game_level: GameLevel = world.read_model(game_id);
@@ -140,7 +150,7 @@ mod level_system {
             let final_score = run_data.level_score;
             let final_moves = run_data.level_moves;
             let total_score = run_data.total_score;
-            let player = get_caller_address();
+            let story_game: StoryGame = world.read_model(game_id);
 
             let stars = InternalImpl::calculate_stars_for_level(game_level, final_moves.into());
             if completed_level <= 10 {
@@ -151,6 +161,78 @@ mod level_system {
             // Get settings for star-eligibility check and delta minting
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
             let sid = settings.settings_id;
+
+            if story_game.exists() {
+                let story_player = story_game.player;
+                let mut story_progress: StoryProgress = world.read_model((story_player, story_game.zone_id));
+                if !story_progress.exists() {
+                    story_progress = StoryProgressTrait::new(story_player, story_game.zone_id);
+                }
+
+                if completed_level <= 10 && stars > 0 {
+                    let previous_best = story_progress.get_level_stars(completed_level);
+                    if stars > previous_best {
+                        let delta: u8 = stars - previous_best;
+                        story_progress.set_level_stars(completed_level, stars);
+
+                        match world.dns_address(@"config_system") {
+                            Option::Some(config_address) => {
+                                let config = IConfigSystemDispatcher {
+                                    contract_address: config_address,
+                                };
+                                if config.is_star_eligible(sid) {
+                                    let zstar_address = config.get_zstar_address();
+                                    if !zstar_address.is_zero() {
+                                        let zstar = IZStarTokenDispatcher {
+                                            contract_address: zstar_address,
+                                        };
+                                        zstar.mint(story_player, delta.into());
+                                    }
+
+                                    let mut player_meta: PlayerMeta = world.read_model(story_player);
+                                    if !player_meta.exists() {
+                                        player_meta = PlayerMetaTrait::new(story_player);
+                                    }
+                                    player_meta.increment_xp(delta.into() * 100);
+                                    world.write_model(@player_meta);
+                                }
+                            },
+                            Option::None => {},
+                        }
+                    }
+                }
+
+                if stars > 0 && completed_level > story_progress.highest_cleared {
+                    story_progress.highest_cleared = completed_level;
+                }
+                if stars > 0 && completed_level >= 10 {
+                    story_progress.boss_cleared = true;
+                }
+                world.write_model(@story_progress);
+
+                world
+                    .emit_event(
+                        @LevelCompleted {
+                            game_id,
+                            player: story_player,
+                            level: completed_level,
+                            moves_used: final_moves.into(),
+                            score: final_score.into(),
+                            total_score,
+                        },
+                    );
+
+                let game_address = world
+                    .dns_address(@"game_system")
+                    .expect('GameSystem not found in DNS');
+                let game_dispatcher = IGameSystemDispatcher { contract_address: game_address };
+                game_dispatcher.emit_progress(story_player, Task::LevelComplete.identifier(), 1, sid);
+
+                game.over = true;
+                world.write_model(@game);
+                game_over::handle_game_over(ref world, game, story_player);
+                return (0, 0, false);
+            }
 
             // Delta star minting: only mint the improvement over previous best
             if completed_level <= 10 && stars > 0 {

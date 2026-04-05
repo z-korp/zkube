@@ -34,10 +34,11 @@
   "contracts": [
     {
       "address": "0x3dd7d60bd65a428be7329ea73bf2dc22d8ae4b3e83dfcca4c733e9e8ea62609",
-      "class_hash": "0x77c28a38c401d51d762252344fc50db9a8a8cd3955d4c05c0a72e3ca2ac6ea6",
+      "class_hash": "0x2690de7793e4234b4f76a6f53733bdb40dc43b005a66c158fe1a7f6017becf0",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
-        "0x06e5f1a7bf27f6075006ea9835d6614c7889779e9db19d5edf5c7e894c77868b"
+        "0x06e5f1a7bf27f6075006ea9835d6614c7889779e9db19d5edf5c7e894c77868b",
+        "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
       ],
       "tag": "zkube_v2_1_0-config_system",
       "selector": "0x50a9672b31b97cb9c1733bf9c3d979aa30b9ae98bbf9326326d80dd58f7ccbc",
@@ -79,7 +80,7 @@
     },
     {
       "address": "0x5176e87f00366750f666bfec76ff2301b105bac8853052d1aacb44eba2bd0cb",
-      "class_hash": "0x18245dbf3bdf28a3231f14d9d28b1991c8b79d4ea9802a095f17fbbfd701789",
+      "class_hash": "0x1bf75b094c1a78f869f6f62b4cdd2b0db41bbef03dc4f38c1bcb32bb3798f84",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x054b2962dfc4363d2140827e12bd29f936973f1b52f07f8362ca26a87c6f9aec",
@@ -100,7 +101,7 @@
     },
     {
       "address": "0x318f3ef75fa6ac77446f3b51f093ee1bbc8c039d60b13b9226de8eab3411d9",
-      "class_hash": "0x454b7fd1444efaf630b388191e4c793432e3c17c34ecae65237b699e1344790",
+      "class_hash": "0x1677f2b6409f86c938b37c3e9794f3a008334aef6c0ec27ebf83b965688c64b",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-grid_system",
       "selector": "0x2732f9d5d9f7ff5bcdb81566cb6589ca0fbf32cdb06911ea678adb3b5b06c37",
@@ -115,7 +116,7 @@
     },
     {
       "address": "0x5c6ec46c8584b2292712b90e035ef63e85043713e4d2e7e323e9a26add39723",
-      "class_hash": "0x2b11f336abdf329da22a7e74b0384756617996e2e116d389d63b4c4b6bf0d94",
+      "class_hash": "0x1471093cc6f457a6a31601e136ffea2ac95bc065d8898ee7d585d667eeaeba1",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-level_system",
       "selector": "0x1689592ed01fb67e736e3075b7d3b060bfd9ea2904147c7e161bc3f08ae2e9",
@@ -130,7 +131,7 @@
     },
     {
       "address": "0x76ad6551bc172f4b78ad1ee6fefe9029473821924cab681f42a32ed1ee203c0",
-      "class_hash": "0x1a24be017456139a39e544c7ea1b3019d7724952a79bf3bf352dc726a2a3ac7",
+      "class_hash": "0x522674d15c2a4f34e9c2971c8f462f6f09b70c81812e210d03e8546bd662195",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-move_system",
       "selector": "0x2c6e7f38e7f45f67fca81df91805a8f3ee1d9842366e3e3d32f13f46cbf60d",
@@ -146,6 +147,19 @@
       "tag": "zkube_v2_1_0-renderer_systems",
       "selector": "0x14312cd8629f0b08020c8365b6bfacc2459756f792e6b9e3fb4ef6ba891facb",
       "systems": [
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x7c74b9457d2ebc79681ffd6ebcbc4e4c65fad79165db64eca10c0bfa285a96f",
+      "class_hash": "0x30b7da8341ed89df91746f20ecfeea7d8d5380a47dd8b7cf502d5edde4cbb06",
+      "init_calldata": [],
+      "tag": "zkube_v2_1_0-story_system",
+      "selector": "0x7a30a121577725a5eb4f24e5c76d572f923bfd472c815d956aa4c88dd231e74",
+      "systems": [
+        "start_run",
+        "replay_level",
+        "claim_perfection",
         "upgrade"
       ]
     }
@@ -254,6 +268,38 @@
       "class_hash": "0x303f6c721f4f73e1dedd330cd9859a4aed22e0b50e859b4cd2f3e023e6a483c",
       "tag": "zkube_v2_1_0-AchievementDefinition",
       "selector": "0x589115e72b2243ba5ddc41f50977bd2762392d24394d94a9adb1fc8a9113ab"
+    },
+    {
+      "members": [
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
+          "name": "game_id",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "is_replay",
+          "type": "core::bool",
+          "key": false
+        }
+      ],
+      "class_hash": "0x7a0f5505abe0dc5988a651af0ce6ef752a4d4ff9ee69798157be8e35830618a",
+      "tag": "zkube_v2_1_0-ActiveStoryGame",
+      "selector": "0x16d728be0a02c649998500f2f1aae6c098edb4abb7b99f13019592902fecfcb"
     },
     {
       "members": [
@@ -1259,6 +1305,75 @@
       "class_hash": "0x34f69049813e33a860c758ba15c5bb90033e635d7a625e1fe8eb912d39535b7",
       "tag": "zkube_v2_1_0-QuestDefinition",
       "selector": "0x2668627a0110622559637d8f357ce5a32e26ac5adf0b6c71acf235a554a95d1"
+    },
+    {
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": false
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "is_replay",
+          "type": "core::bool",
+          "key": false
+        }
+      ],
+      "class_hash": "0x736cbc6660ec1b87596cf2cc7eb5eaed1253d971b8525b5e8a6abb94973f68f",
+      "tag": "zkube_v2_1_0-StoryGame",
+      "selector": "0x403c26afbbe2bc5fdecc2bc8b8c4b3e777251a255f889af39890cc30a40db1c"
+    },
+    {
+      "members": [
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8",
+          "key": true
+        },
+        {
+          "name": "level_stars",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
+          "name": "highest_cleared",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "boss_cleared",
+          "type": "core::bool",
+          "key": false
+        },
+        {
+          "name": "perfection_claimed",
+          "type": "core::bool",
+          "key": false
+        }
+      ],
+      "class_hash": "0x55b798d1ff3580e85447f0061ceba18297e5d1903a3bf26320c8d03f878ea53",
+      "tag": "zkube_v2_1_0-StoryProgress",
+      "selector": "0x46edcf1a19be47334166cbb0570b29d9c87dc762ee9b46c741c3b322fe25837"
     },
     {
       "members": [
@@ -6952,6 +7067,172 @@
     },
     {
       "type": "struct",
+      "name": "zkube::models::story::ActiveStoryGame",
+      "members": [
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "game_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "is_replay",
+          "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::story::ActiveStoryGameValue",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "is_replay",
+          "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::story::StoryGame",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "is_replay",
+          "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::story::StoryGameValue",
+      "members": [
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "is_replay",
+          "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::story::StoryProgress",
+      "members": [
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "level_stars",
+          "type": "core::felt252"
+        },
+        {
+          "name": "highest_cleared",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "boss_cleared",
+          "type": "core::bool"
+        },
+        {
+          "name": "perfection_claimed",
+          "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::story::StoryProgressValue",
+      "members": [
+        {
+          "name": "level_stars",
+          "type": "core::felt252"
+        },
+        {
+          "name": "highest_cleared",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "boss_cleared",
+          "type": "core::bool"
+        },
+        {
+          "name": "perfection_claimed",
+          "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::story::m_ActiveStoryGame::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::story::m_StoryGame::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::story::m_StoryProgress::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "struct",
       "name": "zkube::models::weekly::WeeklyEndless",
       "members": [
         {
@@ -8066,6 +8347,10 @@
             {
               "name": "game_id",
               "type": "core::felt252"
+            },
+            {
+              "name": "player",
+              "type": "core::starknet::contract_address::ContractAddress"
             }
           ],
           "outputs": [
@@ -8222,6 +8507,77 @@
     {
       "type": "event",
       "name": "zkube::systems::renderer::renderer_systems::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "zkube::systems::story::IStorySystem",
+      "items": [
+        {
+          "type": "function",
+          "name": "start_run",
+          "inputs": [
+            {
+              "name": "zone_id",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::felt252"
+            }
+          ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "replay_level",
+          "inputs": [
+            {
+              "name": "zone_id",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "level",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::felt252"
+            }
+          ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "claim_perfection",
+          "inputs": [
+            {
+              "name": "zone_id",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::systems::story::story_system::Event",
       "kind": "enum",
       "variants": [
         {

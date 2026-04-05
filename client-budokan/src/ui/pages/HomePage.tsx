@@ -47,7 +47,7 @@ const HomePage: React.FC = () => {
   const { account } = useAccountCustom();
   const {
     setup: {
-      systemCalls: { freeMint, create },
+      systemCalls: { freeMint, create, startRun },
     },
   } = useDojo();
   const { username } = useControllerUsername();
@@ -83,8 +83,8 @@ const HomePage: React.FC = () => {
   const colors = getThemeColors(themeTemplate);
 
   const hasActiveRun = useMemo(() => {
-    return activeGames.length > 0;
-  }, [activeGames]);
+    return selectedMode === 1 && activeGames.length > 0;
+  }, [activeGames, selectedMode]);
 
   const activeRunTokenId = useMemo(() => {
     if (!activeGames.length) return null;
@@ -106,21 +106,30 @@ const HomePage: React.FC = () => {
         return;
       }
 
-      setIsStartingGame(true);
-      try {
-        const mintResult = await freeMint({
-          account,
-          name: username ?? "",
-          settingsId,
-        });
+        setIsStartingGame(true);
+        try {
+          if (selectedMode === 1) {
+            if (selectedZone.zoneId !== 1) {
+              showToast({
+                message: "Only Endless Zone 1 is enabled in the MVP.",
+                type: "error",
+              });
+              return;
+            }
+            const mintResult = await freeMint({ account, name: username ?? "", settingsId });
+            const gameId = mintResult.game_id;
+          if (gameId === 0n) throw new Error("Failed to extract game_id from mint");
+          await create({ account, token_id: gameId, mode: selectedMode });
+          showToast({ message: `Game started!`, type: "success" });
+          navigate("mutator", gameId);
+          return;
+        }
 
-        const gameId = mintResult.game_id;
-        if (gameId === 0n) throw new Error("Failed to extract game_id from mint");
-
-        await create({ account, token_id: gameId, mode: selectedMode });
-
-        showToast({ message: `Game started!`, type: "success" });
-        navigate("mutator", gameId);
+        const result = await startRun({ account, zone_id: selectedZone.zoneId });
+        const gameId = result.game_id;
+        if (gameId === 0n) throw new Error("Failed to start story run");
+        showToast({ message: "Story run started.", type: "success" });
+        navigate("play", gameId);
       } catch (error) {
         console.error("Error starting game:", error);
         showToast({
@@ -135,6 +144,7 @@ const HomePage: React.FC = () => {
       account,
       create,
       freeMint,
+      startRun,
       isStartingGame,
       navigate,
       selectedMode,

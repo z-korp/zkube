@@ -15,6 +15,7 @@ use zkube::models::daily::{
 };
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
+use zkube::models::story::{ActiveStoryGame, ActiveStoryGameTrait, StoryGame, StoryGameTrait};
 use zkube::models::weekly::current_week_id;
 use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
 
@@ -36,6 +37,30 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
     player_meta.update_best_level(run_data.current_level);
 
     let settings = ConfigUtilsTrait::get_game_settings(world, game.game_id);
+    let story_game: StoryGame = world.read_model(game.game_id);
+
+    if story_game.exists() {
+        let active_story: ActiveStoryGame = world.read_model(player);
+        if active_story.exists() && active_story.game_id == game.game_id {
+            world.write_model(@ActiveStoryGameTrait::empty(player));
+        }
+
+        world.write_model(@player_meta);
+
+        world
+            .emit_event(
+                @RunEnded {
+                    game_id: game.game_id,
+                    player,
+                    final_level: run_data.current_level,
+                    final_score: run_data.total_score,
+                    current_difficulty: run_data.current_difficulty,
+                    started_at: game.started_at,
+                    ended_at: get_block_timestamp(),
+                },
+            );
+        return;
+    }
 
     let total_stars = if mode == 0 {
         calculate_total_stars(game)

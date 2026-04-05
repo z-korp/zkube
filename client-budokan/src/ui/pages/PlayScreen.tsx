@@ -118,6 +118,15 @@ const PlayScreen: React.FC = () => {
         if (game.zoneCleared) {
           playSfx("victory");
           setIsVictoryOpen(true);
+        } else if ((game.mode === 0 || game.mode === undefined) && targetScore > 0 && game.levelScore >= targetScore) {
+          setPendingLevelCompletion({
+            level: game.level,
+            levelMoves: game.levelMoves,
+            prevTotalScore: levelStartTotalScoreRef.current,
+            totalScore: game.totalScore,
+            gameLevel,
+          });
+          navNavigate("map");
         } else {
           playSfx("over");
           setIsGameOverOpen(true);

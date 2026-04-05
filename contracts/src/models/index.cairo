@@ -8,3 +8,8 @@ pub use crate::models::game::{AssertTrait, Game, GameAssert, GameSeed, GameTrait
 pub use crate::models::mutator::{MutatorDef, MutatorDefTrait};
 
 pub use crate::models::player::{PlayerMeta, PlayerMetaTrait};
+
+pub use crate::models::story::{
+    ActiveStoryGame, ActiveStoryGameTrait, StoryGame, StoryGameTrait, StoryProgress,
+    StoryProgressTrait,
+};

@@ -237,6 +237,25 @@ export function systems({ client }: { client: IWorld }) {
     log.info("createRun success");
   };
 
+  const startRun = async ({ account, ...props }: SystemTypes.StartRun): Promise<{ game_id: bigint }> => {
+    if (!client.story_system) throw new Error("Story system not available");
+    const { events } = await handleTransaction(account, () => client.story_system!.startRun({ account, ...props }), "Story run started.");
+    const evt = events.find((event: any) => event.data?.length >= 2);
+    return { game_id: evt ? BigInt(evt.data[1]) : 0n };
+  };
+
+  const replayLevel = async ({ account, ...props }: SystemTypes.ReplayLevel): Promise<{ game_id: bigint }> => {
+    if (!client.story_system) throw new Error("Story system not available");
+    const { events } = await handleTransaction(account, () => client.story_system!.replayLevel({ account, ...props }), "Story level replayed.");
+    const evt = events.find((event: any) => event.data?.length >= 2);
+    return { game_id: evt ? BigInt(evt.data[1]) : 0n };
+  };
+
+  const claimPerfection = async ({ account, ...props }: SystemTypes.ClaimPerfection) => {
+    if (!client.story_system) throw new Error("Story system not available");
+    await handleTransaction(account, () => client.story_system!.claimPerfection({ account, ...props }), "Perfection claimed.");
+  };
+
   const surrender = async ({ account, ...props }: SystemTypes.Surrender) => {
     await handleTransaction(
       account,
@@ -430,6 +449,9 @@ export function systems({ client }: { client: IWorld }) {
     freeMint,
     create,
     createRun,
+    startRun,
+    replayLevel,
+    claimPerfection,
     surrender,
     move,
     applyBonus,

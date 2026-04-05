@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "motion/react";
 import { useGame } from "@/hooks/useGame";
 import { useGameLevel } from "@/hooks/useGameLevel";
@@ -21,15 +21,14 @@ import {
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
+import useAccountCustom from "@/hooks/useAccountCustom";
+import { useDojo } from "@/dojo/useDojo";
+import { useZoneProgress } from "@/hooks/useZoneProgress";
 import LevelPreview from "@/ui/components/map/LevelPreview";
 import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
 import ZoneBackground from "@/ui/components/map/ZoneBackground";
-import { getLevelStars } from "@/dojo/game/helpers/levelStarsPacking";
 
-/* ------------------------------------------------------------------ */
-/*  Constants                                                          */
-/* ------------------------------------------------------------------ */
-
+const SWIPE_THRESHOLD = 50;
 const VB_W = 60;
 const VB_H = 100;
 
@@ -43,10 +42,6 @@ const STATE_COLORS: Record<
   available: { fill: "#1e293b", border: "#f97316", alpha: 1, text: "#fed7aa" },
   visited: { fill: "#1e3a2f", border: "#4ade80", alpha: 0.85, text: "#bbf7d0" },
 };
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
 
 const canOpenPreview = (node: MapNodeData): boolean => node.state !== "locked";
 
@@ -71,17 +66,13 @@ const getPathType = (
 
 const getLabel = (node: MapNodeData): string => {
   if (node.type === "boss") {
-    return node.state === "cleared" ? "\u2713" : "\u2605";
+    return node.state === "cleared" ? "✓" : "★";
   }
   if (node.state === "cleared") {
-    return "\u2713";
+    return "✓";
   }
   return String(node.contractLevel ?? "");
 };
-
-/* ------------------------------------------------------------------ */
-/*  Component                                                          */
-/* ------------------------------------------------------------------ */
 
 const MapPage: React.FC = () => {
   const navigate = useNavigationStore((state) => state.navigate);
@@ -101,60 +92,155 @@ const MapPage: React.FC = () => {
   );
   const { setThemeTemplate, themeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
+  const { account } = useAccountCustom();
+  const {
+    setup: {
+      systemCalls: { replayLevel },
+    },
+  } = useDojo();
 
   const { game, seed } = useGame({
     gameId: gameId ?? undefined,
     shouldLog: false,
   });
   const gameLevel = useGameLevel({ gameId: game?.id });
+  const { zones } = useZoneProgress(account?.address, 0);
 
-  // GameSeed.seed is now stable (never overwritten). level_seed holds per-level VRF.
+  const currentZone = useMemo(() => {
+    if (game?.zoneId) return game.zoneId;
+    return (
+      zones.find((zone) => zone.unlocked && !zone.cleared)?.zoneId ??
+      zones.find((zone) => zone.unlocked)?.zoneId ??
+      1
+    );
+  }, [game?.zoneId, zones]);
 
-  const currentLevel = game?.level ?? 1;
-  const mapData = useMapData({ seed, currentLevel });
+  const mapData = useMapData({
+    seed,
+    currentZone,
+    zones: zones.map((zone) => ({
+      zoneId: zone.zoneId,
+      unlocked: zone.unlocked,
+      highestCleared: zone.highestCleared ?? 0,
+      levelStars: zone.levelStars ?? [],
+    })),
+  });
+
   const zoneLayouts = useMapLayout({
     seed,
     totalZones: TOTAL_ZONES,
     nodesPerZone: NODES_PER_ZONE,
   });
 
+  const [activeZone, setActiveZone] = useState(Math.max(0, currentZone - 1));
   const [selectedNode, setSelectedNode] = useState<MapNodeData | null>(null);
+  const pointerStartX = useRef<number | null>(null);
+  const isSwiping = useRef(false);
+
+  useEffect(() => {
+    setActiveZone(Math.max(0, currentZone - 1));
+  }, [currentZone]);
 
   useEffect(() => {
     setMusicPlaylist(["main", "level"]);
   }, [setMusicPlaylist]);
 
   useEffect(() => {
-    setThemeTemplate("theme-1");
-  }, [setThemeTemplate]);
+    const themeRaw = mapData.zoneThemes[activeZone] ?? "theme-1";
+    const themeId: ThemeId = isValidThemeId(themeRaw) ? themeRaw : "theme-1";
+    setThemeTemplate(themeId);
+  }, [activeZone, mapData.zoneThemes, setThemeTemplate]);
 
   useEffect(() => {
     if (pendingPreviewLevel == null) return;
+    const zoneId = activeZone + 1;
     const node = mapData.nodes.find(
-      (n) => n.contractLevel === pendingPreviewLevel && canOpenPreview(n),
+      (n) =>
+        n.zone === zoneId &&
+        n.contractLevel === pendingPreviewLevel &&
+        canOpenPreview(n),
     );
     if (node) setSelectedNode(node);
     setPendingPreviewLevel(null);
-  }, [pendingPreviewLevel, mapData.nodes, setPendingPreviewLevel]);
+  }, [
+    activeZone,
+    mapData.nodes,
+    pendingPreviewLevel,
+    setPendingPreviewLevel,
+  ]);
 
-  const zoneNodes = useMemo(() => {
-    const start = 0;
-    return mapData.nodes.slice(start, start + NODES_PER_ZONE);
-  }, [mapData.nodes]);
+  const zoneNodes = useMemo(
+    () =>
+      Array.from({ length: TOTAL_ZONES }, (_, zoneIdx) => {
+        const start = zoneIdx * NODES_PER_ZONE;
+        return mapData.nodes.slice(start, start + NODES_PER_ZONE);
+      }),
+    [mapData.nodes],
+  );
 
-  const handlePlay = () => {
-    if (gameId === null) return;
-    navigate("play", gameId);
+  const zoneProgressMap = useMemo(
+    () => new Map(zones.map((zone) => [zone.zoneId, zone])),
+    [zones],
+  );
+
+  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    pointerStartX.current = event.clientX;
+    isSwiping.current = false;
+  };
+
+  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (pointerStartX.current === null || isSwiping.current) return;
+    const delta = Math.abs(event.clientX - pointerStartX.current);
+    if (delta > 10) {
+      isSwiping.current = true;
+      (event.currentTarget as HTMLDivElement).setPointerCapture(event.pointerId);
+    }
+  };
+
+  const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (pointerStartX.current === null) return;
+    const deltaX = event.clientX - pointerStartX.current;
+    pointerStartX.current = null;
+
+    if (!isSwiping.current) return;
+    isSwiping.current = false;
+
+    if (Math.abs(deltaX) < SWIPE_THRESHOLD) return;
+
+    if (deltaX < 0) {
+      setActiveZone((prev) => Math.min(prev + 1, TOTAL_ZONES - 1));
+    } else {
+      setActiveZone((prev) => Math.max(prev - 1, 0));
+    }
+  };
+
+  const onPointerCancel = () => {
+    pointerStartX.current = null;
+    isSwiping.current = false;
+  };
+
+  const handlePlay = async () => {
+    if (!account || !selectedNode || selectedNode.contractLevel == null) return;
+
+    try {
+      const result = await replayLevel({
+        account,
+        zone_id: selectedNode.zone,
+        level: selectedNode.contractLevel,
+      });
+      if (result.game_id !== 0n) {
+        setSelectedNode(null);
+        navigate("play", result.game_id);
+      }
+    } catch (error) {
+      console.error("Failed to start story level:", error);
+    }
   };
 
   const currentTheme: ThemeId = isValidThemeId(themeTemplate)
     ? themeTemplate
     : "theme-1";
   const colors = getThemeColors(currentTheme);
-  const activeThemeId: ThemeId = "theme-1";
-  const layout = zoneLayouts[0];
-  const pathTheme = getMapPathTheme(activeThemeId);
-  const themeImages = getThemeImages(activeThemeId);
 
   return (
     <div className="h-screen-viewport flex flex-col">
@@ -179,20 +265,50 @@ const MapPage: React.FC = () => {
             World Map
           </h1>
           <p className="font-sans text-[10px]" style={{ color: colors.textMuted }}>
-            Polynesian · Level {currentLevel}
+            Zone {activeZone + 1} · {zones[activeZone]?.name ?? "Unknown"}
           </p>
         </div>
       </motion.div>
 
-      <div className="relative flex-1 min-h-0 overflow-hidden">
-        <ZoneBackground zone={1} themeId={"theme-1" as ThemeId} />
-        <div className="relative mx-auto h-full w-full max-w-[430px]">
-          <svg
-            viewBox={`0 0 ${VB_W} ${VB_H}`}
-            preserveAspectRatio="xMidYMid meet"
-            className="absolute inset-0 h-full w-full"
-          >
-            {layout?.edges.map((edge) => {
+      <div
+        className="relative flex-1 min-h-0 overflow-hidden"
+        style={{ touchAction: "pan-y" }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerCancel}
+      >
+        <motion.div
+          className="flex h-full"
+          style={{ width: `${TOTAL_ZONES * 100}%` }}
+          animate={{ x: `${-activeZone * 100}vw` }}
+          transition={{ type: "spring", stiffness: 280, damping: 32 }}
+        >
+          {zoneNodes.map((nodes, zoneIdx) => {
+            const zone = zoneIdx + 1;
+            const themeRaw = mapData.zoneThemes[zoneIdx] ?? "theme-1";
+            const themeId: ThemeId = isValidThemeId(themeRaw)
+              ? themeRaw
+              : "theme-1";
+            const themeImages = getThemeImages(themeId);
+            const layout = zoneLayouts[zoneIdx];
+            const pathTheme = getMapPathTheme(themeId);
+            const zoneProgress = zoneProgressMap.get(zone);
+
+            return (
+              <div
+                key={zone}
+                className="relative h-full flex-shrink-0"
+                style={{ width: "100vw" }}
+              >
+                <ZoneBackground zone={zone} themeId={themeId} />
+                <div className="relative mx-auto h-full w-full max-w-[430px]">
+                  <svg
+                    viewBox={`0 0 ${VB_W} ${VB_H}`}
+                    preserveAspectRatio="xMidYMid meet"
+                    className="absolute inset-0 h-full w-full"
+                  >
+                    {layout?.edges.map((edge) => {
                       const fromPt = layout.points[edge.from];
                       const toPt = layout.points[edge.to];
                       if (!fromPt || !toPt) return null;
@@ -204,14 +320,11 @@ const MapPage: React.FC = () => {
                       const midY = (fromY + toY) / 2;
                       const d = `M ${fromX} ${fromY} C ${fromX} ${midY}, ${toX} ${midY}, ${toX} ${toY}`;
 
-                      const fromNode = zoneNodes[edge.from];
-                      const toNode = zoneNodes[edge.to];
+                      const fromNode = nodes[edge.from];
+                      const toNode = nodes[edge.to];
                       if (!fromNode || !toNode) return null;
 
-                      const pathType = getPathType(
-                        fromNode.state,
-                        toNode.state,
-                      );
+                      const pathType = getPathType(fromNode.state, toNode.state);
 
                       const stroke =
                         pathType === "cleared"
@@ -234,7 +347,7 @@ const MapPage: React.FC = () => {
                               : undefined;
 
                       return (
-                        <g key={`main-${edge.from}-${edge.to}`}>
+                        <g key={`main-${zoneIdx}-${edge.from}-${edge.to}`}>
                           {pathTheme.pathStyle === "double" && (
                             <motion.path
                               d={d}
@@ -247,7 +360,7 @@ const MapPage: React.FC = () => {
                               transition={{
                                 delay: 0.3 + edge.from * 0.05,
                                 duration: 0.5,
-                                ease: "easeInOut"
+                                ease: "easeInOut",
                               }}
                               opacity={opacity * 0.35}
                             />
@@ -263,7 +376,7 @@ const MapPage: React.FC = () => {
                             transition={{
                               delay: 0.3 + edge.from * 0.05,
                               duration: 0.5,
-                              ease: "easeInOut"
+                              ease: "easeInOut",
                             }}
                             opacity={opacity}
                             strokeDasharray={dash}
@@ -272,13 +385,13 @@ const MapPage: React.FC = () => {
                       );
                     })}
 
-                    {zoneNodes.map((node) => {
+                    {nodes.map((node) => {
                       const pt = layout?.points[node.nodeInZone];
                       if (!pt) return null;
 
                       const cx = pt.x * VB_W;
                       const cy = pt.y * VB_H;
-                      const colors = STATE_COLORS[node.state];
+                      const stateColors = STATE_COLORS[node.state];
                       const isInteractive = node.state !== "locked";
                       const label = getLabel(node);
 
@@ -292,9 +405,29 @@ const MapPage: React.FC = () => {
                             : themeImages.mapNodeLevel;
                       const r = node.type === "boss" ? 7.5 : 5;
 
-                      const nodeContent = (
-                        <>
-                          <clipPath id={`node-clip-${node.nodeInZone}`}>
+                      return (
+                        <motion.g
+                          key={`node-${zoneIdx}-${node.nodeInZone}`}
+                          onClick={() => {
+                            if (!isInteractive) return;
+                            if (canOpenPreview(node)) {
+                              setSelectedNode(node);
+                            }
+                          }}
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: stateColors.alpha }}
+                          transition={{
+                            delay: node.nodeInZone * 0.06,
+                            type: "spring",
+                            stiffness: 260,
+                            damping: 20,
+                          }}
+                          style={{
+                            cursor: isInteractive ? "pointer" : "default",
+                            transformOrigin: `${cx}px ${cy}px`,
+                          }}
+                        >
+                          <clipPath id={`node-clip-${zoneIdx}-${node.nodeInZone}`}>
                             <circle cx={cx} cy={cy} r={r} />
                           </clipPath>
                           <image
@@ -304,36 +437,16 @@ const MapPage: React.FC = () => {
                             width={r * 2}
                             height={r * 2}
                             preserveAspectRatio="xMidYMid slice"
-                            clipPath={`url(#node-clip-${node.nodeInZone})`}
+                            clipPath={`url(#node-clip-${zoneIdx}-${node.nodeInZone})`}
                           />
-                          {node.type === "boss" ? (
-                            <motion.circle
-                              cx={cx}
-                              cy={cy}
-                              r={r}
-                              fill="none"
-                              stroke={colors.border}
-                              strokeWidth={0.6}
-                              animate={{
-                                strokeWidth: [0.6, 1.0, 0.6],
-                                opacity: [0.8, 1, 0.8],
-                              }}
-                              transition={{
-                                duration: 3,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                              }}
-                            />
-                          ) : (
-                            <circle
-                              cx={cx}
-                              cy={cy}
-                              r={r}
-                              fill="none"
-                              stroke={colors.border}
-                              strokeWidth={0.4}
-                            />
-                          )}
+                          <circle
+                            cx={cx}
+                            cy={cy}
+                            r={r}
+                            fill="none"
+                            stroke={stateColors.border}
+                            strokeWidth={node.type === "boss" ? 0.6 : 0.4}
+                          />
 
                           <>
                             <circle
@@ -341,7 +454,7 @@ const MapPage: React.FC = () => {
                               cy={cy + r * 0.7}
                               r={2}
                               fill="rgba(0,0,0,0.75)"
-                              stroke={colors.border}
+                              stroke={stateColors.border}
                               strokeWidth={0.3}
                             />
                             <text
@@ -357,17 +470,13 @@ const MapPage: React.FC = () => {
                               {label}
                             </text>
                           </>
+
                           {node.type === "classic" &&
                             node.state !== "locked" &&
                             node.contractLevel !== null && (
                               <g>
                                 {[0, 1, 2].map((i) => {
-                                  const stars = game
-                                    ? getLevelStars(
-                                        BigInt(game.levelStarsRaw ?? 0n),
-                                        node.contractLevel!,
-                                      )
-                                    : 0;
+                                  const stars = zoneProgress?.levelStars?.[node.contractLevel! - 1] ?? 0;
                                   const filled = stars > i;
                                   const starX = cx - 2.5 + i * 2.5;
                                   const starY = cy + r + 2.5;
@@ -378,15 +487,13 @@ const MapPage: React.FC = () => {
                                       animate={{
                                         opacity: 1,
                                         scale: 1,
-                                        fill: filled
-                                          ? "#FACC15"
-                                          : "rgba(255,255,255,0.3)"
+                                        fill: filled ? "#FACC15" : "rgba(255,255,255,0.3)",
                                       }}
                                       transition={{
                                         delay: node.nodeInZone * 0.06 + 0.3 + i * 0.1,
                                         type: "spring",
                                         stiffness: 300,
-                                        damping: 20
+                                        damping: 20,
                                       }}
                                       style={{ transformOrigin: `${starX}px ${starY}px` }}
                                       x={starX}
@@ -400,53 +507,48 @@ const MapPage: React.FC = () => {
                                 })}
                               </g>
                             )}
-                        </>
-                      );
-
-                      return (
-                        <motion.g
-                          key={`node-${node.nodeInZone}`}
-                          onClick={() => {
-                            if (!isInteractive) {
-                              return;
-                            }
-
-                            if (canOpenPreview(node)) {
-                              setSelectedNode(node);
-                            }
-                          }}
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: colors.alpha }}
-                          transition={{
-                            delay: node.nodeInZone * 0.06,
-                            type: "spring",
-                            stiffness: 260,
-                            damping: 20
-                          }}
-                          style={{
-                            cursor: isInteractive ? "pointer" : "default",
-                            transformOrigin: `${cx}px ${cy}px`,
-                          }}
-                        >
-                          {node.state === "current" ? (
-                            <motion.g
-                              animate={{ scale: [1, 1.08, 1] }}
-                              transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: "easeInOut",
-                              }}
-                              style={{ transformOrigin: `${cx}px ${cy}px` }}
-                            >
-                              {nodeContent}
-                            </motion.g>
-                          ) : (
-                            <g>{nodeContent}</g>
-                          )}
                         </motion.g>
                       );
                     })}
-          </svg>
+                  </svg>
+                </div>
+              </div>
+            );
+          })}
+        </motion.div>
+
+        {activeZone > 0 && (
+          <button
+            type="button"
+            className="absolute left-2 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/25 bg-black/40 p-2 text-white transition-colors hover:bg-black/60"
+            onClick={() => setActiveZone((prev) => Math.max(prev - 1, 0))}
+          >
+            <ChevronLeft size={22} />
+          </button>
+        )}
+
+        {activeZone < TOTAL_ZONES - 1 && (
+          <button
+            type="button"
+            className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/25 bg-black/40 p-2 text-white transition-colors hover:bg-black/60"
+            onClick={() => setActiveZone((prev) => Math.min(prev + 1, TOTAL_ZONES - 1))}
+          >
+            <ChevronRight size={22} />
+          </button>
+        )}
+
+        <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
+          {Array.from({ length: TOTAL_ZONES }, (_, idx) => (
+            <button
+              key={`zone-dot-${idx}`}
+              type="button"
+              onClick={() => setActiveZone(idx)}
+              className={`h-2.5 w-2.5 rounded-full transition-all ${
+                idx === activeZone ? "scale-125 bg-white" : "bg-white/45"
+              }`}
+              aria-label={`Go to zone ${idx + 1}`}
+            />
+          ))}
         </div>
 
         {selectedNode && !pendingLevelCompletion && (
@@ -455,6 +557,7 @@ const MapPage: React.FC = () => {
             game={game ?? null}
             gameLevel={gameLevel}
             gameId={gameId}
+            levelStars={zoneProgressMap.get(selectedNode.zone)?.levelStars ?? []}
             onPlay={handlePlay}
             onClose={() => setSelectedNode(null)}
           />
@@ -465,9 +568,10 @@ const MapPage: React.FC = () => {
             isOpen={true}
             onClose={() => {
               const completedLevel = pendingLevelCompletion.level;
-
               setPendingLevelCompletion(null);
-              setPendingPreviewLevel(completedLevel + 1);
+              if (completedLevel < 10) {
+                setPendingPreviewLevel(completedLevel + 1);
+              }
             }}
             level={pendingLevelCompletion.level}
             levelMoves={pendingLevelCompletion.levelMoves}

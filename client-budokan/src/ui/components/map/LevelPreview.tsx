@@ -13,6 +13,7 @@ export interface LevelPreviewProps {
   game: Game | null;
   gameLevel: GameLevelData | null;
   gameId: bigint | null;
+  levelStars?: number[];
   onPlay: () => void;
   onClose: () => void;
 }
@@ -33,11 +34,14 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
   game,
   gameLevel,
   gameId,
+  levelStars,
   onPlay,
   onClose,
 }) => {
   const stars =
-    game && node.contractLevel ? game.getLevelStars(node.contractLevel) : 0;
+    node.contractLevel
+      ? levelStars?.[node.contractLevel - 1] ?? game?.getLevelStars(node.contractLevel) ?? 0
+      : 0;
 
   const useContractData = gameLevel && node.contractLevel === gameLevel.level;
 
@@ -94,7 +98,6 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
 
   const canPlay =
     node.type !== "draft" &&
-    gameId !== null &&
     (node.state === "current" || node.state === "available");
 
   return (

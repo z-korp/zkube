@@ -78,6 +78,8 @@ mod game_system {
     use zkube::models::entitlement::MapEntitlement;
     use zkube::models::game::{Game, GameAssert, GameSeed, GameTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
+    use zkube::models::story::{StoryGame, StoryGameTrait};
+    use zkube::models::story::{StoryProgress, StoryProgressTrait};
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use zkube::systems::daily_challenge::{
         IDailyChallengeSystemDispatcher, IDailyChallengeSystemDispatcherTrait,
@@ -352,49 +354,67 @@ mod game_system {
 
         fn surrender(ref self: ContractState, game_id: felt252) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let player = get_caller_address();
+            let story_game: StoryGame = world.read_model(game_id);
+            let is_story_game = story_game.exists();
 
             let token_address = self.token_address();
             let token_id_felt = game_id;
-            pre_action(token_address, token_id_felt);
+            if !is_story_game {
+                pre_action(token_address, token_id_felt);
 
-            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
-            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(token_id_felt);
-            assert!(
-                token_metadata.lifecycle.is_playable(get_block_timestamp()),
-                "Game {} lifecycle is not playable",
-                game_id,
-            );
+                let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
+                let token_metadata: TokenMetadata = token_dispatcher.token_metadata(token_id_felt);
+                assert!(
+                    token_metadata.lifecycle.is_playable(get_block_timestamp()),
+                    "Game {} lifecycle is not playable",
+                    game_id,
+                );
+            }
 
             let mut game: Game = world.read_model(game_id);
-            assert_token_ownership(token_address, token_id_felt);
+            if is_story_game {
+                assert!(story_game.player == player, "not story owner");
+            } else {
+                assert_token_ownership(token_address, token_id_felt);
+            }
             game.assert_not_over();
 
             game.over = true;
             world.write_model(@game);
 
-            let player = get_caller_address();
             game_over::handle_game_over(ref world, game, player);
 
-            post_action(token_address, token_id_felt);
+            if !is_story_game {
+                post_action(token_address, token_id_felt);
+            }
         }
 
         fn apply_bonus(ref self: ContractState, game_id: felt252, row_index: u8, block_index: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let story_game: StoryGame = world.read_model(game_id);
+            let is_story_game = story_game.exists();
 
             let token_address = self.token_address();
             let token_id_felt = game_id;
-            pre_action(token_address, token_id_felt);
+            if !is_story_game {
+                pre_action(token_address, token_id_felt);
 
-            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
-            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(token_id_felt);
-            assert!(
-                token_metadata.lifecycle.is_playable(get_block_timestamp()),
-                "Game {} lifecycle is not playable",
-                game_id,
-            );
+                let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
+                let token_metadata: TokenMetadata = token_dispatcher.token_metadata(token_id_felt);
+                assert!(
+                    token_metadata.lifecycle.is_playable(get_block_timestamp()),
+                    "Game {} lifecycle is not playable",
+                    game_id,
+                );
+            }
 
             let mut game: Game = world.read_model(game_id);
-            assert_token_ownership(token_address, token_id_felt);
+            if is_story_game {
+                assert!(story_game.player == get_caller_address(), "not story owner");
+            } else {
+                assert_token_ownership(token_address, token_id_felt);
+            }
             game.assert_not_over();
 
             assert!(row_index < 10, "Invalid row_index: must be < 10");
@@ -422,7 +442,9 @@ mod game_system {
                     world, get_caller_address().into(), Task::BonusUsed.identifier(), 1, true,
                 );
 
-            post_action(token_address, token_id_felt);
+            if !is_story_game {
+                post_action(token_address, token_id_felt);
+            }
         }
 
         fn emit_progress(
@@ -441,9 +463,13 @@ mod game_system {
             let level_system = world
                 .dns_address(@"level_system")
                 .unwrap_or(core::num::traits::Zero::zero());
+            let story_system = world
+                .dns_address(@"story_system")
+                .unwrap_or(core::num::traits::Zero::zero());
 
             assert(
-                caller == move_system || caller == level_system, 'Unauthorized progress emitter',
+                caller == move_system || caller == level_system || caller == story_system,
+                'Unauthorized progress emitter',
             );
 
             // Only emit progress for star-eligible settings (official zones)
@@ -525,6 +551,12 @@ mod game_system {
 
             // Get game settings (selected via token settings_id)
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+
+            if mode_val == 1 {
+                assert!(settings.settings_id == 1, "Only Endless Zone 1 is enabled in MVP");
+                let progress: StoryProgress = world.read_model((player, 1_u8));
+                assert!(progress.exists() && progress.boss_cleared, "Clear Story Zone 1 first");
+            }
 
             // Detect active daily challenge context by (mode, map_settings_id).
             let mut daily_seed: felt252 = 0;

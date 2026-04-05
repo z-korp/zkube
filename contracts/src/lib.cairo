@@ -9,6 +9,7 @@ pub mod models {
     pub mod game;
     pub mod mutator;
     pub mod player;
+    pub mod story;
     pub mod weekly;
 }
 
@@ -93,6 +94,7 @@ pub mod systems {
     pub mod level;
     pub mod moves;
     pub mod renderer;
+    pub mod story;
 }
 
 pub mod external {

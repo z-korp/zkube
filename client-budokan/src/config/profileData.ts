@@ -51,4 +51,6 @@ export interface ZoneProgressData {
   price?: bigint;
   currentStars?: number;
   levelStars?: number[];
+  highestCleared?: number;
+  bossCleared?: boolean;
 }

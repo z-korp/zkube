@@ -36,6 +36,10 @@ export interface CreateRun extends Signer {
   mode: number;
 }
 
+export interface StartRun extends Signer { zone_id: number; }
+export interface ReplayLevel extends Signer { zone_id: number; level: number; }
+export interface ClaimPerfection extends Signer { zone_id: number; }
+
 export interface FreeMint extends Signer {
   name: string;
   settingsId: number;
@@ -390,6 +394,23 @@ export function setupWorld(config: Config) {
     };
   }
 
+  function storySystem() {
+    const contract_name = "story_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      console.warn(`Contract ${contract_name} not found in manifest - story system disabled`);
+      return null;
+    }
+
+    const startRun = async ({ account, zone_id }: StartRun) => account.execute([{ contractAddress: contract.address, entrypoint: "start_run", calldata: [zone_id] }]);
+    const replayLevel = async ({ account, zone_id, level }: ReplayLevel) => account.execute([{ contractAddress: contract.address, entrypoint: "replay_level", calldata: [zone_id, level] }]);
+    const claimPerfection = async ({ account, zone_id }: ClaimPerfection) => account.execute([{ contractAddress: contract.address, entrypoint: "claim_perfection", calldata: [zone_id] }]);
+
+    return { address: contract.address, startRun, replayLevel, claimPerfection };
+  }
+
   function configSystem() {
     const contract_name = "config_system";
     const contract = config.manifest.contracts.find(
@@ -698,6 +719,7 @@ export function setupWorld(config: Config) {
 
   return {
     game: game(),
+    story_system: storySystem(),
     config: configSystem(),
     daily_challenge: daily_challenge(),
   };

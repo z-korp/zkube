@@ -33,6 +33,7 @@ mod move_system {
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::PlayerBestRun;
+    use zkube::models::story::{StoryGame, StoryGameTrait, StoryProgress};
     use zkube::systems::game::{IGameSystemDispatcher, IGameSystemDispatcherTrait};
 
     #[storage]
@@ -48,21 +49,30 @@ mod move_system {
             final_index: u8,
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let player = get_caller_address();
+            let story_game: StoryGame = world.read_model(game_id);
+            let is_story_game = story_game.exists();
 
             let token_address = token::get_token_address(world);
             let token_id_felt: felt252 = game_id.into();
-            pre_action(token_address, token_id_felt);
+            if !is_story_game {
+                pre_action(token_address, token_id_felt);
 
-            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
-            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(token_id_felt);
-            assert!(
-                token_metadata.lifecycle.is_playable(get_block_timestamp()),
-                "Game {} lifecycle is not playable",
-                game_id,
-            );
+                let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
+                let token_metadata: TokenMetadata = token_dispatcher.token_metadata(token_id_felt);
+                assert!(
+                    token_metadata.lifecycle.is_playable(get_block_timestamp()),
+                    "Game {} lifecycle is not playable",
+                    game_id,
+                );
+            }
 
             let game: Game = world.read_model(game_id);
-            assert_token_ownership(token_address, token_id_felt);
+            if is_story_game {
+                assert!(story_game.player == player, "not story owner");
+            } else {
+                assert_token_ownership(token_address, token_id_felt);
+            }
             game.assert_not_over();
             let run_data_before_move = game.get_run_data();
 
@@ -73,7 +83,6 @@ mod move_system {
 
             // Initialize GameLibs once for all dispatcher calls
             let libs = GameLibsImpl::new(world);
-            let player = get_caller_address();
             let game_address = world
                 .dns_address(@"game_system")
                 .expect('GameSystem not found in DNS');
@@ -196,14 +205,22 @@ mod move_system {
                     if run_data.current_level >= 10 {
                         game_dispatcher
                             .emit_progress(player, Task::BossDefeat.identifier(), 1, sid);
-                        // ZoneComplete only on FIRST clear — check PlayerBestRun.map_cleared
-                        let best_run: PlayerBestRun = world.read_model((player, sid, 0_u8));
-                        if !best_run.map_cleared {
-                            game_dispatcher
-                                .emit_progress(player, Task::ZoneComplete.identifier(), 1, sid);
+                        if is_story_game {
+                            let story_progress: StoryProgress = world.read_model((player, story_game.zone_id));
+                            if !story_progress.boss_cleared {
+                                game_dispatcher
+                                    .emit_progress(player, Task::ZoneComplete.identifier(), 1, sid);
+                            }
+                        } else {
+                            // ZoneComplete only on FIRST clear — check PlayerBestRun.map_cleared
+                            let best_run: PlayerBestRun = world.read_model((player, sid, 0_u8));
+                            if !best_run.map_cleared {
+                                game_dispatcher
+                                    .emit_progress(player, Task::ZoneComplete.identifier(), 1, sid);
+                            }
                         }
                     }
-                    libs.level.finalize_level(game_id);
+                    libs.level.finalize_level(game_id, player);
                 } else if is_grid_full {
                     let mut updated_game: Game = world.read_model(game_id);
                     updated_game.over = true;
@@ -246,7 +263,9 @@ mod move_system {
                     game_over::handle_game_over(ref world, updated_game, player);
                 }
             }
-            post_action(token_address, token_id_felt);
+            if !is_story_game {
+                post_action(token_address, token_id_felt);
+            }
         }
     }
 

@@ -1,9 +1,5 @@
 import { useMemo } from "react";
-import {
-  DEFAULT_SETTINGS,
-  generateLevelConfig,
-  type Level,
-} from "@/dojo/game/types/level";
+import { generateLevelConfig, type Level } from "@/dojo/game/types/level";
 import type { ThemeId } from "@/config/themes";
 
 export type NodeType = "classic" | "boss";
@@ -27,6 +23,13 @@ export interface MapNodeData {
   zoneTheme: ThemeId;
 }
 
+export interface StoryZoneMapState {
+  zoneId: number;
+  unlocked: boolean;
+  highestCleared: number;
+  levelStars: number[];
+}
+
 export interface MapData {
   nodes: MapNodeData[];
   zoneThemes: string[];
@@ -36,12 +39,13 @@ export interface MapData {
 
 export interface UseMapDataParams {
   seed: bigint;
-  currentLevel: number;
+  currentZone: number;
+  zones: StoryZoneMapState[];
 }
 
 export const NODES_PER_ZONE = 11;
-export const TOTAL_ZONES = 1;
-export const GAMEPLAY_LEVELS = 50;
+export const TOTAL_ZONES = 2;
+export const GAMEPLAY_LEVELS = 10;
 const LEVELS_PER_ZONE = 10;
 
 interface RawNode {
@@ -50,104 +54,51 @@ interface RawNode {
   contractLevel: number | null;
 }
 
-function buildZoneSequence(_seed: bigint, zone: number): RawNode[] {
-  const zoneStart = (zone - 1) * LEVELS_PER_ZONE + 1; // e.g. 1, 11, 21…
-  const bossLevel = zone * LEVELS_PER_ZONE; // e.g. 10, 20, 30…
-
+function buildZoneSequence(zone: number): RawNode[] {
   const nodes: RawNode[] = [];
 
-  for (let level = zoneStart; level <= bossLevel; level++) {
+  for (let level = 1; level < LEVELS_PER_ZONE; level++) {
     nodes.push({ type: "classic", draftPhase: null, contractLevel: level });
   }
 
-  // Boss — always last
-  nodes.push({ type: "boss", draftPhase: null, contractLevel: null });
+  nodes.push({ type: "boss", draftPhase: null, contractLevel: LEVELS_PER_ZONE });
 
   return nodes;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Convert contract level → global node index (needs seed now).      */
-/* ------------------------------------------------------------------ */
-
-export function contractLevelToNodeIndex(
-  contractLevel: number,
-  seed: bigint,
-): number {
-  if (contractLevel < 1 || contractLevel > GAMEPLAY_LEVELS) return 0;
-
-  const zone = Math.ceil(contractLevel / LEVELS_PER_ZONE);
-  const zoneBaseIndex = (zone - 1) * NODES_PER_ZONE;
-  const sequence = buildZoneSequence(seed, zone);
-
-  for (let i = 0; i < sequence.length; i++) {
-    if (sequence[i].contractLevel === contractLevel) {
-      return zoneBaseIndex + i;
-    }
-  }
-
-  // Fallback: shouldn't happen
-  return zoneBaseIndex;
+export function contractLevelToNodeIndex(contractLevel: number): number {
+  if (contractLevel < 1 || contractLevel > LEVELS_PER_ZONE) return 0;
+  return contractLevel - 1;
 }
-
-/* ------------------------------------------------------------------ */
-/*  Zone helper                                                        */
-/* ------------------------------------------------------------------ */
-
-export function getZone(level: number): number {
-  const clamped = Math.max(1, Math.min(GAMEPLAY_LEVELS, level));
-  return Math.max(
-    1,
-    Math.min(TOTAL_ZONES, Math.ceil(clamped / LEVELS_PER_ZONE)),
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Node state resolution                                              */
-/* ------------------------------------------------------------------ */
 
 function getNodeState(
   node: Omit<MapNodeData, "state" | "levelConfig" | "zoneTheme">,
-  currentLevel: number,
-  currentNodeIndex: number,
-  _seed: bigint,
+  zoneState: StoryZoneMapState | undefined,
+  currentZone: number,
 ): NodeState {
-  const zoneEndLevel = node.zone * LEVELS_PER_ZONE;
+  if (!zoneState?.unlocked) return "locked";
+  const level = node.contractLevel ?? LEVELS_PER_ZONE;
+  const highestCleared = zoneState.highestCleared ?? 0;
 
-  if (node.type === "boss") {
-    if (currentLevel > zoneEndLevel) return "cleared";
-    return currentLevel >= zoneEndLevel ? "available" : "locked";
-  }
+  if (level <= highestCleared) return "cleared";
 
-  // --- Classic + Boss nodes ---
-
-  // Already cleared levels
-  if (node.contractLevel !== null && node.contractLevel < currentLevel) {
-    return "cleared";
-  }
-
-  if (node.nodeIndex === currentNodeIndex) {
-    return "current";
+  const nextLevel = highestCleared >= LEVELS_PER_ZONE ? LEVELS_PER_ZONE : highestCleared + 1;
+  if (level === nextLevel) {
+    return node.zone === currentZone ? "current" : "available";
   }
 
   return "locked";
 }
 
-/* ------------------------------------------------------------------ */
-/*  Main generator                                                     */
-/* ------------------------------------------------------------------ */
-
-export function generateMapData({
-  seed,
-  currentLevel,
-}: UseMapDataParams): MapData {
-  const clampedLevel = Math.max(1, Math.min(GAMEPLAY_LEVELS, currentLevel));
-  const zoneThemes: ThemeId[] = ["theme-1"];
+export function generateMapData({ seed, currentZone, zones }: UseMapDataParams): MapData {
+  const zoneThemes: ThemeId[] = ["theme-1", "theme-2"];
+  const zoneMap = new Map(zones.map((zone) => [zone.zoneId, zone]));
+  const effectiveCurrentZone = Math.max(1, Math.min(TOTAL_ZONES, currentZone));
 
   const allNodes: Omit<MapNodeData, "state" | "levelConfig" | "zoneTheme">[] = [];
 
   for (let z = 1; z <= TOTAL_ZONES; z++) {
-    const sequence = buildZoneSequence(seed, z);
+    const sequence = buildZoneSequence(z);
     const zoneBaseIndex = (z - 1) * NODES_PER_ZONE;
 
     for (let i = 0; i < sequence.length; i++) {
@@ -171,15 +122,11 @@ export function generateMapData({
     }
   }
 
-  const currentNodeIndex = contractLevelToNodeIndex(clampedLevel, seed);
-
   const nodes: MapNodeData[] = allNodes.map((node) => {
-    const levelConfig =
-      node.contractLevel !== null
-        ? generateLevelConfig(seed, node.contractLevel, DEFAULT_SETTINGS)
-        : null;
-
-    const state = getNodeState(node, clampedLevel, currentNodeIndex, seed);
+    const zoneState = zoneMap.get(node.zone);
+    const localLevel = node.contractLevel ?? LEVELS_PER_ZONE;
+    const levelConfig = generateLevelConfig(seed, localLevel);
+    const state = getNodeState(node, zoneState, effectiveCurrentZone);
 
     return {
       ...node,
@@ -192,14 +139,13 @@ export function generateMapData({
   return {
     nodes,
     zoneThemes,
-    currentNodeIndex,
-    currentZone: getZone(clampedLevel),
+    currentNodeIndex: contractLevelToNodeIndex(
+      (zoneMap.get(effectiveCurrentZone)?.highestCleared ?? 0) + 1,
+    ),
+    currentZone: effectiveCurrentZone,
   };
 }
 
-export function useMapData({ seed, currentLevel }: UseMapDataParams): MapData {
-  return useMemo(
-    () => generateMapData({ seed, currentLevel }),
-    [seed, currentLevel],
-  );
+export function useMapData({ seed, currentZone, zones }: UseMapDataParams): MapData {
+  return useMemo(() => generateMapData({ seed, currentZone, zones }), [seed, currentZone, zones]);
 }
