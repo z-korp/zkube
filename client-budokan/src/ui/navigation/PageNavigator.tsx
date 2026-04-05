@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "motion/react";
-import { useNavigationStore } from "@/stores/navigationStore";
+import { FULLSCREEN_PAGES, useNavigationStore } from "@/stores/navigationStore";
 import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import BottomNav from "@/ui/navigation/BottomNav";
 
@@ -16,6 +16,7 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ children }) => {
   const transitionDirection = useNavigationStore((s) => s.transitionDirection);
 
   const isBack = transitionDirection === "back";
+  const isFullscreenPage = FULLSCREEN_PAGES.has(currentPage);
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#02050d]">
@@ -30,7 +31,7 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ children }) => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: isBack ? "30%" : "-30%" }}
               transition={SLIDE_TRANSITION}
-              className="absolute inset-0 overflow-y-auto overflow-x-hidden"
+              className={`absolute inset-0 overflow-x-hidden ${isFullscreenPage ? "overflow-hidden" : "overflow-y-auto"}`}
             >
               {children}
             </motion.div>

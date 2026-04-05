@@ -274,6 +274,9 @@ const MapPage: React.FC = () => {
     ? themeTemplate
     : "theme-1";
   const colors = getThemeColors(currentTheme);
+  const activeZoneData = zones[activeZone];
+  const zoneStars = activeZoneData?.stars ?? 0;
+  const zoneMaxStars = activeZoneData?.maxStars ?? 30;
 
   return (
     <div className="h-screen-viewport flex flex-col">
@@ -281,32 +284,21 @@ const MapPage: React.FC = () => {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="flex items-center gap-2 px-4 pt-3 pb-2"
+        className="mx-3 mt-3 mb-2 flex items-center gap-2 rounded-2xl border border-white/15 bg-black/30 px-3 py-2 backdrop-blur-md"
       >
         <button
           onClick={goBack}
-          className="flex h-10 w-10 items-center justify-center rounded-xl"
+          className="flex h-9 w-9 items-center justify-center rounded-xl"
           style={{ color: colors.accent }}
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={18} />
         </button>
-        <div>
-          <h1
-            className="font-display text-base font-bold"
-            style={{ color: colors.text }}
-          >
-            World Map
+        <div className="min-w-0">
+          <h1 className="truncate font-display text-[15px] font-bold" style={{ color: colors.text }}>
+            World Map <span className="font-sans text-[12px] font-semibold" style={{ color: colors.textMuted }}>· Zone {activeZone + 1} · zStars {zoneStars}/{zoneMaxStars}</span>
           </h1>
-            <p className="font-sans text-[10px]" style={{ color: colors.textMuted }}>
-              Zone {activeZone + 1} · {zones[activeZone]?.name ?? "Unknown"}
-            </p>
-            {activeStoryRun && activeStoryRun.gameId !== 0n && (
-              <p className="mt-1 font-sans text-[10px] font-bold text-amber-300">
-                Active run: Zone {activeStoryRun.zoneId}, Level {activeStoryRun.level}
-              </p>
-            )}
-          </div>
-        </motion.div>
+        </div>
+      </motion.div>
 
       <div
         className="relative flex-1 min-h-0 overflow-hidden"

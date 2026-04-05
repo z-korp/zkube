@@ -24,6 +24,8 @@ import {
   DialogTitle,
 } from "@/ui/elements/dialog";
 import { generateLevelConfig } from "@/dojo/game/types/level";
+import { ConstraintType } from "@/dojo/game/types/constraint";
+import { DifficultyType } from "@/dojo/game/types/difficulty";
 import { getBonusType } from "@/config/mutatorConfig";
 
 const V2_BONUS_TO_LEGACY: Record<number, BonusType> = {
@@ -56,6 +58,40 @@ const PlayScreen: React.FC = () => {
   });
   const grid = useGrid({ gameId: game?.id ?? 0n, shouldLog: true });
   const gameLevel = useGameLevel({ gameId: game?.id });
+
+  const resolveCompletionGameLevel = useCallback(
+    (levelNumber: number): GameLevelData => {
+      if (gameLevel && gameLevel.level === levelNumber) {
+        return gameLevel;
+      }
+
+      const fallback = generateLevelConfig(seed, levelNumber);
+      const difficultyIndex = Math.max(
+        0,
+        Object.values(DifficultyType).indexOf(fallback.difficulty.value as DifficultyType),
+      );
+
+      return {
+        gameId: game?.id ?? 0n,
+        level: levelNumber,
+        pointsRequired: fallback.pointsRequired,
+        maxMoves: fallback.maxMoves,
+        difficulty: difficultyIndex,
+        constraintType: fallback.constraint.constraintType,
+        constraintValue: fallback.constraint.value,
+        constraintCount: fallback.constraint.requiredCount,
+        constraint2Type: fallback.constraint2.constraintType,
+        constraint2Value: fallback.constraint2.value,
+        constraint2Count: fallback.constraint2.requiredCount,
+        constraint3Type: ConstraintType.None,
+        constraint3Value: 0,
+        constraint3Count: 0,
+        cube3Threshold: fallback.cube3Threshold,
+        cube2Threshold: fallback.cube2Threshold,
+      };
+    },
+    [game?.id, gameLevel, seed],
+  );
 
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
@@ -124,7 +160,7 @@ const PlayScreen: React.FC = () => {
             levelMoves: game.levelMoves,
             prevTotalScore: levelStartTotalScoreRef.current,
             totalScore: game.totalScore,
-            gameLevel,
+            gameLevel: resolveCompletionGameLevel(game.level),
           });
           navNavigate("map");
         } else {
@@ -134,7 +170,7 @@ const PlayScreen: React.FC = () => {
       }
     }
     prevGameOverRef.current = game?.over;
-  }, [game?.over, playSfx]);
+  }, [game, navNavigate, playSfx, resolveCompletionGameLevel, setPendingLevelCompletion, targetScore]);
 
   const handleCascadeComplete = useCallback(() => {
     setCascadeComplete(true);
@@ -165,7 +201,7 @@ const PlayScreen: React.FC = () => {
         levelMoves: prevState.levelMoves,
         prevTotalScore: levelStartTotalScoreRef.current,
         totalScore: game.totalScore,
-        gameLevel: prevState.gameLevel,
+        gameLevel: resolveCompletionGameLevel(prevState.level),
       });
       levelStartTotalScoreRef.current = game.totalScore;
       navNavigate("map");
@@ -192,6 +228,7 @@ const PlayScreen: React.FC = () => {
     gameLevel,
     navNavigate,
     setPendingLevelCompletion,
+    resolveCompletionGameLevel,
   ]);
 
   const handleSurrender = useCallback(async () => {

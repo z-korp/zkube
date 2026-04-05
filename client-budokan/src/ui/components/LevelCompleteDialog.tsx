@@ -101,11 +101,13 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
 
   const levelFinalScore = Math.max(0, totalScore - prevTotalScore);
 
+  const movesRemaining = Math.max(maxMoves - levelMoves, 0);
+
   const starsEarned = useMemo(() => {
-    if (levelMoves <= threeStarThreshold) return 3;
-    if (levelMoves <= twoStarThreshold) return 2;
+    if (movesRemaining >= threeStarThreshold) return 3;
+    if (movesRemaining >= twoStarThreshold) return 2;
     return 1;
-  }, [levelMoves, threeStarThreshold, twoStarThreshold]);
+  }, [movesRemaining, threeStarThreshold, twoStarThreshold]);
 
   const isDraftLevel = draftWillOpen;
 
