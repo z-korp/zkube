@@ -6,6 +6,7 @@ export type OverlayId = "play" | "daily" | "boss" | "mutator" | "map" | "setting
 export type PageId = TabId | OverlayId;
 
 export const FULLSCREEN_PAGES: ReadonlySet<PageId> = new Set(["play", "boss", "mutator", "map"]);
+const NAV_TRANSITION_LOCK_MS = 300;
 
 export interface PendingLevelCompletion {
   level: number;
@@ -75,7 +76,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
 
     setTimeout(() => {
       set({ isTransitioning: false, transitionDirection: null });
-    }, 150);
+    }, NAV_TRANSITION_LOCK_MS);
   },
 
   goBack: () => {
@@ -92,7 +93,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
 
     setTimeout(() => {
       set({ isTransitioning: false, transitionDirection: null });
-    }, 150);
+    }, NAV_TRANSITION_LOCK_MS);
   },
 
   setGameId: (id) => set({ gameId: id }),

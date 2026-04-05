@@ -31,7 +31,7 @@ const getThemeId = (zoneId: number): ThemeId => {
 };
 
 const containerVariants: any = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   show: {
     opacity: 1,
     transition: {
@@ -41,7 +41,7 @@ const containerVariants: any = {
 };
 
 const itemVariants: any = {
-  hidden: { opacity: 0, y: 12 },
+  hidden: { opacity: 1, y: 0 },
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
 };
 
@@ -234,7 +234,7 @@ const HomePage: React.FC = () => {
         <motion.div
           key="home-container"
           variants={containerVariants}
-          initial="hidden"
+          initial={false}
           animate="show"
           className="flex-1 space-y-3 overflow-y-auto pb-3"
         >
