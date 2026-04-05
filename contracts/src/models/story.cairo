@@ -41,14 +41,21 @@ pub struct ActiveStoryGame {
 pub impl StoryProgressImpl of StoryProgressTrait {
     fn new(player: ContractAddress, zone_id: u8) -> StoryProgress {
         StoryProgress {
-            player, zone_id, level_stars: 0, highest_cleared: 0, boss_cleared: false,
+            player,
+            zone_id,
+            level_stars: 0,
+            highest_cleared: 0,
+            boss_cleared: false,
             perfection_claimed: false,
         }
     }
 
     fn exists(self: @StoryProgress) -> bool {
-        *self.player != Zero::zero() || *self.level_stars != 0 || *self.highest_cleared > 0
-            || *self.boss_cleared || *self.perfection_claimed
+        *self.player != Zero::zero()
+            || *self.level_stars != 0
+            || *self.highest_cleared > 0
+            || *self.boss_cleared
+            || *self.perfection_claimed
     }
 
     fn get_level_stars(self: @StoryProgress, level: u8) -> u8 {
@@ -78,7 +85,9 @@ pub impl StoryGameImpl of StoryGameTrait {
 
 #[generate_trait]
 pub impl ActiveStoryGameImpl of ActiveStoryGameTrait {
-    fn new(player: ContractAddress, game_id: felt252, zone_id: u8, level: u8, is_replay: bool) -> ActiveStoryGame {
+    fn new(
+        player: ContractAddress, game_id: felt252, zone_id: u8, level: u8, is_replay: bool,
+    ) -> ActiveStoryGame {
         ActiveStoryGame { player, game_id, zone_id, level, is_replay }
     }
 
@@ -94,7 +103,7 @@ pub impl ActiveStoryGameImpl of ActiveStoryGameTrait {
 #[cfg(test)]
 mod tests {
     use starknet::ContractAddress;
-    use super::{StoryProgressTrait, ActiveStoryGameTrait};
+    use super::{ActiveStoryGameTrait, StoryProgressTrait};
 
     #[test]
     fn test_story_progress_level_stars_roundtrip() {

@@ -78,8 +78,7 @@ mod game_system {
     use zkube::models::entitlement::MapEntitlement;
     use zkube::models::game::{Game, GameAssert, GameSeed, GameTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
-    use zkube::models::story::{StoryGame, StoryGameTrait};
-    use zkube::models::story::{StoryProgress, StoryProgressTrait};
+    use zkube::models::story::{StoryGame, StoryGameTrait, StoryProgress, StoryProgressTrait};
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use zkube::systems::daily_challenge::{
         IDailyChallengeSystemDispatcher, IDailyChallengeSystemDispatcherTrait,

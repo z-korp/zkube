@@ -206,7 +206,8 @@ mod move_system {
                         game_dispatcher
                             .emit_progress(player, Task::BossDefeat.identifier(), 1, sid);
                         if is_story_game {
-                            let story_progress: StoryProgress = world.read_model((player, story_game.zone_id));
+                            let story_progress: StoryProgress = world
+                                .read_model((player, story_game.zone_id));
                             if !story_progress.boss_cleared {
                                 game_dispatcher
                                     .emit_progress(player, Task::ZoneComplete.identifier(), 1, sid);

@@ -258,7 +258,9 @@ mod config_system {
         world.write_model(@polynesian_endless_metadata);
 
         // Register Egypt Map mode settings (ID 2) for MVP Zone 2
-        let mut egypt_map_settings = GameSettingsTrait::new_with_defaults(2_u32, Difficulty::Increasing);
+        let mut egypt_map_settings = GameSettingsTrait::new_with_defaults(
+            2_u32, Difficulty::Increasing,
+        );
         egypt_map_settings.level_cap = 10;
         egypt_map_settings.base_moves = 18;
         egypt_map_settings.max_moves = 48;
@@ -348,18 +350,18 @@ mod config_system {
                     },
                     minigame_token_address,
                 );
-                self
-                    .settings
-                    .create_settings(
-                        game_systems_address,
-                        2_u32,
-                        GameSettingDetails {
-                            name: "Ancient Egypt",
-                            description: "Ancient Egypt map mode settings for MVP Zone 2.",
-                            settings: array![GameSetting { name: 'MODE', value: 'PROGRESSIVE' }].span(),
-                        },
-                        minigame_token_address,
-                    );
+            self
+                .settings
+                .create_settings(
+                    game_systems_address,
+                    2_u32,
+                    GameSettingDetails {
+                        name: "Ancient Egypt",
+                        description: "Ancient Egypt map mode settings for MVP Zone 2.",
+                        settings: array![GameSetting { name: 'MODE', value: 'PROGRESSIVE' }].span(),
+                    },
+                    minigame_token_address,
+                );
         }
     }
 
@@ -771,7 +773,9 @@ mod config_system {
             }
 
             if !stars_to_burn.is_zero() {
-                let zstar = IZStarTokenDispatcher { contract_address: self.zstar_token_address.read() };
+                let zstar = IZStarTokenDispatcher {
+                    contract_address: self.zstar_token_address.read(),
+                };
                 zstar.burn(caller, stars_to_burn);
             }
 
@@ -884,9 +888,7 @@ mod config_system {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        fn compute_hybrid_terms(
-            star_balance: u256, star_cost: u256, price: u256,
-        ) -> (u256, u256) {
+        fn compute_hybrid_terms(star_balance: u256, star_cost: u256, price: u256) -> (u256, u256) {
             if star_cost.is_zero() {
                 return (0, price);
             }

@@ -10,7 +10,9 @@ pub trait ILevelSystem<T> {
 
     /// Finalize the current level and immediately advance in the same transaction.
     /// Returns reserved legacy tuple: (0, 0, false).
-    fn finalize_level(ref self: T, game_id: felt252, player: starknet::ContractAddress) -> (u8, u8, bool);
+    fn finalize_level(
+        ref self: T, game_id: felt252, player: starknet::ContractAddress,
+    ) -> (u8, u8, bool);
 
     /// Legacy compatibility entrypoint. Transitioning is now automatic.
     fn start_next_level(ref self: T, game_id: felt252);
@@ -40,9 +42,7 @@ mod level_system {
     use zkube::models::game::{Game, GameLevel, GameLevelTrait, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
-    use zkube::models::story::{
-        StoryGame, StoryGameTrait, StoryProgress, StoryProgressTrait,
-    };
+    use zkube::models::story::{StoryGame, StoryGameTrait, StoryProgress, StoryProgressTrait};
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use zkube::systems::game::{IGameSystemDispatcher, IGameSystemDispatcherTrait};
 
@@ -164,7 +164,8 @@ mod level_system {
 
             if story_game.exists() {
                 let story_player = story_game.player;
-                let mut story_progress: StoryProgress = world.read_model((story_player, story_game.zone_id));
+                let mut story_progress: StoryProgress = world
+                    .read_model((story_player, story_game.zone_id));
                 if !story_progress.exists() {
                     story_progress = StoryProgressTrait::new(story_player, story_game.zone_id);
                 }
@@ -189,7 +190,8 @@ mod level_system {
                                         zstar.mint(story_player, delta.into());
                                     }
 
-                                    let mut player_meta: PlayerMeta = world.read_model(story_player);
+                                    let mut player_meta: PlayerMeta = world
+                                        .read_model(story_player);
                                     if !player_meta.exists() {
                                         player_meta = PlayerMetaTrait::new(story_player);
                                     }
@@ -226,7 +228,8 @@ mod level_system {
                     .dns_address(@"game_system")
                     .expect('GameSystem not found in DNS');
                 let game_dispatcher = IGameSystemDispatcher { contract_address: game_address };
-                game_dispatcher.emit_progress(story_player, Task::LevelComplete.identifier(), 1, sid);
+                game_dispatcher
+                    .emit_progress(story_player, Task::LevelComplete.identifier(), 1, sid);
 
                 game.over = true;
                 world.write_model(@game);

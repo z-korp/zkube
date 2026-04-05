@@ -7,8 +7,8 @@ pub trait IStorySystem<T> {
 
 #[dojo::contract]
 mod story_system {
-    use core::poseidon::poseidon_hash_span;
     use core::num::traits::Zero;
+    use core::poseidon::poseidon_hash_span;
     use dojo::event::EventStorage;
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
@@ -65,7 +65,9 @@ mod story_system {
 
             match world.dns_address(@"config_system") {
                 Option::Some(config_address) => {
-                    let config_dispatcher = IConfigSystemDispatcher { contract_address: config_address };
+                    let config_dispatcher = IConfigSystemDispatcher {
+                        contract_address: config_address,
+                    };
                     let zstar_address = config_dispatcher.get_zstar_address();
                     if !zstar_address.is_zero() {
                         let zstar = IZStarTokenDispatcher { contract_address: zstar_address };
@@ -135,7 +137,11 @@ mod story_system {
 
             let tx_info = get_tx_info().unbox();
             let game_id = poseidon_hash_span(
-                array![player.into(), zone_id.into(), level.into(), timestamp.into(), tx_info.transaction_hash].span(),
+                array![
+                    player.into(), zone_id.into(), level.into(), timestamp.into(),
+                    tx_info.transaction_hash,
+                ]
+                    .span(),
             );
             let random = RandomImpl::new_pseudo_random();
             let seed = random.seed;
@@ -156,11 +162,17 @@ mod story_system {
             run_data.current_level = level;
             run_data.bonus_slot = bonus_slot;
             run_data.bonus_type = bonus_type;
-            run_data.bonus_charges = if starting_charges > 15 { 15 } else { starting_charges };
+            run_data.bonus_charges = if starting_charges > 15 {
+                15
+            } else {
+                starting_charges
+            };
             game.set_run_data(run_data);
 
             let mutator_def = Self::read_mutator_def(world, active_mutator_id);
-            let level_config = LevelGeneratorTrait::generate(level_seed, level, settings, @mutator_def);
+            let level_config = LevelGeneratorTrait::generate(
+                level_seed, level, settings, @mutator_def,
+            );
             let mut game_level = GameLevelTrait::from_level_config(game_id, level_config);
             game_level.mutator_id = active_mutator_id;
 
@@ -174,7 +186,9 @@ mod story_system {
             } else if player_meta.last_active > 0 && timestamp - player_meta.last_active > 604800 {
                 match world.dns_address(@"config_system") {
                     Option::Some(config_address) => {
-                        let config_dispatcher = IConfigSystemDispatcher { contract_address: config_address };
+                        let config_dispatcher = IConfigSystemDispatcher {
+                            contract_address: config_address,
+                        };
                         let zstar_address = config_dispatcher.get_zstar_address();
                         if !zstar_address.is_zero() {
                             let zstar = IZStarTokenDispatcher { contract_address: zstar_address };
@@ -198,23 +212,25 @@ mod story_system {
             world.write_model(@player_meta);
 
             world.emit_event(@StartGame { player, timestamp, game_id });
-            world.emit_event(
-                @LevelStarted {
-                    game_id,
-                    player,
-                    level,
-                    points_required: level_config.points_required,
-                    max_moves: game_level.max_moves,
-                    constraint_type: level_config.constraint.constraint_type,
-                    constraint_value: level_config.constraint.value,
-                    constraint_required: level_config.constraint.required_count,
-                },
-            );
+            world
+                .emit_event(
+                    @LevelStarted {
+                        game_id,
+                        player,
+                        level,
+                        points_required: level_config.points_required,
+                        max_moves: game_level.max_moves,
+                        constraint_type: level_config.constraint.constraint_type,
+                        constraint_value: level_config.constraint.value,
+                        constraint_required: level_config.constraint.required_count,
+                    },
+                );
 
             match world.dns_address(@"game_system") {
                 Option::Some(game_address) => {
                     let game_dispatcher = IGameSystemDispatcher { contract_address: game_address };
-                    game_dispatcher.emit_progress(player, Task::GameStart.identifier(), 1, settings_id);
+                    game_dispatcher
+                        .emit_progress(player, Task::GameStart.identifier(), 1, settings_id);
                 },
                 Option::None => {},
             }
