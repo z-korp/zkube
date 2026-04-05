@@ -7,6 +7,7 @@ import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
 import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
 import { getThemeColors } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import PageHeader from "@/ui/components/shared/PageHeader";
 
 const TROPHY_IMAGES: Record<number, string> = {
   1: "/assets/trophies/gold.png",
@@ -63,16 +64,15 @@ const LeaderboardPage: React.FC = () => {
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
-      <div className="px-6 pb-2">
-        <motion.h1 
+      <div className="pb-2">
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 24 }}
-          className="font-display text-2xl font-bold tracking-wide text-white" 
         >
-          Leaderboard
-        </motion.h1>
-        <div className="mt-4 flex bg-white/[0.04] backdrop-blur-xl border border-white/[0.12] rounded-full p-1 gap-1 relative shadow-[inset_0_2px_8px_rgba(0,0,0,0.6)]">
+          <PageHeader title="Leaderboard" />
+        </motion.div>
+        <div className="mx-6 mt-2 flex rounded-full border border-white/[0.12] bg-white/[0.04] p-1 shadow-[inset_0_2px_8px_rgba(0,0,0,0.6)]">
           {([
             { id: "zone", label: "Zone" },
             { id: "endless", label: "Endless" },
@@ -114,8 +114,8 @@ const LeaderboardPage: React.FC = () => {
             style={{ color: colors.textMuted }}
           >
             <Trophy className="h-12 w-12 mb-4 opacity-50" />
-            <p className="font-display text-lg mb-1" style={{ color: colors.text }}>No entries yet</p>
-            <p className="font-sans text-sm">Finish a run to claim rank #1.</p>
+            <p className="mb-1 font-sans text-xl font-semibold" style={{ color: colors.text }}>No entries yet</p>
+            <p className="font-sans text-base">Finish a run to claim rank #1.</p>
           </motion.div>
         ) : (
           <motion.div 

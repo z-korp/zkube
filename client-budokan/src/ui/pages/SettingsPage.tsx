@@ -8,6 +8,7 @@ import { THEME_IDS, THEME_META, getThemeColors } from "@/config/themes";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
+import PageHeader from "@/ui/components/shared/PageHeader";
 import ImageAssets from "@/ui/theme/ImageAssets";
 
 const toPercent = (value: number): number => Math.round(value * 100);
@@ -21,17 +22,18 @@ const SettingsPage: React.FC = () => {
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
-      <div className="relative z-10 flex items-center justify-between px-6 pb-2">
-        <button
-          onClick={goBack}
-          className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] shadow-lg backdrop-blur-md transition-all hover:bg-white/[0.08] active:scale-95"
-          aria-label="Go Back"
-        >
-          <ChevronLeft size={20} className="text-white/80" />
-        </button>
-        <h1 className="font-display text-2xl font-bold tracking-wide text-white">Settings</h1>
-        <div className="w-10" /> {/* Spacer for centering */}
-      </div>
+      <PageHeader
+        title="Settings"
+        leftSlot={
+          <button
+            onClick={goBack}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] shadow-lg backdrop-blur-md transition-all hover:bg-white/[0.08] active:scale-95"
+            aria-label="Go Back"
+          >
+            <ChevronLeft size={20} className="text-white/80" />
+          </button>
+        }
+      />
 
       <div className="mx-4 mt-2 mb-4 flex-1 min-h-0 overflow-y-auto hide-scrollbar">
         <div className="max-w-[760px] mx-auto flex flex-col gap-4">

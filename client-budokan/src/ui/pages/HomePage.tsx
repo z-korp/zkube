@@ -6,7 +6,7 @@ import { useEntityQuery } from "@dojoengine/react";
 import { useDojo } from "@/dojo/useDojo";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
-import { getThemeColors, getThemeImages, loadThemeTemplate, type ThemeId } from "@/config/themes";
+import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
@@ -54,7 +54,7 @@ const HomePage: React.FC = () => {
     },
   } = useDojo();
   const { username } = useControllerUsername();
-  const { themeTemplate, setThemeTemplate } = useTheme();
+  const { themeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
   const navigate = useNavigationStore((s) => s.navigate);
   const selectedMode = useNavigationStore((s) => s.selectedMode);
@@ -65,9 +65,8 @@ const HomePage: React.FC = () => {
   const { zones, totalStars } = useZoneProgress(account?.address, zStarBalance);
 
   useEffect(() => {
-    setThemeTemplate(loadThemeTemplate(), false);
     setMusicPlaylist(["main", "level"]);
-  }, [setMusicPlaylist, setThemeTemplate]);
+  }, [setMusicPlaylist]);
 
   const shouldFetchMyGames = Boolean(account?.address);
   const normalizedOwner = normalizeAddress(account?.address);
@@ -202,7 +201,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
       <img
-        src={getThemeImages(getThemeId(zones[activeZone]?.zoneId ?? 1)).background}
+        src={getThemeImages(themeTemplate).background}
         alt=""
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         draggable={false}
@@ -218,7 +217,7 @@ const HomePage: React.FC = () => {
         <motion.img
           animate={{ y: [0, -4, 0] }}
           transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-          src={getThemeImages(getThemeId(zone?.zoneId ?? 1)).logo}
+          src={getThemeImages(themeTemplate).logo}
           alt="zKube"
           className="mx-auto h-32 md:h-40 drop-shadow-[0_0_32px_rgba(255,255,255,0.4)]"
           draggable={false}
@@ -270,11 +269,11 @@ const HomePage: React.FC = () => {
                 </span>
               </div>
             ) : (
-              <div className="mx-auto mt-[18vh] max-w-[280px] text-center">
-                <p className="font-display text-2xl font-bold tracking-[0.08em] text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.6)]">
+              <div className="mx-auto mt-[18vh] max-w-[320px] rounded-2xl border border-white/[0.12] bg-black/30 px-4 py-5 text-center backdrop-blur-sm">
+                <p className="font-sans text-3xl font-extrabold leading-tight text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.6)]">
                   Match. Clear. Conquer.
                 </p>
-                <p className="mt-3 font-sans text-sm text-white/70">
+                <p className="mt-3 font-sans text-base font-medium text-white/85">
                   Connect your account to unlock Story Mode and daily challenges.
                 </p>
               </div>

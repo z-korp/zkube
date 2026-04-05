@@ -7,6 +7,7 @@ import { useGameTokensSlot, type SlotGameTokenData } from "@/hooks/useGameTokens
 import { useNavigationStore } from "@/stores/navigationStore";
 import GameCard from "@/ui/components/shared/GameCard";
 import Connect from "@/ui/components/Connect";
+import PageHeader from "@/ui/components/shared/PageHeader";
 import { getThemeColors, getThemeImages, THEME_META, type ThemeId } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 
@@ -88,10 +89,10 @@ const MyGamesPage: React.FC = () => {
   if (!account) {
     return (
       <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
-        <h1 className="px-6 pb-2 font-display text-2xl font-bold tracking-wide text-white">My Games</h1>
+        <PageHeader title="My Games" />
         <div className="mx-4 mt-2 mb-4 flex-1 min-h-0 flex flex-col items-center justify-center text-center">
           <span className="text-6xl mb-4 opacity-50">🎮</span>
-          <p className="font-display text-xl mb-6 text-white/80">
+          <p className="mb-6 font-sans text-2xl font-semibold text-white/85">
             Connect to see your games
           </p>
           <div className="w-full max-w-[320px]">
@@ -104,7 +105,7 @@ const MyGamesPage: React.FC = () => {
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
-      <h1 className="px-6 pb-2 font-display text-2xl font-bold tracking-wide text-white">My Games</h1>
+      <PageHeader title="My Games" />
 
       <div className="mx-4 mt-2 mb-4 flex-1 min-h-0 overflow-y-auto hide-scrollbar">
         {loading ? (
