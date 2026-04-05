@@ -59,19 +59,19 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   ];
 
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-3.5 pb-2">
-      <div className="grid grid-cols-4 gap-1.5">
+    <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-4 pb-2">
+      <div className="grid grid-cols-2 gap-2.5">
         {stats.map((stat) => (
           <motion.div
             variants={itemVariants}
             key={stat.label}
-            className="rounded-[10px] px-1 py-2 text-center"
-            style={{ background: colors.surface, border: `1px solid ${colors.border}` }}
+            className="rounded-2xl px-3 py-3 text-center backdrop-blur-xl"
+            style={{ background: "rgba(255,255,255,0.1)", border: `1px solid ${colors.border}` }}
           >
-            <p className="font-display text-[15px] font-extrabold" style={{ color: colors.text }}>
+            <p className="font-sans text-2xl font-black" style={{ color: colors.text }}>
               {stat.value}
             </p>
-            <p className="font-['DM_Sans'] text-[8px]" style={{ color: colors.textMuted }}>
+            <p className="font-sans text-xs font-semibold" style={{ color: colors.textMuted }}>
               {stat.label}
             </p>
           </motion.div>
@@ -81,17 +81,17 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       <section>
         <motion.div variants={itemVariants} className="mb-2 flex items-center justify-between">
           <p
-            className="font-['DM_Sans'] text-[10px] font-semibold uppercase tracking-[0.15em]"
-            style={{ color: colors.textMuted }}
-          >
-            Zone Progress
-          </p>
-          <p className="font-display text-[10px] font-bold" style={{ color: colors.accent2 }}>
-            ★ {totalStars} total
-          </p>
-        </motion.div>
+              className="font-sans text-[11px] font-bold uppercase tracking-[0.15em]"
+              style={{ color: colors.textMuted }}
+            >
+              Zone Progress
+            </p>
+            <p className="font-sans text-[12px] font-black" style={{ color: colors.accent2 }}>
+              ★ {totalStars} total
+            </p>
+          </motion.div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2.5">
           {zones.map((zone) => {
             const discount = zone.starCost
               ? Math.min(100, Math.floor(((zone.currentStars ?? 0) / zone.starCost) * 100))
@@ -103,28 +103,28 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                 key={zone.zoneId}
                 type="button"
                 onClick={() => !zone.unlocked && onUnlock(zone)}
-                className="w-full rounded-[10px] px-2.5 py-2 text-left"
+                className="w-full rounded-2xl px-2.5 py-3 text-left backdrop-blur-xl"
                 style={{
-                  background: zone.unlocked ? colors.surface : "rgba(255,255,255,0.02)",
-                  border: `1px solid ${zone.unlocked ? colors.border : "rgba(255,255,255,0.05)"}`,
-                  opacity: zone.unlocked ? 1 : 0.75,
+                  background: zone.unlocked ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.06)",
+                  border: `1px solid ${zone.unlocked ? colors.border : "rgba(255,255,255,0.12)"}`,
+                  opacity: zone.unlocked ? 1 : 0.85,
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <img
                       src={getThemeImages(THEME_BY_ZONE[zone.zoneId] ?? "theme-1").themeIcon}
                       alt={zone.name}
-                      className="h-6 w-6 rounded-md"
+                      className="h-8 w-8 rounded-lg"
                       draggable={false}
                     />
-                    <p className="font-display text-[11px] font-bold" style={{ color: colors.text }}>
+                    <p className="font-sans text-[14px] font-extrabold leading-none" style={{ color: colors.text }}>
                       {zone.name}
                     </p>
 
                     {zone.cleared && (
                       <span
-                        className="rounded px-1 py-[1px] font-['DM_Sans'] text-[7px] font-bold tracking-[0.06em]"
+                        className="rounded px-1 py-[1px] font-sans text-[8px] font-bold tracking-[0.06em]"
                         style={{ color: colors.accent, background: `${colors.accent}20` }}
                       >
                         CLEARED
@@ -133,7 +133,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
 
                     {zone.isFree && (
                       <span
-                        className="rounded px-1 py-[1px] font-['DM_Sans'] text-[7px] font-bold tracking-[0.06em]"
+                        className="rounded px-1 py-[1px] font-sans text-[8px] font-bold tracking-[0.06em]"
                         style={{ color: colors.accent2, background: `${colors.accent2}20` }}
                       >
                         FREE
@@ -142,27 +142,27 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                   </div>
 
                   {zone.unlocked ? (
-                    <span className="font-display text-[9px] font-bold" style={{ color: colors.accent2 }}>
-                      {zone.stars}/{zone.maxStars}
-                    </span>
-                  ) : (
-                    <div className="flex items-center gap-1">
-                      <span className="font-display text-[8px] font-bold" style={{ color: colors.accent2 }}>
-                        {zone.starCost}★
+                      <span className="font-sans text-[13px] font-extrabold" style={{ color: colors.accent2 }}>
+                        {zone.stars}/{zone.maxStars}
                       </span>
-                      <span className="font-['DM_Sans'] text-[7px]" style={{ color: colors.textMuted }}>
-                        or
-                      </span>
-                      <span className="font-display text-[8px] font-bold" style={{ color: colors.accent }}>
-                        {formatPrice(zone.price)} ETH
-                      </span>
-                    </div>
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <span className="font-sans text-[12px] font-extrabold" style={{ color: colors.accent2 }}>
+                          {zone.starCost}★
+                        </span>
+                        <span className="font-sans text-[9px] font-semibold" style={{ color: colors.textMuted }}>
+                          or
+                        </span>
+                        <span className="font-sans text-[12px] font-extrabold" style={{ color: colors.accent }}>
+                          {formatPrice(zone.price)} ETH
+                        </span>
+                      </div>
                   )}
                 </div>
 
                 {zone.unlocked ? (
                   <div className="mt-1.5">
-                    <ProgressBar value={zone.stars} max={zone.maxStars} color={colors.accent} height={4} />
+                    <ProgressBar value={zone.stars} max={zone.maxStars} color={colors.accent} height={6} />
                   </div>
                 ) : (
                   <div className="mt-1.5">
@@ -170,13 +170,13 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                       value={zone.currentStars ?? 0}
                       max={zone.starCost ?? 1}
                       color={colors.accent2}
-                      height={3}
+                      height={4}
                     />
                     <div className="mt-1 flex items-center justify-between">
-                      <span className="font-['DM_Sans'] text-[7px]" style={{ color: colors.textMuted }}>
+                      <span className="font-sans text-[10px] font-semibold" style={{ color: colors.textMuted }}>
                         {zone.currentStars}/{zone.starCost}★ · {discount}% discount available
                       </span>
-                      <span className="font-['DM_Sans'] text-[7px] font-semibold" style={{ color: colors.accent }}>
+                      <span className="font-sans text-[10px] font-bold" style={{ color: colors.accent }}>
                         Tap to unlock →
                       </span>
                     </div>

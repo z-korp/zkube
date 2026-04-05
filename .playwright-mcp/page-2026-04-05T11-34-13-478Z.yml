@@ -1,0 +1,42 @@
+- generic [ref=e1]:
+  - generic:
+    - generic [ref=e8]:
+      - generic [ref=e401]:
+        - heading "My Games" [level=1] [ref=e402]
+        - generic [ref=e404]:
+          - generic [ref=e405]:
+            - generic [ref=e406]:
+              - paragraph [ref=e407]: Active games
+              - generic [ref=e408]: "1"
+            - 'button "Polynesian Polynesian · Map Mode Lv.1 · Score: 0 ★ ★ ★ · 0 moves PLAY →" [ref=e412]':
+              - img "Polynesian"
+              - generic [ref=e413]:
+                - paragraph [ref=e414]: Polynesian · Map Mode
+                - paragraph [ref=e415]: "Lv.1 · Score: 0"
+                - paragraph [ref=e416]:
+                  - generic [ref=e417]:
+                    - generic [ref=e418]: ★
+                    - generic [ref=e419]: ★
+                    - generic [ref=e420]: ★
+                  - text: · 0 moves
+              - generic [ref=e421]: PLAY →
+          - button "Completed games 0 ▸" [ref=e423]:
+            - paragraph [ref=e424]: Completed games
+            - generic [ref=e425]: 0 ▸
+      - generic [ref=e64]:
+        - button "Home" [ref=e65]:
+          - img [ref=e66]
+          - generic [ref=e69]: Home
+        - button "Games" [active] [ref=e71]:
+          - img [ref=e72]
+          - generic [ref=e74]: Games
+        - button "Profile" [ref=e75]:
+          - img [ref=e76]
+          - generic [ref=e79]: Profile
+        - button "Leaderboard" [ref=e80]:
+          - img [ref=e81]
+          - generic [ref=e87]: Leaderboard
+        - button "Settings" [ref=e88]:
+          - img [ref=e89]
+          - generic [ref=e92]: Settings
+    - region "Notifications alt+T"

@@ -72,7 +72,7 @@ const LeaderboardPage: React.FC = () => {
         >
           <PageHeader title="Leaderboard" />
         </motion.div>
-        <div className="mx-6 mt-2 flex rounded-full border border-white/[0.12] bg-white/[0.04] p-1 shadow-[inset_0_2px_8px_rgba(0,0,0,0.6)]">
+        <div className="mx-6 mt-2 flex rounded-full border border-white/[0.16] bg-white/[0.1] p-1 shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)] backdrop-blur-xl">
           {([
             { id: "zone", label: "Zone" },
             { id: "endless", label: "Endless" },
@@ -130,11 +130,25 @@ const LeaderboardPage: React.FC = () => {
                 key={entry.id}
                 className="flex items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-xl shadow-lg shadow-black/20"
                 style={{
-                  backgroundColor: entry.isYou ? `${colors.accent}1F` : "rgba(255,255,255,0.04)",
-                  borderColor: entry.isYou ? `${colors.accent}4D` : "rgba(255,255,255,0.08)",
+                  backgroundColor:
+                    entry.rank === 1
+                      ? "rgba(255,215,0,0.2)"
+                      : entry.rank === 2
+                        ? "rgba(192,192,192,0.18)"
+                        : entry.rank === 3
+                          ? "rgba(205,127,50,0.18)"
+                          : entry.isYou
+                            ? `${colors.accent}2A`
+                            : "rgba(255,255,255,0.1)",
+                  borderColor:
+                    entry.rank <= 3
+                      ? "rgba(255,255,255,0.3)"
+                      : entry.isYou
+                        ? `${colors.accent}75`
+                        : "rgba(255,255,255,0.14)",
                 }}
               >
-                <div className="flex w-8 items-center justify-center text-center font-display text-base font-black" style={{ color: entry.rank <= 3 ? colors.accent2 : colors.textMuted }}>
+                <div className="flex w-8 items-center justify-center text-center font-sans text-base font-black" style={{ color: entry.rank <= 3 ? colors.accent2 : colors.textMuted }}>
                   {entry.rank <= 3 ? (
                     <img
                       src={TROPHY_IMAGES[entry.rank]}
@@ -148,7 +162,7 @@ const LeaderboardPage: React.FC = () => {
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-display text-xs font-bold" style={{ color: colors.text }}>
+                  <p className="truncate font-sans text-sm font-extrabold" style={{ color: colors.text }}>
                     {entry.name} {entry.isYou ? "(You)" : ""}
                   </p>
                   <div className="mt-0.5 flex items-center gap-0.5">
@@ -163,7 +177,7 @@ const LeaderboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="font-display text-[14px] font-extrabold tracking-wide" style={{ color: colors.text }}>
+                <div className="font-sans text-[16px] font-extrabold tracking-wide" style={{ color: colors.text }}>
                   {entry.score.toLocaleString()}
                 </div>
               </motion.div>

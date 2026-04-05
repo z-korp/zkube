@@ -1,0 +1,113 @@
+- generic [active] [ref=e1]:
+  - generic:
+    - generic [ref=e8]:
+      - generic [ref=e409]:
+        - generic [ref=e410]:
+          - img "zKube"
+        - generic [ref=e412]:
+          - generic [ref=e414]:
+            - generic [ref=e415]:
+              - generic [ref=e416]: ZK
+              - generic [ref=e417]:
+                - paragraph [ref=e418]: zkubetest
+                - paragraph [ref=e419]: ★ 0 collected
+            - generic [ref=e420]: CONNECTED
+          - button "⚡ DAILY CHALLENGE 24h remaining · 42 players PLAY" [ref=e422]:
+            - generic [ref=e423]:
+              - paragraph [ref=e424]:
+                - generic [ref=e425]: ⚡
+                - text: DAILY CHALLENGE
+              - paragraph [ref=e426]: 24h remaining · 42 players
+            - generic [ref=e427]: PLAY
+          - generic [ref=e428]:
+            - paragraph [ref=e429]: Select Zone
+            - generic [ref=e430]:
+              - button "Polynesian Polynesian ★ ★ ★ 0/30 →" [ref=e431]:
+                - generic [ref=e432]:
+                  - generic [ref=e433]:
+                    - img "Polynesian"
+                  - generic [ref=e435]:
+                    - paragraph [ref=e436]: Polynesian
+                    - generic [ref=e437]:
+                      - generic [ref=e438]: ★
+                      - generic [ref=e439]: ★
+                      - generic [ref=e440]: ★
+                      - generic [ref=e441]: 0/30
+                - generic [ref=e442]: →
+              - button "Ancient Egypt Ancient Egypt ★ ★ ★ 0/30 🔒" [ref=e443]:
+                - generic [ref=e444]:
+                  - generic [ref=e445]:
+                    - img "Ancient Egypt"
+                  - generic [ref=e446]:
+                    - paragraph [ref=e447]: Ancient Egypt
+                    - generic [ref=e448]:
+                      - generic [ref=e449]: ★
+                      - generic [ref=e450]: ★
+                      - generic [ref=e451]: ★
+                      - generic [ref=e452]: 0/30
+                - generic [ref=e453]: 🔒
+          - generic [ref=e455]:
+            - button "Map Mode" [ref=e456]: Map Mode
+            - button "Endless" [ref=e458]
+        - button "NEW GAME" [ref=e460]
+      - generic [ref=e379]:
+        - button "Home" [ref=e380]:
+          - img [ref=e381]
+          - generic [ref=e384]: Home
+        - button "Games" [ref=e385]:
+          - img [ref=e386]
+          - generic [ref=e388]: Games
+        - button "Profile" [ref=e390]:
+          - img [ref=e391]
+          - generic [ref=e394]: Profile
+        - button "Leaderboard" [ref=e395]:
+          - img [ref=e396]
+          - generic [ref=e402]: Leaderboard
+        - button "Settings" [ref=e403]:
+          - img [ref=e404]
+          - generic [ref=e407]: Settings
+    - region "Notifications alt+T":
+      - list:
+        - listitem [ref=e462]:
+          - img [ref=e464]
+          - generic [ref=e467]: Failed to start game.
+        - listitem [ref=e468]:
+          - img [ref=e470]
+          - generic [ref=e473]: Transaction execution error
+  - iframe [ref=e475]:
+    - generic [ref=f6e2]:
+      - generic [ref=f6e5]:
+        - generic [ref=f6e10]:
+          - button [ref=f6e11] [cursor=pointer]:
+            - img [ref=f6e12]
+          - button "zkubetest" [ref=f6e16] [cursor=pointer]:
+            - img [ref=f6e17]
+            - generic [ref=f6e23]: zkubetest
+        - generic [ref=f6e26]:
+          - generic [ref=f6e27]: Review Transaction
+          - generic [ref=f6e28]: https://localhost:5126
+        - generic [ref=f6e31]:
+          - heading "1 Operations" [level=3] [ref=f6e32]:
+            - button "1 Operations" [expanded] [ref=f6e33] [cursor=pointer]:
+              - generic [ref=f6e34]:
+                - generic [ref=f6e36]: "1"
+                - paragraph [ref=f6e37]: Operations
+              - img [ref=f6e38]
+          - region "1 Operations" [ref=f6e40]:
+            - heading "Start run 0x7c74b...5a96f" [level=3] [ref=f6e44]:
+              - button "Start run 0x7c74b...5a96f" [ref=f6e45] [cursor=pointer]:
+                - generic [ref=f6e47]:
+                  - img [ref=f6e48]
+                  - heading "Start run" [level=1] [ref=f6e51]
+                  - link "0x7c74b...5a96f" [ref=f6e52]:
+                    - /url: "#"
+        - generic [ref=f6e53]:
+          - heading "Active story game" [level=3] [ref=f6e56]:
+            - button "Active story game" [ref=f6e57] [cursor=pointer]:
+              - generic [ref=f6e58]:
+                - img [ref=f6e60]
+                - generic [ref=f6e62]: Active story game
+              - img [ref=f6e63]
+          - generic [ref=f6e66]:
+            - button "SUBMIT" [disabled]
+      - region "Notifications alt+T"

@@ -121,21 +121,21 @@ const MyGamesPage: React.FC = () => {
             transition={{ type: "spring", stiffness: 300, damping: 24 }}
             className="flex flex-1 items-center justify-center px-6 text-center h-full"
           >
-            <p className="font-display text-xl" style={{ color: colors.accent }}>
+            <p className="font-sans text-2xl font-extrabold" style={{ color: colors.accent }}>
               Start your first game from Home!
             </p>
           </motion.div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
             <section className="min-h-0">
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ type: "spring", stiffness: 300, damping: 24 }}
-                className="mb-2 flex items-center justify-between"
+                className="mb-2 flex items-center justify-between rounded-full border border-white/[0.12] bg-white/[0.08] px-3 py-1.5 backdrop-blur-xl"
               >
                 <p
-                  className="font-sans text-[11px] uppercase tracking-[0.15em] text-white/60"
+                  className="font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-white/75"
                 >
                   Active games
                 </p>
@@ -158,7 +158,7 @@ const MyGamesPage: React.FC = () => {
 
                     return (
                       <motion.div key={rawGame.token_id.toString()} custom={index} variants={cardVariants as any}>
-                        <GameCard variant="solid" className="rounded-2xl border border-white/[0.08] bg-white/[0.04] shadow-lg shadow-black/20 backdrop-blur-xl" padding="p-0">
+                        <GameCard variant="solid" className="rounded-2xl border border-white/[0.16] bg-white/[0.12] shadow-lg shadow-black/20 backdrop-blur-xl" padding="p-0">
                           <button
                             type="button"
                             onClick={() => navigate("map", rawGame.token_id)}
@@ -171,13 +171,13 @@ const MyGamesPage: React.FC = () => {
                               draggable={false}
                             />
                             <div className="min-w-0 flex-1">
-                              <p className="truncate font-display text-[14px] font-bold tracking-wide text-white">
+                              <p className="truncate font-sans text-[17px] font-extrabold leading-none text-white">
                                 {THEME_META[themeId].name} · {modeLabel}
                               </p>
-                              <p className="mt-0.5 font-sans text-[11px] font-medium text-white/60">
+                              <p className="mt-1 font-sans text-[12px] font-semibold text-white/80">
                                 Lv.{Math.max(1, runData.currentLevel)} · Score: {runData.totalScore.toLocaleString()}
                               </p>
-                              <p className="mt-0.5 flex items-center gap-1 font-sans text-[10px] font-medium text-white/60">
+                              <p className="mt-1 flex items-center gap-1 font-sans text-[11px] font-semibold text-white/75">
                                 <span className="flex items-center">
                                   {Array.from({ length: 3 }).map((_, i) => {
                                     const isFilled = i < stars;
@@ -200,7 +200,7 @@ const MyGamesPage: React.FC = () => {
                             </div>
                             <motion.span 
                               whileHover={{ x: 4 }}
-                              className="font-display text-[13px] font-black tracking-wider" 
+                              className="font-sans text-[12px] font-extrabold uppercase tracking-[0.1em]" 
                               style={{ color: colors.accent }}
                             >
                               PLAY →
@@ -221,9 +221,9 @@ const MyGamesPage: React.FC = () => {
                 transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 24 }}
                 type="button"
                 onClick={() => setShowCompleted((prev) => !prev)}
-                className="mb-2 flex w-full items-center justify-between"
+                className="mb-2 flex w-full items-center justify-between rounded-full border border-white/[0.12] bg-white/[0.08] px-3 py-1.5 backdrop-blur-xl"
               >
-                <p className="font-sans text-[11px] uppercase tracking-[0.15em] text-white/60">
+                <p className="font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-white/75">
                   Completed games
                 </p>
                 <span className="font-sans text-[11px] font-bold" style={{ color: colors.accent }}>
@@ -246,7 +246,7 @@ const MyGamesPage: React.FC = () => {
                         variants={cardVariants as any}
                         className="opacity-65"
                       >
-                        <GameCard variant="solid" className="rounded-2xl border border-white/[0.08] bg-white/[0.04] shadow-lg shadow-black/20 backdrop-blur-xl grayscale" padding="p-0">
+                        <GameCard variant="solid" className="rounded-2xl border border-white/[0.16] bg-white/[0.12] shadow-lg shadow-black/20 backdrop-blur-xl grayscale" padding="p-0">
                           <div className="flex items-center gap-3 px-3 py-3">
                             <img
                               src={getThemeImages(themeId).themeIcon}
@@ -255,10 +255,10 @@ const MyGamesPage: React.FC = () => {
                               draggable={false}
                             />
                             <div className="min-w-0 flex-1">
-                              <p className="truncate font-display text-[14px] font-bold tracking-wide text-white">
+                              <p className="truncate font-sans text-[17px] font-extrabold leading-none text-white">
                                 {THEME_META[themeId].name} · {modeLabel}
                               </p>
-                              <p className="mt-0.5 font-sans text-[11px] font-medium text-white/60">
+                              <p className="mt-1 font-sans text-[12px] font-semibold text-white/80">
                                 Lv.{Math.max(1, runData.currentLevel)} · Score: {runData.totalScore.toLocaleString()}
                               </p>
                               <p className="mt-0.5 flex items-center gap-1 font-sans text-[10px] font-medium text-white/60">

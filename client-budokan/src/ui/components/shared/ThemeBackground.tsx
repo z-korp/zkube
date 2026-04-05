@@ -17,7 +17,7 @@ const ThemeBackground: React.FC = () => {
           draggable={false}
         />
       </div>
-      <div className="fixed inset-0 -z-10 bg-[linear-gradient(180deg,rgba(2,6,14,0.72)_0%,rgba(2,6,14,0.62)_38%,rgba(2,6,14,0.88)_100%)] backdrop-blur-[1.5px]" />
+      <div className="fixed inset-0 -z-10 bg-[linear-gradient(180deg,rgba(4,8,18,0.4)_0%,rgba(4,8,18,0.28)_42%,rgba(4,8,18,0.78)_100%)] backdrop-blur-[0.5px]" />
     </>
   );
 };

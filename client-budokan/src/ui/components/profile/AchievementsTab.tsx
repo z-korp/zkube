@@ -50,7 +50,7 @@ const AchievementsTab: React.FC<AchievementsTabProps> = ({ colors }) => {
           <p className="font-display text-[20px] font-black" style={{ color: colors.text }}>
             {totalUnlocked}/{total}
           </p>
-          <p className="font-['DM_Sans'] text-[9px]" style={{ color: colors.textMuted }}>
+          <p className="font-sans text-[10px] font-semibold" style={{ color: colors.textMuted }}>
             Achievements unlocked
           </p>
         </div>
@@ -66,7 +66,7 @@ const AchievementsTab: React.FC<AchievementsTabProps> = ({ colors }) => {
                 <p className="font-display text-[13px] font-extrabold" style={{ color: RARITY_COLORS[rarity] }}>
                   {count}
                 </p>
-                <p className="font-['DM_Sans'] text-[7px]" style={{ color: `${RARITY_COLORS[rarity]}99` }}>
+                <p className="font-sans text-[8px] font-bold" style={{ color: `${RARITY_COLORS[rarity]}99` }}>
                   {rarity}
                 </p>
               </div>
@@ -83,7 +83,7 @@ const AchievementsTab: React.FC<AchievementsTabProps> = ({ colors }) => {
           <motion.section variants={itemVariants} key={category}>
             <div className="mb-2 flex items-center justify-between">
               <p
-                className="font-['DM_Sans'] text-[10px] font-semibold uppercase tracking-[0.15em]"
+                className="font-sans text-[11px] font-bold uppercase tracking-[0.15em]"
                 style={{ color: colors.textMuted }}
               >
                 {category}
@@ -128,7 +128,7 @@ const AchievementsTab: React.FC<AchievementsTabProps> = ({ colors }) => {
                         {achievement.icon}
                       </span>
                       <span
-                        className="font-['DM_Sans'] text-[5.5px] font-bold uppercase tracking-[0.1em]"
+                        className="font-sans text-[7px] font-bold uppercase tracking-[0.1em]"
                         style={{ color: rarityColor }}
                       >
                         {rarity}
@@ -141,7 +141,7 @@ const AchievementsTab: React.FC<AchievementsTabProps> = ({ colors }) => {
                     >
                       {achievement.name}
                     </p>
-                    <p className="mt-0.5 font-['DM_Sans'] text-[7.5px] leading-[1.3]" style={{ color: colors.textMuted }}>
+                    <p className="mt-0.5 font-sans text-[9px] font-semibold leading-[1.3]" style={{ color: colors.textMuted }}>
                       {achievement.description}
                     </p>
                     {!achievement.completed && (

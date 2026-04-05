@@ -1,0 +1,62 @@
+- generic [ref=e1]:
+  - generic:
+    - generic [ref=e8]:
+      - generic [ref=e306]:
+        - heading "Settings" [level=1] [ref=e307]
+        - generic [ref=e309]:
+          - generic [ref=e310]:
+            - generic [ref=e311]:
+              - generic [ref=e312]: 🎵
+              - heading "AUDIO" [level=2] [ref=e313]
+            - generic [ref=e314]:
+              - generic [ref=e315]:
+                - generic [ref=e316]: 🎵
+                - slider [ref=e317] [cursor=pointer]: "30"
+                - generic [ref=e318]: "30"
+              - generic [ref=e319]:
+                - generic [ref=e320]: 🔔
+                - slider [ref=e321] [cursor=pointer]: "50"
+                - generic [ref=e322]: "50"
+          - generic [ref=e323]:
+            - generic [ref=e324]:
+              - img [ref=e325]
+              - heading "THEME" [level=2] [ref=e331]
+            - generic [ref=e332]:
+              - button "Polynesian" [ref=e333]:
+                - img "Polynesian"
+              - button "Ancient Egypt" [ref=e334]:
+                - img "Ancient Egypt"
+                - img [ref=e335]
+              - button "Norse" [ref=e337]:
+                - img "Norse"
+              - button "Ancient Greece" [ref=e338]:
+                - img "Ancient Greece"
+              - button "Feudal Japan" [ref=e339]:
+                - img "Feudal Japan"
+              - button "Ancient China" [ref=e340]:
+                - img "Ancient China"
+              - button "Ancient Persia" [ref=e341]:
+                - img "Ancient Persia"
+              - button "Mayan" [ref=e342]:
+                - img "Mayan"
+              - button "Tribal" [ref=e343]:
+                - img "Tribal"
+              - button "Inca" [ref=e344]:
+                - img "Inca"
+      - generic [ref=e64]:
+        - button "Home" [ref=e65]:
+          - img [ref=e66]
+          - generic [ref=e69]: Home
+        - button "Games" [ref=e71]:
+          - img [ref=e72]
+          - generic [ref=e74]: Games
+        - button "Profile" [ref=e75]:
+          - img [ref=e76]
+          - generic [ref=e79]: Profile
+        - button "Leaderboard" [ref=e80]:
+          - img [ref=e81]
+          - generic [ref=e87]: Leaderboard
+        - button "Settings" [active] [ref=e88]:
+          - img [ref=e89]
+          - generic [ref=e92]: Settings
+    - region "Notifications alt+T"

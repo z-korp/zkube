@@ -1,0 +1,102 @@
+- generic [ref=e1]:
+  - generic:
+    - generic [ref=e8]:
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - img "zKube"
+        - generic [ref=e15]:
+          - generic [ref=e17]:
+            - button "Connecting..." [disabled]:
+              - generic:
+                - img
+                - text: Connecting...
+                - img
+          - button "⚡ DAILY CHALLENGE 24h remaining · 42 players PLAY" [ref=e22]:
+            - generic [ref=e23]:
+              - paragraph [ref=e24]:
+                - generic [ref=e25]: ⚡
+                - text: DAILY CHALLENGE
+              - paragraph [ref=e26]: 24h remaining · 42 players
+            - generic [ref=e27]: PLAY
+          - generic [ref=e28]:
+            - paragraph [ref=e29]: Select Zone
+            - generic [ref=e30]:
+              - button "Polynesian Polynesian ★ ★ ★ 0/30 →" [ref=e31]:
+                - generic [ref=e32]:
+                  - generic [ref=e33]:
+                    - img "Polynesian"
+                  - generic [ref=e35]:
+                    - paragraph [ref=e36]: Polynesian
+                    - generic [ref=e37]:
+                      - generic [ref=e38]: ★
+                      - generic [ref=e39]: ★
+                      - generic [ref=e40]: ★
+                      - generic [ref=e41]: 0/30
+                - generic [ref=e42]: →
+              - button "Ancient Egypt Ancient Egypt ★ ★ ★ 0/30 🔒" [ref=e43]:
+                - generic [ref=e44]:
+                  - generic [ref=e45]:
+                    - img "Ancient Egypt"
+                  - generic [ref=e46]:
+                    - paragraph [ref=e47]: Ancient Egypt
+                    - generic [ref=e48]:
+                      - generic [ref=e49]: ★
+                      - generic [ref=e50]: ★
+                      - generic [ref=e51]: ★
+                      - generic [ref=e52]: 0/30
+                - generic [ref=e53]: 🔒
+          - generic [ref=e55]:
+            - button "Map Mode" [ref=e56]: Map Mode
+            - button "Endless" [ref=e58]
+      - generic [ref=e59]:
+        - button "Home" [ref=e60]:
+          - img [ref=e61]
+          - generic [ref=e64]: Home
+        - button "Games" [ref=e66]:
+          - img [ref=e67]
+          - generic [ref=e69]: Games
+        - button "Profile" [ref=e70]:
+          - img [ref=e71]
+          - generic [ref=e74]: Profile
+        - button "Leaderboard" [ref=e75]:
+          - img [ref=e76]
+          - generic [ref=e82]: Leaderboard
+        - button "Settings" [ref=e83]:
+          - img [ref=e84]
+          - generic [ref=e87]: Settings
+    - region "Notifications alt+T"
+  - iframe [active] [ref=e89]:
+    - generic [ref=f1e2]:
+      - generic [ref=f1e4]:
+        - generic [ref=f1e5]:
+          - generic [ref=f1e16]: Connect Controller
+          - button [ref=f1e18] [cursor=pointer]:
+            - img [ref=f1e19]
+        - generic [ref=f1e21]:
+          - generic [ref=f1e22]:
+            - generic [ref=f1e24]:
+              - generic [ref=f1e85]:
+                - generic [ref=f1e86] [cursor=pointer]:
+                  - generic [ref=f1e87]:
+                    - img [ref=f1e90]
+                    - img [ref=f1e96]
+                  - paragraph [ref=f1e106]: zkubetest
+                - img [ref=f1e108] [cursor=pointer]
+              - generic [ref=f1e112]: Welcome! Select Log In to play
+            - generic [ref=f1e32]:
+              - text: By continuing you are agreeing to Cartridge's
+              - link "Terms of Service" [ref=f1e33] [cursor=pointer]:
+                - /url: https://cartridge.gg/legal/terms-of-service
+              - text: and
+              - link "Privacy Policy" [ref=f1e34] [cursor=pointer]:
+                - /url: https://cartridge.gg/legal/privacy-policy
+          - generic [ref=f1e35]:
+            - button "log in with Password" [ref=f1e113] [cursor=pointer]:
+              - img [ref=f1e114]
+              - text: log in with Password
+            - link "by" [ref=f1e37] [cursor=pointer]:
+              - /url: https://cartridge.gg
+              - img [ref=f1e38]
+              - generic [ref=f1e42]: by
+              - img [ref=f1e43]
+      - region "Notifications alt+T"

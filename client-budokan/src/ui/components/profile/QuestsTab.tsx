@@ -88,7 +88,7 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
             <span className="text-[22px]">{nextLockedZone.emoji}</span>
             <div className="flex-1">
               <p
-                className="font-['DM_Sans'] text-[8px] font-semibold uppercase tracking-[0.15em]"
+                className="font-sans text-[8px] font-semibold uppercase tracking-[0.15em]"
                 style={{ color: colors.accent2 }}
               >
                 Next Unlock
@@ -101,7 +101,7 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
 
           <div className="mb-2 flex gap-1.5">
             <div className="flex-1 rounded-lg px-2 py-1.5" style={{ background: `${colors.accent2}1A` }}>
-              <p className="font-['DM_Sans'] text-[7px] font-semibold" style={{ color: colors.accent2 }}>
+              <p className="font-sans text-[7px] font-semibold" style={{ color: colors.accent2 }}>
                 ★ EARN IT
               </p>
               <ProgressBar
@@ -114,13 +114,13 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
               <p className="mt-0.5 font-display text-[8px] font-bold" style={{ color: colors.text }}>
                 {nextLockedZone.currentStars}/{nextLockedZone.starCost}★
               </p>
-              <p className="font-['DM_Sans'] text-[7px]" style={{ color: colors.textMuted }}>
+              <p className="font-sans text-[7px]" style={{ color: colors.textMuted }}>
                 {(nextLockedZone.starCost ?? 0) - (nextLockedZone.currentStars ?? 0)} stars to go
               </p>
             </div>
 
             <div className="flex-1 rounded-lg px-2 py-1.5" style={{ background: `${colors.accent}1A` }}>
-              <p className="font-['DM_Sans'] text-[7px] font-semibold" style={{ color: colors.accent }}>
+              <p className="font-sans text-[7px] font-semibold" style={{ color: colors.accent }}>
                 ◆ SKIP AHEAD
               </p>
               <p className="font-display text-[13px] font-black" style={{ color: colors.accent }}>
@@ -142,13 +142,13 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors, nextLockedZone, onUnlock 
                   </span>
                 </div>
               )}
-              <p className="font-['DM_Sans'] text-[7px]" style={{ color: colors.textMuted }}>
+              <p className="font-sans text-[7px]" style={{ color: colors.textMuted }}>
                 Stars lower the price
               </p>
             </div>
           </div>
 
-          <p className="text-center font-['DM_Sans'] text-[8px] font-semibold" style={{ color: colors.accent }}>
+          <p className="text-center font-sans text-[10px] font-bold" style={{ color: colors.accent }}>
             Tap for details →
           </p>
         </motion.button>

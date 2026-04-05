@@ -1,0 +1,69 @@
+- generic [ref=e1]:
+  - generic:
+    - generic [ref=e8]:
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - img "zKube"
+        - generic [ref=e15]:
+          - generic [ref=e17]:
+            - generic [ref=e90]:
+              - generic [ref=e91]: ZK
+              - generic [ref=e92]:
+                - paragraph [ref=e93]: zkubetest
+                - paragraph [ref=e94]: ★ 0 collected
+            - generic [ref=e95]: CONNECTED
+          - button "⚡ DAILY CHALLENGE 24h remaining · 42 players PLAY" [ref=e22]:
+            - generic [ref=e23]:
+              - paragraph [ref=e24]:
+                - generic [ref=e25]: ⚡
+                - text: DAILY CHALLENGE
+              - paragraph [ref=e26]: 24h remaining · 42 players
+            - generic [ref=e27]: PLAY
+          - generic [ref=e28]:
+            - paragraph [ref=e29]: Select Zone
+            - generic [ref=e30]:
+              - button "Polynesian Polynesian ★ ★ ★ 0/30 →" [ref=e31]:
+                - generic [ref=e32]:
+                  - generic [ref=e33]:
+                    - img "Polynesian"
+                  - generic [ref=e35]:
+                    - paragraph [ref=e36]: Polynesian
+                    - generic [ref=e37]:
+                      - generic [ref=e38]: ★
+                      - generic [ref=e39]: ★
+                      - generic [ref=e40]: ★
+                      - generic [ref=e41]: 0/30
+                - generic [ref=e42]: →
+              - button "Ancient Egypt Ancient Egypt ★ ★ ★ 0/30 🔒" [ref=e43]:
+                - generic [ref=e44]:
+                  - generic [ref=e45]:
+                    - img "Ancient Egypt"
+                  - generic [ref=e46]:
+                    - paragraph [ref=e47]: Ancient Egypt
+                    - generic [ref=e48]:
+                      - generic [ref=e49]: ★
+                      - generic [ref=e50]: ★
+                      - generic [ref=e51]: ★
+                      - generic [ref=e52]: 0/30
+                - generic [ref=e53]: 🔒
+          - generic [ref=e55]:
+            - button "Map Mode" [ref=e56]: Map Mode
+            - button "Endless" [ref=e58]
+        - button "NEW GAME" [ref=e97]
+      - generic [ref=e59]:
+        - button "Home" [ref=e60]:
+          - img [ref=e61]
+          - generic [ref=e64]: Home
+        - button "Games" [ref=e66]:
+          - img [ref=e67]
+          - generic [ref=e69]: Games
+        - button "Profile" [ref=e70]:
+          - img [ref=e71]
+          - generic [ref=e74]: Profile
+        - button "Leaderboard" [ref=e75]:
+          - img [ref=e76]
+          - generic [ref=e82]: Leaderboard
+        - button "Settings" [ref=e83]:
+          - img [ref=e84]
+          - generic [ref=e87]: Settings
+    - region "Notifications alt+T"

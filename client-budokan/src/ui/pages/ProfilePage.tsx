@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { Check, Copy, UserRound, Settings } from "lucide-react";
-import { useDisconnect } from "@starknet-react/core";
+import { Settings } from "lucide-react";
 
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { getThemeColors } from "@/config/themes";
@@ -60,11 +59,6 @@ const getTitleForLevel = (level: number): string => {
   return PLAYER_TITLES[key] ?? "Novice";
 };
 
-const truncateAddress = (address: string): string => {
-  if (address.length <= 14) return address;
-  return `${address.slice(0, 8)}...${address.slice(-6)}`;
-};
-
 const ProfilePage: React.FC = () => {
   const { themeTemplate } = useTheme();
   const colors = getThemeColors(themeTemplate);
@@ -72,7 +66,6 @@ const ProfilePage: React.FC = () => {
   const { username } = useControllerUsername();
   const { playerMeta } = usePlayerMeta();
   const { account } = useAccountCustom();
-  const { disconnect } = useDisconnect();
   const isConnected = Boolean(account);
   const { balance: zStarBalance } = useZStarBalance(account?.address);
   const { zones, totalStars } = useZoneProgress(account?.address, zStarBalance);
@@ -90,18 +83,6 @@ const ProfilePage: React.FC = () => {
 
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
   const [unlockZone, setUnlockZone] = useState<ZoneProgressData | null>(null);
-  const [copied, setCopied] = useState(false);
-
-  const handleCopyAddress = async () => {
-    if (!account?.address) return;
-    try {
-      await navigator.clipboard.writeText(account.address);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1400);
-    } catch {
-      setCopied(false);
-    }
-  };
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
@@ -127,12 +108,12 @@ const ProfilePage: React.FC = () => {
         >
           <motion.section
             variants={itemVariants}
-            className="rounded-2xl p-3 backdrop-blur-xl bg-white/[0.04] border border-white/[0.08] shadow-lg shadow-black/20"
+            className="rounded-3xl border border-white/[0.16] bg-white/[0.12] p-4 backdrop-blur-2xl shadow-lg shadow-black/20"
           >
-            <div className="mb-2.5 flex items-center gap-2.5">
+            <div className="mb-3 flex items-center gap-3">
             <div className="relative">
               <div
-                className="flex h-12 w-12 items-center justify-center rounded-[14px] font-display text-xl font-black"
+                className="flex h-14 w-14 items-center justify-center rounded-2xl font-sans text-2xl font-black"
                 style={{
                   background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent2})`,
                   color: colors.background,
@@ -142,7 +123,7 @@ const ProfilePage: React.FC = () => {
                 {(username || "PL").slice(0, 2).toUpperCase()}
               </div>
               <div
-                className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-md border-2 font-display text-[9px] font-black"
+                className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-lg border-2 font-sans text-[11px] font-black"
                 style={{ background: colors.accent, color: colors.background, borderColor: colors.background }}
               >
                 {level}
@@ -150,19 +131,19 @@ const ProfilePage: React.FC = () => {
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="truncate font-display text-sm font-extrabold" style={{ color: colors.text }}>
+              <p className="truncate font-sans text-2xl font-extrabold" style={{ color: colors.text }}>
                 {username ?? "Player"}
               </p>
-              <p className="font-sans text-[9px]" style={{ color: colors.textMuted }}>
+              <p className="font-sans text-sm font-semibold" style={{ color: colors.textMuted }}>
                 Level {level} · {title}
               </p>
             </div>
 
             <div className="text-right">
-              <p className="font-display text-lg font-black" style={{ color: colors.accent2 }}>
+              <p className="font-sans text-3xl font-black leading-none" style={{ color: colors.accent2 }}>
                 ★ {zStarBalance}
               </p>
-              <p className="font-sans text-[8px]" style={{ color: colors.textMuted }}>
+              <p className="font-sans text-[11px] font-semibold" style={{ color: colors.textMuted }}>
                 zStar balance
               </p>
             </div>
@@ -170,21 +151,21 @@ const ProfilePage: React.FC = () => {
 
           <div>
             <div className="mb-1 flex items-center justify-between">
-              <p className="font-sans text-[8px]" style={{ color: colors.textMuted }}>
+              <p className="font-sans text-xs font-semibold" style={{ color: colors.textMuted }}>
                 Level {level}
               </p>
-              <p className="font-display text-[8px] font-bold" style={{ color: colors.accent }}>
+              <p className="font-sans text-xs font-extrabold" style={{ color: colors.accent }}>
                 {xp.toLocaleString()} / {nextLevelXp.toLocaleString()} XP
               </p>
             </div>
-            <ProgressBar value={xp - levelStartXp} max={Math.max(nextLevelXp - levelStartXp, 1)} color={colors.accent} height={6} glow />
-            <p className="mt-1 font-sans text-[7px]" style={{ color: colors.textMuted }}>
+            <ProgressBar value={xp - levelStartXp} max={Math.max(nextLevelXp - levelStartXp, 1)} color={colors.accent} height={8} glow />
+            <p className="mt-1 font-sans text-xs" style={{ color: colors.textMuted }}>
               {(nextLevelXp - xp).toLocaleString()} XP to Level {level + 1} · "{nextTitle}"
             </p>
           </div>
           </motion.section>
 
-          <motion.div variants={itemVariants} className="flex">
+          <motion.div variants={itemVariants} className="flex rounded-full border border-white/[0.12] bg-white/[0.06] p-1 backdrop-blur-xl">
           {TABS.map((tabName) => {
             const active = tab === tabName;
             return (
@@ -192,7 +173,7 @@ const ProfilePage: React.FC = () => {
                 key={tabName}
                 type="button"
                 onClick={() => setTab(tabName)}
-                className="relative flex-1 py-2 text-center font-sans text-[11px] font-medium"
+                className="relative flex-1 rounded-full py-2 text-center font-sans text-[12px] font-bold"
                 style={{
                   color: active ? colors.accent : colors.textMuted,
                 }}
@@ -209,8 +190,8 @@ const ProfilePage: React.FC = () => {
                 {active && (
                   <motion.div
                     layoutId="profile-tab-indicator"
-                    className="absolute bottom-0 left-0 right-0 h-0.5"
-                    style={{ backgroundColor: colors.accent }}
+                    className="absolute inset-0 rounded-full border"
+                    style={{ backgroundColor: `${colors.accent}1F`, borderColor: `${colors.accent}55` }}
                   />
                 )}
               </button>
@@ -237,32 +218,6 @@ const ProfilePage: React.FC = () => {
           {tab === "Achievements" && <AchievementsTab colors={colors} />}
           </motion.div>
 
-          <motion.section variants={itemVariants} className="rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-xl shadow-lg shadow-black/20 p-4">
-            <h3 className="mb-3 flex items-center gap-2 font-sans text-sm font-bold text-white">
-              <UserRound size={16} style={{ color: colors.accent }} /> Account
-            </h3>
-            <div className="space-y-3">
-              <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2">
-                <p className="font-sans text-[9px] font-medium uppercase tracking-wider" style={{ color: colors.textMuted }}>Username</p>
-                <p className="font-sans text-sm font-semibold text-white">{username ?? "Controller User"}</p>
-              </div>
-              <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-sans text-[9px] font-medium uppercase tracking-wider" style={{ color: colors.textMuted }}>Wallet Address</p>
-                    <p className="font-sans text-xs text-white/80">{account?.address ? truncateAddress(account.address) : "Not connected"}</p>
-                  </div>
-                  <button onClick={handleCopyAddress} className="flex items-center gap-1 rounded-lg px-2 py-1 text-white/50 hover:text-white/80 transition-colors">
-                    {copied ? <Check size={14} /> : <Copy size={14} />}
-                    <span className="font-sans text-[9px]">{copied ? "Copied!" : "Copy"}</span>
-                  </button>
-                </div>
-              </div>
-              <button onClick={() => disconnect()} className="w-full rounded-xl border border-red-500/30 bg-red-500/10 py-2.5 font-sans text-xs font-semibold text-red-400 hover:bg-red-500/20 transition-colors">
-                Disconnect
-              </button>
-            </div>
-          </motion.section>
         </motion.div>
       </div>
 
@@ -273,8 +228,8 @@ const ProfilePage: React.FC = () => {
           className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full px-3 py-1"
           style={{ background: "rgba(0,0,0,0.45)", border: `1px solid ${colors.border}` }}
         >
-          <p className="font-sans text-[8px]" style={{ color: colors.textMuted }}>
-            Connect to load your profile data
+          <p className="font-sans text-[10px] font-semibold" style={{ color: colors.textMuted }}>
+            Connect to sync your profile and progress
           </p>
         </div>
       )}
