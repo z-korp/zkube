@@ -33,7 +33,7 @@
   },
   "contracts": [
     {
-      "address": "0x3dd7d60bd65a428be7329ea73bf2dc22d8ae4b3e83dfcca4c733e9e8ea62609",
+      "address": "0x87362b38fbc018afe8eab45a9d778fe720b9599ac5aaf691e4f4f0df63f2a9",
       "class_hash": "0x2690de7793e4234b4f76a6f53733bdb40dc43b005a66c158fe1a7f6017becf0",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
@@ -79,7 +79,7 @@
       ]
     },
     {
-      "address": "0x5176e87f00366750f666bfec76ff2301b105bac8853052d1aacb44eba2bd0cb",
+      "address": "0x3fc509f78ab5152d2eed43e4a420ed1c099fe30f3ef79417aeeb6997d8a617e",
       "class_hash": "0x1bf75b094c1a78f869f6f62b4cdd2b0db41bbef03dc4f38c1bcb32bb3798f84",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
@@ -100,7 +100,7 @@
       ]
     },
     {
-      "address": "0x318f3ef75fa6ac77446f3b51f093ee1bbc8c039d60b13b9226de8eab3411d9",
+      "address": "0xd10b9b87336e972fbf4cb660005e62c523a2dc08cfd5ac9337b92baf89183e",
       "class_hash": "0x1677f2b6409f86c938b37c3e9794f3a008334aef6c0ec27ebf83b965688c64b",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-grid_system",
@@ -115,7 +115,7 @@
       ]
     },
     {
-      "address": "0x5c6ec46c8584b2292712b90e035ef63e85043713e4d2e7e323e9a26add39723",
+      "address": "0x5dd21c7f5ac6ae326741c1a3b46fc65467d312df3861d8e1c379eb0e6690754",
       "class_hash": "0x1471093cc6f457a6a31601e136ffea2ac95bc065d8898ee7d585d667eeaeba1",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-level_system",
@@ -130,7 +130,7 @@
       ]
     },
     {
-      "address": "0x76ad6551bc172f4b78ad1ee6fefe9029473821924cab681f42a32ed1ee203c0",
+      "address": "0x5dc29c5f1247602bc55f308f1286bbf31f043c9402db5971ddbf67591a29cdc",
       "class_hash": "0x522674d15c2a4f34e9c2971c8f462f6f09b70c81812e210d03e8546bd662195",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-move_system",
