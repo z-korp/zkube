@@ -18,7 +18,7 @@ const Connect = () => {
   return (
     <ArcadeButton onClick={handleConnect} disabled={isPending}>
       <Gamepad2 size={22} strokeWidth={2.5} />
-      {isPending ? "CONNECTING..." : "CONNECT TO PLAY"}
+      {isPending ? "CONNECTING..." : "PLAY NOW"}
     </ArcadeButton>
   );
 };

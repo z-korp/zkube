@@ -303,11 +303,15 @@ const HomePage: React.FC = () => {
               </motion.div>
             </>
           ) : (
-            <motion.div variants={itemVariants} className="mx-auto mt-[16vh] max-w-[340px] rounded-2xl border border-white/[0.16] bg-white/[0.08] px-5 py-6 text-center backdrop-blur-xl">
+            <motion.div variants={itemVariants} className="mx-auto mt-[12vh] max-w-[340px] rounded-2xl border border-white/[0.16] bg-white/[0.08] px-5 py-6 text-center backdrop-blur-xl">
               <p className="font-sans text-3xl font-black leading-tight text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.6)]">Match. Clear. Conquer.</p>
               <p className="mt-3 font-sans text-base font-semibold text-white/85">
-                Connect your account to unlock Story Mode and daily challenges.
+                Start your journey in Story Mode, defeat the boss, and unlock the Endless arena.
               </p>
+              <div className="mt-7">
+                <Connect />
+              </div>
+              <p className="mt-3 font-sans text-xs font-semibold text-white/55">Instant play with Cartridge</p>
             </motion.div>
           )}
         </motion.div>
@@ -331,15 +335,7 @@ const HomePage: React.FC = () => {
           <ArcadeButton disabled={isStartingGame || !zone} onClick={() => zone && handleStartGame(zone.settingsId)}>
             {isStartingGame ? "Starting..." : "New Game"}
           </ArcadeButton>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
-          >
-            <Connect />
-          </motion.div>
-        )}
+        ) : null}
       </div>
     </div>
   );
