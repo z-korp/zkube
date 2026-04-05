@@ -653,8 +653,6 @@ const MapPage: React.FC = () => {
             }}
             level={pendingLevelCompletion.level}
             levelMoves={pendingLevelCompletion.levelMoves}
-            prevTotalCubes={0}
-            totalCubes={0}
             prevTotalScore={pendingLevelCompletion.prevTotalScore}
             totalScore={pendingLevelCompletion.totalScore}
             gameLevel={pendingLevelCompletion.gameLevel}
