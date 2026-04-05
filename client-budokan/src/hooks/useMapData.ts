@@ -43,7 +43,7 @@ export interface UseMapDataParams {
   zones: StoryZoneMapState[];
 }
 
-export const NODES_PER_ZONE = 11;
+export const NODES_PER_ZONE = 10;
 export const TOTAL_ZONES = 2;
 export const GAMEPLAY_LEVELS = 10;
 const LEVELS_PER_ZONE = 10;

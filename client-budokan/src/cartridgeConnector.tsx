@@ -15,6 +15,13 @@ import manifestMainnet from "../../contracts/manifest_mainnet.json";
 const log = createLogger("cartridgeConnector");
 const CONTROLLER_SESSION_VERSION = "4";
 
+const {
+  VITE_PUBLIC_DEPLOY_TYPE,
+  VITE_PUBLIC_SLOT,
+  VITE_PUBLIC_NODE_URL,
+  VITE_PUBLIC_NAMESPACE,
+} = import.meta.env;
+
 function clearControllerStorage() {
   localStorage.removeItem("sessionSigner");
   localStorage.removeItem("session");
@@ -71,13 +78,6 @@ function migrateControllerSessions() {
 if (typeof window !== "undefined") {
   migrateControllerSessions();
 }
-
-const {
-  VITE_PUBLIC_DEPLOY_TYPE,
-  VITE_PUBLIC_SLOT,
-  VITE_PUBLIC_NODE_URL,
-  VITE_PUBLIC_NAMESPACE,
-} = import.meta.env;
 
 export const stringToFelt = (v: string) =>
   v ? shortString.encodeShortString(v) : "0x0";

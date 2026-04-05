@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
+import { Has, getComponentValue } from "@dojoengine/recs";
+import { useEntityQuery } from "@dojoengine/react";
 
 import { useDojo } from "@/dojo/useDojo";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
@@ -47,6 +49,7 @@ const HomePage: React.FC = () => {
   const { account } = useAccountCustom();
   const {
     setup: {
+      contractComponents: { ActiveStoryGame },
       systemCalls: { freeMint, create, startRun },
     },
   } = useDojo();
@@ -68,6 +71,14 @@ const HomePage: React.FC = () => {
 
   const shouldFetchMyGames = Boolean(account?.address);
   const normalizedOwner = normalizeAddress(account?.address);
+  const ownerBigInt = useMemo(() => {
+    if (!account?.address) return null;
+    try {
+      return BigInt(account.address);
+    } catch {
+      return null;
+    }
+  }, [account?.address]);
 
   const { games: ownedGames } = useGameTokensSlot({
     owner: shouldFetchMyGames ? normalizedOwner : undefined,
@@ -79,12 +90,26 @@ const HomePage: React.FC = () => {
     return ownedGames.filter((g) => !g.game_over);
   }, [ownedGames]);
 
+  const activeStoryGameEntityIds = useEntityQuery([Has(ActiveStoryGame)]);
+  const activeStoryGameId = useMemo(() => {
+    if (ownerBigInt === null) return null;
+    for (const entity of activeStoryGameEntityIds) {
+      const active = getComponentValue(ActiveStoryGame, entity);
+      if (!active) continue;
+      if (BigInt(active.player) !== ownerBigInt) continue;
+      const gameId = BigInt(active.game_id ?? 0);
+      if (gameId !== 0n) return gameId;
+    }
+    return null;
+  }, [ownerBigInt, activeStoryGameEntityIds, ActiveStoryGame]);
+
   const zone = zones[activeZone] ?? zones[0];
   const colors = getThemeColors(themeTemplate);
 
   const hasActiveRun = useMemo(() => {
-    return selectedMode === 1 && activeGames.length > 0;
-  }, [activeGames, selectedMode]);
+    if (selectedMode === 1) return activeGames.length > 0;
+    return activeStoryGameId !== null;
+  }, [activeGames, selectedMode, activeStoryGameId]);
 
   const activeRunTokenId = useMemo(() => {
     if (!activeGames.length) return null;
@@ -116,21 +141,31 @@ const HomePage: React.FC = () => {
               });
               return;
             }
-            const mintResult = await freeMint({ account, name: username ?? "", settingsId });
-            const gameId = mintResult.game_id;
-          if (gameId === 0n) throw new Error("Failed to extract game_id from mint");
-          await create({ account, token_id: gameId, mode: selectedMode });
-          showToast({ message: `Game started!`, type: "success" });
-          navigate("mutator", gameId);
-          return;
-        }
 
-        const result = await startRun({ account, zone_id: selectedZone.zoneId });
-        const gameId = result.game_id;
-        if (gameId === 0n) throw new Error("Failed to start story run");
-        showToast({ message: "Story run started.", type: "success" });
-        navigate("play", gameId);
-      } catch (error) {
+            // Endless settings are odd IDs (zone1 -> 1, zone2 -> 3, ...)
+            const endlessSettingsId = selectedZone.zoneId * 2 - 1;
+            const mintResult = await freeMint({ account, name: username ?? "", settingsId: endlessSettingsId });
+            const gameId = mintResult.game_id;
+            if (gameId === 0n) throw new Error("Failed to extract game_id from mint");
+            await create({ account, token_id: gameId, mode: selectedMode });
+            showToast({ message: "Game started!", type: "success" });
+            navigate("mutator", gameId);
+            return;
+          }
+
+          // Story mode: resume existing active story game instead of failing on start_run.
+          if (activeStoryGameId) {
+            showToast({ message: "Resuming active story run.", type: "success" });
+            navigate("map", activeStoryGameId);
+            return;
+          }
+
+          const result = await startRun({ account, zone_id: selectedZone.zoneId });
+          const gameId = result.game_id;
+          if (gameId === 0n) throw new Error("Failed to start story run");
+          showToast({ message: "Story run started.", type: "success" });
+          navigate("play", gameId);
+        } catch (error) {
         console.error("Error starting game:", error);
         showToast({
           message: "Failed to start game.",
@@ -150,14 +185,19 @@ const HomePage: React.FC = () => {
       selectedMode,
       zones,
       username,
+      activeStoryGameId,
     ],
   );
 
   const handleContinue = useCallback(() => {
-    if (activeRunTokenId) {
+    if (selectedMode === 1 && activeRunTokenId) {
       navigate("map", activeRunTokenId);
+      return;
     }
-  }, [activeRunTokenId, navigate]);
+    if (selectedMode === 0 && activeStoryGameId) {
+      navigate("map", activeStoryGameId);
+    }
+  }, [selectedMode, activeRunTokenId, activeStoryGameId, navigate]);
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[72px] pt-8">
