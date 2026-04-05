@@ -321,16 +321,63 @@ print_info "Step 8: Extracting system addresses..."
 
 GAME_SYSTEM=""
 CONFIG_SYSTEM=""
-CUBE_TOKEN="0x0"
+LEVEL_SYSTEM=""
+STORY_SYSTEM=""
+DAILY_CHALLENGE_SYSTEM=""
 if [ -f "$MANIFEST_FILE" ]; then
     GAME_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-game_system\") | .address" 2>/dev/null)
     CONFIG_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-config_system\") | .address" 2>/dev/null)
+    LEVEL_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-level_system\") | .address" 2>/dev/null)
+    STORY_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-story_system\") | .address" 2>/dev/null)
+    DAILY_CHALLENGE_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-daily_challenge_system\") | .address" 2>/dev/null)
 fi
 
 #-----------------
-# Step 10: Update torii config (after extracting CUBE_TOKEN)
+# Step 10: Grant ZStar roles to systems
 #-----------------
-print_info "Step 9: Updating torii configuration..."
+print_info "Step 9: Granting ZStar roles..."
+
+MINTER_ROLE_FELT="0x4d494e5445525f524f4c45"
+BURNER_ROLE_FELT="0x4255524e45525f524f4c45"
+
+grant_zstar_role() {
+    local role_name="$1"
+    local role_felt="$2"
+    local system_name="$3"
+    local system_addr="$4"
+
+    if [ -z "$system_addr" ] || [ "$system_addr" = "null" ]; then
+        print_warn "  Skipping $role_name for $system_name (address not found)"
+        return
+    fi
+
+    local OUTPUT=$(sozo execute -P $PROFILE \
+        --account-address "$ACCOUNT_ADDRESS" \
+        --private-key "$PRIVATE_KEY" \
+        --rpc-url "$RPC_URL" \
+        "$ZSTAR_ADDRESS" \
+        grant_role "$role_felt" "$system_addr" 2>&1) || true
+
+    if echo "$OUTPUT" | grep -q "Transaction hash"; then
+        print_info "  Granted $role_name to $system_name ($system_addr)"
+    else
+        print_warn "  Failed to grant $role_name to $system_name"
+        echo "$OUTPUT"
+    fi
+    sleep 5
+}
+
+grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "game_system" "$GAME_SYSTEM"
+grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "level_system" "$LEVEL_SYSTEM"
+grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "story_system" "$STORY_SYSTEM"
+grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "daily_challenge_system" "$DAILY_CHALLENGE_SYSTEM"
+grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "config_system" "$CONFIG_SYSTEM"
+grant_zstar_role "BURNER_ROLE" "$BURNER_ROLE_FELT" "config_system" "$CONFIG_SYSTEM"
+
+#-----------------
+# Step 11: Update torii config
+#-----------------
+print_info "Step 10: Updating torii configuration..."
 
 # Build contracts array for Torii config
 cat > "$TORII_CONFIG" << EOF
@@ -353,9 +400,9 @@ EOF
 print_info "  Updated $TORII_CONFIG"
 
 #-----------------
-# Step 11: Copy manifest to contracts root (for client import)
+# Step 12: Copy manifest to contracts root (for client import)
 #-----------------
-print_info "Step 10: Copying manifest..."
+print_info "Step 11: Copying manifest..."
 
 # Client imports from contracts/manifest_slot.json
 CONTRACTS_MANIFEST="${CONTRACTS_DIR}/manifest_slot.json"
@@ -367,9 +414,9 @@ else
 fi
 
 #-----------------
-# Step 12: Update client .env.slot
+# Step 13: Update client .env.slot
 #-----------------
-print_info "Step 11: Updating client configuration..."
+print_info "Step 12: Updating client configuration..."
 
 # Extract slot name from RPC URL (e.g., zkube-djizus from https://api.cartridge.gg/x/zkube-djizus/katana)
 SLOT_NAME=$(echo "$RPC_URL" | sed 's|.*/x/\([^/]*\)/.*|\1|')
@@ -411,6 +458,9 @@ echo "FullTokenContract:        $TOKEN_ADDRESS"
 echo "MinigameRegistryContract: $REGISTRY_ADDRESS"
 echo "ZStarToken:               $ZSTAR_ADDRESS"
 echo "game_system:              $GAME_SYSTEM"
+echo "level_system:             $LEVEL_SYSTEM"
+echo "story_system:             $STORY_SYSTEM"
+echo "daily_challenge_system:   $DAILY_CHALLENGE_SYSTEM"
 echo "config_system:            $CONFIG_SYSTEM"
 echo ""
 echo "Configuration files updated:"

@@ -232,7 +232,6 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const handleTouchStart = (e: React.TouchEvent, block: Block) => {
-    e.preventDefault();
     if (gameState !== GameState.WAITING || isTxProcessing) {
       return;
     }
@@ -305,7 +304,6 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    e.preventDefault();
     const touch = e.touches[0];
     handleDragMove(touch.clientX, MoveType.TOUCH);
   };
@@ -735,12 +733,13 @@ const Grid: React.FC<GridProps> = ({
           ref={gridRef}
         >
           <div
-            className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${
+            className={`relative p-r-[1px] p-b-[1px] touch-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${
               isPlayerInDanger ? " animated-box-player-danger" : ""
             }`}
             style={{
               height: `${gridHeight * gridSize + borderSize}px`,
               width: `${gridWidth * gridSize + borderSize}px`,
+              touchAction: "none",
               backgroundImage:
                 `linear-gradient(var(--theme-grid-lines, #1E293B) 2px, transparent 2px), linear-gradient(to right, var(--theme-grid-lines, #1E293B) 2px, transparent 2px)`,
               backgroundSize: `${gridSize}px ${gridSize}px, ${gridSize}px ${gridSize}px`,
