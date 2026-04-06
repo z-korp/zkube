@@ -14,6 +14,12 @@ pub trait IProgressSystem<T> {
     fn progress(ref self: T, player_id: felt252, task_id: felt252, count: u128);
 }
 
+/// Public quest claiming — called by the client to claim completed quests
+#[starknet::interface]
+pub trait IQuestClaim<T> {
+    fn quest_claim(ref self: T, player: ContractAddress, quest_id: felt252, interval_id: u64);
+}
+
 #[dojo::contract]
 mod progress_system {
     use achievement::component::Component as AchievementComponent;
@@ -232,6 +238,22 @@ mod progress_system {
 
             self.quest.progress(world, player_id, task_id, count, true);
             self.achievement.progress(world, player_id, task_id, count, true);
+        }
+    }
+
+    // ── Quest claiming (public, called by client)
+    // ─────────────────────────────────────────────
+
+    #[abi(embed_v0)]
+    impl QuestClaimImpl of super::IQuestClaim<ContractState> {
+        fn quest_claim(
+            ref self: ContractState,
+            player: ContractAddress,
+            quest_id: felt252,
+            interval_id: u64,
+        ) {
+            let world: WorldStorage = self.world(@DEFAULT_NS());
+            self.quest.claim(world, player.into(), quest_id, interval_id);
         }
     }
 
