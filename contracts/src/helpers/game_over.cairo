@@ -26,11 +26,6 @@ use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTra
 pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAddress) {
     let run_data = game.get_run_data();
     let run_type = run_data.run_type;
-    let capped_score: u16 = if run_data.total_score > 65535 {
-        65535
-    } else {
-        run_data.total_score.try_into().unwrap()
-    };
 
     let mut player_meta: PlayerMeta = world.read_model(player);
     if !player_meta.exists() {
@@ -145,7 +140,7 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
                 game_challenge.challenge_id,
                 game.game_id,
                 player,
-                capped_score,
+                run_data.total_score,
                 run_data.current_level,
                 run_data.current_difficulty,
                 total_stars,
@@ -161,13 +156,15 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
 }
 
 /// Compute ranking value by run type.
-/// - Zone: total_stars * 65536 + total_score
+/// - Zone: (total_stars << 32) | total_score  (stars-first composite)
 /// - Endless: total_score
-fn compute_ranking_value(run_type: u8, total_stars: u8, total_score: u16) -> u32 {
+fn compute_ranking_value(run_type: u8, total_stars: u8, total_score: u32) -> u64 {
     if run_type == 1 {
         total_score.into()
     } else {
-        total_stars.into() * 65536 + total_score.into()
+        let stars_u64: u64 = total_stars.into();
+        let score_u64: u64 = total_score.into();
+        (stars_u64 * 0x100000000) + score_u64
     }
 }
 
@@ -200,7 +197,7 @@ fn auto_submit_daily_result(
     challenge_id: u32,
     game_id: felt252,
     player: ContractAddress,
-    total_score: u16,
+    total_score: u32,
     current_level: u8,
     endless_depth: u8,
     total_stars: u8,
@@ -219,7 +216,7 @@ fn auto_submit_daily_result(
     let ranking_value = compute_ranking_value(run_type, total_stars, total_score);
 
     // Check if this beats the player's current best
-    let current_best: u32 = if run_type == 1 {
+    let current_best: u64 = if run_type == 1 {
         entry.best_score.into()
     } else {
         let best_stars = get_entry_best_stars(world, entry);

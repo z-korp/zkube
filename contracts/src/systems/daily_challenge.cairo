@@ -314,16 +314,12 @@ mod daily_challenge_system {
 
             // Extract metrics from game run_data
             let run_data = game.get_run_data();
-            let score: u16 = if run_data.total_score > 65535 {
-                65535
-            } else {
-                run_data.total_score.try_into().unwrap()
-            };
+            let score: u32 = run_data.total_score;
             let level = run_data.current_level;
             let depth = run_data.current_difficulty;
 
             // Run-type-aware ranking:
-            // - Zone: total_stars * 65536 + total_score
+            // - Zone: (total_stars << 32) | total_score  (stars-first composite)
             // - Endless: total_score
             let run_type = challenge.run_type;
             let stars = if run_type == 0 {
@@ -331,10 +327,10 @@ mod daily_challenge_system {
             } else {
                 0
             };
-            let ranking_value: u32 = InternalImpl::compute_ranking_value(run_type, stars, score);
+            let ranking_value: u64 = InternalImpl::compute_ranking_value(run_type, stars, score);
 
             // Check if this beats the player's current best
-            let current_best: u32 = if run_type == 1 {
+            let current_best: u64 = if run_type == 1 {
                 entry.best_score.into()
             } else {
                 let best_stars = if entry.best_game_id == 0 {
@@ -455,14 +451,16 @@ mod daily_challenge_system {
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         /// Compute ranking value by run type.
-        /// - Zone: total_stars * 65536 + total_score
+        /// - Zone: (total_stars << 32) | total_score  (stars-first composite)
         /// - Endless: total_score
         #[inline(always)]
-        fn compute_ranking_value(run_type: u8, total_stars: u8, total_score: u16) -> u32 {
+        fn compute_ranking_value(run_type: u8, total_stars: u8, total_score: u32) -> u64 {
             if run_type == 1 {
                 total_score.into()
             } else {
-                total_stars.into() * 65536 + total_score.into()
+                let stars_u64: u64 = total_stars.into();
+                let score_u64: u64 = total_score.into();
+                (stars_u64 * 0x100000000) + score_u64
             }
         }
 

@@ -47,7 +47,7 @@ pub struct DailyEntry {
     /// Number of attempts by this player (each burns 1 zTicket)
     pub attempts: u32,
     /// Best score achieved across all attempts
-    pub best_score: u16,
+    pub best_score: u32,
     /// Best level reached across all attempts
     pub best_level: u8,
     /// Best endless depth reached across all attempts
@@ -72,8 +72,8 @@ pub struct DailyLeaderboard {
     pub rank: u32,
     /// Player at this rank
     pub player: ContractAddress,
-    /// Ranking metric value (score, level, or cubes depending on challenge)
-    pub value: u32,
+    /// Ranking metric value — u64 to hold zone composite: (stars << 32) | score
+    pub value: u64,
 }
 
 // ============================================================

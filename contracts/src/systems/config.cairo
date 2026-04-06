@@ -115,6 +115,7 @@ mod config_system {
     use game_components_embeddable_game_standard::minigame::interface::{
         IMinigameDispatcher, IMinigameDispatcherTrait,
     };
+    use openzeppelin_access::accesscontrol::{AccessControlComponent, DEFAULT_ADMIN_ROLE};
     use openzeppelin_interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin_introspection::src5::SRC5Component;
     use starknet::storage::{
@@ -132,11 +133,17 @@ mod config_system {
     use zkube::types::difficulty::Difficulty;
     use super::IConfigSystem;
 
+    pub const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
+
     component!(path: SettingsComponent, storage: settings, event: SettingsEvent);
+    component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
 
     impl SettingsInternalImpl = SettingsComponent::InternalImpl<ContractState>;
-
+    #[abi(embed_v0)]
+    impl AccessControlImpl =
+        AccessControlComponent::AccessControlImpl<ContractState>;
+    impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
     #[abi(embed_v0)]
     impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
 
@@ -150,6 +157,8 @@ mod config_system {
         #[substorage(v0)]
         settings: SettingsComponent::Storage,
         #[substorage(v0)]
+        accesscontrol: AccessControlComponent::Storage,
+        #[substorage(v0)]
         src5: SRC5Component::Storage,
     }
 
@@ -159,6 +168,8 @@ mod config_system {
         GameSettingsCreated: GameSettingsCreated,
         #[flat]
         SettingsEvent: SettingsComponent::Event,
+        #[flat]
+        AccessControlEvent: AccessControlComponent::Event,
         #[flat]
         SRC5Event: SRC5Component::Event,
     }
@@ -179,7 +190,16 @@ mod config_system {
     ) {
         let mut world: WorldStorage = self.world(@DEFAULT_NS());
         self.settings.initializer();
+
+        // Initialize access control: creator gets DEFAULT_ADMIN_ROLE + ADMIN_ROLE
+        self.accesscontrol.initializer();
+        self.accesscontrol._grant_role(DEFAULT_ADMIN_ROLE, creator_address);
+        self.accesscontrol._grant_role(ADMIN_ROLE, creator_address);
+
         self.cube_token_address.write(cube_token_address);
+        // NOTE: zstar_token_address is seeded from cube_token_address init arg.
+        // cube_token_address is otherwise unused today. Use set_zstar_address()
+        // post-deploy if the zStar contract differs from the cube_token arg.
         self.zstar_token_address.write(cube_token_address);
         self.treasury_address.write(creator_address);
 
@@ -833,10 +853,12 @@ mod config_system {
         }
 
         fn set_zstar_address(ref self: ContractState, token: ContractAddress) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.zstar_token_address.write(token);
         }
 
         fn set_treasury(ref self: ContractState, treasury: ContractAddress) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.treasury_address.write(treasury);
         }
 
@@ -852,6 +874,7 @@ mod config_system {
             payment_token: ContractAddress,
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            InternalImpl::assert_owner_or_admin(@self, @world, settings_id);
             let mut metadata: GameSettingsMetadata = world.read_model(settings_id);
             metadata.is_free = is_free;
             metadata.price = price;
@@ -861,6 +884,7 @@ mod config_system {
 
         fn set_zone_enabled(ref self: ContractState, settings_id: u32, enabled: bool) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            InternalImpl::assert_owner_or_admin(@self, @world, settings_id);
             let mut metadata: GameSettingsMetadata = world.read_model(settings_id);
             metadata.enabled = enabled;
             world.write_model(@metadata);
@@ -868,12 +892,14 @@ mod config_system {
 
         fn set_zone_theme(ref self: ContractState, settings_id: u32, theme_id: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            InternalImpl::assert_owner_or_admin(@self, @world, settings_id);
             let mut metadata: GameSettingsMetadata = world.read_model(settings_id);
             metadata.theme_id = theme_id;
             world.write_model(@metadata);
         }
 
         fn set_star_eligible(ref self: ContractState, settings_id: u32, eligible: bool) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.star_eligible.write(settings_id, eligible);
         }
 
@@ -890,6 +916,16 @@ mod config_system {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
+        /// Assert caller is settings owner or has ADMIN_ROLE.
+        fn assert_owner_or_admin(self: @ContractState, world: @WorldStorage, settings_id: u32) {
+            let caller = get_caller_address();
+            let metadata: GameSettingsMetadata = world.read_model(settings_id);
+            if caller == metadata.created_by {
+                return;
+            }
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+        }
+
         fn compute_hybrid_terms(star_balance: u256, star_cost: u256, price: u256) -> (u256, u256) {
             if star_cost.is_zero() {
                 return (0, price);

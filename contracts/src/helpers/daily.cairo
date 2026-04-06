@@ -18,7 +18,7 @@ pub const MAX_LEADERBOARD_SIZE: u32 = 250;
 /// - game_over::auto_submit_daily_result (inline during game over)
 /// - daily_challenge_system::submit_result (manual backup submission)
 pub fn update_daily_leaderboard(
-    ref world: WorldStorage, challenge_id: u32, player: ContractAddress, new_value: u32,
+    ref world: WorldStorage, challenge_id: u32, player: ContractAddress, new_value: u64,
 ) {
     // Walk the leaderboard from rank 1 to find insertion point
     let mut insert_rank: u32 = 0;

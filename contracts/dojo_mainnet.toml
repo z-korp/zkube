@@ -38,12 +38,12 @@ account_address = "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01f
 ]
 "zkube_v2_1_0-config_system" = [
     "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7", # creator
-    "0x0", # cube_token_address
+    "0x0", # cube_token_address — DEPLOY BLOCKER: set to zStar token address before mainnet deploy
     "0x033068f6539f8e6e6b131e6b2b814e6c34a5224bc66947c47dab9dfee93b35fb", # payment_token_address (USDC)
 ]
 "zkube_v2_1_0-daily_challenge_system" = [
     "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7", # admin
-    "0x0", # lords_address
+    "0x0", # lords_address — DEPLOY BLOCKER: set to LORDS token address before mainnet deploy
 ]
 
 [migration]

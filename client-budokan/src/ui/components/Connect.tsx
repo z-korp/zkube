@@ -7,7 +7,7 @@ type ConnectProps = {
   pendingLabel?: string;
 };
 
-const Connect = ({ ctaLabel = "CONNECT WALLET", pendingLabel = "CONNECTING..." }: ConnectProps) => {
+const Connect = ({ ctaLabel = "CONNECT ACCOUNT", pendingLabel = "CONNECTING..." }: ConnectProps) => {
   const { connect, connectors, isPending } = useConnect();
 
   const handleConnect = () => {

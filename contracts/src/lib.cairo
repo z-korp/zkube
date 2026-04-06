@@ -105,5 +105,7 @@ pub mod external {
 
 #[cfg(test)]
 mod tests {
+    mod test_config_auth;
+    mod test_daily_scores;
     mod test_run_data;
 }

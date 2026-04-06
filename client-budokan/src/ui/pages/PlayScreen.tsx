@@ -294,8 +294,8 @@ const PlayScreen: React.FC = () => {
       <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Connect Wallet</DialogTitle>
-            <DialogDescription>Connect your wallet to play.</DialogDescription>
+            <DialogTitle>Connect Account</DialogTitle>
+            <DialogDescription>Connect your account to play.</DialogDescription>
           </DialogHeader>
           <div className="flex justify-center pt-4">
             <Connect />
