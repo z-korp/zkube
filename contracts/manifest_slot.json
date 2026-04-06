@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x4b615220ebc7d2abf241adc90ede0885739cead167a36f7e94916d4577b493f",
-    "seed": "zkube_v2_2",
+    "address": "0x7927b397977aba5bdc29e4c55dda4f493575e0edf0097cdeeb4d941b2eb2662",
+    "seed": "zkube_v2_5",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,8 +33,8 @@
   },
   "contracts": [
     {
-      "address": "0x87362b38fbc018afe8eab45a9d778fe720b9599ac5aaf691e4f4f0df63f2a9",
-      "class_hash": "0x2690de7793e4234b4f76a6f53733bdb40dc43b005a66c158fe1a7f6017becf0",
+      "address": "0x2d60280b65452ece371a7e47cab0d2cab50e089f5a0c0f60d7f171451162f9",
+      "class_hash": "0x3e100fe47e330d85f1bc0e08da71503f118d3992a84685105686295d79a04db",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x06e5f1a7bf27f6075006ea9835d6614c7889779e9db19d5edf5c7e894c77868b",
@@ -46,11 +46,11 @@
         "dojo_init",
         "add_game_settings",
         "add_custom_game_settings",
-        "purchase_map",
-        "unlock_with_stars",
-        "set_map_pricing",
-        "set_map_enabled",
-        "set_map_theme",
+        "purchase_zone_access",
+        "unlock_zone_with_stars",
+        "set_zone_pricing",
+        "set_zone_enabled",
+        "set_zone_theme",
         "set_star_eligible",
         "set_zstar_address",
         "set_treasury",
@@ -58,8 +58,8 @@
       ]
     },
     {
-      "address": "0x5d2a211a95d3d0a60e1bd2c522671045342760f8876a3761728732018c5bd36",
-      "class_hash": "0x7f4a98dec2d0dbff54de975330b007391a5a167d35fa91eb772714163a7336d",
+      "address": "0x73375ef77d8e081fb1a9b50cbeebddf194ead89bed64f255bd0b7a1efb0b83a",
+      "class_hash": "0x67ab3c092045a14bba511cb753946bfd94683351530582e4eccd161111921ea",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x0"
@@ -79,8 +79,8 @@
       ]
     },
     {
-      "address": "0x3fc509f78ab5152d2eed43e4a420ed1c099fe30f3ef79417aeeb6997d8a617e",
-      "class_hash": "0x1bf75b094c1a78f869f6f62b4cdd2b0db41bbef03dc4f38c1bcb32bb3798f84",
+      "address": "0x724f15d614a567226bf0d9902170aba641bf0ad7bfba03e481ff51cd56c96ce",
+      "class_hash": "0x7a5d82ecc7af45b6718f2f5368866ae421d6eab54c4bd5a4450f25ab16f6fa8",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x054b2962dfc4363d2140827e12bd29f936973f1b52f07f8362ca26a87c6f9aec",
@@ -100,8 +100,8 @@
       ]
     },
     {
-      "address": "0xd10b9b87336e972fbf4cb660005e62c523a2dc08cfd5ac9337b92baf89183e",
-      "class_hash": "0x1677f2b6409f86c938b37c3e9794f3a008334aef6c0ec27ebf83b965688c64b",
+      "address": "0x23b52eb3db9841f181fc05bc446d18ec41ed69dd1b731e6638001603dc05514",
+      "class_hash": "0x7a34f46c2b4d91b95cee82fbb595302be96e0ac4822ee0cb43236a44f34c3cc",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-grid_system",
       "selector": "0x2732f9d5d9f7ff5bcdb81566cb6589ca0fbf32cdb06911ea678adb3b5b06c37",
@@ -115,8 +115,8 @@
       ]
     },
     {
-      "address": "0x5dd21c7f5ac6ae326741c1a3b46fc65467d312df3861d8e1c379eb0e6690754",
-      "class_hash": "0x1471093cc6f457a6a31601e136ffea2ac95bc065d8898ee7d585d667eeaeba1",
+      "address": "0x1b48e63641409ec285885afbdf8d6eba4a8f5793a49bed27477532b8c3199b8",
+      "class_hash": "0x32172e3c45ec138ed5afcc2c513338a16c00bac2afb9388d2a2f9c6cb725de4",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-level_system",
       "selector": "0x1689592ed01fb67e736e3075b7d3b060bfd9ea2904147c7e161bc3f08ae2e9",
@@ -130,8 +130,8 @@
       ]
     },
     {
-      "address": "0x5dc29c5f1247602bc55f308f1286bbf31f043c9402db5971ddbf67591a29cdc",
-      "class_hash": "0x522674d15c2a4f34e9c2971c8f462f6f09b70c81812e210d03e8546bd662195",
+      "address": "0x3f492b5c6f3f5bf9de1a75c640f6cbd8c62b6c5116ff0d322a1748f3997c11",
+      "class_hash": "0x423c99e100df88035c23a523f50df1668718ac58d7f663d86e17250a10ff205",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-move_system",
       "selector": "0x2c6e7f38e7f45f67fca81df91805a8f3ee1d9842366e3e3d32f13f46cbf60d",
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "address": "0x372dc762e837a83d16d1544941550f8703b7664bce112a6f729b99c6e8810b7",
+      "address": "0x5758ca7a5f22614ea8d3c715d8ef80f4843f0c4cffe5eb7cfc7747ed67cb4df",
       "class_hash": "0x285dcc05a42f92bb508b75667ee9339cea43159d1177f7865141fcd87f37eed",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-renderer_systems",
@@ -151,15 +151,15 @@
       ]
     },
     {
-      "address": "0x7c74b9457d2ebc79681ffd6ebcbc4e4c65fad79165db64eca10c0bfa285a96f",
-      "class_hash": "0x30b7da8341ed89df91746f20ecfeea7d8d5380a47dd8b7cf502d5edde4cbb06",
+      "address": "0x3e91c55b00967db4c450dbceaceda80055f93c5b90e1eeb94ba6cfb54f00da1",
+      "class_hash": "0x306e408d6feea28f1727d3834527d2ed6956d78529295093f59b99ad18e3945",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-story_system",
       "selector": "0x7a30a121577725a5eb4f24e5c76d572f923bfd472c815d956aa4c88dd231e74",
       "systems": [
-        "start_run",
-        "replay_level",
-        "claim_perfection",
+        "start_story_attempt",
+        "replay_story_level",
+        "claim_zone_perfection",
         "upgrade"
       ]
     }
@@ -297,9 +297,9 @@
           "key": false
         }
       ],
-      "class_hash": "0x7a0f5505abe0dc5988a651af0ce6ef752a4d4ff9ee69798157be8e35830618a",
-      "tag": "zkube_v2_1_0-ActiveStoryGame",
-      "selector": "0x16d728be0a02c649998500f2f1aae6c098edb4abb7b99f13019592902fecfcb"
+      "class_hash": "0x36ec7c3148b9151e47f542d84111120008ae8768eca64d73b224846df1ac0fd",
+      "tag": "zkube_v2_1_0-ActiveStoryAttempt",
+      "selector": "0x2fbbc7ba33bdce8aa467ef1226bd46fc9b9f1c29d10a4bde1153671cb6ad7d6"
     },
     {
       "members": [
@@ -398,17 +398,12 @@
           "key": false
         },
         {
-          "name": "game_mode",
+          "name": "run_type",
           "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "map_settings_id",
-          "type": "core::integer::u32",
           "key": false
         }
       ],
-      "class_hash": "0x4cd85af6d9ec8cfb6896da98919603a0232652f773c5e89c19a40ae8ed3f652",
+      "class_hash": "0x4e55cec0b1f5e7de2aa74033f8393796345e6b978b6a985ac94cb9a149c83b8",
       "tag": "zkube_v2_1_0-DailyChallenge",
       "selector": "0x51da372445b6d0d90ddfc99b1241955eff99a5702feb68f0fd94cd4ba51beb1"
     },
@@ -991,28 +986,6 @@
     {
       "members": [
         {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "key": true
-        },
-        {
-          "name": "settings_id",
-          "type": "core::integer::u32",
-          "key": true
-        },
-        {
-          "name": "purchased_at",
-          "type": "core::integer::u64",
-          "key": false
-        }
-      ],
-      "class_hash": "0x3aae619940a837d9fba12a0926a44617493033d8c49a719ecd6d64e66a9487d",
-      "tag": "zkube_v2_1_0-MapEntitlement",
-      "selector": "0x2a29dd63227bfda733b5db34eee3d6938e20936892be90b537c658ed202afc8"
-    },
-    {
-      "members": [
-        {
           "name": "mutator_id",
           "type": "core::integer::u8",
           "key": true
@@ -1090,7 +1063,7 @@
           "key": true
         },
         {
-          "name": "mode",
+          "name": "run_type",
           "type": "core::integer::u8",
           "key": true
         },
@@ -1110,7 +1083,7 @@
           "key": false
         },
         {
-          "name": "map_cleared",
+          "name": "zone_cleared",
           "type": "core::bool",
           "key": false
         },
@@ -1125,7 +1098,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x67f5ad98ca987a7839280c73fc1f3c8ad1556dba512d65997024e703a03a632",
+      "class_hash": "0x26421e2a703cc1a5bbdfa14bd0a1dddca98d3977bb255fb349649b1226d5511",
       "tag": "zkube_v2_1_0-PlayerBestRun",
       "selector": "0x1812a81d7ee2793a73ae15c1c6c8b2e0bb3a6212d5a64b765de473eaf426ac4"
     },
@@ -1334,9 +1307,9 @@
           "key": false
         }
       ],
-      "class_hash": "0x736cbc6660ec1b87596cf2cc7eb5eaed1253d971b8525b5e8a6abb94973f68f",
-      "tag": "zkube_v2_1_0-StoryGame",
-      "selector": "0x403c26afbbe2bc5fdecc2bc8b8c4b3e777251a255f889af39890cc30a40db1c"
+      "class_hash": "0x4748fed75f5c8ac9e4a3a53be23a3e343011b5ebe8e4ced01f3404b6304018b",
+      "tag": "zkube_v2_1_0-StoryAttempt",
+      "selector": "0x7638b88d53245fa24ba12dac5e3fada51277b4a74464d2fc6ddabb740dcbfa"
     },
     {
       "members": [
@@ -1371,9 +1344,9 @@
           "key": false
         }
       ],
-      "class_hash": "0x55b798d1ff3580e85447f0061ceba18297e5d1903a3bf26320c8d03f878ea53",
-      "tag": "zkube_v2_1_0-StoryProgress",
-      "selector": "0x46edcf1a19be47334166cbb0570b29d9c87dc762ee9b46c741c3b322fe25837"
+      "class_hash": "0x7a24c2c07388f315961114396241580525d99a889db2cfc5772f73f4624257",
+      "tag": "zkube_v2_1_0-StoryZoneProgress",
+      "selector": "0x25cae23854a81845b0d9073ded2fb3cd6dd2dbc187425087f30b7e3b1e1f809"
     },
     {
       "members": [
@@ -1450,6 +1423,28 @@
       "class_hash": "0x679795671621a87435cd34bdeeba57e15c67a6bbef47dbee2f92062d73d1b0d",
       "tag": "zkube_v2_1_0-WeeklyEndlessLeaderboard",
       "selector": "0x3c5b41bdaecbd70cada7ce144b76b9643051d2dc79ecaf9fcc1c76ef14ce968"
+    },
+    {
+      "members": [
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
+          "name": "settings_id",
+          "type": "core::integer::u32",
+          "key": true
+        },
+        {
+          "name": "purchased_at",
+          "type": "core::integer::u64",
+          "key": false
+        }
+      ],
+      "class_hash": "0x63c5b3f095140a69cc953ef5047ffd10cb0c7eee751601c2ecfc531a7c10c97",
+      "tag": "zkube_v2_1_0-ZoneEntitlement",
+      "selector": "0x56833ed7f196a27b416a260abe3a708eec98af313665befcc711b31c1cc979f"
     }
   ],
   "events": [
@@ -6312,12 +6307,8 @@
           "type": "core::bool"
         },
         {
-          "name": "game_mode",
+          "name": "run_type",
           "type": "core::integer::u8"
-        },
-        {
-          "name": "map_settings_id",
-          "type": "core::integer::u32"
         }
       ]
     },
@@ -6354,12 +6345,8 @@
           "type": "core::bool"
         },
         {
-          "name": "game_mode",
+          "name": "run_type",
           "type": "core::integer::u8"
-        },
-        {
-          "name": "map_settings_id",
-          "type": "core::integer::u32"
         }
       ]
     },
@@ -6533,7 +6520,7 @@
     },
     {
       "type": "struct",
-      "name": "zkube::models::entitlement::MapEntitlement",
+      "name": "zkube::models::entitlement::ZoneEntitlement",
       "members": [
         {
           "name": "player",
@@ -6551,7 +6538,7 @@
     },
     {
       "type": "struct",
-      "name": "zkube::models::entitlement::MapEntitlementValue",
+      "name": "zkube::models::entitlement::ZoneEntitlementValue",
       "members": [
         {
           "name": "purchased_at",
@@ -6561,7 +6548,7 @@
     },
     {
       "type": "event",
-      "name": "zkube::models::entitlement::m_MapEntitlement::Event",
+      "name": "zkube::models::entitlement::m_ZoneEntitlement::Event",
       "kind": "enum",
       "variants": []
     },
@@ -6954,7 +6941,7 @@
           "type": "core::integer::u32"
         },
         {
-          "name": "mode",
+          "name": "run_type",
           "type": "core::integer::u8"
         },
         {
@@ -6970,7 +6957,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "map_cleared",
+          "name": "zone_cleared",
           "type": "core::bool"
         },
         {
@@ -7000,7 +6987,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "map_cleared",
+          "name": "zone_cleared",
           "type": "core::bool"
         },
         {
@@ -7067,7 +7054,7 @@
     },
     {
       "type": "struct",
-      "name": "zkube::models::story::ActiveStoryGame",
+      "name": "zkube::models::story::ActiveStoryAttempt",
       "members": [
         {
           "name": "player",
@@ -7093,7 +7080,7 @@
     },
     {
       "type": "struct",
-      "name": "zkube::models::story::ActiveStoryGameValue",
+      "name": "zkube::models::story::ActiveStoryAttemptValue",
       "members": [
         {
           "name": "game_id",
@@ -7115,7 +7102,7 @@
     },
     {
       "type": "struct",
-      "name": "zkube::models::story::StoryGame",
+      "name": "zkube::models::story::StoryAttempt",
       "members": [
         {
           "name": "game_id",
@@ -7141,7 +7128,7 @@
     },
     {
       "type": "struct",
-      "name": "zkube::models::story::StoryGameValue",
+      "name": "zkube::models::story::StoryAttemptValue",
       "members": [
         {
           "name": "player",
@@ -7163,7 +7150,7 @@
     },
     {
       "type": "struct",
-      "name": "zkube::models::story::StoryProgress",
+      "name": "zkube::models::story::StoryZoneProgress",
       "members": [
         {
           "name": "player",
@@ -7193,7 +7180,7 @@
     },
     {
       "type": "struct",
-      "name": "zkube::models::story::StoryProgressValue",
+      "name": "zkube::models::story::StoryZoneProgressValue",
       "members": [
         {
           "name": "level_stars",
@@ -7215,19 +7202,19 @@
     },
     {
       "type": "event",
-      "name": "zkube::models::story::m_ActiveStoryGame::Event",
+      "name": "zkube::models::story::m_ActiveStoryAttempt::Event",
       "kind": "enum",
       "variants": []
     },
     {
       "type": "event",
-      "name": "zkube::models::story::m_StoryGame::Event",
+      "name": "zkube::models::story::m_StoryAttempt::Event",
       "kind": "enum",
       "variants": []
     },
     {
       "type": "event",
-      "name": "zkube::models::story::m_StoryProgress::Event",
+      "name": "zkube::models::story::m_StoryZoneProgress::Event",
       "kind": "enum",
       "variants": []
     },
@@ -7615,7 +7602,7 @@
         },
         {
           "type": "function",
-          "name": "purchase_map",
+          "name": "purchase_zone_access",
           "inputs": [
             {
               "name": "settings_id",
@@ -7627,7 +7614,7 @@
         },
         {
           "type": "function",
-          "name": "unlock_with_stars",
+          "name": "unlock_zone_with_stars",
           "inputs": [
             {
               "name": "settings_id",
@@ -7639,7 +7626,7 @@
         },
         {
           "type": "function",
-          "name": "has_map_access",
+          "name": "has_zone_access",
           "inputs": [
             {
               "name": "player",
@@ -7670,7 +7657,7 @@
         },
         {
           "type": "function",
-          "name": "set_map_pricing",
+          "name": "set_zone_pricing",
           "inputs": [
             {
               "name": "settings_id",
@@ -7694,7 +7681,7 @@
         },
         {
           "type": "function",
-          "name": "set_map_enabled",
+          "name": "set_zone_enabled",
           "inputs": [
             {
               "name": "settings_id",
@@ -7710,7 +7697,7 @@
         },
         {
           "type": "function",
-          "name": "set_map_theme",
+          "name": "set_zone_theme",
           "inputs": [
             {
               "name": "settings_id",
@@ -7885,7 +7872,7 @@
               "type": "core::integer::u8"
             },
             {
-              "name": "zone_id",
+              "name": "run_type",
               "type": "core::integer::u8"
             },
             {
@@ -8039,7 +8026,7 @@
               "type": "core::felt252"
             },
             {
-              "name": "mode",
+              "name": "run_type",
               "type": "core::integer::u8"
             }
           ],
@@ -8055,7 +8042,7 @@
               "type": "core::felt252"
             },
             {
-              "name": "mode",
+              "name": "run_type",
               "type": "core::integer::u8"
             }
           ],
@@ -8527,7 +8514,7 @@
       "items": [
         {
           "type": "function",
-          "name": "start_run",
+          "name": "start_story_attempt",
           "inputs": [
             {
               "name": "zone_id",
@@ -8543,7 +8530,7 @@
         },
         {
           "type": "function",
-          "name": "replay_level",
+          "name": "replay_story_level",
           "inputs": [
             {
               "name": "zone_id",
@@ -8563,7 +8550,7 @@
         },
         {
           "type": "function",
-          "name": "claim_perfection",
+          "name": "claim_zone_perfection",
           "inputs": [
             {
               "name": "zone_id",
