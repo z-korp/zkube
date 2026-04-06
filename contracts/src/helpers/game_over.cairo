@@ -15,7 +15,9 @@ use zkube::models::daily::{
 };
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
-use zkube::models::story::{ActiveStoryGame, ActiveStoryGameTrait, StoryGame, StoryGameTrait};
+use zkube::models::story::{
+    ActiveStoryAttempt, ActiveStoryAttemptTrait, StoryAttempt, StoryAttemptTrait,
+};
 use zkube::models::weekly::current_week_id;
 use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
 
@@ -23,7 +25,7 @@ use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTra
 /// Used by game_system (surrender) and move_system (level failed/game over).
 pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAddress) {
     let run_data = game.get_run_data();
-    let mode = run_data.mode;
+    let run_type = run_data.run_type;
     let capped_score: u16 = if run_data.total_score > 65535 {
         65535
     } else {
@@ -37,12 +39,12 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
     player_meta.update_best_level(run_data.current_level);
 
     let settings = ConfigUtilsTrait::get_game_settings(world, game.game_id);
-    let story_game: StoryGame = world.read_model(game.game_id);
+    let story_game: StoryAttempt = world.read_model(game.game_id);
 
     if story_game.exists() {
-        let active_story: ActiveStoryGame = world.read_model(player);
+        let active_story: ActiveStoryAttempt = world.read_model(player);
         if active_story.exists() && active_story.game_id == game.game_id {
-            world.write_model(@ActiveStoryGameTrait::empty(player));
+            world.write_model(@ActiveStoryAttemptTrait::empty(player));
         }
 
         world.write_model(@player_meta);
@@ -62,16 +64,16 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
         return;
     }
 
-    let total_stars = if mode == 0 {
+    let total_stars = if run_type == 0 {
         calculate_total_stars(game)
     } else {
         0
     };
-    let mut best_run: PlayerBestRun = world.read_model((player, settings.settings_id, mode));
-    if mode == 0 {
+    let mut best_run: PlayerBestRun = world.read_model((player, settings.settings_id, run_type));
+    if run_type == 0 {
         best_run.update_best_level_stars(game.level_stars);
     }
-    if mode == 0 && run_data.zone_cleared && !best_run.map_cleared {
+    if run_type == 0 && run_data.zone_cleared && !best_run.zone_cleared {
         world
             .emit_event(@ZoneClearBonus { player, settings_id: settings.settings_id, amount: 100 });
         player_meta.increment_xp(10000);
@@ -93,19 +95,19 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
 
     world.write_model(@player_meta);
 
-    if best_run.is_new_best(mode, run_data.total_score, total_stars) {
+    if best_run.is_new_best(run_type, run_data.total_score, total_stars) {
         best_run.player = player;
         best_run.settings_id = settings.settings_id;
-        best_run.mode = mode;
+        best_run.run_type = run_type;
         best_run.best_score = run_data.total_score;
         best_run.best_stars = total_stars;
         best_run.best_level = run_data.current_level;
-        best_run.map_cleared = run_data.zone_cleared;
+        best_run.zone_cleared = run_data.zone_cleared;
         best_run.best_game_id = game.game_id;
     }
     world.write_model(@best_run);
 
-    if mode == 1 {
+    if run_type == 1 {
         let is_eligible = match world.dns_address(@"config_system") {
             Option::Some(config_address) => {
                 let config = IConfigSystemDispatcher { contract_address: config_address };
@@ -147,7 +149,7 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
                 run_data.current_level,
                 run_data.current_difficulty,
                 total_stars,
-                challenge.game_mode,
+                challenge.run_type,
             );
 
             // Participation star for completing a daily challenge game.
@@ -158,11 +160,11 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
     }
 }
 
-/// Compute ranking value by mode.
-/// - Map: total_stars * 65536 + total_score
+/// Compute ranking value by run type.
+/// - Zone: total_stars * 65536 + total_score
 /// - Endless: total_score
-fn compute_ranking_value(mode: u8, total_stars: u8, total_score: u16) -> u32 {
-    if mode == 1 {
+fn compute_ranking_value(run_type: u8, total_stars: u8, total_score: u16) -> u32 {
+    if run_type == 1 {
         total_score.into()
     } else {
         total_stars.into() * 65536 + total_score.into()
@@ -180,7 +182,7 @@ fn calculate_total_stars(game: Game) -> u8 {
     stars
 }
 
-/// Resolve stars for an existing daily entry best game (map mode ranking).
+/// Resolve stars for an existing daily entry best game (zone run ranking).
 fn get_entry_best_stars(world: WorldStorage, entry: DailyEntry) -> u8 {
     if entry.best_game_id == 0 {
         return 0;
@@ -202,7 +204,7 @@ fn auto_submit_daily_result(
     current_level: u8,
     endless_depth: u8,
     total_stars: u8,
-    mode: u8,
+    run_type: u8,
 ) {
     let challenge: DailyChallenge = world.read_model(challenge_id);
     if challenge.settled {
@@ -214,10 +216,10 @@ fn auto_submit_daily_result(
         return; // Player hasn't registered, skip
     }
 
-    let ranking_value = compute_ranking_value(mode, total_stars, total_score);
+    let ranking_value = compute_ranking_value(run_type, total_stars, total_score);
 
     // Check if this beats the player's current best
-    let current_best: u32 = if mode == 1 {
+    let current_best: u32 = if run_type == 1 {
         entry.best_score.into()
     } else {
         let best_stars = get_entry_best_stars(world, entry);

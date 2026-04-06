@@ -1,8 +1,8 @@
 #[starknet::interface]
 pub trait IStorySystem<T> {
-    fn start_run(ref self: T, zone_id: u8) -> felt252;
-    fn replay_level(ref self: T, zone_id: u8, level: u8) -> felt252;
-    fn claim_perfection(ref self: T, zone_id: u8);
+    fn start_story_attempt(ref self: T, zone_id: u8) -> felt252;
+    fn replay_story_level(ref self: T, zone_id: u8, level: u8) -> felt252;
+    fn claim_zone_perfection(ref self: T, zone_id: u8);
 }
 
 #[dojo::contract]
@@ -23,12 +23,13 @@ mod story_system {
     use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::random::RandomImpl;
     use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
-    use zkube::models::entitlement::MapEntitlement;
+    use zkube::models::entitlement::ZoneEntitlement;
     use zkube::models::game::{Game, GameLevelTrait, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::models::story::{
-        ActiveStoryGame, ActiveStoryGameTrait, StoryGame, StoryProgress, StoryProgressTrait,
+        ActiveStoryAttempt, ActiveStoryAttemptTrait, StoryAttempt, StoryZoneProgress,
+        StoryZoneProgressTrait,
     };
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use zkube::systems::game::{IGameSystemDispatcher, IGameSystemDispatcherTrait};
@@ -39,21 +40,21 @@ mod story_system {
 
     #[abi(embed_v0)]
     impl StorySystemImpl of super::IStorySystem<ContractState> {
-        fn start_run(ref self: ContractState, zone_id: u8) -> felt252 {
-            InternalImpl::create_story_game(ref self, zone_id, 0)
+        fn start_story_attempt(ref self: ContractState, zone_id: u8) -> felt252 {
+            InternalImpl::create_story_attempt(ref self, zone_id, 0)
         }
 
-        fn replay_level(ref self: ContractState, zone_id: u8, level: u8) -> felt252 {
+        fn replay_story_level(ref self: ContractState, zone_id: u8, level: u8) -> felt252 {
             assert!(level >= 1 && level <= 10, "invalid level");
-            InternalImpl::create_story_game(ref self, zone_id, level)
+            InternalImpl::create_story_attempt(ref self, zone_id, level)
         }
 
-        fn claim_perfection(ref self: ContractState, zone_id: u8) {
+        fn claim_zone_perfection(ref self: ContractState, zone_id: u8) {
             assert!(zone_id >= 1 && zone_id <= 2, "invalid zone");
 
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let player = get_caller_address();
-            let mut progress: StoryProgress = world.read_model((player, zone_id));
+            let mut progress: StoryZoneProgress = world.read_model((player, zone_id));
             assert!(progress.exists(), "missing progress");
             assert!(!progress.perfection_claimed, "already claimed");
 
@@ -88,7 +89,9 @@ mod story_system {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        fn create_story_game(ref self: ContractState, zone_id: u8, requested_level: u8) -> felt252 {
+        fn create_story_attempt(
+            ref self: ContractState, zone_id: u8, requested_level: u8,
+        ) -> felt252 {
             assert!(zone_id >= 1 && zone_id <= 2, "invalid zone");
 
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
@@ -101,22 +104,22 @@ mod story_system {
 
             let metadata: GameSettingsMetadata = world.read_model(settings_id);
             if !metadata.is_free {
-                let entitlement: MapEntitlement = world.read_model((player, settings_id));
+                let entitlement: ZoneEntitlement = world.read_model((player, settings_id));
                 assert!(entitlement.purchased_at != 0, "zone locked");
             }
 
-            let mut progress: StoryProgress = world.read_model((player, zone_id));
+            let mut progress: StoryZoneProgress = world.read_model((player, zone_id));
             if !progress.exists() {
-                progress = StoryProgressTrait::new(player, zone_id);
+                progress = StoryZoneProgressTrait::new(player, zone_id);
             }
 
-            let mut active: ActiveStoryGame = world.read_model(player);
+            let mut active: ActiveStoryAttempt = world.read_model(player);
             if active.exists() {
                 let existing_game: Game = world.read_model(active.game_id);
                 if existing_game.is_non_zero() && !existing_game.over {
                     assert!(false, "active story game");
                 }
-                active = ActiveStoryGameTrait::empty(player);
+                active = ActiveStoryAttemptTrait::empty(player);
                 world.write_model(@active);
             }
 
@@ -177,8 +180,10 @@ mod story_system {
             game_level.mutator_id = active_mutator_id;
 
             let game_seed = GameSeed { game_id, seed, level_seed, vrf_enabled: false };
-            let story_game = StoryGame { game_id, player, zone_id, level, is_replay };
-            let active_game = ActiveStoryGameTrait::new(player, game_id, zone_id, level, is_replay);
+            let story_game = StoryAttempt { game_id, player, zone_id, level, is_replay };
+            let active_game = ActiveStoryAttemptTrait::new(
+                player, game_id, zone_id, level, is_replay,
+            );
 
             let mut player_meta: PlayerMeta = world.read_model(player);
             if !player_meta.exists() {
@@ -253,7 +258,7 @@ mod story_system {
             MutatorEffectsTrait::normalize(mutator_id, stored)
         }
 
-        fn total_stars(progress: @StoryProgress) -> u8 {
+        fn total_stars(progress: @StoryZoneProgress) -> u8 {
             let mut total: u8 = 0;
             let mut level: u8 = 1;
             loop {

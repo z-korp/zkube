@@ -10,6 +10,6 @@ pub use crate::models::mutator::{MutatorDef, MutatorDefTrait};
 pub use crate::models::player::{PlayerMeta, PlayerMetaTrait};
 
 pub use crate::models::story::{
-    ActiveStoryGame, ActiveStoryGameTrait, StoryGame, StoryGameTrait, StoryProgress,
-    StoryProgressTrait,
+    ActiveStoryAttempt, ActiveStoryAttemptTrait, StoryAttempt, StoryAttemptTrait, StoryZoneProgress,
+    StoryZoneProgressTrait,
 };

@@ -28,12 +28,12 @@ export interface Surrender extends Signer {
 
 export interface Create extends Signer {
   token_id: BigNumberish;
-  mode: number;
+  run_type: number;
 }
 
 export interface CreateRun extends Signer {
   game_id: BigNumberish;
-  mode: number;
+  run_type: number;
 }
 
 export interface StartRun extends Signer { zone_id: number; }
@@ -127,7 +127,7 @@ export interface UnlockWithStars extends Signer {
 export interface CreateDailyChallenge extends Signer {
   settings_id: number;
   ranking_metric: number;
-  zone_id: number;
+  run_type: number;
   mutator_id: number;
   prize_amount_low: string;
   prize_amount_high: string;
@@ -226,9 +226,9 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const create = async ({ account, token_id, mode }: Create) => {
+    const create = async ({ account, token_id, run_type }: Create) => {
       try {
-        const calldata = [token_id, mode];
+        const calldata = [token_id, run_type];
 
         // On Slot, skip VRF call since it's not deployed
         if (isSlotMode) {
@@ -313,14 +313,14 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const createRun = async ({ account, game_id, mode }: CreateRun) => {
+    const createRun = async ({ account, game_id, run_type }: CreateRun) => {
       try {
         if (isSlotMode) {
           return await account.execute([
             {
               contractAddress: contract.address,
               entrypoint: "create_run",
-              calldata: [game_id, mode],
+              calldata: [game_id, run_type],
             },
           ]);
         }
@@ -335,7 +335,7 @@ export function setupWorld(config: Config) {
           {
             contractAddress: contract.address,
             entrypoint: "create_run",
-            calldata: [game_id, mode],
+            calldata: [game_id, run_type],
           },
         ]);
       } catch (error) {
@@ -404,9 +404,9 @@ export function setupWorld(config: Config) {
       return null;
     }
 
-    const startRun = async ({ account, zone_id }: StartRun) => account.execute([{ contractAddress: contract.address, entrypoint: "start_run", calldata: [zone_id] }]);
-    const replayLevel = async ({ account, zone_id, level }: ReplayLevel) => account.execute([{ contractAddress: contract.address, entrypoint: "replay_level", calldata: [zone_id, level] }]);
-    const claimPerfection = async ({ account, zone_id }: ClaimPerfection) => account.execute([{ contractAddress: contract.address, entrypoint: "claim_perfection", calldata: [zone_id] }]);
+    const startRun = async ({ account, zone_id }: StartRun) => account.execute([{ contractAddress: contract.address, entrypoint: "start_story_attempt", calldata: [zone_id] }]);
+    const replayLevel = async ({ account, zone_id, level }: ReplayLevel) => account.execute([{ contractAddress: contract.address, entrypoint: "replay_story_level", calldata: [zone_id, level] }]);
+    const claimPerfection = async ({ account, zone_id }: ClaimPerfection) => account.execute([{ contractAddress: contract.address, entrypoint: "claim_zone_perfection", calldata: [zone_id] }]);
 
     return { address: contract.address, startRun, replayLevel, claimPerfection };
   }
@@ -537,32 +537,32 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const purchase_map = async ({ account, settings_id }: PurchaseMap) => {
+    const purchase_zone_access = async ({ account, settings_id }: PurchaseMap) => {
       try {
         return await account.execute([
           {
             contractAddress: contract.address,
-            entrypoint: "purchase_map",
+            entrypoint: "purchase_zone_access",
             calldata: [settings_id],
           },
         ]);
       } catch (error) {
-        console.error("Error executing purchase_map:", error);
+        console.error("Error executing purchase_zone_access:", error);
         throw error;
       }
     };
 
-    const unlock_with_stars = async ({ account, settings_id }: UnlockWithStars) => {
+    const unlock_zone_with_stars = async ({ account, settings_id }: UnlockWithStars) => {
       try {
         return await account.execute([
           {
             contractAddress: contract.address,
-            entrypoint: "unlock_with_stars",
+            entrypoint: "unlock_zone_with_stars",
             calldata: [settings_id],
           },
         ]);
       } catch (error) {
-        console.error("Error executing unlock_with_stars:", error);
+        console.error("Error executing unlock_zone_with_stars:", error);
         throw error;
       }
     };
@@ -570,8 +570,8 @@ export function setupWorld(config: Config) {
     return {
       address: contract.address,
       add_custom_game_settings,
-      purchase_map,
-      unlock_with_stars,
+      purchase_zone_access,
+      unlock_zone_with_stars,
     };
   }
 
@@ -589,7 +589,7 @@ export function setupWorld(config: Config) {
       account,
       settings_id,
       ranking_metric,
-      zone_id,
+      run_type,
       mutator_id,
       prize_amount_low,
       prize_amount_high,
@@ -602,7 +602,7 @@ export function setupWorld(config: Config) {
             calldata: [
               settings_id,
               ranking_metric,
-              zone_id,
+              run_type,
               mutator_id,
               prize_amount_low,
               prize_amount_high,

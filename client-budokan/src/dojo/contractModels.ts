@@ -256,11 +256,11 @@ export function defineContractComponents(world: World) {
         {
           player: RecsType.BigInt,
           settings_id: RecsType.Number,
-          mode: RecsType.Number,
+          run_type: RecsType.Number,
           best_score: RecsType.Number,
           best_stars: RecsType.Number,
           best_level: RecsType.Number,
-          map_cleared: RecsType.Boolean,
+          zone_cleared: RecsType.Boolean,
           best_level_stars: RecsType.BigInt,
           best_game_id: RecsType.BigInt,
         },
@@ -275,7 +275,7 @@ export function defineContractComponents(world: World) {
       );
     })(),
 
-    MapEntitlement: (() => {
+    ZoneEntitlement: (() => {
       return defineComponent(
         world,
         {
@@ -286,7 +286,7 @@ export function defineContractComponents(world: World) {
         {
           metadata: {
             namespace: VITE_PUBLIC_NAMESPACE,
-            name: "MapEntitlement",
+            name: "ZoneEntitlement",
             types: ["ContractAddress", "u32", "u64"],
             customTypes: [],
           },
@@ -303,10 +303,10 @@ export function defineContractComponents(world: World) {
           seed: RecsType.BigInt,
           start_time: RecsType.Number,
           end_time: RecsType.Number,
-          ranking_metric: RecsType.Number,
           total_entries: RecsType.Number,
           prize_pool: RecsType.BigInt,
           settled: RecsType.Boolean,
+          run_type: RecsType.Number,
         },
         {
           metadata: {
@@ -318,10 +318,10 @@ export function defineContractComponents(world: World) {
               "felt252",       // seed
               "u64",           // start_time
               "u64",           // end_time
-              "u8",            // ranking_metric
               "u32",           // total_entries
               "u256",          // prize_pool
               "bool",          // settled
+              "u8",            // run_type
             ],
             customTypes: [],
           },
@@ -337,7 +337,7 @@ export function defineContractComponents(world: World) {
           attempts: RecsType.Number,
           best_score: RecsType.Number,
           best_level: RecsType.Number,
-          best_cubes: RecsType.Number,
+          best_depth: RecsType.Number,
           best_game_id: RecsType.BigInt,
           rank: RecsType.Number,
           prize_amount: RecsType.BigInt,
@@ -353,8 +353,8 @@ export function defineContractComponents(world: World) {
               "u32",               // attempts
               "u16",               // best_score
               "u8",                // best_level
-              "u16",               // best_cubes
-              "u64",               // best_game_id
+              "u8",                // best_depth
+              "felt252",           // best_game_id
               "u32",               // rank
               "u256",              // prize_amount
               "bool",              // claimed
@@ -464,7 +464,7 @@ export function defineContractComponents(world: World) {
         }
       );
     })(),
-    StoryProgress: (() => {
+    StoryZoneProgress: (() => {
       return defineComponent(
         world,
         {
@@ -478,14 +478,14 @@ export function defineContractComponents(world: World) {
         {
           metadata: {
             namespace: VITE_PUBLIC_NAMESPACE,
-            name: "StoryProgress",
+            name: "StoryZoneProgress",
             types: ["ContractAddress", "u32", "felt252", "u8", "bool", "bool"],
             customTypes: [],
           },
         }
       );
     })(),
-    StoryGame: (() => {
+    StoryAttempt: (() => {
       return defineComponent(
         world,
         {
@@ -498,14 +498,14 @@ export function defineContractComponents(world: World) {
         {
           metadata: {
             namespace: VITE_PUBLIC_NAMESPACE,
-            name: "StoryGame",
+            name: "StoryAttempt",
             types: ["felt252", "ContractAddress", "u32", "u8", "bool"],
             customTypes: [],
           },
         }
       );
     })(),
-    ActiveStoryGame: (() => {
+    ActiveStoryAttempt: (() => {
       return defineComponent(
         world,
         {
@@ -518,7 +518,7 @@ export function defineContractComponents(world: World) {
         {
           metadata: {
             namespace: VITE_PUBLIC_NAMESPACE,
-            name: "ActiveStoryGame",
+            name: "ActiveStoryAttempt",
             types: ["ContractAddress", "felt252", "u32", "u8", "bool"],
             customTypes: [],
           },

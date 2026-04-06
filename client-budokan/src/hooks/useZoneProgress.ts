@@ -17,7 +17,7 @@ export const useZoneProgress = (
 ): ZoneProgressResult => {
   const {
     setup: {
-      contractComponents: { GameSettingsMetadata, StoryProgress, MapEntitlement },
+      contractComponents: { GameSettingsMetadata, StoryZoneProgress, ZoneEntitlement },
     },
   } = useDojo();
 
@@ -31,8 +31,8 @@ export const useZoneProgress = (
   }, [playerAddress]);
 
   const metadataEntityIds = useEntityQuery([Has(GameSettingsMetadata)]);
-  const storyProgressEntityIds = useEntityQuery([Has(StoryProgress)]);
-  const entitlementEntityIds = useEntityQuery([Has(MapEntitlement)]);
+  const storyProgressEntityIds = useEntityQuery([Has(StoryZoneProgress)]);
+  const entitlementEntityIds = useEntityQuery([Has(ZoneEntitlement)]);
 
   return useMemo(() => {
     const fallbackZones = [
@@ -80,7 +80,7 @@ export const useZoneProgress = (
       }
     >();
     for (const entity of storyProgressEntityIds) {
-      const progress = getComponentValue(StoryProgress, entity);
+      const progress = getComponentValue(StoryZoneProgress, entity);
       if (!progress || ownerBigInt === null || BigInt(progress.player) !== ownerBigInt) continue;
       const levelStars = unpackAllLevelStars(BigInt(progress.level_stars ?? 0));
       storyMap.set(progress.zone_id, {
@@ -94,7 +94,7 @@ export const useZoneProgress = (
 
     const entitlements = new Set<number>();
     for (const entity of entitlementEntityIds) {
-      const entitlement = getComponentValue(MapEntitlement, entity);
+      const entitlement = getComponentValue(ZoneEntitlement, entity);
       if (!entitlement || ownerBigInt === null || BigInt(entitlement.player) !== ownerBigInt) continue;
       entitlements.add(entitlement.settings_id);
     }
@@ -126,5 +126,5 @@ export const useZoneProgress = (
 
     const totalStars = zonesToShow.reduce((sum, zone) => sum + zone.stars, 0);
     return { zones: zonesToShow, totalStars, isLoading: false };
-  }, [ownerBigInt, zStarBalance, metadataEntityIds, storyProgressEntityIds, entitlementEntityIds, GameSettingsMetadata, StoryProgress, MapEntitlement]);
+  }, [ownerBigInt, zStarBalance, metadataEntityIds, storyProgressEntityIds, entitlementEntityIds, GameSettingsMetadata, StoryZoneProgress, ZoneEntitlement]);
 };

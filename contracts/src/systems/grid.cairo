@@ -164,7 +164,7 @@ mod grid_system {
 
             let mut run_data = game.get_run_data();
             let mutator_def = InternalImpl::read_mutator_def(world, run_data.active_mutator_id);
-            let score_difficulty: Difficulty = if run_data.mode == 1
+            let score_difficulty: Difficulty = if run_data.run_type == 1
                 && run_data.current_difficulty != 0 {
                 run_data.current_difficulty.into()
             } else {
@@ -224,7 +224,7 @@ mod grid_system {
                 ref new_blocks, ref lines_cleared, ref cascade_depth,
             );
             let points = InternalImpl::apply_score_modifiers(
-                base_points, run_data.mode, score_difficulty, @settings, @mutator_def,
+                base_points, run_data.run_type, score_difficulty, @settings, @mutator_def,
             );
             update_score(ref run_data, points);
             let line_clear_bonus = MutatorEffectsTrait::get_line_clear_bonus(@mutator_def);
@@ -261,7 +261,7 @@ mod grid_system {
                 ref new_blocks, ref lines_cleared, ref cascade_depth_2,
             );
             let more_points = InternalImpl::apply_score_modifiers(
-                more_base_points, run_data.mode, score_difficulty, @settings, @mutator_def,
+                more_base_points, run_data.run_type, score_difficulty, @settings, @mutator_def,
             );
             update_score(ref run_data, more_points);
 
@@ -407,7 +407,7 @@ mod grid_system {
 
         fn apply_score_modifiers(
             base_score: u16,
-            mode: u8,
+            run_type: u8,
             difficulty: Difficulty,
             settings: @GameSettings,
             mutator_def: @MutatorDef,
@@ -415,7 +415,7 @@ mod grid_system {
             let mut score = base_score;
 
             // Dedicated endless mode uses configurable difficulty multipliers.
-            if mode == 1 {
+            if run_type == 1 {
                 let multiplier_x10 = LevelGeneratorTrait::get_endless_score_multiplier(
                     difficulty, settings,
                 );

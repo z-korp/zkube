@@ -21,7 +21,7 @@ fn test_run_data_pack_unpack_roundtrip_small_values() {
         current_difficulty: 0,
         zone_id: 1,
         active_mutator_id: 0,
-        mode: 0,
+        run_type: 0,
         bonus_type: 0,
         bonus_charges: 0,
         level_lines_cleared: 0,
@@ -45,7 +45,7 @@ fn test_run_data_pack_unpack_roundtrip_max_values() {
         current_difficulty: 50,
         zone_id: 15,
         active_mutator_id: 255,
-        mode: 0,
+        run_type: 0,
         bonus_type: 3,
         bonus_charges: 15,
         level_lines_cleared: 255,
@@ -72,7 +72,7 @@ fn test_run_data_total_score_supports_u32_above_u16() {
         current_difficulty: 0,
         zone_id: 9,
         active_mutator_id: 170,
-        mode: 0,
+        run_type: 0,
         bonus_type: 0,
         bonus_charges: 0,
         level_lines_cleared: 12,
@@ -125,14 +125,14 @@ fn test_run_data_zone_lifecycle_struct_manipulation() {
 #[test]
 fn test_run_data_mode_bit_roundtrip() {
     let map_data = RunDataPackingTrait::new(1, 0, 0);
-    assert!(map_data.mode == 0, "Map mode should be 0");
+    assert!(map_data.run_type == 0, "Map mode should be 0");
     let unpacked_map = RunDataPackingTrait::unpack(map_data.pack());
-    assert!(unpacked_map.mode == 0, "Map mode should roundtrip as 0");
+    assert!(unpacked_map.run_type == 0, "Map mode should roundtrip as 0");
 
     let endless_data = RunDataPackingTrait::new(1, 0, 1);
-    assert!(endless_data.mode == 1, "Endless mode should be 1");
+    assert!(endless_data.run_type == 1, "Endless mode should be 1");
     let unpacked_endless = RunDataPackingTrait::unpack(endless_data.pack());
-    assert!(unpacked_endless.mode == 1, "Endless mode should roundtrip as 1");
+    assert!(unpacked_endless.run_type == 1, "Endless mode should roundtrip as 1");
 }
 
 #[test]
@@ -149,7 +149,7 @@ fn test_run_data_bonus_fields_roundtrip() {
         current_difficulty: 2,
         zone_id: 1,
         active_mutator_id: 1,
-        mode: 0,
+        run_type: 0,
         bonus_type: 1,
         bonus_charges: 7,
         level_lines_cleared: 9,

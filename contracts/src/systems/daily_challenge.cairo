@@ -6,16 +6,16 @@ pub trait IDailyChallengeSystem<T> {
     // === Admin ===
 
     /// Create a new daily challenge (admin only)
-    /// @param settings_id: Map GameSettings ID for this challenge
-    /// @param ranking_metric: legacy reserved field (unused)
-    /// @param zone_id: Encodes game_mode (0=Map, 1=Endless) for backward compatibility
-    /// @param mutator_id: Legacy reserved parameter (unused)
+    /// @param settings_id: GameSettings ID for this challenge.
+    /// @param ranking_metric: Legacy reserved field (unused).
+    /// @param run_type: Run type (0=Zone, 1=Endless)
+    /// @param mutator_id: Legacy reserved parameter (unused).
     /// @param prize_amount: LORDS to deposit as prize pool
     fn create_daily_challenge(
         ref self: T,
         settings_id: u32,
         ranking_metric: u8,
-        zone_id: u8,
+        run_type: u8,
         mutator_id: u8,
         prize_amount: u256,
     );
@@ -110,7 +110,7 @@ mod daily_challenge_system {
             ref self: ContractState,
             settings_id: u32,
             ranking_metric: u8,
-            zone_id: u8,
+            run_type: u8,
             mutator_id: u8,
             prize_amount: u256,
         ) {
@@ -121,14 +121,9 @@ mod daily_challenge_system {
             // Admin-only
             self.assert_admin(caller);
 
-            // Legacy reserved parameter; ranking is mode-aware and derived from game_mode.
+            // Legacy reserved parameters kept for ABI stability.
             let _ = ranking_metric;
-            // Backward-compatible parameter mapping:
-            // - zone_id now carries game_mode (0=Map, 1=Endless)
-            // - settings_id is the actual map settings id
-            let game_mode: u8 = zone_id & 0x1;
-            let map_settings_id: u32 = settings_id;
-            // Kept in interface for backward compatibility; no longer stored on model.
+            let run_type: u8 = run_type & 0x1;
             let _ = mutator_id;
 
             // Assign challenge ID
@@ -161,8 +156,7 @@ mod daily_challenge_system {
                 total_entries: 0,
                 prize_pool: prize_amount,
                 settled: false,
-                game_mode,
-                map_settings_id,
+                run_type,
             };
             world.write_model(@challenge);
         }
@@ -328,19 +322,19 @@ mod daily_challenge_system {
             let level = run_data.current_level;
             let depth = run_data.current_difficulty;
 
-            // Mode-aware ranking:
-            // - Map: total_stars * 65536 + total_score
+            // Run-type-aware ranking:
+            // - Zone: total_stars * 65536 + total_score
             // - Endless: total_score
-            let mode = challenge.game_mode;
-            let stars = if mode == 0 {
+            let run_type = challenge.run_type;
+            let stars = if run_type == 0 {
                 InternalImpl::calculate_total_stars(game)
             } else {
                 0
             };
-            let ranking_value: u32 = InternalImpl::compute_ranking_value(mode, stars, score);
+            let ranking_value: u32 = InternalImpl::compute_ranking_value(run_type, stars, score);
 
             // Check if this beats the player's current best
-            let current_best: u32 = if mode == 1 {
+            let current_best: u32 = if run_type == 1 {
                 entry.best_score.into()
             } else {
                 let best_stars = if entry.best_game_id == 0 {
@@ -460,19 +454,19 @@ mod daily_challenge_system {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        /// Compute ranking value by mode.
-        /// - Map: total_stars * 65536 + total_score
+        /// Compute ranking value by run type.
+        /// - Zone: total_stars * 65536 + total_score
         /// - Endless: total_score
         #[inline(always)]
-        fn compute_ranking_value(mode: u8, total_stars: u8, total_score: u16) -> u32 {
-            if mode == 1 {
+        fn compute_ranking_value(run_type: u8, total_stars: u8, total_score: u16) -> u32 {
+            if run_type == 1 {
                 total_score.into()
             } else {
                 total_stars.into() * 65536 + total_score.into()
             }
         }
 
-        /// Sum stars across map levels 1..10.
+        /// Sum stars across zone levels 1..10.
         fn calculate_total_stars(game: Game) -> u8 {
             let mut stars: u8 = 0;
             let mut level: u8 = 1;

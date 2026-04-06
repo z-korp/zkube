@@ -3,7 +3,7 @@ use starknet::ContractAddress;
 /// Records that a player has purchased access to a specific map (settings_id)
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
 #[dojo::model]
-pub struct MapEntitlement {
+pub struct ZoneEntitlement {
     #[key]
     pub player: ContractAddress,
     #[key]
@@ -13,10 +13,10 @@ pub struct MapEntitlement {
 }
 
 #[generate_trait]
-pub impl MapEntitlementImpl of MapEntitlementTrait {
+pub impl ZoneEntitlementImpl of ZoneEntitlementTrait {
     /// Check if this entitlement exists (player has purchased the map)
     #[inline(always)]
-    fn exists(self: @MapEntitlement) -> bool {
+    fn exists(self: @ZoneEntitlement) -> bool {
         *self.purchased_at != 0
     }
 }

@@ -2,11 +2,11 @@ use zkube::helpers::mutator::MutatorEffectsTrait;
 use zkube::models::mutator::MutatorDef;
 use zkube::types::level::LevelConfig;
 
-/// Mutator eligibility for different game modes
+/// Mutator eligibility for different run types.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub enum MutatorEligibility {
-    Universal, // Available in both Map and Endless modes
-    MapOnly, // Only available in Map mode
+    Universal, // Available in both zone and endless runs
+    ZoneOnly, // Only available in zone runs
     EndlessOnly // Only available in Endless mode
 }
 

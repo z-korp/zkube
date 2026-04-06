@@ -18,7 +18,7 @@ pub struct GameChallenge {
 pub struct DailyChallenge {
     #[key]
     pub challenge_id: u32,
-    /// GameSettings ID — actual map settings (0=Polynesian, 1=Japan, 2=Persia)
+    /// GameSettings ID for this challenge's zone/endless ruleset.
     pub settings_id: u32,
     /// VRF seed — shared by all players for identical block sequences
     pub seed: felt252,
@@ -32,10 +32,8 @@ pub struct DailyChallenge {
     pub prize_pool: u256,
     /// True once prize distribution is finalized
     pub settled: bool,
-    /// Game mode for this challenge: 0=Map, 1=Endless
-    pub game_mode: u8,
-    /// Map settings ID (real map, not daily-specific range): 0, 1, 2
-    pub map_settings_id: u32,
+    /// Run type for this challenge: 0=Zone, 1=Endless
+    pub run_type: u8,
 }
 
 /// Per-player entry tracking for a daily challenge (compound key)
@@ -112,7 +110,6 @@ pub impl DailyEntryImpl of DailyEntryTrait {
 
 #[cfg(test)]
 mod tests {
-    use starknet::ContractAddress;
     use super::{DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait};
 
     fn make_challenge(start: u64, end: u64) -> DailyChallenge {
@@ -125,8 +122,7 @@ mod tests {
             total_entries: 0,
             prize_pool: 1000,
             settled: false,
-            game_mode: 0,
-            map_settings_id: 0,
+            run_type: 0,
         }
     }
 

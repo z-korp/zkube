@@ -11,7 +11,7 @@ import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import { usePlayerBestRun } from "@/hooks/usePlayerBestRun";
 import { useZStarBalance } from "@/hooks/useZStarBalance";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
-import { useActiveStoryGame } from "@/hooks/useActiveStoryGame";
+import { useActiveStoryAttempt } from "@/hooks/useActiveStoryAttempt";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { showToast } from "@/utils/toast";
 import Connect from "@/ui/components/Connect";
@@ -69,7 +69,7 @@ const HomePage: React.FC = () => {
 
   const shouldFetchMyGames = Boolean(account?.address);
   const normalizedOwner = normalizeAddress(account?.address);
-  const activeStoryRun = useActiveStoryGame();
+  const activeStoryRun = useActiveStoryAttempt();
 
   const { games: ownedGames } = useGameTokensSlot({
     owner: shouldFetchMyGames ? normalizedOwner : undefined,
@@ -83,7 +83,7 @@ const HomePage: React.FC = () => {
 
   const { bestRuns } = usePlayerBestRun(account?.address);
 
-  const activeStoryGameId = activeStoryRun?.gameId ?? null;
+  const activeStoryAttemptId = activeStoryRun?.gameId ?? null;
   const activeEndlessGameId = activeGames[0]?.token_id ?? null;
   const endlessZoneOneUnlocked = Boolean(zones.find((zoneData) => zoneData.zoneId === 1)?.bossCleared);
 
@@ -145,16 +145,16 @@ const HomePage: React.FC = () => {
             const mintResult = await freeMint({ account, name: username ?? "", settingsId: endlessSettingsId });
             const gameId = mintResult.game_id;
             if (gameId === 0n) throw new Error("Failed to extract game_id from mint");
-            await create({ account, token_id: gameId, mode: selectedMode });
+            await create({ account, token_id: gameId, run_type: selectedMode });
             showToast({ message: "Game started!", type: "success" });
             navigate("mutator", gameId);
             return;
           }
 
-          // Story mode: resume existing active story game instead of failing on start_run.
-          if (activeStoryGameId) {
+          // Story mode: resume existing active story game instead of failing on start_story_attempt.
+          if (activeStoryAttemptId) {
             showToast({ message: "Resuming active story run.", type: "success" });
-            navigate("map", activeStoryGameId);
+            navigate("map", activeStoryAttemptId);
             return;
           }
 
@@ -183,19 +183,19 @@ const HomePage: React.FC = () => {
       selectedMode,
       zones,
       username,
-      activeStoryGameId,
+      activeStoryAttemptId,
     ],
   );
 
-  const hasActiveStoryRun = activeStoryGameId !== null;
+  const hasActiveStoryRun = activeStoryAttemptId !== null;
   const hasActiveEndlessRun = activeEndlessGameId !== null;
   const selectedZonePlayable = isZoneSelectable(zone);
 
   const handlePrimaryAction = useCallback(() => {
     if (!zone || !account) return;
 
-    if (selectedMode === 0 && activeStoryGameId !== null) {
-      navigate("play", activeStoryGameId);
+    if (selectedMode === 0 && activeStoryAttemptId !== null) {
+      navigate("play", activeStoryAttemptId);
       return;
     }
 
@@ -208,7 +208,7 @@ const HomePage: React.FC = () => {
   }, [
     account,
     activeEndlessGameId,
-    activeStoryGameId,
+    activeStoryAttemptId,
     handleStartGame,
     navigate,
     selectedMode,

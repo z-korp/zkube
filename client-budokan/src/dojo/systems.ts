@@ -61,7 +61,7 @@ const parseBigIntSafe = (value: unknown): bigint => {
   }
 };
 
-const extractStoryGameIdFromEvents = (
+const extractStoryAttemptIdFromEvents = (
   events: any[],
   storySystemAddress: string,
   playerAddress?: string,
@@ -274,7 +274,7 @@ export function systems({ client }: { client: IWorld }) {
   const create = async ({ account, ...props }: SystemTypes.Create) => {
     log.debug("create params", {
       token_id: props.token_id,
-      mode: props.mode,
+      run_type: props.run_type,
     });
     await handleTransaction(
       account,
@@ -287,7 +287,7 @@ export function systems({ client }: { client: IWorld }) {
   const createRun = async ({ account, ...props }: SystemTypes.CreateRun) => {
     log.debug("createRun params", {
       game_id: props.game_id,
-      mode: props.mode,
+      run_type: props.run_type,
     });
     await handleTransaction(
       account,
@@ -300,14 +300,14 @@ export function systems({ client }: { client: IWorld }) {
   const startRun = async ({ account, ...props }: SystemTypes.StartRun): Promise<{ game_id: bigint }> => {
     if (!client.story_system) throw new Error("Story system not available");
     const { events } = await handleTransaction(account, () => client.story_system!.startRun({ account, ...props }), "Story run started.");
-    const gameId = extractStoryGameIdFromEvents(events, client.story_system.address, account.address);
+    const gameId = extractStoryAttemptIdFromEvents(events, client.story_system.address, account.address);
     return { game_id: gameId };
   };
 
   const replayLevel = async ({ account, ...props }: SystemTypes.ReplayLevel): Promise<{ game_id: bigint }> => {
     if (!client.story_system) throw new Error("Story system not available");
     const { events } = await handleTransaction(account, () => client.story_system!.replayLevel({ account, ...props }), "Story level replayed.");
-    const gameId = extractStoryGameIdFromEvents(events, client.story_system.address, account.address);
+    const gameId = extractStoryAttemptIdFromEvents(events, client.story_system.address, account.address);
     return { game_id: gameId };
   };
 
@@ -380,8 +380,8 @@ export function systems({ client }: { client: IWorld }) {
     }
     await handleTransaction(
       account,
-      () => client.config!.purchase_map({ account, ...props }),
-      "Map purchased.",
+      () => client.config!.purchase_zone_access({ account, ...props }),
+      "Zone unlocked.",
     );
   };
 
@@ -394,8 +394,8 @@ export function systems({ client }: { client: IWorld }) {
     }
     await handleTransaction(
       account,
-      () => client.config!.unlock_with_stars({ account, ...props }),
-      "Map unlocked with stars.",
+      () => client.config!.unlock_zone_with_stars({ account, ...props }),
+      "Zone unlocked with stars.",
     );
   };
 

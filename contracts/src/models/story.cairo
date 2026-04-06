@@ -4,7 +4,7 @@ use starknet::ContractAddress;
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
 #[dojo::model]
-pub struct StoryProgress {
+pub struct StoryZoneProgress {
     #[key]
     pub player: ContractAddress,
     #[key]
@@ -17,7 +17,7 @@ pub struct StoryProgress {
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
 #[dojo::model]
-pub struct StoryGame {
+pub struct StoryAttempt {
     #[key]
     pub game_id: felt252,
     pub player: ContractAddress,
@@ -28,7 +28,7 @@ pub struct StoryGame {
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
 #[dojo::model]
-pub struct ActiveStoryGame {
+pub struct ActiveStoryAttempt {
     #[key]
     pub player: ContractAddress,
     pub game_id: felt252,
@@ -38,9 +38,9 @@ pub struct ActiveStoryGame {
 }
 
 #[generate_trait]
-pub impl StoryProgressImpl of StoryProgressTrait {
-    fn new(player: ContractAddress, zone_id: u8) -> StoryProgress {
-        StoryProgress {
+pub impl StoryZoneProgressImpl of StoryZoneProgressTrait {
+    fn new(player: ContractAddress, zone_id: u8) -> StoryZoneProgress {
+        StoryZoneProgress {
             player,
             zone_id,
             level_stars: 0,
@@ -50,7 +50,7 @@ pub impl StoryProgressImpl of StoryProgressTrait {
         }
     }
 
-    fn exists(self: @StoryProgress) -> bool {
+    fn exists(self: @StoryZoneProgress) -> bool {
         *self.player != Zero::zero()
             || *self.level_stars != 0
             || *self.highest_cleared > 0
@@ -58,14 +58,14 @@ pub impl StoryProgressImpl of StoryProgressTrait {
             || *self.perfection_claimed
     }
 
-    fn get_level_stars(self: @StoryProgress, level: u8) -> u8 {
+    fn get_level_stars(self: @StoryZoneProgress, level: u8) -> u8 {
         assert!(level >= 1 && level <= 10, "invalid level");
         let shift: u8 = (level - 1) * 2;
         let packed: u256 = (*self.level_stars).into();
         (BitShift::shr(packed, shift.into()) & 0x3).try_into().unwrap()
     }
 
-    fn set_level_stars(ref self: StoryProgress, level: u8, stars: u8) {
+    fn set_level_stars(ref self: StoryZoneProgress, level: u8, stars: u8) {
         assert!(level >= 1 && level <= 10, "invalid level");
         let shift: u8 = (level - 1) * 2;
         let mut packed: u256 = self.level_stars.into();
@@ -77,25 +77,25 @@ pub impl StoryProgressImpl of StoryProgressTrait {
 }
 
 #[generate_trait]
-pub impl StoryGameImpl of StoryGameTrait {
-    fn exists(self: @StoryGame) -> bool {
+pub impl StoryAttemptImpl of StoryAttemptTrait {
+    fn exists(self: @StoryAttempt) -> bool {
         *self.game_id != 0 && !(*self.player).is_zero()
     }
 }
 
 #[generate_trait]
-pub impl ActiveStoryGameImpl of ActiveStoryGameTrait {
+pub impl ActiveStoryAttemptImpl of ActiveStoryAttemptTrait {
     fn new(
         player: ContractAddress, game_id: felt252, zone_id: u8, level: u8, is_replay: bool,
-    ) -> ActiveStoryGame {
-        ActiveStoryGame { player, game_id, zone_id, level, is_replay }
+    ) -> ActiveStoryAttempt {
+        ActiveStoryAttempt { player, game_id, zone_id, level, is_replay }
     }
 
-    fn empty(player: ContractAddress) -> ActiveStoryGame {
-        ActiveStoryGame { player, game_id: 0, zone_id: 0, level: 0, is_replay: false }
+    fn empty(player: ContractAddress) -> ActiveStoryAttempt {
+        ActiveStoryAttempt { player, game_id: 0, zone_id: 0, level: 0, is_replay: false }
     }
 
-    fn exists(self: @ActiveStoryGame) -> bool {
+    fn exists(self: @ActiveStoryAttempt) -> bool {
         *self.game_id != 0
     }
 }
@@ -103,12 +103,12 @@ pub impl ActiveStoryGameImpl of ActiveStoryGameTrait {
 #[cfg(test)]
 mod tests {
     use starknet::ContractAddress;
-    use super::{ActiveStoryGameTrait, StoryProgressTrait};
+    use super::{ActiveStoryAttemptTrait, StoryZoneProgressTrait};
 
     #[test]
     fn test_story_progress_level_stars_roundtrip() {
         let player: ContractAddress = 'PLAYER'.try_into().unwrap();
-        let mut progress = StoryProgressTrait::new(player, 1);
+        let mut progress = StoryZoneProgressTrait::new(player, 1);
 
         progress.set_level_stars(1, 3);
         progress.set_level_stars(6, 2);
@@ -123,7 +123,7 @@ mod tests {
     #[test]
     fn test_active_story_game_empty_is_not_active() {
         let player: ContractAddress = 'PLAYER'.try_into().unwrap();
-        let active = ActiveStoryGameTrait::empty(player);
+        let active = ActiveStoryAttemptTrait::empty(player);
         assert!(!active.exists(), "empty active story game should not exist");
     }
 }

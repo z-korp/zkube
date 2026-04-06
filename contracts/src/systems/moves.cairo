@@ -33,7 +33,7 @@ mod move_system {
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::PlayerBestRun;
-    use zkube::models::story::{StoryGame, StoryGameTrait, StoryProgress};
+    use zkube::models::story::{StoryAttempt, StoryAttemptTrait, StoryZoneProgress};
     use zkube::systems::game::{IGameSystemDispatcher, IGameSystemDispatcherTrait};
 
     #[storage]
@@ -50,7 +50,7 @@ mod move_system {
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let player = get_caller_address();
-            let story_game: StoryGame = world.read_model(game_id);
+            let story_game: StoryAttempt = world.read_model(game_id);
             let is_story_game = story_game.exists();
 
             let token_address = token::get_token_address(world);
@@ -189,8 +189,8 @@ mod move_system {
                 world.write_model(@updated_game);
             }
 
-            if run_data.mode == 0 {
-                // Map mode: preserve existing completion/failure flow.
+            if run_data.run_type == 0 {
+                // Zone run: preserve existing completion/failure flow.
                 let is_complete = level_check::is_level_complete(@game_level, @run_data);
 
                 if is_complete {
@@ -206,16 +206,16 @@ mod move_system {
                         game_dispatcher
                             .emit_progress(player, Task::BossDefeat.identifier(), 1, sid);
                         if is_story_game {
-                            let story_progress: StoryProgress = world
+                            let story_progress: StoryZoneProgress = world
                                 .read_model((player, story_game.zone_id));
                             if !story_progress.boss_cleared {
                                 game_dispatcher
                                     .emit_progress(player, Task::ZoneComplete.identifier(), 1, sid);
                             }
                         } else {
-                            // ZoneComplete only on FIRST clear — check PlayerBestRun.map_cleared
+                            // ZoneComplete only on FIRST clear — check PlayerBestRun.zone_cleared
                             let best_run: PlayerBestRun = world.read_model((player, sid, 0_u8));
-                            if !best_run.map_cleared {
+                            if !best_run.zone_cleared {
                                 game_dispatcher
                                     .emit_progress(player, Task::ZoneComplete.identifier(), 1, sid);
                             }
@@ -237,7 +237,7 @@ mod move_system {
                     }
                 }
             } else {
-                // Endless mode: no level completion/failure checks.
+                // Endless run: no level completion/failure checks.
                 let ramped_score = MutatorEffectsTrait::apply_endless_ramp(
                     @mutator_def, run_data.total_score,
                 );

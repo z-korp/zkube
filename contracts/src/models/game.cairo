@@ -107,9 +107,9 @@ pub impl GameImpl of GameTrait {
     /// Create an empty game shell (no grid initialization)
     /// Grid should be initialized separately via grid_system.initialize_grid()
     fn new_empty(
-        game_id: felt252, started_at: u64, zone_id: u8, active_mutator_id: u8, mode: u8,
+        game_id: felt252, started_at: u64, zone_id: u8, active_mutator_id: u8, run_type: u8,
     ) -> Game {
-        let run_data = RunDataPackingTrait::new(zone_id, active_mutator_id, mode);
+        let run_data = RunDataPackingTrait::new(zone_id, active_mutator_id, run_type);
 
         Game {
             game_id,

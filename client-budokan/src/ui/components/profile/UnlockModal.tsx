@@ -48,7 +48,7 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ colors, zone, onClose }) => {
       if (unlockWithStars) {
         await unlockWithStars({ account, settings_id: settingsId });
       } else if (client.config) {
-        await client.config.unlock_with_stars({ account, settings_id: settingsId });
+        await client.config.unlock_zone_with_stars({ account, settings_id: settingsId });
       }
       onClose?.();
     } catch (error) {

@@ -6,11 +6,11 @@ import { unpackAllLevelStars } from "@/dojo/game/helpers/levelStarsPacking";
 
 export interface PlayerBestRunData {
   settingsId: number;
-  mode: number;
+  runType: number;
   bestScore: number;
   bestStars: number;
   bestLevel: number;
-  mapCleared: boolean;
+  zoneCleared: boolean;
   levelStars: number[];
   bestGameId: bigint;
 }
@@ -42,14 +42,14 @@ export const usePlayerBestRun = (playerAddress: string | undefined) => {
       if (!bestRun || BigInt(bestRun.player) !== ownerBigInt) continue;
 
       const settingsId = bestRun.settings_id;
-      const mode = bestRun.mode;
-      result.set(`${settingsId}-${mode}`, {
+      const runType = bestRun.run_type;
+      result.set(`${settingsId}-${runType}`, {
         settingsId,
-        mode,
+        runType,
         bestScore: bestRun.best_score,
         bestStars: bestRun.best_stars,
         bestLevel: bestRun.best_level,
-        mapCleared: bestRun.map_cleared,
+        zoneCleared: bestRun.zone_cleared,
         levelStars: unpackAllLevelStars(BigInt(bestRun.best_level_stars)),
         bestGameId: BigInt(bestRun.best_game_id),
       });

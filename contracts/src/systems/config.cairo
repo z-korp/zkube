@@ -77,21 +77,21 @@ pub trait IConfigSystem<T> {
     fn get_game_settings(self: @T, settings_id: u32) -> GameSettings;
     fn get_game_settings_metadata(self: @T, settings_id: u32) -> GameSettingsMetadata;
     /// Purchase access to a paid map
-    fn purchase_map(ref self: T, settings_id: u32);
+    fn purchase_zone_access(ref self: T, settings_id: u32);
     /// Unlock map access by burning zStar
-    fn unlock_with_stars(ref self: T, settings_id: u32);
+    fn unlock_zone_with_stars(ref self: T, settings_id: u32);
     /// Check if a player has access to a map (free or purchased)
-    fn has_map_access(self: @T, player: ContractAddress, settings_id: u32) -> bool;
+    fn has_zone_access(self: @T, player: ContractAddress, settings_id: u32) -> bool;
     /// Get configured zStar token address
     fn get_zstar_address(self: @T) -> ContractAddress;
     /// Admin: set map pricing
-    fn set_map_pricing(
+    fn set_zone_pricing(
         ref self: T, settings_id: u32, is_free: bool, price: u256, payment_token: ContractAddress,
     );
     /// Admin: set map enabled/disabled
-    fn set_map_enabled(ref self: T, settings_id: u32, enabled: bool);
+    fn set_zone_enabled(ref self: T, settings_id: u32, enabled: bool);
     /// Admin: set map theme
-    fn set_map_theme(ref self: T, settings_id: u32, theme_id: u8);
+    fn set_zone_theme(ref self: T, settings_id: u32, theme_id: u8);
     fn set_star_eligible(ref self: T, settings_id: u32, eligible: bool);
     fn is_star_eligible(self: @T, settings_id: u32) -> bool;
     fn set_zstar_address(ref self: T, token: ContractAddress);
@@ -127,7 +127,7 @@ mod config_system {
     use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::helpers::encoding::U256BytesUsedTraitImpl;
     use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
-    use zkube::models::entitlement::MapEntitlement;
+    use zkube::models::entitlement::ZoneEntitlement;
     use zkube::models::mutator::MutatorDef;
     use zkube::types::difficulty::Difficulty;
     use super::IConfigSystem;
@@ -745,7 +745,7 @@ mod config_system {
             world.read_model(settings_id)
         }
 
-        fn purchase_map(ref self: ContractState, settings_id: u32) {
+        fn purchase_zone_access(ref self: ContractState, settings_id: u32) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let caller = get_caller_address();
 
@@ -755,7 +755,7 @@ mod config_system {
             assert!(!metadata.price.is_zero(), "Map has no price set");
             assert!(!metadata.payment_token.is_zero(), "Map has no payment token set");
 
-            let existing: MapEntitlement = world.read_model((caller, settings_id));
+            let existing: ZoneEntitlement = world.read_model((caller, settings_id));
             assert!(existing.purchased_at == 0, "Map already purchased");
 
             let mut effective_price = metadata.price;
@@ -784,20 +784,20 @@ mod config_system {
                 .transfer_from(caller, self.treasury_address.read(), effective_price);
             assert!(success, "Payment transfer failed");
 
-            let entitlement = MapEntitlement {
+            let entitlement = ZoneEntitlement {
                 player: caller, settings_id, purchased_at: get_block_timestamp(),
             };
             world.write_model(@entitlement);
         }
 
-        fn unlock_with_stars(ref self: ContractState, settings_id: u32) {
+        fn unlock_zone_with_stars(ref self: ContractState, settings_id: u32) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let caller = get_caller_address();
             let metadata: GameSettingsMetadata = world.read_model(settings_id);
             assert!(metadata.enabled, "Map is not available");
             assert!(!metadata.star_cost.is_zero(), "No star cost set");
 
-            let existing: MapEntitlement = world.read_model((caller, settings_id));
+            let existing: ZoneEntitlement = world.read_model((caller, settings_id));
             assert!(existing.purchased_at == 0, "Map already purchased");
 
             let zstar_erc20 = IERC20Dispatcher {
@@ -809,20 +809,22 @@ mod config_system {
             let zstar = IZStarTokenDispatcher { contract_address: self.zstar_token_address.read() };
             zstar.burn(caller, metadata.star_cost);
 
-            let entitlement = MapEntitlement {
+            let entitlement = ZoneEntitlement {
                 player: caller, settings_id, purchased_at: get_block_timestamp(),
             };
             world.write_model(@entitlement);
         }
 
-        fn has_map_access(self: @ContractState, player: ContractAddress, settings_id: u32) -> bool {
+        fn has_zone_access(
+            self: @ContractState, player: ContractAddress, settings_id: u32,
+        ) -> bool {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let metadata: GameSettingsMetadata = world.read_model(settings_id);
             if metadata.is_free {
                 return true;
             }
 
-            let entitlement: MapEntitlement = world.read_model((player, settings_id));
+            let entitlement: ZoneEntitlement = world.read_model((player, settings_id));
             entitlement.purchased_at != 0
         }
 
@@ -842,7 +844,7 @@ mod config_system {
             self.treasury_address.read()
         }
 
-        fn set_map_pricing(
+        fn set_zone_pricing(
             ref self: ContractState,
             settings_id: u32,
             is_free: bool,
@@ -857,14 +859,14 @@ mod config_system {
             world.write_model(@metadata);
         }
 
-        fn set_map_enabled(ref self: ContractState, settings_id: u32, enabled: bool) {
+        fn set_zone_enabled(ref self: ContractState, settings_id: u32, enabled: bool) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let mut metadata: GameSettingsMetadata = world.read_model(settings_id);
             metadata.enabled = enabled;
             world.write_model(@metadata);
         }
 
-        fn set_map_theme(ref self: ContractState, settings_id: u32, theme_id: u8) {
+        fn set_zone_theme(ref self: ContractState, settings_id: u32, theme_id: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let mut metadata: GameSettingsMetadata = world.read_model(settings_id);
             metadata.theme_id = theme_id;

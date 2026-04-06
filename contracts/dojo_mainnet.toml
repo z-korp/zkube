@@ -2,7 +2,7 @@
 name = "zKube"
 description = "Reversed tetris fully onchain."
 website = "https://app.zkube.xyz"
-seed = "zkube_v2"
+seed = "zkube_v2_3"
 
 [world.socials]
 x = "https://x.com/zKube_game"

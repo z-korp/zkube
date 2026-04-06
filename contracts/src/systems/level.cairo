@@ -42,7 +42,9 @@ mod level_system {
     use zkube::models::game::{Game, GameLevel, GameLevelTrait, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
-    use zkube::models::story::{StoryGame, StoryGameTrait, StoryProgress, StoryProgressTrait};
+    use zkube::models::story::{
+        StoryAttempt, StoryAttemptTrait, StoryZoneProgress, StoryZoneProgressTrait,
+    };
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use zkube::systems::game::{IGameSystemDispatcher, IGameSystemDispatcherTrait};
 
@@ -150,7 +152,7 @@ mod level_system {
             let final_score = run_data.level_score;
             let final_moves = run_data.level_moves;
             let total_score = run_data.total_score;
-            let story_game: StoryGame = world.read_model(game_id);
+            let story_game: StoryAttempt = world.read_model(game_id);
 
             let stars = InternalImpl::calculate_stars_for_level(game_level, final_moves.into());
             if completed_level <= 10 {
@@ -164,10 +166,10 @@ mod level_system {
 
             if story_game.exists() {
                 let story_player = story_game.player;
-                let mut story_progress: StoryProgress = world
+                let mut story_progress: StoryZoneProgress = world
                     .read_model((story_player, story_game.zone_id));
                 if !story_progress.exists() {
-                    story_progress = StoryProgressTrait::new(story_player, story_game.zone_id);
+                    story_progress = StoryZoneProgressTrait::new(story_player, story_game.zone_id);
                 }
 
                 if completed_level <= 10 && stars > 0 {
@@ -343,11 +345,11 @@ mod level_system {
             let current_level = run_data.current_level;
 
             // Dedicated endless mode does not use level progression.
-            if run_data.mode == 1 {
+            if run_data.run_type == 1 {
                 return;
             }
 
-            // Map mode victory at level cap: finish run (no transition to endless).
+            // Zone run victory at level cap: finish run (no transition to endless).
             if current_level >= 10 {
                 run_data.zone_cleared = true;
                 game.over = true;

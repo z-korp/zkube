@@ -14,7 +14,7 @@ use alexandria_math::BitShift;
 /// - 81-88: current_difficulty
 /// - 89-92: zone_id
 /// - 93-100: active_mutator_id
-/// - 101: mode (0=Map, 1=Endless)
+/// - 101: run_type (0=Zone, 1=Endless)
 /// - 102-103: bonus_type (0=None, 1=Hammer, 2=Totem, 3=Wave)
 /// - 104-107: bonus_charges (u4)
 /// - 108-115: level_lines_cleared (u8)
@@ -35,7 +35,7 @@ pub struct RunData {
     pub current_difficulty: u8,
     pub zone_id: u8,
     pub active_mutator_id: u8,
-    pub mode: u8,
+    pub run_type: u8,
     pub bonus_type: u8,
     pub bonus_charges: u8,
     pub level_lines_cleared: u8,
@@ -55,7 +55,7 @@ mod RunDataBits {
     pub const CURRENT_DIFFICULTY_POS: u8 = 81;
     pub const ZONE_ID_POS: u8 = 89;
     pub const ACTIVE_MUTATOR_ID_POS: u8 = 93;
-    pub const MODE_POS: u8 = 101;
+    pub const RUN_TYPE_POS: u8 = 101;
     pub const BONUS_TYPE_POS: u8 = 102;
     pub const BONUS_CHARGES_POS: u8 = 104;
     pub const LEVEL_LINES_CLEARED_POS: u8 = 108;
@@ -71,7 +71,7 @@ mod RunDataBits {
 #[generate_trait]
 pub impl RunDataPacking of RunDataPackingTrait {
     /// Create a new RunData with initial values for level 1.
-    fn new(zone_id: u8, active_mutator_id: u8, mode: u8) -> RunData {
+    fn new(zone_id: u8, active_mutator_id: u8, run_type: u8) -> RunData {
         RunData {
             current_level: 1,
             level_score: 0,
@@ -84,7 +84,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
             current_difficulty: 0,
             zone_id: zone_id & 0xF,
             active_mutator_id,
-            mode: mode & 0x1,
+            run_type: run_type & 0x1,
             bonus_type: 0,
             bonus_charges: 0,
             level_lines_cleared: 0,
@@ -154,7 +154,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                self.mode.into() & RunDataBits::BOOL_MASK, RunDataBits::MODE_POS.into(),
+                self.run_type.into() & RunDataBits::BOOL_MASK, RunDataBits::RUN_TYPE_POS.into(),
             );
         packed = packed
             | BitShift::shl(
@@ -229,7 +229,8 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 & RunDataBits::U8_MASK)
                 .try_into()
                 .unwrap(),
-            mode: (BitShift::shr(data, RunDataBits::MODE_POS.into()) & RunDataBits::BOOL_MASK)
+            run_type: (BitShift::shr(data, RunDataBits::RUN_TYPE_POS.into())
+                & RunDataBits::BOOL_MASK)
                 .try_into()
                 .unwrap(),
             bonus_type: (BitShift::shr(data, RunDataBits::BONUS_TYPE_POS.into())

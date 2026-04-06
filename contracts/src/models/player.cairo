@@ -84,7 +84,7 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
     }
 }
 
-/// Tracks the best run per player × map × mode combination
+/// Tracks the best run per player × settings × run type combination.
 #[derive(Copy, Drop, Serde, Introspect)]
 #[dojo::model]
 pub struct PlayerBestRun {
@@ -93,15 +93,15 @@ pub struct PlayerBestRun {
     #[key]
     pub settings_id: u32,
     #[key]
-    pub mode: u8, // 0=Map, 1=Endless
+    pub run_type: u8, // 0=Zone, 1=Endless
     /// Best total score across all runs for this combination
     pub best_score: u32,
-    /// Best total stars (Map mode only, 0-30)
+    /// Best total stars (zone run only, 0-30)
     pub best_stars: u8,
-    /// Best level reached (Map mode only, 1-10)
+    /// Best level reached (zone run only, 1-10)
     pub best_level: u8,
-    /// Whether map was fully cleared (Map mode, L10 boss beaten)
-    pub map_cleared: bool,
+    /// Whether the zone run was fully cleared (L10 boss beaten)
+    pub zone_cleared: bool,
     /// Packed best stars by level (2 bits per level, levels 1-10)
     pub best_level_stars: felt252,
     /// Game ID of the best run
@@ -116,21 +116,21 @@ pub impl PlayerBestRunImpl of PlayerBestRunTrait {
             || *self.best_score > 0
             || *self.best_stars > 0
             || *self.best_level > 0
-            || *self.map_cleared
+            || *self.zone_cleared
             || *self.best_level_stars != 0
     }
 
     /// Check if this run beats the existing best. Returns true if it should replace.
-    fn is_new_best(self: @PlayerBestRun, mode: u8, score: u32, stars: u8) -> bool {
+    fn is_new_best(self: @PlayerBestRun, run_type: u8, score: u32, stars: u8) -> bool {
         if !self.exists() {
             return true;
         }
 
-        if mode == 1 {
+        if run_type == 1 {
             // Endless: pure score comparison
             score > *self.best_score
         } else {
-            // Map: stars × 65536 + score (composite)
+            // Zone: stars × 65536 + score (composite)
             let new_rank: u64 = stars.into() * 65536 + score.into();
             let old_rank: u64 = (*self.best_stars).into() * 65536 + (*self.best_score).into();
             new_rank > old_rank

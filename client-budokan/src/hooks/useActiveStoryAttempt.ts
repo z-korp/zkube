@@ -11,11 +11,11 @@ export interface ActiveStoryRun {
   level: number;
 }
 
-export const useActiveStoryGame = (): ActiveStoryRun | null => {
+export const useActiveStoryAttempt = (): ActiveStoryRun | null => {
   const { account } = useAccountCustom();
   const {
     setup: {
-      contractComponents: { ActiveStoryGame },
+      contractComponents: { ActiveStoryAttempt },
     },
   } = useDojo();
 
@@ -28,13 +28,13 @@ export const useActiveStoryGame = (): ActiveStoryRun | null => {
     }
   }, [account?.address]);
 
-  const activeStoryGameEntityIds = useEntityQuery([Has(ActiveStoryGame)]);
+  const activeStoryAttemptEntityIds = useEntityQuery([Has(ActiveStoryAttempt)]);
 
   return useMemo(() => {
     if (ownerBigInt === null) return null;
 
-    for (const entity of activeStoryGameEntityIds) {
-      const active = getComponentValue(ActiveStoryGame, entity);
+    for (const entity of activeStoryAttemptEntityIds) {
+      const active = getComponentValue(ActiveStoryAttempt, entity);
       if (!active) continue;
       if (BigInt(active.player) !== ownerBigInt) continue;
 
@@ -49,5 +49,5 @@ export const useActiveStoryGame = (): ActiveStoryRun | null => {
     }
 
     return null;
-  }, [ownerBigInt, activeStoryGameEntityIds, ActiveStoryGame]);
+  }, [ownerBigInt, activeStoryAttemptEntityIds, ActiveStoryAttempt]);
 };

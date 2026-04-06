@@ -2,10 +2,10 @@
 pub trait IGameSystem<T> {
     /// Create a new game
     /// @param game_id: NFT token ID for this game
-    fn create(ref self: T, game_id: felt252, mode: u8);
+    fn create(ref self: T, game_id: felt252, run_type: u8);
     /// Create a new game run
     /// @param game_id: NFT token ID for this game
-    fn create_run(ref self: T, game_id: felt252, mode: u8);
+    fn create_run(ref self: T, game_id: felt252, run_type: u8);
     /// Surrender the current run (game over)
     fn surrender(ref self: T, game_id: felt252);
     /// Apply currently active mutator bonus at target block position
@@ -75,10 +75,13 @@ mod game_system {
     use zkube::helpers::random::RandomImpl;
     use zkube::models::config::GameSettingsMetadata;
     use zkube::models::daily::{DailyChallenge, DailyEntry, DailyEntryTrait, GameChallenge};
-    use zkube::models::entitlement::MapEntitlement;
+    use zkube::models::entitlement::ZoneEntitlement;
     use zkube::models::game::{Game, GameAssert, GameSeed, GameTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
-    use zkube::models::story::{StoryGame, StoryGameTrait, StoryProgress, StoryProgressTrait};
+    use zkube::models::story::{
+        ActiveStoryAttempt, ActiveStoryAttemptTrait, StoryAttempt, StoryAttemptTrait,
+        StoryZoneProgress, StoryZoneProgressTrait,
+    };
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use zkube::systems::daily_challenge::{
         IDailyChallengeSystemDispatcher, IDailyChallengeSystemDispatcherTrait,
@@ -343,23 +346,33 @@ mod game_system {
 
     #[abi(embed_v0)]
     impl GameSystemImpl of super::IGameSystem<ContractState> {
-        fn create(ref self: ContractState, game_id: felt252, mode: u8) {
-            self.create_run(game_id, mode);
+        fn create(ref self: ContractState, game_id: felt252, run_type: u8) {
+            self.create_run(game_id, run_type);
         }
 
-        fn create_run(ref self: ContractState, game_id: felt252, mode: u8) {
-            InternalImpl::create_game(ref self, game_id, mode);
+        fn create_run(ref self: ContractState, game_id: felt252, run_type: u8) {
+            InternalImpl::create_game(ref self, game_id, run_type);
         }
 
         fn surrender(ref self: ContractState, game_id: felt252) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let player = get_caller_address();
-            let story_game: StoryGame = world.read_model(game_id);
-            let is_story_game = story_game.exists();
+
+            let mut effective_game_id = game_id;
+            let active_story_attempt: ActiveStoryAttempt = world.read_model(player);
+            if active_story_attempt.exists() {
+                let active_story_game: Game = world.read_model(active_story_attempt.game_id);
+                if active_story_game.is_non_zero() && !active_story_game.over {
+                    effective_game_id = active_story_attempt.game_id;
+                }
+            }
+
+            let story_attempt: StoryAttempt = world.read_model(effective_game_id);
+            let is_story_attempt = story_attempt.exists();
 
             let token_address = self.token_address();
-            let token_id_felt = game_id;
-            if !is_story_game {
+            let token_id_felt = effective_game_id;
+            if !is_story_attempt {
                 pre_action(token_address, token_id_felt);
 
                 let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
@@ -367,13 +380,13 @@ mod game_system {
                 assert!(
                     token_metadata.lifecycle.is_playable(get_block_timestamp()),
                     "Game {} lifecycle is not playable",
-                    game_id,
+                    effective_game_id,
                 );
             }
 
-            let mut game: Game = world.read_model(game_id);
-            if is_story_game {
-                assert!(story_game.player == player, "not story owner");
+            let mut game: Game = world.read_model(effective_game_id);
+            if is_story_attempt {
+                assert!(story_attempt.player == player, "not story owner");
             } else {
                 assert_token_ownership(token_address, token_id_felt);
             }
@@ -384,14 +397,14 @@ mod game_system {
 
             game_over::handle_game_over(ref world, game, player);
 
-            if !is_story_game {
+            if !is_story_attempt {
                 post_action(token_address, token_id_felt);
             }
         }
 
         fn apply_bonus(ref self: ContractState, game_id: felt252, row_index: u8, block_index: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
-            let story_game: StoryGame = world.read_model(game_id);
+            let story_game: StoryAttempt = world.read_model(game_id);
             let is_story_game = story_game.exists();
 
             let token_address = self.token_address();
@@ -535,10 +548,10 @@ mod game_system {
                 || quest_id == QUEST_DAILY_CHALLENGER
         }
 
-        fn create_game(ref self: ContractState, game_id: felt252, mode: u8) {
+        fn create_game(ref self: ContractState, game_id: felt252, run_type: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let player = get_caller_address();
-            let mode_val: u8 = mode & 0x1;
+            let run_type_val: u8 = run_type & 0x1;
 
             let token_address = self.token_address();
             let token_id_felt = game_id;
@@ -551,13 +564,13 @@ mod game_system {
             // Get game settings (selected via token settings_id)
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
 
-            if mode_val == 1 {
+            if run_type_val == 1 {
                 assert!(settings.settings_id == 1, "Only Endless Zone 1 is enabled in MVP");
-                let progress: StoryProgress = world.read_model((player, 1_u8));
+                let progress: StoryZoneProgress = world.read_model((player, 1_u8));
                 assert!(progress.exists() && progress.boss_cleared, "Clear Story Zone 1 first");
             }
 
-            // Detect active daily challenge context by (mode, map_settings_id).
+            // Detect active daily challenge context by (run_type, settings_id).
             let mut daily_seed: felt252 = 0;
             let mut daily_challenge_id: u32 = 0;
             match world.dns_address(@"daily_challenge_system") {
@@ -568,8 +581,8 @@ mod game_system {
                     let challenge_id = daily.get_current_challenge();
                     if challenge_id > 0 {
                         let challenge: DailyChallenge = world.read_model(challenge_id);
-                        if challenge.map_settings_id == settings.settings_id
-                            && challenge.game_mode == mode_val {
+                        if challenge.settings_id == settings.settings_id
+                            && challenge.run_type == run_type_val {
                             let entry: DailyEntry = world.read_model((challenge_id, player));
                             assert!(entry.exists(), "Must register for daily challenge first");
 
@@ -590,10 +603,10 @@ mod game_system {
             if !is_daily_game {
                 let metadata: GameSettingsMetadata = world.read_model(settings.settings_id);
                 if !metadata.is_free {
-                    let entitlement: MapEntitlement = world
+                    let entitlement: ZoneEntitlement = world
                         .read_model((player, settings.settings_id));
                     assert!(
-                        entitlement.purchased_at != 0, "Map not purchased - unlock this map first",
+                        entitlement.purchased_at != 0, "Zone not unlocked - unlock this zone first",
                     );
                 }
             }
@@ -612,7 +625,7 @@ mod game_system {
                 };
                 (random.seed, vrf_on)
             };
-            let active_mutator_id: u8 = if mode_val == 1 {
+            let active_mutator_id: u8 = if run_type_val == 1 {
                 MutatorTrait::roll_mutator(seed, FULL_MUTATOR_MASK)
             } else {
                 MutatorTrait::roll_mutator(seed, settings.allowed_mutators)
@@ -630,7 +643,9 @@ mod game_system {
             let timestamp = get_block_timestamp();
 
             // Create empty game shell (grid will be initialized via dispatcher)
-            let mut game = GameTrait::new_empty(game_id, timestamp, 0, active_mutator_id, mode_val);
+            let mut game = GameTrait::new_empty(
+                game_id, timestamp, 0, active_mutator_id, run_type_val,
+            );
             let mut run_data = game.get_run_data();
             run_data.bonus_slot = bonus_slot;
             run_data.bonus_type = bonus_type;
@@ -689,8 +704,8 @@ mod game_system {
             // Emit start game event
             world.emit_event(@StartGame { player, timestamp, game_id });
 
-            // Initialize mode-specific level config, then grid.
-            if mode_val == 1 {
+            // Initialize run-type-specific level config, then grid.
+            if run_type_val == 1 {
                 libs.level.initialize_endless_level(game_id);
             } else {
                 libs.level.initialize_level(game_id);

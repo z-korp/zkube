@@ -15,7 +15,6 @@ set -e
 # 8. Update dojo_slot.toml init args with zstar address
 # 9. Update torii config and client .env.slot with deployed addresses
 
-NAMESPACE="zkube_v2_1_0"
 PROFILE="slot"
 CONTRACTS_DIR="./contracts"
 # Dojo 1.8+ stores manifest at workspace root as manifest_<profile>.json
@@ -38,6 +37,14 @@ print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 ensure_model_writers() {
     :
+}
+
+get_namespace() {
+    NAMESPACE=$(grep "^default" "$DOJO_CONFIG" | head -1 | cut -d'"' -f2)
+    if [ -z "$NAMESPACE" ]; then
+        print_error "Failed to read namespace.default from $DOJO_CONFIG"
+        exit 1
+    fi
 }
 
 # Get credentials from dojo config
@@ -76,6 +83,8 @@ extract_class_hash() {
     echo "$hash"
 }
 
+get_namespace
+
 echo "============================================"
 echo "zkube Deployment to Slot"
 echo "Namespace: $NAMESPACE"
@@ -92,9 +101,11 @@ print_info "Build complete!"
 #-----------------
 # Step 2: Get credentials
 #-----------------
+get_namespace
 get_credentials
 print_info "Using RPC: $RPC_URL"
 print_info "Account: $ACCOUNT_ADDRESS"
+print_info "Namespace: $NAMESPACE"
 resolve_cube_token_address
 
 #-----------------

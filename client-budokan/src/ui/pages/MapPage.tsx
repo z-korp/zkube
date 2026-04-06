@@ -23,7 +23,7 @@ import { useMusicPlayer } from "@/contexts/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useDojo } from "@/dojo/useDojo";
-import { useActiveStoryGame } from "@/hooks/useActiveStoryGame";
+import { useActiveStoryAttempt } from "@/hooks/useActiveStoryAttempt";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
 import LevelPreview from "@/ui/components/map/LevelPreview";
 import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
@@ -104,7 +104,7 @@ const MapPage: React.FC = () => {
       systemCalls: { replayLevel },
     },
   } = useDojo();
-  const activeStoryRun = useActiveStoryGame();
+  const activeStoryRun = useActiveStoryAttempt();
 
   const { game, seed } = useGame({
     gameId: gameId ?? undefined,

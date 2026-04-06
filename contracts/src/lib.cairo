@@ -21,8 +21,8 @@ pub mod types {
 
     pub mod difficulty;
     pub mod level;
-    pub mod mode;
     pub mod mutator;
+    pub mod run_type;
     pub mod width;
 }
 
