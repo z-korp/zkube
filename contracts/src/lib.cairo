@@ -17,12 +17,9 @@ pub mod types {
     pub mod block;
     pub mod bonus;
     pub mod constraint;
-    pub mod daily;
-
     pub mod difficulty;
     pub mod level;
     pub mod mutator;
-    pub mod run_type;
     pub mod width;
 }
 
@@ -53,10 +50,6 @@ pub mod elements {
     }
 }
 
-pub mod components {
-    pub mod progression;
-}
-
 pub mod interfaces {
     pub mod vrf;
 }
@@ -66,16 +59,13 @@ pub mod helpers {
     pub mod config;
     pub mod controller;
     pub mod daily;
-    pub mod dispatchers;
     pub mod encoding;
     pub mod game_creation;
-    pub mod game_helpers;
     pub mod game_libs;
     pub mod game_over;
     pub mod gravity;
     pub mod level;
     pub mod level_check;
-    pub mod math;
     pub mod mutator;
     pub mod packer;
     pub mod packing;
