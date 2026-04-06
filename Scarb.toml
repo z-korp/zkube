@@ -31,6 +31,7 @@ alexandria_encoding = { git = "https://github.com/keep-starknet-strange/alexandr
 game_components_embeddable_game_standard = { git = "https://github.com/Provable-Games/game-components.git", branch = "next" }
 game_components_utilities = { git = "https://github.com/Provable-Games/game-components.git", branch = "next" }
 game_components_interfaces = { git = "https://github.com/Provable-Games/game-components.git", branch = "next" }
+game_components_test_common = { git = "https://github.com/Provable-Games/game-components.git", branch = "next" }
 
 # Arcade (quests, achievements)
 achievement = { git = "https://github.com/cartridge-gg/arcade.git", rev = "fc2e81c" }

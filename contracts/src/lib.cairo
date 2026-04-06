@@ -100,8 +100,6 @@ pub mod systems {
 }
 
 pub mod external {
-    pub mod full_token_contract;
-    pub mod minigame_registry_contract;
     pub mod zstar_token;
 }
 

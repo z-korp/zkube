@@ -122,6 +122,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "game_components_test_common"
+version = "1.5.1"
+source = "git+https://github.com/Provable-Games/game-components.git?branch=next#372b00d888c592abf6b7710fa1a41b6c2b5e60bd"
+dependencies = [
+ "game_components_embeddable_game_standard",
+ "game_components_interfaces",
+ "game_components_metagame",
+ "game_components_utilities",
+ "interfaces",
+ "openzeppelin_access",
+ "openzeppelin_interfaces",
+ "openzeppelin_introspection",
+ "openzeppelin_token",
+ "snforge_std",
+]
+
+[[package]]
 name = "game_components_utilities"
 version = "1.5.1"
 source = "git+https://github.com/Provable-Games/game-components.git?branch=next#372b00d888c592abf6b7710fa1a41b6c2b5e60bd"
@@ -198,6 +215,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "snforge_scarb_plugin"
+version = "0.55.0"
+source = "git+https://github.com/foundry-rs/starknet-foundry?tag=v0.55.0#8891212a4fe99f1787298042f828ebd4e4abe9a3"
+
+[[package]]
+name = "snforge_std"
+version = "0.55.0"
+source = "git+https://github.com/foundry-rs/starknet-foundry?tag=v0.55.0#8891212a4fe99f1787298042f828ebd4e4abe9a3"
+dependencies = [
+ "snforge_scarb_plugin",
+]
+
+[[package]]
 name = "zkube"
 version = "1.2.0"
 dependencies = [
@@ -208,6 +238,7 @@ dependencies = [
  "dojo_cairo_test",
  "game_components_embeddable_game_standard",
  "game_components_interfaces",
+ "game_components_test_common",
  "game_components_utilities",
  "graffiti",
  "openzeppelin_access",

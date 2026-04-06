@@ -33,6 +33,7 @@ quest.workspace = true
 game_components_embeddable_game_standard.workspace = true
 game_components_utilities.workspace = true
 game_components_interfaces.workspace = true
+game_components_test_common.workspace = true
 graffiti.workspace = true
 
 [[target.starknet-contract]]
@@ -57,8 +58,8 @@ build-external-contracts = [
     "quest::events::index::e_QuestUnlocked",
     "quest::events::index::e_QuestCompleted",
     "quest::events::index::e_QuestClaimed",
-    "zkube::external::full_token_contract::FullTokenContract",
-    "zkube::external::minigame_registry_contract::MinigameRegistryContract",
+    "game_components_test_common::examples::full_token_contract::FullTokenContract",
+    "game_components_test_common::examples::minigame_registry_contract::MinigameRegistryContract",
     "zkube::external::zstar_token::ZStarToken",
 ]
 
