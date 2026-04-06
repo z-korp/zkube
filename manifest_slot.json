@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x7927b397977aba5bdc29e4c55dda4f493575e0edf0097cdeeb4d941b2eb2662",
-    "seed": "zkube_v2_5",
+    "address": "0x1ad091947751dcbf8b4d12fc0ffc6ee310e9fc8314ac3d7595b65aaa9004584",
+    "seed": "zkube_v2_6",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,8 +33,8 @@
   },
   "contracts": [
     {
-      "address": "0x2d60280b65452ece371a7e47cab0d2cab50e089f5a0c0f60d7f171451162f9",
-      "class_hash": "0x3e100fe47e330d85f1bc0e08da71503f118d3992a84685105686295d79a04db",
+      "address": "0x6a1387d4bbd04f673b094c55845a7d340d3dc7a916312fa729b69fd0e8b42cc",
+      "class_hash": "0x78754d3067bf5b838d1579f5008c3317b329737491fff2c0eaa743374f6f9e2",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x06e5f1a7bf27f6075006ea9835d6614c7889779e9db19d5edf5c7e894c77868b",
@@ -54,12 +54,15 @@
         "set_star_eligible",
         "set_zstar_address",
         "set_treasury",
-        "upgrade"
+        "upgrade",
+        "grant_role",
+        "revoke_role",
+        "renounce_role"
       ]
     },
     {
-      "address": "0x73375ef77d8e081fb1a9b50cbeebddf194ead89bed64f255bd0b7a1efb0b83a",
-      "class_hash": "0x67ab3c092045a14bba511cb753946bfd94683351530582e4eccd161111921ea",
+      "address": "0x459efa7844d145b857ad82f07e3b659ec495ab473d12fada976afa861264031",
+      "class_hash": "0x25f399a208da3fbe2877d5b04338b03a8fb6539856545ae25913b8df80954b3",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x0"
@@ -79,11 +82,11 @@
       ]
     },
     {
-      "address": "0x724f15d614a567226bf0d9902170aba641bf0ad7bfba03e481ff51cd56c96ce",
-      "class_hash": "0x7a5d82ecc7af45b6718f2f5368866ae421d6eab54c4bd5a4450f25ab16f6fa8",
+      "address": "0xf99429e78c3921e23ea01163d6a48d9e8169915e2c2e1fff80820f3a18380c",
+      "class_hash": "0x2d2cbeec8865467b0f00fe5dce49805260633089dc8e0367ef7bd833f5e92dd",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
-        "0x054b2962dfc4363d2140827e12bd29f936973f1b52f07f8362ca26a87c6f9aec",
+        "0x013e661f437432e76575402d45f0b523f01246b211fcc015aab2dc20b6b43a5c",
         "0x1",
         "0x0"
       ],
@@ -95,12 +98,11 @@
         "create_run",
         "surrender",
         "apply_bonus",
-        "emit_progress",
         "upgrade"
       ]
     },
     {
-      "address": "0x23b52eb3db9841f181fc05bc446d18ec41ed69dd1b731e6638001603dc05514",
+      "address": "0x1dcb1680dc18baed34e6f93523fc1e55eaf70617f576d71f2b3a28fba4532a8",
       "class_hash": "0x7a34f46c2b4d91b95cee82fbb595302be96e0ac4822ee0cb43236a44f34c3cc",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-grid_system",
@@ -115,8 +117,8 @@
       ]
     },
     {
-      "address": "0x1b48e63641409ec285885afbdf8d6eba4a8f5793a49bed27477532b8c3199b8",
-      "class_hash": "0x32172e3c45ec138ed5afcc2c513338a16c00bac2afb9388d2a2f9c6cb725de4",
+      "address": "0x7197ef21d3b8f96d928309c3d3b758f3f86c8d2d6f87675d78d01c2e2f11f64",
+      "class_hash": "0x4872e96da0339c337e296d378803f61169961e6c0339261210785d5b1deed33",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-level_system",
       "selector": "0x1689592ed01fb67e736e3075b7d3b060bfd9ea2904147c7e161bc3f08ae2e9",
@@ -130,8 +132,8 @@
       ]
     },
     {
-      "address": "0x3f492b5c6f3f5bf9de1a75c640f6cbd8c62b6c5116ff0d322a1748f3997c11",
-      "class_hash": "0x423c99e100df88035c23a523f50df1668718ac58d7f663d86e17250a10ff205",
+      "address": "0x1dc682c67f64d85dad36477bd10415c5a784fe4b557f94e86196daf5f1cb5f8",
+      "class_hash": "0x12c50871cd7d96c1b8df74a266aecc76b8711098cc068b7286b51878b7630b0",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-move_system",
       "selector": "0x2c6e7f38e7f45f67fca81df91805a8f3ee1d9842366e3e3d32f13f46cbf60d",
@@ -141,7 +143,20 @@
       ]
     },
     {
-      "address": "0x5758ca7a5f22614ea8d3c715d8ef80f4843f0c4cffe5eb7cfc7747ed67cb4df",
+      "address": "0x7f13fd7e1c8ffa4ff6b74be2005b0d1a751a8603287500bb38e5d1d606c8f8",
+      "class_hash": "0xda88c9c884bb48b5c5b0e303727346192e1f6cc2f6b0403c129b24edd3db4",
+      "init_calldata": [],
+      "tag": "zkube_v2_1_0-progress_system",
+      "selector": "0x77d02bfa20be45e26f3c057bbd9d4fd88f0809bb8e3f881e4b2b89cd81d3c0c",
+      "systems": [
+        "dojo_init",
+        "emit_progress",
+        "progress",
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x43cab960e519f2ebe6e54e70ff9fa52046a8f5c4ede59458c396880e9c3b412",
       "class_hash": "0x285dcc05a42f92bb508b75667ee9339cea43159d1177f7865141fcd87f37eed",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-renderer_systems",
@@ -151,8 +166,8 @@
       ]
     },
     {
-      "address": "0x3e91c55b00967db4c450dbceaceda80055f93c5b90e1eeb94ba6cfb54f00da1",
-      "class_hash": "0x306e408d6feea28f1727d3834527d2ed6956d78529295093f59b99ad18e3945",
+      "address": "0x677d63d5843604610400b9f736c44ca3388e82cd51a7d60935eddda5ed09744",
+      "class_hash": "0x377a870042295b950714374a9968fd1b549bcce3d91a54f48226d7cbfd7fa5a",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-story_system",
       "selector": "0x7a30a121577725a5eb4f24e5c76d572f923bfd472c815d956aa4c88dd231e74",
@@ -426,7 +441,7 @@
         },
         {
           "name": "best_score",
-          "type": "core::integer::u16",
+          "type": "core::integer::u32",
           "key": false
         },
         {
@@ -460,7 +475,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x815f9eb0f305deedd0e21c72661c3fd5f95527a36f1709bc9872704c5c9b",
+      "class_hash": "0x36f20956be47fc3689dd2cf6c18cb1e8b15716f56813235bd4dc7b7dfd2d4d7",
       "tag": "zkube_v2_1_0-DailyEntry",
       "selector": "0x7bff9a52b6f3888dc9d75faa69ae64f639d3d77db78e1b9d8875354fcf6f324"
     },
@@ -483,11 +498,11 @@
         },
         {
           "name": "value",
-          "type": "core::integer::u32",
+          "type": "core::integer::u64",
           "key": false
         }
       ],
-      "class_hash": "0x3dc38b56b27dc2d2de610e04a88c19d5a807542e9c7ee816c69a7dab7bd2f7e",
+      "class_hash": "0x5b07de03573fa6572e58364bce1af17ea8391cc475556516a139b56d0e1d098",
       "tag": "zkube_v2_1_0-DailyLeaderboard",
       "selector": "0x4da82f16f05ed9328f75595fbafab48312bc7ff31345fee51a1f4fa2343ff82"
     },
@@ -4875,6 +4890,216 @@
       ]
     },
     {
+      "type": "event",
+      "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "RoleGranted",
+          "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGranted",
+          "kind": "nested"
+        },
+        {
+          "name": "RoleGrantedWithDelay",
+          "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGrantedWithDelay",
+          "kind": "nested"
+        },
+        {
+          "name": "RoleRevoked",
+          "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleRevoked",
+          "kind": "nested"
+        },
+        {
+          "name": "RoleAdminChanged",
+          "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleAdminChanged",
+          "kind": "nested"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleAdminChanged",
+      "kind": "struct",
+      "members": [
+        {
+          "name": "role",
+          "type": "core::felt252",
+          "kind": "data"
+        },
+        {
+          "name": "previous_admin_role",
+          "type": "core::felt252",
+          "kind": "data"
+        },
+        {
+          "name": "new_admin_role",
+          "type": "core::felt252",
+          "kind": "data"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGranted",
+      "kind": "struct",
+      "members": [
+        {
+          "name": "role",
+          "type": "core::felt252",
+          "kind": "data"
+        },
+        {
+          "name": "account",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "kind": "data"
+        },
+        {
+          "name": "sender",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "kind": "data"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGrantedWithDelay",
+      "kind": "struct",
+      "members": [
+        {
+          "name": "role",
+          "type": "core::felt252",
+          "kind": "data"
+        },
+        {
+          "name": "account",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "kind": "data"
+        },
+        {
+          "name": "sender",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "kind": "data"
+        },
+        {
+          "name": "delay",
+          "type": "core::integer::u64",
+          "kind": "data"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleRevoked",
+      "kind": "struct",
+      "members": [
+        {
+          "name": "role",
+          "type": "core::felt252",
+          "kind": "data"
+        },
+        {
+          "name": "account",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "kind": "data"
+        },
+        {
+          "name": "sender",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "kind": "data"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "openzeppelin_interfaces::access::accesscontrol::IAccessControl",
+      "items": [
+        {
+          "type": "function",
+          "name": "has_role",
+          "inputs": [
+            {
+              "name": "role",
+              "type": "core::felt252"
+            },
+            {
+              "name": "account",
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::bool"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "get_role_admin",
+          "inputs": [
+            {
+              "name": "role",
+              "type": "core::felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::felt252"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "grant_role",
+          "inputs": [
+            {
+              "name": "role",
+              "type": "core::felt252"
+            },
+            {
+              "name": "account",
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "revoke_role",
+          "inputs": [
+            {
+              "name": "role",
+              "type": "core::felt252"
+            },
+            {
+              "name": "account",
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "renounce_role",
+          "inputs": [
+            {
+              "name": "role",
+              "type": "core::felt252"
+            },
+            {
+              "name": "account",
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        }
+      ]
+    },
+    {
       "type": "interface",
       "name": "openzeppelin_interfaces::introspection::ISRC5",
       "items": [
@@ -6368,7 +6593,7 @@
         },
         {
           "name": "best_score",
-          "type": "core::integer::u16"
+          "type": "core::integer::u32"
         },
         {
           "name": "best_level",
@@ -6406,7 +6631,7 @@
         },
         {
           "name": "best_score",
-          "type": "core::integer::u16"
+          "type": "core::integer::u32"
         },
         {
           "name": "best_level",
@@ -6452,7 +6677,7 @@
         },
         {
           "name": "value",
-          "type": "core::integer::u32"
+          "type": "core::integer::u64"
         }
       ]
     },
@@ -6466,7 +6691,7 @@
         },
         {
           "name": "value",
-          "type": "core::integer::u32"
+          "type": "core::integer::u64"
         }
       ]
     },
@@ -7822,6 +8047,11 @@
           "kind": "flat"
         },
         {
+          "name": "AccessControlEvent",
+          "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::Event",
+          "kind": "flat"
+        },
+        {
           "name": "SRC5Event",
           "type": "openzeppelin_introspection::src5::SRC5Component::Event",
           "kind": "flat"
@@ -8128,30 +8358,6 @@
             }
           ],
           "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "emit_progress",
-          "inputs": [
-            {
-              "name": "player",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "task_id",
-              "type": "core::felt252"
-            },
-            {
-              "name": "count",
-              "type": "core::integer::u128"
-            },
-            {
-              "name": "settings_id",
-              "type": "core::integer::u32"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
         }
       ]
     },
@@ -8173,16 +8379,6 @@
         {
           "name": "MinigameEvent",
           "type": "game_components_embeddable_game_standard::minigame::minigame_component::MinigameComponent::Event",
-          "kind": "flat"
-        },
-        {
-          "name": "AchievementEvent",
-          "type": "achievement::component::Component::Event",
-          "kind": "flat"
-        },
-        {
-          "name": "QuestEvent",
-          "type": "quest::component::Component::Event",
           "kind": "flat"
         },
         {
@@ -8434,6 +8630,88 @@
           "name": "WorldProviderEvent",
           "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
           "kind": "nested"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "zkube::systems::progress::IProgressSystem",
+      "items": [
+        {
+          "type": "function",
+          "name": "emit_progress",
+          "inputs": [
+            {
+              "name": "player",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "task_id",
+              "type": "core::felt252"
+            },
+            {
+              "name": "count",
+              "type": "core::integer::u128"
+            },
+            {
+              "name": "settings_id",
+              "type": "core::integer::u32"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "progress",
+          "inputs": [
+            {
+              "name": "player_id",
+              "type": "core::felt252"
+            },
+            {
+              "name": "task_id",
+              "type": "core::felt252"
+            },
+            {
+              "name": "count",
+              "type": "core::integer::u128"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::systems::progress::progress_system::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "AchievementEvent",
+          "type": "achievement::component::Component::Event",
+          "kind": "flat"
+        },
+        {
+          "name": "QuestEvent",
+          "type": "quest::component::Component::Event",
+          "kind": "flat"
+        },
+        {
+          "name": "SRC5Event",
+          "type": "openzeppelin_introspection::src5::SRC5Component::Event",
+          "kind": "flat"
         }
       ]
     },
