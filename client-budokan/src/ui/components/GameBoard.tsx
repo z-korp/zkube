@@ -42,6 +42,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const ROWS = 10;
   const COLS = 8;
+  const NEXT_LINE_ROWS = 1;
+  const HORIZONTAL_PADDING = 24;
+  const VERTICAL_CHROME = 36;
   const containerRef = useRef<HTMLDivElement>(null);
   const [gridSize, setGridSize] = useState(40);
 
@@ -57,15 +60,19 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
     const observer = new ResizeObserver(([entry]) => {
       const w = entry.contentRect.width;
-      const padding = 24;
-      const cellSize = Math.floor((w - padding) / COLS);
+      const h = entry.contentRect.height;
+      const safeWidth = Math.max(1, w - HORIZONTAL_PADDING);
+      const safeHeight = Math.max(1, h - VERTICAL_CHROME);
+      const cellByWidth = Math.floor(safeWidth / COLS);
+      const cellByHeight = Math.floor(safeHeight / (ROWS + NEXT_LINE_ROWS));
+      const cellSize = Math.min(cellByWidth, cellByHeight);
       setGridSize(Math.max(28, Math.min(cellSize, 56)));
     });
 
     observer.observe(el);
 
     return () => observer.disconnect();
-  }, [COLS]);
+  }, [COLS, ROWS, NEXT_LINE_ROWS, HORIZONTAL_PADDING, VERTICAL_CHROME]);
 
   const handleBonusTx = useCallback(
     async (_bonusType: BonusType, rowIndex: number, colIndex: number) => {
@@ -119,7 +126,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     <>
         <Card
           ref={containerRef}
-          className={`relative p-2 md:p-3 w-full max-w-[500px] ${
+          className={`relative flex h-full min-h-0 w-full max-w-[500px] flex-col p-2 md:p-3 ${
             isTxProcessing && "cursor-wait"
           }`}
           style={{
@@ -129,7 +136,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           }}
         >
         <div
-          className={`flex flex-col items-center ${
+          className={`flex min-h-0 flex-1 flex-col items-center ${
             !isTxProcessing && "cursor-move"
           }`}
         >

@@ -63,7 +63,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
   return (
     <div className="w-full px-2 pb-2 shrink-0">
       {activeBonus !== BonusType.None && bonusDescription && (
-        <div className="mb-1 text-center text-xs font-semibold uppercase tracking-wide text-yellow-300">
+        <div className="mb-1 text-center font-sans text-xs font-semibold uppercase tracking-wide text-yellow-300">
           {bonusDescription}
         </div>
       )}
@@ -113,7 +113,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                       }`}
                     />
                     <span
-                      className="absolute -bottom-0.5 -left-0.5 text-[clamp(9px,2.2vw,12px)] font-bold rounded-full w-[clamp(20px,5vw,24px)] h-[clamp(20px,5vw,24px)] flex items-center justify-center text-white z-10"
+                      className="absolute -bottom-0.5 -left-0.5 font-sans text-[clamp(9px,2.2vw,12px)] font-bold rounded-full w-[clamp(20px,5vw,24px)] h-[clamp(20px,5vw,24px)] flex items-center justify-center text-white z-10"
                       style={{ backgroundColor: isPassive ? arcColor : undefined }}
                     >
                       {isPassive ? (
@@ -124,7 +124,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                     </span>
                     {!isPassive && (
                       <span
-                        className={`absolute -top-0.5 -right-0.5 text-[clamp(8px,2vw,11px)] font-bold rounded-full min-w-[clamp(20px,5vw,24px)] h-[clamp(20px,5vw,24px)] flex items-center justify-center px-0.5 ${
+                        className={`absolute -top-0.5 -right-0.5 font-sans text-[clamp(8px,2vw,11px)] font-bold rounded-full min-w-[clamp(20px,5vw,24px)] h-[clamp(20px,5vw,24px)] flex items-center justify-center px-0.5 ${
                           isDisabled
                             ? 'bg-slate-600 text-slate-400'
                             : 'bg-yellow-500 text-white'
@@ -139,7 +139,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                   side="top"
                   className="bg-slate-900 border border-slate-500 text-white px-3 py-1.5 shadow-lg"
                 >
-                  <span className="text-xs font-medium">{slot.tooltip}</span>
+                  <span className="font-sans text-xs font-medium">{slot.tooltip}</span>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

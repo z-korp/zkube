@@ -288,13 +288,12 @@ const GameHud: React.FC<GameHudProps> = ({
 
   const potentialCubes = movesRemaining >= cube3Threshold ? 3
     : movesRemaining >= cube2Threshold ? 2 : 1;
+  const hasConstraints = constraints.length > 0;
+  const comboTextColor = combo > 0 ? "text-white" : "text-slate-500";
 
   return (
-    <div className="w-full px-2 pt-2 shrink-0">
-      <div
-        className="relative max-w-[500px] mx-auto w-full bg-slate-900/90 backdrop-blur-sm border border-slate-500/50 rounded-lg px-3 py-2 grid items-center gap-x-2 gap-y-1.5"
-        style={{ gridTemplateColumns: `auto auto auto 1fr auto` }}
-      >
+    <div className="w-full shrink-0 px-2 pt-2">
+      <div className="relative mx-auto w-full max-w-[500px] rounded-xl border border-slate-500/50 bg-slate-900/90 px-3 py-2.5 backdrop-blur-sm">
         <AnimatePresence>
           {isEndless && showDifficultyUp && (
             <motion.div
@@ -315,162 +314,122 @@ const GameHud: React.FC<GameHudProps> = ({
         </AnimatePresence>
 
         {isEndless ? (
-          <>
-            <div className="col-span-5 flex flex-wrap items-center justify-between gap-2">
-              <div
-                className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1"
-                style={{ borderColor: `${currentTier.color}80`, backgroundColor: `${currentTier.color}22` }}
-              >
-                <span className="text-sm leading-none">{currentTier.emoji}</span>
-                <span className="font-display text-xs text-white">{currentTier.name}</span>
-                <span className="font-display text-xs" style={{ color: currentTier.color }}>{currentTier.multiplier}</span>
+          <div className="space-y-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 space-y-1.5">
+                <div
+                  className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1"
+                  style={{ borderColor: `${currentTier.color}80`, backgroundColor: `${currentTier.color}22` }}
+                >
+                  <span className="text-sm leading-none">{currentTier.emoji}</span>
+                  <span className="font-display text-xs text-white">{currentTier.name}</span>
+                  <span className="font-display text-xs" style={{ color: currentTier.color }}>{currentTier.multiplier}</span>
+                </div>
+
+                {activeMutatorId > 0 && (
+                  <div className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5">
+                    <span className="text-xs">{mutator.icon}</span>
+                    <span className="font-sans text-[10px] font-medium text-white/80">{mutator.name}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <div className="font-display text-[10px] uppercase tracking-wide text-slate-300">Score</div>
-                  <div className="font-display text-sm tabular-nums text-cyan-300">{animatedTotalScore}</div>
-                </div>
-                <div className="text-right">
-                  <div className="font-display text-[10px] uppercase tracking-wide text-slate-300">Moves</div>
-                  <div className="font-display text-sm tabular-nums text-emerald-300">{movesRemaining}</div>
-                </div>
-                <div className="flex items-center">
-                  <span className={`font-display text-sm tabular-nums ${combo > 0 ? "text-white" : "text-slate-500"}`}>
-                    🔥{combo}x
-                  </span>
+              <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-right">
+                <div className="font-display text-[10px] uppercase tracking-wide text-slate-200">Moves</div>
+                <div className="font-sans text-2xl font-bold leading-none tabular-nums text-emerald-300">
+                  {movesRemaining}
                 </div>
               </div>
             </div>
 
-            <div className="col-span-5 min-w-0">
-              <div className="h-2 bg-slate-700/80 rounded-full overflow-hidden">
+            <div className="flex items-end justify-between gap-3">
+              <div className="min-w-0">
+                <div className="font-display text-[10px] uppercase tracking-wide text-slate-300">Score</div>
+                <div className="font-sans text-xl font-semibold tabular-nums text-cyan-300">{animatedTotalScore}</div>
+              </div>
+
+              <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-1">
+                <span className="text-xs">🔥</span>
+                <span className={`font-sans text-sm font-semibold tabular-nums ${comboTextColor}`}>{combo}x</span>
+              </div>
+            </div>
+
+            <div className="min-w-0">
+              <div className="h-2 overflow-hidden rounded-full bg-slate-700/80">
                 <div
                   className="h-full rounded-full transition-all duration-300 ease-out"
                   style={{ width: `${endlessTierProgress * 100}%`, backgroundColor: currentTier.color }}
                 />
               </div>
-              <div className="mt-1 flex items-center justify-between font-display text-[11px] text-slate-300">
-                <span className="tabular-nums">
+              <div className="mt-1 flex items-center justify-between text-[11px] text-slate-300">
+                <span className="font-sans tabular-nums">
                   {nextTier
                     ? `${Math.min(animatedTotalScore, nextTier.threshold)}/${nextTier.threshold} → ${nextTier.name}`
                     : `${animatedTotalScore} • MAX TIER`}
                 </span>
-                <span className="text-slate-400">Multiplier {currentTier.multiplier}</span>
+                <span className="font-sans text-slate-400">Multiplier {currentTier.multiplier}</span>
               </div>
             </div>
-
-            {activeMutatorId > 0 && (
-              <div className="col-span-5 flex justify-start">
-                <div className="flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5">
-                  <span className="text-xs">{mutator.icon}</span>
-                  <span className="font-sans text-[9px] font-medium text-white/80">{mutator.name}</span>
-                </div>
-              </div>
-            )}
-          </>
+          </div>
         ) : (
-          <>
-            <div className="flex items-center gap-1.5">
-              <span className="font-display text-base text-yellow-400 tracking-wide">Level</span>
-              <div className="w-8 h-8 rounded-full border-2 border-yellow-500 bg-slate-900 flex items-center justify-center shadow-[0_0_8px_rgba(250,204,21,0.3)]">
-                <span className="font-display text-base text-yellow-400 leading-none">{level}</span>
-              </div>
-              {activeMutatorId > 0 && (
-                <div className="flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 ml-1">
-                  <span className="text-xs">{mutator.icon}</span>
-                  <span className="font-sans text-[9px] font-medium text-white/80">{mutator.name}</span>
+          <div className="space-y-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-yellow-500/60 bg-yellow-500/10 px-2 py-1">
+                  <span className="font-display text-sm tracking-wide text-yellow-300">Level</span>
+                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-yellow-500 bg-slate-900 px-1 font-sans text-sm font-bold leading-none text-yellow-300 tabular-nums">
+                    {level}
+                  </span>
                 </div>
-              )}
+
+                {activeMutatorId > 0 && (
+                  <div className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5">
+                    <span className="text-xs">{mutator.icon}</span>
+                    <span className="font-sans text-[10px] font-medium text-white/80">{mutator.name}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-right">
+                <div className="font-display text-[10px] uppercase tracking-wide text-slate-200">Moves</div>
+                <div className={`font-sans text-2xl font-bold leading-none tabular-nums ${movesTextColor}`}>
+                  {movesRemaining}
+                </div>
+              </div>
             </div>
 
-            <div className="flex items-center gap-1 col-span-2">
-              <span className="text-yellow-400">★</span>
-              <span className="font-display text-base text-blue-300 tabular-nums">{totalCubes}</span>
-            </div>
-
-            <div className="min-w-0">
-              <div className="flex items-baseline justify-between mb-0.5">
+            <div className="space-y-1">
+              <div className="flex items-baseline justify-between">
                 <span className="font-display text-xs text-slate-300">Score</span>
-                <span className="font-display text-xs text-cyan-300 tabular-nums">
+                <span className="font-sans text-sm tabular-nums text-cyan-300">
                   {animatedScore}<span className="text-slate-400">/{targetScore}</span>
                 </span>
               </div>
-              <div className="h-2 bg-slate-700/80 rounded-full overflow-hidden">
+              <div className="h-2 overflow-hidden rounded-full bg-slate-700/80">
                 <div
-                  className="h-full bg-cyan-500 rounded-full transition-all duration-300 ease-out"
+                  className="h-full rounded-full bg-cyan-500 transition-all duration-300 ease-out"
                   style={{ width: `${scoreProgress * 100}%` }}
                 />
               </div>
             </div>
 
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center">
-                    <span className={`font-display text-sm tabular-nums ${combo > 0 ? "text-white" : "text-slate-500"}`}>
-                      🔥{combo}x
-                    </span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent
-                  side="bottom"
-                  className="bg-slate-900 border border-slate-500 text-white text-xs px-2 py-1 z-[200]"
-                >
-                  Combo streak — consecutive moves clearing lines
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <div className="flex items-center gap-1.5 col-span-3">
-              <TooltipProvider delayDuration={200}>
-                {constraints.map((c, i) => {
-                  const description = Constraint.fromContractValues(
-                    c.type, c.value, c.count,
-                  ).getDescription();
-                  return (
-                    <Tooltip key={`constraint-${i}`}>
-                      <TooltipTrigger asChild>
-                        <div>
-                          <ProgressRing
-                            progress={getConstraintProgress(c.type, c.progress, c.count, bonusUsedThisLevel)}
-                            size={ringSize}
-                            color={getConstraintColor(c.type, c.progress, c.count, bonusUsedThisLevel)}
-                            icon={getConstraintIcon(c.type)}
-                            badgeTopLeft={getValueBadge(c.type, c.value)}
-                            badgeBottomRight={getProgressBadge(c.type, c.progress, c.count)}
-                          />
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent
-                        side="top"
-                        className="bg-slate-900 border border-slate-500 text-white text-xs px-2 py-1"
-                      >
-                        {description}
-                      </TooltipContent>
-                    </Tooltip>
-                  );
-                })}
-              </TooltipProvider>
-            </div>
-
-            <div className="min-w-0">
-              <div className="flex items-baseline justify-between mb-0.5">
+            <div className="space-y-1.5">
+              <div className="flex items-baseline justify-between">
                 <div className="relative inline-flex items-center gap-1" ref={movesInfoRef}>
-                  <span className="font-display text-xs text-slate-300">Moves</span>
+                  <span className="font-display text-xs text-slate-300">Star Thresholds</span>
                   <button
                     type="button"
                     onClick={() => setMovesInfoOpen((v) => !v)}
                     onMouseEnter={() => setMovesInfoOpen(true)}
                     onMouseLeave={() => setMovesInfoOpen(false)}
-                    className="inline-flex items-center justify-center text-slate-400 hover:text-slate-200 active:text-white transition-colors"
+                    className="inline-flex items-center justify-center text-slate-400 transition-colors hover:text-slate-200 active:text-white"
                     aria-label="Star reward thresholds"
                   >
                     <Info size={11} />
                   </button>
                   {movesInfoOpen && (
-                    <div className="absolute left-0 top-full mt-1.5 z-[200] bg-slate-900 border border-slate-500 rounded-md px-3 py-2 shadow-lg whitespace-nowrap">
-                      <div className="flex flex-col gap-1 text-xs text-white">
+                    <div className="absolute left-0 top-full z-[200] mt-1.5 whitespace-nowrap rounded-md border border-slate-500 bg-slate-900 px-3 py-2 shadow-lg">
+                      <div className="flex flex-col gap-1 font-sans text-xs text-white">
                         <div className="flex items-center gap-2">
                           <span className="inline-flex gap-0.5"><span className="text-yellow-400">★</span><span className="text-yellow-400">★</span><span className="text-yellow-400">★</span></span>
                           <span>≥ {cube3Threshold} moves left</span>
@@ -487,37 +446,91 @@ const GameHud: React.FC<GameHudProps> = ({
                     </div>
                   )}
                 </div>
-                <span className={`font-display text-xs tabular-nums ${movesTextColor}`}>
+
+                <span className={`font-sans text-sm tabular-nums ${movesTextColor}`}>
                   {movesRemaining}<span className="text-slate-400">/{maxMoves}</span>
                 </span>
               </div>
-              <div className="relative h-2 bg-slate-700/80 rounded-full overflow-hidden">
+
+              <div className="relative h-2 overflow-hidden rounded-full bg-slate-700/80">
                 <div
                   className={`h-full rounded-full transition-all duration-300 ease-out ${movesBarColor}`}
                   style={{ width: `${movesProgress * 100}%` }}
                 />
                 {cube3Threshold > 0 && cube3Threshold < maxMoves && (
                   <div
-                    className="absolute top-0 bottom-0 w-0.5 bg-white/40 z-10"
+                    className="absolute top-0 bottom-0 z-10 w-0.5 bg-white/40"
                     style={{ left: `${cube3MarkerPos}%` }}
                   />
                 )}
                 {cube2Threshold > 0 && cube2Threshold < maxMoves && (
                   <div
-                    className="absolute top-0 bottom-0 w-0.5 bg-white/25 z-10"
+                    className="absolute top-0 bottom-0 z-10 w-0.5 bg-white/25"
                     style={{ left: `${cube2MarkerPos}%` }}
                   />
                 )}
               </div>
             </div>
 
-            <div className="flex items-center gap-0.5">
-              <span className="text-yellow-400 text-xs">★</span>
-              <span className={`font-display text-sm tabular-nums ${
-                potentialCubes >= 3 ? "text-green-400" : potentialCubes >= 2 ? "text-yellow-400" : "text-red-400"
-              }`}>+{potentialCubes}</span>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-h-[44px] min-w-0 flex-1">
+                {hasConstraints ? (
+                  <TooltipProvider delayDuration={200}>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {constraints.map((c, i) => {
+                        const description = Constraint.fromContractValues(
+                          c.type, c.value, c.count,
+                        ).getDescription();
+                        return (
+                          <Tooltip key={`constraint-${i}`}>
+                            <TooltipTrigger asChild>
+                              <div>
+                                <ProgressRing
+                                  progress={getConstraintProgress(c.type, c.progress, c.count, bonusUsedThisLevel)}
+                                  size={ringSize}
+                                  color={getConstraintColor(c.type, c.progress, c.count, bonusUsedThisLevel)}
+                                  icon={getConstraintIcon(c.type)}
+                                  badgeTopLeft={getValueBadge(c.type, c.value)}
+                                  badgeBottomRight={getProgressBadge(c.type, c.progress, c.count)}
+                                />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="top"
+                              className="border border-slate-500 bg-slate-900 px-2 py-1 text-xs text-white"
+                            >
+                              {description}
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                  </TooltipProvider>
+                ) : (
+                  <div className="flex h-full items-center font-display text-xs uppercase tracking-wide text-slate-500">
+                    No constraints this level
+                  </div>
+                )}
+              </div>
+
+              <div className="flex shrink-0 items-center gap-1.5">
+                <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-1">
+                  <span className="text-xs">🔥</span>
+                  <span className={`font-sans text-sm font-semibold tabular-nums ${comboTextColor}`}>{combo}x</span>
+                </div>
+
+                <div className="inline-flex items-center gap-1 rounded-full border border-blue-400/30 bg-blue-500/10 px-2 py-1">
+                  <span className="text-xs text-yellow-400">★</span>
+                  <span className={`font-sans text-sm font-semibold tabular-nums ${
+                    potentialCubes >= 3 ? "text-green-400" : potentialCubes >= 2 ? "text-yellow-400" : "text-red-400"
+                  }`}>+{potentialCubes}</span>
+                  {totalCubes > 0 && (
+                    <span className="font-sans text-[11px] text-blue-300 tabular-nums">• {totalCubes}</span>
+                  )}
+                </div>
+              </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

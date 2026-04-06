@@ -377,7 +377,7 @@ const PlayScreen: React.FC = () => {
         )}
 
         {game && isGameOn && !isGridLoading && !isGameLoading && (
-          <div className="flex w-full flex-col items-center min-h-0">
+          <div className="flex h-full w-full flex-col items-center min-h-0">
             <GameBoard
               initialGrid={grid}
               nextLine={game.isOver() ? [] : game.next_row}
@@ -392,7 +392,7 @@ const PlayScreen: React.FC = () => {
         )}
 
         {game && game.over && !isGridLoading && !isGameLoading && (
-          <div className="flex w-full flex-col items-center min-h-0 opacity-50 pointer-events-none">
+          <div className="flex h-full w-full flex-col items-center min-h-0 opacity-50 pointer-events-none">
             <GameBoard
               initialGrid={grid}
               nextLine={[]}
