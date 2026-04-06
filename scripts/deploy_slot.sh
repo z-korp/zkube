@@ -91,6 +91,14 @@ echo "Namespace: $NAMESPACE"
 echo "============================================"
 
 #-----------------
+# Step 0: Remove world_address so sozo deploys a fresh world
+#-----------------
+if grep -q '^world_address' "$DOJO_CONFIG"; then
+    print_info "Removing world_address from $DOJO_CONFIG (will be set after migration)..."
+    sed -i '/^world_address/d' "$DOJO_CONFIG"
+fi
+
+#-----------------
 # Step 1: Build
 #-----------------
 print_info "Step 1: Building contracts..."
