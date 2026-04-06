@@ -41,7 +41,7 @@ export interface InteractiveStep extends TutorialStepBase {
   targetBlock: TutorialTarget | null;
   successCondition: string;
   constraint?: {
-    type: "ComboLines" | "NoBonusUsed";
+    type: "ComboLines" | "KeepGridBelow";
     value: number;
     count: number;
   };
@@ -329,7 +329,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 4,
     title: "Combo",
     type: "bonus",
-    bonusType: BonusType.Combo,
+    bonusType: BonusType.Hammer,
     description: "The Combo bonus targets a block to boost your next move.",
     mobileDescription: "Tap Combo, then a block",
     targetBlock: { x: 6, y: 9, type: "block" },
@@ -339,7 +339,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 5,
     title: "Harvest",
     type: "bonus",
-    bonusType: BonusType.Harvest,
+    bonusType: BonusType.Totem,
     description: "The Harvest bonus removes all blocks of a chosen size.",
     mobileDescription: "Tap Harvest, then a block size",
     targetBlock: { x: 0, y: 8, type: "row" },
@@ -349,7 +349,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 6,
     title: "Score",
     type: "bonus",
-    bonusType: BonusType.Score,
+    bonusType: BonusType.Wave,
     description: "The Score bonus grants instant extra score.",
     mobileDescription: "Tap Score to gain points",
     targetBlock: { x: 0, y: 9, type: "block" },

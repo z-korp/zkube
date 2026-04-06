@@ -94,9 +94,6 @@ export function defineContractComponents(world: World) {
           max_moves: RecsType.Number,
           base_ratio_x100: RecsType.Number,
           max_ratio_x100: RecsType.Number,
-          // Cube Thresholds
-          cube_3_percent: RecsType.Number,
-          cube_2_percent: RecsType.Number,
           // Difficulty Tier Thresholds (non-linear)
           tier_1_threshold: RecsType.Number,
           tier_2_threshold: RecsType.Number,
@@ -109,8 +106,8 @@ export function defineContractComponents(world: World) {
           constraints_enabled: RecsType.Number,
           constraint_start_level: RecsType.Number,
           // Constraint Distribution (PACKED fields)
-          constraint_lines_budgets: RecsType.BigInt, // u64: lines + budgets + times packed
-          constraint_chances: RecsType.Number,       // u32: dual_chance + secondary_no_bonus packed
+          constraint_lines_budgets: RecsType.BigInt, // u64
+          constraint_chances: RecsType.Number,       // u32
           // Block Distribution (VeryEasy to Master)
           veryeasy_size1_weight: RecsType.Number,
           veryeasy_size2_weight: RecsType.Number,
@@ -131,9 +128,26 @@ export function defineContractComponents(world: World) {
           mid_level_threshold: RecsType.Number,
           // Level Cap
           level_cap: RecsType.Number,
-          boss_upgrades_enabled: RecsType.Number,
-          reroll_base_cost: RecsType.Number,
-          starting_charges: RecsType.Number,
+          // Mutator Settings
+          allowed_mutators: RecsType.Number,         // u32 bitmask
+          // Endless Mode Settings
+          endless_difficulty_thresholds: RecsType.BigInt, // felt252 packed
+          endless_score_multipliers: RecsType.BigInt,     // u64 packed
+          // Bonus Slot Settings (3 slots × 4 fields)
+          bonus_1_type: RecsType.Number,
+          bonus_1_trigger_type: RecsType.Number,
+          bonus_1_trigger_threshold: RecsType.Number,
+          bonus_1_starting_charges: RecsType.Number,
+          bonus_2_type: RecsType.Number,
+          bonus_2_trigger_type: RecsType.Number,
+          bonus_2_trigger_threshold: RecsType.Number,
+          bonus_2_starting_charges: RecsType.Number,
+          bonus_3_type: RecsType.Number,
+          bonus_3_trigger_type: RecsType.Number,
+          bonus_3_trigger_threshold: RecsType.Number,
+          bonus_3_starting_charges: RecsType.Number,
+          // Boss Settings
+          boss_id: RecsType.Number,
         },
         {
           metadata: {
@@ -142,20 +156,23 @@ export function defineContractComponents(world: World) {
             types: [
               "u32",  // settings_id
               "u8",   // mode
-              "u16", "u16", "u16", "u16",  // level scaling
-              "u8", "u8",  // cube thresholds
+              "u16", "u16", "u16", "u16",  // level scaling (base_moves, max_moves, base_ratio, max_ratio)
               "u8", "u8", "u8", "u8", "u8", "u8", "u8",  // tier thresholds (7)
               "u8", "u8",  // constraint settings
-              "u64",  // constraint_lines_budgets (packed)
-              "u32",  // constraint_chances (packed)
+              "u64",  // constraint_lines_budgets
+              "u32",  // constraint_chances
               "u8", "u8", "u8", "u8", "u8",  // veryeasy block weights
               "u8", "u8", "u8", "u8", "u8",  // master block weights
-               "u8", "u8", "u8",  // variance
-               "u8", "u8",  // level thresholds
-               "u8",  // level_cap
-               "u8",   // boss_upgrades_enabled
-               "u8",   // reroll_base_cost
-               "u8",   // starting_charges
+              "u8", "u8", "u8",  // variance
+              "u8", "u8",  // level thresholds
+              "u8",  // level_cap
+              "u32",  // allowed_mutators
+              "felt252",  // endless_difficulty_thresholds
+              "u64",  // endless_score_multipliers
+              "u8", "u8", "u8", "u8",  // bonus_1
+              "u8", "u8", "u8", "u8",  // bonus_2
+              "u8", "u8", "u8", "u8",  // bonus_3
+              "u8",  // boss_id
             ],
           },
         }
@@ -200,8 +217,7 @@ export function defineContractComponents(world: World) {
           constraint3_type: RecsType.Number,
           constraint3_value: RecsType.Number,
           constraint3_count: RecsType.Number,
-          cube_3_threshold: RecsType.Number,
-          cube_2_threshold: RecsType.Number,
+          mutator_id: RecsType.Number,
         },
         {
           metadata: {
@@ -222,8 +238,7 @@ export function defineContractComponents(world: World) {
               "u8",   // constraint3_type
               "u8",   // constraint3_value
               "u8",   // constraint3_count
-              "u16",  // cube_3_threshold
-              "u16",  // cube_2_threshold
+              "u8",   // mutator_id
             ],
             customTypes: [],
           },
@@ -520,6 +535,76 @@ export function defineContractComponents(world: World) {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "ActiveStoryAttempt",
             types: ["ContractAddress", "felt252", "u32", "u8", "bool"],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+    MutatorDef: (() => {
+      return defineComponent(
+        world,
+        {
+          mutator_id: RecsType.Number,
+          name: RecsType.BigInt,
+          zone_id: RecsType.Number,
+          moves_modifier: RecsType.Number,
+          ratio_modifier: RecsType.Number,
+          difficulty_offset: RecsType.Number,
+          combo_score_mult_x100: RecsType.Number,
+          star_threshold_modifier: RecsType.Number,
+          endless_ramp_mult_x100: RecsType.Number,
+          line_clear_bonus: RecsType.Number,
+          perfect_clear_bonus: RecsType.Number,
+          starting_rows: RecsType.Number,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "MutatorDef",
+            types: [
+              "u8", "felt252", "u8",
+              "u8", "u8", "u8",
+              "u16", "u8", "u16",
+              "u8", "u8", "u8",
+            ],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+    CosmeticDef: (() => {
+      return defineComponent(
+        world,
+        {
+          cosmetic_id: RecsType.Number,
+          name: RecsType.BigInt,
+          star_cost: RecsType.BigInt,
+          category: RecsType.Number,
+          enabled: RecsType.Boolean,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "CosmeticDef",
+            types: ["u32", "felt252", "u256", "u8", "bool"],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+    CosmeticUnlock: (() => {
+      return defineComponent(
+        world,
+        {
+          player: RecsType.BigInt,
+          cosmetic_id: RecsType.Number,
+          purchased_at: RecsType.Number,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "CosmeticUnlock",
+            types: ["ContractAddress", "u32", "u64"],
             customTypes: [],
           },
         }

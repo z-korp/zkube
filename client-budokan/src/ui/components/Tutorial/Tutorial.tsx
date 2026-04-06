@@ -244,12 +244,12 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
     
     if (isBonusStep(currentStepConfig)) {
       switch (currentStepConfig.bonusType) {
-        case BonusType.Combo:
-          return <img className="w-8 h-8" src={imgAssets.combo} alt="Combo" />;
-        case BonusType.Harvest:
-          return <img className="w-8 h-8" src={imgAssets.harvest} alt="Harvest" />;
-        case BonusType.Score:
-          return <img className="w-8 h-8" src={imgAssets.score} alt="Score" />;
+        case BonusType.Hammer:
+          return <img className="w-8 h-8" src={imgAssets.combo} alt="Hammer" />;
+        case BonusType.Totem:
+          return <img className="w-8 h-8" src={imgAssets.harvest} alt="Totem" />;
+        case BonusType.Wave:
+          return <img className="w-8 h-8" src={imgAssets.wave} alt="Wave" />;
         default:
           return null;
       }

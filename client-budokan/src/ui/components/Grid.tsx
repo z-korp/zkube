@@ -246,22 +246,18 @@ const Grid: React.FC<GridProps> = ({
       return;
     }
 
-    // NON-GRID bonuses: Combo, Score — send tx directly, no block changes
-    // (Supply is handled directly from PlayScreen with a confirmation dialog)
-    if (bonus === BonusType.Combo) {
-      setIsTxProcessing(true);
-      setAnimateText(`+${activeBonusLevel + 1} combo`);
-      selectBlock(block);
-      return;
-    } else if (bonus === BonusType.Score) {
-      setIsTxProcessing(true);
-      setAnimatedPoints((activeBonusLevel + 1) * 10);
-      selectBlock(block);
-      return;
-    }
-
-    // GRID bonuses: Harvest, Wave — modify blocks, then gravity state machine
-    if (bonus === BonusType.Harvest) {
+    // GRID bonuses: Hammer, Totem, Wave — modify blocks, then gravity state machine
+    if (bonus === BonusType.Hammer) {
+      // Hammer: destroy single block at target position
+      setBlockBonus(block);
+      if (gridPosition !== null) {
+        handleTriggerLocalExplosion(
+          gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
+          gridPosition.top + block.y * gridSize
+        );
+      }
+      setBlocks(blocks.filter((b) => !(b.x === block.x && b.y === block.y)));
+    } else if (bonus === BonusType.Totem) {
       setBlockBonus(block);
       getBlocksSameWidth(block, blocks).forEach((b) => {
         if (gridPosition === null) return;
@@ -290,7 +286,7 @@ const Grid: React.FC<GridProps> = ({
     }
 
     // Grid bonuses enter gravity state machine
-    if (bonus === BonusType.Harvest || bonus === BonusType.Wave) {
+    if (bonus === BonusType.Hammer || bonus === BonusType.Totem || bonus === BonusType.Wave) {
       setIsTxProcessing(true);
       setIsMoving(true);
       setGameState(GameState.GRAVITY_BONUS);

@@ -96,12 +96,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const selectBlock = useCallback(
     async (block: Block) => {
-      if (activeBonus === BonusType.Harvest) {
-        handleBonusTx(BonusType.Harvest, block.y, block.x);
-      } else if (activeBonus === BonusType.Score) {
-        handleBonusTx(BonusType.Score, block.y, block.x);
-      } else if (activeBonus === BonusType.Combo) {
-        handleBonusTx(BonusType.Combo, block.y, block.x);
+      if (activeBonus === BonusType.Hammer) {
+        handleBonusTx(BonusType.Hammer, block.y, block.x);
+      } else if (activeBonus === BonusType.Totem) {
+        handleBonusTx(BonusType.Totem, block.y, block.x);
       } else if (activeBonus === BonusType.Wave) {
         handleBonusTx(BonusType.Wave, block.y, block.x);
       } else if (activeBonus === BonusType.None) {

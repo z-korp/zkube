@@ -344,43 +344,6 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const questClaim = async ({ account, player, quest_id, interval_id }: QuestClaim) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "quest_claim",
-            calldata: CallData.compile({
-              player,
-              quest_id,
-              interval_id,
-            }),
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing quest_claim:", error);
-        throw error;
-      }
-    };
-
-    const questClaims = async (account: Account, params: { player: string; quest_id: string; interval_id: number }[]) => {
-      try {
-        const calls = params.map(({ player, quest_id, interval_id }) => ({
-          contractAddress: contract.address,
-          entrypoint: "quest_claim",
-          calldata: CallData.compile({
-            player,
-            quest_id,
-            interval_id,
-          }),
-        }));
-        return await account.execute(calls);
-      } catch (error) {
-        console.error("Error executing quest_claims:", error);
-        throw error;
-      }
-    };
-
     return {
       address: contract.address,
       free_mint,
@@ -389,8 +352,6 @@ export function setupWorld(config: Config) {
       surrender,
       move,
       bonus,
-      questClaim,
-      questClaims,
     };
   }
 
@@ -717,10 +678,43 @@ export function setupWorld(config: Config) {
     };
   }
 
+  function progressSystem() {
+    const contract_name = "progress_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      console.warn(`Contract ${contract_name} not found in manifest - progress system disabled`);
+      return null;
+    }
+
+    const questClaim = async ({ account, player, quest_id, interval_id }: QuestClaim) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "on_quest_claim",
+            calldata: CallData.compile({
+              player,
+              quest_id,
+              interval_id,
+            }),
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing quest_claim:", error);
+        throw error;
+      }
+    };
+
+    return { address: contract.address, questClaim };
+  }
+
   return {
     game: game(),
     story_system: storySystem(),
     config: configSystem(),
     daily_challenge: daily_challenge(),
+    progress_system: progressSystem(),
   };
 }

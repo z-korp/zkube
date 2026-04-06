@@ -91,33 +91,33 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
 
   const handleBonusWaveClick = () => {
     if (harvestCount === 0) return;
-    if (bonus === BonusType.Harvest) {
+    if (bonus === BonusType.Totem) {
       setBonus(BonusType.None);
       setBonusDescription("");
     } else {
-      setBonus(BonusType.Harvest);
+      setBonus(BonusType.Totem);
       setBonusDescription("Select a row to clear");
     }
   };
 
   const handleBonusScoreClick = () => {
     if (scoreCount === 0) return;
-    if (bonus === BonusType.Score) {
+    if (bonus === BonusType.Wave) {
       setBonus(BonusType.None);
       setBonusDescription("");
     } else {
-      setBonus(BonusType.Score);
+      setBonus(BonusType.Wave);
       setBonusDescription("Select a block size to harvest");
     }
   };
 
   const handleBonusComboClick = () => {
     if (comboCount === 0) return;
-    if (bonus === BonusType.Combo) {
+    if (bonus === BonusType.Hammer) {
       setBonus(BonusType.None);
       setBonusDescription("");
     } else {
-      setBonus(BonusType.Combo);
+      setBonus(BonusType.Hammer);
       setBonusDescription("Select a block for combo bonus");
     }
   };
@@ -127,7 +127,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
     try {
       // await applyBonus({
       //   account: account as Account,
-      //   bonus: new Bonus(BonusType.Harvest).into(),
+      //   bonus: new Bonus(BonusType.Totem).into(),
       //   row_index: ROWS - rowIndex - 1,
       //   block_index: 0,
       // });
@@ -141,7 +141,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
     try {
       // await applyBonus({
       //   account: account as Account,
-      //   bonus: new Bonus(BonusType.Combo).into(),
+      //   bonus: new Bonus(BonusType.Hammer).into(),
       //   row_index: ROWS - rowIndex - 1,
       //   block_index: colIndex,
       // });
@@ -155,7 +155,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
     try {
       // await applyBonus({
       //   account: account as Account,
-      //   bonus: new Bonus(BonusType.Score).into(),
+      //   bonus: new Bonus(BonusType.Wave).into(),
       //   row_index: ROWS - rowIndex - 1,
       //   block_index: colIndex,
       // });
@@ -168,11 +168,11 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
     async (block: Block) => {
       if (onBlockSelect) onBlockSelect(block);
 
-      if (bonus === BonusType.Harvest) {
+      if (bonus === BonusType.Totem) {
         handleBonusWaveTx();
-      } else if (bonus === BonusType.Score) {
+      } else if (bonus === BonusType.Wave) {
         handleBonusScoreTx();
-      } else if (bonus === BonusType.Combo) {
+      } else if (bonus === BonusType.Hammer) {
         handleBonusComboTx();
       }
     },
@@ -249,7 +249,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
                   urlImage={imgAssets.combo}
                   bonusCount={comboCount}
                   tooltipText="Add combo to next move"
-                  bonusName={BonusType.Combo}
+                  bonusName={BonusType.Hammer}
                   bonus={bonus}
                   disabled={disableCombo}
                   highlighted={highlightedCombo}
@@ -261,7 +261,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
                   urlImage={imgAssets.harvest}
                   bonusCount={harvestCount}
                   tooltipText="Destroy all blocks of chosen size"
-                  bonusName={BonusType.Harvest}
+                  bonusName={BonusType.Totem}
                   bonus={bonus}
                   disabled={disableWave}
                   highlighted={highlightedWave}
@@ -273,7 +273,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
                   urlImage={imgAssets.score}
                   bonusCount={scoreCount}
                   tooltipText="Add bonus score"
-                  bonusName={BonusType.Score}
+                  bonusName={BonusType.Wave}
                   bonus={bonus}
                   disabled={disableScore}
                   highlighted={highlightedScore}

@@ -498,9 +498,10 @@ export function systems({ client }: { client: IWorld }) {
   };
 
   const questClaim = async ({ account, ...props }: SystemTypes.QuestClaim) => {
+    if (!client.progress_system) throw new Error("Progress system not available");
     await handleTransaction(
       account,
-      () => client.game.questClaim({ account, ...props }),
+      () => client.progress_system!.questClaim({ account, ...props }),
       "Quest reward claimed!",
     );
   };

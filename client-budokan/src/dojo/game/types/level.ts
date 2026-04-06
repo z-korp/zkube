@@ -22,7 +22,7 @@ import { BOSS_LEVELS } from "@/dojo/game/constants";
  * 
  * Constraint system uses budget-based generation:
  * - Primary constraint is always ClearLines (from level 3+)
- * - Secondary constraint based on dual_chance (NoBonusUsed or ClearLines)
+ * - Secondary constraint based on dual_chance (ClearLines)
  * - times_cap = budget / line_cost(lines)
  * - Line costs: 2->2, 3->4, 4->6, 5->10, 6->15, 7+->20
  */
@@ -659,8 +659,7 @@ function generateClearLinesConstraint(
 }
 
 /**
- * Maybe generate a secondary constraint
- * Secondary can be either NoBonusUsed or another ClearLines
+ * Maybe generate a secondary constraint (another ClearLines)
  */
 function maybeGenerateSecondaryConstraint(
   seed: bigint,
@@ -670,18 +669,12 @@ function maybeGenerateSecondaryConstraint(
   budgetMax: number,
   minTimes: number,
   dualChance: number,
-  secondaryNoBonusChance: number
+  _secondaryNoBonusChance: number
 ): Constraint {
   // Roll to see if we get a secondary constraint at all
   const dualRoll = Number((seed / BigInt(100000)) % BigInt(100));
   if (dualRoll >= dualChance) {
     return Constraint.none();
-  }
-
-  // Roll to see if secondary is NoBonusUsed or ClearLines
-  const noBonusRoll = Number((seed / BigInt(1000000)) % BigInt(100));
-  if (noBonusRoll < secondaryNoBonusChance) {
-    return Constraint.noBonus();
   }
 
   // Generate another ClearLines constraint with shifted seed
@@ -754,7 +747,7 @@ function generateClearLinesConstraintMaxBudget(
 }
 
 /**
- * Generate boss secondary constraint (always generated, may be NoBonusUsed)
+ * Generate boss secondary constraint (always generated)
  */
 function generateBossSecondaryConstraint(
   seed: bigint,
@@ -762,14 +755,8 @@ function generateBossSecondaryConstraint(
   maxLines: number,
   budgetMax: number,
   minTimes: number,
-  secondaryNoBonusChance: number
+  _secondaryNoBonusChance: number
 ): Constraint {
-  // Roll to see if secondary is NoBonusUsed or ClearLines
-  const noBonusRoll = Number((seed / BigInt(1000000)) % BigInt(100));
-  if (noBonusRoll < secondaryNoBonusChance) {
-    return Constraint.noBonus();
-  }
-  
   // Generate another ClearLines constraint with shifted seed and max budget
   const secondarySeed = seed / BigInt(10000000);
   return generateClearLinesConstraintMaxBudget(
@@ -1044,7 +1031,7 @@ export function parseGameSettings(raw: any): GameSettings {
     endlessScoreMultipliers: raw.endless_score_multipliers
       ? unpackEndlessMultipliers(raw.endless_score_multipliers)
       : DEFAULT_SETTINGS.endlessScoreMultipliers,
-    cube3Percent: raw.cube_3_percent ?? DEFAULT_SETTINGS.cube3Percent,
-    cube2Percent: raw.cube_2_percent ?? DEFAULT_SETTINGS.cube2Percent,
+    cube3Percent: DEFAULT_SETTINGS.cube3Percent,
+    cube2Percent: DEFAULT_SETTINGS.cube2Percent,
   };
 }

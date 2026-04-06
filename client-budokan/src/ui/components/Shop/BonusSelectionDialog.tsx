@@ -1,15 +1,13 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
 import { motion } from "motion/react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";
-import {
-  BonusType,
-  bonusTypeToContractValue,
-} from "@/dojo/game/types/bonusTypes";
+import { BonusType } from "@/dojo/game/types/bonusTypes";
 import { useMusicPlayer } from "@/contexts/hooks";
-import { MAX_LOADOUT_SLOTS } from "@/dojo/game/constants";
+
+const MAX_LOADOUT_SLOTS = 3;
 
 interface BonusSelectionDialogProps {
   isOpen: boolean;
@@ -21,20 +19,16 @@ interface BonusSelectionDialogProps {
 }
 
 const ALL_BONUSES: BonusType[] = [
-  BonusType.Combo,
-  BonusType.Score,
-  BonusType.Harvest,
+  BonusType.Hammer,
+  BonusType.Totem,
   BonusType.Wave,
-  BonusType.Supply,
 ];
 
 const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
   isOpen,
   onClose,
   onConfirm,
-  shrinkUnlocked,
-  shuffleUnlocked,
-  initialSelection = [BonusType.Combo, BonusType.Harvest, BonusType.Score],
+  initialSelection = [BonusType.Hammer, BonusType.Totem, BonusType.Wave],
 }) => {
   const { themeTemplate } = useTheme();
   const { playSfx } = useMusicPlayer();
@@ -48,33 +42,33 @@ const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
     }
   }, [isOpen, initialSelection]);
 
-  const unlockedMap = useMemo(() => ({
-    [BonusType.Combo]: true,
-    [BonusType.Score]: true,
-    [BonusType.Harvest]: true,
-    [BonusType.Wave]: shrinkUnlocked,
-    [BonusType.Supply]: shuffleUnlocked,
-  }), [shrinkUnlocked, shuffleUnlocked]);
-
   const getBonusIcon = (type: BonusType): string => {
     switch (type) {
-      case BonusType.Combo:
+      case BonusType.Hammer:
         return imgAssets.combo;
-      case BonusType.Score:
-        return imgAssets.score;
-      case BonusType.Harvest:
+      case BonusType.Totem:
         return imgAssets.harvest;
       case BonusType.Wave:
         return imgAssets.wave;
-      case BonusType.Supply:
-        return imgAssets.supply;
+      default:
+        return "";
+    }
+  };
+
+  const getBonusLabel = (type: BonusType): string => {
+    switch (type) {
+      case BonusType.Hammer:
+        return "Hammer";
+      case BonusType.Totem:
+        return "Totem";
+      case BonusType.Wave:
+        return "Wave";
       default:
         return "";
     }
   };
 
   const toggleBonus = (type: BonusType) => {
-    if (!unlockedMap[type]) return;
     if (selected.includes(type)) {
       playSfx("unequip");
     } else if (selected.length < 3) {
@@ -91,7 +85,7 @@ const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
 
   const handleConfirm = () => {
     if (selected.length !== MAX_LOADOUT_SLOTS) return;
-    const selectedValues = selected.map((type) => bonusTypeToContractValue(type));
+    const selectedValues = selected.map((type) => type as number);
     onConfirm(selectedValues);
   };
 
@@ -109,10 +103,9 @@ const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
           Selected {selected.length}/3
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-3 gap-3 mb-6">
           {ALL_BONUSES.map((bonusType, index) => {
             const isSelected = selected.includes(bonusType);
-            const isLocked = !unlockedMap[bonusType];
             const icon = getBonusIcon(bonusType);
 
             return (
@@ -122,25 +115,15 @@ const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 onClick={() => toggleBonus(bonusType)}
-                disabled={isLocked}
                 className={`relative flex flex-col items-center gap-2 p-3 rounded-lg border transition-all
                   ${isSelected ? "border-yellow-400 bg-yellow-500/10" : "border-slate-700 bg-slate-800/30"}
-                  ${isLocked ? "opacity-50 cursor-not-allowed" : "hover:border-slate-500"}`}
+                  hover:border-slate-500`}
               >
-                <img src={icon} alt={bonusType} className="w-10 h-10" />
-                <div className="text-sm font-semibold">{bonusType}</div>
-                {isLocked && (
-                  <div className="absolute top-2 right-2 text-xs bg-slate-900/80 px-2 py-0.5 rounded">
-                    Locked
-                  </div>
-                )}
+                <img src={icon} alt={getBonusLabel(bonusType)} className="w-10 h-10" />
+                <div className="text-sm font-semibold">{getBonusLabel(bonusType)}</div>
               </motion.button>
             );
           })}
-        </div>
-
-        <div className="text-xs text-slate-500 text-center mb-4">
-          Wave and Supply require unlocks from the permanent shop.
         </div>
 
         <Button

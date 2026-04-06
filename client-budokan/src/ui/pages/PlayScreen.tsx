@@ -28,13 +28,6 @@ import { ConstraintType } from "@/dojo/game/types/constraint";
 import { DifficultyType } from "@/dojo/game/types/difficulty";
 import { getBonusType } from "@/config/mutatorConfig";
 
-const V2_BONUS_TO_LEGACY: Record<number, BonusType> = {
-  0: BonusType.None,
-  1: BonusType.Harvest,
-  2: BonusType.Score,
-  3: BonusType.Wave,
-};
-
 const PlayScreen: React.FC = () => {
   const {
     setup: {
@@ -86,6 +79,7 @@ const PlayScreen: React.FC = () => {
         constraint3Type: ConstraintType.None,
         constraint3Value: 0,
         constraint3Count: 0,
+        mutatorId: 0,
         cube3Threshold: fallback.cube3Threshold,
         cube2Threshold: fallback.cube2Threshold,
       };
@@ -260,7 +254,7 @@ const PlayScreen: React.FC = () => {
 
   const bonusSlots = useMemo(() => {
     if (bonusType <= 0) return [];
-    const mapped = V2_BONUS_TO_LEGACY[bonusType] ?? BonusType.None;
+    const mapped = bonusType as BonusType;
     const bonusInfo = getBonusType(bonusType);
     return [
       {

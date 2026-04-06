@@ -12,11 +12,8 @@ export enum ConstraintType {
   BreakBlocks = 2,
   /** Must reach a combo of X (one-shot) */
   ComboStreak = 3,
-  /** Must fill grid to X rows Y times (height after resolve) */
-  FillAndClear = 4,
-  /** Must complete level without using any bonus (boss-only) */
-  NoBonusUsed = 5,
-  KeepGridBelow = 6,
+  /** Must keep grid below X filled rows (boss-only, fail-on-breach) */
+  KeepGridBelow = 4,
 }
 
 export interface LevelConstraint {
@@ -55,14 +52,6 @@ export class Constraint {
     return new Constraint(ConstraintType.ComboStreak, comboTarget, 1);
   }
 
-  static fillAndClear(targetRow: number, times: number): Constraint {
-    return new Constraint(ConstraintType.FillAndClear, targetRow, times);
-  }
-
-  static noBonus(): Constraint {
-    return new Constraint(ConstraintType.NoBonusUsed, 0, 0);
-  }
-
   static keepGridBelow(maxRowsExclusive: number): Constraint {
     return new Constraint(ConstraintType.KeepGridBelow, maxRowsExclusive, 1);
   }
@@ -71,7 +60,7 @@ export class Constraint {
     return new Constraint(type as ConstraintType, value, count);
   }
 
-  isSatisfied(progress: number, bonusUsed: boolean): boolean {
+  isSatisfied(progress: number, _bonusUsed: boolean): boolean {
     switch (this.constraintType) {
       case ConstraintType.None:
         return true;
@@ -81,10 +70,6 @@ export class Constraint {
         return progress >= this.requiredCount;
       case ConstraintType.ComboStreak:
         return progress >= 1;
-      case ConstraintType.FillAndClear:
-        return progress >= this.requiredCount;
-      case ConstraintType.NoBonusUsed:
-        return !bonusUsed;
       case ConstraintType.KeepGridBelow:
         return progress === 0;
       default:
@@ -102,10 +87,6 @@ export class Constraint {
         return `Break ${this.requiredCount} size-${this.value} blocks`;
       case ConstraintType.ComboStreak:
         return `Reach ${this.value}x combo`;
-      case ConstraintType.FillAndClear:
-        return `Fill to row ${this.value} ${this.requiredCount} time${this.requiredCount > 1 ? "s" : ""}`;
-      case ConstraintType.NoBonusUsed:
-        return "No bonus allowed";
       case ConstraintType.KeepGridBelow:
         return `Keep below ${this.value} rows`;
       default:
@@ -123,10 +104,6 @@ export class Constraint {
         return `Break ${this.requiredCount}x size-${this.value}`;
       case ConstraintType.ComboStreak:
         return `${this.value}x combo`;
-      case ConstraintType.FillAndClear:
-        return `Fill row ${this.value} x${this.requiredCount}`;
-      case ConstraintType.NoBonusUsed:
-        return "No Bonus";
       case ConstraintType.KeepGridBelow:
         return `Below ${this.value}r`;
       default:
