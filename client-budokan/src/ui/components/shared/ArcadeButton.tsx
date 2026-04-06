@@ -21,7 +21,7 @@ const ArcadeButton: React.FC<ArcadeButtonProps> = ({
 
   return (
     <motion.button
-      whileHover={{ scale: disabled ? 1 : 1.01 }}
+      whileHover={{ scale: 1 }}
       whileTap={{ scale: disabled ? 1 : 0.985, y: disabled ? 0 : 2 }}
       disabled={disabled}
       onClick={onClick}

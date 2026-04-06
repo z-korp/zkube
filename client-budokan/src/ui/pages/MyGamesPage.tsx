@@ -4,6 +4,8 @@ import { motion } from "motion/react";
 import { unpackRunData } from "@/dojo/game/helpers/runDataPacking";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useGameTokensSlot, type SlotGameTokenData } from "@/hooks/useGameTokensSlot";
+import { useActiveStoryAttempt } from "@/hooks/useActiveStoryAttempt";
+import { useGame } from "@/hooks/useGame";
 import { useNavigationStore } from "@/stores/navigationStore";
 import GameCard from "@/ui/components/shared/GameCard";
 import Connect from "@/ui/components/Connect";
@@ -71,6 +73,12 @@ const MyGamesPage: React.FC = () => {
     limit: 100,
   });
 
+  const activeStoryAttempt = useActiveStoryAttempt();
+  const { game: activeStoryGame } = useGame({
+    gameId: activeStoryAttempt?.gameId ?? 0n,
+    shouldLog: false,
+  });
+
   const { activeGames, completedGames } = useMemo(() => {
     const active: GameTokenWithExtra[] = [];
     const completed: GameTokenWithExtra[] = [];
@@ -83,8 +91,26 @@ const MyGamesPage: React.FC = () => {
       }
     }
 
+    if (activeStoryGame && !activeStoryGame.over) {
+      const storyToken: GameTokenWithExtra = {
+        token_id: activeStoryGame.id,
+        score: activeStoryGame.totalScore,
+        game_over: false,
+        metadata: "{}",
+        gameMetadata: { name: "Story Run" },
+        run_data: activeStoryGame.runDataRaw,
+        settings_id: activeStoryGame.zoneId > 0 ? (activeStoryGame.zoneId - 1) * 2 : 0,
+      };
+      const alreadyListed = active.some(
+        (g) => g.token_id === activeStoryGame.id,
+      );
+      if (!alreadyListed) {
+        active.unshift(storyToken);
+      }
+    }
+
     return { activeGames: active, completedGames: completed };
-  }, [games]);
+  }, [games, activeStoryGame]);
 
   if (!account) {
     return (

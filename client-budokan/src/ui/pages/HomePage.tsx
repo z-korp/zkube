@@ -263,7 +263,6 @@ const HomePage: React.FC = () => {
 
               <motion.button
                 variants={itemVariants}
-                whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
                 type="button"
                 onClick={() => navigate("daily")}
@@ -316,7 +315,6 @@ const HomePage: React.FC = () => {
 
                       return (
                         <motion.button
-                          whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           key={z.settingsId}
                           type="button"

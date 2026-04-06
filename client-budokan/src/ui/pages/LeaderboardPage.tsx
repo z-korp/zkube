@@ -5,6 +5,7 @@ import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
 import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
+import { usePlayerLeaderboard } from "@/hooks/usePlayerLeaderboard";
 import { getThemeColors } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import PageHeader from "@/ui/components/shared/PageHeader";
@@ -30,12 +31,10 @@ const LeaderboardPage: React.FC = () => {
   const { games, loading } = useLeaderboardSlot();
   const { challenge } = useCurrentChallenge();
   const { entries: dailyEntries } = useDailyLeaderboard(challenge?.challenge_id);
-  const [activeTab, setActiveTab] = useState<"zone" | "endless" | "daily">("zone");
+  const { entries: playerEntries } = usePlayerLeaderboard();
+  const [activeTab, setActiveTab] = useState<"daily" | "endless" | "player">("daily");
 
   const normalizedAccount = account?.address?.toLowerCase();
-  const filteredGames = games.filter((game) =>
-    activeTab === "zone" ? game.endlessDepth === 0 : game.endlessDepth > 0,
-  );
 
   const rankRows =
     activeTab === "daily"
@@ -47,20 +46,29 @@ const LeaderboardPage: React.FC = () => {
           stars: 0,
           isYou: normalizedAccount === entry.player.toLowerCase(),
         }))
-      : filteredGames.slice(0, 30).map((entry, index) => {
-          const starCount = Math.min(30, Math.max(0, entry.level * 3));
-          return {
-            id: entry.token_id.toString(),
-            rank: index + 1,
-            name: entry.player_name || "Anonymous",
-            score: entry.score,
-            stars: starCount,
-            isYou:
-              !!normalizedAccount &&
-              !!entry.player_address &&
-              entry.player_address.toLowerCase() === normalizedAccount,
-          };
-        });
+      : activeTab === "player"
+        ? playerEntries.slice(0, 30).map((entry) => ({
+            id: `player-${entry.rank}`,
+            rank: entry.rank,
+            name: entry.playerName ?? entry.player,
+            score: entry.lifetimeXp,
+            stars: 0,
+            isYou: normalizedAccount === entry.player.toLowerCase(),
+          }))
+        : games.slice(0, 30).map((entry, index) => {
+            const starCount = Math.min(30, Math.max(0, entry.level * 3));
+            return {
+              id: entry.token_id.toString(),
+              rank: index + 1,
+              name: entry.player_name || "Anonymous",
+              score: entry.score,
+              stars: starCount,
+              isYou:
+                !!normalizedAccount &&
+                !!entry.player_address &&
+                entry.player_address.toLowerCase() === normalizedAccount,
+            };
+          });
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
@@ -74,9 +82,9 @@ const LeaderboardPage: React.FC = () => {
         </motion.div>
         <div className="mx-6 mt-2 flex rounded-full border border-white/[0.16] bg-white/[0.1] p-1 shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)] backdrop-blur-xl">
           {([
-            { id: "zone", label: "Zone" },
-            { id: "endless", label: "Endless" },
             { id: "daily", label: "Daily" },
+            { id: "endless", label: "Endless" },
+            { id: "player", label: "Player" },
           ] as const).map((tab) => (
             <button
               key={tab.id}
@@ -178,7 +186,7 @@ const LeaderboardPage: React.FC = () => {
                 </div>
 
                 <div className="font-sans text-[16px] font-extrabold tracking-wide" style={{ color: colors.text }}>
-                  {entry.score.toLocaleString()}
+                  {entry.score.toLocaleString()}{activeTab === "player" ? " XP" : ""}
                 </div>
               </motion.div>
             ))}

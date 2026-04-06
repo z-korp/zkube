@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo, useSyncExternalStore } from "react";
-import { Info } from "lucide-react";
+import { useState, useEffect, useMemo, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import ProgressRing from "@/ui/components/shared/ProgressRing";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
@@ -19,14 +18,12 @@ interface GameHudProps {
   levelScore: number;
   targetScore: number;
   movesRemaining: number;
-  totalCubes: number;
   combo: number;
   constraintProgress: number;
   constraint2Progress: number;
   constraint3Progress: number;
   bonusUsedThisLevel: boolean;
   gameLevel: GameLevelData | null;
-  maxMoves: number;
   activeMutatorId?: number;
   mode?: number;
   totalScore?: number;
@@ -147,14 +144,12 @@ const GameHud: React.FC<GameHudProps> = ({
   levelScore,
   targetScore,
   movesRemaining,
-  totalCubes,
   combo,
   constraintProgress,
   constraint2Progress,
   constraint3Progress,
   bonusUsedThisLevel,
   gameLevel,
-  maxMoves,
   activeMutatorId = 0,
   mode = 0,
   totalScore = 0,
@@ -166,27 +161,8 @@ const GameHud: React.FC<GameHudProps> = ({
 
   const mutator = getMutatorDef(activeMutatorId);
 
-  const [movesInfoOpen, setMovesInfoOpen] = useState(false);
-  const movesInfoRef = useRef<HTMLDivElement>(null);
   const [prevDifficulty, setPrevDifficulty] = useState<number | undefined>(currentDifficulty);
   const [showDifficultyUp, setShowDifficultyUp] = useState(false);
-
-  const closeMovesInfo = useCallback(() => setMovesInfoOpen(false), []);
-
-  useEffect(() => {
-    if (!movesInfoOpen) return;
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (movesInfoRef.current && !movesInfoRef.current.contains(e.target as Node)) {
-        closeMovesInfo();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, [movesInfoOpen, closeMovesInfo]);
 
   const animatedScore = useLerpNumber(levelScore, { duration: 300, integer: true }) ?? 0;
   const animatedTotalScore = useLerpNumber(totalScore, { duration: 300, integer: true }) ?? 0;
@@ -195,22 +171,12 @@ const GameHud: React.FC<GameHudProps> = ({
   const cube2Threshold = gameLevel?.cube2Threshold ?? 0;
 
   const scoreProgress = targetScore > 0 ? Math.min(1, animatedScore / targetScore) : 0;
-  const movesProgress = maxMoves > 0 ? movesRemaining / maxMoves : 0;
-
-  const movesBarColor = movesRemaining >= cube3Threshold
-    ? "bg-green-500"
-    : movesRemaining >= cube2Threshold
-      ? "bg-yellow-500"
-      : "bg-red-500";
 
   const movesTextColor = movesRemaining >= cube3Threshold
     ? "text-green-400"
     : movesRemaining >= cube2Threshold
       ? "text-yellow-400"
       : "text-red-400";
-
-  const cube3MarkerPos = maxMoves > 0 ? (cube3Threshold / maxMoves) * 100 : 0;
-  const cube2MarkerPos = maxMoves > 0 ? (cube2Threshold / maxMoves) * 100 : 0;
 
   // Contract Difficulty enum: None=0, Increasing=1, VeryEasy=2..Master=9
   // ENDLESS_TIERS indices:   VeryEasy=0..Master=7
@@ -286,8 +252,6 @@ const GameHud: React.FC<GameHudProps> = ({
     gameLevel?.constraint3Type, gameLevel?.constraint3Value, gameLevel?.constraint3Count, constraint3Progress,
   ]);
 
-  const potentialCubes = movesRemaining >= cube3Threshold ? 3
-    : movesRemaining >= cube2Threshold ? 2 : 1;
   const hasConstraints = constraints.length > 0;
   const comboTextColor = combo > 0 ? "text-white" : "text-slate-500";
 
@@ -372,107 +336,68 @@ const GameHud: React.FC<GameHudProps> = ({
             </div>
           </div>
         ) : (
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             <div className="flex items-start justify-between gap-2">
-              <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-yellow-500/60 bg-yellow-500/10 px-2 py-1">
-                  <span className="font-display text-sm tracking-wide text-yellow-300">Level</span>
-                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-yellow-500 bg-slate-900 px-1 font-sans text-sm font-bold leading-none text-yellow-300 tabular-nums">
-                    {level}
-                  </span>
-                </div>
-
-                {activeMutatorId > 0 && (
-                  <div className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5">
-                    <span className="text-xs">{mutator.icon}</span>
-                    <span className="font-sans text-[10px] font-medium text-white/80">{mutator.name}</span>
+              <div className="min-w-0 space-y-1.5">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-yellow-500/60 bg-yellow-500/10 px-2 py-1">
+                    <span className="font-display text-sm tracking-wide text-yellow-300">Lv</span>
+                    <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-yellow-500 bg-slate-900 px-1 font-sans text-sm font-bold leading-none text-yellow-300 tabular-nums">
+                      {level}
+                    </span>
                   </div>
-                )}
-              </div>
 
-              <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-right">
-                <div className="font-display text-[10px] uppercase tracking-wide text-slate-200">Moves</div>
-                <div className={`font-sans text-2xl font-bold leading-none tabular-nums ${movesTextColor}`}>
-                  {movesRemaining}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex items-baseline justify-between">
-                <span className="font-display text-xs text-slate-300">Score</span>
-                <span className="font-sans text-sm tabular-nums text-cyan-300">
-                  {animatedScore}<span className="text-slate-400">/{targetScore}</span>
-                </span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-slate-700/80">
-                <div
-                  className="h-full rounded-full bg-cyan-500 transition-all duration-300 ease-out"
-                  style={{ width: `${scoreProgress * 100}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex items-baseline justify-between">
-                <div className="relative inline-flex items-center gap-1" ref={movesInfoRef}>
-                  <span className="font-display text-xs text-slate-300">Star Thresholds</span>
-                  <button
-                    type="button"
-                    onClick={() => setMovesInfoOpen((v) => !v)}
-                    onMouseEnter={() => setMovesInfoOpen(true)}
-                    onMouseLeave={() => setMovesInfoOpen(false)}
-                    className="inline-flex items-center justify-center text-slate-400 transition-colors hover:text-slate-200 active:text-white"
-                    aria-label="Star reward thresholds"
-                  >
-                    <Info size={11} />
-                  </button>
-                  {movesInfoOpen && (
-                    <div className="absolute left-0 top-full z-[200] mt-1.5 whitespace-nowrap rounded-md border border-slate-500 bg-slate-900 px-3 py-2 shadow-lg">
-                      <div className="flex flex-col gap-1 font-sans text-xs text-white">
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex gap-0.5"><span className="text-yellow-400">★</span><span className="text-yellow-400">★</span><span className="text-yellow-400">★</span></span>
-                          <span>≥ {cube3Threshold} moves left</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex gap-0.5"><span className="text-yellow-400">★</span><span className="text-yellow-400">★</span></span>
-                          <span>≥ {cube2Threshold} moves left</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-yellow-400">★</span>
-                          <span>Complete level</span>
-                        </div>
-                      </div>
+                  {activeMutatorId > 0 && (
+                    <div className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5">
+                      <span className="text-xs">{mutator.icon}</span>
+                      <span className="font-sans text-[10px] font-medium text-white/80">{mutator.name}</span>
                     </div>
                   )}
                 </div>
 
-                <span className={`font-sans text-sm tabular-nums ${movesTextColor}`}>
-                  {movesRemaining}<span className="text-slate-400">/{maxMoves}</span>
-                </span>
+                <div>
+                  <div className="font-display text-[10px] uppercase tracking-wide text-slate-300">Score</div>
+                  <div className="font-sans text-lg font-semibold tabular-nums text-cyan-300">
+                    {animatedScore}<span className="text-slate-400 text-sm">/{targetScore}</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="relative h-2 overflow-hidden rounded-full bg-slate-700/80">
-                <div
-                  className={`h-full rounded-full transition-all duration-300 ease-out ${movesBarColor}`}
-                  style={{ width: `${movesProgress * 100}%` }}
-                />
-                {cube3Threshold > 0 && cube3Threshold < maxMoves && (
-                  <div
-                    className="absolute top-0 bottom-0 z-10 w-0.5 bg-white/40"
-                    style={{ left: `${cube3MarkerPos}%` }}
-                  />
-                )}
-                {cube2Threshold > 0 && cube2Threshold < maxMoves && (
-                  <div
-                    className="absolute top-0 bottom-0 z-10 w-0.5 bg-white/25"
-                    style={{ left: `${cube2MarkerPos}%` }}
-                  />
-                )}
+              <div className="flex flex-col items-end gap-1">
+                <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-right">
+                  <div className="font-display text-[10px] uppercase tracking-wide text-slate-200">Moves</div>
+                  <div className={`font-sans text-2xl font-bold leading-none tabular-nums ${movesTextColor}`}>
+                    {movesRemaining}
+                  </div>
+                </div>
+                <div className="flex items-center gap-0.5">
+                  {[3, 2, 1].map((star) => {
+                    const lit = star === 3
+                      ? movesRemaining >= cube3Threshold
+                      : star === 2
+                        ? movesRemaining >= cube2Threshold
+                        : true;
+                    return (
+                      <span
+                        key={star}
+                        className={`text-sm transition-colors ${lit ? "text-yellow-400 drop-shadow-[0_0_4px_rgba(250,204,21,0.6)]" : "text-white/20"}`}
+                      >
+                        ★
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
-            <div className="flex items-start justify-between gap-2">
+            <div className="h-1.5 overflow-hidden rounded-full bg-slate-700/80">
+              <div
+                className="h-full rounded-full bg-cyan-500 transition-all duration-300 ease-out"
+                style={{ width: `${scoreProgress * 100}%` }}
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-2">
               <div className="min-h-[44px] min-w-0 flex-1">
                 {hasConstraints ? (
                   <TooltipProvider delayDuration={200}>
@@ -513,21 +438,9 @@ const GameHud: React.FC<GameHudProps> = ({
                 )}
               </div>
 
-              <div className="flex shrink-0 items-center gap-1.5">
-                <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-1">
-                  <span className="text-xs">🔥</span>
-                  <span className={`font-sans text-sm font-semibold tabular-nums ${comboTextColor}`}>{combo}x</span>
-                </div>
-
-                <div className="inline-flex items-center gap-1 rounded-full border border-blue-400/30 bg-blue-500/10 px-2 py-1">
-                  <span className="text-xs text-yellow-400">★</span>
-                  <span className={`font-sans text-sm font-semibold tabular-nums ${
-                    potentialCubes >= 3 ? "text-green-400" : potentialCubes >= 2 ? "text-yellow-400" : "text-red-400"
-                  }`}>+{potentialCubes}</span>
-                  {totalCubes > 0 && (
-                    <span className="font-sans text-[11px] text-blue-300 tabular-nums">• {totalCubes}</span>
-                  )}
-                </div>
+              <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-1">
+                <span className="text-xs">🔥</span>
+                <span className={`font-sans text-sm font-semibold tabular-nums ${comboTextColor}`}>{combo}x</span>
               </div>
             </div>
           </div>

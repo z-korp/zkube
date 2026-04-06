@@ -33,6 +33,7 @@ export class Game {
   public levelStarsRaw: bigint;
 
   public runData: RunData;
+  public runDataRaw: bigint;
 
   public get level(): number {
     return this.runData.currentLevel;
@@ -114,6 +115,7 @@ export class Game {
     this.max_combo = game.max_combo || 0;
 
     const runDataBigInt = game.run_data ? BigInt(game.run_data) : BigInt(0);
+    this.runDataRaw = runDataBigInt;
     this.runData = unpackRunData(runDataBigInt);
 
     this.levelStarsRaw = game.level_stars ? BigInt(game.level_stars) : 0n;
