@@ -32,7 +32,7 @@ mod story_system {
         StoryZoneProgressTrait,
     };
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
-    use zkube::systems::game::{IGameSystemDispatcher, IGameSystemDispatcherTrait};
+    use zkube::systems::progress::{IProgressSystemDispatcher, IProgressSystemDispatcherTrait};
     use zkube::types::mutator::MutatorTrait;
 
     #[storage]
@@ -231,10 +231,12 @@ mod story_system {
                     },
                 );
 
-            match world.dns_address(@"game_system") {
-                Option::Some(game_address) => {
-                    let game_dispatcher = IGameSystemDispatcher { contract_address: game_address };
-                    game_dispatcher
+            match world.dns_address(@"progress_system") {
+                Option::Some(progress_address) => {
+                    let progress_dispatcher = IProgressSystemDispatcher {
+                        contract_address: progress_address,
+                    };
+                    progress_dispatcher
                         .emit_progress(player, Task::GameStart.identifier(), 1, settings_id);
                 },
                 Option::None => {},

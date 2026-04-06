@@ -1,0 +1,185 @@
+//! Shared game creation logic.
+//! Extracted from game_system to reduce CASM bytecode size.
+//! Called by game_system.create_run() for NFT-token games.
+
+use core::num::traits::Zero;
+use dojo::event::EventStorage;
+use dojo::model::ModelStorage;
+use dojo::world::{WorldStorage, WorldStorageTrait};
+use starknet::{ContractAddress, get_block_timestamp};
+use zkube::elements::tasks::index::Task;
+use zkube::elements::tasks::interface::TaskTrait;
+use zkube::events::StartGame;
+use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
+use zkube::helpers::config::ConfigUtilsTrait;
+use zkube::helpers::game_libs::{
+    GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
+};
+use zkube::helpers::random::RandomImpl;
+use zkube::models::config::GameSettingsMetadata;
+use zkube::models::daily::{DailyChallenge, DailyEntry, DailyEntryTrait, GameChallenge};
+use zkube::models::entitlement::ZoneEntitlement;
+use zkube::models::game::{GameSeed, GameTrait};
+use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
+use zkube::models::story::{StoryZoneProgress, StoryZoneProgressTrait};
+use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
+use zkube::systems::daily_challenge::{
+    IDailyChallengeSystemDispatcher, IDailyChallengeSystemDispatcherTrait,
+};
+use zkube::systems::progress::{IProgressSystemDispatcher, IProgressSystemDispatcherTrait};
+use zkube::types::mutator::{FULL_MUTATOR_MASK, MutatorTrait};
+
+/// Create a new NFT-token game. Handles settings lookup, daily challenge detection,
+/// entitlement gating, seed generation, mutator/bonus selection, player meta update,
+/// and grid/level initialization via dispatchers.
+pub fn create_game(
+    ref world: WorldStorage,
+    game_id: felt252,
+    run_type: u8,
+    player: ContractAddress,
+    vrf_address: ContractAddress,
+) {
+    let run_type_val: u8 = run_type & 0x1;
+
+    let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+
+    if run_type_val == 1 {
+        assert!(settings.settings_id == 1, "Only Endless Zone 1 is enabled in MVP");
+        let progress: StoryZoneProgress = world.read_model((player, 1_u8));
+        assert!(progress.exists() && progress.boss_cleared, "Clear Story Zone 1 first");
+    }
+
+    // Detect active daily challenge context by (run_type, settings_id).
+    let mut daily_seed: felt252 = 0;
+    let mut daily_challenge_id: u32 = 0;
+    match world.dns_address(@"daily_challenge_system") {
+        Option::Some(daily_system_addr) => {
+            let daily = IDailyChallengeSystemDispatcher { contract_address: daily_system_addr };
+            let challenge_id = daily.get_current_challenge();
+            if challenge_id > 0 {
+                let challenge: DailyChallenge = world.read_model(challenge_id);
+                if challenge.settings_id == settings.settings_id
+                    && challenge.run_type == run_type_val {
+                    let entry: DailyEntry = world.read_model((challenge_id, player));
+                    assert!(entry.exists(), "Must register for daily challenge first");
+
+                    let game_challenge = GameChallenge { game_id, challenge_id };
+                    world.write_model(@game_challenge);
+
+                    daily_seed = challenge.seed;
+                    daily_challenge_id = challenge_id;
+                }
+            }
+        },
+        Option::None => {},
+    }
+    let is_daily_game = daily_challenge_id > 0;
+
+    // === MAP ACCESS GATE ===
+    // Daily challenge runs bypass entitlement checks.
+    if !is_daily_game {
+        let metadata: GameSettingsMetadata = world.read_model(settings.settings_id);
+        if !metadata.is_free {
+            let entitlement: ZoneEntitlement = world.read_model((player, settings.settings_id));
+            assert!(entitlement.purchased_at != 0, "Zone not unlocked - unlock this zone first");
+        }
+    }
+
+    // Generate seed: daily challenge uses shared seed, otherwise VRF/pseudo-random.
+    let (seed, vrf_enabled) = if is_daily_game {
+        (daily_seed, false)
+    } else {
+        let vrf_on = !vrf_address.is_zero();
+        let random = if vrf_address.is_zero() {
+            RandomImpl::new_pseudo_random()
+        } else {
+            RandomImpl::new_vrf(game_id)
+        };
+        (random.seed, vrf_on)
+    };
+    let active_mutator_id: u8 = if run_type_val == 1 {
+        MutatorTrait::roll_mutator(seed, FULL_MUTATOR_MASK)
+    } else {
+        MutatorTrait::roll_mutator(seed, settings.allowed_mutators)
+    };
+
+    let seed_u256: u256 = seed.into();
+    let bonus_slot: u8 = (seed_u256 % 3_u256).try_into().unwrap();
+    let (bonus_type, starting_charges) = match bonus_slot {
+        0 => (settings.bonus_1_type, settings.bonus_1_starting_charges),
+        1 => (settings.bonus_2_type, settings.bonus_2_starting_charges),
+        2 => (settings.bonus_3_type, settings.bonus_3_starting_charges),
+        _ => (0_u8, 0_u8),
+    };
+
+    let timestamp = get_block_timestamp();
+
+    // Create empty game shell (grid will be initialized via dispatcher)
+    let mut game = GameTrait::new_empty(game_id, timestamp, 0, active_mutator_id, run_type_val);
+    let mut run_data = game.get_run_data();
+    run_data.bonus_slot = bonus_slot;
+    run_data.bonus_type = bonus_type;
+    run_data.bonus_charges = if starting_charges > 15 {
+        15
+    } else {
+        starting_charges
+    };
+    game.set_run_data(run_data);
+
+    // Store the seed separately
+    let game_seed = GameSeed { game_id, seed, level_seed: seed, vrf_enabled };
+    world.write_model(@game_seed);
+
+    // Initialize or update player meta
+    let mut player_meta: PlayerMeta = world.read_model(player);
+    if !player_meta.exists() {
+        player_meta = PlayerMetaTrait::new(player);
+    } else if player_meta.last_active > 0 && timestamp - player_meta.last_active > 604800 {
+        match world.dns_address(@"config_system") {
+            Option::Some(config_address) => {
+                let config_dispatcher = IConfigSystemDispatcher {
+                    contract_address: config_address,
+                };
+                let zstar_address = config_dispatcher.get_zstar_address();
+                if !zstar_address.is_zero() {
+                    let zstar = IZStarTokenDispatcher { contract_address: zstar_address };
+                    zstar.mint(player, 5);
+                }
+            },
+            Option::None => {},
+        }
+        player_meta.increment_xp(500);
+    }
+
+    let libs = GameLibsImpl::new(world);
+
+    world.write_model(@game);
+
+    player_meta.increment_runs();
+    player_meta.last_active = timestamp;
+    world.write_model(@player_meta);
+
+    // Emit quest/achievement progress via progress_system
+    match world.dns_address(@"progress_system") {
+        Option::Some(progress_addr) => {
+            let progress = IProgressSystemDispatcher { contract_address: progress_addr };
+            progress.emit_progress(player, Task::GameStart.identifier(), 1, settings.settings_id);
+            if is_daily_game {
+                progress
+                    .emit_progress(player, Task::DailyPlay.identifier(), 1, settings.settings_id);
+            }
+        },
+        Option::None => {},
+    }
+
+    // Emit start game event
+    world.emit_event(@StartGame { player, timestamp, game_id });
+
+    // Initialize run-type-specific level config, then grid.
+    if run_type_val == 1 {
+        libs.level.initialize_endless_level(game_id);
+    } else {
+        libs.level.initialize_level(game_id);
+    }
+    libs.grid.initialize_grid(game_id);
+}

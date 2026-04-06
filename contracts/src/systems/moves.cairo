@@ -34,7 +34,7 @@ mod move_system {
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::PlayerBestRun;
     use zkube::models::story::{StoryAttempt, StoryAttemptTrait, StoryZoneProgress};
-    use zkube::systems::game::{IGameSystemDispatcher, IGameSystemDispatcherTrait};
+    use zkube::systems::progress::{IProgressSystemDispatcher, IProgressSystemDispatcherTrait};
 
     #[storage]
     struct Storage {}
@@ -83,10 +83,12 @@ mod move_system {
 
             // Initialize GameLibs once for all dispatcher calls
             let libs = GameLibsImpl::new(world);
-            let game_address = world
-                .dns_address(@"game_system")
-                .expect('GameSystem not found in DNS');
-            let game_dispatcher = IGameSystemDispatcher { contract_address: game_address };
+            let progress_address = world
+                .dns_address(@"progress_system")
+                .expect('ProgressSystem not found');
+            let progress_dispatcher = IProgressSystemDispatcher {
+                contract_address: progress_address,
+            };
 
             // Execute move via grid_system dispatcher (contains Controller logic)
             let (lines_cleared, is_grid_full) = libs
@@ -102,16 +104,17 @@ mod move_system {
             let sid = settings.settings_id;
             if lines_cleared > 0 {
                 let lc_count: u128 = lines_cleared.into();
-                game_dispatcher.emit_progress(player, Task::LineClear.identifier(), lc_count, sid);
+                progress_dispatcher
+                    .emit_progress(player, Task::LineClear.identifier(), lc_count, sid);
             }
             if game.combo_counter >= 3 {
-                game_dispatcher.emit_progress(player, Task::Combo3.identifier(), 1, sid);
+                progress_dispatcher.emit_progress(player, Task::Combo3.identifier(), 1, sid);
             }
             if game.combo_counter >= 4 {
-                game_dispatcher.emit_progress(player, Task::Combo4.identifier(), 1, sid);
+                progress_dispatcher.emit_progress(player, Task::Combo4.identifier(), 1, sid);
             }
             if game.combo_counter >= 5 {
-                game_dispatcher.emit_progress(player, Task::Combo5.identifier(), 1, sid);
+                progress_dispatcher.emit_progress(player, Task::Combo5.identifier(), 1, sid);
             }
 
             // Mutator-driven non-bonus effects (scoring/pressure) still read from MutatorDef.
@@ -194,29 +197,30 @@ mod move_system {
                 let is_complete = level_check::is_level_complete(@game_level, @run_data);
 
                 if is_complete {
-                    game_dispatcher.emit_progress(player, Task::LevelComplete.identifier(), 1, sid);
+                    progress_dispatcher
+                        .emit_progress(player, Task::LevelComplete.identifier(), 1, sid);
                     if game_level.max_moves > 0 {
                         let perfect_threshold = game_level.max_moves * 40 / 100;
                         if run_data.level_moves.into() <= perfect_threshold {
-                            game_dispatcher
+                            progress_dispatcher
                                 .emit_progress(player, Task::PerfectLevel.identifier(), 1, sid);
                         }
                     }
                     if run_data.current_level >= 10 {
-                        game_dispatcher
+                        progress_dispatcher
                             .emit_progress(player, Task::BossDefeat.identifier(), 1, sid);
                         if is_story_game {
                             let story_progress: StoryZoneProgress = world
                                 .read_model((player, story_game.zone_id));
                             if !story_progress.boss_cleared {
-                                game_dispatcher
+                                progress_dispatcher
                                     .emit_progress(player, Task::ZoneComplete.identifier(), 1, sid);
                             }
                         } else {
                             // ZoneComplete only on FIRST clear — check PlayerBestRun.zone_cleared
                             let best_run: PlayerBestRun = world.read_model((player, sid, 0_u8));
                             if !best_run.zone_cleared {
-                                game_dispatcher
+                                progress_dispatcher
                                     .emit_progress(player, Task::ZoneComplete.identifier(), 1, sid);
                             }
                         }

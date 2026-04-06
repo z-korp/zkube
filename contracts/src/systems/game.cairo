@@ -19,25 +19,11 @@ pub trait IGameSystem<T> {
     /// (level, level_score, level_moves, combo, max_combo,
     ///  reserved_1, reserved_2, reserved_3, reserved_4, over)
     fn get_game_data(self: @T, game_id: felt252) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool);
-
-    /// Emit progression update for quest + achievement tasks.
-    /// Gated by star-eligibility — non-eligible settings are silently skipped.
-    fn emit_progress(
-        ref self: T,
-        player: starknet::ContractAddress,
-        task_id: felt252,
-        count: u128,
-        settings_id: u32,
-    );
 }
 
 #[dojo::contract]
 mod game_system {
-    use achievement::component::Component as AchievementComponent;
-    use achievement::component::Component::AchievementTrait;
     use core::num::traits::Zero;
-    use core::traits::Into;
-    use dojo::event::EventStorage;
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
     use game_components_embeddable_game_standard::minigame::interface::IMinigameTokenData;
@@ -51,54 +37,27 @@ mod game_system {
     use game_components_embeddable_game_standard::token::structs::TokenMetadata;
     use game_components_embeddable_game_standard::token::token::LifecycleTrait;
     use openzeppelin_introspection::src5::SRC5Component;
-    use quest::component::Component as QuestComponent;
-    use quest::component::Component::QuestTrait;
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
-    use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
+    use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
-    use zkube::elements::achievements::index::{AchievementDefsTrait, AchievementPointsTrait};
-    use zkube::elements::quests::index::{
-        QUEST_BONUS_I, QUEST_BONUS_II, QUEST_COMBO_I, QUEST_COMBO_II, QUEST_COMBO_III,
-        QUEST_DAILY_CHALLENGER, QUEST_LINE_CLEAR_I, QUEST_LINE_CLEAR_II, QUEST_LINE_CLEAR_III,
-        QuestDefsTrait,
-    };
     use zkube::elements::tasks::index::Task;
     use zkube::elements::tasks::interface::TaskTrait;
-    use zkube::events::StartGame;
-    use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
-    use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::controller::Controller;
-    use zkube::helpers::game_libs::{
-        GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
-    };
-    use zkube::helpers::game_over;
-    use zkube::helpers::random::RandomImpl;
-    use zkube::models::config::GameSettingsMetadata;
-    use zkube::models::daily::{DailyChallenge, DailyEntry, DailyEntryTrait, GameChallenge};
-    use zkube::models::entitlement::ZoneEntitlement;
-    use zkube::models::game::{Game, GameAssert, GameSeed, GameTrait};
-    use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
+    use zkube::helpers::{game_creation, game_over};
+    use zkube::models::game::{Game, GameAssert, GameTrait};
     use zkube::models::story::{
         ActiveStoryAttempt, ActiveStoryAttemptTrait, StoryAttempt, StoryAttemptTrait,
-        StoryZoneProgress, StoryZoneProgressTrait,
     };
-    use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
-    use zkube::systems::daily_challenge::{
-        IDailyChallengeSystemDispatcher, IDailyChallengeSystemDispatcherTrait,
-    };
+    use zkube::systems::progress::{IProgressSystemDispatcher, IProgressSystemDispatcherTrait};
     use zkube::types::bonus::{Bonus, BonusTrait};
-    use zkube::types::mutator::{FULL_MUTATOR_MASK, MutatorTrait};
+    use super::IGameSystem;
 
     component!(path: MinigameComponent, storage: minigame, event: MinigameEvent);
-    component!(path: AchievementComponent, storage: achievement, event: AchievementEvent);
-    component!(path: QuestComponent, storage: quest, event: QuestEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
 
     #[abi(embed_v0)]
     impl MinigameImpl = MinigameComponent::MinigameImpl<ContractState>;
     impl MinigameInternalImpl = MinigameComponent::InternalImpl<ContractState>;
-    impl AchievementInternalImpl = AchievementComponent::InternalImpl<ContractState>;
-    impl QuestInternalImpl = QuestComponent::InternalImpl<ContractState>;
 
     #[abi(embed_v0)]
     impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
@@ -107,10 +66,6 @@ mod game_system {
     struct Storage {
         #[substorage(v0)]
         minigame: MinigameComponent::Storage,
-        #[substorage(v0)]
-        achievement: AchievementComponent::Storage,
-        #[substorage(v0)]
-        quest: QuestComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
         /// VRF provider address. If zero, use pseudo-random (for slot/katana).
@@ -124,23 +79,9 @@ mod game_system {
         #[flat]
         MinigameEvent: MinigameComponent::Event,
         #[flat]
-        AchievementEvent: AchievementComponent::Event,
-        #[flat]
-        QuestEvent: QuestComponent::Event,
-        #[flat]
         SRC5Event: SRC5Component::Event,
     }
 
-    /// @title Dojo Init
-    /// @notice Initializes the contract and registers with the MinigameRegistry
-    /// @dev This is the constructor for the contract. It is called once when the contract is
-    /// deployed.
-    ///
-    /// @param creator_address: the address of the creator of the game
-    /// @param denshokan_address: the address of the FullTokenContract (MinigameToken)
-    /// @param renderer_address: optional renderer address, defaults to 'renderer_systems' if None
-    /// @param vrf_address: VRF provider address. Use zero for slot/katana (pseudo-random),
-    ///                     or Cartridge VRF address for sepolia/mainnet
     fn dojo_init(
         ref self: ContractState,
         creator_address: ContractAddress,
@@ -150,19 +91,14 @@ mod game_system {
     ) {
         let mut world: WorldStorage = self.world(@DEFAULT_NS());
         let (config_system_address, _) = world.dns(@"config_system").unwrap();
-        let registry_address = get_contract_address();
 
         // Use provided renderer address or default to 'renderer_systems'
         let final_renderer_address = match renderer_address {
             Option::Some(addr) => addr,
             Option::None => {
-                // Try to get renderer_systems, but don't fail if it doesn't exist yet
                 match world.dns(@"renderer_systems") {
                     Option::Some((addr, _)) => addr,
-                    Option::None => {
-                        // Use zero address as fallback - can be updated later
-                        core::num::traits::Zero::zero()
-                    },
+                    Option::None => core::num::traits::Zero::zero(),
                 }
             },
         };
@@ -194,153 +130,47 @@ mod game_system {
                 );
         }
 
-        let mut achievements = AchievementDefsTrait::all();
-        while let Option::Some(props) = achievements.pop_front() {
-            self
-                .achievement
-                .create(world, props.id, props.start, props.end, props.tasks, props.metadata, true);
-        }
-
-        let mut quests = QuestDefsTrait::all(registry_address);
-        while let Option::Some(props) = quests.pop_front() {
-            self
-                .quest
-                .create(
-                    world,
-                    props.id,
-                    props.start,
-                    props.end,
-                    props.duration,
-                    props.interval,
-                    props.tasks,
-                    props.conditions,
-                    props.metadata,
-                    true,
-                );
-        }
-
         self.vrf_address.write(vrf_address);
     }
 
     #[abi(embed_v0)]
     impl GameTokenDataImpl of IMinigameTokenData<ContractState> {
         fn score(self: @ContractState, token_id: felt252) -> u64 {
-            let game_id = token_id;
             let world: WorldStorage = self.world(@DEFAULT_NS());
-            let game: Game = world.read_model(game_id);
-            // Return level score as the "score" for token metadata
+            let game: Game = world.read_model(token_id);
             game.get_level_score().into()
         }
 
         fn game_over(self: @ContractState, token_id: felt252) -> bool {
-            let game_id = token_id;
             let world: WorldStorage = self.world(@DEFAULT_NS());
-            let game: Game = world.read_model(game_id);
+            let game: Game = world.read_model(token_id);
             game.over
         }
 
         fn score_batch(self: @ContractState, token_ids: Span<felt252>) -> Array<u64> {
             let mut scores = array![];
             let mut i: u32 = 0;
-
             loop {
                 if i >= token_ids.len() {
                     break;
                 }
-
-                let token_id = *token_ids.at(i);
-                let score = self.score(token_id);
-                scores.append(score);
+                scores.append(self.score(*token_ids.at(i)));
                 i += 1;
             }
-
             scores
         }
 
         fn game_over_batch(self: @ContractState, token_ids: Span<felt252>) -> Array<bool> {
             let mut statuses = array![];
             let mut i: u32 = 0;
-
             loop {
                 if i >= token_ids.len() {
                     break;
                 }
-
-                let token_id = *token_ids.at(i);
-                let over = self.game_over(token_id);
-                statuses.append(over);
+                statuses.append(self.game_over(*token_ids.at(i)));
                 i += 1;
             }
-
             statuses
-        }
-    }
-
-    impl AchievementHooksImpl of AchievementTrait<ContractState> {
-        fn on_completion(
-            ref self: AchievementComponent::ComponentState<ContractState>,
-            player_id: felt252,
-            achievement_id: felt252,
-        ) {
-            let mut contract = self.get_contract_mut();
-            let mut world: WorldStorage = contract.world(@DEFAULT_NS());
-            let player: ContractAddress = player_id.try_into().unwrap();
-            let mut player_meta: PlayerMeta = world.read_model(player);
-            if !player_meta.exists() {
-                player_meta = PlayerMetaTrait::new(player);
-            }
-
-            player_meta.increment_xp(AchievementPointsTrait::xp_for(achievement_id));
-            world.write_model(@player_meta);
-        }
-
-        fn on_claim(
-            ref self: AchievementComponent::ComponentState<ContractState>,
-            player_id: felt252,
-            achievement_id: felt252,
-        ) {
-            let _ = player_id;
-            let _ = achievement_id;
-        }
-    }
-
-    impl QuestHooksImpl of QuestTrait<ContractState> {
-        fn on_quest_unlock(
-            ref self: QuestComponent::ComponentState<ContractState>,
-            player_id: felt252,
-            quest_id: felt252,
-            interval_id: u64,
-        ) {
-            let _ = player_id;
-            let _ = quest_id;
-            let _ = interval_id;
-        }
-
-        fn on_quest_complete(
-            ref self: QuestComponent::ComponentState<ContractState>,
-            player_id: felt252,
-            quest_id: felt252,
-            interval_id: u64,
-        ) {
-            let _ = interval_id;
-            if !InternalImpl::is_daily_rotating_quest(quest_id) {
-                return;
-            }
-
-            let mut contract = self.get_contract_mut();
-            let world = contract.world(@DEFAULT_NS());
-            contract.quest.progress(world, player_id, Task::DailyQuestDone.identifier(), 1, true);
-        }
-
-        fn on_quest_claim(
-            ref self: QuestComponent::ComponentState<ContractState>,
-            player_id: felt252,
-            quest_id: felt252,
-            interval_id: u64,
-        ) {
-            let _ = player_id;
-            let _ = quest_id;
-            let _ = interval_id;
         }
     }
 
@@ -351,7 +181,26 @@ mod game_system {
         }
 
         fn create_run(ref self: ContractState, game_id: felt252, run_type: u8) {
-            InternalImpl::create_game(ref self, game_id, run_type);
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let player = get_caller_address();
+
+            let token_address = self.token_address();
+            pre_action(token_address, game_id);
+
+            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
+            assert_token_ownership(token_address, game_id);
+            InternalImpl::assert_game_not_started(@self, game_id);
+            assert!(
+                token_metadata.lifecycle.is_playable(get_block_timestamp()),
+                "Game {} lifecycle is not playable",
+                game_id,
+            );
+
+            let vrf_addr = self.vrf_address.read();
+            game_creation::create_game(ref world, game_id, run_type, player, vrf_addr);
+
+            post_action(token_address, game_id);
         }
 
         fn surrender(ref self: ContractState, game_id: felt252) {
@@ -443,67 +292,25 @@ mod game_system {
             run_data.bonus_charges -= 1;
             game.set_run_data(run_data);
             world.write_model(@game);
-            self
-                .quest
-                .progress(
-                    world, get_caller_address().into(), Task::BonusUsed.identifier(), 1, true,
-                );
-            self
-                .achievement
-                .progress(
-                    world, get_caller_address().into(), Task::BonusUsed.identifier(), 1, true,
-                );
+
+            // Emit BonusUsed progress via progress_system
+            match world.dns_address(@"progress_system") {
+                Option::Some(progress_addr) => {
+                    let progress = IProgressSystemDispatcher { contract_address: progress_addr };
+                    let player_id: felt252 = get_caller_address().into();
+                    progress.progress(player_id, Task::BonusUsed.identifier(), 1);
+                },
+                Option::None => {},
+            }
 
             if !is_story_game {
                 post_action(token_address, token_id_felt);
             }
         }
 
-        fn emit_progress(
-            ref self: ContractState,
-            player: ContractAddress,
-            task_id: felt252,
-            count: u128,
-            settings_id: u32,
-        ) {
-            let world: WorldStorage = self.world(@DEFAULT_NS());
-            let caller = get_caller_address();
-
-            let move_system = world
-                .dns_address(@"move_system")
-                .unwrap_or(core::num::traits::Zero::zero());
-            let level_system = world
-                .dns_address(@"level_system")
-                .unwrap_or(core::num::traits::Zero::zero());
-            let story_system = world
-                .dns_address(@"story_system")
-                .unwrap_or(core::num::traits::Zero::zero());
-
-            assert(
-                caller == move_system || caller == level_system || caller == story_system,
-                'Unauthorized progress emitter',
-            );
-
-            // Only emit progress for star-eligible settings (official zones)
-            match world.dns_address(@"config_system") {
-                Option::Some(config_address) => {
-                    let config = IConfigSystemDispatcher { contract_address: config_address };
-                    if !config.is_star_eligible(settings_id) {
-                        return;
-                    }
-                },
-                Option::None => { return; },
-            }
-
-            let player_id: felt252 = player.into();
-            self.quest.progress(world, player_id, task_id, count, true);
-            self.achievement.progress(world, player_id, task_id, count, true);
-        }
-
         fn get_player_name(self: @ContractState, game_id: felt252) -> felt252 {
             let token_address = self.token_address();
-            let token_id_felt = game_id;
-            get_token_player_name(token_address, token_id_felt)
+            get_token_player_name(token_address, game_id)
         }
 
         fn get_score(self: @ContractState, game_id: felt252) -> u16 {
@@ -536,199 +343,6 @@ mod game_system {
 
     #[generate_trait]
     pub impl InternalImpl of InternalTrait {
-        fn is_daily_rotating_quest(quest_id: felt252) -> bool {
-            quest_id == QUEST_LINE_CLEAR_I
-                || quest_id == QUEST_LINE_CLEAR_II
-                || quest_id == QUEST_LINE_CLEAR_III
-                || quest_id == QUEST_COMBO_I
-                || quest_id == QUEST_COMBO_II
-                || quest_id == QUEST_COMBO_III
-                || quest_id == QUEST_BONUS_I
-                || quest_id == QUEST_BONUS_II
-                || quest_id == QUEST_DAILY_CHALLENGER
-        }
-
-        fn create_game(ref self: ContractState, game_id: felt252, run_type: u8) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-            let player = get_caller_address();
-            let run_type_val: u8 = run_type & 0x1;
-
-            let token_address = self.token_address();
-            let token_id_felt = game_id;
-            pre_action(token_address, token_id_felt);
-
-            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
-            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(token_id_felt);
-            self.validate_start_conditions(game_id, @token_metadata, token_address);
-
-            // Get game settings (selected via token settings_id)
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-
-            if run_type_val == 1 {
-                assert!(settings.settings_id == 1, "Only Endless Zone 1 is enabled in MVP");
-                let progress: StoryZoneProgress = world.read_model((player, 1_u8));
-                assert!(progress.exists() && progress.boss_cleared, "Clear Story Zone 1 first");
-            }
-
-            // Detect active daily challenge context by (run_type, settings_id).
-            let mut daily_seed: felt252 = 0;
-            let mut daily_challenge_id: u32 = 0;
-            match world.dns_address(@"daily_challenge_system") {
-                Option::Some(daily_system_addr) => {
-                    let daily = IDailyChallengeSystemDispatcher {
-                        contract_address: daily_system_addr,
-                    };
-                    let challenge_id = daily.get_current_challenge();
-                    if challenge_id > 0 {
-                        let challenge: DailyChallenge = world.read_model(challenge_id);
-                        if challenge.settings_id == settings.settings_id
-                            && challenge.run_type == run_type_val {
-                            let entry: DailyEntry = world.read_model((challenge_id, player));
-                            assert!(entry.exists(), "Must register for daily challenge first");
-
-                            let game_challenge = GameChallenge { game_id, challenge_id };
-                            world.write_model(@game_challenge);
-
-                            daily_seed = challenge.seed;
-                            daily_challenge_id = challenge_id;
-                        }
-                    }
-                },
-                Option::None => {},
-            }
-            let is_daily_game = daily_challenge_id > 0;
-
-            // === MAP ACCESS GATE ===
-            // Daily challenge runs bypass entitlement checks.
-            if !is_daily_game {
-                let metadata: GameSettingsMetadata = world.read_model(settings.settings_id);
-                if !metadata.is_free {
-                    let entitlement: ZoneEntitlement = world
-                        .read_model((player, settings.settings_id));
-                    assert!(
-                        entitlement.purchased_at != 0, "Zone not unlocked - unlock this zone first",
-                    );
-                }
-            }
-
-            // Generate seed: daily challenge uses shared seed, otherwise VRF/pseudo-random.
-            let (seed, vrf_enabled) = if is_daily_game {
-                (daily_seed, false)
-            } else {
-                // Normal game: use VRF if available, otherwise pseudo-random
-                let vrf_addr = self.vrf_address.read();
-                let vrf_on = !vrf_addr.is_zero();
-                let random = if vrf_addr.is_zero() {
-                    RandomImpl::new_pseudo_random()
-                } else {
-                    RandomImpl::new_vrf(game_id)
-                };
-                (random.seed, vrf_on)
-            };
-            let active_mutator_id: u8 = if run_type_val == 1 {
-                MutatorTrait::roll_mutator(seed, FULL_MUTATOR_MASK)
-            } else {
-                MutatorTrait::roll_mutator(seed, settings.allowed_mutators)
-            };
-
-            let seed_u256: u256 = seed.into();
-            let bonus_slot: u8 = (seed_u256 % 3_u256).try_into().unwrap();
-            let (bonus_type, starting_charges) = match bonus_slot {
-                0 => (settings.bonus_1_type, settings.bonus_1_starting_charges),
-                1 => (settings.bonus_2_type, settings.bonus_2_starting_charges),
-                2 => (settings.bonus_3_type, settings.bonus_3_starting_charges),
-                _ => (0_u8, 0_u8),
-            };
-
-            let timestamp = get_block_timestamp();
-
-            // Create empty game shell (grid will be initialized via dispatcher)
-            let mut game = GameTrait::new_empty(
-                game_id, timestamp, 0, active_mutator_id, run_type_val,
-            );
-            let mut run_data = game.get_run_data();
-            run_data.bonus_slot = bonus_slot;
-            run_data.bonus_type = bonus_type;
-            run_data.bonus_charges = if starting_charges > 15 {
-                15
-            } else {
-                starting_charges
-            };
-            game.set_run_data(run_data);
-
-            // Store the seed separately
-            let game_seed = GameSeed { game_id, seed, level_seed: seed, vrf_enabled };
-            world.write_model(@game_seed);
-
-            // Initialize or update player meta
-            let mut player_meta: PlayerMeta = world.read_model(player);
-            if !player_meta.exists() {
-                player_meta = PlayerMetaTrait::new(player);
-            } else if player_meta.last_active > 0 && timestamp - player_meta.last_active > 604800 {
-                match world.dns_address(@"config_system") {
-                    Option::Some(config_address) => {
-                        let config_dispatcher = IConfigSystemDispatcher {
-                            contract_address: config_address,
-                        };
-                        let zstar_address = config_dispatcher.get_zstar_address();
-                        if !zstar_address.is_zero() {
-                            let zstar = IZStarTokenDispatcher { contract_address: zstar_address };
-                            zstar.mint(player, 5);
-                        }
-                    },
-                    Option::None => {},
-                }
-
-                player_meta.increment_xp(500);
-            }
-            // Initialize GameLibs once for all dispatcher calls
-            let libs = GameLibsImpl::new(world);
-
-            world.write_model(@game);
-
-            player_meta.increment_runs();
-            player_meta.last_active = timestamp;
-            world.write_model(@player_meta);
-
-            self.quest.progress(world, player.into(), Task::GameStart.identifier(), 1, true);
-            self.achievement.progress(world, player.into(), Task::GameStart.identifier(), 1, true);
-            if is_daily_game {
-                self.quest.progress(world, player.into(), Task::DailyPlay.identifier(), 1, true);
-                self
-                    .achievement
-                    .progress(world, player.into(), Task::DailyPlay.identifier(), 1, true);
-            }
-
-            post_action(token_address, token_id_felt);
-
-            // Emit start game event
-            world.emit_event(@StartGame { player, timestamp, game_id });
-
-            // Initialize run-type-specific level config, then grid.
-            if run_type_val == 1 {
-                libs.level.initialize_endless_level(game_id);
-            } else {
-                libs.level.initialize_level(game_id);
-            }
-            libs.grid.initialize_grid(game_id);
-        }
-
-        #[inline(always)]
-        fn validate_start_conditions(
-            self: @ContractState,
-            token_id: felt252,
-            token_metadata: @TokenMetadata,
-            token_address: ContractAddress,
-        ) {
-            assert_token_ownership(token_address, token_id);
-            self.assert_game_not_started(token_id);
-            assert!(
-                token_metadata.lifecycle.is_playable(starknet::get_block_timestamp()),
-                "Game {} lifecycle is not playable",
-                token_id,
-            );
-        }
-
         #[inline(always)]
         fn assert_game_not_started(self: @ContractState, game_id: felt252) {
             let game: Game = self.world(@DEFAULT_NS()).read_model(game_id);

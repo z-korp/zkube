@@ -68,6 +68,7 @@ pub mod helpers {
     pub mod daily;
     pub mod dispatchers;
     pub mod encoding;
+    pub mod game_creation;
     pub mod game_helpers;
     pub mod game_libs;
     pub mod game_over;
@@ -93,6 +94,7 @@ pub mod systems {
     pub mod grid;
     pub mod level;
     pub mod moves;
+    pub mod progress;
     pub mod renderer;
     pub mod story;
 }

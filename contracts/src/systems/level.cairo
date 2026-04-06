@@ -46,7 +46,7 @@ mod level_system {
         StoryAttempt, StoryAttemptTrait, StoryZoneProgress, StoryZoneProgressTrait,
     };
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
-    use zkube::systems::game::{IGameSystemDispatcher, IGameSystemDispatcherTrait};
+    use zkube::systems::progress::{IProgressSystemDispatcher, IProgressSystemDispatcherTrait};
 
     #[storage]
     struct Storage {}
@@ -226,11 +226,13 @@ mod level_system {
                         },
                     );
 
-                let game_address = world
-                    .dns_address(@"game_system")
-                    .expect('GameSystem not found in DNS');
-                let game_dispatcher = IGameSystemDispatcher { contract_address: game_address };
-                game_dispatcher
+                let progress_address = world
+                    .dns_address(@"progress_system")
+                    .expect('ProgressSystem not found');
+                let progress_dispatcher = IProgressSystemDispatcher {
+                    contract_address: progress_address,
+                };
+                progress_dispatcher
                     .emit_progress(story_player, Task::LevelComplete.identifier(), 1, sid);
 
                 game.over = true;
@@ -285,11 +287,13 @@ mod level_system {
                     },
                 );
 
-            let game_address = world
-                .dns_address(@"game_system")
-                .expect('GameSystem not found in DNS');
-            let game_dispatcher = IGameSystemDispatcher { contract_address: game_address };
-            game_dispatcher.emit_progress(player, Task::LevelComplete.identifier(), 1, sid);
+            let progress_address = world
+                .dns_address(@"progress_system")
+                .expect('ProgressSystem not found');
+            let progress_dispatcher = IProgressSystemDispatcher {
+                contract_address: progress_address,
+            };
+            progress_dispatcher.emit_progress(player, Task::LevelComplete.identifier(), 1, sid);
 
             InternalImpl::advance_level(ref world, game_id, player);
 
