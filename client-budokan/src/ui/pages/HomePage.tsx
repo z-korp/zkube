@@ -195,12 +195,12 @@ const HomePage: React.FC = () => {
     if (!zone || !account) return;
 
     if (selectedMode === 0 && activeStoryAttemptId !== null) {
-      navigate("play", activeStoryAttemptId);
+      navigate("map", activeStoryAttemptId);
       return;
     }
 
     if (selectedMode === 1 && activeEndlessGameId !== null) {
-      navigate("map", activeEndlessGameId);
+      navigate("play", activeEndlessGameId);
       return;
     }
 
@@ -311,6 +311,10 @@ const HomePage: React.FC = () => {
                         if (z.zoneId !== 1) statusText = "MVP soon";
                         else if (!endlessZoneOneUnlocked) statusText = "Beat Story Boss";
                         else statusText = `Best ${endlessBestScore.toLocaleString()}`;
+                      } else if (!z.unlocked && !z.isFree) {
+                        statusText = (z.starCost ?? 0) > 0
+                          ? `${z.starCost} ★ to unlock`
+                          : "Locked";
                       }
 
                       return (

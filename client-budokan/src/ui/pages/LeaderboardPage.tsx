@@ -32,7 +32,7 @@ const LeaderboardPage: React.FC = () => {
   const { challenge } = useCurrentChallenge();
   const { entries: dailyEntries } = useDailyLeaderboard(challenge?.challenge_id);
   const { entries: playerEntries } = usePlayerLeaderboard();
-  const [activeTab, setActiveTab] = useState<"daily" | "endless" | "player">("daily");
+  const [activeTab, setActiveTab] = useState<"daily" | "endless" | "player">("endless");
 
   const normalizedAccount = account?.address?.toLowerCase();
 

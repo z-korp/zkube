@@ -497,13 +497,9 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
-  const questClaim = async ({ account, ...props }: SystemTypes.QuestClaim) => {
-    if (!client.progress_system) throw new Error("Progress system not available");
-    await handleTransaction(
-      account,
-      () => client.progress_system!.questClaim({ account, ...props }),
-      "Quest reward claimed!",
-    );
+  const questClaim = async (_args: SystemTypes.QuestClaim) => {
+    console.warn("Quest claiming is not yet available — no contract entrypoint deployed");
+    throw new Error("Quest claiming is not yet available");
   };
 
   return {
