@@ -20,6 +20,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const SESSION_ERROR_PATTERNS = [
   "session/deserialize-error",
   "session/not-registered",
+  "contract not found",
   "73657373696f6e2f646573657269616c697a652d6572726f72",
   "73657373696f6e2f6e6f742d726567697374657265",
 ];
@@ -43,6 +44,65 @@ function clearSessionAndReload() {
   localStorage.removeItem("controllerSessionVersion");
   window.location.reload();
 }
+
+const normalizeHex = (value: unknown): string => {
+  if (typeof value !== "string") return "";
+  const withPrefix = value.startsWith("0x") ? value : `0x${value}`;
+  const stripped = withPrefix.slice(2).replace(/^0+/, "") || "0";
+  return `0x${stripped}`.toLowerCase();
+};
+
+const parseBigIntSafe = (value: unknown): bigint => {
+  if (typeof value !== "string") return 0n;
+  try {
+    return BigInt(value);
+  } catch {
+    return 0n;
+  }
+};
+
+const extractStoryGameIdFromEvents = (
+  events: any[],
+  storySystemAddress: string,
+  playerAddress?: string,
+): bigint => {
+  const storyAddress = normalizeHex(storySystemAddress);
+  const player = normalizeHex(playerAddress);
+
+  for (const event of events) {
+    const keys: unknown[] = event?.keys ?? [];
+    const data: unknown[] = event?.data ?? [];
+
+    const fromStory = keys.some((key) => normalizeHex(String(key)) === storyAddress);
+    if (!fromStory) continue;
+    if (data.length !== 5) continue;
+
+    const gameId = parseBigIntSafe(String(data[data.length - 1]));
+    if (gameId <= 0n) continue;
+
+    if (!player || data.some((item) => normalizeHex(String(item)) === player)) {
+      return gameId;
+    }
+  }
+
+  for (const event of events) {
+    const keys: unknown[] = event?.keys ?? [];
+    const data: unknown[] = event?.data ?? [];
+
+    const fromStory = keys.some((key) => normalizeHex(String(key)) === storyAddress);
+    if (!fromStory) continue;
+    if (data.length < 3) continue;
+
+    const gameId = parseBigIntSafe(String(data[1]));
+    if (gameId <= 0n) continue;
+
+    if (!player || data.some((item) => normalizeHex(String(item)) === player)) {
+      return gameId;
+    }
+  }
+
+  return 0n;
+};
 
 const MAX_RETRIES = 5;
 const RETRY_DELAY_MS = 500;
@@ -240,15 +300,15 @@ export function systems({ client }: { client: IWorld }) {
   const startRun = async ({ account, ...props }: SystemTypes.StartRun): Promise<{ game_id: bigint }> => {
     if (!client.story_system) throw new Error("Story system not available");
     const { events } = await handleTransaction(account, () => client.story_system!.startRun({ account, ...props }), "Story run started.");
-    const evt = events.find((event: any) => event.data?.length >= 2);
-    return { game_id: evt ? BigInt(evt.data[1]) : 0n };
+    const gameId = extractStoryGameIdFromEvents(events, client.story_system.address, account.address);
+    return { game_id: gameId };
   };
 
   const replayLevel = async ({ account, ...props }: SystemTypes.ReplayLevel): Promise<{ game_id: bigint }> => {
     if (!client.story_system) throw new Error("Story system not available");
     const { events } = await handleTransaction(account, () => client.story_system!.replayLevel({ account, ...props }), "Story level replayed.");
-    const evt = events.find((event: any) => event.data?.length >= 2);
-    return { game_id: evt ? BigInt(evt.data[1]) : 0n };
+    const gameId = extractStoryGameIdFromEvents(events, client.story_system.address, account.address);
+    return { game_id: gameId };
   };
 
   const claimPerfection = async ({ account, ...props }: SystemTypes.ClaimPerfection) => {

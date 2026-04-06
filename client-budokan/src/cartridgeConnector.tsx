@@ -51,32 +51,55 @@ function clearControllerStorage() {
   }
 }
 
+const stableStringify = (value: unknown): string => {
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableStringify(item)).join(",")}]`;
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) =>
+      a.localeCompare(b),
+    );
+    return `{${entries
+      .map(([key, nestedValue]) => `${JSON.stringify(key)}:${stableStringify(nestedValue)}`)
+      .join(",")}}`;
+  }
+
+  return JSON.stringify(value);
+};
+
 function migrateControllerSessions() {
   try {
     const storedVersion = localStorage.getItem("controllerSessionVersion");
     const storedDeployType = localStorage.getItem("controllerDeployType");
+    const storedFingerprint = localStorage.getItem("controllerSessionFingerprint");
     const currentDeployType = VITE_PUBLIC_DEPLOY_TYPE || "mainnet";
+    const currentFingerprint = connectorConfig.sessionFingerprint;
 
     const versionChanged = storedVersion !== CONTROLLER_SESSION_VERSION;
     const deployTypeChanged = storedDeployType !== currentDeployType;
+    const fingerprintChanged = storedFingerprint !== currentFingerprint;
 
-    if (!versionChanged && !deployTypeChanged) return;
+    if (!versionChanged && !deployTypeChanged && !fingerprintChanged) return;
+
+    const reason = deployTypeChanged
+      ? `deploy type changed: ${storedDeployType} → ${currentDeployType}`
+      : versionChanged
+        ? `version: ${storedVersion} → ${CONTROLLER_SESSION_VERSION}`
+        : "connector configuration changed";
 
     log.info("Clearing Controller sessions", {
-      reason: deployTypeChanged ? `deploy type changed: ${storedDeployType} → ${currentDeployType}` : `version: ${storedVersion} → ${CONTROLLER_SESSION_VERSION}`,
+      reason,
     });
 
     clearControllerStorage();
 
     localStorage.setItem("controllerSessionVersion", CONTROLLER_SESSION_VERSION);
     localStorage.setItem("controllerDeployType", currentDeployType);
+    localStorage.setItem("controllerSessionFingerprint", currentFingerprint);
   } catch (e) {
     log.warn("Session migration skipped", e);
   }
-}
-
-if (typeof window !== "undefined") {
-  migrateControllerSessions();
 }
 
 export const stringToFelt = (v: string) =>
@@ -232,6 +255,35 @@ type ConnectorConfig = {
   slot: string;
   policies: SessionPolicies;
   chains: Array<{ rpcUrl: string }>;
+  sessionFingerprint: string;
+};
+
+const buildSessionFingerprint = (
+  deployType: DeployType,
+  manifest: DojoManifest,
+  chainId: string,
+  slot: string,
+  chains: Array<{ rpcUrl: string }>,
+  policies: SessionPolicies,
+) => {
+  const manifestSignature = manifest.contracts
+    .map((contract) => ({
+      address: contract.address,
+      tag: contract.tag,
+      systems: [...contract.systems].sort(),
+    }))
+    .sort((a, b) => a.tag.localeCompare(b.tag));
+
+  return stableStringify({
+    deployType,
+    slot,
+    chainId,
+    namespace: VITE_PUBLIC_NAMESPACE,
+    nodeUrl: VITE_PUBLIC_NODE_URL,
+    chains,
+    manifest: manifestSignature,
+    policies,
+  });
 };
 
 const getConfig = (): ConnectorConfig => {
@@ -241,31 +293,55 @@ const getConfig = (): ConnectorConfig => {
 
   switch (deployType) {
     case "sepolia":
-      return {
-        chainId: CHAIN_IDS.sepolia,
-        slot: SLOTS.sepolia,
-        policies: buildPoliciesFromManifest(manifest, namespace, true),
-        chains: [{ rpcUrl: RPC_URLS.sepolia }, { rpcUrl: RPC_URLS.mainnet }],
-      };
+      {
+        const chainId = CHAIN_IDS.sepolia;
+        const slot = SLOTS.sepolia;
+        const policies = buildPoliciesFromManifest(manifest, namespace, true);
+        const chains = [{ rpcUrl: RPC_URLS.sepolia }, { rpcUrl: RPC_URLS.mainnet }];
+
+        return {
+          chainId,
+          slot,
+          policies,
+          chains,
+          sessionFingerprint: buildSessionFingerprint(deployType, manifest, chainId, slot, chains, policies),
+        };
+      }
     case "slot":
-      return {
-        chainId: CHAIN_IDS.slot,
-        slot: SLOTS.slot,
-        policies: buildPoliciesFromManifest(manifest, namespace, false),
-        chains: [
+      {
+        const chainId = CHAIN_IDS.slot;
+        const slot = SLOTS.slot;
+        const policies = buildPoliciesFromManifest(manifest, namespace, false);
+        const chains = [
           ...(VITE_PUBLIC_NODE_URL ? [{ rpcUrl: VITE_PUBLIC_NODE_URL }] : []),
           { rpcUrl: RPC_URLS.sepolia },
           { rpcUrl: RPC_URLS.mainnet },
-        ],
-      };
+        ];
+
+        return {
+          chainId,
+          slot,
+          policies,
+          chains,
+          sessionFingerprint: buildSessionFingerprint(deployType, manifest, chainId, slot, chains, policies),
+        };
+      }
     case "mainnet":
     default:
-      return {
-        chainId: CHAIN_IDS.mainnet,
-        slot: SLOTS.mainnet,
-        policies: buildPoliciesFromManifest(manifest, namespace, true),
-        chains: [{ rpcUrl: RPC_URLS.mainnet }, { rpcUrl: RPC_URLS.sepolia }],
-      };
+      {
+        const chainId = CHAIN_IDS.mainnet;
+        const slot = SLOTS.mainnet;
+        const policies = buildPoliciesFromManifest(manifest, namespace, true);
+        const chains = [{ rpcUrl: RPC_URLS.mainnet }, { rpcUrl: RPC_URLS.sepolia }];
+
+        return {
+          chainId,
+          slot,
+          policies,
+          chains,
+          sessionFingerprint: buildSessionFingerprint(deployType, manifest, chainId, slot, chains, policies),
+        };
+      }
   }
 };
 
@@ -285,6 +361,10 @@ const createConnector = (config: ConnectorConfig): Connector => {
 };
 
 const connectorConfig = getConfig();
+
+if (typeof window !== "undefined") {
+  migrateControllerSessions();
+}
 
 log.info("Configuration", {
   deployType: VITE_PUBLIC_DEPLOY_TYPE,

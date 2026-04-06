@@ -360,6 +360,22 @@ const PlayScreen: React.FC = () => {
           </div>
         )}
 
+        {!isGameLoading && !game && (
+          <div className="mx-auto mt-8 w-full max-w-[340px] rounded-2xl border border-white/20 bg-black/35 px-5 py-6 text-center backdrop-blur-xl">
+            <p className="font-sans text-lg font-bold text-white">Unable to load this run</p>
+            <p className="mt-2 font-sans text-sm text-white/75">
+              The game state was not found yet. Try going back to Home and resuming story again.
+            </p>
+            <button
+              type="button"
+              onClick={() => navNavigate("home")}
+              className="mt-5 w-full rounded-xl border border-white/20 bg-white/10 py-2 font-sans text-sm font-semibold text-white/90"
+            >
+              Back to Home
+            </button>
+          </div>
+        )}
+
         {game && isGameOn && !isGridLoading && !isGameLoading && (
           <div className="flex w-full flex-col items-center min-h-0">
             <GameBoard
