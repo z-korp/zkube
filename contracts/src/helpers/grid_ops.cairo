@@ -151,13 +151,15 @@ pub fn execute_move_inline(
         highest_occupied_row(new_blocks)
     };
 
-    // Count destroyed blocks of target size using total count approach
-    // Positional diff is wrong because blocks shift (gravity, new line insertion)
-    let blocks_destroyed_of_target_size = if track_break_blocks {
+    // Count destroyed block ENTITIES of target size.
+    // count_blocks_of_size returns cell count (a size-3 block = 3 cells),
+    // so divide by target_size to get entity count.
+    let blocks_destroyed_of_target_size = if track_break_blocks && break_target_size > 0 {
         let count_after = count_blocks_of_size(new_blocks, break_target_size);
         let total_available: u8 = break_count_before + break_added_count;
         if total_available > count_after {
-            total_available - count_after
+            let destroyed_cells: u8 = total_available - count_after;
+            destroyed_cells / break_target_size
         } else {
             0
         }
