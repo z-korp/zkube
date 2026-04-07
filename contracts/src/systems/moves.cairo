@@ -101,8 +101,9 @@ mod move_system {
                 .grid
                 .execute_move(game_id, row_index, start_index, final_index);
 
-            // Re-read game after grid_system modified it (needed for level/game-over checks)
-            let game: Game = world.read_model(game_id);
+            // Re-read game ONCE after grid_system modified it; reuse for all
+            // subsequent checks and writes to avoid redundant storage reads.
+            let mut game: Game = world.read_model(game_id);
             let mut game_level: GameLevel = world.read_model(game_id);
             let mut run_data = game.get_run_data();
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
@@ -204,10 +205,10 @@ mod move_system {
                 };
             }
 
+            // Apply run_data to the cached game struct (defers storage write
+            // to the branch below so we write at most once).
             if run_data_changed {
-                let mut updated_game: Game = world.read_model(game_id);
-                updated_game.set_run_data(run_data);
-                world.write_model(@updated_game);
+                game.set_run_data(run_data);
             }
 
             if run_data.run_type == 0 {
@@ -243,19 +244,26 @@ mod move_system {
                             }
                         }
                     }
+                    // Flush cached game to storage before cross-contract
+                    // finalize_level call (it reads game from storage).
+                    if run_data_changed {
+                        world.write_model(@game);
+                    }
                     libs.level.finalize_level(game_id, player);
                 } else if is_grid_full {
-                    let mut updated_game: Game = world.read_model(game_id);
-                    updated_game.over = true;
-                    world.write_model(@updated_game);
-                    game_over::handle_game_over(ref world, updated_game, player);
+                    game.over = true;
+                    world.write_model(@game);
+                    game_over::handle_game_over(ref world, game, player);
                 } else {
                     let is_failed = level_check::is_level_failed(@game_level, @run_data);
                     if is_failed {
-                        let mut updated_game: Game = world.read_model(game_id);
-                        updated_game.over = true;
-                        world.write_model(@updated_game);
-                        game_over::handle_game_over(ref world, updated_game, player);
+                        game.over = true;
+                        world.write_model(@game);
+                        game_over::handle_game_over(ref world, game, player);
+                    } else if run_data_changed {
+                        // No level transition or game-over — just persist
+                        // the updated run_data that was deferred above.
+                        world.write_model(@game);
                     }
                 }
             } else {
@@ -268,22 +276,22 @@ mod move_system {
                 );
                 let target_difficulty_u8: u8 = target_difficulty.into();
 
-                if run_data.current_difficulty != target_difficulty_u8 {
+                let difficulty_changed = run_data.current_difficulty != target_difficulty_u8;
+                if difficulty_changed {
                     run_data.current_difficulty = target_difficulty_u8;
-
-                    let mut updated_game: Game = world.read_model(game_id);
-                    updated_game.set_run_data(run_data);
-                    world.write_model(@updated_game);
+                    game.set_run_data(run_data);
 
                     game_level.difficulty = target_difficulty_u8;
                     world.write_model(@game_level);
                 }
 
                 if is_grid_full {
-                    let mut updated_game: Game = world.read_model(game_id);
-                    updated_game.over = true;
-                    world.write_model(@updated_game);
-                    game_over::handle_game_over(ref world, updated_game, player);
+                    game.over = true;
+                    world.write_model(@game);
+                    game_over::handle_game_over(ref world, game, player);
+                } else if difficulty_changed || run_data_changed {
+                    // Persist deferred run_data / difficulty changes.
+                    world.write_model(@game);
                 }
             }
             if !is_story_game {

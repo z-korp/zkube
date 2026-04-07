@@ -5,16 +5,18 @@ use zkube::models::daily::DailyEntry;
 pub trait IDailyChallengeSystem<T> {
     /// Start a daily challenge game. Auto-creates today's challenge on first call.
     fn start_daily_game(ref self: T) -> felt252;
-    /// Settle a daily challenge after it ends. Permissionless.
-    fn settle_challenge(ref self: T, challenge_id: u32);
+    /// Settle a daily challenge after it ends.
+    /// `ranked_players` must be sorted by ranking_value descending (verified on-chain).
+    fn settle_challenge(ref self: T, challenge_id: u32, ranked_players: Span<ContractAddress>);
     /// Manual result submission (backup -- game_over auto-submits)
     fn submit_result(ref self: T, challenge_id: u32, game_id: felt252);
     /// Get today's challenge ID (day_id = timestamp / 86400)
     fn get_current_challenge(self: @T) -> u32;
     /// Get player entry for a challenge
     fn get_player_entry(self: @T, challenge_id: u32, player: ContractAddress) -> DailyEntry;
-    /// Settle weekly endless leaderboard (keep existing)
-    fn settle_weekly_endless(ref self: T, week_id: u32);
+    /// Settle weekly endless leaderboard.
+    /// `ranked_players` must be sorted by best_score descending (verified on-chain).
+    fn settle_weekly_endless(ref self: T, week_id: u32, ranked_players: Span<ContractAddress>);
 }
 
 #[dojo::contract]
@@ -31,20 +33,19 @@ mod daily_challenge_system {
     use zkube::elements::tasks::interface::TaskTrait;
     use zkube::events::{LevelStarted, StartGame};
     use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
-    use zkube::helpers::daily;
     use zkube::helpers::game_libs::{GameLibsImpl, IGridSystemDispatcherTrait};
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::mutator::MutatorEffectsTrait;
-    use zkube::helpers::weekly::MAX_WEEKLY_LEADERBOARD_SIZE;
+    use zkube::helpers::{daily, weekly};
     use zkube::models::config::{GameSettings, GameSettingsTrait};
     use zkube::models::daily::{
         DailyAttempt, DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait,
-        DailyLeaderboard, GameChallenge,
+        GameChallenge,
     };
     use zkube::models::game::{Game, GameLevelTrait, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
-    use zkube::models::weekly::{WeeklyEndless, WeeklyEndlessLeaderboard, current_week_id};
+    use zkube::models::weekly::{WeeklyEndless, WeeklyEndlessEntry, current_week_id};
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use zkube::systems::progress::{IProgressSystemDispatcher, IProgressSystemDispatcherTrait};
 
@@ -245,7 +246,9 @@ mod daily_challenge_system {
             game_id
         }
 
-        fn settle_challenge(ref self: ContractState, challenge_id: u32) {
+        fn settle_challenge(
+            ref self: ContractState, challenge_id: u32, ranked_players: Span<ContractAddress>,
+        ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let timestamp = get_block_timestamp();
 
@@ -256,40 +259,50 @@ mod daily_challenge_system {
 
             let total_participants = challenge.total_entries;
 
-            // Early return if no entries — just mark as settled
+            // Early return if no entries -- just mark as settled
             if total_participants == 0 {
                 challenge.settled = true;
                 world.write_model(@challenge);
                 return;
             }
 
-            // N = ceil(total_entries / 4), capped at leaderboard size
-            let num_winners = if total_participants == 0 {
-                0_u32
-            } else {
-                (total_participants + 3) / 4
-            };
-            let capped_winners = if num_winners > daily::MAX_LEADERBOARD_SIZE {
-                daily::MAX_LEADERBOARD_SIZE
+            // Cap the ranked list length
+            let len = ranked_players.len();
+            assert!(len <= daily::MAX_RANKED_PLAYERS, "Too many ranked players");
+
+            // N = ceil(total_entries / 4), capped
+            let num_winners = (total_participants + 3) / 4;
+            let capped_winners = if num_winners > daily::MAX_RANKED_PLAYERS {
+                daily::MAX_RANKED_PLAYERS
             } else {
                 num_winners
             };
 
+            // Verify descending order and distribute rewards
+            let mut prev_value: u64 = 0xFFFFFFFFFFFFFFFF; // max u64
             let mut rank: u32 = 1;
-            while rank <= capped_winners {
-                let lb: DailyLeaderboard = world.read_model((challenge_id, rank));
-                if lb.player.is_non_zero() {
-                    let star_reward = InternalImpl::compute_star_reward(rank, total_participants);
-                    if star_reward > 0 {
-                        InternalImpl::mint_zstar(ref self, ref world, lb.player, star_reward);
+            while rank <= len && rank <= capped_winners {
+                let player = *ranked_players.at(rank - 1);
+                assert!(player.is_non_zero(), "Zero address in ranked list");
 
-                        // Store star_reward in DailyEntry
-                        let mut entry: DailyEntry = world.read_model((challenge_id, lb.player));
-                        entry.rank = rank;
-                        entry.star_reward = star_reward;
-                        world.write_model(@entry);
-                    }
+                let entry: DailyEntry = world.read_model((challenge_id, player));
+                assert!(entry.exists(), "Player has no entry for this challenge");
+
+                let value = InternalImpl::compute_ranking_value(entry.best_stars, entry.best_score);
+                assert!(value <= prev_value, "Invalid ranking order");
+                prev_value = value;
+
+                let star_reward = InternalImpl::compute_star_reward(rank, total_participants);
+                if star_reward > 0 {
+                    InternalImpl::mint_zstar(ref self, ref world, player, star_reward);
+
+                    // Store rank and reward in DailyEntry
+                    let mut entry_mut: DailyEntry = world.read_model((challenge_id, player));
+                    entry_mut.rank = rank;
+                    entry_mut.star_reward = star_reward;
+                    world.write_model(@entry_mut);
                 }
+
                 rank += 1;
             }
 
@@ -346,9 +359,6 @@ mod daily_challenge_system {
                 entry.best_stars = stars;
                 entry.best_game_id = game_id;
                 world.write_model(@entry);
-
-                // Update leaderboard via shared helper
-                daily::update_daily_leaderboard(ref world, challenge_id, player, ranking_value);
             }
 
             if is_first_submission {
@@ -373,36 +383,49 @@ mod daily_challenge_system {
             world.read_model((challenge_id, player))
         }
 
-        fn settle_weekly_endless(ref self: ContractState, week_id: u32) {
+        fn settle_weekly_endless(
+            ref self: ContractState, week_id: u32, ranked_players: Span<ContractAddress>,
+        ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let timestamp = get_block_timestamp();
             let current_week = current_week_id(timestamp);
             assert!(week_id < current_week, "Week has not ended yet");
 
-            let mut weekly: WeeklyEndless = world.read_model(week_id);
-            assert!(!weekly.settled, "Week already settled");
+            let mut weekly_meta: WeeklyEndless = world.read_model(week_id);
+            assert!(!weekly_meta.settled, "Week already settled");
 
-            let total = weekly.total_participants;
-            let cap = if total < MAX_WEEKLY_LEADERBOARD_SIZE {
+            let total = weekly_meta.total_participants;
+            let len = ranked_players.len();
+            assert!(len <= weekly::MAX_RANKED_PLAYERS, "Too many ranked players");
+
+            let cap = if total < weekly::MAX_RANKED_PLAYERS {
                 total
             } else {
-                MAX_WEEKLY_LEADERBOARD_SIZE
+                weekly::MAX_RANKED_PLAYERS
             };
 
+            // Verify descending order by best_score and distribute rewards
+            let mut prev_score: u32 = 0xFFFFFFFF; // max u32
             let mut rank: u32 = 1;
-            while rank <= cap {
-                let lb: WeeklyEndlessLeaderboard = world.read_model((week_id, rank));
-                if lb.player.is_non_zero() {
-                    let star_reward = InternalImpl::compute_weekly_star_reward(rank, total);
-                    if star_reward > 0 {
-                        InternalImpl::mint_zstar(ref self, ref world, lb.player, star_reward);
-                    }
+            while rank <= len && rank <= cap {
+                let player = *ranked_players.at(rank - 1);
+                assert!(player.is_non_zero(), "Zero address in ranked list");
+
+                let entry: WeeklyEndlessEntry = world.read_model((week_id, player));
+                assert!(entry.submitted, "Player has no entry for this week");
+                assert!(entry.best_score <= prev_score, "Invalid ranking order");
+                prev_score = entry.best_score;
+
+                let star_reward = InternalImpl::compute_weekly_star_reward(rank, total);
+                if star_reward > 0 {
+                    InternalImpl::mint_zstar(ref self, ref world, player, star_reward);
                 }
+
                 rank += 1;
             }
 
-            weekly.settled = true;
-            world.write_model(@weekly);
+            weekly_meta.settled = true;
+            world.write_model(@weekly_meta);
         }
     }
 

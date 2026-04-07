@@ -69,7 +69,6 @@ pub mod helpers {
     pub mod mutator;
     pub mod packer;
     pub mod packing;
-    pub mod prize;
     pub mod random;
     pub mod renderer;
     pub mod scoring;

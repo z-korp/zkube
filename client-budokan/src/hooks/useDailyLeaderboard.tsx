@@ -10,37 +10,57 @@ export interface DailyLeaderboardEntry {
   playerName?: string;
 }
 
+/**
+ * Build a daily leaderboard from DailyEntry models (client-side sort).
+ * The on-chain DailyLeaderboard model has been removed; settlement now
+ * accepts a caller-provided sorted list verified on-chain.
+ */
 export function useDailyLeaderboard(challengeId: number | undefined) {
   const {
     setup: {
-      contractComponents: { DailyLeaderboard },
+      contractComponents: { DailyEntry },
     },
   } = useDojo();
 
   const allEntities = useMemo(() => {
     try {
-      return Array.from(runQuery([Has(DailyLeaderboard)]));
+      return Array.from(runQuery([Has(DailyEntry)]));
     } catch {
       return [];
     }
-  }, [DailyLeaderboard]);
+  }, [DailyEntry]);
 
   const rawEntries = useMemo(() => {
     if (challengeId === undefined) return [];
 
     const entries: DailyLeaderboardEntry[] = [];
     for (const entity of allEntities) {
-      const data = getComponentValue(DailyLeaderboard, entity);
+      const data = getComponentValue(DailyEntry, entity);
       if (!data || data.challenge_id !== challengeId) continue;
+      if (!data.best_score && !data.best_stars) continue; // no score yet
+
+      // Compute composite ranking value: (stars << 32) | score
+      const stars = Number(data.best_stars ?? 0);
+      const score = Number(data.best_score ?? 0);
+      const value = stars * 0x100000000 + score;
+
       entries.push({
-        rank: data.rank,
+        rank: 0, // will be assigned after sort
         player: `0x${BigInt(data.player).toString(16)}`,
-        value: data.value,
+        value,
       });
     }
 
-    return entries.sort((a, b) => a.rank - b.rank);
-  }, [allEntities, challengeId, DailyLeaderboard]);
+    // Sort descending by value (higher is better)
+    entries.sort((a, b) => b.value - a.value);
+
+    // Assign ranks
+    entries.forEach((entry, i) => {
+      entry.rank = i + 1;
+    });
+
+    return entries;
+  }, [allEntities, challengeId, DailyEntry]);
 
   const addresses = useMemo(() => {
     return rawEntries.map((e) => e.player);

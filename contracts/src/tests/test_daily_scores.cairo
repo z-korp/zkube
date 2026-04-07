@@ -3,11 +3,10 @@
 //! Verifies that:
 //! - DailyEntry.best_score (u32) stores values above 65535 without truncation.
 //! - Zone ranking composite uses stars-first ordering via (stars << 32) | score.
-//! - DailyLeaderboard.value (u64) holds the full composite.
 
-use zkube::models::daily::{DailyEntry, DailyEntryTrait, DailyLeaderboard};
+use zkube::models::daily::{DailyEntry, DailyEntryTrait};
 
-// ── Ranking composite helper (always zone mode: stars-first) ──
+// -- Ranking composite helper (always zone mode: stars-first) --
 
 fn compute_ranking_value(total_stars: u8, total_score: u32) -> u64 {
     let stars_u64: u64 = total_stars.into();
@@ -15,8 +14,7 @@ fn compute_ranking_value(total_stars: u8, total_score: u32) -> u64 {
     (stars_u64 * 0x100000000) + score_u64
 }
 
-// ── Score storage tests
-// ─────────────────────────────────────────────
+// -- Score storage tests --
 
 #[test]
 fn test_best_score_stores_above_65535() {
@@ -50,22 +48,7 @@ fn test_best_score_max_u32() {
     assert!(entry.best_score == 4294967295, "best_score must handle u32 max");
 }
 
-// ── Leaderboard value tests
-// ─────────────────────────────────────────
-
-#[test]
-fn test_leaderboard_value_holds_zone_composite() {
-    // 30 stars, 100000 score → (30 << 32) | 100000
-    let value: u64 = compute_ranking_value(30, 100000);
-    let lb = DailyLeaderboard {
-        challenge_id: 1, rank: 1, player: 0x1_felt252.try_into().unwrap(), value,
-    };
-    assert!(lb.value == value, "leaderboard value must hold full u64 composite");
-    assert!(lb.value > 0x100000000, "30 stars composite must exceed 2^32");
-}
-
-// ── Ranking ordering tests
-// ──────────────────────────────────────────
+// -- Ranking ordering tests --
 
 #[test]
 fn test_zone_ranking_stars_first() {
@@ -80,7 +63,7 @@ fn test_zone_ranking_stars_first() {
 
 #[test]
 fn test_zone_ranking_score_breaks_tie() {
-    // Same stars → higher score wins
+    // Same stars -> higher score wins
     let same_stars_lower = compute_ranking_value(20, 50000);
     let same_stars_higher = compute_ranking_value(20, 50001);
     assert!(same_stars_higher > same_stars_lower, "higher score breaks star ties in zone mode");

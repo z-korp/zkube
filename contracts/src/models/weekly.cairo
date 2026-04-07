@@ -11,17 +11,6 @@ pub struct WeeklyEndless {
 
 #[derive(Copy, Drop, Serde, Introspect)]
 #[dojo::model]
-pub struct WeeklyEndlessLeaderboard {
-    #[key]
-    pub week_id: u32,
-    #[key]
-    pub rank: u32,
-    pub player: ContractAddress,
-    pub score: u32,
-}
-
-#[derive(Copy, Drop, Serde, Introspect)]
-#[dojo::model]
 pub struct WeeklyEndlessEntry {
     #[key]
     pub week_id: u32,

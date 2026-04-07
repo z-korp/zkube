@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x6ec77fbeb8336f576a6a9993339e19565e2d9677a2978100e29bfb59b5506b9",
-    "seed": "zkube_v3_4",
+    "address": "0x30e9d3decc90c51b5c9649c155ecf2510d0ac9a6716a0527013d7009826f20",
+    "seed": "zkube_v3_5",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,7 +33,7 @@
   },
   "contracts": [
     {
-      "address": "0xfa8ca4b85f30c6df149bf12a6e240c954e6e221a632d9a45043bc52c37481e",
+      "address": "0x23fe7eccaaf0f7cf755aedd0f4e28b4990ddb18e0a7b2be4dafc3624a70cc77",
       "class_hash": "0x3830195821737f1d22076b0a41c7a2fd52685fe9eb4caaababc5e60d567f9b0",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
@@ -61,8 +61,8 @@
       ]
     },
     {
-      "address": "0x77ca1535a39be3c947666a943935d8fee5126086a0ac3e725cad302b3490342",
-      "class_hash": "0x12b09d16e63151531d7c99441501ed673ec15b5529859ce8186fb881192628f",
+      "address": "0x266d833aa9f0a4256f33d39970ad19dafacb21aef59ac49ff39504af1a446ff",
+      "class_hash": "0x1433f861f51e1b94a55b04d2e146bc8c3ef31b5091f4a4a69cd83089e714c67",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
       ],
@@ -78,8 +78,8 @@
       ]
     },
     {
-      "address": "0x79e7633633ca89f59645069f50be75d95eebe76d53dcee247f2e6715b231da1",
-      "class_hash": "0x2688ecb93d6b54cb532a60667465088308b94e27cd8e719bb12e7ebb91f0fa7",
+      "address": "0x1b2929d8ff81fdc298efb3cdabb9123db82bb4a840d90bd1cf3bf7d94f4a6b3",
+      "class_hash": "0x5a3d9f95d0c0a45d524cbfdfc259867686667479d582da38db289dafd4940d",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x013e661f437432e76575402d45f0b523f01246b211fcc015aab2dc20b6b43a5c",
@@ -98,7 +98,7 @@
       ]
     },
     {
-      "address": "0x2c840fa4d3748299c63c5c11e7c42fdaebfe2c6de0b690afc1033a893284bd7",
+      "address": "0x1740a6b1313bed86c7e63952657a91ab359252fe2b80f596eb49de0b7ede6bc",
       "class_hash": "0x575bd2e19787c6fbd4b3b91bb7706316bac366dc4c8b758177005355af844f",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-grid_system",
@@ -113,8 +113,8 @@
       ]
     },
     {
-      "address": "0xd648b6163b1d3bf512e4442df9d587f832234cb14bcce347eb14181fde0767",
-      "class_hash": "0x2b8d96c14f5b3841be2052f0afe5ffc0266501e58eac98d88e02c9b948b0d8c",
+      "address": "0x46bdf1a8ddd204c8225215f29fe204af53466726617f5f58021238cbb4ab6a1",
+      "class_hash": "0x5ba7305cec8dfb5669fd0eac1afc46e9e066fa4c39d05cf8fa15aab1e1fd6d8",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-level_system",
       "selector": "0x1689592ed01fb67e736e3075b7d3b060bfd9ea2904147c7e161bc3f08ae2e9",
@@ -128,8 +128,8 @@
       ]
     },
     {
-      "address": "0x65c3d59b490371652259ae86d496af080b9837e62460a97b1613ad5f187b067",
-      "class_hash": "0x4b4be3bb5889725e88cdd1b8162dde2162926e1e866fbc89852693f8fb9d6ec",
+      "address": "0x18797c4f19569c213364ce84f1fadd4fd7a6151edbe604d28278901cb644c8",
+      "class_hash": "0x154b7fae1c7fb04aaa316d2b0c5e3500ba0b75ec2ebc42dc6cb709d4e8c58cb",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-move_system",
       "selector": "0x2c6e7f38e7f45f67fca81df91805a8f3ee1d9842366e3e3d32f13f46cbf60d",
@@ -139,7 +139,7 @@
       ]
     },
     {
-      "address": "0xf7f1e0dfcf39a44036f0e50ef5b7a5bb5aa2989d3d7d4c374cfece20f727e2",
+      "address": "0x1f0d30944257afbdbde1a1d605e6f75693eefed4bb39f66505f85bc096aaf51",
       "class_hash": "0x534777e20c0daad923947804da5ebc580c88d577f2816f9663556a3d6ae684e",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-progress_system",
@@ -153,7 +153,7 @@
       ]
     },
     {
-      "address": "0x2df20c854765d5f826fe0ba9ad1b347fd44d370e8f4e59c547107eceda17ec5",
+      "address": "0x4c608fb32c0a23816159eaed068939f5fd83eae0f2bd9f7c93d1e9b7321424c",
       "class_hash": "0x285dcc05a42f92bb508b75667ee9339cea43159d1177f7865141fcd87f37eed",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-renderer_systems",
@@ -163,7 +163,7 @@
       ]
     },
     {
-      "address": "0x4c4ce7cf6cf48cf5c8176281917c0b9620ebd1d452e284973664ac1bf96c5bf",
+      "address": "0x6ffc2601df19892305c569bd264e88d1747d54e07f6896a7fdcc154e519e96d",
       "class_hash": "0x226015d27dc007904ab8c19ee61a040953a4d187fdf4339db137923f809962e",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-story_system",
@@ -507,33 +507,6 @@
       "class_hash": "0x4eb5a0df990704db47e412e79dfa2e70bb5844bf18ac6a3eb361981773ce632",
       "tag": "zkube_v2_1_0-DailyEntry",
       "selector": "0x7bff9a52b6f3888dc9d75faa69ae64f639d3d77db78e1b9d8875354fcf6f324"
-    },
-    {
-      "members": [
-        {
-          "name": "challenge_id",
-          "type": "core::integer::u32",
-          "key": true
-        },
-        {
-          "name": "rank",
-          "type": "core::integer::u32",
-          "key": true
-        },
-        {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "key": false
-        },
-        {
-          "name": "value",
-          "type": "core::integer::u64",
-          "key": false
-        }
-      ],
-      "class_hash": "0x5b07de03573fa6572e58364bce1af17ea8391cc475556516a139b56d0e1d098",
-      "tag": "zkube_v2_1_0-DailyLeaderboard",
-      "selector": "0x4da82f16f05ed9328f75595fbafab48312bc7ff31345fee51a1f4fa2343ff82"
     },
     {
       "members": [
@@ -1455,33 +1428,6 @@
       "class_hash": "0x343b7e6390a3557123d4765b0a3b1c38117fb6d924ab995eb1e08433f6daa96",
       "tag": "zkube_v2_1_0-WeeklyEndlessEntry",
       "selector": "0x6800d6fb9f0826be9dd431c9ab53af33d6000d1198114782392316d2d82ff40"
-    },
-    {
-      "members": [
-        {
-          "name": "week_id",
-          "type": "core::integer::u32",
-          "key": true
-        },
-        {
-          "name": "rank",
-          "type": "core::integer::u32",
-          "key": true
-        },
-        {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "key": false
-        },
-        {
-          "name": "score",
-          "type": "core::integer::u32",
-          "key": false
-        }
-      ],
-      "class_hash": "0x679795671621a87435cd34bdeeba57e15c67a6bbef47dbee2f92062d73d1b0d",
-      "tag": "zkube_v2_1_0-WeeklyEndlessLeaderboard",
-      "selector": "0x3c5b41bdaecbd70cada7ce144b76b9643051d2dc79ecaf9fcc1c76ef14ce968"
     },
     {
       "members": [
@@ -2445,6 +2391,16 @@
         {
           "name": "snapshot",
           "type": "@core::array::Array::<core::integer::u8>"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "core::array::Span::<core::starknet::contract_address::ContractAddress>",
+      "members": [
+        {
+          "name": "snapshot",
+          "type": "@core::array::Array::<core::starknet::contract_address::ContractAddress>"
         }
       ]
     },
@@ -6681,42 +6637,6 @@
     },
     {
       "type": "struct",
-      "name": "zkube::models::daily::DailyLeaderboard",
-      "members": [
-        {
-          "name": "challenge_id",
-          "type": "core::integer::u32"
-        },
-        {
-          "name": "rank",
-          "type": "core::integer::u32"
-        },
-        {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "value",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "zkube::models::daily::DailyLeaderboardValue",
-      "members": [
-        {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "value",
-          "type": "core::integer::u64"
-        }
-      ]
-    },
-    {
-      "type": "struct",
       "name": "zkube::models::daily::GameChallenge",
       "members": [
         {
@@ -6754,12 +6674,6 @@
     {
       "type": "event",
       "name": "zkube::models::daily::m_DailyEntry::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "zkube::models::daily::m_DailyLeaderboard::Event",
       "kind": "enum",
       "variants": []
     },
@@ -7621,42 +7535,6 @@
     },
     {
       "type": "struct",
-      "name": "zkube::models::weekly::WeeklyEndlessLeaderboard",
-      "members": [
-        {
-          "name": "week_id",
-          "type": "core::integer::u32"
-        },
-        {
-          "name": "rank",
-          "type": "core::integer::u32"
-        },
-        {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "score",
-          "type": "core::integer::u32"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "zkube::models::weekly::WeeklyEndlessLeaderboardValue",
-      "members": [
-        {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "score",
-          "type": "core::integer::u32"
-        }
-      ]
-    },
-    {
-      "type": "struct",
       "name": "zkube::models::weekly::WeeklyEndlessValue",
       "members": [
         {
@@ -7678,12 +7556,6 @@
     {
       "type": "event",
       "name": "zkube::models::weekly::m_WeeklyEndlessEntry::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "zkube::models::weekly::m_WeeklyEndlessLeaderboard::Event",
       "kind": "enum",
       "variants": []
     },
@@ -8193,6 +8065,10 @@
             {
               "name": "challenge_id",
               "type": "core::integer::u32"
+            },
+            {
+              "name": "ranked_players",
+              "type": "core::array::Span::<core::starknet::contract_address::ContractAddress>"
             }
           ],
           "outputs": [],
@@ -8252,6 +8128,10 @@
             {
               "name": "week_id",
               "type": "core::integer::u32"
+            },
+            {
+              "name": "ranked_players",
+              "type": "core::array::Span::<core::starknet::contract_address::ContractAddress>"
             }
           ],
           "outputs": [],

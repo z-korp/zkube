@@ -405,30 +405,6 @@ export function defineContractComponents(world: World) {
         }
       );
     })(),
-    DailyLeaderboard: (() => {
-      return defineComponent(
-        world,
-        {
-          challenge_id: RecsType.Number,
-          rank: RecsType.Number,
-          player: RecsType.BigInt,
-          value: RecsType.Number,
-        },
-        {
-          metadata: {
-            namespace: VITE_PUBLIC_NAMESPACE,
-            name: "DailyLeaderboard",
-            types: [
-              "u32",               // challenge_id
-              "u32",               // rank
-              "ContractAddress",   // player
-              "u32",               // value
-            ],
-            customTypes: [],
-          },
-        }
-      );
-    })(),
     WeeklyEndless: (() => {
       return defineComponent(
         world,
@@ -442,25 +418,6 @@ export function defineContractComponents(world: World) {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "WeeklyEndless",
             types: ["u32", "u32", "bool"],
-            customTypes: [],
-          },
-        }
-      );
-    })(),
-    WeeklyEndlessLeaderboard: (() => {
-      return defineComponent(
-        world,
-        {
-          week_id: RecsType.BigInt,
-          rank: RecsType.Number,
-          player: RecsType.BigInt,
-          score: RecsType.Number,
-        },
-        {
-          metadata: {
-            namespace: VITE_PUBLIC_NAMESPACE,
-            name: "WeeklyEndlessLeaderboard",
-            types: ["u32", "u32", "ContractAddress", "u32"],
             customTypes: [],
           },
         }

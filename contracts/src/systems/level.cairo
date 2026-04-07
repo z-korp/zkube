@@ -39,6 +39,7 @@ mod level_system {
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::random::RandomImpl;
+    use zkube::models::config::GameSettings;
     use zkube::models::daily::GameChallenge;
     use zkube::models::game::{Game, GameLevel, GameLevelTrait, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
@@ -296,7 +297,7 @@ mod level_system {
             };
             progress_dispatcher.emit_progress(player, Task::LevelComplete.identifier(), 1, sid);
 
-            InternalImpl::advance_level(ref world, game_id, player);
+            InternalImpl::advance_level(ref world, game_id, player, game, settings);
 
             (0, 0, false)
         }
@@ -341,10 +342,14 @@ mod level_system {
             }
         }
 
-        fn advance_level(ref world: WorldStorage, game_id: felt252, player: ContractAddress) {
-            let mut game: Game = world.read_model(game_id);
+        fn advance_level(
+            ref world: WorldStorage,
+            game_id: felt252,
+            player: ContractAddress,
+            mut game: Game,
+            settings: GameSettings,
+        ) {
             let base_seed: GameSeed = world.read_model(game_id);
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
 
             let mut run_data = game.get_run_data();
             let current_level = run_data.current_level;

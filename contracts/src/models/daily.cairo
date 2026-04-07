@@ -75,20 +75,6 @@ pub struct DailyEntry {
     pub star_reward: u256,
 }
 
-/// Top N leaderboard tracking (compound key: challenge_id + rank)
-#[derive(Copy, Drop, Serde, Introspect)]
-#[dojo::model]
-pub struct DailyLeaderboard {
-    #[key]
-    pub challenge_id: u32,
-    #[key]
-    pub rank: u32,
-    /// Player at this rank
-    pub player: ContractAddress,
-    /// Ranking metric value — u64 to hold zone composite: (stars << 32) | score
-    pub value: u64,
-}
-
 // ============================================================
 // Trait implementations
 // ============================================================

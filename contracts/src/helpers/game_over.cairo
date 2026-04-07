@@ -9,9 +9,9 @@ use starknet::{ContractAddress, get_block_timestamp};
 use zkube::events::{RunEnded, ZoneClearBonus};
 use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
 use zkube::helpers::config::ConfigUtilsTrait;
-use zkube::helpers::{daily, weekly};
+use zkube::helpers::weekly;
 use zkube::models::daily::{
-    DailyAttempt, DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait, GameChallenge,
+    DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait, GameChallenge,
 };
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
@@ -112,7 +112,7 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
         };
         if is_eligible {
             let week_id = current_week_id(get_block_timestamp());
-            weekly::update_weekly_leaderboard(ref world, week_id, player, run_data.total_score);
+            weekly::update_weekly_entry(ref world, week_id, player, run_data.total_score);
         }
     }
 
@@ -178,9 +178,9 @@ fn calculate_total_stars(game: Game) -> u8 {
     stars
 }
 
-/// Auto-submit a game result to the daily challenge leaderboard.
-/// Called inline during game_over — no cross-contract call needed since we
-/// have direct world access to the DailyEntry and DailyLeaderboard models.
+/// Auto-submit a game result to the daily challenge entry.
+/// Called inline during game_over -- updates the player's DailyEntry
+/// with their best score. Settlement verifies ordering off-chain.
 fn auto_submit_daily_result(
     ref world: WorldStorage,
     challenge_id: u32,
@@ -213,8 +213,5 @@ fn auto_submit_daily_result(
         entry.best_stars = total_stars;
         entry.best_game_id = game_id;
         world.write_model(@entry);
-
-        // Update leaderboard via shared helper
-        daily::update_daily_leaderboard(ref world, challenge_id, player, ranking_value);
     }
 }
