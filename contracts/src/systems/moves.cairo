@@ -364,7 +364,7 @@ mod move_system {
                 }
             }
 
-            if !is_story_game {
+            if !is_non_token_game {
                 post_action(token_address, token_id_felt);
             }
         }

@@ -127,7 +127,7 @@
     },
     {
       "address": "0xb28fe442dd681140ecc6cb72a50adb0f7632f3e2463e4602f86a308f7455c3",
-      "class_hash": "0x110be2d49454fb29c722c025f8df7ea79641c3e92e35c1e290d76a48ba6e049",
+      "class_hash": "0x6c483f8f100d0fa284c8ed090af6d0254b6eea2526cd52a4efa90f5fbdecea3",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-move_system",
       "selector": "0x2c6e7f38e7f45f67fca81df91805a8f3ee1d9842366e3e3d32f13f46cbf60d",
