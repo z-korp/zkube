@@ -135,12 +135,24 @@ mod move_system {
                 run_data_changed = true;
             }
 
-            // Bonus charges now use per-map bonus slot configuration from GameSettings.
-            let (trigger_type, threshold) = match run_data.bonus_slot {
-                0 => (settings.bonus_1_trigger_type, settings.bonus_1_trigger_threshold),
-                1 => (settings.bonus_2_trigger_type, settings.bonus_2_trigger_threshold),
-                2 => (settings.bonus_3_trigger_type, settings.bonus_3_trigger_threshold),
-                _ => (0_u8, 0_u8),
+            // Bonus charges: read trigger config from the active mutator's bonus slots.
+            let active_bonus_mut_id = settings.active_mutator_id;
+            let (trigger_type, threshold) = if active_bonus_mut_id > 0 {
+                let bonus_mutator: MutatorDef = world.read_model(active_bonus_mut_id);
+                match run_data.bonus_slot {
+                    0 => (
+                        bonus_mutator.bonus_1_trigger_type, bonus_mutator.bonus_1_trigger_threshold,
+                    ),
+                    1 => (
+                        bonus_mutator.bonus_2_trigger_type, bonus_mutator.bonus_2_trigger_threshold,
+                    ),
+                    2 => (
+                        bonus_mutator.bonus_3_trigger_type, bonus_mutator.bonus_3_trigger_threshold,
+                    ),
+                    _ => (0_u8, 0_u8),
+                }
+            } else {
+                (0_u8, 0_u8)
             };
 
             if trigger_type > 0 && threshold > 0 && run_data.bonus_type > 0 {

@@ -33,8 +33,6 @@ mod story_system {
     };
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use zkube::systems::progress::{IProgressSystemDispatcher, IProgressSystemDispatcherTrait};
-    use zkube::types::mutator::MutatorTrait;
-
     #[storage]
     struct Storage {}
 
@@ -50,7 +48,7 @@ mod story_system {
         }
 
         fn claim_zone_perfection(ref self: ContractState, zone_id: u8) {
-            assert!(zone_id >= 1 && zone_id <= 2, "invalid zone");
+            assert!(zone_id >= 1 && zone_id <= 10, "invalid zone");
 
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let player = get_caller_address();
@@ -92,7 +90,7 @@ mod story_system {
         fn create_story_attempt(
             ref self: ContractState, zone_id: u8, requested_level: u8,
         ) -> felt252 {
-            assert!(zone_id >= 1 && zone_id <= 2, "invalid zone");
+            assert!(zone_id >= 1 && zone_id <= 10, "invalid zone");
 
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let player = get_caller_address();
@@ -149,18 +147,18 @@ mod story_system {
             let random = RandomImpl::new_pseudo_random();
             let seed = random.seed;
             let level_seed = GameTrait::generate_level_seed(seed, level);
-            let active_mutator_id: u8 = MutatorTrait::roll_mutator(seed, settings.allowed_mutators);
 
+            // Read bonus config from the active mutator
+            let active_mut_id = settings.active_mutator_id;
+            let bonus_mutator_def = Self::read_mutator_def(world, active_mut_id);
             let seed_u256: u256 = seed.into();
-            let bonus_slot: u8 = (seed_u256 % 3_u256).try_into().unwrap();
-            let (bonus_type, starting_charges) = match bonus_slot {
-                0 => (settings.bonus_1_type, settings.bonus_1_starting_charges),
-                1 => (settings.bonus_2_type, settings.bonus_2_starting_charges),
-                2 => (settings.bonus_3_type, settings.bonus_3_starting_charges),
-                _ => (0_u8, 0_u8),
-            };
+            let (bonus_slot, bonus_type, starting_charges) = Self::select_bonus_slot(
+                seed_u256, @bonus_mutator_def,
+            );
 
-            let mut game = GameTrait::new_empty(game_id, timestamp, zone_id, active_mutator_id, 0);
+            // Store passive mutator in RunData for stat effects during gameplay
+            let passive_mut_id = settings.passive_mutator_id;
+            let mut game = GameTrait::new_empty(game_id, timestamp, zone_id, passive_mut_id, 0);
             let mut run_data = game.get_run_data();
             run_data.current_level = level;
             run_data.bonus_slot = bonus_slot;
@@ -172,12 +170,13 @@ mod story_system {
             };
             game.set_run_data(run_data);
 
-            let mutator_def = Self::read_mutator_def(world, active_mutator_id);
+            // Use passive mutator for level generation (stat modifiers)
+            let passive_mutator_def = Self::read_mutator_def(world, passive_mut_id);
             let level_config = LevelGeneratorTrait::generate(
-                level_seed, level, settings, @mutator_def,
+                level_seed, level, settings, @passive_mutator_def,
             );
             let mut game_level = GameLevelTrait::from_level_config(game_id, level_config);
-            game_level.mutator_id = active_mutator_id;
+            game_level.mutator_id = passive_mut_id;
 
             let game_seed = GameSeed { game_id, seed, level_seed, vrf_enabled: false };
             let story_game = StoryAttempt { game_id, player, zone_id, level, is_replay };
@@ -250,6 +249,49 @@ mod story_system {
 
         fn settings_id_for_zone(zone_id: u8) -> u32 {
             ((zone_id - 1) * 2).into()
+        }
+
+        /// Select a bonus slot from the active mutator's non-None bonus slots.
+        /// Returns (bonus_slot, bonus_type, starting_charges).
+        fn select_bonus_slot(seed_u256: u256, mutator_def: @MutatorDef) -> (u8, u8, u8) {
+            // Count non-None slots
+            let mut count: u8 = 0;
+            if *mutator_def.bonus_1_type > 0 {
+                count += 1;
+            }
+            if *mutator_def.bonus_2_type > 0 {
+                count += 1;
+            }
+            if *mutator_def.bonus_3_type > 0 {
+                count += 1;
+            }
+            if count == 0 {
+                return (0, 0, 0);
+            }
+
+            let pick: u8 = (seed_u256 % count.into()).try_into().unwrap();
+            let mut found: u8 = 0;
+
+            if *mutator_def.bonus_1_type > 0 {
+                if found == pick {
+                    return (0, *mutator_def.bonus_1_type, *mutator_def.bonus_1_starting_charges);
+                }
+                found += 1;
+            }
+            if *mutator_def.bonus_2_type > 0 {
+                if found == pick {
+                    return (1, *mutator_def.bonus_2_type, *mutator_def.bonus_2_starting_charges);
+                }
+                found += 1;
+            }
+            if *mutator_def.bonus_3_type > 0 {
+                if found == pick {
+                    return (2, *mutator_def.bonus_3_type, *mutator_def.bonus_3_starting_charges);
+                }
+            }
+
+            // Fallback (should not reach)
+            (0, 0, 0)
         }
 
         fn read_mutator_def(world: WorldStorage, mutator_id: u8) -> MutatorDef {

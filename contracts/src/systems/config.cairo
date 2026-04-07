@@ -21,7 +21,6 @@ pub trait IConfigSystem<T> {
         base_ratio_x100: u16,
         max_ratio_x100: u16,
         // Difficulty Progression (non-linear tier thresholds)
-        // Difficulty Progression (non-linear tier thresholds)
         tier_1_threshold: u8,
         tier_2_threshold: u8,
         tier_3_threshold: u8,
@@ -55,21 +54,9 @@ pub trait IConfigSystem<T> {
         mid_level_threshold: u8,
         // Level Cap
         level_cap: u8,
-        // Bonus slot 1
-        bonus_1_type: u8,
-        bonus_1_trigger_type: u8,
-        bonus_1_trigger_threshold: u8,
-        bonus_1_starting_charges: u8,
-        // Bonus slot 2
-        bonus_2_type: u8,
-        bonus_2_trigger_type: u8,
-        bonus_2_trigger_threshold: u8,
-        bonus_2_starting_charges: u8,
-        // Bonus slot 3
-        bonus_3_type: u8,
-        bonus_3_trigger_type: u8,
-        bonus_3_trigger_threshold: u8,
-        bonus_3_starting_charges: u8,
+        // Mutator Assignment
+        active_mutator_id: u8,
+        passive_mutator_id: u8,
         // Boss Settings
         boss_id: u8,
     ) -> u32;
@@ -205,183 +192,1443 @@ mod config_system {
 
         let current_timestamp = get_block_timestamp();
 
-        // Register Polynesian Map mode settings (ID 0)
-        let mut polynesian_map_settings = GameSettingsTrait::new_with_defaults(
-            0_u32, Difficulty::Increasing,
-        );
-        polynesian_map_settings.level_cap = 10;
-        polynesian_map_settings.bonus_1_type = 1;
-        polynesian_map_settings.bonus_1_trigger_type = 1;
-        polynesian_map_settings.bonus_1_trigger_threshold = 5;
-        polynesian_map_settings.bonus_1_starting_charges = 1;
-        polynesian_map_settings.bonus_2_type = 3;
-        polynesian_map_settings.bonus_2_trigger_type = 3;
-        polynesian_map_settings.bonus_2_trigger_threshold = 30;
-        polynesian_map_settings.bonus_2_starting_charges = 1;
-        polynesian_map_settings.bonus_3_type = 2;
-        polynesian_map_settings.bonus_3_trigger_type = 2;
-        polynesian_map_settings.bonus_3_trigger_threshold = 10;
-        polynesian_map_settings.bonus_3_starting_charges = 1;
-        polynesian_map_settings.allowed_mutators = 1;
-        polynesian_map_settings.boss_id = 1;
+        // =====================================================================
+        // Zone 1 — Polynesian (Settings 0 map, 1 endless)
+        // =====================================================================
+        let mut z1_map = GameSettingsTrait::new_with_defaults(0_u32, Difficulty::Increasing);
+        z1_map.base_moves = 16;
+        z1_map.max_moves = 48;
+        z1_map.base_ratio_x100 = 64;
+        z1_map.max_ratio_x100 = 144;
+        z1_map.tier_1_threshold = 5;
+        z1_map.tier_2_threshold = 8;
+        z1_map.tier_3_threshold = 10;
+        z1_map.tier_4_threshold = 11;
+        z1_map.tier_5_threshold = 12;
+        z1_map.tier_6_threshold = 13;
+        z1_map.tier_7_threshold = 14;
+        z1_map.constraint_start_level = 5;
+        z1_map.level_cap = 10;
+        z1_map.active_mutator_id = 1;
+        z1_map.passive_mutator_id = 2;
+        z1_map.boss_id = 1;
+        z1_map.allowed_mutators = 0;
+        z1_map.endless_difficulty_thresholds = 0;
+        z1_map.endless_score_multipliers = 0;
+        world.write_model(@z1_map);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 0_u32,
+                    name: 'Polynesian',
+                    description: "Explore the Polynesian islands...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 1,
+                    is_free: true,
+                    enabled: true,
+                    price: 0,
+                    payment_token: Zero::zero(),
+                    star_cost: 0,
+                },
+            );
 
-        let polynesian_map_metadata = GameSettingsMetadata {
-            settings_id: 0_u32,
-            name: 'Polynesian',
-            description: "Explore the Polynesian islands...",
-            created_by: creator_address,
-            created_at: current_timestamp,
-            theme_id: 1,
-            is_free: true,
-            enabled: true,
-            price: 0,
-            payment_token: Zero::zero(),
-            star_cost: 0,
-        };
-        world.write_model(@polynesian_map_settings);
-        world.write_model(@polynesian_map_metadata);
+        let mut z1_endless = GameSettingsTrait::new_with_defaults(1_u32, Difficulty::Increasing);
+        z1_endless.base_moves = 16;
+        z1_endless.max_moves = 48;
+        z1_endless.level_cap = 255;
+        z1_endless.active_mutator_id = 0;
+        z1_endless.passive_mutator_id = 2;
+        z1_endless.boss_id = 0;
+        z1_endless.allowed_mutators = 0;
+        z1_endless.endless_difficulty_thresholds = 0; // use defaults
+        z1_endless.endless_score_multipliers = 0; // use defaults
+        world.write_model(@z1_endless);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 1_u32,
+                    name: 'Polynesian Endless',
+                    description: "Survive the endless tides...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 1,
+                    is_free: true,
+                    enabled: true,
+                    price: 0,
+                    payment_token: Zero::zero(),
+                    star_cost: 0,
+                },
+            );
 
-        // Register Polynesian Endless mode settings (ID 1)
-        let mut polynesian_endless_settings = GameSettingsTrait::new_with_defaults(
-            1_u32, Difficulty::Increasing,
-        );
-        polynesian_endless_settings.level_cap = 255;
-        polynesian_endless_settings.bonus_1_type = 0;
-        polynesian_endless_settings.bonus_1_trigger_type = 0;
-        polynesian_endless_settings.bonus_1_trigger_threshold = 0;
-        polynesian_endless_settings.bonus_1_starting_charges = 0;
-        polynesian_endless_settings.bonus_2_type = 0;
-        polynesian_endless_settings.bonus_2_trigger_type = 0;
-        polynesian_endless_settings.bonus_2_trigger_threshold = 0;
-        polynesian_endless_settings.bonus_2_starting_charges = 0;
-        polynesian_endless_settings.bonus_3_type = 0;
-        polynesian_endless_settings.bonus_3_trigger_type = 0;
-        polynesian_endless_settings.bonus_3_trigger_threshold = 0;
-        polynesian_endless_settings.bonus_3_starting_charges = 0;
-        polynesian_endless_settings.allowed_mutators = 2;
-        polynesian_endless_settings.boss_id = 0;
+        // =====================================================================
+        // Zone 2 — Egypt (Settings 2 map, 3 endless)
+        // =====================================================================
+        let mut z2_map = GameSettingsTrait::new_with_defaults(2_u32, Difficulty::Increasing);
+        z2_map.base_moves = 20;
+        z2_map.max_moves = 55;
+        z2_map.base_ratio_x100 = 80;
+        z2_map.max_ratio_x100 = 165;
+        z2_map.tier_1_threshold = 4;
+        z2_map.tier_2_threshold = 7;
+        z2_map.tier_3_threshold = 9;
+        z2_map.tier_4_threshold = 11;
+        z2_map.tier_5_threshold = 12;
+        z2_map.tier_6_threshold = 13;
+        z2_map.tier_7_threshold = 14;
+        z2_map.constraint_start_level = 3;
+        z2_map.level_cap = 10;
+        z2_map.active_mutator_id = 3;
+        z2_map.passive_mutator_id = 4;
+        z2_map.boss_id = 2;
+        z2_map.allowed_mutators = 0;
+        z2_map.endless_difficulty_thresholds = 0;
+        z2_map.endless_score_multipliers = 0;
+        world.write_model(@z2_map);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 2_u32,
+                    name: 'Ancient Egypt',
+                    description: "Push into the Egyptian ruins...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 2,
+                    is_free: false,
+                    enabled: true,
+                    price: 2000000,
+                    payment_token: payment_token_address,
+                    star_cost: 40,
+                },
+            );
 
-        let polynesian_endless_metadata = GameSettingsMetadata {
-            settings_id: 1_u32,
-            name: 'Polynesian Endless',
-            description: "Survive the endless tides...",
-            created_by: creator_address,
-            created_at: current_timestamp,
-            theme_id: 1,
-            is_free: true,
-            enabled: true,
-            price: 0,
-            payment_token: Zero::zero(),
-            star_cost: 0,
-        };
-        world.write_model(@polynesian_endless_settings);
-        world.write_model(@polynesian_endless_metadata);
+        let mut z2_endless = GameSettingsTrait::new_with_defaults(3_u32, Difficulty::Increasing);
+        z2_endless.base_moves = 20;
+        z2_endless.max_moves = 55;
+        z2_endless.level_cap = 255;
+        z2_endless.active_mutator_id = 0;
+        z2_endless.passive_mutator_id = 4;
+        z2_endless.boss_id = 0;
+        z2_endless.allowed_mutators = 0;
+        // packed [0, 20, 55, 105, 200, 370, 650, 1170]
+        z2_endless.endless_difficulty_thresholds = 92697735950297376096128832307220;
+        // packed [10, 15, 20, 35, 50, 70, 100, 130]
+        z2_endless.endless_score_multipliers = 9395711903752523530;
+        world.write_model(@z2_endless);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 3_u32,
+                    name: 'Egypt Endless',
+                    description: "Endless mode in the Egyptian ruins...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 2,
+                    is_free: true,
+                    enabled: true,
+                    price: 0,
+                    payment_token: Zero::zero(),
+                    star_cost: 0,
+                },
+            );
 
-        // Register Egypt Map mode settings (ID 2) for MVP Zone 2
-        let mut egypt_map_settings = GameSettingsTrait::new_with_defaults(
-            2_u32, Difficulty::Increasing,
-        );
-        egypt_map_settings.level_cap = 10;
-        egypt_map_settings.base_moves = 18;
-        egypt_map_settings.max_moves = 48;
-        egypt_map_settings.bonus_1_type = 1;
-        egypt_map_settings.bonus_1_trigger_type = 1;
-        egypt_map_settings.bonus_1_trigger_threshold = 5;
-        egypt_map_settings.bonus_1_starting_charges = 1;
-        egypt_map_settings.bonus_2_type = 3;
-        egypt_map_settings.bonus_2_trigger_type = 3;
-        egypt_map_settings.bonus_2_trigger_threshold = 35;
-        egypt_map_settings.bonus_2_starting_charges = 1;
-        egypt_map_settings.bonus_3_type = 2;
-        egypt_map_settings.bonus_3_trigger_type = 2;
-        egypt_map_settings.bonus_3_trigger_threshold = 12;
-        egypt_map_settings.bonus_3_starting_charges = 1;
-        egypt_map_settings.allowed_mutators = 1;
-        egypt_map_settings.boss_id = 2;
+        // =====================================================================
+        // Zone 3 — Norse (Settings 4 map, 5 endless)
+        // =====================================================================
+        let mut z3_map = GameSettingsTrait::new_with_defaults(4_u32, Difficulty::Increasing);
+        z3_map.base_moves = 18;
+        z3_map.max_moves = 50;
+        z3_map.base_ratio_x100 = 70;
+        z3_map.max_ratio_x100 = 155;
+        z3_map.tier_1_threshold = 3;
+        z3_map.tier_2_threshold = 6;
+        z3_map.tier_3_threshold = 8;
+        z3_map.tier_4_threshold = 10;
+        z3_map.tier_5_threshold = 11;
+        z3_map.tier_6_threshold = 12;
+        z3_map.tier_7_threshold = 13;
+        z3_map.constraint_start_level = 4;
+        z3_map.level_cap = 10;
+        z3_map.active_mutator_id = 5;
+        z3_map.passive_mutator_id = 6;
+        z3_map.boss_id = 3;
+        z3_map.allowed_mutators = 0;
+        z3_map.endless_difficulty_thresholds = 0;
+        z3_map.endless_score_multipliers = 0;
+        world.write_model(@z3_map);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 4_u32,
+                    name: 'Norse',
+                    description: "Battle through the Norse realms...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 3,
+                    is_free: false,
+                    enabled: true,
+                    price: 2000000,
+                    payment_token: payment_token_address,
+                    star_cost: 40,
+                },
+            );
 
-        let egypt_map_metadata = GameSettingsMetadata {
-            settings_id: 2_u32,
-            name: 'Ancient Egypt',
-            description: "Push into the Egyptian ruins...",
-            created_by: creator_address,
-            created_at: current_timestamp,
-            theme_id: 2,
-            is_free: false,
-            enabled: true,
-            price: 5000000,
-            payment_token: payment_token_address,
-            star_cost: 50,
-        };
-        world.write_model(@egypt_map_settings);
-        world.write_model(@egypt_map_metadata);
+        let mut z3_endless = GameSettingsTrait::new_with_defaults(5_u32, Difficulty::Increasing);
+        z3_endless.base_moves = 18;
+        z3_endless.max_moves = 50;
+        z3_endless.level_cap = 255;
+        z3_endless.active_mutator_id = 0;
+        z3_endless.passive_mutator_id = 6;
+        z3_endless.boss_id = 0;
+        z3_endless.allowed_mutators = 0;
+        // packed [0, 15, 35, 70, 130, 240, 420, 750]
+        z3_endless.endless_difficulty_thresholds = 59421629638969746509149254123535;
+        // packed [10, 15, 20, 30, 45, 65, 90, 120]
+        z3_endless.endless_score_multipliers = 8672315694489276170;
+        world.write_model(@z3_endless);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 5_u32,
+                    name: 'Norse Endless',
+                    description: "Endless mode in the Norse realms...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 3,
+                    is_free: true,
+                    enabled: true,
+                    price: 0,
+                    payment_token: Zero::zero(),
+                    star_cost: 0,
+                },
+            );
 
-        let tidecaller = MutatorDef {
-            mutator_id: 1,
-            name: 'Tidecaller',
-            zone_id: 1,
-            moves_modifier: 128,
-            ratio_modifier: 128,
-            difficulty_offset: 128,
-            combo_score_mult_x100: 100,
-            star_threshold_modifier: 128,
-            endless_ramp_mult_x100: 100,
-            line_clear_bonus: 2,
-            perfect_clear_bonus: 0,
-            starting_rows: 0,
-        };
-        world.write_model(@tidecaller);
+        // =====================================================================
+        // Zone 4 — Greece (Settings 6 map, 7 endless)
+        // =====================================================================
+        let mut z4_map = GameSettingsTrait::new_with_defaults(6_u32, Difficulty::Increasing);
+        z4_map.base_moves = 14;
+        z4_map.max_moves = 44;
+        z4_map.base_ratio_x100 = 60;
+        z4_map.max_ratio_x100 = 140;
+        z4_map.tier_1_threshold = 4;
+        z4_map.tier_2_threshold = 7;
+        z4_map.tier_3_threshold = 9;
+        z4_map.tier_4_threshold = 11;
+        z4_map.tier_5_threshold = 12;
+        z4_map.tier_6_threshold = 13;
+        z4_map.tier_7_threshold = 14;
+        z4_map.constraint_start_level = 3;
+        z4_map.level_cap = 10;
+        z4_map.active_mutator_id = 7;
+        z4_map.passive_mutator_id = 8;
+        z4_map.boss_id = 4;
+        z4_map.allowed_mutators = 0;
+        z4_map.endless_difficulty_thresholds = 0;
+        z4_map.endless_score_multipliers = 0;
+        world.write_model(@z4_map);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 6_u32,
+                    name: 'Ancient Greece',
+                    description: "Master the art of precision...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 4,
+                    is_free: false,
+                    enabled: true,
+                    price: 2000000,
+                    payment_token: payment_token_address,
+                    star_cost: 40,
+                },
+            );
 
-        let riptide = MutatorDef {
-            mutator_id: 2,
-            name: 'Riptide',
-            zone_id: 1,
-            moves_modifier: 128,
-            ratio_modifier: 128,
-            difficulty_offset: 129,
-            combo_score_mult_x100: 150,
-            star_threshold_modifier: 128,
-            endless_ramp_mult_x100: 130,
-            line_clear_bonus: 0,
-            perfect_clear_bonus: 0,
-            starting_rows: 0,
-        };
-        world.write_model(@riptide);
+        let mut z4_endless = GameSettingsTrait::new_with_defaults(7_u32, Difficulty::Increasing);
+        z4_endless.base_moves = 14;
+        z4_endless.max_moves = 44;
+        z4_endless.level_cap = 255;
+        z4_endless.active_mutator_id = 0;
+        z4_endless.passive_mutator_id = 8;
+        z4_endless.boss_id = 0;
+        z4_endless.allowed_mutators = 0;
+        // packed [0, 12, 30, 60, 120, 220, 400, 700]
+        z4_endless.endless_difficulty_thresholds = 55460197334371199640621654343692;
+        // packed [10, 15, 20, 30, 40, 60, 80, 100]
+        z4_endless.endless_score_multipliers = 7228343544930635530;
+        world.write_model(@z4_endless);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 7_u32,
+                    name: 'Greece Endless',
+                    description: "Endless mode in Ancient Greece...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 4,
+                    is_free: true,
+                    enabled: true,
+                    price: 0,
+                    payment_token: Zero::zero(),
+                    star_cost: 0,
+                },
+            );
 
-        // Counter starts at 2 so next custom settings will be 3+
-        self.settings_counter.write(2_u32);
-        self.star_eligible.write(0_u32, true);
-        self.star_eligible.write(1_u32, true);
-        self.star_eligible.write(2_u32, true);
+        // =====================================================================
+        // Zone 5 — China (Settings 8 map, 9 endless)
+        // Path A position 5, theme_id=6
+        // =====================================================================
+        let mut z5_map = GameSettingsTrait::new_with_defaults(8_u32, Difficulty::Increasing);
+        z5_map.base_moves = 18;
+        z5_map.max_moves = 52;
+        z5_map.base_ratio_x100 = 75;
+        z5_map.max_ratio_x100 = 160;
+        z5_map.tier_1_threshold = 3;
+        z5_map.tier_2_threshold = 5;
+        z5_map.tier_3_threshold = 7;
+        z5_map.tier_4_threshold = 9;
+        z5_map.tier_5_threshold = 11;
+        z5_map.tier_6_threshold = 12;
+        z5_map.tier_7_threshold = 13;
+        z5_map.constraint_start_level = 4;
+        z5_map.level_cap = 10;
+        z5_map.active_mutator_id = 9;
+        z5_map.passive_mutator_id = 10;
+        z5_map.boss_id = 6;
+        z5_map.allowed_mutators = 0;
+        z5_map.endless_difficulty_thresholds = 0;
+        z5_map.endless_score_multipliers = 0;
+        world.write_model(@z5_map);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 8_u32,
+                    name: 'Ancient China',
+                    description: "Unleash the dragon's wrath...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 6,
+                    is_free: false,
+                    enabled: true,
+                    price: 5000000,
+                    payment_token: payment_token_address,
+                    star_cost: 100,
+                },
+            );
 
+        let mut z5_endless = GameSettingsTrait::new_with_defaults(9_u32, Difficulty::Increasing);
+        z5_endless.base_moves = 18;
+        z5_endless.max_moves = 52;
+        z5_endless.level_cap = 255;
+        z5_endless.active_mutator_id = 0;
+        z5_endless.passive_mutator_id = 10;
+        z5_endless.boss_id = 0;
+        z5_endless.allowed_mutators = 0;
+        // packed [0, 18, 45, 90, 170, 310, 550, 950]
+        z5_endless.endless_difficulty_thresholds = 75267419303470447273895393034258;
+        // packed [10, 15, 20, 30, 45, 65, 90, 120]
+        z5_endless.endless_score_multipliers = 8672315694489276170;
+        world.write_model(@z5_endless);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 9_u32,
+                    name: 'China Endless',
+                    description: "Endless mode in Ancient China...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 6,
+                    is_free: true,
+                    enabled: true,
+                    price: 0,
+                    payment_token: Zero::zero(),
+                    star_cost: 0,
+                },
+            );
+
+        // =====================================================================
+        // Zone 6 — Persia (Settings 10 map, 11 endless)
+        // Path A position 6, theme_id=7
+        // =====================================================================
+        let mut z6_map = GameSettingsTrait::new_with_defaults(10_u32, Difficulty::Increasing);
+        z6_map.base_moves = 16;
+        z6_map.max_moves = 48;
+        z6_map.base_ratio_x100 = 70;
+        z6_map.max_ratio_x100 = 150;
+        z6_map.tier_1_threshold = 3;
+        z6_map.tier_2_threshold = 6;
+        z6_map.tier_3_threshold = 8;
+        z6_map.tier_4_threshold = 10;
+        z6_map.tier_5_threshold = 11;
+        z6_map.tier_6_threshold = 12;
+        z6_map.tier_7_threshold = 13;
+        z6_map.constraint_start_level = 3;
+        z6_map.level_cap = 10;
+        z6_map.active_mutator_id = 11;
+        z6_map.passive_mutator_id = 12;
+        z6_map.boss_id = 7;
+        z6_map.allowed_mutators = 0;
+        z6_map.endless_difficulty_thresholds = 0;
+        z6_map.endless_score_multipliers = 0;
+        world.write_model(@z6_map);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 10_u32,
+                    name: 'Ancient Persia',
+                    description: "Create intricate mosaic patterns...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 7,
+                    is_free: false,
+                    enabled: true,
+                    price: 5000000,
+                    payment_token: payment_token_address,
+                    star_cost: 100,
+                },
+            );
+
+        let mut z6_endless = GameSettingsTrait::new_with_defaults(11_u32, Difficulty::Increasing);
+        z6_endless.base_moves = 16;
+        z6_endless.max_moves = 48;
+        z6_endless.level_cap = 255;
+        z6_endless.active_mutator_id = 0;
+        z6_endless.passive_mutator_id = 12;
+        z6_endless.boss_id = 0;
+        z6_endless.allowed_mutators = 0;
+        // packed [0, 13, 35, 70, 135, 250, 440, 780]
+        z6_endless.endless_difficulty_thresholds = 61798498693098537777651045826573;
+        // packed [10, 15, 20, 30, 45, 60, 85, 110]
+        z6_endless.endless_score_multipliers = 7950326881668304650;
+        world.write_model(@z6_endless);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 11_u32,
+                    name: 'Persia Endless',
+                    description: "Endless mode in Ancient Persia...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 7,
+                    is_free: true,
+                    enabled: true,
+                    price: 0,
+                    payment_token: Zero::zero(),
+                    star_cost: 0,
+                },
+            );
+
+        // =====================================================================
+        // Zone 7 — Japan (Settings 12 map, 13 endless)
+        // Path A position 7, theme_id=5
+        // =====================================================================
+        let mut z7_map = GameSettingsTrait::new_with_defaults(12_u32, Difficulty::Increasing);
+        z7_map.base_moves = 12;
+        z7_map.max_moves = 38;
+        z7_map.base_ratio_x100 = 55;
+        z7_map.max_ratio_x100 = 125;
+        z7_map.tier_1_threshold = 3;
+        z7_map.tier_2_threshold = 5;
+        z7_map.tier_3_threshold = 7;
+        z7_map.tier_4_threshold = 9;
+        z7_map.tier_5_threshold = 11;
+        z7_map.tier_6_threshold = 12;
+        z7_map.tier_7_threshold = 13;
+        z7_map.constraint_start_level = 3;
+        z7_map.level_cap = 10;
+        z7_map.active_mutator_id = 13;
+        z7_map.passive_mutator_id = 14;
+        z7_map.boss_id = 5;
+        z7_map.allowed_mutators = 0;
+        z7_map.endless_difficulty_thresholds = 0;
+        z7_map.endless_score_multipliers = 0;
+        world.write_model(@z7_map);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 12_u32,
+                    name: 'Feudal Japan',
+                    description: "Master lethal efficiency...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 5,
+                    is_free: false,
+                    enabled: true,
+                    price: 5000000,
+                    payment_token: payment_token_address,
+                    star_cost: 100,
+                },
+            );
+
+        let mut z7_endless = GameSettingsTrait::new_with_defaults(13_u32, Difficulty::Increasing);
+        z7_endless.base_moves = 12;
+        z7_endless.max_moves = 38;
+        z7_endless.level_cap = 255;
+        z7_endless.active_mutator_id = 0;
+        z7_endless.passive_mutator_id = 14;
+        z7_endless.boss_id = 0;
+        z7_endless.allowed_mutators = 0;
+        // packed [0, 10, 25, 50, 100, 180, 320, 550]
+        z7_endless.endless_difficulty_thresholds = 43575876242428104438765219020810;
+        // packed [10, 15, 25, 35, 50, 70, 90, 110]
+        z7_endless.endless_score_multipliers = 7951745273227185930;
+        world.write_model(@z7_endless);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 13_u32,
+                    name: 'Japan Endless',
+                    description: "Endless mode in Feudal Japan...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 5,
+                    is_free: true,
+                    enabled: true,
+                    price: 0,
+                    payment_token: Zero::zero(),
+                    star_cost: 0,
+                },
+            );
+
+        // =====================================================================
+        // Zone 8 — Mayan (Settings 14 map, 15 endless)
+        // =====================================================================
+        let mut z8_map = GameSettingsTrait::new_with_defaults(14_u32, Difficulty::Increasing);
+        z8_map.base_moves = 16;
+        z8_map.max_moves = 46;
+        z8_map.base_ratio_x100 = 75;
+        z8_map.max_ratio_x100 = 160;
+        z8_map.tier_1_threshold = 3;
+        z8_map.tier_2_threshold = 5;
+        z8_map.tier_3_threshold = 7;
+        z8_map.tier_4_threshold = 9;
+        z8_map.tier_5_threshold = 11;
+        z8_map.tier_6_threshold = 12;
+        z8_map.tier_7_threshold = 13;
+        z8_map.constraint_start_level = 3;
+        z8_map.level_cap = 10;
+        z8_map.active_mutator_id = 15;
+        z8_map.passive_mutator_id = 16;
+        z8_map.boss_id = 8;
+        z8_map.allowed_mutators = 0;
+        z8_map.endless_difficulty_thresholds = 0;
+        z8_map.endless_score_multipliers = 0;
+        world.write_model(@z8_map);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 14_u32,
+                    name: 'Mayan',
+                    description: "Blood sacrifice powers your ritual...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 8,
+                    is_free: false,
+                    enabled: true,
+                    price: 10000000,
+                    payment_token: payment_token_address,
+                    star_cost: 200,
+                },
+            );
+
+        let mut z8_endless = GameSettingsTrait::new_with_defaults(15_u32, Difficulty::Increasing);
+        z8_endless.base_moves = 16;
+        z8_endless.max_moves = 46;
+        z8_endless.level_cap = 255;
+        z8_endless.active_mutator_id = 0;
+        z8_endless.passive_mutator_id = 16;
+        z8_endless.boss_id = 0;
+        z8_endless.allowed_mutators = 0;
+        // packed [0, 18, 45, 95, 180, 330, 580, 1000]
+        z8_endless.endless_difficulty_thresholds = 79228863697327190288693264711698;
+        // packed [10, 15, 25, 35, 50, 70, 100, 130]
+        z8_endless.endless_score_multipliers = 9395711903752851210;
+        world.write_model(@z8_endless);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 15_u32,
+                    name: 'Mayan Endless',
+                    description: "Endless mode in the Mayan temples...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 8,
+                    is_free: true,
+                    enabled: true,
+                    price: 0,
+                    payment_token: Zero::zero(),
+                    star_cost: 0,
+                },
+            );
+
+        // =====================================================================
+        // Zone 9 — Tribal (Settings 16 map, 17 endless)
+        // =====================================================================
+        let mut z9_map = GameSettingsTrait::new_with_defaults(16_u32, Difficulty::Increasing);
+        z9_map.base_moves = 15;
+        z9_map.max_moves = 45;
+        z9_map.base_ratio_x100 = 70;
+        z9_map.max_ratio_x100 = 155;
+        z9_map.tier_1_threshold = 2;
+        z9_map.tier_2_threshold = 4;
+        z9_map.tier_3_threshold = 6;
+        z9_map.tier_4_threshold = 8;
+        z9_map.tier_5_threshold = 10;
+        z9_map.tier_6_threshold = 11;
+        z9_map.tier_7_threshold = 12;
+        z9_map.constraint_start_level = 3;
+        z9_map.level_cap = 10;
+        z9_map.active_mutator_id = 17;
+        z9_map.passive_mutator_id = 18;
+        z9_map.boss_id = 9;
+        z9_map.allowed_mutators = 0;
+        z9_map.endless_difficulty_thresholds = 0;
+        z9_map.endless_score_multipliers = 0;
+        world.write_model(@z9_map);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 16_u32,
+                    name: 'Tribal',
+                    description: "The war drums never stop...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 9,
+                    is_free: false,
+                    enabled: true,
+                    price: 10000000,
+                    payment_token: payment_token_address,
+                    star_cost: 200,
+                },
+            );
+
+        let mut z9_endless = GameSettingsTrait::new_with_defaults(17_u32, Difficulty::Increasing);
+        z9_endless.base_moves = 15;
+        z9_endless.max_moves = 45;
+        z9_endless.level_cap = 255;
+        z9_endless.active_mutator_id = 0;
+        z9_endless.passive_mutator_id = 18;
+        z9_endless.boss_id = 0;
+        z9_endless.allowed_mutators = 0;
+        // packed [0, 14, 35, 75, 140, 260, 460, 800]
+        z9_endless.endless_difficulty_thresholds = 63383086122084685670238872862734;
+        // packed [10, 15, 25, 35, 50, 70, 95, 120]
+        z9_endless.endless_score_multipliers = 8673728588490018570;
+        world.write_model(@z9_endless);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 17_u32,
+                    name: 'Tribal Endless',
+                    description: "Endless mode with tribal drums...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 9,
+                    is_free: true,
+                    enabled: true,
+                    price: 0,
+                    payment_token: Zero::zero(),
+                    star_cost: 0,
+                },
+            );
+
+        // =====================================================================
+        // Zone 10 — Inca (Settings 18 map, 19 endless)
+        // =====================================================================
+        let mut z10_map = GameSettingsTrait::new_with_defaults(18_u32, Difficulty::Increasing);
+        z10_map.base_moves = 14;
+        z10_map.max_moves = 42;
+        z10_map.base_ratio_x100 = 80;
+        z10_map.max_ratio_x100 = 170;
+        z10_map.tier_1_threshold = 2;
+        z10_map.tier_2_threshold = 4;
+        z10_map.tier_3_threshold = 6;
+        z10_map.tier_4_threshold = 8;
+        z10_map.tier_5_threshold = 9;
+        z10_map.tier_6_threshold = 10;
+        z10_map.tier_7_threshold = 11;
+        z10_map.constraint_start_level = 2;
+        z10_map.level_cap = 10;
+        z10_map.active_mutator_id = 19;
+        z10_map.passive_mutator_id = 20;
+        z10_map.boss_id = 10;
+        z10_map.allowed_mutators = 0;
+        z10_map.endless_difficulty_thresholds = 0;
+        z10_map.endless_score_multipliers = 0;
+        world.write_model(@z10_map);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 18_u32,
+                    name: 'Inca',
+                    description: "The Sun God demands perfection...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 10,
+                    is_free: false,
+                    enabled: true,
+                    price: 10000000,
+                    payment_token: payment_token_address,
+                    star_cost: 200,
+                },
+            );
+
+        let mut z10_endless = GameSettingsTrait::new_with_defaults(19_u32, Difficulty::Increasing);
+        z10_endless.base_moves = 14;
+        z10_endless.max_moves = 42;
+        z10_endless.level_cap = 255;
+        z10_endless.active_mutator_id = 0;
+        z10_endless.passive_mutator_id = 20;
+        z10_endless.boss_id = 0;
+        z10_endless.allowed_mutators = 0;
+        // packed [0, 20, 50, 110, 210, 380, 660, 1100]
+        z10_endless.endless_difficulty_thresholds = 87151776663741538866380839976980;
+        // packed [10, 20, 30, 40, 60, 80, 110, 150]
+        z10_endless.endless_score_multipliers = 10839689572428682250;
+        world.write_model(@z10_endless);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 19_u32,
+                    name: 'Inca Endless',
+                    description: "Endless mode at the summit...",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 10,
+                    is_free: true,
+                    enabled: true,
+                    price: 0,
+                    payment_token: Zero::zero(),
+                    star_cost: 0,
+                },
+            );
+
+        // =====================================================================
+        // Active Mutators (odd IDs 1-19) — bonus profiles
+        // Stat fields neutral: moves_modifier=128, ratio_modifier=128,
+        // difficulty_offset=128, combo_score_mult_x100=100,
+        // star_threshold_modifier=128, endless_ramp_mult_x100=100,
+        // line_clear_bonus=0, perfect_clear_bonus=0, starting_rows=0
+        // =====================================================================
+
+        // Mutator 1 — Tidecaller (Z1 Polynesian active)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 1,
+                    name: 'Tidecaller',
+                    zone_id: 1,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 100,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 0,
+                    // Slot 1: Hammer, combo, threshold 4, start 0
+                    bonus_1_type: 1,
+                    bonus_1_trigger_type: 1,
+                    bonus_1_trigger_threshold: 4,
+                    bonus_1_starting_charges: 0,
+                    // Slot 2: Wave, score, threshold 20, start 0
+                    bonus_2_type: 3,
+                    bonus_2_trigger_type: 3,
+                    bonus_2_trigger_threshold: 20,
+                    bonus_2_starting_charges: 0,
+                    // Slot 3: Totem, lines, threshold 10, start 0
+                    bonus_3_type: 2,
+                    bonus_3_trigger_type: 2,
+                    bonus_3_trigger_threshold: 10,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 3 — Pharaoh's Command (Z2 Egypt active)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 3,
+                    name: 'Pharaohs Command',
+                    zone_id: 2,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 100,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 0,
+                    // Slot 1: Wave, combo, threshold 3, start 1
+                    bonus_1_type: 3,
+                    bonus_1_trigger_type: 1,
+                    bonus_1_trigger_threshold: 3,
+                    bonus_1_starting_charges: 1,
+                    // Slot 2: Hammer, lines, threshold 6, start 0
+                    bonus_2_type: 1,
+                    bonus_2_trigger_type: 2,
+                    bonus_2_trigger_threshold: 6,
+                    bonus_2_starting_charges: 0,
+                    // Slot 3: None
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 5 — Ragnarok (Z3 Norse active)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 5,
+                    name: 'Ragnarok',
+                    zone_id: 3,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 100,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 0,
+                    // Slot 1: Totem, combo, threshold 3, start 1
+                    bonus_1_type: 2,
+                    bonus_1_trigger_type: 1,
+                    bonus_1_trigger_threshold: 3,
+                    bonus_1_starting_charges: 1,
+                    // Slot 2: Totem, lines, threshold 8, start 0
+                    bonus_2_type: 2,
+                    bonus_2_trigger_type: 2,
+                    bonus_2_trigger_threshold: 8,
+                    bonus_2_starting_charges: 0,
+                    // Slot 3: None
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 7 — Athena's Chisel (Z4 Greece active)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 7,
+                    name: 'Athenas Chisel',
+                    zone_id: 4,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 100,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 0,
+                    // Slot 1: Hammer, combo, threshold 4, start 0
+                    bonus_1_type: 1,
+                    bonus_1_trigger_type: 1,
+                    bonus_1_trigger_threshold: 4,
+                    bonus_1_starting_charges: 0,
+                    // Slot 2: Hammer, score, threshold 15, start 0
+                    bonus_2_type: 1,
+                    bonus_2_trigger_type: 3,
+                    bonus_2_trigger_threshold: 15,
+                    bonus_2_starting_charges: 0,
+                    // Slot 3: None
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 9 — Dragon Breath (Z5 China active)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 9,
+                    name: 'Dragon Breath',
+                    zone_id: 5,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 100,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 0,
+                    // Slot 1: Wave, lines, threshold 6, start 1
+                    bonus_1_type: 3,
+                    bonus_1_trigger_type: 2,
+                    bonus_1_trigger_threshold: 6,
+                    bonus_1_starting_charges: 1,
+                    // Slot 2: Wave, score, threshold 18, start 0
+                    bonus_2_type: 3,
+                    bonus_2_trigger_type: 3,
+                    bonus_2_trigger_threshold: 18,
+                    bonus_2_starting_charges: 0,
+                    // Slot 3: None
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 11 — Mosaic Eye (Z6 Persia active)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 11,
+                    name: 'Mosaic Eye',
+                    zone_id: 6,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 100,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 0,
+                    // Slot 1: Totem, score, threshold 15, start 0
+                    bonus_1_type: 2,
+                    bonus_1_trigger_type: 3,
+                    bonus_1_trigger_threshold: 15,
+                    bonus_1_starting_charges: 0,
+                    // Slot 2: Totem, lines, threshold 7, start 0
+                    bonus_2_type: 2,
+                    bonus_2_trigger_type: 2,
+                    bonus_2_trigger_threshold: 7,
+                    bonus_2_starting_charges: 0,
+                    // Slot 3: None
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 13 — Iai Strike (Z7 Japan active)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 13,
+                    name: 'Iai Strike',
+                    zone_id: 7,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 100,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 0,
+                    // Slot 1: Hammer, combo, threshold 3, start 0
+                    bonus_1_type: 1,
+                    bonus_1_trigger_type: 1,
+                    bonus_1_trigger_threshold: 3,
+                    bonus_1_starting_charges: 0,
+                    // Slot 2: Hammer, lines, threshold 5, start 0
+                    bonus_2_type: 1,
+                    bonus_2_trigger_type: 2,
+                    bonus_2_trigger_threshold: 5,
+                    bonus_2_starting_charges: 0,
+                    // Slot 3: None
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 15 — Blood Ritual (Z8 Mayan active)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 15,
+                    name: 'Blood Ritual',
+                    zone_id: 8,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 100,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 0,
+                    // Slot 1: Hammer, combo, threshold 6, start 2
+                    bonus_1_type: 1,
+                    bonus_1_trigger_type: 1,
+                    bonus_1_trigger_threshold: 6,
+                    bonus_1_starting_charges: 2,
+                    // Slot 2: Wave, lines, threshold 12, start 2
+                    bonus_2_type: 3,
+                    bonus_2_trigger_type: 2,
+                    bonus_2_trigger_threshold: 12,
+                    bonus_2_starting_charges: 2,
+                    // Slot 3: Totem, score, threshold 30, start 2
+                    bonus_3_type: 2,
+                    bonus_3_trigger_type: 3,
+                    bonus_3_trigger_threshold: 30,
+                    bonus_3_starting_charges: 2,
+                },
+            );
+
+        // Mutator 17 — War Beat (Z9 Tribal active)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 17,
+                    name: 'War Beat',
+                    zone_id: 9,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 100,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 0,
+                    // Slot 1: Hammer, combo, threshold 4, start 0
+                    bonus_1_type: 1,
+                    bonus_1_trigger_type: 1,
+                    bonus_1_trigger_threshold: 4,
+                    bonus_1_starting_charges: 0,
+                    // Slot 2: Totem, combo, threshold 5, start 0
+                    bonus_2_type: 2,
+                    bonus_2_trigger_type: 1,
+                    bonus_2_trigger_threshold: 5,
+                    bonus_2_starting_charges: 0,
+                    // Slot 3: Wave, combo, threshold 6, start 0
+                    bonus_3_type: 3,
+                    bonus_3_trigger_type: 1,
+                    bonus_3_trigger_threshold: 6,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 19 — Inti's Demand (Z10 Inca active)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 19,
+                    name: 'Intis Demand',
+                    zone_id: 10,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 100,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 0,
+                    // Slot 1: Hammer, combo, threshold 5, start 0
+                    bonus_1_type: 1,
+                    bonus_1_trigger_type: 1,
+                    bonus_1_trigger_threshold: 5,
+                    bonus_1_starting_charges: 0,
+                    // Slot 2: None
+                    bonus_2_type: 0,
+                    bonus_2_trigger_type: 0,
+                    bonus_2_trigger_threshold: 0,
+                    bonus_2_starting_charges: 0,
+                    // Slot 3: None
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // =====================================================================
+        // Passive Mutators (even IDs 2-20) — stat modifiers
+        // Bonus fields all 0 (no bonus slots on passive mutators).
+        // =====================================================================
+
+        // Mutator 2 — Calm Tides (Z1 Polynesian passive)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 2,
+                    name: 'Calm Tides',
+                    zone_id: 1,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 100,
+                    star_threshold_modifier: 127,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 1,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 0,
+                    bonus_1_type: 0,
+                    bonus_1_trigger_type: 0,
+                    bonus_1_trigger_threshold: 0,
+                    bonus_1_starting_charges: 0,
+                    bonus_2_type: 0,
+                    bonus_2_trigger_type: 0,
+                    bonus_2_trigger_threshold: 0,
+                    bonus_2_starting_charges: 0,
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 4 — Foundation Stone (Z2 Egypt passive)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 4,
+                    name: 'Foundation Stone',
+                    zone_id: 2,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 150,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 15,
+                    starting_rows: 5,
+                    bonus_1_type: 0,
+                    bonus_1_trigger_type: 0,
+                    bonus_1_trigger_threshold: 0,
+                    bonus_1_starting_charges: 0,
+                    bonus_2_type: 0,
+                    bonus_2_trigger_type: 0,
+                    bonus_2_trigger_threshold: 0,
+                    bonus_2_starting_charges: 0,
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 6 — Frozen Rage (Z3 Norse passive)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 6,
+                    name: 'Frozen Rage',
+                    zone_id: 3,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 150,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 2,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 4,
+                    bonus_1_type: 0,
+                    bonus_1_trigger_type: 0,
+                    bonus_1_trigger_threshold: 0,
+                    bonus_1_starting_charges: 0,
+                    bonus_2_type: 0,
+                    bonus_2_trigger_type: 0,
+                    bonus_2_trigger_threshold: 0,
+                    bonus_2_starting_charges: 0,
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 8 — Marble Discipline (Z4 Greece passive)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 8,
+                    name: 'Marble Discipline',
+                    zone_id: 4,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 100,
+                    star_threshold_modifier: 130,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 10,
+                    starting_rows: 4,
+                    bonus_1_type: 0,
+                    bonus_1_trigger_type: 0,
+                    bonus_1_trigger_threshold: 0,
+                    bonus_1_starting_charges: 0,
+                    bonus_2_type: 0,
+                    bonus_2_trigger_type: 0,
+                    bonus_2_trigger_threshold: 0,
+                    bonus_2_starting_charges: 0,
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 10 — Imperial Scale (Z5 China passive)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 10,
+                    name: 'Imperial Scale',
+                    zone_id: 5,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 100,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 3,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 5,
+                    bonus_1_type: 0,
+                    bonus_1_trigger_type: 0,
+                    bonus_1_trigger_threshold: 0,
+                    bonus_1_starting_charges: 0,
+                    bonus_2_type: 0,
+                    bonus_2_trigger_type: 0,
+                    bonus_2_trigger_threshold: 0,
+                    bonus_2_starting_charges: 0,
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 12 — Geometric Flow (Z6 Persia passive)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 12,
+                    name: 'Geometric Flow',
+                    zone_id: 6,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 120,
+                    star_threshold_modifier: 130,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 1,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 4,
+                    bonus_1_type: 0,
+                    bonus_1_trigger_type: 0,
+                    bonus_1_trigger_threshold: 0,
+                    bonus_1_starting_charges: 0,
+                    bonus_2_type: 0,
+                    bonus_2_trigger_type: 0,
+                    bonus_2_trigger_threshold: 0,
+                    bonus_2_starting_charges: 0,
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 14 — Bushido (Z7 Japan passive)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 14,
+                    name: 'Bushido',
+                    zone_id: 7,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 130,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 5,
+                    starting_rows: 4,
+                    bonus_1_type: 0,
+                    bonus_1_trigger_type: 0,
+                    bonus_1_trigger_threshold: 0,
+                    bonus_1_starting_charges: 0,
+                    bonus_2_type: 0,
+                    bonus_2_trigger_type: 0,
+                    bonus_2_trigger_threshold: 0,
+                    bonus_2_starting_charges: 0,
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 16 — Jungle Altar (Z8 Mayan passive)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 16,
+                    name: 'Jungle Altar',
+                    zone_id: 8,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 175,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 4,
+                    bonus_1_type: 0,
+                    bonus_1_trigger_type: 0,
+                    bonus_1_trigger_threshold: 0,
+                    bonus_1_starting_charges: 0,
+                    bonus_2_type: 0,
+                    bonus_2_trigger_type: 0,
+                    bonus_2_trigger_threshold: 0,
+                    bonus_2_starting_charges: 0,
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 18 — Primal Pulse (Z9 Tribal passive)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 18,
+                    name: 'Primal Pulse',
+                    zone_id: 9,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 160,
+                    star_threshold_modifier: 130,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 4,
+                    bonus_1_type: 0,
+                    bonus_1_trigger_type: 0,
+                    bonus_1_trigger_threshold: 0,
+                    bonus_1_starting_charges: 0,
+                    bonus_2_type: 0,
+                    bonus_2_trigger_type: 0,
+                    bonus_2_trigger_threshold: 0,
+                    bonus_2_starting_charges: 0,
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // Mutator 20 — Altitude (Z10 Inca passive)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 20,
+                    name: 'Altitude',
+                    zone_id: 10,
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    combo_score_mult_x100: 200,
+                    star_threshold_modifier: 132,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 20,
+                    starting_rows: 5,
+                    bonus_1_type: 0,
+                    bonus_1_trigger_type: 0,
+                    bonus_1_trigger_threshold: 0,
+                    bonus_1_starting_charges: 0,
+                    bonus_2_type: 0,
+                    bonus_2_trigger_type: 0,
+                    bonus_2_trigger_threshold: 0,
+                    bonus_2_starting_charges: 0,
+                    bonus_3_type: 0,
+                    bonus_3_trigger_type: 0,
+                    bonus_3_trigger_threshold: 0,
+                    bonus_3_starting_charges: 0,
+                },
+            );
+
+        // =====================================================================
+        // Settings counter and star eligibility
+        // =====================================================================
+        // Counter = 19 so next custom settings will be 20+
+        self.settings_counter.write(19_u32);
+
+        // All 20 settings (IDs 0..19) are star-eligible
+        let mut sid: u32 = 0;
+        loop {
+            if sid > 19 {
+                break;
+            }
+            self.star_eligible.write(sid, true);
+            sid += 1;
+        }
+
+        // =====================================================================
+        // Register minigame settings component entries
+        // =====================================================================
         let (game_systems_address, _) = world.dns(@"game_system").unwrap();
         let minigame_dispatcher = IMinigameDispatcher { contract_address: game_systems_address };
         let minigame_token_address = minigame_dispatcher.token_address();
 
         if !minigame_token_address.is_zero() {
-            self
-                .settings
-                .create_settings(
-                    game_systems_address,
-                    DEFAULT_SETTINGS_ID,
-                    GameSettingDetails {
-                        name: "Polynesian",
-                        description: "Polynesian map mode settings with zone progression.",
-                        settings: array![GameSetting { name: 'MODE', value: 'PROGRESSIVE' }].span(),
-                    },
-                    minigame_token_address,
-                );
-            self
-                .settings
-                .create_settings(
-                    game_systems_address,
-                    2_u32,
-                    GameSettingDetails {
-                        name: "Ancient Egypt",
-                        description: "Ancient Egypt map mode settings for MVP Zone 2.",
-                        settings: array![GameSetting { name: 'MODE', value: 'PROGRESSIVE' }].span(),
-                    },
-                    minigame_token_address,
-                );
+            let zone_ids: Array<u32> = array![
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+            ];
+            let zone_descs: Array<ByteArray> = array![
+                "Polynesian map mode", "Polynesian endless mode", "Egypt map mode",
+                "Egypt endless mode", "Norse map mode", "Norse endless mode", "Greece map mode",
+                "Greece endless mode", "China map mode", "China endless mode", "Persia map mode",
+                "Persia endless mode", "Japan map mode", "Japan endless mode", "Mayan map mode",
+                "Mayan endless mode", "Tribal map mode", "Tribal endless mode", "Inca map mode",
+                "Inca endless mode",
+            ];
+            let zone_labels: Array<ByteArray> = array![
+                "Polynesian", "Polynesian Endless", "Ancient Egypt", "Egypt Endless", "Norse",
+                "Norse Endless", "Ancient Greece", "Greece Endless", "Ancient China",
+                "China Endless", "Ancient Persia", "Persia Endless", "Feudal Japan",
+                "Japan Endless", "Mayan", "Mayan Endless", "Tribal", "Tribal Endless", "Inca",
+                "Inca Endless",
+            ];
+
+            let mut i: u32 = 0;
+            loop {
+                if i >= zone_ids.len() {
+                    break;
+                }
+                self
+                    .settings
+                    .create_settings(
+                        game_systems_address,
+                        *zone_ids[i],
+                        GameSettingDetails {
+                            name: zone_labels[i].clone(),
+                            description: zone_descs[i].clone(),
+                            settings: array![GameSetting { name: 'MODE', value: 'PROGRESSIVE' }]
+                                .span(),
+                        },
+                        minigame_token_address,
+                    );
+                i += 1;
+            };
         }
     }
 
@@ -528,7 +1775,6 @@ mod config_system {
             base_ratio_x100: u16,
             max_ratio_x100: u16,
             // Difficulty Progression (non-linear tier thresholds)
-            // Difficulty Progression (non-linear tier thresholds)
             tier_1_threshold: u8,
             tier_2_threshold: u8,
             tier_3_threshold: u8,
@@ -562,21 +1808,9 @@ mod config_system {
             mid_level_threshold: u8,
             // Level Cap
             level_cap: u8,
-            // Bonus slot 1
-            bonus_1_type: u8,
-            bonus_1_trigger_type: u8,
-            bonus_1_trigger_threshold: u8,
-            bonus_1_starting_charges: u8,
-            // Bonus slot 2
-            bonus_2_type: u8,
-            bonus_2_trigger_type: u8,
-            bonus_2_trigger_threshold: u8,
-            bonus_2_starting_charges: u8,
-            // Bonus slot 3
-            bonus_3_type: u8,
-            bonus_3_trigger_type: u8,
-            bonus_3_trigger_threshold: u8,
-            bonus_3_starting_charges: u8,
+            // Mutator Assignment
+            active_mutator_id: u8,
+            passive_mutator_id: u8,
             // Boss Settings
             boss_id: u8,
         ) -> u32 {
@@ -615,18 +1849,8 @@ mod config_system {
                     early_level_threshold,
                     mid_level_threshold,
                     level_cap,
-                    bonus_1_type,
-                    bonus_1_trigger_type,
-                    bonus_1_trigger_threshold,
-                    bonus_1_starting_charges,
-                    bonus_2_type,
-                    bonus_2_trigger_type,
-                    bonus_2_trigger_threshold,
-                    bonus_2_starting_charges,
-                    bonus_3_type,
-                    bonus_3_trigger_type,
-                    bonus_3_trigger_threshold,
-                    bonus_3_starting_charges,
+                    active_mutator_id,
+                    passive_mutator_id,
                     boss_id,
                 );
 
@@ -647,7 +1871,6 @@ mod config_system {
                 max_moves,
                 base_ratio_x100,
                 max_ratio_x100,
-                // Difficulty Progression (non-linear tier thresholds)
                 // Difficulty Progression (non-linear tier thresholds)
                 tier_1_threshold,
                 tier_2_threshold,
@@ -687,19 +1910,9 @@ mod config_system {
                 // Endless Mode Settings (defaults)
                 endless_difficulty_thresholds: 0,
                 endless_score_multipliers: 0,
-                // Bonus slot settings
-                bonus_1_type,
-                bonus_1_trigger_type,
-                bonus_1_trigger_threshold,
-                bonus_1_starting_charges,
-                bonus_2_type,
-                bonus_2_trigger_type,
-                bonus_2_trigger_threshold,
-                bonus_2_starting_charges,
-                bonus_3_type,
-                bonus_3_trigger_type,
-                bonus_3_trigger_threshold,
-                bonus_3_starting_charges,
+                // Mutator Assignment
+                active_mutator_id,
+                passive_mutator_id,
                 // Boss Settings
                 boss_id,
             };
@@ -931,7 +2144,7 @@ mod config_system {
                 return (0, price);
             }
 
-            let max_burnable_stars: u256 = (star_cost * 90_u256) / 100_u256;
+            let max_burnable_stars: u256 = (star_cost * 50_u256) / 100_u256;
             let stars_to_burn = if star_balance > max_burnable_stars {
                 max_burnable_stars
             } else {
@@ -1020,21 +2233,9 @@ mod config_system {
             early_level_threshold: u8,
             mid_level_threshold: u8,
             level_cap: u8,
-            // Bonus slot 1
-            bonus_1_type: u8,
-            bonus_1_trigger_type: u8,
-            bonus_1_trigger_threshold: u8,
-            bonus_1_starting_charges: u8,
-            // Bonus slot 2
-            bonus_2_type: u8,
-            bonus_2_trigger_type: u8,
-            bonus_2_trigger_threshold: u8,
-            bonus_2_starting_charges: u8,
-            // Bonus slot 3
-            bonus_3_type: u8,
-            bonus_3_trigger_type: u8,
-            bonus_3_trigger_threshold: u8,
-            bonus_3_starting_charges: u8,
+            // Mutator Assignment
+            active_mutator_id: u8,
+            passive_mutator_id: u8,
             // Boss Settings
             boss_id: u8,
         ) {
@@ -1136,28 +2337,8 @@ mod config_system {
             assert!(level_cap > 0, "Level cap must be positive");
             assert!(mid_level_threshold <= level_cap, "Mid threshold must be <= level cap");
 
-            // Bonus slots
-            assert!(bonus_1_type <= 3, "Bonus 1 type must be in range 0..=3");
-            assert!(bonus_2_type <= 3, "Bonus 2 type must be in range 0..=3");
-            assert!(bonus_3_type <= 3, "Bonus 3 type must be in range 0..=3");
-
-            assert!(bonus_1_trigger_type <= 3, "Bonus 1 trigger type must be in range 0..=3");
-            assert!(bonus_2_trigger_type <= 3, "Bonus 2 trigger type must be in range 0..=3");
-            assert!(bonus_3_trigger_type <= 3, "Bonus 3 trigger type must be in range 0..=3");
-
-            if bonus_1_trigger_type > 0 {
-                assert!(bonus_1_trigger_threshold > 0, "Bonus 1 trigger threshold must be > 0");
-            }
-            if bonus_2_trigger_type > 0 {
-                assert!(bonus_2_trigger_threshold > 0, "Bonus 2 trigger threshold must be > 0");
-            }
-            if bonus_3_trigger_type > 0 {
-                assert!(bonus_3_trigger_threshold > 0, "Bonus 3 trigger threshold must be > 0");
-            }
-
-            assert!(bonus_1_starting_charges <= 15, "Bonus 1 starting charges must be <= 15");
-            assert!(bonus_2_starting_charges <= 15, "Bonus 2 starting charges must be <= 15");
-            assert!(bonus_3_starting_charges <= 15, "Bonus 3 starting charges must be <= 15");
+            // Mutator ID validation (0 = no mutator, valid IDs depend on deployment)
+            // active_mutator_id and passive_mutator_id are u8, no range check needed beyond type
 
             // Boss ID validation
             assert!(boss_id <= 10, "boss_id must be 0-10 (0=no boss, 1-10=boss identities)");
@@ -1208,18 +2389,8 @@ mod config_system {
             GameSetting { name: 'EARLY_TH', value: game_settings.early_level_threshold.into() },
             GameSetting { name: 'MID_TH', value: game_settings.mid_level_threshold.into() },
             GameSetting { name: 'LEVEL_CAP', value: game_settings.level_cap.into() },
-            GameSetting { name: 'B1_TYPE', value: game_settings.bonus_1_type.into() },
-            GameSetting { name: 'B1_TRIG', value: game_settings.bonus_1_trigger_type.into() },
-            GameSetting { name: 'B1_TH', value: game_settings.bonus_1_trigger_threshold.into() },
-            GameSetting { name: 'B1_CHG', value: game_settings.bonus_1_starting_charges.into() },
-            GameSetting { name: 'B2_TYPE', value: game_settings.bonus_2_type.into() },
-            GameSetting { name: 'B2_TRIG', value: game_settings.bonus_2_trigger_type.into() },
-            GameSetting { name: 'B2_TH', value: game_settings.bonus_2_trigger_threshold.into() },
-            GameSetting { name: 'B2_CHG', value: game_settings.bonus_2_starting_charges.into() },
-            GameSetting { name: 'B3_TYPE', value: game_settings.bonus_3_type.into() },
-            GameSetting { name: 'B3_TRIG', value: game_settings.bonus_3_trigger_type.into() },
-            GameSetting { name: 'B3_TH', value: game_settings.bonus_3_trigger_threshold.into() },
-            GameSetting { name: 'B3_CHG', value: game_settings.bonus_3_starting_charges.into() },
+            GameSetting { name: 'ACTIVE_MUT', value: game_settings.active_mutator_id.into() },
+            GameSetting { name: 'PASSIVE_MUT', value: game_settings.passive_mutator_id.into() },
         ]
             .span()
     }
@@ -1244,17 +2415,19 @@ mod config_system {
         use super::InternalTrait;
 
         #[test]
-        fn test_compute_hybrid_terms_caps_burn_at_ninety_percent() {
+        fn test_compute_hybrid_terms_caps_burn_at_fifty_percent() {
             let (burned, effective_price) = InternalTrait::compute_hybrid_terms(99, 100, 5000000);
-            assert!(burned == 90, "burn should cap at 90");
-            assert!(effective_price == 500000, "price should be 10% of full price");
+            assert!(burned == 50, "burn should cap at 50");
+            assert!(effective_price == 2500000, "price should be 50% of full price");
         }
 
         #[test]
         fn test_compute_hybrid_terms_partial_balance() {
+            // 40 stars available, star_cost=75, max_burnable = 75*50/100 = 37
+            // 40 > 37, so burns 37, discount = 37/75 = 49%, charge = 51%
             let (burned, effective_price) = InternalTrait::compute_hybrid_terms(40, 75, 5000000);
-            assert!(burned == 40, "should burn full available stars when below cap");
-            assert!(effective_price == 2350000, "price should floor after discount");
+            assert!(burned == 37, "should burn up to 50% cap");
+            assert!(effective_price == 2550000, "price should be ~51% of full price");
         }
     }
 }

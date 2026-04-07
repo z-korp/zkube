@@ -109,22 +109,11 @@ pub struct GameSettings {
     // Packed score multipliers for 8 tiers (8 × u8, stored as ×100, e.g. 150 = 1.5×)
     // Format: tier0 | tier1<<8 | tier2<<16 | ... | tier7<<56
     pub endless_score_multipliers: u64,
-    // === Bonus Slot Settings ===
-    // Bonus slot 1
-    pub bonus_1_type: u8,
-    pub bonus_1_trigger_type: u8,
-    pub bonus_1_trigger_threshold: u8,
-    pub bonus_1_starting_charges: u8,
-    // Bonus slot 2
-    pub bonus_2_type: u8,
-    pub bonus_2_trigger_type: u8,
-    pub bonus_2_trigger_threshold: u8,
-    pub bonus_2_starting_charges: u8,
-    // Bonus slot 3
-    pub bonus_3_type: u8,
-    pub bonus_3_trigger_type: u8,
-    pub bonus_3_trigger_threshold: u8,
-    pub bonus_3_starting_charges: u8,
+    // === Mutator Assignment ===
+    /// Fixed active mutator for this zone (bonus profile). 0 = no bonuses (endless mode).
+    pub active_mutator_id: u8,
+    /// Fixed passive mutator for this zone (stat modifiers). 0 = neutral.
+    pub passive_mutator_id: u8,
     // === Boss Settings ===
     /// Fixed boss identity for this map (1-10, 0 = no boss/endless mode)
     pub boss_id: u8,
@@ -233,21 +222,9 @@ pub mod GameSettingsDefaults {
     // 3.3×, 4.0×]
     pub const ENDLESS_SCORE_MULTIPLIERS: u64 = 0;
 
-    // Bonus Slot Defaults
-    pub const BONUS_1_TYPE: u8 = 1; // Hammer
-    pub const BONUS_1_TRIGGER_TYPE: u8 = 1; // combo_streak
-    pub const BONUS_1_TRIGGER_THRESHOLD: u8 = 5;
-    pub const BONUS_1_STARTING_CHARGES: u8 = 1;
-
-    pub const BONUS_2_TYPE: u8 = 3; // Wave
-    pub const BONUS_2_TRIGGER_TYPE: u8 = 3; // score
-    pub const BONUS_2_TRIGGER_THRESHOLD: u8 = 30;
-    pub const BONUS_2_STARTING_CHARGES: u8 = 1;
-
-    pub const BONUS_3_TYPE: u8 = 2; // Totem
-    pub const BONUS_3_TRIGGER_TYPE: u8 = 2; // lines_cleared
-    pub const BONUS_3_TRIGGER_THRESHOLD: u8 = 10;
-    pub const BONUS_3_STARTING_CHARGES: u8 = 1;
+    // Mutator Assignment Defaults
+    pub const ACTIVE_MUTATOR_ID: u8 = 0; // No active mutator (no bonuses)
+    pub const PASSIVE_MUTATOR_ID: u8 = 0; // No passive mutator (neutral stats)
 
     // Boss Settings
     pub const BOSS_ID: u8 = 0; // Default: no boss (endless mode)
@@ -318,19 +295,9 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             // Endless Mode Settings
             endless_difficulty_thresholds: 0, // 0 = use hardcoded defaults
             endless_score_multipliers: 0, // 0 = use hardcoded defaults
-            // Bonus Slot Settings
-            bonus_1_type: GameSettingsDefaults::BONUS_1_TYPE,
-            bonus_1_trigger_type: GameSettingsDefaults::BONUS_1_TRIGGER_TYPE,
-            bonus_1_trigger_threshold: GameSettingsDefaults::BONUS_1_TRIGGER_THRESHOLD,
-            bonus_1_starting_charges: GameSettingsDefaults::BONUS_1_STARTING_CHARGES,
-            bonus_2_type: GameSettingsDefaults::BONUS_2_TYPE,
-            bonus_2_trigger_type: GameSettingsDefaults::BONUS_2_TRIGGER_TYPE,
-            bonus_2_trigger_threshold: GameSettingsDefaults::BONUS_2_TRIGGER_THRESHOLD,
-            bonus_2_starting_charges: GameSettingsDefaults::BONUS_2_STARTING_CHARGES,
-            bonus_3_type: GameSettingsDefaults::BONUS_3_TYPE,
-            bonus_3_trigger_type: GameSettingsDefaults::BONUS_3_TRIGGER_TYPE,
-            bonus_3_trigger_threshold: GameSettingsDefaults::BONUS_3_TRIGGER_THRESHOLD,
-            bonus_3_starting_charges: GameSettingsDefaults::BONUS_3_STARTING_CHARGES,
+            // Mutator Assignment
+            active_mutator_id: GameSettingsDefaults::ACTIVE_MUTATOR_ID,
+            passive_mutator_id: GameSettingsDefaults::PASSIVE_MUTATOR_ID,
             // Boss Settings
             boss_id: GameSettingsDefaults::BOSS_ID,
         }
@@ -625,30 +592,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             return false;
         }
 
-        // Bonus slot fields must stay within packed/runtime bounds.
-        if self.bonus_1_type > 3 || self.bonus_2_type > 3 || self.bonus_3_type > 3 {
-            return false;
-        }
-        if self.bonus_1_trigger_type > 3
-            || self.bonus_2_trigger_type > 3
-            || self.bonus_3_trigger_type > 3 {
-            return false;
-        }
-        if self.bonus_1_trigger_type > 0 && self.bonus_1_trigger_threshold == 0 {
-            return false;
-        }
-        if self.bonus_2_trigger_type > 0 && self.bonus_2_trigger_threshold == 0 {
-            return false;
-        }
-        if self.bonus_3_trigger_type > 0 && self.bonus_3_trigger_threshold == 0 {
-            return false;
-        }
-        if self.bonus_1_starting_charges > 15
-            || self.bonus_2_starting_charges > 15
-            || self.bonus_3_starting_charges > 15 {
-            return false;
-        }
-
         // Boss ID must be 0-10 (0 = no boss, 1-10 = boss identities)
         if self.boss_id > 10 {
             return false;
@@ -728,29 +671,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             + self.master_size5_weight.into();
         assert!(master_total > 0, "master block weights must have at least one non-zero");
 
-        // Bonus slot fields.
-        assert!(self.bonus_1_type <= 3, "bonus_1_type must be in range 0..=3");
-        assert!(self.bonus_2_type <= 3, "bonus_2_type must be in range 0..=3");
-        assert!(self.bonus_3_type <= 3, "bonus_3_type must be in range 0..=3");
-
-        assert!(self.bonus_1_trigger_type <= 3, "bonus_1_trigger_type must be in range 0..=3");
-        assert!(self.bonus_2_trigger_type <= 3, "bonus_2_trigger_type must be in range 0..=3");
-        assert!(self.bonus_3_trigger_type <= 3, "bonus_3_trigger_type must be in range 0..=3");
-
-        if self.bonus_1_trigger_type > 0 {
-            assert!(self.bonus_1_trigger_threshold > 0, "bonus_1_trigger_threshold must be > 0");
-        }
-        if self.bonus_2_trigger_type > 0 {
-            assert!(self.bonus_2_trigger_threshold > 0, "bonus_2_trigger_threshold must be > 0");
-        }
-        if self.bonus_3_trigger_type > 0 {
-            assert!(self.bonus_3_trigger_threshold > 0, "bonus_3_trigger_threshold must be > 0");
-        }
-
-        assert!(self.bonus_1_starting_charges <= 15, "bonus_1_starting_charges must be <= 15");
-        assert!(self.bonus_2_starting_charges <= 15, "bonus_2_starting_charges must be <= 15");
-        assert!(self.bonus_3_starting_charges <= 15, "bonus_3_starting_charges must be <= 15");
-
         // Boss ID validation
         assert!(self.boss_id <= 10, "boss_id must be 0-10 (0=no boss, 1-10=boss identities)");
     }
@@ -812,21 +732,9 @@ mod tests {
         assert!(settings.mid_level_threshold == 25, "Mid threshold should be 25");
         // Level Cap
         assert!(settings.level_cap == 50, "Level cap should be 50");
-        // Bonus Slots
-        assert!(settings.bonus_1_type == 1, "Bonus slot 1 type should be Hammer");
-        assert!(settings.bonus_1_trigger_type == 1, "Bonus slot 1 trigger should be combo_streak");
-        assert!(settings.bonus_1_trigger_threshold == 5, "Bonus slot 1 threshold should be 5");
-        assert!(settings.bonus_1_starting_charges == 1, "Bonus slot 1 charges should be 1");
-
-        assert!(settings.bonus_2_type == 3, "Bonus slot 2 type should be Wave");
-        assert!(settings.bonus_2_trigger_type == 3, "Bonus slot 2 trigger should be score");
-        assert!(settings.bonus_2_trigger_threshold == 30, "Bonus slot 2 threshold should be 30");
-        assert!(settings.bonus_2_starting_charges == 1, "Bonus slot 2 charges should be 1");
-
-        assert!(settings.bonus_3_type == 2, "Bonus slot 3 type should be Totem");
-        assert!(settings.bonus_3_trigger_type == 2, "Bonus slot 3 trigger should be lines_cleared");
-        assert!(settings.bonus_3_trigger_threshold == 10, "Bonus slot 3 threshold should be 10");
-        assert!(settings.bonus_3_starting_charges == 1, "Bonus slot 3 charges should be 1");
+        // Mutator Assignment
+        assert!(settings.active_mutator_id == 0, "Active mutator should be 0");
+        assert!(settings.passive_mutator_id == 0, "Passive mutator should be 0");
     }
 
 

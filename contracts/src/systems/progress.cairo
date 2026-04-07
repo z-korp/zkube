@@ -247,10 +247,7 @@ mod progress_system {
     #[abi(embed_v0)]
     impl QuestClaimImpl of super::IQuestClaim<ContractState> {
         fn quest_claim(
-            ref self: ContractState,
-            player: ContractAddress,
-            quest_id: felt252,
-            interval_id: u64,
+            ref self: ContractState, player: ContractAddress, quest_id: felt252, interval_id: u64,
         ) {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             self.quest.claim(world, player.into(), quest_id, interval_id);

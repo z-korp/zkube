@@ -15,11 +15,13 @@ use zkube::helpers::config::ConfigUtilsTrait;
 use zkube::helpers::game_libs::{
     GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
 };
+use zkube::helpers::mutator::MutatorEffectsTrait;
 use zkube::helpers::random::RandomImpl;
 use zkube::models::config::GameSettingsMetadata;
 use zkube::models::daily::{DailyChallenge, DailyEntry, DailyEntryTrait, GameChallenge};
 use zkube::models::entitlement::ZoneEntitlement;
 use zkube::models::game::{GameSeed, GameTrait};
+use zkube::models::mutator::MutatorDef;
 use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
 use zkube::models::story::{StoryZoneProgress, StoryZoneProgressTrait};
 use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
@@ -27,7 +29,6 @@ use zkube::systems::daily_challenge::{
     IDailyChallengeSystemDispatcher, IDailyChallengeSystemDispatcherTrait,
 };
 use zkube::systems::progress::{IProgressSystemDispatcher, IProgressSystemDispatcherTrait};
-use zkube::types::mutator::{FULL_MUTATOR_MASK, MutatorTrait};
 
 /// Create a new NFT-token game. Handles settings lookup, daily challenge detection,
 /// entitlement gating, seed generation, mutator/bonus selection, player meta update,
@@ -44,9 +45,12 @@ pub fn create_game(
     let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
 
     if run_type_val == 1 {
-        assert!(settings.settings_id == 1, "Only Endless Zone 1 is enabled in MVP");
-        let progress: StoryZoneProgress = world.read_model((player, 1_u8));
-        assert!(progress.exists() && progress.boss_cleared, "Clear Story Zone 1 first");
+        // Endless settings use odd IDs: 1,3,5,...,19 → zones 1,2,...,10
+        let sid: u32 = settings.settings_id;
+        assert!(sid % 2 == 1 && sid >= 1 && sid <= 19, "Invalid endless settings");
+        let zone_for_endless: u8 = ((sid + 1) / 2).try_into().unwrap();
+        let progress: StoryZoneProgress = world.read_model((player, zone_for_endless));
+        assert!(progress.exists() && progress.boss_cleared, "Clear story zone first");
     }
 
     // Detect active daily challenge context by (run_type, settings_id).
@@ -97,25 +101,23 @@ pub fn create_game(
         };
         (random.seed, vrf_on)
     };
-    let active_mutator_id: u8 = if run_type_val == 1 {
-        MutatorTrait::roll_mutator(seed, FULL_MUTATOR_MASK)
+    // Read bonus config from the active mutator
+    let active_mut_id = settings.active_mutator_id;
+    let bonus_mutator_def: MutatorDef = if active_mut_id > 0 {
+        world.read_model(active_mut_id)
     } else {
-        MutatorTrait::roll_mutator(seed, settings.allowed_mutators)
+        MutatorEffectsTrait::neutral(0)
     };
-
     let seed_u256: u256 = seed.into();
-    let bonus_slot: u8 = (seed_u256 % 3_u256).try_into().unwrap();
-    let (bonus_type, starting_charges) = match bonus_slot {
-        0 => (settings.bonus_1_type, settings.bonus_1_starting_charges),
-        1 => (settings.bonus_2_type, settings.bonus_2_starting_charges),
-        2 => (settings.bonus_3_type, settings.bonus_3_starting_charges),
-        _ => (0_u8, 0_u8),
-    };
+    let (bonus_slot, bonus_type, starting_charges) = select_bonus_slot(
+        seed_u256, @bonus_mutator_def,
+    );
 
     let timestamp = get_block_timestamp();
 
-    // Create empty game shell (grid will be initialized via dispatcher)
-    let mut game = GameTrait::new_empty(game_id, timestamp, 0, active_mutator_id, run_type_val);
+    // Store passive mutator in RunData for stat effects during gameplay
+    let passive_mut_id = settings.passive_mutator_id;
+    let mut game = GameTrait::new_empty(game_id, timestamp, 0, passive_mut_id, run_type_val);
     let mut run_data = game.get_run_data();
     run_data.bonus_slot = bonus_slot;
     run_data.bonus_type = bonus_type;
@@ -182,4 +184,45 @@ pub fn create_game(
         libs.level.initialize_level(game_id);
     }
     libs.grid.initialize_grid(game_id);
+}
+
+/// Select a bonus slot from the active mutator's non-None bonus slots.
+/// Returns (bonus_slot, bonus_type, starting_charges).
+fn select_bonus_slot(seed_u256: u256, mutator_def: @MutatorDef) -> (u8, u8, u8) {
+    let mut count: u8 = 0;
+    if *mutator_def.bonus_1_type > 0 {
+        count += 1;
+    }
+    if *mutator_def.bonus_2_type > 0 {
+        count += 1;
+    }
+    if *mutator_def.bonus_3_type > 0 {
+        count += 1;
+    }
+    if count == 0 {
+        return (0, 0, 0);
+    }
+
+    let pick: u8 = (seed_u256 % count.into()).try_into().unwrap();
+    let mut found: u8 = 0;
+
+    if *mutator_def.bonus_1_type > 0 {
+        if found == pick {
+            return (0, *mutator_def.bonus_1_type, *mutator_def.bonus_1_starting_charges);
+        }
+        found += 1;
+    }
+    if *mutator_def.bonus_2_type > 0 {
+        if found == pick {
+            return (1, *mutator_def.bonus_2_type, *mutator_def.bonus_2_starting_charges);
+        }
+        found += 1;
+    }
+    if *mutator_def.bonus_3_type > 0 {
+        if found == pick {
+            return (2, *mutator_def.bonus_3_type, *mutator_def.bonus_3_starting_charges);
+        }
+    }
+
+    (0, 0, 0)
 }

@@ -24,6 +24,18 @@ pub impl MutatorEffectsImpl of MutatorEffectsTrait {
             line_clear_bonus: 0,
             perfect_clear_bonus: 0,
             starting_rows: 0,
+            bonus_1_type: 0,
+            bonus_1_trigger_type: 0,
+            bonus_1_trigger_threshold: 0,
+            bonus_1_starting_charges: 0,
+            bonus_2_type: 0,
+            bonus_2_trigger_type: 0,
+            bonus_2_trigger_threshold: 0,
+            bonus_2_starting_charges: 0,
+            bonus_3_type: 0,
+            bonus_3_trigger_type: 0,
+            bonus_3_trigger_threshold: 0,
+            bonus_3_starting_charges: 0,
         }
     }
 

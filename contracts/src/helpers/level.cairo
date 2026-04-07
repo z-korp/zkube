@@ -267,13 +267,13 @@ pub impl LevelGenerator of LevelGeneratorTrait {
 
         match difficulty {
             Difficulty::VeryEasy => 10,
-            Difficulty::Easy => 12,
-            Difficulty::Medium => 14,
-            Difficulty::MediumHard => 17,
-            Difficulty::Hard => 20,
-            Difficulty::VeryHard => 25,
-            Difficulty::Expert => 33,
-            Difficulty::Master => 40,
+            Difficulty::Easy => 15,
+            Difficulty::Medium => 20,
+            Difficulty::MediumHard => 30,
+            Difficulty::Hard => 40,
+            Difficulty::VeryHard => 60,
+            Difficulty::Expert => 80,
+            Difficulty::Master => 100,
             _ => 10,
         }
     }
