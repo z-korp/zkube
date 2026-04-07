@@ -38,15 +38,14 @@ export interface StoryZoneMapState {
 
 export interface MapData {
   nodes: MapNodeData[];
-  zoneThemes: string[];
+  zoneTheme: ThemeId;
   currentNodeIndex: number;
-  currentZone: number;
 }
 
 export interface UseMapDataParams {
   seed: bigint;
-  currentZone: number;
-  zones: StoryZoneMapState[];
+  zoneId: number;
+  zoneState: StoryZoneMapState | undefined;
   activeStoryNode?: ActiveStoryNode | null;
 }
 
@@ -55,13 +54,25 @@ export const TOTAL_ZONES = 10;
 export const GAMEPLAY_LEVELS = 10;
 const LEVELS_PER_ZONE = 10;
 
+// Must match contract config.cairo theme_id assignments per zone:
+// Zone 1=theme-1, 2=theme-2, 3=theme-3, 4=theme-4, 5=theme-6,
+// 6=theme-7, 7=theme-5, 8=theme-8, 9=theme-9, 10=theme-10
+export const ZONE_THEMES: ThemeId[] = [
+  "theme-1", "theme-2", "theme-3", "theme-4", "theme-6",
+  "theme-7", "theme-5", "theme-8", "theme-9", "theme-10",
+];
+
+export function getZoneTheme(zoneId: number): ThemeId {
+  return ZONE_THEMES[zoneId - 1] ?? "theme-1";
+}
+
 interface RawNode {
   type: NodeType;
   draftPhase: null;
   contractLevel: number | null;
 }
 
-function buildZoneSequence(zone: number): RawNode[] {
+function buildZoneSequence(): RawNode[] {
   const nodes: RawNode[] = [];
 
   for (let level = 1; level < LEVELS_PER_ZONE; level++) {
@@ -81,7 +92,6 @@ export function contractLevelToNodeIndex(contractLevel: number): number {
 function getNodeState(
   node: Omit<MapNodeData, "state" | "levelConfig" | "zoneTheme">,
   zoneState: StoryZoneMapState | undefined,
-  currentZone: number,
   activeStoryNode: ActiveStoryNode | null,
 ): NodeState {
   if (!zoneState?.unlocked) return "locked";
@@ -101,7 +111,7 @@ function getNodeState(
 
   const nextLevel = highestCleared >= LEVELS_PER_ZONE ? LEVELS_PER_ZONE : highestCleared + 1;
   if (level === nextLevel) {
-    return node.zone === currentZone ? "current" : "available";
+    return "current";
   }
 
   return "locked";
@@ -109,79 +119,58 @@ function getNodeState(
 
 export function generateMapData({
   seed,
-  currentZone,
-  zones,
+  zoneId,
+  zoneState,
   activeStoryNode = null,
 }: UseMapDataParams): MapData {
-  // Must match contract config.cairo theme_id assignments per zone:
-  // Zone 1=theme-1, 2=theme-2, 3=theme-3, 4=theme-4, 5=theme-6,
-  // 6=theme-7, 7=theme-5, 8=theme-8, 9=theme-9, 10=theme-10
-  const zoneThemes: ThemeId[] = [
-    "theme-1", "theme-2", "theme-3", "theme-4", "theme-6",
-    "theme-7", "theme-5", "theme-8", "theme-9", "theme-10",
-  ];
-  const zoneMap = new Map(zones.map((zone) => [zone.zoneId, zone]));
-  const effectiveCurrentZone = Math.max(1, Math.min(TOTAL_ZONES, currentZone));
+  const zoneTheme = getZoneTheme(zoneId);
+  const sequence = buildZoneSequence();
 
-  const allNodes: Omit<MapNodeData, "state" | "levelConfig" | "zoneTheme">[] = [];
+  const nodes: MapNodeData[] = sequence.map((raw, i) => {
+    const displayLabel =
+      raw.type === "boss"
+        ? `${zoneId}-BOSS`
+        : `${raw.contractLevel ?? ""}`;
 
-  for (let z = 1; z <= TOTAL_ZONES; z++) {
-    const sequence = buildZoneSequence(z);
-    const zoneBaseIndex = (z - 1) * NODES_PER_ZONE;
+    const partial = {
+      nodeIndex: i,
+      zone: zoneId,
+      nodeInZone: i,
+      type: raw.type,
+      draftPhase: raw.draftPhase,
+      contractLevel: raw.contractLevel,
+      displayLabel,
+    };
 
-    for (let i = 0; i < sequence.length; i++) {
-      const raw = sequence[i];
-      const nodeIndex = zoneBaseIndex + i;
-
-      const displayLabel =
-        raw.type === "boss"
-          ? `${z}-BOSS`
-          : `${raw.contractLevel ?? ""}`;
-
-      allNodes.push({
-        nodeIndex,
-        zone: z,
-        nodeInZone: i,
-        type: raw.type,
-        draftPhase: raw.draftPhase,
-        contractLevel: raw.contractLevel,
-        displayLabel,
-      });
-    }
-  }
-
-  const nodes: MapNodeData[] = allNodes.map((node) => {
-    const zoneState = zoneMap.get(node.zone);
-    const localLevel = node.contractLevel ?? LEVELS_PER_ZONE;
+    const localLevel = raw.contractLevel ?? LEVELS_PER_ZONE;
     const levelConfig = generateLevelConfig(seed, localLevel);
-    const state = getNodeState(node, zoneState, effectiveCurrentZone, activeStoryNode);
+    const state = getNodeState(partial, zoneState, activeStoryNode);
 
     return {
-      ...node,
+      ...partial,
       state,
       levelConfig,
-      zoneTheme: zoneThemes[node.zone - 1],
+      zoneTheme,
     };
   });
 
   return {
     nodes,
-    zoneThemes,
+    zoneTheme,
     currentNodeIndex: contractLevelToNodeIndex(
-      (zoneMap.get(effectiveCurrentZone)?.highestCleared ?? 0) + 1,
+      (zoneState?.highestCleared ?? 0) + 1,
     ),
-    currentZone: effectiveCurrentZone,
   };
 }
 
 export function useMapData({
   seed,
-  currentZone,
-  zones,
+  zoneId,
+  zoneState,
   activeStoryNode = null,
 }: UseMapDataParams): MapData {
   return useMemo(
-    () => generateMapData({ seed, currentZone, zones, activeStoryNode }),
-    [seed, currentZone, zones, activeStoryNode],
+    () => generateMapData({ seed, zoneId, zoneState, activeStoryNode }),
+    [seed, zoneId, zoneState, activeStoryNode],
   );
 }

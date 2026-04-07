@@ -56,6 +56,7 @@ const HomePage: React.FC = () => {
   const { themeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
   const navigate = useNavigationStore((s) => s.navigate);
+  const setMapZoneId = useNavigationStore((s) => s.setMapZoneId);
   const selectedMode = useNavigationStore((s) => s.selectedMode);
   const setSelectedMode = useNavigationStore((s) => s.setSelectedMode);
   const [isStartingGame, setIsStartingGame] = useState(false);
@@ -154,6 +155,7 @@ const HomePage: React.FC = () => {
           // Story mode: resume existing active story game instead of failing on start_story_attempt.
           if (activeStoryAttemptId) {
             showToast({ message: "Resuming active story run.", type: "success" });
+            setMapZoneId(selectedZone.zoneId);
             navigate("map", activeStoryAttemptId);
             return;
           }
@@ -180,6 +182,7 @@ const HomePage: React.FC = () => {
       startRun,
       isStartingGame,
       navigate,
+      setMapZoneId,
       selectedMode,
       zones,
       username,
@@ -195,6 +198,7 @@ const HomePage: React.FC = () => {
     if (!zone || !account) return;
 
     if (selectedMode === 0 && activeStoryAttemptId !== null) {
+      setMapZoneId(zone.zoneId);
       navigate("map", activeStoryAttemptId);
       return;
     }
@@ -211,6 +215,7 @@ const HomePage: React.FC = () => {
     activeStoryAttemptId,
     handleStartGame,
     navigate,
+    setMapZoneId,
     selectedMode,
     zone,
   ]);

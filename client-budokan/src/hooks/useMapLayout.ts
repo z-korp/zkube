@@ -56,7 +56,7 @@ function clamp(value: number, min: number, max: number): number {
 
 /** Y range for nodes: top of zone = 0.08, bottom = 0.92 */
 const Y_TOP = 0.08;
-const Y_BOTTOM = 0.92;
+const Y_BOTTOM = 0.85;
 
 /** 3-lane X positions — wide spread for visual variety */
 const LANES = [0.2, 0.5, 0.8] as const;

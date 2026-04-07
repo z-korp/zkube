@@ -22,12 +22,14 @@ interface NavigationState {
   isTransitioning: boolean;
   transitionDirection: "forward" | "back" | null;
   gameId: bigint | null;
+  mapZoneId: number;
   selectedMode: number;
   pendingPreviewLevel: number | null;
   pendingLevelCompletion: PendingLevelCompletion | null;
   navigate: (page: PageId, gameId?: bigint) => void;
   goBack: () => void;
   setGameId: (id: bigint | null) => void;
+  setMapZoneId: (zoneId: number) => void;
   setSelectedMode: (mode: number) => void;
   setPendingPreviewLevel: (level: number | null) => void;
   setPendingLevelCompletion: (data: PendingLevelCompletion | null) => void;
@@ -42,7 +44,7 @@ const getBackTarget = (page: PageId): PageId => {
     case "boss":
       return "map";
     case "map":
-      return "mygames";
+      return "home";
     case "mutator":
       return "mygames";
     case "settings":
@@ -58,6 +60,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
   isTransitioning: false,
   transitionDirection: null,
   gameId: null,
+  mapZoneId: 1,
   selectedMode: 0,
   pendingPreviewLevel: null,
   pendingLevelCompletion: null,
@@ -97,6 +100,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
   },
 
   setGameId: (id) => set({ gameId: id }),
+  setMapZoneId: (zoneId) => set({ mapZoneId: zoneId }),
   setSelectedMode: (mode) => set({ selectedMode: mode }),
   setPendingPreviewLevel: (level) => set({ pendingPreviewLevel: level }),
   setPendingLevelCompletion: (data) => set({ pendingLevelCompletion: data }),
