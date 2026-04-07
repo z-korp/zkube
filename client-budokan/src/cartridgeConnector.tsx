@@ -143,6 +143,7 @@ const INTERNAL_SYSTEMS = ["config_system", "grid_system"];
 const ADDITIONAL_ENTRYPOINTS: Record<string, string[]> = {
   game_system: ["mint_game"],
   level_system: ["start_next_level"],
+  config_system: ["purchase_zone_access", "unlock_zone_with_stars"],
 };
 
 const buildPoliciesFromManifest = (

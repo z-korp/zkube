@@ -488,7 +488,7 @@ export function defineContractComponents(world: World) {
           metadata: {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "StoryAttempt",
-            types: ["felt252", "ContractAddress", "u32", "u8", "bool"],
+            types: ["felt252", "ContractAddress", "u8", "u8", "bool"],
             customTypes: [],
           },
         }
@@ -508,7 +508,7 @@ export function defineContractComponents(world: World) {
           metadata: {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "ActiveStoryAttempt",
-            types: ["ContractAddress", "felt252", "u32", "u8", "bool"],
+            types: ["ContractAddress", "felt252", "u8", "u8", "bool"],
             customTypes: [],
           },
         }
@@ -530,6 +530,18 @@ export function defineContractComponents(world: World) {
           line_clear_bonus: RecsType.Number,
           perfect_clear_bonus: RecsType.Number,
           starting_rows: RecsType.Number,
+          bonus_1_type: RecsType.Number,
+          bonus_1_trigger_type: RecsType.Number,
+          bonus_1_trigger_threshold: RecsType.Number,
+          bonus_1_starting_charges: RecsType.Number,
+          bonus_2_type: RecsType.Number,
+          bonus_2_trigger_type: RecsType.Number,
+          bonus_2_trigger_threshold: RecsType.Number,
+          bonus_2_starting_charges: RecsType.Number,
+          bonus_3_type: RecsType.Number,
+          bonus_3_trigger_type: RecsType.Number,
+          bonus_3_trigger_threshold: RecsType.Number,
+          bonus_3_starting_charges: RecsType.Number,
         },
         {
           metadata: {
@@ -540,6 +552,9 @@ export function defineContractComponents(world: World) {
               "u8", "u8", "u8",
               "u16", "u8", "u16",
               "u8", "u8", "u8",
+              "u8", "u8", "u8", "u8",
+              "u8", "u8", "u8", "u8",
+              "u8", "u8", "u8", "u8",
             ],
             customTypes: [],
           },

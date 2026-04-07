@@ -8,14 +8,12 @@ import { NAMESPACE } from "@/constants";
 import { useDojo } from "@/dojo/useDojo";
 import { getToastPlacement } from "@/utils/toast";
 import {
-  BonusLevelUp,
-  ConsumablePurchased,
+  ConstraintProgress,
   LevelCompleted,
   LevelStarted,
-  RunCompleted,
   RunEnded,
   StartGame,
-  UseBonus,
+  ZoneClearBonus,
 } from "@/dojo/models/gameEvent";
 
 interface GameEventsContextType {}
@@ -30,25 +28,21 @@ const normalizeAddress = (address: string): string => {
 
 const getPlayerEventQuery = (namespace: string, playerId: string) => {
   const startGame: `${string}-${string}` = `${namespace}-${StartGame.getModelName()}`;
-  const useBonus: `${string}-${string}` = `${namespace}-${UseBonus.getModelName()}`;
   const levelStarted: `${string}-${string}` = `${namespace}-${LevelStarted.getModelName()}`;
   const levelCompleted: `${string}-${string}` = `${namespace}-${LevelCompleted.getModelName()}`;
   const runEnded: `${string}-${string}` = `${namespace}-${RunEnded.getModelName()}`;
-  const runCompleted: `${string}-${string}` = `${namespace}-${RunCompleted.getModelName()}`;
-  const consumablePurchased: `${string}-${string}` = `${namespace}-${ConsumablePurchased.getModelName()}`;
-  const bonusLevelUp: `${string}-${string}` = `${namespace}-${BonusLevelUp.getModelName()}`;
+  const zoneClearBonus: `${string}-${string}` = `${namespace}-${ZoneClearBonus.getModelName()}`;
+  const constraintProgress: `${string}-${string}` = `${namespace}-${ConstraintProgress.getModelName()}`;
   const normalizedAddress = normalizeAddress(playerId);
   const key = normalizedAddress.toLowerCase();
   const clauses = new ClauseBuilder().keys(
     [
       startGame,
-      useBonus,
       levelStarted,
       levelCompleted,
       runEnded,
-      runCompleted,
-      consumablePurchased,
-      bonusLevelUp,
+      zoneClearBonus,
+      constraintProgress,
     ],
     [key],
     "VariableLen",
@@ -79,10 +73,6 @@ export function GameEventsProvider({ children }: { children: React.ReactNode }) 
           StartGame.parse(entity.models[`${NAMESPACE}-${StartGame.getModelName()}`]);
         }
 
-        if (entity.models[`${NAMESPACE}-${UseBonus.getModelName()}`]) {
-          UseBonus.parse(entity.models[`${NAMESPACE}-${UseBonus.getModelName()}`]);
-        }
-
         if (entity.models[`${NAMESPACE}-${LevelStarted.getModelName()}`]) {
           const event = LevelStarted.parse(
             entity.models[`${NAMESPACE}-${LevelStarted.getModelName()}`],
@@ -98,7 +88,7 @@ export function GameEventsProvider({ children }: { children: React.ReactNode }) 
             entity.models[`${NAMESPACE}-${LevelCompleted.getModelName()}`],
           );
           toast.success(`Level ${event.level} complete!`, {
-            description: `+${event.cubes} CUBE earned`,
+            description: `Score: ${event.score} (Total: ${event.total_score})`,
             position: getToastPlacement(),
           });
         }
@@ -106,39 +96,25 @@ export function GameEventsProvider({ children }: { children: React.ReactNode }) 
         if (entity.models[`${NAMESPACE}-${RunEnded.getModelName()}`]) {
           const event = RunEnded.parse(entity.models[`${NAMESPACE}-${RunEnded.getModelName()}`]);
           toast(`Run ended at Level ${event.final_level}`, {
-            description: `Score: ${event.final_score} | ${event.total_cubes} CUBE earned`,
+            description: `Score: ${event.final_score}`,
             position: getToastPlacement(),
           });
         }
 
-        if (entity.models[`${NAMESPACE}-${RunCompleted.getModelName()}`]) {
-          const event = RunCompleted.parse(
-            entity.models[`${NAMESPACE}-${RunCompleted.getModelName()}`],
+        if (entity.models[`${NAMESPACE}-${ZoneClearBonus.getModelName()}`]) {
+          ZoneClearBonus.parse(
+            entity.models[`${NAMESPACE}-${ZoneClearBonus.getModelName()}`],
           );
-          toast.success("🏆 Victory! All 50 levels cleared!", {
-            description: `Score: ${event.final_score} | ${event.total_cubes} CUBE earned`,
+          toast.success("Zone cleared!", {
+            description: "Bonus reward earned",
             position: getToastPlacement(),
           });
         }
 
-        if (entity.models[`${NAMESPACE}-${ConsumablePurchased.getModelName()}`]) {
-          const event = ConsumablePurchased.parse(
-            entity.models[`${NAMESPACE}-${ConsumablePurchased.getModelName()}`],
+        if (entity.models[`${NAMESPACE}-${ConstraintProgress.getModelName()}`]) {
+          ConstraintProgress.parse(
+            entity.models[`${NAMESPACE}-${ConstraintProgress.getModelName()}`],
           );
-          toast.info("Item purchased", {
-            description: `-${event.cost} CUBE`,
-            position: getToastPlacement(),
-          });
-        }
-
-        if (entity.models[`${NAMESPACE}-${BonusLevelUp.getModelName()}`]) {
-          const event = BonusLevelUp.parse(
-            entity.models[`${NAMESPACE}-${BonusLevelUp.getModelName()}`],
-          );
-          toast.success("Bonus upgraded!", {
-            description: `Now level ${event.new_level}`,
-            position: getToastPlacement(),
-          });
         }
       });
     },
