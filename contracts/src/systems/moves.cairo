@@ -144,7 +144,7 @@ mod move_system {
 
             // Read models once for the inline grid call
             let base_seed: GameSeed = world.read_model(game_id);
-            let game_level: GameLevel = world.read_model(game_id);
+            let mut game_level: GameLevel = world.read_model(game_id);
             let mutator_def_passive = grid_ops::read_mutator_def(
                 world, run_data_before_move.active_mutator_id,
             );
@@ -163,9 +163,8 @@ mod move_system {
                 final_index,
             );
 
-            // Re-read run_data and game_level from updated state
-            // (execute_move_inline modifies game in-place)
-            let mut game_level: GameLevel = world.read_model(game_id);
+            // Re-read run_data from updated game state
+            // (execute_move_inline modifies game in-place; game_level is unchanged)
             let mut run_data = game.get_run_data();
 
             // Collect all progress tasks into a batch array (emitted once at

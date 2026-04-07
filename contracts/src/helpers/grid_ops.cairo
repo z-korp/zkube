@@ -17,8 +17,8 @@ use zkube::models::config::GameSettings;
 use zkube::models::game::{Game, GameLevel, GameSeed, GameTrait};
 use zkube::models::mutator::MutatorDef;
 use zkube::types::constraint::{
-    ConstraintContext, LevelConstraint, LevelConstraintTrait, any_needs_break_blocks,
-    get_break_blocks_target_size,
+    ConstraintContext, ConstraintType, LevelConstraint, LevelConstraintTrait,
+    any_needs_break_blocks, get_break_blocks_target_size,
 };
 use zkube::types::difficulty::Difficulty;
 
@@ -90,10 +90,10 @@ pub fn execute_move_inline(
     };
     let mut new_blocks = Controller::swipe(game.blocks, row_index, start_index, direction, count);
 
-    // Assess and score (gravity + line clearing) with cascade depth tracking
+    // Assess and score (gravity + line clearing)
     let mut lines_cleared: u8 = 0;
-    let mut cascade_depth: u8 = 0;
-    let base_points = assess_game(ref new_blocks, ref lines_cleared, ref cascade_depth);
+    let mut _cascade: u8 = 0;
+    let base_points = assess_game(ref new_blocks, ref lines_cleared, ref _cascade);
     let points = apply_score_modifiers(
         base_points, run_data.run_type, score_difficulty, @settings, mutator_def,
     );
@@ -122,12 +122,14 @@ pub fn execute_move_inline(
     new_blocks = new_blocks_after_insert;
 
     // Assess again after new line
-    let mut cascade_depth_2: u8 = 0;
-    let more_base_points = assess_game(ref new_blocks, ref lines_cleared, ref cascade_depth_2);
-    let more_points = apply_score_modifiers(
-        more_base_points, run_data.run_type, score_difficulty, @settings, mutator_def,
-    );
-    update_score(ref run_data, more_points);
+    let more_base_points = assess_game(ref new_blocks, ref lines_cleared, ref _cascade);
+    // Skip modifier computation when no additional points were scored
+    if more_base_points > 0 {
+        let more_points = apply_score_modifiers(
+            more_base_points, run_data.run_type, score_difficulty, @settings, mutator_def,
+        );
+        update_score(ref run_data, more_points);
+    }
 
     if lines_cleared > 0 && line_clear_bonus > 0 {
         let bonus_points: u16 = lines_cleared.into() * line_clear_bonus.into();
@@ -137,11 +139,6 @@ pub fn execute_move_inline(
     let perfect_clear_bonus = MutatorEffectsTrait::get_perfect_clear_bonus(mutator_def);
     if new_blocks == 0 && perfect_clear_bonus > 0 {
         update_score(ref run_data, perfect_clear_bonus.into());
-    }
-
-    // Use the max cascade depth from both phases
-    if cascade_depth_2 > cascade_depth {
-        cascade_depth = cascade_depth_2;
     }
 
     // Update combos and award cube bonuses for multi-line clears
@@ -177,11 +174,17 @@ pub fn execute_move_inline(
         blocks_destroyed_of_target_size,
     };
 
-    // Update all three constraint progresses
-    run_data.constraint_progress = constraint.update_progress(run_data.constraint_progress, ctx);
-    run_data
-        .constraint_2_progress = constraint_2
-        .update_progress(run_data.constraint_2_progress, ctx);
+    // Update constraint progresses (skip when constraint type is None)
+    if constraint.constraint_type != ConstraintType::None {
+        run_data
+            .constraint_progress = constraint
+            .update_progress(run_data.constraint_progress, ctx);
+    }
+    if constraint_2.constraint_type != ConstraintType::None {
+        run_data
+            .constraint_2_progress = constraint_2
+            .update_progress(run_data.constraint_2_progress, ctx);
+    }
 
     // Increment level moves
     run_data.level_moves += 1;
