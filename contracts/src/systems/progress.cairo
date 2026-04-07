@@ -203,12 +203,16 @@ mod progress_system {
             let game_system = world
                 .dns_address(@"game_system")
                 .unwrap_or(core::num::traits::Zero::zero());
+            let daily_system = world
+                .dns_address(@"daily_challenge_system")
+                .unwrap_or(core::num::traits::Zero::zero());
 
             assert(
                 caller == move_system
                     || caller == level_system
                     || caller == story_system
-                    || caller == game_system,
+                    || caller == game_system
+                    || caller == daily_system,
                 'Unauthorized progress emitter',
             );
 
