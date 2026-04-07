@@ -51,9 +51,10 @@ export const useGame = ({
   // Retry fetching seed if game exists but seed is missing
   useEffect(() => {
     if (game && !seedComponent && retryCount < 5) {
+      const delay = 500 * Math.pow(2, retryCount);
       const timer = setTimeout(() => {
         setRetryCount((prev) => prev + 1);
-      }, 500); // Retry every 500ms
+      }, delay);
       return () => clearTimeout(timer);
     }
   }, [game, seedComponent, retryCount]);

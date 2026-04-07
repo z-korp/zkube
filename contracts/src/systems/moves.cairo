@@ -24,18 +24,16 @@ mod move_system {
     use zkube::constants::DEFAULT_SETTINGS::DEFAULT_SETTINGS_ID;
     use zkube::elements::tasks::index::Task;
     use zkube::elements::tasks::interface::TaskTrait;
-    use zkube::helpers::game_libs::{
-        GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
-    };
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::mutator::MutatorEffectsTrait;
-    use zkube::helpers::{game_over, level_check, token};
+    use zkube::helpers::{game_over, grid_ops, level_check, token};
     use zkube::models::config::{GameSettings, GameSettingsTrait};
     use zkube::models::daily::{DailyAttempt, DailyAttemptTrait, DailyChallenge};
-    use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
+    use zkube::models::game::{Game, GameAssert, GameLevel, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::PlayerBestRun;
     use zkube::models::story::{StoryAttempt, StoryAttemptTrait, StoryZoneProgress};
+    use zkube::systems::level::{ILevelSystemDispatcher, ILevelSystemDispatcherTrait};
     use zkube::systems::progress::{IProgressSystemDispatcher, IProgressSystemDispatcherTrait};
     use zkube::types::difficulty::Difficulty;
 
@@ -81,7 +79,7 @@ mod move_system {
                 );
             }
 
-            let game: Game = world.read_model(game_id);
+            let mut game: Game = world.read_model(game_id);
             if is_story_game {
                 assert!(story_game.player == player, "not story owner");
             } else if is_daily_game {
@@ -96,20 +94,6 @@ mod move_system {
             assert!(row_index < 10, "Invalid row_index: must be < 10");
             assert!(start_index < 8, "Invalid start_index: must be < 8");
             assert!(final_index < 8, "Invalid final_index: must be < 8");
-
-            // Initialize GameLibs once for all dispatcher calls
-            let libs = GameLibsImpl::new(world);
-
-            // Execute move via grid_system dispatcher (contains Controller logic)
-            let (lines_cleared, is_grid_full) = libs
-                .grid
-                .execute_move(game_id, row_index, start_index, final_index);
-
-            // Re-read game ONCE after grid_system modified it; reuse for all
-            // subsequent checks and writes to avoid redundant storage reads.
-            let mut game: Game = world.read_model(game_id);
-            let mut game_level: GameLevel = world.read_model(game_id);
-            let mut run_data = game.get_run_data();
 
             // Inline settings resolution — avoids redundant StoryAttempt/DailyAttempt
             // reads that ConfigUtilsTrait::get_game_settings would perform again.
@@ -158,6 +142,32 @@ mod move_system {
 
             let sid = settings.settings_id;
 
+            // Read models once for the inline grid call
+            let base_seed: GameSeed = world.read_model(game_id);
+            let game_level: GameLevel = world.read_model(game_id);
+            let mutator_def_passive = grid_ops::read_mutator_def(
+                world, run_data_before_move.active_mutator_id,
+            );
+
+            // Execute move inline — game is updated by ref, no re-read needed
+            let (lines_cleared, is_grid_full) = grid_ops::execute_move_inline(
+                ref world,
+                game_id,
+                ref game,
+                base_seed,
+                game_level,
+                settings,
+                @mutator_def_passive,
+                row_index,
+                start_index,
+                final_index,
+            );
+
+            // Re-read run_data and game_level from updated state
+            // (execute_move_inline modifies game in-place)
+            let mut game_level: GameLevel = world.read_model(game_id);
+            let mut run_data = game.get_run_data();
+
             // Collect all progress tasks into a batch array (emitted once at
             // the end) to avoid multiple cross-contract dispatcher calls.
             let mut progress_tasks: Array<(felt252, u128)> = array![];
@@ -174,10 +184,9 @@ mod move_system {
                 progress_tasks.append((Task::Combo5.identifier(), 1));
             }
 
-            // Mutator-driven non-bonus effects (scoring/pressure) still read from MutatorDef.
+            // Reuse the passive mutator def already read for the grid call.
             let mut run_data_changed = false;
-            let active_mutator_id = run_data.active_mutator_id;
-            let mutator_def = InternalImpl::read_mutator_def(world, active_mutator_id);
+            let mutator_def = mutator_def_passive;
 
             // Track per-level lines cleared in run_data.
             let next_level_lines_cleared_u16: u16 = run_data.level_lines_cleared.into()
@@ -294,7 +303,11 @@ mod move_system {
                     if run_data_changed {
                         world.write_model(@game);
                     }
-                    libs.level.finalize_level(game_id, player);
+                    let level_addr = world
+                        .dns_address(@"level_system")
+                        .expect('LevelSystem not found');
+                    let level_dispatcher = ILevelSystemDispatcher { contract_address: level_addr };
+                    level_dispatcher.finalize_level(game_id, player);
                 } else if is_grid_full {
                     game.over = true;
                     world.write_model(@game);
@@ -368,15 +381,6 @@ mod move_system {
             } else {
                 next_charges_u16.try_into().unwrap()
             }
-        }
-
-        fn read_mutator_def(world: WorldStorage, mutator_id: u8) -> MutatorDef {
-            if mutator_id == 0 {
-                return MutatorEffectsTrait::neutral(0);
-            }
-
-            let stored: MutatorDef = world.read_model(mutator_id);
-            MutatorEffectsTrait::normalize(mutator_id, stored)
         }
     }
 }

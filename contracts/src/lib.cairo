@@ -64,6 +64,7 @@ pub mod helpers {
     pub mod game_libs;
     pub mod game_over;
     pub mod gravity;
+    pub mod grid_ops;
     pub mod level;
     pub mod level_check;
     pub mod mutator;

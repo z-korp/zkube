@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x2bde96e025e027ca70855a3386db8ba4171e144d2c94f5ba43f3bf184a73446",
-    "seed": "zkube_v3_7",
+    "address": "0x7533d3f1c42ff69b8f184d4ab3d91c592e14c72ad6441f527081f5aa74c4980",
+    "seed": "zkube_v3_8",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,7 +33,7 @@
   },
   "contracts": [
     {
-      "address": "0x7e7776dc9cc7a49e59af6da35364acc3d46826fe10f83506373630d099a7004",
+      "address": "0x3ed7651266854b412a4b3d9af77daf79cb6273fcb69c52647cc19025b20e49a",
       "class_hash": "0x24a7bd31fd3b9af8a194d6f54cfa200db91acd7e801d2bd6310c3fd134e267f",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
@@ -61,7 +61,7 @@
       ]
     },
     {
-      "address": "0x10ed654a1b41b53f4abb21b392ce2c06505be25a42375e889b375ba72c89201",
+      "address": "0x3ccf5fe70bd970299dc1fda5fca79558f26863c2a905e8b86ef39bf54850116",
       "class_hash": "0xbcac74ebcc3abb2bcd16dd4636c0bb30f521df93b4d4338c03c06791175c5",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
@@ -78,7 +78,7 @@
       ]
     },
     {
-      "address": "0x3ad5a42df425c49ac96abc4f3c5fcae4dde658b66717871f1238d8d10327822",
+      "address": "0x4622624813749d979952174c8c7ee00872c5685da1f5461d87c89337d98f069",
       "class_hash": "0x57e8775fd39efacd1da700e91053a999d8a5f45239150b81f817ddbf90e9e72",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
@@ -98,22 +98,20 @@
       ]
     },
     {
-      "address": "0x50573686707aad3f90959fd6e807add2917831a063cf3620e2d4dcee3c327f2",
-      "class_hash": "0x416c3356ba38c2fd252b022ce1f77cc536c5e1cd37b00f35c84971b4a1616a8",
+      "address": "0x16dc6024ef66da00fa0c847f4126cb150b99f8d09eafa46fba30c70ed8047a",
+      "class_hash": "0x413fa37a85c869c6cd6734a9d6d41df58bec6741f605b3af18149a222c3ee85",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-grid_system",
       "selector": "0x2732f9d5d9f7ff5bcdb81566cb6589ca0fbf32cdb06911ea678adb3b5b06c37",
       "systems": [
         "initialize_grid",
         "reset_grid_for_level",
-        "execute_move",
         "insert_line_if_empty",
-        "assess_grid",
         "upgrade"
       ]
     },
     {
-      "address": "0x5047b9a9a0123642652bb3ead70ee8c890ca53c9779deaf2f98e1762c372d76",
+      "address": "0x215ed1e8656e65d2ca0b5add978f45d0636791a6db54ec98d573b80050591ac",
       "class_hash": "0x29dc93f123f0c9b534f4802f6ea5dd12ae6c803cc2717b112e8750ae511f5d6",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-level_system",
@@ -128,8 +126,8 @@
       ]
     },
     {
-      "address": "0x7289546501beef7ee79f934b3fd70f2e1eccb95aa84c62314a5ab33c2205ebc",
-      "class_hash": "0x678f4c93371dcfaadb412c5b9ba6ce7f06422f80d954cf0320a88afd227750a",
+      "address": "0x4dcb80647a9159da33fda719ceda6dc0db23bb949a3829b0c3e9fe369220bfd",
+      "class_hash": "0x5ddf190025bed2606ff4fb664bd251bbab1149458549ef7cf1b13716685bffc",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-move_system",
       "selector": "0x2c6e7f38e7f45f67fca81df91805a8f3ee1d9842366e3e3d32f13f46cbf60d",
@@ -139,7 +137,7 @@
       ]
     },
     {
-      "address": "0x752b476d45e81603fb839f9008e7372a92ebd70b82d9d3bca0de9819a4b5873",
+      "address": "0x4f00b9fb70a4a544033f09bd0ecbb1a56433e63b0898f1d0bfda90d4572c5bb",
       "class_hash": "0x68ab76dd32b69dba397729a1da6968540fd85af1d41cbb5dbca4bfc32819f96",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-progress_system",
@@ -154,7 +152,7 @@
       ]
     },
     {
-      "address": "0xf5041c6d82eb6ce3bc496be47ef49488a4db3f8357d34ec67f775fbf6a6e41",
+      "address": "0x7f0515852a73f0508903171d5ed5a04914e74ebcb8cf6f5964ace959b4864b",
       "class_hash": "0x6589729ae757fd08a3056150cc274f2677abab11a1fcd209b6e53ede00f6e47",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-renderer_systems",
@@ -164,7 +162,7 @@
       ]
     },
     {
-      "address": "0x4125f1121e01d810ccbd358a3aa986e0a4e2cb9be5af97d61ef2405bf1c784",
+      "address": "0x35a410aa551edea22a6421fb0d49f8b6219efb49dcdbb2467827c9b7e2728db",
       "class_hash": "0xfd7baf76dfa04a513b7fadd178bc96a2e0f84b58dda034e661f98694e5daa4",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-story_system",
@@ -8342,34 +8340,6 @@
         },
         {
           "type": "function",
-          "name": "execute_move",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::felt252"
-            },
-            {
-              "name": "row_index",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "start_index",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "final_index",
-              "type": "core::integer::u8"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "(core::integer::u8, core::bool)"
-            }
-          ],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
           "name": "insert_line_if_empty",
           "inputs": [
             {
@@ -8378,22 +8348,6 @@
             }
           ],
           "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "assess_grid",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::felt252"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "(core::integer::u8, core::integer::u16)"
-            }
-          ],
           "state_mutability": "external"
         }
       ]

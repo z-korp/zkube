@@ -9,7 +9,7 @@
 //!
 //! let libs = GameLibsImpl::new(world);
 //! libs.level.finalize_level(game_id, player);
-//! libs.grid.execute_move(game_id, row, start, end);
+//! libs.grid.initialize_grid(game_id);
 //! ```
 
 use dojo::world::{WorldStorage, WorldStorageTrait};

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { GameState } from "@/enums/gameEnums";
 import type { Block } from "@/types/types";
 
@@ -12,14 +12,14 @@ interface BlockProps {
   isExploding?: boolean;
   handleMouseDown?: (
     e: React.MouseEvent<HTMLDivElement>,
-    block: BlockProps["block"]
+    block: Block
   ) => void;
   handleTouchStart?: (
     e: React.TouchEvent<HTMLDivElement>,
-    block: BlockProps["block"]
+    block: Block
   ) => void;
-  onTransitionBlockStart?: () => void;
-  onTransitionBlockEnd?: () => void;
+  onTransitionBlockStart?: (id: number) => void;
+  onTransitionBlockEnd?: (id: number) => void;
 }
 
 const BlockContainer: React.FC<BlockProps> = ({
@@ -50,7 +50,7 @@ const BlockContainer: React.FC<BlockProps> = ({
       ) {
         return;
       }
-      if (onTransitionBlockStart !== undefined) onTransitionBlockStart();
+      onTransitionBlockStart?.(block.id);
     };
 
     element.addEventListener("transitionstart", onTransitionStart);
@@ -58,12 +58,15 @@ const BlockContainer: React.FC<BlockProps> = ({
     return () => {
       element?.removeEventListener("transitionstart", onTransitionStart);
     };
-  }, [onTransitionBlockStart, state]);
+  }, [onTransitionBlockStart, state, block.id]);
 
-  const handleTransitionEnd = (event: React.TransitionEvent<HTMLDivElement>) => {
-    if (event.propertyName !== "top") return;
-    if (onTransitionBlockEnd !== undefined) onTransitionBlockEnd();
-  };
+  const handleTransitionEnd = useCallback(
+    (event: React.TransitionEvent<HTMLDivElement>) => {
+      if (event.propertyName !== "top") return;
+      onTransitionBlockEnd?.(block.id);
+    },
+    [onTransitionBlockEnd, block.id],
+  );
 
   return (
     <div
@@ -81,19 +84,15 @@ const BlockContainer: React.FC<BlockProps> = ({
           state === GameState.GRAVITY ||
           state === GameState.GRAVITY2 ||
           state === GameState.GRAVITY_BONUS
-            ? `top ${transitionDuration / 1000}s cubic-bezier(0.2, 0.8, 0.2, 1)`
+            ? `top ${transitionDuration / 1000}s linear`
             : "none",
         color: "white",
       }}
-      onMouseDown={(e) => {
-        if (handleMouseDown !== undefined) handleMouseDown(e, block);
-      }}
-      onTouchStart={(e) => {
-        if (handleTouchStart !== undefined) handleTouchStart(e, block);
-      }}
+      onMouseDown={(e) => handleMouseDown?.(e, block)}
+      onTouchStart={(e) => handleTouchStart?.(e, block)}
       onTransitionEnd={handleTransitionEnd}
     ></div>
   );
 };
 
-export default BlockContainer;
+export default React.memo(BlockContainer);

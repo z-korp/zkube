@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Account } from "starknet";
 import { useDojo } from "@/dojo/useDojo";
 import BlockContainer from "./Block";
@@ -121,8 +121,14 @@ const Grid: React.FC<GridProps> = ({
     handleTransitionBlockEnd,
   } = useTransitionBlocks();
 
-  const queueForGame = queue.filter((item) => item.gameId === gameId);
-  const nextQueuedMove = queueForGame.find((item) => item.status === "queued");
+  const queueForGame = useMemo(
+    () => queue.filter((item) => item.gameId === gameId),
+    [queue, gameId],
+  );
+  const nextQueuedMove = useMemo(
+    () => queueForGame.find((item) => item.status === "queued"),
+    [queueForGame],
+  );
 
   // ==================== Constants ====================
   const borderSize = 2;
@@ -218,7 +224,6 @@ const Grid: React.FC<GridProps> = ({
         boundedX,
         dragging.y,
         dragging.width,
-        blocks,
         dragging.id
       )
     ) {
@@ -231,69 +236,86 @@ const Grid: React.FC<GridProps> = ({
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent, block: Block) => {
-    if (gameState !== GameState.WAITING || isTxProcessing) {
+  // Keep mutable state in refs for stable callbacks
+  const blocksRef = useRef(blocks);
+  blocksRef.current = blocks;
+  const gridPositionRef = useRef(gridPosition);
+  gridPositionRef.current = gridPosition;
+  const bonusRef = useRef(bonus);
+  bonusRef.current = bonus;
+  const activeBonusLevelRef = useRef(activeBonusLevel);
+  activeBonusLevelRef.current = activeBonusLevel;
+  const isTxProcessingRef = useRef(isTxProcessing);
+  isTxProcessingRef.current = isTxProcessing;
+
+  const handleTouchStart = useCallback((e: React.TouchEvent, block: Block) => {
+    if (gameStateRef.current !== GameState.WAITING || isTxProcessingRef.current) {
       return;
     }
 
     const touch = e.touches[0];
     handleDragStart(touch.clientX, block);
-  };
+  }, []);
 
-  const handleMouseDown = (e: React.MouseEvent, block: Block) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent, block: Block) => {
     e.preventDefault();
-    if (gameState !== GameState.WAITING || isTxProcessing) {
+    if (gameStateRef.current !== GameState.WAITING || isTxProcessingRef.current) {
       return;
     }
 
+    const currentBonus = bonusRef.current;
+    const currentBlocks = blocksRef.current;
+    const currentGridPosition = gridPositionRef.current;
+    const currentActiveBonusLevel = activeBonusLevelRef.current;
+
     // GRID bonuses: Hammer, Totem, Wave — modify blocks, then gravity state machine
-    if (bonus === BonusType.Hammer) {
+    if (currentBonus === BonusType.Hammer) {
       // Hammer: destroy single block at target position
       setBlockBonus(block);
-      if (gridPosition !== null) {
+      if (currentGridPosition !== null) {
         handleTriggerLocalExplosion(
-          gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
-          gridPosition.top + block.y * gridSize
+          currentGridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
+          currentGridPosition.top + block.y * gridSize
         );
       }
-      setBlocks(blocks.filter((b) => !(b.x === block.x && b.y === block.y)));
-    } else if (bonus === BonusType.Totem) {
+      setBlocks(currentBlocks.filter((b) => !(b.x === block.x && b.y === block.y)));
+    } else if (currentBonus === BonusType.Totem) {
       setBlockBonus(block);
-      getBlocksSameWidth(block, blocks).forEach((b) => {
-        if (gridPosition === null) return;
+      getBlocksSameWidth(block, currentBlocks).forEach((b) => {
+        if (currentGridPosition === null) return;
         handleTriggerLocalExplosion(
-          gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
-          gridPosition.top + b.y * gridSize
+          currentGridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
+          currentGridPosition.top + b.y * gridSize
         );
       });
-      setBlocks(removeBlocksSameWidth(block, blocks));
-    } else if (bonus === BonusType.Wave) {
+      setBlocks(removeBlocksSameWidth(block, currentBlocks));
+    } else if (currentBonus === BonusType.Wave) {
       setBlockBonus(block);
-      const rowCount = activeBonusLevel + 1;
+      const rowCount = currentActiveBonusLevel + 1;
       const rows: number[] = [];
       for (let i = 0; i < rowCount; i++) {
         const r = block.y + i;
         if (r < gridHeight) rows.push(r);
       }
-      getBlocksInRows(rows, blocks).forEach((b) => {
-        if (gridPosition === null) return;
+      getBlocksInRows(rows, currentBlocks).forEach((b) => {
+        if (currentGridPosition === null) return;
         handleTriggerLocalExplosion(
-          gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
-          gridPosition.top + b.y * gridSize
+          currentGridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
+          currentGridPosition.top + b.y * gridSize
         );
       });
-      setBlocks(removeBlocksInRows(rows, blocks));
+      setBlocks(removeBlocksInRows(rows, currentBlocks));
     }
 
     // Grid bonuses enter gravity state machine
-    if (bonus === BonusType.Hammer || bonus === BonusType.Totem || bonus === BonusType.Wave) {
+    if (currentBonus === BonusType.Hammer || currentBonus === BonusType.Totem || currentBonus === BonusType.Wave) {
       setIsTxProcessing(true);
       setIsMoving(true);
       setGameState(GameState.GRAVITY_BONUS);
       return;
     }
     handleDragStart(e.clientX, block);
-  };
+  }, [gridSize, gridHeight]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     handleDragMove(e.clientX, MoveType.MOUSE);
@@ -468,27 +490,35 @@ const Grid: React.FC<GridProps> = ({
 
   // =================== GAME LOGIC ===================
 
+  const blocksByRow = useMemo(() => {
+    const map = new Map<number, Block[]>();
+    for (const block of blocks) {
+      const existing = map.get(block.y);
+      if (existing) existing.push(block);
+      else map.set(block.y, [block]);
+    }
+    return map;
+  }, [blocks]);
+
   const isBlocked = (
     initialX: number,
     newX: number,
     y: number,
     width: number,
-    blocks: Block[],
     blockId: number
   ) => {
-    const rowBlocks = blocks.filter(
-      (block) => block.y === y && block.id !== blockId
-    );
+    const rowBlocks = blocksByRow.get(y);
+    if (!rowBlocks) return false;
 
     if (newX > initialX) {
       for (const block of rowBlocks) {
-        if (block.x >= initialX + width && block.x < newX + width) {
+        if (block.id !== blockId && block.x >= initialX + width && block.x < newX + width) {
           return true;
         }
       }
     } else {
       for (const block of rowBlocks) {
-        if (block.x + block.width > newX && block.x <= initialX) {
+        if (block.id !== blockId && block.x + block.width > newX && block.x <= initialX) {
           return true;
         }
       }
@@ -499,6 +529,7 @@ const Grid: React.FC<GridProps> = ({
 
   const applyGravity = () => {
     setBlocks((prevBlocks) => {
+      let anyChanged = false;
       const newBlocks = prevBlocks.map((block) => {
         const fallDistance = calculateFallDistance(
           block,
@@ -506,20 +537,14 @@ const Grid: React.FC<GridProps> = ({
           gridHeight
         );
         if (fallDistance > 0) {
+          anyChanged = true;
           return { ...block, y: block.y + 1 };
         }
         return block;
       });
 
-      const newBlockMap = new Map(newBlocks.map((b) => [b.id, b]));
-      const blocksChanged = !prevBlocks.every((block) => {
-        const newBlock = newBlockMap.get(block.id);
-        return newBlock && block.x === newBlock.x && block.y === newBlock.y;
-      });
-
-      setIsMoving(blocksChanged);
-
-      return newBlocks;
+      setIsMoving(anyChanged);
+      return anyChanged ? newBlocks : prevBlocks;
     });
   };
 
@@ -755,10 +780,8 @@ const Grid: React.FC<GridProps> = ({
                 isExploding={explodingRows.has(block.y)}
                 handleMouseDown={handleMouseDown}
                 handleTouchStart={handleTouchStart}
-                onTransitionBlockStart={() =>
-                  handleTransitionBlockStart(block.id)
-                }
-                onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
+                onTransitionBlockStart={handleTransitionBlockStart}
+                onTransitionBlockEnd={handleTransitionBlockEnd}
               />
             ))}
             <div className="flex items-center justify-center font-sans z-20 pointer-events-none">
