@@ -896,8 +896,8 @@ function unpackConstraintChances(packed: bigint | number): {
 function unpackEndlessThresholds(packed: bigint | number | string): number[] {
   const p = BigInt(packed);
   if (p === 0n) return DEFAULT_SETTINGS.endlessDifficultyThresholds;
-  const thresholds: number[] = [0];
-  for (let i = 0; i < 7; i++) {
+  const thresholds: number[] = [];
+  for (let i = 0; i < 8; i++) {
     thresholds.push(Number((p >> BigInt(i * 16)) & 0xFFFFn));
   }
   return thresholds;

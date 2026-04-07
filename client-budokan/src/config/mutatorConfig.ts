@@ -30,16 +30,18 @@ export const MUTATOR_DEFS: Record<number, MutatorDef> = {
   },
 };
 
-const createFallbackMutator = (id: number): MutatorDef => ({
+const createFallbackMutator = (id: number, onChainName?: string): MutatorDef => ({
   id,
-  name: `Mutator ${id}`,
-  description: "This on-chain mutator is not named in the current client build yet.",
+  name: onChainName || `Mutator ${id}`,
+  description: onChainName
+    ? `On-chain mutator: ${onChainName}`
+    : "This on-chain mutator is not named in the current client build yet.",
   icon: id % 2 === 0 ? "🛡️" : "✨",
   effects: ["Special on-chain modifier active"],
 });
 
-export const getMutatorDef = (id: number): MutatorDef =>
-  id <= 0 ? MUTATOR_DEFS[0] : (MUTATOR_DEFS[id] ?? createFallbackMutator(id));
+export const getMutatorDef = (id: number, onChainName?: string): MutatorDef =>
+  id <= 0 ? MUTATOR_DEFS[0] : (MUTATOR_DEFS[id] ?? createFallbackMutator(id, onChainName));
 
 export const BONUS_TYPES: Record<number, { name: string; icon: string; description: string }> = {
   0: { name: "None", icon: "", description: "" },

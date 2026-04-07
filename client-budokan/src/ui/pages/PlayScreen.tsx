@@ -334,6 +334,7 @@ const PlayScreen: React.FC = () => {
           mode={game?.mode ?? 0}
           totalScore={game?.totalScore ?? 0}
           currentDifficulty={game?.currentDifficulty ?? 0}
+          zoneId={game?.zoneId ?? 1}
         />
       )}
 

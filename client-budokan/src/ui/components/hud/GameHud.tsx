@@ -6,6 +6,8 @@ import type { GameLevelData } from "@/hooks/useGameLevel";
 import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
 import { getCommonAssetPath } from "@/config/themes";
 import { getMutatorDef } from "@/config/mutatorConfig";
+import { useSettings } from "@/hooks/useSettings";
+import { useMutatorDef } from "@/hooks/useMutatorDef";
 import {
   Tooltip,
   TooltipContent,
@@ -28,22 +30,34 @@ interface GameHudProps {
   mode?: number;
   totalScore?: number;
   currentDifficulty?: number;
+  zoneId?: number;
 }
 
 const RING_SIZE_MOBILE = 44;
 const RING_SIZE_DESKTOP = 56;
 const DESKTOP_BREAKPOINT = 640;
 
-const ENDLESS_TIERS = [
-  { name: "Very Easy", color: "#22c55e", emoji: "🟢", threshold: 0, multiplier: "×1.0" },
-  { name: "Easy", color: "#84cc16", emoji: "🟡", threshold: 15, multiplier: "×1.2" },
-  { name: "Medium", color: "#eab308", emoji: "🟠", threshold: 40, multiplier: "×1.4" },
-  { name: "Medium Hard", color: "#f97316", emoji: "🔶", threshold: 80, multiplier: "×1.7" },
-  { name: "Hard", color: "#ef4444", emoji: "🔴", threshold: 150, multiplier: "×2.0" },
-  { name: "Very Hard", color: "#dc2626", emoji: "💀", threshold: 280, multiplier: "×2.5" },
-  { name: "Expert", color: "#9333ea", emoji: "⚡", threshold: 500, multiplier: "×3.3" },
-  { name: "Master", color: "#f59e0b", emoji: "👑", threshold: 900, multiplier: "×4.0" },
+const TIER_DISPLAY = [
+  { name: "Very Easy", color: "#22c55e", emoji: "🟢" },
+  { name: "Easy", color: "#84cc16", emoji: "🟡" },
+  { name: "Medium", color: "#eab308", emoji: "🟠" },
+  { name: "Medium Hard", color: "#f97316", emoji: "🔶" },
+  { name: "Hard", color: "#ef4444", emoji: "🔴" },
+  { name: "Very Hard", color: "#dc2626", emoji: "💀" },
+  { name: "Expert", color: "#9333ea", emoji: "⚡" },
+  { name: "Master", color: "#f59e0b", emoji: "👑" },
 ] as const;
+
+function buildEndlessTiers(
+  thresholds: number[],
+  multipliers: number[],
+) {
+  return TIER_DISPLAY.map((display, i) => ({
+    ...display,
+    threshold: thresholds[i] ?? 0,
+    multiplier: `×${(multipliers[i] ?? 10) / 10}`,
+  }));
+}
 
 const subscribeResize = (cb: () => void) => {
   window.addEventListener("resize", cb);
@@ -144,12 +158,22 @@ const GameHud: React.FC<GameHudProps> = ({
   mode = 0,
   totalScore = 0,
   currentDifficulty = 0,
+  zoneId = 1,
 }) => {
   const isDesktop = useSyncExternalStore(subscribeResize, getIsDesktop, () => false);
   const ringSize = isDesktop ? RING_SIZE_DESKTOP : RING_SIZE_MOBILE;
   const isEndless = mode === 1;
 
-  const mutator = getMutatorDef(activeMutatorId);
+  // Read GameSettings from chain to get dynamic endless tiers
+  const settingsId = Math.max(0, (zoneId - 1) * 2);
+  const { settings } = useSettings(settingsId);
+  const ENDLESS_TIERS = useMemo(
+    () => buildEndlessTiers(settings.endlessDifficultyThresholds, settings.endlessScoreMultipliers),
+    [settings.endlessDifficultyThresholds, settings.endlessScoreMultipliers],
+  );
+
+  const { data: onChainMutator } = useMutatorDef(activeMutatorId);
+  const mutator = getMutatorDef(activeMutatorId, onChainMutator?.name);
 
   const [prevDifficulty, setPrevDifficulty] = useState<number | undefined>(currentDifficulty);
   const [showDifficultyUp, setShowDifficultyUp] = useState(false);
