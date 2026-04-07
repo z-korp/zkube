@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0xdd6a061d5080230355190163d435dfa80bf926a0ccad5f9b0e106e663cfa6c",
-    "seed": "zkube_v3_2",
+    "address": "0x524e8a496bbaedbf84c3383ca7f9cb0259865f1fe0668695192100b8f0fc687",
+    "seed": "zkube_v3_3",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,7 +33,7 @@
   },
   "contracts": [
     {
-      "address": "0x4b638a250aaba7f9976d02bc3962cf64b465c9718b2717b6b48a3dba5f8ec00",
+      "address": "0x1c23b0af4e02cac68214f77c22f9712185ca9a223c98811842905f3efc4d9bf",
       "class_hash": "0x56375750ee3ceabb2da1f989b37d7f4af5ff8ab44923ba63c87e5cc9b2a5b35",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
@@ -61,8 +61,8 @@
       ]
     },
     {
-      "address": "0x339ccce1f909090c5d20f41b9d379143e9d5df47c4a0c0cf23fd14976c465f8",
-      "class_hash": "0x45f49a353c1d1fd3712e132cdfd0b248999a4fdd83055118d4e341e0f5f68cf",
+      "address": "0x432d3d987905ed3ed2f65620661bf427b28c202959eaabc7e1fe7f5ae081827",
+      "class_hash": "0xe3aafe67d937442991d8548100468030ea5c7b201e9a7758caae1cd28e5c3",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
       ],
@@ -78,8 +78,8 @@
       ]
     },
     {
-      "address": "0x6c2ca4d9adc2dde86086380b8d608c701fdfcfea5ab48b7a98396bd3d155333",
-      "class_hash": "0x27e382d0d1dafa45005b2da66220da7fd674053ad1601941c474fa4219347f3",
+      "address": "0x635fe676831bbbf0b996bb323761c7f54aa859e31377447ac2ee7245d3b29ef",
+      "class_hash": "0x7084e548f9fb9a3c58505f0a26a49312be9f156cfa68617adbcb2e9c0272751",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x013e661f437432e76575402d45f0b523f01246b211fcc015aab2dc20b6b43a5c",
@@ -98,8 +98,8 @@
       ]
     },
     {
-      "address": "0x487c2fb8e0cd5ac62a934f894cb008b43bc8695da3bbe4c509011303319daee",
-      "class_hash": "0x308e9eafbc40de2e4e554263aaa8e5ad8e4cb33cd409a0027adb3c67456b46d",
+      "address": "0x33b424e4ff6146e5e742264ab9c94aa24d4752501036b4fe4e2b956351e0937",
+      "class_hash": "0x169184263e56aa0ffb4e6344eaf34f3ccab34130663b95dab52b96c33b6a063",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-grid_system",
       "selector": "0x2732f9d5d9f7ff5bcdb81566cb6589ca0fbf32cdb06911ea678adb3b5b06c37",
@@ -113,8 +113,8 @@
       ]
     },
     {
-      "address": "0x34b124315330bde2c40abed4b8c50ae00e3fe7d636f9a570bc538b25481f5a6",
-      "class_hash": "0x2d0e4d8ee773e7cbb301d73cd38070f1bb17ecf083fe00c024d4d951dcf17bc",
+      "address": "0x49ebcbb9c1a01a11cdd8886647fc49180be2645a1885b26e69f95f23c01e17f",
+      "class_hash": "0x40d2897e4dc0fe6d861a347fabc59dddc84522106fe919edf468688f20bbdb1",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-level_system",
       "selector": "0x1689592ed01fb67e736e3075b7d3b060bfd9ea2904147c7e161bc3f08ae2e9",
@@ -128,8 +128,8 @@
       ]
     },
     {
-      "address": "0x1bc4a93514d224d2a3a8f89db85fc568510bcd79368ae6be4cc931fe23c0e4a",
-      "class_hash": "0x3994264939c72bd9778ca1371508c6a207af4f1d8d76a0c36bbbd22431a0fa7",
+      "address": "0x1e8e63934cc6401e472ea6823aa69499f5e489b8940cbd41c8b3ef3b0e40b8f",
+      "class_hash": "0x4cef06c6e18927a1c958a3929c45d62499f81130dfced38b6a4f1fa213a2726",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-move_system",
       "selector": "0x2c6e7f38e7f45f67fca81df91805a8f3ee1d9842366e3e3d32f13f46cbf60d",
@@ -139,7 +139,7 @@
       ]
     },
     {
-      "address": "0xe2688cbb544be5da627f976ad198d456833a0472d3c1a22cf5edff3532db1c",
+      "address": "0x701d94bb62568210c3dbd057216734b15b44e771fb748d3356bbdfbe921916a",
       "class_hash": "0x534777e20c0daad923947804da5ebc580c88d577f2816f9663556a3d6ae684e",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-progress_system",
@@ -153,7 +153,7 @@
       ]
     },
     {
-      "address": "0x7bf1dcdb1e1ff075d321647f39d31171e28218f94e6438d1a12604179599e4e",
+      "address": "0x384200a0b403577e0c96e78d37b74c619fa3cbcc9f60ea2782b61388faedebf",
       "class_hash": "0x285dcc05a42f92bb508b75667ee9339cea43159d1177f7865141fcd87f37eed",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-renderer_systems",
@@ -163,7 +163,7 @@
       ]
     },
     {
-      "address": "0x754b203fbd44c086de016429c0ee9c459cde1e062aa50cc473aee9604052caa",
+      "address": "0x6aa1a6e35ef75cc5927f3129ca7dd719af1386d51c98f4e3045d65303f3c5f3",
       "class_hash": "0x68e461c2df3bd48b98828be7fd59dc8195ce696fe8bce483ce781f625c5ce14",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-story_system",
@@ -390,7 +390,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x4da16efdef3b334939f2c7d584aeb6bf1717ffd29d3ccb7c5c26bdae1cb199c",
+      "class_hash": "0x5e6cb489c5e58ee7fef48b36ec663c5ecb47a331c4f7705a4e88eb79b17cf75",
       "tag": "zkube_v2_1_0-DailyAttempt",
       "selector": "0x7c1967ce0f5a0ca5eec950d1673abc9c0e26d5d0f13a1706262587d836114db"
     },

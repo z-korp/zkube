@@ -41,7 +41,7 @@ pub struct DailyChallenge {
 
 /// Per-player attempt for a daily game — links game_id to daily context
 /// Analogous to StoryAttempt for settings resolution + auth bypass
-#[derive(Copy, Drop, Serde, IntrospectPacked)]
+#[derive(Copy, Drop, Serde, Introspect)]
 #[dojo::model]
 pub struct DailyAttempt {
     #[key]
