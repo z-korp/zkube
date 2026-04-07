@@ -21,21 +21,23 @@ mod move_system {
     use game_components_embeddable_game_standard::token::token::LifecycleTrait;
     use starknet::{get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
+    use zkube::constants::DEFAULT_SETTINGS::DEFAULT_SETTINGS_ID;
     use zkube::elements::tasks::index::Task;
     use zkube::elements::tasks::interface::TaskTrait;
-    use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::game_libs::{
         GameLibsImpl, IGridSystemDispatcherTrait, ILevelSystemDispatcherTrait,
     };
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::{game_over, level_check, token};
-    use zkube::models::daily::{DailyAttempt, DailyAttemptTrait};
+    use zkube::models::config::{GameSettings, GameSettingsTrait};
+    use zkube::models::daily::{DailyAttempt, DailyAttemptTrait, DailyChallenge};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::PlayerBestRun;
     use zkube::models::story::{StoryAttempt, StoryAttemptTrait, StoryZoneProgress};
     use zkube::systems::progress::{IProgressSystemDispatcher, IProgressSystemDispatcherTrait};
+    use zkube::types::difficulty::Difficulty;
 
     #[storage]
     struct Storage {}
@@ -51,10 +53,18 @@ mod move_system {
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let player = get_caller_address();
+
+            // Read StoryAttempt first; skip DailyAttempt read entirely when
+            // it's a story game (saves ~2,500 gas on every story move).
             let story_game: StoryAttempt = world.read_model(game_id);
             let is_story_game = story_game.exists();
-            let daily_game: DailyAttempt = world.read_model(game_id);
-            let is_daily_game = daily_game.exists();
+            let (is_daily_game, daily_player, daily_zone_id, daily_challenge_id) =
+                if is_story_game {
+                (false, core::num::traits::Zero::zero(), 0_u8, 0_u32)
+            } else {
+                let daily: DailyAttempt = world.read_model(game_id);
+                (daily.exists(), daily.player, daily.zone_id, daily.challenge_id)
+            };
             let is_non_token_game = is_story_game || is_daily_game;
 
             let token_address = token::get_token_address(world);
@@ -75,7 +85,7 @@ mod move_system {
             if is_story_game {
                 assert!(story_game.player == player, "not story owner");
             } else if is_daily_game {
-                assert!(daily_game.player == player, "not daily owner");
+                assert!(daily_player == player, "not daily owner");
             } else {
                 assert_token_ownership(token_address, token_id_felt);
             }
@@ -89,12 +99,6 @@ mod move_system {
 
             // Initialize GameLibs once for all dispatcher calls
             let libs = GameLibsImpl::new(world);
-            let progress_address = world
-                .dns_address(@"progress_system")
-                .expect('ProgressSystem not found');
-            let progress_dispatcher = IProgressSystemDispatcher {
-                contract_address: progress_address,
-            };
 
             // Execute move via grid_system dispatcher (contains Controller logic)
             let (lines_cleared, is_grid_full) = libs
@@ -106,22 +110,68 @@ mod move_system {
             let mut game: Game = world.read_model(game_id);
             let mut game_level: GameLevel = world.read_model(game_id);
             let mut run_data = game.get_run_data();
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+
+            // Inline settings resolution — avoids redundant StoryAttempt/DailyAttempt
+            // reads that ConfigUtilsTrait::get_game_settings would perform again.
+            let settings = if is_story_game {
+                let sid: u32 = ((story_game.zone_id - 1) * 2).into();
+                let s: GameSettings = world.read_model(sid);
+                if s.exists() {
+                    s
+                } else {
+                    GameSettingsTrait::new_with_defaults(
+                        DEFAULT_SETTINGS_ID, Difficulty::Increasing,
+                    )
+                }
+            } else if is_daily_game {
+                let sid: u32 = ((daily_zone_id - 1) * 2).into();
+                let mut s: GameSettings = world.read_model(sid);
+                if s.exists() {
+                    let challenge: DailyChallenge = world.read_model(daily_challenge_id);
+                    s.active_mutator_id = challenge.active_mutator_id;
+                    s.passive_mutator_id = challenge.passive_mutator_id;
+                    s.boss_id = challenge.boss_id;
+                    s
+                } else {
+                    GameSettingsTrait::new_with_defaults(
+                        DEFAULT_SETTINGS_ID, Difficulty::Increasing,
+                    )
+                }
+            } else {
+                // NFT token path
+                let token_disp = IMinigameTokenDispatcher { contract_address: token_address };
+                let tok_sid = token_disp.settings_id(game_id);
+                let s: GameSettings = world.read_model(tok_sid);
+                if s.exists() {
+                    s
+                } else {
+                    let fallback: GameSettings = world.read_model(DEFAULT_SETTINGS_ID);
+                    if fallback.exists() {
+                        fallback
+                    } else {
+                        GameSettingsTrait::new_with_defaults(
+                            DEFAULT_SETTINGS_ID, Difficulty::Increasing,
+                        )
+                    }
+                }
+            };
 
             let sid = settings.settings_id;
+
+            // Collect all progress tasks into a batch array (emitted once at
+            // the end) to avoid multiple cross-contract dispatcher calls.
+            let mut progress_tasks: Array<(felt252, u128)> = array![];
             if lines_cleared > 0 {
-                let lc_count: u128 = lines_cleared.into();
-                progress_dispatcher
-                    .emit_progress(player, Task::LineClear.identifier(), lc_count, sid);
+                progress_tasks.append((Task::LineClear.identifier(), lines_cleared.into()));
             }
             if game.combo_counter >= 3 {
-                progress_dispatcher.emit_progress(player, Task::Combo3.identifier(), 1, sid);
+                progress_tasks.append((Task::Combo3.identifier(), 1));
             }
             if game.combo_counter >= 4 {
-                progress_dispatcher.emit_progress(player, Task::Combo4.identifier(), 1, sid);
+                progress_tasks.append((Task::Combo4.identifier(), 1));
             }
             if game.combo_counter >= 5 {
-                progress_dispatcher.emit_progress(player, Task::Combo5.identifier(), 1, sid);
+                progress_tasks.append((Task::Combo5.identifier(), 1));
             }
 
             // Mutator-driven non-bonus effects (scoring/pressure) still read from MutatorDef.
@@ -216,31 +266,26 @@ mod move_system {
                 let is_complete = level_check::is_level_complete(@game_level, @run_data);
 
                 if is_complete {
-                    progress_dispatcher
-                        .emit_progress(player, Task::LevelComplete.identifier(), 1, sid);
+                    progress_tasks.append((Task::LevelComplete.identifier(), 1));
                     if game_level.max_moves > 0 {
                         let perfect_threshold = game_level.max_moves * 40 / 100;
                         if run_data.level_moves.into() <= perfect_threshold {
-                            progress_dispatcher
-                                .emit_progress(player, Task::PerfectLevel.identifier(), 1, sid);
+                            progress_tasks.append((Task::PerfectLevel.identifier(), 1));
                         }
                     }
                     if run_data.current_level >= 10 {
-                        progress_dispatcher
-                            .emit_progress(player, Task::BossDefeat.identifier(), 1, sid);
+                        progress_tasks.append((Task::BossDefeat.identifier(), 1));
                         if is_story_game {
                             let story_progress: StoryZoneProgress = world
                                 .read_model((player, story_game.zone_id));
                             if !story_progress.boss_cleared {
-                                progress_dispatcher
-                                    .emit_progress(player, Task::ZoneComplete.identifier(), 1, sid);
+                                progress_tasks.append((Task::ZoneComplete.identifier(), 1));
                             }
                         } else {
                             // ZoneComplete only on FIRST clear — check PlayerBestRun.zone_cleared
                             let best_run: PlayerBestRun = world.read_model((player, sid, 0_u8));
                             if !best_run.zone_cleared {
-                                progress_dispatcher
-                                    .emit_progress(player, Task::ZoneComplete.identifier(), 1, sid);
+                                progress_tasks.append((Task::ZoneComplete.identifier(), 1));
                             }
                         }
                     }
@@ -294,6 +339,19 @@ mod move_system {
                     world.write_model(@game);
                 }
             }
+            // Single bulk dispatch for all collected progress tasks.
+            if progress_tasks.len() > 0 {
+                match world.dns_address(@"progress_system") {
+                    Option::Some(progress_address) => {
+                        let progress_dispatcher = IProgressSystemDispatcher {
+                            contract_address: progress_address,
+                        };
+                        progress_dispatcher.emit_progress_bulk(player, progress_tasks.span(), sid);
+                    },
+                    Option::None => {},
+                }
+            }
+
             if !is_story_game {
                 post_action(token_address, token_id_felt);
             }

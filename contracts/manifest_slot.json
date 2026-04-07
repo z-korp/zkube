@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x30e9d3decc90c51b5c9649c155ecf2510d0ac9a6716a0527013d7009826f20",
-    "seed": "zkube_v3_5",
+    "address": "0x12c8d8293f8e3b03b1e0650b1f8d2344770319f0067a22d3245933e24dc2095",
+    "seed": "zkube_v3_6",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,7 +33,7 @@
   },
   "contracts": [
     {
-      "address": "0x23fe7eccaaf0f7cf755aedd0f4e28b4990ddb18e0a7b2be4dafc3624a70cc77",
+      "address": "0x1ec24e5fa3794f3e92056e3022ca5e1f93d51901f50d6cd163401aa873f5736",
       "class_hash": "0x3830195821737f1d22076b0a41c7a2fd52685fe9eb4caaababc5e60d567f9b0",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
@@ -61,7 +61,7 @@
       ]
     },
     {
-      "address": "0x266d833aa9f0a4256f33d39970ad19dafacb21aef59ac49ff39504af1a446ff",
+      "address": "0x7ce8051a2aec94c1961922929069940e27a6c185fdef62342624605e84faf56",
       "class_hash": "0x1433f861f51e1b94a55b04d2e146bc8c3ef31b5091f4a4a69cd83089e714c67",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
@@ -78,8 +78,8 @@
       ]
     },
     {
-      "address": "0x1b2929d8ff81fdc298efb3cdabb9123db82bb4a840d90bd1cf3bf7d94f4a6b3",
-      "class_hash": "0x5a3d9f95d0c0a45d524cbfdfc259867686667479d582da38db289dafd4940d",
+      "address": "0x75d809b477375f7f221d203f18237e9e633b3934c1409beb565d7a9e7c99a0f",
+      "class_hash": "0x5ffaf6774e1c96a5f79ad9d1ff95b6f264de5d4d65bab44d947174c30ce47fd",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x013e661f437432e76575402d45f0b523f01246b211fcc015aab2dc20b6b43a5c",
@@ -98,7 +98,7 @@
       ]
     },
     {
-      "address": "0x1740a6b1313bed86c7e63952657a91ab359252fe2b80f596eb49de0b7ede6bc",
+      "address": "0x23ae770d30da604cfb35f58e25c45303c2cfdc8d6d8d500a45c4f4ef251f4b8",
       "class_hash": "0x575bd2e19787c6fbd4b3b91bb7706316bac366dc4c8b758177005355af844f",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-grid_system",
@@ -113,7 +113,7 @@
       ]
     },
     {
-      "address": "0x46bdf1a8ddd204c8225215f29fe204af53466726617f5f58021238cbb4ab6a1",
+      "address": "0x327d708ac6d87d6587c77fc0fd823e8952602914509d3443432411abf490eea",
       "class_hash": "0x5ba7305cec8dfb5669fd0eac1afc46e9e066fa4c39d05cf8fa15aab1e1fd6d8",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-level_system",
@@ -128,8 +128,8 @@
       ]
     },
     {
-      "address": "0x18797c4f19569c213364ce84f1fadd4fd7a6151edbe604d28278901cb644c8",
-      "class_hash": "0x154b7fae1c7fb04aaa316d2b0c5e3500ba0b75ec2ebc42dc6cb709d4e8c58cb",
+      "address": "0x428cc675cd1ea3b3e11abd70cd52fe35e35476f8727f96f8b2f631dcf8860d9",
+      "class_hash": "0xc0ab3938284c2f577513681c28c271f829c9625cd614ecc7cbce920633c8e7",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-move_system",
       "selector": "0x2c6e7f38e7f45f67fca81df91805a8f3ee1d9842366e3e3d32f13f46cbf60d",
@@ -139,21 +139,22 @@
       ]
     },
     {
-      "address": "0x1f0d30944257afbdbde1a1d605e6f75693eefed4bb39f66505f85bc096aaf51",
-      "class_hash": "0x534777e20c0daad923947804da5ebc580c88d577f2816f9663556a3d6ae684e",
+      "address": "0x5a2bc0552d665561d8baa4a70f1e286ba5fdfe790ac7822e77f62e352210998",
+      "class_hash": "0x68ab76dd32b69dba397729a1da6968540fd85af1d41cbb5dbca4bfc32819f96",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-progress_system",
       "selector": "0x77d02bfa20be45e26f3c057bbd9d4fd88f0809bb8e3f881e4b2b89cd81d3c0c",
       "systems": [
         "dojo_init",
         "emit_progress",
+        "emit_progress_bulk",
         "progress",
         "quest_claim",
         "upgrade"
       ]
     },
     {
-      "address": "0x4c608fb32c0a23816159eaed068939f5fd83eae0f2bd9f7c93d1e9b7321424c",
+      "address": "0x37ba056d4e5c3c387a4bc31384b3509425986f0bc6e26b0de6f716d6b7ae8ef",
       "class_hash": "0x285dcc05a42f92bb508b75667ee9339cea43159d1177f7865141fcd87f37eed",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-renderer_systems",
@@ -163,7 +164,7 @@
       ]
     },
     {
-      "address": "0x6ffc2601df19892305c569bd264e88d1747d54e07f6896a7fdcc154e519e96d",
+      "address": "0x55b0df8913977621e60fd5c417c3951dfd8a33a83e2b382f545703fcfe6babc",
       "class_hash": "0x226015d27dc007904ab8c19ee61a040953a4d187fdf4339db137923f809962e",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-story_system",
@@ -2333,6 +2334,16 @@
       "type": "constructor",
       "name": "constructor",
       "inputs": []
+    },
+    {
+      "type": "struct",
+      "name": "core::array::Span::<(core::felt252, core::integer::u128)>",
+      "members": [
+        {
+          "name": "snapshot",
+          "type": "@core::array::Array::<(core::felt252, core::integer::u128)>"
+        }
+      ]
     },
     {
       "type": "struct",
@@ -8565,6 +8576,26 @@
             {
               "name": "count",
               "type": "core::integer::u128"
+            },
+            {
+              "name": "settings_id",
+              "type": "core::integer::u32"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "emit_progress_bulk",
+          "inputs": [
+            {
+              "name": "player",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "tasks",
+              "type": "core::array::Span::<(core::felt252, core::integer::u128)>"
             },
             {
               "name": "settings_id",

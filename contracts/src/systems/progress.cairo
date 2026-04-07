@@ -9,6 +9,12 @@ pub trait IProgressSystem<T> {
         ref self: T, player: ContractAddress, task_id: felt252, count: u128, settings_id: u32,
     );
 
+    /// Batch version of emit_progress — one cross-contract call for multiple tasks.
+    /// Each element in `tasks` is a (task_id, count) pair.
+    fn emit_progress_bulk(
+        ref self: T, player: ContractAddress, tasks: Span<(felt252, u128)>, settings_id: u32,
+    );
+
     /// Ungated progress call for internal use (e.g. apply_bonus in game_system).
     /// Only callable by game_system.
     fn progress(ref self: T, player_id: felt252, task_id: felt252, count: u128);
@@ -229,6 +235,61 @@ mod progress_system {
             let player_id: felt252 = player.into();
             self.quest.progress(world, player_id, task_id, count, true);
             self.achievement.progress(world, player_id, task_id, count, true);
+        }
+
+        fn emit_progress_bulk(
+            ref self: ContractState,
+            player: ContractAddress,
+            tasks: Span<(felt252, u128)>,
+            settings_id: u32,
+        ) {
+            let world: WorldStorage = self.world(@DEFAULT_NS());
+            let caller = get_caller_address();
+
+            let move_system = world
+                .dns_address(@"move_system")
+                .unwrap_or(core::num::traits::Zero::zero());
+            let level_system = world
+                .dns_address(@"level_system")
+                .unwrap_or(core::num::traits::Zero::zero());
+            let story_system = world
+                .dns_address(@"story_system")
+                .unwrap_or(core::num::traits::Zero::zero());
+            let game_system = world
+                .dns_address(@"game_system")
+                .unwrap_or(core::num::traits::Zero::zero());
+            let daily_system = world
+                .dns_address(@"daily_challenge_system")
+                .unwrap_or(core::num::traits::Zero::zero());
+
+            assert(
+                caller == move_system
+                    || caller == level_system
+                    || caller == story_system
+                    || caller == game_system
+                    || caller == daily_system,
+                'Unauthorized progress emitter',
+            );
+
+            match world.dns_address(@"config_system") {
+                Option::Some(config_address) => {
+                    let config = IConfigSystemDispatcher { contract_address: config_address };
+                    if !config.is_star_eligible(settings_id) {
+                        return;
+                    }
+                },
+                Option::None => { return; },
+            }
+
+            let player_id: felt252 = player.into();
+            let mut i: u32 = 0;
+            let len = tasks.len();
+            while i < len {
+                let (task_id, count) = *tasks.at(i);
+                self.quest.progress(world, player_id, task_id, count, true);
+                self.achievement.progress(world, player_id, task_id, count, true);
+                i += 1;
+            };
         }
 
         fn progress(ref self: ContractState, player_id: felt252, task_id: felt252, count: u128) {

@@ -217,10 +217,15 @@ mod game_system {
                 }
             }
 
+            // Read StoryAttempt first; skip DailyAttempt when it's a story game.
             let story_attempt: StoryAttempt = world.read_model(effective_game_id);
             let is_story_attempt = story_attempt.exists();
-            let daily_game: DailyAttempt = world.read_model(effective_game_id);
-            let is_daily_game = daily_game.exists();
+            let (is_daily_game, daily_player) = if is_story_attempt {
+                (false, Zero::zero())
+            } else {
+                let daily: DailyAttempt = world.read_model(effective_game_id);
+                (daily.exists(), daily.player)
+            };
             let is_non_token_game = is_story_attempt || is_daily_game;
 
             let token_address = self.token_address();
@@ -241,7 +246,7 @@ mod game_system {
             if is_story_attempt {
                 assert!(story_attempt.player == player, "not story owner");
             } else if is_daily_game {
-                assert!(daily_game.player == player, "not daily owner");
+                assert!(daily_player == player, "not daily owner");
             } else {
                 assert_token_ownership(token_address, token_id_felt);
             }
@@ -259,10 +264,17 @@ mod game_system {
 
         fn apply_bonus(ref self: ContractState, game_id: felt252, row_index: u8, block_index: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let caller = get_caller_address();
+
+            // Read StoryAttempt first; skip DailyAttempt when it's a story game.
             let story_game: StoryAttempt = world.read_model(game_id);
             let is_story_game = story_game.exists();
-            let daily_game: DailyAttempt = world.read_model(game_id);
-            let is_daily_game = daily_game.exists();
+            let (is_daily_game, daily_player) = if is_story_game {
+                (false, Zero::zero())
+            } else {
+                let daily: DailyAttempt = world.read_model(game_id);
+                (daily.exists(), daily.player)
+            };
             let is_non_token_game = is_story_game || is_daily_game;
 
             let token_address = self.token_address();
@@ -281,9 +293,9 @@ mod game_system {
 
             let mut game: Game = world.read_model(game_id);
             if is_story_game {
-                assert!(story_game.player == get_caller_address(), "not story owner");
+                assert!(story_game.player == caller, "not story owner");
             } else if is_daily_game {
-                assert!(daily_game.player == get_caller_address(), "not daily owner");
+                assert!(daily_player == caller, "not daily owner");
             } else {
                 assert_token_ownership(token_address, token_id_felt);
             }
@@ -308,7 +320,7 @@ mod game_system {
             match world.dns_address(@"progress_system") {
                 Option::Some(progress_addr) => {
                     let progress = IProgressSystemDispatcher { contract_address: progress_addr };
-                    let player_id: felt252 = get_caller_address().into();
+                    let player_id: felt252 = caller.into();
                     progress.progress(player_id, Task::BonusUsed.identifier(), 1);
                 },
                 Option::None => {},
