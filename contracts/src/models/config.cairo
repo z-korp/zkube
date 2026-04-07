@@ -109,7 +109,10 @@ pub struct GameSettings {
     // Packed score multipliers for 8 tiers (8 × u8, stored as ×100, e.g. 150 = 1.5×)
     // Format: tier0 | tier1<<8 | tier2<<16 | ... | tier7<<56
     pub endless_score_multipliers: u64,
-    // === Mutator Assignment ===
+    // === Zone & Mutator Assignment ===
+    /// Zone this settings belongs to (1-10). Used for endless gating (boss_cleared check).
+    /// 0 = no zone gating (e.g., custom settings without zone restriction).
+    pub zone_id: u8,
     /// Fixed active mutator for this zone (bonus profile). 0 = no bonuses (endless mode).
     pub active_mutator_id: u8,
     /// Fixed passive mutator for this zone (stat modifiers). 0 = neutral.
@@ -222,7 +225,8 @@ pub mod GameSettingsDefaults {
     // 3.3×, 4.0×]
     pub const ENDLESS_SCORE_MULTIPLIERS: u64 = 0;
 
-    // Mutator Assignment Defaults
+    // Zone & Mutator Assignment Defaults
+    pub const ZONE_ID: u8 = 0; // No zone gating
     pub const ACTIVE_MUTATOR_ID: u8 = 0; // No active mutator (no bonuses)
     pub const PASSIVE_MUTATOR_ID: u8 = 0; // No passive mutator (neutral stats)
 
@@ -295,7 +299,8 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             // Endless Mode Settings
             endless_difficulty_thresholds: 0, // 0 = use hardcoded defaults
             endless_score_multipliers: 0, // 0 = use hardcoded defaults
-            // Mutator Assignment
+            // Zone & Mutator Assignment
+            zone_id: GameSettingsDefaults::ZONE_ID,
             active_mutator_id: GameSettingsDefaults::ACTIVE_MUTATOR_ID,
             passive_mutator_id: GameSettingsDefaults::PASSIVE_MUTATOR_ID,
             // Boss Settings
@@ -732,7 +737,8 @@ mod tests {
         assert!(settings.mid_level_threshold == 25, "Mid threshold should be 25");
         // Level Cap
         assert!(settings.level_cap == 50, "Level cap should be 50");
-        // Mutator Assignment
+        // Zone & Mutator Assignment
+        assert!(settings.zone_id == 0, "Zone ID should be 0");
         assert!(settings.active_mutator_id == 0, "Active mutator should be 0");
         assert!(settings.passive_mutator_id == 0, "Passive mutator should be 0");
     }

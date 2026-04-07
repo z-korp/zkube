@@ -256,6 +256,13 @@ mod daily_challenge_system {
 
             let total_participants = challenge.total_entries;
 
+            // Early return if no entries — just mark as settled
+            if total_participants == 0 {
+                challenge.settled = true;
+                world.write_model(@challenge);
+                return;
+            }
+
             // N = ceil(total_entries / 4), capped at leaderboard size
             let num_winners = if total_participants == 0 {
                 0_u32

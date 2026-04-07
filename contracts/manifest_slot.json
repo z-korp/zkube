@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x524e8a496bbaedbf84c3383ca7f9cb0259865f1fe0668695192100b8f0fc687",
-    "seed": "zkube_v3_3",
+    "address": "0x6ec77fbeb8336f576a6a9993339e19565e2d9677a2978100e29bfb59b5506b9",
+    "seed": "zkube_v3_4",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,8 +33,8 @@
   },
   "contracts": [
     {
-      "address": "0x1c23b0af4e02cac68214f77c22f9712185ca9a223c98811842905f3efc4d9bf",
-      "class_hash": "0x56375750ee3ceabb2da1f989b37d7f4af5ff8ab44923ba63c87e5cc9b2a5b35",
+      "address": "0xfa8ca4b85f30c6df149bf12a6e240c954e6e221a632d9a45043bc52c37481e",
+      "class_hash": "0x3830195821737f1d22076b0a41c7a2fd52685fe9eb4caaababc5e60d567f9b0",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x06e5f1a7bf27f6075006ea9835d6614c7889779e9db19d5edf5c7e894c77868b",
@@ -61,8 +61,8 @@
       ]
     },
     {
-      "address": "0x432d3d987905ed3ed2f65620661bf427b28c202959eaabc7e1fe7f5ae081827",
-      "class_hash": "0xe3aafe67d937442991d8548100468030ea5c7b201e9a7758caae1cd28e5c3",
+      "address": "0x77ca1535a39be3c947666a943935d8fee5126086a0ac3e725cad302b3490342",
+      "class_hash": "0x12b09d16e63151531d7c99441501ed673ec15b5529859ce8186fb881192628f",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
       ],
@@ -78,8 +78,8 @@
       ]
     },
     {
-      "address": "0x635fe676831bbbf0b996bb323761c7f54aa859e31377447ac2ee7245d3b29ef",
-      "class_hash": "0x7084e548f9fb9a3c58505f0a26a49312be9f156cfa68617adbcb2e9c0272751",
+      "address": "0x79e7633633ca89f59645069f50be75d95eebe76d53dcee247f2e6715b231da1",
+      "class_hash": "0x2688ecb93d6b54cb532a60667465088308b94e27cd8e719bb12e7ebb91f0fa7",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x013e661f437432e76575402d45f0b523f01246b211fcc015aab2dc20b6b43a5c",
@@ -98,8 +98,8 @@
       ]
     },
     {
-      "address": "0x33b424e4ff6146e5e742264ab9c94aa24d4752501036b4fe4e2b956351e0937",
-      "class_hash": "0x169184263e56aa0ffb4e6344eaf34f3ccab34130663b95dab52b96c33b6a063",
+      "address": "0x2c840fa4d3748299c63c5c11e7c42fdaebfe2c6de0b690afc1033a893284bd7",
+      "class_hash": "0x575bd2e19787c6fbd4b3b91bb7706316bac366dc4c8b758177005355af844f",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-grid_system",
       "selector": "0x2732f9d5d9f7ff5bcdb81566cb6589ca0fbf32cdb06911ea678adb3b5b06c37",
@@ -113,8 +113,8 @@
       ]
     },
     {
-      "address": "0x49ebcbb9c1a01a11cdd8886647fc49180be2645a1885b26e69f95f23c01e17f",
-      "class_hash": "0x40d2897e4dc0fe6d861a347fabc59dddc84522106fe919edf468688f20bbdb1",
+      "address": "0xd648b6163b1d3bf512e4442df9d587f832234cb14bcce347eb14181fde0767",
+      "class_hash": "0x2b8d96c14f5b3841be2052f0afe5ffc0266501e58eac98d88e02c9b948b0d8c",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-level_system",
       "selector": "0x1689592ed01fb67e736e3075b7d3b060bfd9ea2904147c7e161bc3f08ae2e9",
@@ -128,8 +128,8 @@
       ]
     },
     {
-      "address": "0x1e8e63934cc6401e472ea6823aa69499f5e489b8940cbd41c8b3ef3b0e40b8f",
-      "class_hash": "0x4cef06c6e18927a1c958a3929c45d62499f81130dfced38b6a4f1fa213a2726",
+      "address": "0x65c3d59b490371652259ae86d496af080b9837e62460a97b1613ad5f187b067",
+      "class_hash": "0x4b4be3bb5889725e88cdd1b8162dde2162926e1e866fbc89852693f8fb9d6ec",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-move_system",
       "selector": "0x2c6e7f38e7f45f67fca81df91805a8f3ee1d9842366e3e3d32f13f46cbf60d",
@@ -139,7 +139,7 @@
       ]
     },
     {
-      "address": "0x701d94bb62568210c3dbd057216734b15b44e771fb748d3356bbdfbe921916a",
+      "address": "0xf7f1e0dfcf39a44036f0e50ef5b7a5bb5aa2989d3d7d4c374cfece20f727e2",
       "class_hash": "0x534777e20c0daad923947804da5ebc580c88d577f2816f9663556a3d6ae684e",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-progress_system",
@@ -153,7 +153,7 @@
       ]
     },
     {
-      "address": "0x384200a0b403577e0c96e78d37b74c619fa3cbcc9f60ea2782b61388faedebf",
+      "address": "0x2df20c854765d5f826fe0ba9ad1b347fd44d370e8f4e59c547107eceda17ec5",
       "class_hash": "0x285dcc05a42f92bb508b75667ee9339cea43159d1177f7865141fcd87f37eed",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-renderer_systems",
@@ -163,8 +163,8 @@
       ]
     },
     {
-      "address": "0x6aa1a6e35ef75cc5927f3129ca7dd719af1386d51c98f4e3045d65303f3c5f3",
-      "class_hash": "0x68e461c2df3bd48b98828be7fd59dc8195ce696fe8bce483ce781f625c5ce14",
+      "address": "0x4c4ce7cf6cf48cf5c8176281917c0b9620ebd1d452e284973664ac1bf96c5bf",
+      "class_hash": "0x226015d27dc007904ab8c19ee61a040953a4d187fdf4339db137923f809962e",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-story_system",
       "selector": "0x7a30a121577725a5eb4f24e5c76d572f923bfd472c815d956aa4c88dd231e74",
@@ -896,6 +896,11 @@
           "key": false
         },
         {
+          "name": "zone_id",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
           "name": "active_mutator_id",
           "type": "core::integer::u8",
           "key": false
@@ -911,7 +916,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x387e1f8374b34970e01d0a95d578a53ef2fd71694f807f20bf8aef0bf2f946",
+      "class_hash": "0x649ad6c2e3d6e1b86d3f3304829ecbbe98971fd18279f5d856380a6a2d3a353",
       "tag": "zkube_v2_1_0-GameSettings",
       "selector": "0x46e4334ad38a90560500caa1615ca3015730bc00a2f4389d7ba5271174034ac"
     },
@@ -6087,6 +6092,10 @@
           "type": "core::integer::u64"
         },
         {
+          "name": "zone_id",
+          "type": "core::integer::u8"
+        },
+        {
           "name": "active_mutator_id",
           "type": "core::integer::u8"
         },
@@ -6339,6 +6348,10 @@
         {
           "name": "endless_score_multipliers",
           "type": "core::integer::u64"
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8"
         },
         {
           "name": "active_mutator_id",
@@ -7840,6 +7853,10 @@
             },
             {
               "name": "level_cap",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "zone_id",
               "type": "core::integer::u8"
             },
             {

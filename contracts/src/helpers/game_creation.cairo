@@ -42,12 +42,13 @@ pub fn create_game(
     let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
 
     if run_type_val == 1 {
-        // Endless settings use odd IDs: 1,3,5,...,19 → zones 1,2,...,10
-        let sid: u32 = settings.settings_id;
-        assert!(sid % 2 == 1 && sid >= 1 && sid <= 19, "Invalid endless settings");
-        let zone_for_endless: u8 = ((sid + 1) / 2).try_into().unwrap();
-        let progress: StoryZoneProgress = world.read_model((player, zone_for_endless));
-        assert!(progress.exists() && progress.boss_cleared, "Clear story zone first");
+        // Endless gating: require boss clear for the zone this settings belongs to.
+        // zone_id=0 means no zone gating (custom settings without restriction).
+        let zone_for_endless = settings.zone_id;
+        if zone_for_endless > 0 {
+            let progress: StoryZoneProgress = world.read_model((player, zone_for_endless));
+            assert!(progress.exists() && progress.boss_cleared, "Clear story zone first");
+        }
     }
 
     // === MAP ACCESS GATE ===

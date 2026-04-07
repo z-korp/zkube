@@ -130,11 +130,12 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
             },
         );
 
-    // Auto-submit result for daily challenge games.
+    // Auto-submit result for daily challenge games (skip if settled or ended).
     let game_challenge: GameChallenge = world.read_model(game.game_id);
     if game_challenge.challenge_id > 0 {
         let challenge: DailyChallenge = world.read_model(game_challenge.challenge_id);
-        if challenge.exists() {
+        let timestamp = starknet::get_block_timestamp();
+        if challenge.exists() && !challenge.settled && !challenge.has_ended(timestamp) {
             auto_submit_daily_result(
                 ref world,
                 game_challenge.challenge_id,

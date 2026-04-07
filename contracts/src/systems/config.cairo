@@ -54,6 +54,8 @@ pub trait IConfigSystem<T> {
         mid_level_threshold: u8,
         // Level Cap
         level_cap: u8,
+        // Zone Assignment
+        zone_id: u8,
         // Mutator Assignment
         active_mutator_id: u8,
         passive_mutator_id: u8,
@@ -209,6 +211,7 @@ mod config_system {
         z1_map.tier_7_threshold = 14;
         z1_map.constraint_start_level = 5;
         z1_map.level_cap = 10;
+        z1_map.zone_id = 1;
         z1_map.active_mutator_id = 1;
         z1_map.passive_mutator_id = 2;
         z1_map.boss_id = 1;
@@ -237,6 +240,7 @@ mod config_system {
         z1_endless.base_moves = 16;
         z1_endless.max_moves = 48;
         z1_endless.level_cap = 255;
+        z1_endless.zone_id = 1;
         z1_endless.active_mutator_id = 0;
         z1_endless.passive_mutator_id = 2;
         z1_endless.boss_id = 0;
@@ -278,6 +282,7 @@ mod config_system {
         z2_map.tier_7_threshold = 14;
         z2_map.constraint_start_level = 3;
         z2_map.level_cap = 10;
+        z2_map.zone_id = 2;
         z2_map.active_mutator_id = 3;
         z2_map.passive_mutator_id = 4;
         z2_map.boss_id = 2;
@@ -306,6 +311,7 @@ mod config_system {
         z2_endless.base_moves = 20;
         z2_endless.max_moves = 55;
         z2_endless.level_cap = 255;
+        z2_endless.zone_id = 2;
         z2_endless.active_mutator_id = 0;
         z2_endless.passive_mutator_id = 4;
         z2_endless.boss_id = 0;
@@ -349,6 +355,7 @@ mod config_system {
         z3_map.tier_7_threshold = 13;
         z3_map.constraint_start_level = 4;
         z3_map.level_cap = 10;
+        z3_map.zone_id = 3;
         z3_map.active_mutator_id = 5;
         z3_map.passive_mutator_id = 6;
         z3_map.boss_id = 3;
@@ -377,6 +384,7 @@ mod config_system {
         z3_endless.base_moves = 18;
         z3_endless.max_moves = 50;
         z3_endless.level_cap = 255;
+        z3_endless.zone_id = 3;
         z3_endless.active_mutator_id = 0;
         z3_endless.passive_mutator_id = 6;
         z3_endless.boss_id = 0;
@@ -420,6 +428,7 @@ mod config_system {
         z4_map.tier_7_threshold = 14;
         z4_map.constraint_start_level = 3;
         z4_map.level_cap = 10;
+        z4_map.zone_id = 4;
         z4_map.active_mutator_id = 7;
         z4_map.passive_mutator_id = 8;
         z4_map.boss_id = 4;
@@ -448,6 +457,7 @@ mod config_system {
         z4_endless.base_moves = 14;
         z4_endless.max_moves = 44;
         z4_endless.level_cap = 255;
+        z4_endless.zone_id = 4;
         z4_endless.active_mutator_id = 0;
         z4_endless.passive_mutator_id = 8;
         z4_endless.boss_id = 0;
@@ -492,6 +502,7 @@ mod config_system {
         z5_map.tier_7_threshold = 13;
         z5_map.constraint_start_level = 4;
         z5_map.level_cap = 10;
+        z5_map.zone_id = 5;
         z5_map.active_mutator_id = 9;
         z5_map.passive_mutator_id = 10;
         z5_map.boss_id = 6;
@@ -520,6 +531,7 @@ mod config_system {
         z5_endless.base_moves = 18;
         z5_endless.max_moves = 52;
         z5_endless.level_cap = 255;
+        z5_endless.zone_id = 5;
         z5_endless.active_mutator_id = 0;
         z5_endless.passive_mutator_id = 10;
         z5_endless.boss_id = 0;
@@ -564,6 +576,7 @@ mod config_system {
         z6_map.tier_7_threshold = 13;
         z6_map.constraint_start_level = 3;
         z6_map.level_cap = 10;
+        z6_map.zone_id = 6;
         z6_map.active_mutator_id = 11;
         z6_map.passive_mutator_id = 12;
         z6_map.boss_id = 7;
@@ -592,6 +605,7 @@ mod config_system {
         z6_endless.base_moves = 16;
         z6_endless.max_moves = 48;
         z6_endless.level_cap = 255;
+        z6_endless.zone_id = 6;
         z6_endless.active_mutator_id = 0;
         z6_endless.passive_mutator_id = 12;
         z6_endless.boss_id = 0;
@@ -636,6 +650,7 @@ mod config_system {
         z7_map.tier_7_threshold = 13;
         z7_map.constraint_start_level = 3;
         z7_map.level_cap = 10;
+        z7_map.zone_id = 7;
         z7_map.active_mutator_id = 13;
         z7_map.passive_mutator_id = 14;
         z7_map.boss_id = 5;
@@ -664,6 +679,7 @@ mod config_system {
         z7_endless.base_moves = 12;
         z7_endless.max_moves = 38;
         z7_endless.level_cap = 255;
+        z7_endless.zone_id = 7;
         z7_endless.active_mutator_id = 0;
         z7_endless.passive_mutator_id = 14;
         z7_endless.boss_id = 0;
@@ -707,6 +723,7 @@ mod config_system {
         z8_map.tier_7_threshold = 13;
         z8_map.constraint_start_level = 3;
         z8_map.level_cap = 10;
+        z8_map.zone_id = 8;
         z8_map.active_mutator_id = 15;
         z8_map.passive_mutator_id = 16;
         z8_map.boss_id = 8;
@@ -735,6 +752,7 @@ mod config_system {
         z8_endless.base_moves = 16;
         z8_endless.max_moves = 46;
         z8_endless.level_cap = 255;
+        z8_endless.zone_id = 8;
         z8_endless.active_mutator_id = 0;
         z8_endless.passive_mutator_id = 16;
         z8_endless.boss_id = 0;
@@ -778,6 +796,7 @@ mod config_system {
         z9_map.tier_7_threshold = 12;
         z9_map.constraint_start_level = 3;
         z9_map.level_cap = 10;
+        z9_map.zone_id = 9;
         z9_map.active_mutator_id = 17;
         z9_map.passive_mutator_id = 18;
         z9_map.boss_id = 9;
@@ -806,6 +825,7 @@ mod config_system {
         z9_endless.base_moves = 15;
         z9_endless.max_moves = 45;
         z9_endless.level_cap = 255;
+        z9_endless.zone_id = 9;
         z9_endless.active_mutator_id = 0;
         z9_endless.passive_mutator_id = 18;
         z9_endless.boss_id = 0;
@@ -849,6 +869,7 @@ mod config_system {
         z10_map.tier_7_threshold = 11;
         z10_map.constraint_start_level = 2;
         z10_map.level_cap = 10;
+        z10_map.zone_id = 10;
         z10_map.active_mutator_id = 19;
         z10_map.passive_mutator_id = 20;
         z10_map.boss_id = 10;
@@ -877,6 +898,7 @@ mod config_system {
         z10_endless.base_moves = 14;
         z10_endless.max_moves = 42;
         z10_endless.level_cap = 255;
+        z10_endless.zone_id = 10;
         z10_endless.active_mutator_id = 0;
         z10_endless.passive_mutator_id = 20;
         z10_endless.boss_id = 0;
@@ -1808,6 +1830,8 @@ mod config_system {
             mid_level_threshold: u8,
             // Level Cap
             level_cap: u8,
+            // Zone Assignment
+            zone_id: u8,
             // Mutator Assignment
             active_mutator_id: u8,
             passive_mutator_id: u8,
@@ -1910,6 +1934,8 @@ mod config_system {
                 // Endless Mode Settings (defaults)
                 endless_difficulty_thresholds: 0,
                 endless_score_multipliers: 0,
+                // Zone Assignment
+                zone_id,
                 // Mutator Assignment
                 active_mutator_id,
                 passive_mutator_id,
@@ -2389,6 +2415,7 @@ mod config_system {
             GameSetting { name: 'EARLY_TH', value: game_settings.early_level_threshold.into() },
             GameSetting { name: 'MID_TH', value: game_settings.mid_level_threshold.into() },
             GameSetting { name: 'LEVEL_CAP', value: game_settings.level_cap.into() },
+            GameSetting { name: 'ZONE_ID', value: game_settings.zone_id.into() },
             GameSetting { name: 'ACTIVE_MUT', value: game_settings.active_mutator_id.into() },
             GameSetting { name: 'PASSIVE_MUT', value: game_settings.passive_mutator_id.into() },
         ]
