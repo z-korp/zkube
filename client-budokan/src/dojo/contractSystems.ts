@@ -66,8 +66,6 @@ export interface AddCustomGameSettings extends Signer {
   max_moves: number;
   base_ratio_x100: number;
   max_ratio_x100: number;
-  cube_3_percent: number;
-  cube_2_percent: number;
   tier_1_threshold: number;
   tier_2_threshold: number;
   tier_3_threshold: number;
@@ -95,18 +93,9 @@ export interface AddCustomGameSettings extends Signer {
   early_level_threshold: number;
   mid_level_threshold: number;
   level_cap: number;
-  bonus_1_type: number;
-  bonus_1_trigger_type: number;
-  bonus_1_trigger_threshold: number;
-  bonus_1_starting_charges: number;
-  bonus_2_type: number;
-  bonus_2_trigger_type: number;
-  bonus_2_trigger_threshold: number;
-  bonus_2_starting_charges: number;
-  bonus_3_type: number;
-  bonus_3_trigger_type: number;
-  bonus_3_trigger_threshold: number;
-  bonus_3_starting_charges: number;
+  zone_id: number;
+  active_mutator_id: number;
+  passive_mutator_id: number;
   boss_id: number;
 }
 
@@ -133,10 +122,12 @@ export interface SubmitResult extends Signer {
 
 export interface SettleChallenge extends Signer {
   challenge_id: number;
+  ranked_players: BigNumberish[];
 }
 
 export interface SettleWeeklyEndless extends Signer {
   week_id: number;
+  ranked_players: BigNumberish[];
 }
 
 export type IWorld = ReturnType<typeof setupWorld>;
@@ -372,8 +363,6 @@ export function setupWorld(config: Config) {
       max_moves,
       base_ratio_x100,
       max_ratio_x100,
-      cube_3_percent,
-      cube_2_percent,
       tier_1_threshold,
       tier_2_threshold,
       tier_3_threshold,
@@ -401,18 +390,9 @@ export function setupWorld(config: Config) {
       early_level_threshold,
       mid_level_threshold,
       level_cap,
-      bonus_1_type,
-      bonus_1_trigger_type,
-      bonus_1_trigger_threshold,
-      bonus_1_starting_charges,
-      bonus_2_type,
-      bonus_2_trigger_type,
-      bonus_2_trigger_threshold,
-      bonus_2_starting_charges,
-      bonus_3_type,
-      bonus_3_trigger_type,
-      bonus_3_trigger_threshold,
-      bonus_3_starting_charges,
+      zone_id,
+      active_mutator_id,
+      passive_mutator_id,
       boss_id,
     }: AddCustomGameSettings) => {
       try {
@@ -428,8 +408,6 @@ export function setupWorld(config: Config) {
               max_moves,
               base_ratio_x100,
               max_ratio_x100,
-              cube_3_percent,
-              cube_2_percent,
               tier_1_threshold,
               tier_2_threshold,
               tier_3_threshold,
@@ -457,18 +435,9 @@ export function setupWorld(config: Config) {
               early_level_threshold,
               mid_level_threshold,
               level_cap,
-              bonus_1_type,
-              bonus_1_trigger_type,
-              bonus_1_trigger_threshold,
-              bonus_1_starting_charges,
-              bonus_2_type,
-              bonus_2_trigger_type,
-              bonus_2_trigger_threshold,
-              bonus_2_starting_charges,
-              bonus_3_type,
-              bonus_3_trigger_type,
-              bonus_3_trigger_threshold,
-              bonus_3_starting_charges,
+              zone_id,
+              active_mutator_id,
+              passive_mutator_id,
               boss_id,
             ]),
           },
@@ -557,13 +526,13 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const settle_challenge = async ({ account, challenge_id }: SettleChallenge) => {
+    const settle_challenge = async ({ account, challenge_id, ranked_players }: SettleChallenge) => {
       try {
         return await account.execute([
           {
             contractAddress: contract.address,
             entrypoint: "settle_challenge",
-            calldata: [challenge_id],
+            calldata: CallData.compile([challenge_id, ranked_players]),
           },
         ]);
       } catch (error) {
@@ -572,13 +541,13 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const settle_weekly_endless = async ({ account, week_id }: SettleWeeklyEndless) => {
+    const settle_weekly_endless = async ({ account, week_id, ranked_players }: SettleWeeklyEndless) => {
       try {
         return await account.execute([
           {
             contractAddress: contract.address,
             entrypoint: "settle_weekly_endless",
-            calldata: [week_id],
+            calldata: CallData.compile([week_id, ranked_players]),
           },
         ]);
       } catch (error) {

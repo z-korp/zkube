@@ -27,7 +27,6 @@ const getThemeId = (zoneId: number): ThemeId => {
 
 type GameTokenWithExtra = SlotGameTokenData & {
   run_data?: bigint;
-  settings_id?: number;
 };
 
 const getStars = (game: GameTokenWithExtra, level: number, zoneCleared: boolean): number => {
@@ -99,7 +98,6 @@ const MyGamesPage: React.FC = () => {
         metadata: "{}",
         gameMetadata: { name: "Story Run" },
         run_data: activeStoryGame.runDataRaw,
-        settings_id: activeStoryGame.zoneId > 0 ? (activeStoryGame.zoneId - 1) * 2 : 0,
       };
       const alreadyListed = active.some(
         (g) => g.token_id === activeStoryGame.id,
@@ -179,7 +177,7 @@ const MyGamesPage: React.FC = () => {
                   {activeGames.map((rawGame, index) => {
                     const runData = unpackRunData(rawGame.run_data ?? 0n);
                     const modeLabel = runData.mode === 1 ? "Endless Mode" : "Map Mode";
-                    const themeId = getThemeId(runData.zoneId || rawGame.settings_id || 1);
+                    const themeId = getThemeId(runData.zoneId || 1);
                     const stars = getStars(rawGame, runData.currentLevel, runData.zoneCleared);
 
                     return (
@@ -262,7 +260,7 @@ const MyGamesPage: React.FC = () => {
                   {completedGames.map((rawGame, index) => {
                     const runData = unpackRunData(rawGame.run_data ?? 0n);
                     const modeLabel = runData.mode === 1 ? "Endless Mode" : "Map Mode";
-                    const themeId = getThemeId(runData.zoneId || rawGame.settings_id || 1);
+                    const themeId = getThemeId(runData.zoneId || 1);
                     const stars = getStars(rawGame, runData.currentLevel, runData.zoneCleared);
 
                     return (

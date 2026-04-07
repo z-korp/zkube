@@ -29,13 +29,13 @@ export function defineContractComponents(world: World) {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "Game",
             types: [
-              "u64",
+              "felt252",
               "felt252",
               "u32",
               "u8",
               "u8",
               "felt252",
-              "felt252",
+              "u32",
               "u64",
               "bool",
             ],
@@ -49,11 +49,11 @@ export function defineContractComponents(world: World) {
         world,
         {
           settings_id: RecsType.Number,
-          theme_id: RecsType.Number,
           name: RecsType.String,
           description: RecsType.String,
           created_by: RecsType.String,
           created_at: RecsType.Number,
+          theme_id: RecsType.Number,
           is_free: RecsType.Boolean,
           enabled: RecsType.Boolean,
           price: RecsType.BigInt,
@@ -73,9 +73,9 @@ export function defineContractComponents(world: World) {
               "u8",
               "bool",
               "bool",
-              "u256",
+              "u128",
               "ContractAddress",
-              "u256",
+              "u128",
             ],
           },
         }
@@ -133,19 +133,10 @@ export function defineContractComponents(world: World) {
           // Endless Mode Settings
           endless_difficulty_thresholds: RecsType.BigInt, // felt252 packed
           endless_score_multipliers: RecsType.BigInt,     // u64 packed
-          // Bonus Slot Settings (3 slots × 4 fields)
-          bonus_1_type: RecsType.Number,
-          bonus_1_trigger_type: RecsType.Number,
-          bonus_1_trigger_threshold: RecsType.Number,
-          bonus_1_starting_charges: RecsType.Number,
-          bonus_2_type: RecsType.Number,
-          bonus_2_trigger_type: RecsType.Number,
-          bonus_2_trigger_threshold: RecsType.Number,
-          bonus_2_starting_charges: RecsType.Number,
-          bonus_3_type: RecsType.Number,
-          bonus_3_trigger_type: RecsType.Number,
-          bonus_3_trigger_threshold: RecsType.Number,
-          bonus_3_starting_charges: RecsType.Number,
+          // Zone & Mutator Assignment
+          zone_id: RecsType.Number,
+          active_mutator_id: RecsType.Number,
+          passive_mutator_id: RecsType.Number,
           // Boss Settings
           boss_id: RecsType.Number,
         },
@@ -169,9 +160,9 @@ export function defineContractComponents(world: World) {
               "u32",  // allowed_mutators
               "felt252",  // endless_difficulty_thresholds
               "u64",  // endless_score_multipliers
-              "u8", "u8", "u8", "u8",  // bonus_1
-              "u8", "u8", "u8", "u8",  // bonus_2
-              "u8", "u8", "u8", "u8",  // bonus_3
+              "u8",  // zone_id
+              "u8",  // active_mutator_id
+              "u8",  // passive_mutator_id
               "u8",  // boss_id
             ],
           },
@@ -191,7 +182,7 @@ export function defineContractComponents(world: World) {
           metadata: {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "GameSeed",
-            types: ["u64", "felt252", "felt252", "bool"],
+            types: ["felt252", "felt252", "felt252", "bool"],
             customTypes: [],
           },
         }
@@ -224,7 +215,7 @@ export function defineContractComponents(world: World) {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "GameLevel",
             types: [
-              "u64",  // game_id
+              "felt252",  // game_id
               "u8",   // level
               "u16",  // points_required
               "u16",  // max_moves
@@ -283,7 +274,7 @@ export function defineContractComponents(world: World) {
           metadata: {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "PlayerBestRun",
-            types: ["ContractAddress", "u32", "u8", "u32", "u8", "u8", "bool", "felt252", "felt252"],
+            types: ["ContractAddress", "u32", "u8", "u32", "u8", "u8", "bool", "u32", "felt252"],
             customTypes: [],
           },
         }
@@ -369,12 +360,12 @@ export function defineContractComponents(world: World) {
               "u32",               // challenge_id
               "ContractAddress",   // player
               "u32",               // attempts
-              "u16",               // best_score
+              "u32",               // best_score
               "u8",                // best_level
               "u8",                // best_stars
               "felt252",           // best_game_id
               "u32",               // rank
-              "u256",              // star_reward
+              "u64",               // star_reward
             ],
             customTypes: [],
           },
@@ -454,7 +445,7 @@ export function defineContractComponents(world: World) {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "GameChallenge",
             types: [
-              "u64",   // game_id
+              "felt252",   // game_id
               "u32",   // challenge_id
             ],
             customTypes: [],
@@ -477,7 +468,7 @@ export function defineContractComponents(world: World) {
           metadata: {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "StoryZoneProgress",
-            types: ["ContractAddress", "u32", "felt252", "u8", "bool", "bool"],
+            types: ["ContractAddress", "u8", "u32", "u8", "bool", "bool"],
             customTypes: [],
           },
         }
@@ -569,7 +560,7 @@ export function defineContractComponents(world: World) {
           metadata: {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "CosmeticDef",
-            types: ["u32", "felt252", "u256", "u8", "bool"],
+            types: ["u32", "felt252", "u128", "u8", "bool"],
             customTypes: [],
           },
         }

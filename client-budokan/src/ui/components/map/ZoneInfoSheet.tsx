@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 import { X } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
-import { getBonusType } from "@/config/mutatorConfig";
+import { getMutatorDef } from "@/config/mutatorConfig";
 import { ZONE_NAMES } from "@/config/profileData";
 
 interface ZoneInfoSheetProps {
@@ -15,10 +15,8 @@ const ZoneInfoSheet: React.FC<ZoneInfoSheetProps> = ({ zoneId, onClose }) => {
 
   const zoneName = ZONE_NAMES[zoneId] ?? `Zone ${zoneId}`;
 
-  const bonus1 = getBonusType(settings.bonus1Type);
-  const bonus2 = getBonusType(settings.bonus2Type);
-  const bonus3 = getBonusType(settings.bonus3Type);
-  const bonuses = [bonus1, bonus2, bonus3].filter((b) => b.name !== "None");
+  const activeMutator = getDisplayMutator(settings.activeMutatorId, "Active");
+  const passiveMutator = getDisplayMutator(settings.passiveMutatorId, "Passive");
 
   const hasConstraints = settings.constraintsEnabled;
   const constraintStart = settings.constraintStartLevel;
@@ -73,28 +71,30 @@ const ZoneInfoSheet: React.FC<ZoneInfoSheetProps> = ({ zoneId, onClose }) => {
             ) : (
               <InfoRow emoji="🧩" label="No special rules" />
             )}
-            {bonuses.length > 0 ? (
-              <InfoRow
-                emoji="🎁"
-                label={bonuses
-                  .map((b, i) => {
-                    const charges = [
-                      settings.bonus1StartingCharges,
-                      settings.bonus2StartingCharges,
-                      settings.bonus3StartingCharges,
-                    ][i];
-                    return `${b.name}${charges ? ` (${charges})` : ""}`;
-                  })
-                  .join(", ")}
-              />
-            ) : (
-              <InfoRow emoji="🎁" label="No starting bonuses" />
-            )}
-            <InfoRow emoji="👑" label="Boss on Level 10" />
+            <InfoRow emoji={activeMutator.icon} label={activeMutator.label} />
+            <InfoRow emoji={passiveMutator.icon} label={passiveMutator.label} />
+            <InfoRow emoji="👑" label={settings.bossId > 0 ? `Boss ${settings.bossId} on Level 10` : "Boss on Level 10"} />
         </div>
       </motion.div>
     </motion.div>
   );
+};
+
+const getDisplayMutator = (id: number, kind: "Active" | "Passive") => {
+  if (id <= 0) {
+    return {
+      icon: kind === "Active" ? "✨" : "🛡️",
+      label: `${kind} mutator: None`,
+    };
+  }
+
+  const mutator = getMutatorDef(id);
+  const isKnown = mutator.id !== 0;
+
+  return {
+    icon: isKnown ? mutator.icon : kind === "Active" ? "✨" : "🛡️",
+    label: `${kind} mutator: ${isKnown ? mutator.name : `Mutator ${id}`}`,
+  };
 };
 
 const InfoRow: React.FC<{ emoji: string; label: string }> = ({

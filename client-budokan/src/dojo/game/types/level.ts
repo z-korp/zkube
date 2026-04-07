@@ -90,19 +90,11 @@ export interface GameSettings {
   midLevelThreshold: number;
   // Level Cap
   levelCap: number;
-  // Bonus Slots (3 slots, each with type/trigger/threshold/charges)
-  bonus1Type: number;
-  bonus1TriggerType: number;
-  bonus1TriggerThreshold: number;
-  bonus1StartingCharges: number;
-  bonus2Type: number;
-  bonus2TriggerType: number;
-  bonus2TriggerThreshold: number;
-  bonus2StartingCharges: number;
-  bonus3Type: number;
-  bonus3TriggerType: number;
-  bonus3TriggerThreshold: number;
-  bonus3StartingCharges: number;
+  // Zone assignment
+  zoneId: number;
+  // Fixed mutators
+  activeMutatorId: number;
+  passiveMutatorId: number;
   // Boss
   bossId: number;
   // Mutators
@@ -174,9 +166,9 @@ export const DEFAULT_SETTINGS: GameSettings = {
   midLevelThreshold: 25,
   // Level Cap
   levelCap: 50,
-  bonus1Type: 1, bonus1TriggerType: 1, bonus1TriggerThreshold: 5, bonus1StartingCharges: 1,
-  bonus2Type: 3, bonus2TriggerType: 3, bonus2TriggerThreshold: 30, bonus2StartingCharges: 1,
-  bonus3Type: 2, bonus3TriggerType: 2, bonus3TriggerThreshold: 10, bonus3StartingCharges: 1,
+  zoneId: 0,
+  activeMutatorId: 0,
+  passiveMutatorId: 0,
   bossId: 1,
   allowedMutators: 1,
   endlessDifficultyThresholds: [0, 15, 40, 80, 150, 280, 500, 900],
@@ -1011,18 +1003,9 @@ export function parseGameSettings(raw: any): GameSettings {
     midLevelThreshold:
       raw.mid_level_threshold ?? DEFAULT_SETTINGS.midLevelThreshold,
     levelCap: raw.level_cap ?? DEFAULT_SETTINGS.levelCap,
-    bonus1Type: raw.bonus_1_type ?? DEFAULT_SETTINGS.bonus1Type,
-    bonus1TriggerType: raw.bonus_1_trigger_type ?? DEFAULT_SETTINGS.bonus1TriggerType,
-    bonus1TriggerThreshold: raw.bonus_1_trigger_threshold ?? DEFAULT_SETTINGS.bonus1TriggerThreshold,
-    bonus1StartingCharges: raw.bonus_1_starting_charges ?? DEFAULT_SETTINGS.bonus1StartingCharges,
-    bonus2Type: raw.bonus_2_type ?? DEFAULT_SETTINGS.bonus2Type,
-    bonus2TriggerType: raw.bonus_2_trigger_type ?? DEFAULT_SETTINGS.bonus2TriggerType,
-    bonus2TriggerThreshold: raw.bonus_2_trigger_threshold ?? DEFAULT_SETTINGS.bonus2TriggerThreshold,
-    bonus2StartingCharges: raw.bonus_2_starting_charges ?? DEFAULT_SETTINGS.bonus2StartingCharges,
-    bonus3Type: raw.bonus_3_type ?? DEFAULT_SETTINGS.bonus3Type,
-    bonus3TriggerType: raw.bonus_3_trigger_type ?? DEFAULT_SETTINGS.bonus3TriggerType,
-    bonus3TriggerThreshold: raw.bonus_3_trigger_threshold ?? DEFAULT_SETTINGS.bonus3TriggerThreshold,
-    bonus3StartingCharges: raw.bonus_3_starting_charges ?? DEFAULT_SETTINGS.bonus3StartingCharges,
+    zoneId: raw.zone_id ?? DEFAULT_SETTINGS.zoneId,
+    activeMutatorId: raw.active_mutator_id ?? DEFAULT_SETTINGS.activeMutatorId,
+    passiveMutatorId: raw.passive_mutator_id ?? DEFAULT_SETTINGS.passiveMutatorId,
     bossId: raw.boss_id ?? DEFAULT_SETTINGS.bossId,
     allowedMutators: raw.allowed_mutators ?? DEFAULT_SETTINGS.allowedMutators,
     endlessDifficultyThresholds: raw.endless_difficulty_thresholds

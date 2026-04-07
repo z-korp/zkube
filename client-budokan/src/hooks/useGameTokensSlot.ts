@@ -28,7 +28,6 @@ export interface SlotGameTokenData {
     name: string;
   };
   run_data?: bigint;
-  settings_id?: number;
 }
 
 // GraphQL query for ERC721 token balances
@@ -233,7 +232,6 @@ export const useGameTokensSlot = ({
               name: tokenMeta?.metadataName || `Game #${gameData.game_id}` 
             },
             run_data: runDataPacked,
-            settings_id: Number(gameData.settings_id ?? 0),
           });
 
           if (gameList.length >= limit) break;

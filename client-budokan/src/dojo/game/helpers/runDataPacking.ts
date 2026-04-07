@@ -3,7 +3,7 @@ import { BOSS_INTERVAL } from "@/dojo/game/constants";
  * Bit-packing helpers for efficient storage
  * Mirrors the Cairo packing.cairo implementation
  *
- * Zone-based run_data layout (101 bits used):
+ * run_data layout (107 bits used):
  * ┌─────────────────────────────────────────────────────────────────────┐
  * │ Bits    │ Field                    │ Size │ Range    │ Description  │
  * ├─────────┼──────────────────────────┼──────┼──────────┼──────────────┤
@@ -15,9 +15,14 @@ import { BOSS_INTERVAL } from "@/dojo/game/constants";
  * │ 40-47   │ max_combo_run            │ 8    │ 0-255    │ Best combo   │
  * │ 48-79   │ total_score              │ 32   │ 0-4B     │ Cumul. score │
  * │ 80      │ zone_cleared             │ 1    │ 0-1      │ Zone clear   │
- * │ 81-88   │ endless_depth            │ 8    │ 0-255    │ Endless depth│
- * │ 89-92   │ zone_id                  │ 4    │ 0-15     │ Current zone │
- * │ 93-100  │ mutator_mask             │ 8    │ 0-255    │ Active muts  │
+ * │ 81-84   │ current_difficulty       │ 4    │ 0-15     │ Difficulty   │
+ * │ 85-88   │ zone_id                  │ 4    │ 0-15     │ Current zone │
+ * │ 89-93   │ active_mutator_id        │ 5    │ 0-31     │ Active mut.  │
+ * │ 94      │ run_type                 │ 1    │ 0-1      │ Zone/Endless │
+ * │ 95-96   │ bonus_type               │ 2    │ 0-3      │ Bonus type   │
+ * │ 97-100  │ bonus_charges            │ 4    │ 0-15     │ Charges left │
+ * │ 101-104 │ level_lines_cleared      │ 4    │ 0-15     │ Lines cleared│
+ * │ 105-106 │ bonus_slot               │ 2    │ 0-2      │ Bonus slot   │
  * └─────────────────────────────────────────────────────────────────────┘
  */
 
@@ -49,18 +54,19 @@ const CONSTRAINT_2_PROGRESS_POS = 32;
 const MAX_COMBO_RUN_POS = 40;
 const TOTAL_SCORE_POS = 48;
 const ZONE_CLEARED_POS = 80;
-const ENDLESS_DEPTH_POS = 81;
-const ZONE_ID_POS = 89;
-const ACTIVE_MUTATOR_ID_POS = 93;
-const MODE_POS = 101;
-const BONUS_TYPE_POS = 102;
-const BONUS_CHARGES_POS = 104;
-const LEVEL_LINES_CLEARED_POS = 108;
-const BONUS_SLOT_POS = 116;
+const CURRENT_DIFFICULTY_POS = 81;
+const ZONE_ID_POS = 85;
+const ACTIVE_MUTATOR_ID_POS = 89;
+const RUN_TYPE_POS = 94;
+const BONUS_TYPE_POS = 95;
+const BONUS_CHARGES_POS = 97;
+const LEVEL_LINES_CLEARED_POS = 101;
+const BONUS_SLOT_POS = 105;
 
 const MASK_1BIT = 0x1n;
 const MASK_2BIT = 0x3n;
 const MASK_4BIT = 0xFn;
+const MASK_5BIT = 0x1Fn;
 const MASK_8BIT = 0xFFn;
 const MASK_32BIT = 0xFFFFFFFFn;
 
@@ -85,13 +91,13 @@ export function unpackRunData(packed: bigint): RunData {
     maxComboRun: extractBits(packed, MAX_COMBO_RUN_POS, MASK_8BIT),
     totalScore: extractBits(packed, TOTAL_SCORE_POS, MASK_32BIT),
     zoneCleared: extractBool(packed, ZONE_CLEARED_POS),
-    currentDifficulty: extractBits(packed, ENDLESS_DEPTH_POS, MASK_8BIT),
+    currentDifficulty: extractBits(packed, CURRENT_DIFFICULTY_POS, MASK_4BIT),
     zoneId: extractBits(packed, ZONE_ID_POS, MASK_4BIT),
-    activeMutatorId: extractBits(packed, ACTIVE_MUTATOR_ID_POS, MASK_8BIT),
-    mode: extractBits(packed, MODE_POS, MASK_1BIT),
+    activeMutatorId: extractBits(packed, ACTIVE_MUTATOR_ID_POS, MASK_5BIT),
+    mode: extractBits(packed, RUN_TYPE_POS, MASK_1BIT),
     bonusType: extractBits(packed, BONUS_TYPE_POS, MASK_2BIT),
     bonusCharges: extractBits(packed, BONUS_CHARGES_POS, MASK_4BIT),
-    levelLinesCleared: extractBits(packed, LEVEL_LINES_CLEARED_POS, MASK_8BIT),
+    levelLinesCleared: extractBits(packed, LEVEL_LINES_CLEARED_POS, MASK_4BIT),
     bonusSlot: extractBits(packed, BONUS_SLOT_POS, MASK_2BIT),
   };
 }

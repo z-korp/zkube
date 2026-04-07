@@ -27,18 +27,28 @@ describe("unpackRunData", () => {
     expect(unpackRunData(packed).zoneCleared).toBe(true);
   });
 
-  it("unpacks mode at bit 101", () => {
-    const packed = 1n << 101n;
+  it("unpacks mode at bit 94", () => {
+    const packed = 1n << 94n;
     expect(unpackRunData(packed).mode).toBe(1);
   });
 
-  it("unpacks bonus_type at bits 102-103", () => {
-    const packed = 2n << 102n;
+  it("unpacks bonus_type at bits 95-96", () => {
+    const packed = 2n << 95n;
     expect(unpackRunData(packed).bonusType).toBe(2);
   });
 
-  it("unpacks bonus_charges at bits 104-107", () => {
-    const packed = 9n << 104n;
+  it("unpacks bonus_charges at bits 97-100", () => {
+    const packed = 9n << 97n;
     expect(unpackRunData(packed).bonusCharges).toBe(9);
+  });
+
+  it("unpacks zone_id at bits 85-88", () => {
+    const packed = 6n << 85n;
+    expect(unpackRunData(packed).zoneId).toBe(6);
+  });
+
+  it("unpacks active_mutator_id at bits 89-93", () => {
+    const packed = 19n << 89n;
+    expect(unpackRunData(packed).activeMutatorId).toBe(19);
   });
 });
