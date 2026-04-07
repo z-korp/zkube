@@ -44,6 +44,7 @@ mod game_system {
     use zkube::elements::tasks::interface::TaskTrait;
     use zkube::helpers::controller::Controller;
     use zkube::helpers::{game_creation, game_over};
+    use zkube::models::daily::{DailyAttempt, DailyAttemptTrait};
     use zkube::models::game::{Game, GameAssert, GameTrait};
     use zkube::models::story::{
         ActiveStoryAttempt, ActiveStoryAttemptTrait, StoryAttempt, StoryAttemptTrait,
@@ -218,10 +219,13 @@ mod game_system {
 
             let story_attempt: StoryAttempt = world.read_model(effective_game_id);
             let is_story_attempt = story_attempt.exists();
+            let daily_game: DailyAttempt = world.read_model(effective_game_id);
+            let is_daily_game = daily_game.exists();
+            let is_non_token_game = is_story_attempt || is_daily_game;
 
             let token_address = self.token_address();
             let token_id_felt = effective_game_id;
-            if !is_story_attempt {
+            if !is_non_token_game {
                 pre_action(token_address, token_id_felt);
 
                 let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
@@ -236,6 +240,8 @@ mod game_system {
             let mut game: Game = world.read_model(effective_game_id);
             if is_story_attempt {
                 assert!(story_attempt.player == player, "not story owner");
+            } else if is_daily_game {
+                assert!(daily_game.player == player, "not daily owner");
             } else {
                 assert_token_ownership(token_address, token_id_felt);
             }
@@ -246,7 +252,7 @@ mod game_system {
 
             game_over::handle_game_over(ref world, game, player);
 
-            if !is_story_attempt {
+            if !is_non_token_game {
                 post_action(token_address, token_id_felt);
             }
         }
@@ -255,10 +261,13 @@ mod game_system {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let story_game: StoryAttempt = world.read_model(game_id);
             let is_story_game = story_game.exists();
+            let daily_game: DailyAttempt = world.read_model(game_id);
+            let is_daily_game = daily_game.exists();
+            let is_non_token_game = is_story_game || is_daily_game;
 
             let token_address = self.token_address();
             let token_id_felt = game_id;
-            if !is_story_game {
+            if !is_non_token_game {
                 pre_action(token_address, token_id_felt);
 
                 let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
@@ -273,6 +282,8 @@ mod game_system {
             let mut game: Game = world.read_model(game_id);
             if is_story_game {
                 assert!(story_game.player == get_caller_address(), "not story owner");
+            } else if is_daily_game {
+                assert!(daily_game.player == get_caller_address(), "not daily owner");
             } else {
                 assert_token_ownership(token_address, token_id_felt);
             }
@@ -303,7 +314,7 @@ mod game_system {
                 Option::None => {},
             }
 
-            if !is_story_game {
+            if !is_non_token_game {
                 post_action(token_address, token_id_felt);
             }
         }

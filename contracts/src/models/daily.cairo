@@ -1,7 +1,7 @@
 use starknet::ContractAddress;
 
 /// Maps a game to its daily challenge (if any)
-/// Written when a game is created with a daily challenge settings_id
+/// Written when a game is created via start_daily_game()
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
 #[dojo::model]
 pub struct GameChallenge {
@@ -11,29 +11,44 @@ pub struct GameChallenge {
     pub challenge_id: u32,
 }
 
-
-/// Daily challenge definition — one per day, created by admin
+/// Daily challenge definition — auto-created on first play of the day
 #[derive(Copy, Drop, Serde, Introspect)]
 #[dojo::model]
 pub struct DailyChallenge {
     #[key]
     pub challenge_id: u32,
-    /// GameSettings ID for this challenge's zone/endless ruleset.
+    /// GameSettings ID for this challenge's zone ruleset (derived from zone_id)
     pub settings_id: u32,
-    /// VRF seed — shared by all players for identical block sequences
+    /// Deterministic seed — shared by all players for identical block sequences
     pub seed: felt252,
     /// UTC timestamp (midnight)
     pub start_time: u64,
     /// start_time + 86400
     pub end_time: u64,
-    /// Unique player count (incremented only on first registration)
+    /// Unique player count (incremented only on first attempt)
     pub total_entries: u32,
-    /// Fixed LORDS amount deposited by admin
-    pub prize_pool: u256,
-    /// True once prize distribution is finalized
+    /// True once reward distribution is finalized
     pub settled: bool,
-    /// Run type for this challenge: 0=Zone, 1=Endless
-    pub run_type: u8,
+    /// Randomly selected zone (1-10)
+    pub zone_id: u8,
+    /// Randomly selected active mutator (bonus profile, odd IDs 1-19)
+    pub active_mutator_id: u8,
+    /// Randomly selected passive mutator (stat modifiers, even IDs 2-20)
+    pub passive_mutator_id: u8,
+    /// Randomly selected boss identity (1-10)
+    pub boss_id: u8,
+}
+
+/// Per-player attempt for a daily game — links game_id to daily context
+/// Analogous to StoryAttempt for settings resolution + auth bypass
+#[derive(Copy, Drop, Serde, IntrospectPacked)]
+#[dojo::model]
+pub struct DailyAttempt {
+    #[key]
+    pub game_id: felt252,
+    pub player: ContractAddress,
+    pub zone_id: u8,
+    pub challenge_id: u32,
 }
 
 /// Per-player entry tracking for a daily challenge (compound key)
@@ -44,22 +59,20 @@ pub struct DailyEntry {
     pub challenge_id: u32,
     #[key]
     pub player: ContractAddress,
-    /// Number of attempts by this player (each burns 1 zTicket)
+    /// Number of attempts by this player
     pub attempts: u32,
     /// Best score achieved across all attempts
     pub best_score: u32,
     /// Best level reached across all attempts
     pub best_level: u8,
-    /// Best endless depth reached across all attempts
-    pub best_depth: u8,
+    /// Best stars earned across all attempts
+    pub best_stars: u8,
     /// Game ID of the best run (for verification)
     pub best_game_id: felt252,
     /// Final rank (set during settlement, 0 = unranked)
     pub rank: u32,
-    /// LORDS prize amount (set during settlement)
-    pub prize_amount: u256,
-    /// Whether prize has been claimed
-    pub claimed: bool,
+    /// zStar reward amount (set during settlement)
+    pub star_reward: u256,
 }
 
 /// Top N leaderboard tracking (compound key: challenge_id + rank)
@@ -108,6 +121,16 @@ pub impl DailyEntryImpl of DailyEntryTrait {
     }
 }
 
+#[generate_trait]
+pub impl DailyAttemptImpl of DailyAttemptTrait {
+    /// Check if this attempt exists (non-zero player)
+    #[inline(always)]
+    fn exists(self: @DailyAttempt) -> bool {
+        let zero: ContractAddress = core::num::traits::Zero::zero();
+        *self.player != zero
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait};
@@ -115,14 +138,16 @@ mod tests {
     fn make_challenge(start: u64, end: u64) -> DailyChallenge {
         DailyChallenge {
             challenge_id: 1,
-            settings_id: 100,
+            settings_id: 0,
             seed: 'test_seed',
             start_time: start,
             end_time: end,
             total_entries: 0,
-            prize_pool: 1000,
             settled: false,
-            run_type: 0,
+            zone_id: 1,
+            active_mutator_id: 1,
+            passive_mutator_id: 2,
+            boss_id: 1,
         }
     }
 
@@ -176,11 +201,10 @@ mod tests {
             attempts: 1,
             best_score: 0,
             best_level: 0,
-            best_depth: 0,
+            best_stars: 0,
             best_game_id: 0,
             rank: 0,
-            prize_amount: 0,
-            claimed: false,
+            star_reward: 0,
         };
         assert!(entry.exists(), "Entry with attempts > 0 should exist");
     }
@@ -193,11 +217,10 @@ mod tests {
             attempts: 0,
             best_score: 0,
             best_level: 0,
-            best_depth: 0,
+            best_stars: 0,
             best_game_id: 0,
             rank: 0,
-            prize_amount: 0,
-            claimed: false,
+            star_reward: 0,
         };
         assert!(!entry.exists(), "Entry with 0 attempts should not exist");
     }

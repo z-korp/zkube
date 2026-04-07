@@ -3,162 +3,246 @@ use zkube::models::daily::DailyEntry;
 
 #[starknet::interface]
 pub trait IDailyChallengeSystem<T> {
-    // === Admin ===
-
-    /// Create a new daily challenge (admin only)
-    /// @param settings_id: GameSettings ID for this challenge.
-    /// @param ranking_metric: Legacy reserved field (unused).
-    /// @param run_type: Run type (0=Zone, 1=Endless)
-    /// @param mutator_id: Legacy reserved parameter (unused).
-    /// @param prize_amount: LORDS to deposit as prize pool
-    fn create_daily_challenge(
-        ref self: T,
-        settings_id: u32,
-        ranking_metric: u8,
-        run_type: u8,
-        mutator_id: u8,
-        prize_amount: u256,
-    );
-
-    /// Settle a completed challenge -- compute prizes for top N players (admin only)
-    /// @param challenge_id: The challenge to settle
+    /// Start a daily challenge game. Auto-creates today's challenge on first call.
+    fn start_daily_game(ref self: T) -> felt252;
+    /// Settle a daily challenge after it ends. Permissionless.
     fn settle_challenge(ref self: T, challenge_id: u32);
-
-    /// Withdraw unclaimed prizes after grace period (admin only)
-    /// @param challenge_id: The settled challenge
-    /// Grace period: 30 days after settlement
-    fn withdraw_unclaimed(ref self: T, challenge_id: u32);
-
-    // === Player ===
-
-    fn register_entry(ref self: T, challenge_id: u32);
-
-    /// Submit a game result for a daily challenge (backup for auto-submit)
-    /// Updates player's best scores if this run beats previous best
-    /// @param challenge_id: The challenge
-    /// @param game_id: The completed game to submit
+    /// Manual result submission (backup -- game_over auto-submits)
     fn submit_result(ref self: T, challenge_id: u32, game_id: felt252);
-
-    /// Claim prize for a settled challenge
-    /// @param challenge_id: The challenge to claim from
-    fn claim_prize(ref self: T, challenge_id: u32);
-
-    // === Views ===
-
-    /// Get the current active challenge ID (0 if none)
+    /// Get today's challenge ID (day_id = timestamp / 86400)
     fn get_current_challenge(self: @T) -> u32;
-
-    /// Get a player's entry for a challenge
+    /// Get player entry for a challenge
     fn get_player_entry(self: @T, challenge_id: u32, player: ContractAddress) -> DailyEntry;
-
-    /// Settle weekly endless leaderboard (permissionless — anyone can call after week ends)
+    /// Settle weekly endless leaderboard (keep existing)
     fn settle_weekly_endless(ref self: T, week_id: u32);
-}
-
-/// Minimal ERC20 interface for LORDS transfer_from / transfer
-#[starknet::interface]
-pub trait IERC20Minimal<T> {
-    fn transfer_from(
-        ref self: T, sender: ContractAddress, recipient: ContractAddress, amount: u256,
-    ) -> bool;
-    fn transfer(ref self: T, recipient: ContractAddress, amount: u256) -> bool;
 }
 
 #[dojo::contract]
 mod daily_challenge_system {
     use core::num::traits::Zero;
+    use core::poseidon::poseidon_hash_span;
+    use dojo::event::EventStorage;
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
-    use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
+    use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_tx_info};
     use zkube::constants::DEFAULT_NS;
+    use zkube::elements::tasks::index::Task;
+    use zkube::elements::tasks::interface::TaskTrait;
+    use zkube::events::{LevelStarted, StartGame};
     use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
+    use zkube::helpers::daily;
+    use zkube::helpers::game_libs::{GameLibsImpl, IGridSystemDispatcherTrait};
+    use zkube::helpers::level::LevelGeneratorTrait;
+    use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::weekly::MAX_WEEKLY_LEADERBOARD_SIZE;
-    use zkube::helpers::{daily, prize};
+    use zkube::models::config::{GameSettings, GameSettingsTrait};
     use zkube::models::daily::{
-        DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait, DailyLeaderboard,
-        GameChallenge,
+        DailyAttempt, DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait,
+        DailyLeaderboard, GameChallenge,
     };
-    use zkube::models::game::{Game, GameTrait};
+    use zkube::models::game::{Game, GameLevelTrait, GameSeed, GameTrait};
+    use zkube::models::mutator::MutatorDef;
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::models::weekly::{WeeklyEndless, WeeklyEndlessLeaderboard, current_week_id};
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
-    use super::{IERC20MinimalDispatcher, IERC20MinimalDispatcherTrait};
-
-    /// Grace period after settlement before admin can withdraw unclaimed prizes (30 days)
-    const WITHDRAWAL_GRACE_PERIOD: u64 = 2_592_000; // 30 * 24 * 60 * 60
+    use zkube::systems::progress::{IProgressSystemDispatcher, IProgressSystemDispatcherTrait};
 
     #[storage]
     struct Storage {
-        next_challenge_id: u32,
         admin_address: ContractAddress,
-        lords_address: ContractAddress,
     }
 
-    fn dojo_init(
-        ref self: ContractState, admin_address: ContractAddress, lords_address: ContractAddress,
-    ) {
+    fn dojo_init(ref self: ContractState, admin_address: ContractAddress) {
         assert!(!admin_address.is_zero(), "Admin address cannot be zero");
-        self.next_challenge_id.write(1);
         self.admin_address.write(admin_address);
-        self.lords_address.write(lords_address);
     }
 
     #[abi(embed_v0)]
     impl DailyChallengeImpl of super::IDailyChallengeSystem<ContractState> {
-        fn create_daily_challenge(
-            ref self: ContractState,
-            settings_id: u32,
-            ranking_metric: u8,
-            run_type: u8,
-            mutator_id: u8,
-            prize_amount: u256,
-        ) {
+        fn start_daily_game(ref self: ContractState) -> felt252 {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
-            let caller = get_caller_address();
+            let player = get_caller_address();
             let timestamp = get_block_timestamp();
+            let tx_info = get_tx_info().unbox();
+            let tx_hash = tx_info.transaction_hash;
 
-            // Admin-only
-            self.assert_admin(caller);
+            // Compute day_id from UTC midnight boundaries
+            let day_id: u32 = (timestamp / 86400).try_into().unwrap();
 
-            // Legacy reserved parameters kept for ABI stability.
-            let _ = ranking_metric;
-            let run_type: u8 = run_type & 0x1;
-            let _ = mutator_id;
+            // Auto-create today's challenge if it doesn't exist yet
+            let mut challenge: DailyChallenge = world.read_model(day_id);
+            if !challenge.exists() {
+                let seed = poseidon_hash_span(array![day_id.into(), 'DAILY_CHALLENGE'].span());
+                let seed_u256: u256 = seed.into();
+                let zone_id: u8 = ((seed_u256 % 10) + 1).try_into().unwrap();
 
-            // Assign challenge ID
-            let challenge_id = self.next_challenge_id.read();
-            self.next_challenge_id.write(challenge_id + 1);
+                let seed2 = poseidon_hash_span(array![seed, 1].span());
+                let seed2_u256: u256 = seed2.into();
+                let active_mutator_id: u8 = ((seed2_u256 % 10) * 2 + 1).try_into().unwrap();
 
-            // Fixed 24h window from creation
-            let start_time = timestamp;
-            let end_time = timestamp + 86400;
+                let seed3 = poseidon_hash_span(array![seed, 2].span());
+                let seed3_u256: u256 = seed3.into();
+                let passive_mutator_id: u8 = ((seed3_u256 % 10) * 2 + 2).try_into().unwrap();
 
-            // Transfer LORDS from caller to this contract as prize pool
-            if prize_amount > 0 {
-                let lords = IERC20MinimalDispatcher { contract_address: self.lords_address.read() };
-                let success = lords.transfer_from(caller, get_contract_address(), prize_amount);
-                assert!(success, "LORDS transfer failed");
+                let seed4 = poseidon_hash_span(array![seed, 3].span());
+                let seed4_u256: u256 = seed4.into();
+                let boss_id: u8 = ((seed4_u256 % 10) + 1).try_into().unwrap();
+
+                let settings_id: u32 = ((zone_id - 1) * 2).into();
+                let start_time: u64 = (day_id.into()) * 86400;
+                let end_time: u64 = start_time + 86400;
+
+                challenge =
+                    DailyChallenge {
+                        challenge_id: day_id,
+                        settings_id,
+                        seed,
+                        start_time,
+                        end_time,
+                        total_entries: 0,
+                        settled: false,
+                        zone_id,
+                        active_mutator_id,
+                        passive_mutator_id,
+                        boss_id,
+                    };
+                world.write_model(@challenge);
             }
 
-            // Generate shared seed from challenge parameters
-            // On mainnet/sepolia, this could be enhanced with VRF
-            let seed = core::poseidon::poseidon_hash_span(
-                array![challenge_id.into(), timestamp.into(), 'DAILY_CHALLENGE'].span(),
+            // Assert challenge is active
+            assert!(challenge.is_active(timestamp), "Challenge is not active");
+
+            // Read GameSettings for the zone
+            let settings: GameSettings = world.read_model(challenge.settings_id);
+            assert!(settings.exists(), "missing settings");
+
+            // Generate unique game_id
+            let game_id = poseidon_hash_span(
+                array![player.into(), day_id.into(), timestamp.into(), tx_hash].span(),
             );
 
-            let challenge = DailyChallenge {
-                challenge_id,
-                settings_id,
-                seed,
-                start_time,
-                end_time,
-                total_entries: 0,
-                prize_pool: prize_amount,
-                settled: false,
-                run_type,
+            // Read bonus config from the active mutator
+            let bonus_mutator_def = InternalImpl::read_mutator_def(
+                world, challenge.active_mutator_id,
+            );
+            let seed_u256: u256 = challenge.seed.into();
+            let (bonus_slot, bonus_type, starting_charges) = InternalImpl::select_bonus_slot(
+                seed_u256, @bonus_mutator_def,
+            );
+
+            // Create Game: zone run_type=0
+            let mut game = GameTrait::new_empty(
+                game_id, timestamp, challenge.zone_id, challenge.passive_mutator_id, 0,
+            );
+            let mut run_data = game.get_run_data();
+            run_data.current_level = 1;
+            run_data.bonus_slot = bonus_slot;
+            run_data.bonus_type = bonus_type;
+            run_data.bonus_charges = if starting_charges > 15 {
+                15
+            } else {
+                starting_charges
             };
-            world.write_model(@challenge);
+            game.set_run_data(run_data);
+
+            // Create GameSeed with shared daily seed
+            let level_seed = GameTrait::generate_level_seed(challenge.seed, 1);
+            let game_seed = GameSeed {
+                game_id, seed: challenge.seed, level_seed, vrf_enabled: false,
+            };
+
+            // Generate level config using passive mutator
+            let passive_mutator_def = InternalImpl::read_mutator_def(
+                world, challenge.passive_mutator_id,
+            );
+            let level_config = LevelGeneratorTrait::generate(
+                level_seed, 1, settings, @passive_mutator_def,
+            );
+            let mut game_level = GameLevelTrait::from_level_config(game_id, level_config);
+            game_level.mutator_id = challenge.passive_mutator_id;
+
+            // Create DailyAttempt (links game to daily context)
+            let daily_attempt = DailyAttempt {
+                game_id, player, zone_id: challenge.zone_id, challenge_id: day_id,
+            };
+
+            // Create/update DailyEntry
+            let mut entry: DailyEntry = world.read_model((day_id, player));
+            let is_new_player = !entry.exists();
+            entry.challenge_id = day_id;
+            entry.player = player;
+            entry.attempts += 1;
+
+            // Create GameChallenge mapping
+            let game_challenge = GameChallenge { game_id, challenge_id: day_id };
+
+            // Update total_entries for new players
+            if is_new_player {
+                challenge.total_entries += 1;
+                world.write_model(@challenge);
+            }
+
+            // Update PlayerMeta
+            let mut player_meta: PlayerMeta = world.read_model(player);
+            if !player_meta.exists() {
+                player_meta = PlayerMetaTrait::new(player);
+            } else if player_meta.last_active > 0 && timestamp - player_meta.last_active > 604800 {
+                // Returning player bonus (>7 days inactive)
+                InternalImpl::mint_zstar(ref self, ref world, player, 5);
+                player_meta.increment_xp(500);
+            }
+            player_meta.increment_runs();
+            player_meta.last_active = timestamp;
+
+            // Write all models
+            world.write_model(@game);
+            world.write_model(@game_seed);
+            world.write_model(@game_level);
+            world.write_model(@daily_attempt);
+            world.write_model(@entry);
+            world.write_model(@game_challenge);
+            world.write_model(@player_meta);
+
+            // Initialize grid
+            let libs = GameLibsImpl::new(world);
+            libs.grid.initialize_grid(game_id);
+
+            // Emit events
+            world.emit_event(@StartGame { player, timestamp, game_id });
+            world
+                .emit_event(
+                    @LevelStarted {
+                        game_id,
+                        player,
+                        level: 1,
+                        points_required: level_config.points_required,
+                        max_moves: game_level.max_moves,
+                        constraint_type: level_config.constraint.constraint_type,
+                        constraint_value: level_config.constraint.value,
+                        constraint_required: level_config.constraint.required_count,
+                    },
+                );
+
+            // Emit progress tasks
+            match world.dns_address(@"progress_system") {
+                Option::Some(progress_address) => {
+                    let progress_dispatcher = IProgressSystemDispatcher {
+                        contract_address: progress_address,
+                    };
+                    progress_dispatcher
+                        .emit_progress(
+                            player, Task::GameStart.identifier(), 1, challenge.settings_id,
+                        );
+                    progress_dispatcher
+                        .emit_progress(
+                            player, Task::DailyPlay.identifier(), 1, challenge.settings_id,
+                        );
+                },
+                Option::None => {},
+            }
+
+            game_id
         }
 
         fn settle_challenge(ref self: ContractState, challenge_id: u32) {
@@ -170,32 +254,20 @@ mod daily_challenge_system {
             assert!(challenge.has_ended(timestamp), "Challenge has not ended yet");
             assert!(!challenge.settled, "Challenge already settled");
 
-            let num_winners = prize::calculate_num_winners(challenge.total_entries);
+            let total_participants = challenge.total_entries;
+
+            // N = ceil(total_entries / 4), capped at leaderboard size
+            let num_winners = if total_participants == 0 {
+                0_u32
+            } else {
+                (total_participants + 3) / 4
+            };
             let capped_winners = if num_winners > daily::MAX_LEADERBOARD_SIZE {
                 daily::MAX_LEADERBOARD_SIZE
             } else {
                 num_winners
             };
 
-            if capped_winners > 0 && challenge.prize_pool > 0 {
-                let prizes = prize::calculate_all_prizes(capped_winners, challenge.prize_pool);
-                let mut i: u32 = 0;
-                while i < prizes.len() {
-                    let (rank, prize_amount) = *prizes.at(i);
-
-                    let lb: DailyLeaderboard = world.read_model((challenge_id, rank));
-                    if lb.player.is_non_zero() {
-                        let mut entry: DailyEntry = world.read_model((challenge_id, lb.player));
-                        entry.rank = rank;
-                        entry.prize_amount = prize_amount;
-                        world.write_model(@entry);
-                    }
-
-                    i += 1;
-                };
-            }
-
-            let total_participants = challenge.total_entries;
             let mut rank: u32 = 1;
             while rank <= capped_winners {
                 let lb: DailyLeaderboard = world.read_model((challenge_id, rank));
@@ -203,6 +275,12 @@ mod daily_challenge_system {
                     let star_reward = InternalImpl::compute_star_reward(rank, total_participants);
                     if star_reward > 0 {
                         InternalImpl::mint_zstar(ref self, ref world, lb.player, star_reward);
+
+                        // Store star_reward in DailyEntry
+                        let mut entry: DailyEntry = world.read_model((challenge_id, lb.player));
+                        entry.rank = rank;
+                        entry.star_reward = star_reward;
+                        world.write_model(@entry);
                     }
                 }
                 rank += 1;
@@ -210,84 +288,6 @@ mod daily_challenge_system {
 
             challenge.settled = true;
             world.write_model(@challenge);
-        }
-
-        fn withdraw_unclaimed(ref self: ContractState, challenge_id: u32) {
-            let world: WorldStorage = self.world(@DEFAULT_NS());
-            let caller = get_caller_address();
-            let timestamp = get_block_timestamp();
-
-            // Admin-only
-            self.assert_admin(caller);
-
-            let challenge: DailyChallenge = world.read_model(challenge_id);
-            assert!(challenge.exists(), "Challenge does not exist");
-            assert!(challenge.settled, "Challenge not yet settled");
-            assert!(
-                timestamp >= challenge.end_time + WITHDRAWAL_GRACE_PERIOD,
-                "Grace period not yet elapsed (30 days after challenge end)",
-            );
-
-            // Calculate total claimed prizes
-            let num_winners = prize::calculate_num_winners(challenge.total_entries);
-            let capped_winners = if num_winners > daily::MAX_LEADERBOARD_SIZE {
-                daily::MAX_LEADERBOARD_SIZE
-            } else {
-                num_winners
-            };
-
-            let mut total_claimed: u256 = 0;
-            let mut rank: u32 = 1;
-            while rank <= capped_winners {
-                let lb: DailyLeaderboard = world.read_model((challenge_id, rank));
-                if lb.player.is_non_zero() {
-                    let entry: DailyEntry = world.read_model((challenge_id, lb.player));
-                    if entry.claimed {
-                        total_claimed += entry.prize_amount;
-                    }
-                }
-                rank += 1;
-            }
-
-            let unclaimed = if challenge.prize_pool > total_claimed {
-                challenge.prize_pool - total_claimed
-            } else {
-                0
-            };
-
-            assert!(unclaimed > 0, "No unclaimed prizes to withdraw");
-
-            // Transfer unclaimed LORDS back to admin
-            let lords = IERC20MinimalDispatcher { contract_address: self.lords_address.read() };
-            let success = lords.transfer(caller, unclaimed);
-            assert!(success, "LORDS withdrawal transfer failed");
-        }
-
-        fn register_entry(ref self: ContractState, challenge_id: u32) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-            let player = get_caller_address();
-            let timestamp = get_block_timestamp();
-
-            let challenge: DailyChallenge = world.read_model(challenge_id);
-            assert!(challenge.exists(), "Challenge does not exist");
-            assert!(challenge.is_active(timestamp), "Challenge is not active");
-
-            let mut entry: DailyEntry = world.read_model((challenge_id, player));
-            let is_first_registration = !entry.exists();
-
-            // Update entry
-            entry.challenge_id = challenge_id;
-            entry.player = player;
-            entry.attempts += 1;
-            world.write_model(@entry);
-
-            // Only increment total_entries for unique players (first registration)
-            // This ensures prize distribution N = ceil(unique_players / 4) is accurate
-            if is_first_registration {
-                let mut challenge_mut: DailyChallenge = world.read_model(challenge_id);
-                challenge_mut.total_entries += 1;
-                world.write_model(@challenge_mut);
-            }
         }
 
         fn submit_result(ref self: ContractState, challenge_id: u32, game_id: felt252) {
@@ -316,30 +316,18 @@ mod daily_challenge_system {
             let run_data = game.get_run_data();
             let score: u32 = run_data.total_score;
             let level = run_data.current_level;
-            let depth = run_data.current_difficulty;
 
-            // Run-type-aware ranking:
-            // - Zone: (total_stars << 32) | total_score  (stars-first composite)
-            // - Endless: total_score
-            let run_type = challenge.run_type;
-            let stars = if run_type == 0 {
-                InternalImpl::calculate_total_stars(game)
-            } else {
-                0
-            };
-            let ranking_value: u64 = InternalImpl::compute_ranking_value(run_type, stars, score);
+            // Zone composite ranking: (total_stars << 32) | total_score
+            let stars = InternalImpl::calculate_total_stars(game);
+            let ranking_value: u64 = InternalImpl::compute_ranking_value(stars, score);
 
             // Check if this beats the player's current best
-            let current_best: u64 = if run_type == 1 {
-                entry.best_score.into()
+            let current_best: u64 = if entry.best_game_id == 0 {
+                0
             } else {
-                let best_stars = if entry.best_game_id == 0 {
-                    0
-                } else {
-                    let best_game: Game = world.read_model(entry.best_game_id);
-                    InternalImpl::calculate_total_stars(best_game)
-                };
-                InternalImpl::compute_ranking_value(0, best_stars, entry.best_score)
+                let best_game: Game = world.read_model(entry.best_game_id);
+                let best_stars = InternalImpl::calculate_total_stars(best_game);
+                InternalImpl::compute_ranking_value(best_stars, entry.best_score)
             };
 
             let is_first_submission = entry.best_game_id == 0;
@@ -348,7 +336,7 @@ mod daily_challenge_system {
                 // Update entry with new bests
                 entry.best_score = score;
                 entry.best_level = level;
-                entry.best_depth = depth;
+                entry.best_stars = stars;
                 entry.best_game_id = game_id;
                 world.write_model(@entry);
 
@@ -367,45 +355,8 @@ mod daily_challenge_system {
             }
         }
 
-        fn claim_prize(ref self: ContractState, challenge_id: u32) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-            let player = get_caller_address();
-
-            let challenge: DailyChallenge = world.read_model(challenge_id);
-            assert!(challenge.exists(), "Challenge does not exist");
-            assert!(challenge.settled, "Challenge not yet settled");
-
-            let mut entry: DailyEntry = world.read_model((challenge_id, player));
-            assert!(entry.exists(), "Player has no entry");
-            assert!(!entry.claimed, "Prize already claimed");
-            assert!(entry.prize_amount > 0, "No prize to claim");
-
-            entry.claimed = true;
-            world.write_model(@entry);
-
-            // Transfer LORDS from contract to winner
-            let lords = IERC20MinimalDispatcher { contract_address: self.lords_address.read() };
-            let success = lords.transfer(player, entry.prize_amount);
-            assert!(success, "LORDS transfer to winner failed");
-        }
-
         fn get_current_challenge(self: @ContractState) -> u32 {
-            let world: WorldStorage = self.world(@DEFAULT_NS());
-            let timestamp = get_block_timestamp();
-
-            // Check the most recent challenge (there's typically only one active)
-            let latest_id = self.next_challenge_id.read();
-            if latest_id <= 1 {
-                return 0;
-            }
-
-            let check_id = latest_id - 1;
-            let challenge: DailyChallenge = world.read_model(check_id);
-            if challenge.exists() && challenge.is_active(timestamp) {
-                return check_id;
-            }
-
-            0
+            (get_block_timestamp() / 86400).try_into().unwrap()
         }
 
         fn get_player_entry(
@@ -450,18 +401,12 @@ mod daily_challenge_system {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        /// Compute ranking value by run type.
-        /// - Zone: (total_stars << 32) | total_score  (stars-first composite)
-        /// - Endless: total_score
+        /// Compute zone composite ranking value: (total_stars << 32) | total_score
         #[inline(always)]
-        fn compute_ranking_value(run_type: u8, total_stars: u8, total_score: u32) -> u64 {
-            if run_type == 1 {
-                total_score.into()
-            } else {
-                let stars_u64: u64 = total_stars.into();
-                let score_u64: u64 = total_score.into();
-                (stars_u64 * 0x100000000) + score_u64
-            }
+        fn compute_ranking_value(total_stars: u8, total_score: u32) -> u64 {
+            let stars_u64: u64 = total_stars.into();
+            let score_u64: u64 = total_score.into();
+            (stars_u64 * 0x100000000) + score_u64
         }
 
         /// Sum stars across zone levels 1..10.
@@ -498,6 +443,56 @@ mod daily_challenge_system {
                 },
                 Option::None => {},
             }
+        }
+
+        /// Select a bonus slot from the active mutator's non-None bonus slots.
+        /// Returns (bonus_slot, bonus_type, starting_charges).
+        fn select_bonus_slot(seed_u256: u256, mutator_def: @MutatorDef) -> (u8, u8, u8) {
+            let mut count: u8 = 0;
+            if *mutator_def.bonus_1_type > 0 {
+                count += 1;
+            }
+            if *mutator_def.bonus_2_type > 0 {
+                count += 1;
+            }
+            if *mutator_def.bonus_3_type > 0 {
+                count += 1;
+            }
+            if count == 0 {
+                return (0, 0, 0);
+            }
+
+            let pick: u8 = (seed_u256 % count.into()).try_into().unwrap();
+            let mut found: u8 = 0;
+
+            if *mutator_def.bonus_1_type > 0 {
+                if found == pick {
+                    return (0, *mutator_def.bonus_1_type, *mutator_def.bonus_1_starting_charges);
+                }
+                found += 1;
+            }
+            if *mutator_def.bonus_2_type > 0 {
+                if found == pick {
+                    return (1, *mutator_def.bonus_2_type, *mutator_def.bonus_2_starting_charges);
+                }
+                found += 1;
+            }
+            if *mutator_def.bonus_3_type > 0 {
+                if found == pick {
+                    return (2, *mutator_def.bonus_3_type, *mutator_def.bonus_3_starting_charges);
+                }
+            }
+
+            // Fallback (should not reach)
+            (0, 0, 0)
+        }
+
+        fn read_mutator_def(world: WorldStorage, mutator_id: u8) -> MutatorDef {
+            if mutator_id == 0 {
+                return MutatorEffectsTrait::neutral(0);
+            }
+            let stored: MutatorDef = world.read_model(mutator_id);
+            MutatorEffectsTrait::normalize(mutator_id, stored)
         }
 
         fn compute_weekly_star_reward(rank: u32, total_participants: u32) -> u256 {

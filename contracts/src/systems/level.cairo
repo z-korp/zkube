@@ -39,6 +39,7 @@ mod level_system {
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::random::RandomImpl;
+    use zkube::models::daily::GameChallenge;
     use zkube::models::game::{Game, GameLevel, GameLevelTrait, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
@@ -379,12 +380,23 @@ mod level_system {
             // Write game before grid reset; grid system reads current_level from run_data.
             world.write_model(@game);
 
-            // Reseed per level for deterministic level variability.
-            let vrf_salt = core::poseidon::poseidon_hash_span(
-                array![game_id.into(), next_level.into()].span(),
-            );
-            let next_seed_random = RandomImpl::from_vrf_enabled(base_seed.vrf_enabled, vrf_salt);
-            let next_level_seed = next_seed_random.seed;
+            // Reseed per level: daily games use deterministic reseeding from
+            // the shared seed so all players see the same levels; non-daily
+            // games use VRF/pseudo-random reseeding.
+            let game_challenge: GameChallenge = world.read_model(game_id);
+            let is_daily_game = game_challenge.challenge_id > 0;
+
+            let next_level_seed = if is_daily_game {
+                GameTrait::generate_level_seed(base_seed.seed, next_level)
+            } else {
+                let vrf_salt = core::poseidon::poseidon_hash_span(
+                    array![game_id.into(), next_level.into()].span(),
+                );
+                let next_seed_random = RandomImpl::from_vrf_enabled(
+                    base_seed.vrf_enabled, vrf_salt,
+                );
+                next_seed_random.seed
+            };
 
             let next_game_seed = GameSeed {
                 game_id,

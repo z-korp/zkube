@@ -18,21 +18,18 @@ use zkube::helpers::game_libs::{
 use zkube::helpers::mutator::MutatorEffectsTrait;
 use zkube::helpers::random::RandomImpl;
 use zkube::models::config::GameSettingsMetadata;
-use zkube::models::daily::{DailyChallenge, DailyEntry, DailyEntryTrait, GameChallenge};
 use zkube::models::entitlement::ZoneEntitlement;
 use zkube::models::game::{GameSeed, GameTrait};
 use zkube::models::mutator::MutatorDef;
 use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
 use zkube::models::story::{StoryZoneProgress, StoryZoneProgressTrait};
 use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
-use zkube::systems::daily_challenge::{
-    IDailyChallengeSystemDispatcher, IDailyChallengeSystemDispatcherTrait,
-};
 use zkube::systems::progress::{IProgressSystemDispatcher, IProgressSystemDispatcherTrait};
 
-/// Create a new NFT-token game. Handles settings lookup, daily challenge detection,
+/// Create a new NFT-token game (non-daily). Handles settings lookup,
 /// entitlement gating, seed generation, mutator/bonus selection, player meta update,
 /// and grid/level initialization via dispatchers.
+/// Daily games are created exclusively through start_daily_game() in daily_challenge_system.
 pub fn create_game(
     ref world: WorldStorage,
     game_id: felt252,
@@ -53,54 +50,21 @@ pub fn create_game(
         assert!(progress.exists() && progress.boss_cleared, "Clear story zone first");
     }
 
-    // Detect active daily challenge context by (run_type, settings_id).
-    let mut daily_seed: felt252 = 0;
-    let mut daily_challenge_id: u32 = 0;
-    match world.dns_address(@"daily_challenge_system") {
-        Option::Some(daily_system_addr) => {
-            let daily = IDailyChallengeSystemDispatcher { contract_address: daily_system_addr };
-            let challenge_id = daily.get_current_challenge();
-            if challenge_id > 0 {
-                let challenge: DailyChallenge = world.read_model(challenge_id);
-                if challenge.settings_id == settings.settings_id
-                    && challenge.run_type == run_type_val {
-                    let entry: DailyEntry = world.read_model((challenge_id, player));
-                    assert!(entry.exists(), "Must register for daily challenge first");
-
-                    let game_challenge = GameChallenge { game_id, challenge_id };
-                    world.write_model(@game_challenge);
-
-                    daily_seed = challenge.seed;
-                    daily_challenge_id = challenge_id;
-                }
-            }
-        },
-        Option::None => {},
-    }
-    let is_daily_game = daily_challenge_id > 0;
-
     // === MAP ACCESS GATE ===
-    // Daily challenge runs bypass entitlement checks.
-    if !is_daily_game {
-        let metadata: GameSettingsMetadata = world.read_model(settings.settings_id);
-        if !metadata.is_free {
-            let entitlement: ZoneEntitlement = world.read_model((player, settings.settings_id));
-            assert!(entitlement.purchased_at != 0, "Zone not unlocked - unlock this zone first");
-        }
+    let metadata: GameSettingsMetadata = world.read_model(settings.settings_id);
+    if !metadata.is_free {
+        let entitlement: ZoneEntitlement = world.read_model((player, settings.settings_id));
+        assert!(entitlement.purchased_at != 0, "Zone not unlocked - unlock this zone first");
     }
 
-    // Generate seed: daily challenge uses shared seed, otherwise VRF/pseudo-random.
-    let (seed, vrf_enabled) = if is_daily_game {
-        (daily_seed, false)
+    // Generate seed via VRF or pseudo-random.
+    let vrf_on = !vrf_address.is_zero();
+    let random = if vrf_address.is_zero() {
+        RandomImpl::new_pseudo_random()
     } else {
-        let vrf_on = !vrf_address.is_zero();
-        let random = if vrf_address.is_zero() {
-            RandomImpl::new_pseudo_random()
-        } else {
-            RandomImpl::new_vrf(game_id)
-        };
-        (random.seed, vrf_on)
+        RandomImpl::new_vrf(game_id)
     };
+    let (seed, vrf_enabled) = (random.seed, vrf_on);
     // Read bonus config from the active mutator
     let active_mut_id = settings.active_mutator_id;
     let bonus_mutator_def: MutatorDef = if active_mut_id > 0 {
@@ -166,10 +130,6 @@ pub fn create_game(
         Option::Some(progress_addr) => {
             let progress = IProgressSystemDispatcher { contract_address: progress_addr };
             progress.emit_progress(player, Task::GameStart.identifier(), 1, settings.settings_id);
-            if is_daily_game {
-                progress
-                    .emit_progress(player, Task::DailyPlay.identifier(), 1, settings.settings_id);
-            }
         },
         Option::None => {},
     }

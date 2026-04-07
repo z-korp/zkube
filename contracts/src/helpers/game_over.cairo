@@ -11,7 +11,7 @@ use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherT
 use zkube::helpers::config::ConfigUtilsTrait;
 use zkube::helpers::{daily, weekly};
 use zkube::models::daily::{
-    DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait, GameChallenge,
+    DailyAttempt, DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait, GameChallenge,
 };
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
@@ -142,9 +142,7 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
                 player,
                 run_data.total_score,
                 run_data.current_level,
-                run_data.current_difficulty,
                 total_stars,
-                challenge.run_type,
             );
 
             // Participation star for completing a daily challenge game.
@@ -179,16 +177,6 @@ fn calculate_total_stars(game: Game) -> u8 {
     stars
 }
 
-/// Resolve stars for an existing daily entry best game (zone run ranking).
-fn get_entry_best_stars(world: WorldStorage, entry: DailyEntry) -> u8 {
-    if entry.best_game_id == 0 {
-        return 0;
-    }
-
-    let best_game: Game = world.read_model(entry.best_game_id);
-    calculate_total_stars(best_game)
-}
-
 /// Auto-submit a game result to the daily challenge leaderboard.
 /// Called inline during game_over — no cross-contract call needed since we
 /// have direct world access to the DailyEntry and DailyLeaderboard models.
@@ -199,9 +187,7 @@ fn auto_submit_daily_result(
     player: ContractAddress,
     total_score: u32,
     current_level: u8,
-    endless_depth: u8,
     total_stars: u8,
-    run_type: u8,
 ) {
     let challenge: DailyChallenge = world.read_model(challenge_id);
     if challenge.settled {
@@ -213,21 +199,17 @@ fn auto_submit_daily_result(
         return; // Player hasn't registered, skip
     }
 
-    let ranking_value = compute_ranking_value(run_type, total_stars, total_score);
+    // Daily challenges are always zone runs — use zone composite ranking.
+    let ranking_value = compute_ranking_value(0, total_stars, total_score);
 
     // Check if this beats the player's current best
-    let current_best: u64 = if run_type == 1 {
-        entry.best_score.into()
-    } else {
-        let best_stars = get_entry_best_stars(world, entry);
-        compute_ranking_value(0, best_stars, entry.best_score)
-    };
+    let current_best: u64 = compute_ranking_value(0, entry.best_stars, entry.best_score);
 
     if ranking_value > current_best {
         // Update entry with new bests
         entry.best_score = total_score;
         entry.best_level = current_level;
-        entry.best_depth = endless_depth;
+        entry.best_stars = total_stars;
         entry.best_game_id = game_id;
         world.write_model(@entry);
 

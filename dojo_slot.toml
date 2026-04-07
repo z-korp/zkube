@@ -4,7 +4,7 @@ description = "Reversed tetris fully onchain."
 cover_uri = "file://assets/cover.png"
 icon_uri = "file://assets/icon.png"
 website = "https://app.zkube.xyz"
-seed = "zkube_v3_0"
+seed = "zkube_v3_1"
 
 [world.socials]
 x = "https://x.com/zKube_game"
@@ -18,7 +18,7 @@ default = "zkube_v2_1_0"
 rpc_url = "https://api.cartridge.gg/x/zkube-djizus-slot/katana"
 account_address = "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
 private_key = "0xc5b2fcab997346f3ea1c00b002ecf6f382c5f9c9659a3894eb783c5320f912"
-world_address = "0x03f8000625d0a913526fe9a167f3c94955170abc4e73200b145fc2181c298c6e"
+world_address = "0x07a03346cd60fdbc0537e3ab25b3a6f3f81e9d223da0a9995679fc1f6822fd9a"
 # world_address is removed by deploy_slot.sh before migration and restored after
 
 [writers]
@@ -48,7 +48,6 @@ world_address = "0x03f8000625d0a913526fe9a167f3c94955170abc4e73200b145fc2181c298
 ]
 "zkube_v2_1_0-daily_challenge_system" = [
     "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec", # admin
-    "0x0", # lords_address
 ]
 
 [migration]

@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x3f8000625d0a913526fe9a167f3c94955170abc4e73200b145fc2181c298c6e",
-    "seed": "zkube_v3_0",
+    "address": "0x7a03346cd60fdbc0537e3ab25b3a6f3f81e9d223da0a9995679fc1f6822fd9a",
+    "seed": "zkube_v3_1",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,7 +33,7 @@
   },
   "contracts": [
     {
-      "address": "0x552d044ad5732a66ce3a34fd9d5a69cf43530de67f256dde42260d4eada489",
+      "address": "0x79aaa3ed93b90cfc0b2b81e495186e02b3d108df21b1c40589d8908fd183b0",
       "class_hash": "0x56375750ee3ceabb2da1f989b37d7f4af5ff8ab44923ba63c87e5cc9b2a5b35",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
@@ -61,29 +61,25 @@
       ]
     },
     {
-      "address": "0x9c54d474085d5fca394320e10e4195e66bec406da8fd0a84c6af99c1bc23ab",
-      "class_hash": "0x25f399a208da3fbe2877d5b04338b03a8fb6539856545ae25913b8df80954b3",
+      "address": "0x36306d743097be5e751d1633265a5e42eea9fb4b7ddf45f1fab6b76268c4d1d",
+      "class_hash": "0x45f49a353c1d1fd3712e132cdfd0b248999a4fdd83055118d4e341e0f5f68cf",
       "init_calldata": [
-        "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
-        "0x0"
+        "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
       ],
       "tag": "zkube_v2_1_0-daily_challenge_system",
       "selector": "0x18c67631111101fb76d5568576f753433148e4277de664541b5f88a49e12412",
       "systems": [
         "dojo_init",
-        "create_daily_challenge",
+        "start_daily_game",
         "settle_challenge",
-        "withdraw_unclaimed",
-        "register_entry",
         "submit_result",
-        "claim_prize",
         "settle_weekly_endless",
         "upgrade"
       ]
     },
     {
-      "address": "0x588e748c04d5e2c9b990988d9656e633d97ce199f56368dbb320390d79db3e3",
-      "class_hash": "0x3efe4eb9b80c902ebaeda03cccf9df3ae235a6698c28a82dc7463fb2aad0030",
+      "address": "0x7af05b0fb8d05319d943291a53a4c49ab2016076dc1c5f7325f01564de4108c",
+      "class_hash": "0x27e382d0d1dafa45005b2da66220da7fd674053ad1601941c474fa4219347f3",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x013e661f437432e76575402d45f0b523f01246b211fcc015aab2dc20b6b43a5c",
@@ -102,8 +98,8 @@
       ]
     },
     {
-      "address": "0x4500d0d283387a62a5b9951006891842a8a189ca0dc08f4aabe9cfc66d8e2dd",
-      "class_hash": "0x4358281622069f4b21738cdff67beb98c693e1ebff584d14dc4a191809fa510",
+      "address": "0x19e5cbadb692d78ddf3f5738cca26b395a15daac8026c9feaf6c6567eb32d73",
+      "class_hash": "0x308e9eafbc40de2e4e554263aaa8e5ad8e4cb33cd409a0027adb3c67456b46d",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-grid_system",
       "selector": "0x2732f9d5d9f7ff5bcdb81566cb6589ca0fbf32cdb06911ea678adb3b5b06c37",
@@ -117,8 +113,8 @@
       ]
     },
     {
-      "address": "0x6c35a4652e4f56ecc58bc66243adc5db690d99fa73e4db400ea605db727c2b8",
-      "class_hash": "0x3441372228239788a295d47f50b9fa208743b35abe401011712339d5ed30643",
+      "address": "0x790f81e253764082949ca00f1eba8cc8cd5ede4990843f288b2b4423a2add49",
+      "class_hash": "0x2d0e4d8ee773e7cbb301d73cd38070f1bb17ecf083fe00c024d4d951dcf17bc",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-level_system",
       "selector": "0x1689592ed01fb67e736e3075b7d3b060bfd9ea2904147c7e161bc3f08ae2e9",
@@ -132,8 +128,8 @@
       ]
     },
     {
-      "address": "0x1ac70b8e8cd9df61c81b10da965c2b1cde817991d0ab8cbbd027281d8224245",
-      "class_hash": "0x7c3cfb0c4d014083e56c824d07a9f0f6c07a6e49224668506d63f61f7f8b0b4",
+      "address": "0x4dd7be372c5c3dd1fb557f16008bbf2f6c97d90d31a66ab13be9a02a500c253",
+      "class_hash": "0x3994264939c72bd9778ca1371508c6a207af4f1d8d76a0c36bbbd22431a0fa7",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-move_system",
       "selector": "0x2c6e7f38e7f45f67fca81df91805a8f3ee1d9842366e3e3d32f13f46cbf60d",
@@ -143,7 +139,7 @@
       ]
     },
     {
-      "address": "0x5477962df2129055c76c774bcd44346218c2ec387a540654a979506a27e94e7",
+      "address": "0x40cc61c0faa58dad67b73d50cbdcd8aaa19e6262a652b5ca0efd051013c76d9",
       "class_hash": "0x65f9a0757b8e9034d38bdb5abe867e7da427fb96e3f018c58d6a04f4b158459",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-progress_system",
@@ -157,7 +153,7 @@
       ]
     },
     {
-      "address": "0x15ce05c9c6c4e6a0d032db6ac9141f6c9db190c2ab0c110e4f17cc71b143a96",
+      "address": "0x1b4d83f2e4b2740f8148b88b643cbaab4eb1dce13169ed45b9367bcc5fc9708",
       "class_hash": "0x285dcc05a42f92bb508b75667ee9339cea43159d1177f7865141fcd87f37eed",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-renderer_systems",
@@ -167,7 +163,7 @@
       ]
     },
     {
-      "address": "0x6e1248ec41f75336a9a88464a1016544635d16268875cd8426e804ad43f1555",
+      "address": "0x92703e58fb902138ea385d991d83bdf143dfcb84990a468868d9acaaeeabb8",
       "class_hash": "0x68e461c2df3bd48b98828be7fd59dc8195ce696fe8bce483ce781f625c5ce14",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-story_system",
@@ -374,6 +370,33 @@
     {
       "members": [
         {
+          "name": "game_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": false
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "challenge_id",
+          "type": "core::integer::u32",
+          "key": false
+        }
+      ],
+      "class_hash": "0x4da16efdef3b334939f2c7d584aeb6bf1717ffd29d3ccb7c5c26bdae1cb199c",
+      "tag": "zkube_v2_1_0-DailyAttempt",
+      "selector": "0x7c1967ce0f5a0ca5eec950d1673abc9c0e26d5d0f13a1706262587d836114db"
+    },
+    {
+      "members": [
+        {
           "name": "challenge_id",
           "type": "core::integer::u32",
           "key": true
@@ -404,22 +427,32 @@
           "key": false
         },
         {
-          "name": "prize_pool",
-          "type": "core::integer::u256",
-          "key": false
-        },
-        {
           "name": "settled",
           "type": "core::bool",
           "key": false
         },
         {
-          "name": "run_type",
+          "name": "zone_id",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "active_mutator_id",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "passive_mutator_id",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "boss_id",
           "type": "core::integer::u8",
           "key": false
         }
       ],
-      "class_hash": "0x4e55cec0b1f5e7de2aa74033f8393796345e6b978b6a985ac94cb9a149c83b8",
+      "class_hash": "0x59171bc227ae53d36a26c6e8b74aef7b6842edfa3df8d6e892c50472739e8e5",
       "tag": "zkube_v2_1_0-DailyChallenge",
       "selector": "0x51da372445b6d0d90ddfc99b1241955eff99a5702feb68f0fd94cd4ba51beb1"
     },
@@ -451,7 +484,7 @@
           "key": false
         },
         {
-          "name": "best_depth",
+          "name": "best_stars",
           "type": "core::integer::u8",
           "key": false
         },
@@ -466,17 +499,12 @@
           "key": false
         },
         {
-          "name": "prize_amount",
+          "name": "star_reward",
           "type": "core::integer::u256",
-          "key": false
-        },
-        {
-          "name": "claimed",
-          "type": "core::bool",
           "key": false
         }
       ],
-      "class_hash": "0x36f20956be47fc3689dd2cf6c18cb1e8b15716f56813235bd4dc7b7dfd2d4d7",
+      "class_hash": "0x4eb5a0df990704db47e412e79dfa2e70bb5844bf18ac6a3eb361981773ce632",
       "tag": "zkube_v2_1_0-DailyEntry",
       "selector": "0x7bff9a52b6f3888dc9d75faa69ae64f639d3d77db78e1b9d8875354fcf6f324"
     },
@@ -6428,6 +6456,46 @@
     },
     {
       "type": "struct",
+      "name": "zkube::models::daily::DailyAttempt",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "challenge_id",
+          "type": "core::integer::u32"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::daily::DailyAttemptValue",
+      "members": [
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "zone_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "challenge_id",
+          "type": "core::integer::u32"
+        }
+      ]
+    },
+    {
+      "type": "struct",
       "name": "zkube::models::daily::DailyChallenge",
       "members": [
         {
@@ -6455,15 +6523,23 @@
           "type": "core::integer::u32"
         },
         {
-          "name": "prize_pool",
-          "type": "core::integer::u256"
-        },
-        {
           "name": "settled",
           "type": "core::bool"
         },
         {
-          "name": "run_type",
+          "name": "zone_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "active_mutator_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "passive_mutator_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "boss_id",
           "type": "core::integer::u8"
         }
       ]
@@ -6493,15 +6569,23 @@
           "type": "core::integer::u32"
         },
         {
-          "name": "prize_pool",
-          "type": "core::integer::u256"
-        },
-        {
           "name": "settled",
           "type": "core::bool"
         },
         {
-          "name": "run_type",
+          "name": "zone_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "active_mutator_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "passive_mutator_id",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "boss_id",
           "type": "core::integer::u8"
         }
       ]
@@ -6531,7 +6615,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "best_depth",
+          "name": "best_stars",
           "type": "core::integer::u8"
         },
         {
@@ -6543,12 +6627,8 @@
           "type": "core::integer::u32"
         },
         {
-          "name": "prize_amount",
+          "name": "star_reward",
           "type": "core::integer::u256"
-        },
-        {
-          "name": "claimed",
-          "type": "core::bool"
         }
       ]
     },
@@ -6569,7 +6649,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "best_depth",
+          "name": "best_stars",
           "type": "core::integer::u8"
         },
         {
@@ -6581,12 +6661,8 @@
           "type": "core::integer::u32"
         },
         {
-          "name": "prize_amount",
+          "name": "star_reward",
           "type": "core::integer::u256"
-        },
-        {
-          "name": "claimed",
-          "type": "core::bool"
         }
       ]
     },
@@ -6649,6 +6725,12 @@
           "type": "core::integer::u32"
         }
       ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::daily::m_DailyAttempt::Event",
+      "kind": "enum",
+      "variants": []
     },
     {
       "type": "event",
@@ -8078,59 +8160,18 @@
       "items": [
         {
           "type": "function",
-          "name": "create_daily_challenge",
-          "inputs": [
+          "name": "start_daily_game",
+          "inputs": [],
+          "outputs": [
             {
-              "name": "settings_id",
-              "type": "core::integer::u32"
-            },
-            {
-              "name": "ranking_metric",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "run_type",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "mutator_id",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "prize_amount",
-              "type": "core::integer::u256"
+              "type": "core::felt252"
             }
           ],
-          "outputs": [],
           "state_mutability": "external"
         },
         {
           "type": "function",
           "name": "settle_challenge",
-          "inputs": [
-            {
-              "name": "challenge_id",
-              "type": "core::integer::u32"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "withdraw_unclaimed",
-          "inputs": [
-            {
-              "name": "challenge_id",
-              "type": "core::integer::u32"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "register_entry",
           "inputs": [
             {
               "name": "challenge_id",
@@ -8151,18 +8192,6 @@
             {
               "name": "game_id",
               "type": "core::felt252"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "claim_prize",
-          "inputs": [
-            {
-              "name": "challenge_id",
-              "type": "core::integer::u32"
             }
           ],
           "outputs": [],

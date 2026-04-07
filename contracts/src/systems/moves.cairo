@@ -30,6 +30,7 @@ mod move_system {
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::{game_over, level_check, token};
+    use zkube::models::daily::{DailyAttempt, DailyAttemptTrait};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameTrait};
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::PlayerBestRun;
@@ -52,10 +53,13 @@ mod move_system {
             let player = get_caller_address();
             let story_game: StoryAttempt = world.read_model(game_id);
             let is_story_game = story_game.exists();
+            let daily_game: DailyAttempt = world.read_model(game_id);
+            let is_daily_game = daily_game.exists();
+            let is_non_token_game = is_story_game || is_daily_game;
 
             let token_address = token::get_token_address(world);
             let token_id_felt: felt252 = game_id.into();
-            if !is_story_game {
+            if !is_non_token_game {
                 pre_action(token_address, token_id_felt);
 
                 let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
@@ -70,6 +74,8 @@ mod move_system {
             let game: Game = world.read_model(game_id);
             if is_story_game {
                 assert!(story_game.player == player, "not story owner");
+            } else if is_daily_game {
+                assert!(daily_game.player == player, "not daily owner");
             } else {
                 assert_token_ownership(token_address, token_id_felt);
             }
