@@ -102,7 +102,7 @@ export const useZoneProgress = (
     const zonesToShow = Array.from(metadataMap.entries())
       .filter(([_, metadata]) => metadata.enabled)
       .sort(([a], [b]) => a - b)
-      .filter(([settingsId, metadata]) => settingsId % 2 === 0 && metadata.themeId <= 2)
+      .filter(([settingsId, metadata]) => settingsId % 2 === 0 && metadata.themeId <= 10)
       .map(([settingsId, metadata]) => {
         const story = storyMap.get(metadata.themeId);
         return {

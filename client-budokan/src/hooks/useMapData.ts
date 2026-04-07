@@ -51,7 +51,7 @@ export interface UseMapDataParams {
 }
 
 export const NODES_PER_ZONE = 10;
-export const TOTAL_ZONES = 2;
+export const TOTAL_ZONES = 10;
 export const GAMEPLAY_LEVELS = 10;
 const LEVELS_PER_ZONE = 10;
 
@@ -113,7 +113,13 @@ export function generateMapData({
   zones,
   activeStoryNode = null,
 }: UseMapDataParams): MapData {
-  const zoneThemes: ThemeId[] = ["theme-1", "theme-2"];
+  // Must match contract config.cairo theme_id assignments per zone:
+  // Zone 1=theme-1, 2=theme-2, 3=theme-3, 4=theme-4, 5=theme-6,
+  // 6=theme-7, 7=theme-5, 8=theme-8, 9=theme-9, 10=theme-10
+  const zoneThemes: ThemeId[] = [
+    "theme-1", "theme-2", "theme-3", "theme-4", "theme-6",
+    "theme-7", "theme-5", "theme-8", "theme-9", "theme-10",
+  ];
   const zoneMap = new Map(zones.map((zone) => [zone.zoneId, zone]));
   const effectiveCurrentZone = Math.max(1, Math.min(TOTAL_ZONES, currentZone));
 

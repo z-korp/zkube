@@ -101,7 +101,7 @@ const DailyChallengePage: React.FC = () => {
   }, [challenge]);
 
   const handlePlay = useCallback(async () => {
-    if (!account || !challenge || starting) return;
+    if (!account || starting) return;
     setStarting(true);
     try {
       const result = await systemCalls.startDailyGame({ account });
@@ -111,7 +111,7 @@ const DailyChallengePage: React.FC = () => {
     } finally {
       setStarting(false);
     }
-  }, [account, challenge, starting, systemCalls, navigate]);
+  }, [account, starting, systemCalls, navigate]);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -129,11 +129,27 @@ const DailyChallengePage: React.FC = () => {
             <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-8 text-center shadow-lg shadow-black/20 backdrop-blur-xl">
               <img src="/assets/trophies/gold.png" alt="Trophy" className="mx-auto mb-4 h-16 w-16 opacity-80" draggable={false} />
               <p className="mb-1 font-display text-xl text-white">
-                No Active Challenge
+                Today's Challenge
               </p>
-              <p className="font-sans text-sm text-white/60">
-                Check back later for the next daily challenge.
+              <p className="mb-4 font-sans text-sm text-white/60">
+                Be the first to play today! A new challenge will be generated automatically.
               </p>
+              {account && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="button"
+                  disabled={starting}
+                  onClick={handlePlay}
+                  className="mx-auto flex items-center justify-center rounded-2xl px-6 py-3 font-display text-[15px] font-black tracking-[0.12em] shadow-xl disabled:opacity-50"
+                  style={{
+                    background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent}E6)`,
+                    color: "#0a1628",
+                  }}
+                >
+                  {starting ? "STARTING..." : "PLAY DAILY"}
+                </motion.button>
+              )}
             </div>
           )}
 

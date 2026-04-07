@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Has, getComponentValue } from "@dojoengine/recs";
 import { useEntityQuery } from "@dojoengine/react";
 import { useDojo } from "@/dojo/useDojo";
@@ -11,6 +11,14 @@ export function useCurrentChallenge() {
   } = useDojo();
 
   const allEntities = useEntityQuery([Has(DailyChallenge)]);
+
+  // With auto-creation, zero entities is a valid state (no one has played today yet).
+  // Wait briefly for Torii sync, then treat empty as "no challenge".
+  const [syncGracePeriod, setSyncGracePeriod] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setSyncGracePeriod(false), 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const challenge = useMemo(() => {
     const now = Math.floor(Date.now() / 1000);
@@ -39,7 +47,7 @@ export function useCurrentChallenge() {
 
   return {
     challenge,
-    isLoading: allEntities.length === 0,
+    isLoading: allEntities.length === 0 && syncGracePeriod,
     challengeCount: allEntities.length,
   };
 }
