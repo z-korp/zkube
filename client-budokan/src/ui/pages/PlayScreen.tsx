@@ -283,7 +283,7 @@ const PlayScreen: React.FC = () => {
   }, [game?.id, game?.bonusCharges, game?.bonusType]);
 
   return (
-    <div className="h-screen-viewport flex flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
