@@ -1,4 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { motion } from "motion/react";
+import { ChevronUp } from "lucide-react";
 import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
 import { Account } from "starknet";
@@ -155,7 +157,18 @@ const GameBoard: React.FC<GameBoardProps> = ({
             levelTransitionPending={game.levelTransitionPending}
             onCascadeComplete={onCascadeComplete}
           />
-          <div className="mt-1">
+          <div className="mt-1 flex items-center justify-center gap-1 py-0.5">
+            <motion.div
+              animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <ChevronUp size={14} className="text-white/50" />
+            </motion.div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
+              Next Row
+            </span>
+          </div>
+          <div>
             <NextLine
               nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
               gridSize={gridSize}

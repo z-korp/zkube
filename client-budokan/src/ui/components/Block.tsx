@@ -81,7 +81,7 @@ const BlockContainer: React.FC<BlockProps> = ({
           state === GameState.GRAVITY ||
           state === GameState.GRAVITY2 ||
           state === GameState.GRAVITY_BONUS
-            ? `top ${transitionDuration / 1000}s linear`
+            ? `top ${transitionDuration / 1000}s cubic-bezier(0.2, 0.8, 0.2, 1)`
             : "none",
         color: "white",
       }}

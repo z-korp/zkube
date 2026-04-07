@@ -124,18 +124,7 @@ export interface UnlockWithStars extends Signer {
   settings_id: number;
 }
 
-export interface CreateDailyChallenge extends Signer {
-  settings_id: number;
-  ranking_metric: number;
-  run_type: number;
-  mutator_id: number;
-  prize_amount_low: string;
-  prize_amount_high: string;
-}
-
-export interface RegisterEntry extends Signer {
-  challenge_id: number;
-}
+export interface StartDailyGame extends Signer {}
 
 export interface SubmitResult extends Signer {
   challenge_id: number;
@@ -143,14 +132,6 @@ export interface SubmitResult extends Signer {
 }
 
 export interface SettleChallenge extends Signer {
-  challenge_id: number;
-}
-
-export interface ClaimPrize extends Signer {
-  challenge_id: number;
-}
-
-export interface WithdrawUnclaimed extends Signer {
   challenge_id: number;
 }
 
@@ -546,47 +527,17 @@ export function setupWorld(config: Config) {
       return null;
     }
 
-    const create_daily_challenge = async ({
-      account,
-      settings_id,
-      ranking_metric,
-      run_type,
-      mutator_id,
-      prize_amount_low,
-      prize_amount_high,
-    }: CreateDailyChallenge) => {
+    const start_daily_game = async ({ account }: StartDailyGame) => {
       try {
         return await account.execute([
           {
             contractAddress: contract.address,
-            entrypoint: "create_daily_challenge",
-            calldata: [
-              settings_id,
-              ranking_metric,
-              run_type,
-              mutator_id,
-              prize_amount_low,
-              prize_amount_high,
-            ],
+            entrypoint: "start_daily_game",
+            calldata: [],
           },
         ]);
       } catch (error) {
-        console.error("Error executing create_daily_challenge:", error);
-        throw error;
-      }
-    };
-
-    const register_entry = async ({ account, challenge_id }: RegisterEntry) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "register_entry",
-            calldata: [challenge_id],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing register_entry:", error);
+        console.error("Error executing start_daily_game:", error);
         throw error;
       }
     };
@@ -621,36 +572,6 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const claim_prize = async ({ account, challenge_id }: ClaimPrize) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "claim_prize",
-            calldata: [challenge_id],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing claim_prize:", error);
-        throw error;
-      }
-    };
-
-    const withdraw_unclaimed = async ({ account, challenge_id }: WithdrawUnclaimed) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "withdraw_unclaimed",
-            calldata: [challenge_id],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing withdraw_unclaimed:", error);
-        throw error;
-      }
-    };
-
     const settle_weekly_endless = async ({ account, week_id }: SettleWeeklyEndless) => {
       try {
         return await account.execute([
@@ -668,13 +589,10 @@ export function setupWorld(config: Config) {
 
     return {
       address: contract.address,
-      create_daily_challenge,
-      register_entry,
+      start_daily_game,
       submit_result,
       settle_challenge,
       settle_weekly_endless,
-      claim_prize,
-      withdraw_unclaimed,
     };
   }
 

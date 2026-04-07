@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
 import { motion } from "motion/react";
 import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
@@ -6,6 +6,8 @@ import { Button } from "../elements/button";
 import { Check, Star, Trophy } from "lucide-react";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import { useMusicPlayer } from "@/contexts/hooks";
+import ConfettiExplosion from "@/ui/components/ConfettiExplosion";
+import type { ConfettiExplosionRef } from "@/ui/components/ConfettiExplosion";
 
 interface LevelCompleteDialogProps {
   isOpen: boolean;
@@ -30,6 +32,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
 }) => {
   const [animationPhase, setAnimationPhase] = useState(0);
   const { playSfx } = useMusicPlayer();
+  const confettiRef = useRef<ConfettiExplosionRef>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -43,7 +46,14 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
       setAnimationPhase(2);
       playSfx("coin");
     }, 700);
-    const timer3 = setTimeout(() => setAnimationPhase(3), 1100);
+    const timer3 = setTimeout(() => {
+      setAnimationPhase(3);
+      confettiRef.current?.triggerLineExplosion({
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+        range: 400,
+      });
+    }, 1100);
 
     return () => {
       clearTimeout(timer1);
@@ -113,6 +123,10 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
+      <ConfettiExplosion
+        ref={confettiRef}
+        colorSet={["#4ade80", "#22c55e", "#facc15", "#38bdf8"]}
+      />
       <DialogContent
         aria-describedby={undefined}
         className="sm:max-w-[420px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-6 py-8"

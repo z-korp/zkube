@@ -319,9 +319,11 @@ export function defineContractComponents(world: World) {
           start_time: RecsType.Number,
           end_time: RecsType.Number,
           total_entries: RecsType.Number,
-          prize_pool: RecsType.BigInt,
           settled: RecsType.Boolean,
-          run_type: RecsType.Number,
+          zone_id: RecsType.Number,
+          active_mutator_id: RecsType.Number,
+          passive_mutator_id: RecsType.Number,
+          boss_id: RecsType.Number,
         },
         {
           metadata: {
@@ -334,9 +336,11 @@ export function defineContractComponents(world: World) {
               "u64",           // start_time
               "u64",           // end_time
               "u32",           // total_entries
-              "u256",          // prize_pool
               "bool",          // settled
-              "u8",            // run_type
+              "u8",            // zone_id
+              "u8",            // active_mutator_id
+              "u8",            // passive_mutator_id
+              "u8",            // boss_id
             ],
             customTypes: [],
           },
@@ -352,11 +356,10 @@ export function defineContractComponents(world: World) {
           attempts: RecsType.Number,
           best_score: RecsType.Number,
           best_level: RecsType.Number,
-          best_depth: RecsType.Number,
+          best_stars: RecsType.Number,
           best_game_id: RecsType.BigInt,
           rank: RecsType.Number,
-          prize_amount: RecsType.BigInt,
-          claimed: RecsType.Boolean,
+          star_reward: RecsType.BigInt,
         },
         {
           metadata: {
@@ -368,11 +371,34 @@ export function defineContractComponents(world: World) {
               "u32",               // attempts
               "u16",               // best_score
               "u8",                // best_level
-              "u8",                // best_depth
+              "u8",                // best_stars
               "felt252",           // best_game_id
               "u32",               // rank
-              "u256",              // prize_amount
-              "bool",              // claimed
+              "u256",              // star_reward
+            ],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
+    DailyAttempt: (() => {
+      return defineComponent(
+        world,
+        {
+          game_id: RecsType.BigInt,
+          player: RecsType.BigInt,
+          zone_id: RecsType.Number,
+          challenge_id: RecsType.Number,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "DailyAttempt",
+            types: [
+              "felt252",           // game_id
+              "ContractAddress",   // player
+              "u8",                // zone_id
+              "u32",               // challenge_id
             ],
             customTypes: [],
           },

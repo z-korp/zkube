@@ -490,10 +490,10 @@ const MapPage: React.FC = () => {
                             cy={cy}
                             r={r}
                             fill="none"
-                            stroke={stateColors.border}
+                            stroke={node.state === "playing" ? colors.accent : stateColors.border}
                             strokeWidth={
                               node.state === "playing"
-                                ? 1
+                                ? 1.5
                                 : node.type === "boss"
                                   ? 0.6
                                   : 0.4
@@ -501,21 +501,36 @@ const MapPage: React.FC = () => {
                           />
 
                           {node.state === "playing" && (
-                            <motion.circle
-                              cx={cx}
-                              cy={cy}
-                              r={r + 1.8}
-                              fill="none"
-                              stroke="#fdba74"
-                              strokeWidth={0.45}
-                              initial={{ opacity: 0.9, scale: 1 }}
-                              animate={{ opacity: 0.25, scale: 1.35 }}
-                              transition={{
-                                duration: 1.2,
-                                repeat: Infinity,
-                                ease: "easeOut",
-                              }}
-                            />
+                            <>
+                              <motion.circle
+                                cx={cx}
+                                cy={cy}
+                                r={r + 2.5}
+                                fill={colors.accent}
+                                initial={{ opacity: 0.1 }}
+                                animate={{ opacity: [0.1, 0.3, 0.1] }}
+                                transition={{
+                                  duration: 2,
+                                  repeat: Infinity,
+                                  ease: "easeInOut",
+                                }}
+                              />
+                              <motion.circle
+                                cx={cx}
+                                cy={cy}
+                                r={r + 1.8}
+                                fill="none"
+                                stroke={colors.accent}
+                                strokeWidth={1}
+                                initial={{ opacity: 0.9, scale: 1 }}
+                                animate={{ opacity: 0.25, scale: 1.35 }}
+                                transition={{
+                                  duration: 1.2,
+                                  repeat: Infinity,
+                                  ease: "easeOut",
+                                }}
+                              />
+                            </>
                           )}
 
                           <>

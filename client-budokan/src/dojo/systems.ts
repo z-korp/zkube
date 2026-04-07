@@ -399,32 +399,31 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
-  const createDailyChallenge = async ({
+  const startDailyGame = async ({
     account,
-    ...props
-  }: SystemTypes.CreateDailyChallenge) => {
+  }: SystemTypes.StartDailyGame): Promise<{ game_id: bigint }> => {
     if (!client.daily_challenge) {
       throw new Error("Daily challenge system not available");
     }
-    await handleTransaction(
+    const { events } = await handleTransaction(
       account,
-      () => client.daily_challenge!.create_daily_challenge({ account, ...props }),
-      "Daily challenge created.",
+      () => client.daily_challenge!.start_daily_game({ account }),
+      "Daily game started.",
     );
-  };
-
-  const registerEntry = async ({
-    account,
-    ...props
-  }: SystemTypes.RegisterEntry) => {
-    if (!client.daily_challenge) {
-      throw new Error("Daily challenge system not available");
+    const dailyAddress = normalizeHex(client.daily_challenge.address);
+    let gameId = 0n;
+    for (const event of events) {
+      const keys: unknown[] = event?.keys ?? [];
+      const data: unknown[] = event?.data ?? [];
+      const fromDaily = keys.some((key) => normalizeHex(String(key)) === dailyAddress);
+      if (!fromDaily || data.length < 3) continue;
+      const candidate = parseBigIntSafe(String(data[data.length - 1]));
+      if (candidate > 0n) {
+        gameId = candidate;
+        break;
+      }
     }
-    await handleTransaction(
-      account,
-      () => client.daily_challenge!.register_entry({ account, ...props }),
-      "Entry registered.",
-    );
+    return { game_id: gameId };
   };
 
   const submitResult = async ({
@@ -469,34 +468,6 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
-  const claimPrize = async ({
-    account,
-    ...props
-  }: SystemTypes.ClaimPrize) => {
-    if (!client.daily_challenge) {
-      throw new Error("Daily challenge system not available");
-    }
-    await handleTransaction(
-      account,
-      () => client.daily_challenge!.claim_prize({ account, ...props }),
-      "Prize claimed!",
-    );
-  };
-
-  const withdrawUnclaimed = async ({
-    account,
-    ...props
-  }: SystemTypes.WithdrawUnclaimed) => {
-    if (!client.daily_challenge) {
-      throw new Error("Daily challenge system not available");
-    }
-    await handleTransaction(
-      account,
-      () => client.daily_challenge!.withdraw_unclaimed({ account, ...props }),
-      "Unclaimed prizes withdrawn.",
-    );
-  };
-
   const questClaim = async ({ account, ...props }: SystemTypes.QuestClaim) => {
     if (!client.progress_system) throw new Error("Progress system not available");
     await handleTransaction(
@@ -519,13 +490,10 @@ export function systems({ client }: { client: IWorld }) {
     addCustomGameSettings,
     purchaseMap,
     unlockWithStars,
-    createDailyChallenge,
-    registerEntry,
+    startDailyGame,
     submitResult,
     settleChallenge,
     settleWeeklyEndless,
-    claimPrize,
-    withdrawUnclaimed,
     questClaim,
   };
 }

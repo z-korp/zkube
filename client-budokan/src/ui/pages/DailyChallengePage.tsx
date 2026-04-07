@@ -5,9 +5,11 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
 import { usePlayerEntry } from "@/hooks/usePlayerEntry";
 import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
-import GameButton from "@/ui/components/shared/GameButton";
 import { getBlockColors, getThemeColors } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import { useNavigationStore } from "@/stores/navigationStore";
+import { getMutatorDef } from "@/config/mutatorConfig";
+import { ZONE_NAMES } from "@/config/profileData";
 import { motion } from "motion/react";
 
 const TROPHY_IMAGES: Record<number, string> = {
@@ -32,7 +34,7 @@ const CountdownPill: React.FC<{ endTime: number; accent: string; border: string;
   const s = (sec % 60).toString().padStart(2, "0");
 
   return (
-    <motion.div 
+    <motion.div
       animate={{ scale: [1, 1.05, 1] }}
       transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
       className="rounded-lg border px-3 py-1 font-display text-[11px] font-bold shadow-sm backdrop-blur-md"
@@ -47,6 +49,7 @@ const DailyChallengePage: React.FC = () => {
   const { account } = useAccountCustom();
   const { themeTemplate } = useTheme();
   const colors = getThemeColors(themeTemplate);
+  const navigate = useNavigationStore((state) => state.navigate);
   const {
     setup: { systemCalls },
   } = useDojo();
@@ -60,8 +63,7 @@ const DailyChallengePage: React.FC = () => {
     challenge?.challenge_id,
   );
 
-  const [registering, setRegistering] = useState(false);
-  const [claiming, setClaiming] = useState(false);
+  const [starting, setStarting] = useState(false);
 
   const now = useMemo(() => Math.floor(Date.now() / 1000), []);
   const isActive =
@@ -69,16 +71,20 @@ const DailyChallengePage: React.FC = () => {
     !challenge.settled &&
     challenge.start_time <= now &&
     challenge.end_time > now;
-  const isSettled = challenge?.settled;
 
-  const prizePool = challenge?.prize_pool
-    ? BigInt(challenge.prize_pool)
-    : BigInt(0);
-  const playerPrize = entry?.prize_amount
-    ? BigInt(entry.prize_amount)
-    : BigInt(0);
-  const canClaim =
-    isSettled && isRegistered && playerPrize > 0n && !entry?.claimed;
+  const zoneName = challenge?.zone_id
+    ? (ZONE_NAMES[challenge.zone_id] ?? `Zone ${challenge.zone_id}`)
+    : null;
+  const activeMutator = challenge?.active_mutator_id
+    ? getMutatorDef(challenge.active_mutator_id)
+    : null;
+  const passiveMutator = challenge?.passive_mutator_id
+    ? getMutatorDef(challenge.passive_mutator_id)
+    : null;
+
+  const starReward = entry?.star_reward
+    ? BigInt(entry.star_reward)
+    : 0n;
 
   const previewGrid = useMemo(() => {
     const seedSource = challenge ? BigInt((challenge as { seed?: bigint }).seed ?? challenge.challenge_id) : 1n;
@@ -94,31 +100,18 @@ const DailyChallengePage: React.FC = () => {
     });
   }, [challenge]);
 
-  const handleRegister = useCallback(async () => {
-    if (!account || !challenge || registering) return;
-    setRegistering(true);
+  const handlePlay = useCallback(async () => {
+    if (!account || !challenge || starting) return;
+    setStarting(true);
     try {
-      await systemCalls.registerEntry({
-        account,
-        challenge_id: challenge.challenge_id,
-      });
+      const result = await systemCalls.startDailyGame({ account });
+      if (result.game_id !== 0n) {
+        navigate("play", result.game_id);
+      }
     } finally {
-      setRegistering(false);
+      setStarting(false);
     }
-  }, [account, challenge, registering, systemCalls]);
-
-  const handleClaimPrize = useCallback(async () => {
-    if (!account || !challenge || claiming) return;
-    setClaiming(true);
-    try {
-      await systemCalls.claimPrize({
-        account,
-        challenge_id: challenge.challenge_id,
-      });
-    } finally {
-      setClaiming(false);
-    }
-  }, [account, challenge, claiming, systemCalls]);
+  }, [account, challenge, starting, systemCalls, navigate]);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -165,6 +158,26 @@ const DailyChallengePage: React.FC = () => {
                 )}
               </div>
 
+              {(zoneName || activeMutator || passiveMutator) && (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {zoneName && (
+                    <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 font-sans text-[10px] font-bold text-white/80">
+                      {zoneName}
+                    </span>
+                  )}
+                  {activeMutator && activeMutator.id !== 0 && (
+                    <span className="rounded-full border border-orange-400/30 bg-orange-500/10 px-2.5 py-1 font-sans text-[10px] font-bold text-orange-300">
+                      {activeMutator.icon} {activeMutator.name}
+                    </span>
+                  )}
+                  {passiveMutator && passiveMutator.id !== 0 && (
+                    <span className="rounded-full border border-purple-400/30 bg-purple-500/10 px-2.5 py-1 font-sans text-[10px] font-bold text-purple-300">
+                      {passiveMutator.icon} {passiveMutator.name}
+                    </span>
+                  )}
+                </div>
+              )}
+
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -174,7 +187,7 @@ const DailyChallengePage: React.FC = () => {
                 <p className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.15em] text-white/60">
                   TODAY'S TOP 3
                 </p>
-                <motion.div 
+                <motion.div
                   initial="hidden"
                   animate="show"
                   variants={{
@@ -242,15 +255,15 @@ const DailyChallengePage: React.FC = () => {
                 </div>
               </div>
 
-              {isActive && !isRegistered && account && (
+              {isActive && account && (
                 <motion.button
                   animate={{ boxShadow: [`0 8px 20px -4px ${colors.accent}66`, `0 8px 30px 0px ${colors.accent}99`, `0 8px 20px -4px ${colors.accent}66`] }}
                   transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="button"
-                  disabled={registering}
-                  onClick={handleRegister}
+                  disabled={starting}
+                  onClick={handlePlay}
                   className="flex w-full items-center justify-center rounded-2xl px-4 py-4 font-display text-[17px] font-black tracking-[0.12em] shadow-xl disabled:opacity-50"
                   style={{
                     background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent}E6)`,
@@ -258,7 +271,7 @@ const DailyChallengePage: React.FC = () => {
                     boxShadow: `inset 0 2px 0 rgba(255,255,255,0.4)`,
                   }}
                 >
-                  {registering ? "REGISTERING..." : "START DAILY"}
+                  {starting ? "STARTING..." : "PLAY DAILY"}
                 </motion.button>
               )}
 
@@ -267,19 +280,15 @@ const DailyChallengePage: React.FC = () => {
                   <p className="font-sans text-[12px] font-medium text-white">
                     Your best: <span className="font-display text-[14px] font-bold" style={{ color: colors.accent }}>{entry.best_score}</span> · Rank {entry.rank > 0 ? `#${entry.rank}` : "—"}
                   </p>
-                  <p className="mt-1 font-sans text-[11px] text-white/60">
-                    Prize Pool: {prizePool.toString()}
-                  </p>
-                  {canClaim && (
-                    <div className="mt-3">
-                      <GameButton
-                        label={claiming ? "CLAIMING..." : `CLAIM PRIZE (${playerPrize.toString()})`}
-                        variant="primary"
-                        loading={claiming}
-                        disabled={claiming}
-                        onClick={handleClaimPrize}
-                      />
-                    </div>
+                  {entry.best_stars > 0 && (
+                    <p className="mt-1 font-sans text-[11px] text-white/60">
+                      Stars: {entry.best_stars} · Attempts: {entry.attempts}
+                    </p>
+                  )}
+                  {starReward > 0n && (
+                    <p className="mt-1 font-sans text-[11px] font-semibold text-yellow-300">
+                      ⭐ Star Reward: {starReward.toString()}
+                    </p>
                   )}
                 </div>
               )}

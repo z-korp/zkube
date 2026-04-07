@@ -283,7 +283,7 @@ const GameHud: React.FC<GameHudProps> = ({
                 {activeMutatorId > 0 && (
                   <div className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5">
                     <span className="text-xs">{mutator.icon}</span>
-                    <span className="font-sans text-[10px] font-medium text-white/80">{mutator.name}</span>
+                    <span className="max-w-[120px] truncate font-sans text-[10px] font-medium text-white/80">{mutator.name}</span>
                   </div>
                 )}
               </div>
@@ -304,7 +304,14 @@ const GameHud: React.FC<GameHudProps> = ({
 
               <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-1">
                 <span className="text-xs">🔥</span>
-                <span className={`font-sans text-sm font-semibold tabular-nums ${comboTextColor}`}>{combo}x</span>
+                <motion.span
+                  key={combo}
+                  animate={{ scale: [1, 1.3, 1] }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className={`font-sans text-sm font-semibold tabular-nums ${comboTextColor}`}
+                >
+                  {combo}x
+                </motion.span>
               </div>
             </div>
 
@@ -340,7 +347,7 @@ const GameHud: React.FC<GameHudProps> = ({
                   {activeMutatorId > 0 && (
                     <div className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5">
                       <span className="text-xs">{mutator.icon}</span>
-                      <span className="font-sans text-[10px] font-medium text-white/80">{mutator.name}</span>
+                      <span className="max-w-[120px] truncate font-sans text-[10px] font-medium text-white/80">{mutator.name}</span>
                     </div>
                   )}
                 </div>
@@ -430,7 +437,14 @@ const GameHud: React.FC<GameHudProps> = ({
 
               <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-1">
                 <span className="text-xs">🔥</span>
-                <span className={`font-sans text-sm font-semibold tabular-nums ${comboTextColor}`}>{combo}x</span>
+                <motion.span
+                  key={combo}
+                  animate={{ scale: [1, 1.3, 1] }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className={`font-sans text-sm font-semibold tabular-nums ${comboTextColor}`}
+                >
+                  {combo}x
+                </motion.span>
               </div>
             </div>
           </div>
