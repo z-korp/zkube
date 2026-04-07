@@ -230,7 +230,7 @@ const MapPage: React.FC = () => {
   const INFO_R = 3.5;
 
   return (
-    <div className="h-screen-viewport relative flex flex-col">
+    <div className="relative flex h-full flex-col">
       <ZoneBackground zone={mapZoneId} themeId={themeId} />
 
       {/* Floating overlay: back + zone name + stars */}
