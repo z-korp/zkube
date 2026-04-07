@@ -42,13 +42,13 @@ fn test_run_data_pack_unpack_roundtrip_max_values() {
         max_combo_run: 255,
         total_score: 100000,
         zone_cleared: true,
-        current_difficulty: 50,
+        current_difficulty: 7,
         zone_id: 15,
-        active_mutator_id: 255,
+        active_mutator_id: 31,
         run_type: 0,
         bonus_type: 3,
         bonus_charges: 15,
-        level_lines_cleared: 255,
+        level_lines_cleared: 15,
         bonus_slot: 2,
     };
 
@@ -71,7 +71,7 @@ fn test_run_data_total_score_supports_u32_above_u16() {
         zone_cleared: false,
         current_difficulty: 0,
         zone_id: 9,
-        active_mutator_id: 170,
+        active_mutator_id: 20,
         run_type: 0,
         bonus_type: 0,
         bonus_charges: 0,
@@ -84,15 +84,15 @@ fn test_run_data_total_score_supports_u32_above_u16() {
 }
 
 #[test]
-fn test_run_data_zone_id_is_4_bits_and_active_mutator_id_is_u8() {
-    let data = RunDataPackingTrait::new(31, 255, 0);
+fn test_run_data_zone_id_is_4_bits_and_active_mutator_id_is_5_bits() {
+    let data = RunDataPackingTrait::new(31, 63, 0);
     assert!(data.zone_id == 15, "zone_id should be masked to 4 bits");
-    assert!(data.active_mutator_id == 255, "active_mutator_id should keep full u8 range");
+    assert!(data.active_mutator_id == 31, "active_mutator_id should be masked to 5 bits");
 
     let unpacked = RunDataPackingTrait::unpack(data.pack());
     assert!(unpacked.zone_id == 15, "zone_id should still be 15 after roundtrip");
     assert!(
-        unpacked.active_mutator_id == 255, "active_mutator_id should still be 255 after roundtrip",
+        unpacked.active_mutator_id == 31, "active_mutator_id should still be 31 after roundtrip",
     );
 }
 

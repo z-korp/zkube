@@ -17,11 +17,11 @@ pub struct GameSettingsMetadata {
     /// Admin can disable/hide this map
     pub enabled: bool,
     /// Price in payment_token units (0 for free maps)
-    pub price: u256,
+    pub price: u128,
     /// ERC20 token address for payment (zero for free maps)
     pub payment_token: ContractAddress,
     /// zStar amount required for star-based unlock (0 = disabled)
-    pub star_cost: u256,
+    pub star_cost: u128,
 }
 
 /// Extended GameSettings with all configurable game parameters

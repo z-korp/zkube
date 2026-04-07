@@ -16,7 +16,7 @@ pub struct CosmeticDef {
     #[key]
     pub cosmetic_id: u32,
     pub name: felt252,
-    pub star_cost: u256,
+    pub star_cost: u128,
     pub category: u8,
     pub enabled: bool,
 }

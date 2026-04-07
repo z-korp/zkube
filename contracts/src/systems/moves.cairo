@@ -182,8 +182,8 @@ mod move_system {
             // Track per-level lines cleared in run_data.
             let next_level_lines_cleared_u16: u16 = run_data.level_lines_cleared.into()
                 + lines_cleared.into();
-            let next_level_lines_cleared = if next_level_lines_cleared_u16 > 255 {
-                255_u8
+            let next_level_lines_cleared = if next_level_lines_cleared_u16 > 15 {
+                15_u8
             } else {
                 next_level_lines_cleared_u16.try_into().unwrap()
             };

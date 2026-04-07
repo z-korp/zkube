@@ -9,7 +9,7 @@ pub struct StoryZoneProgress {
     pub player: ContractAddress,
     #[key]
     pub zone_id: u8,
-    pub level_stars: felt252,
+    pub level_stars: u32,
     pub highest_cleared: u8,
     pub boss_cleared: bool,
     pub perfection_claimed: bool,
@@ -60,19 +60,18 @@ pub impl StoryZoneProgressImpl of StoryZoneProgressTrait {
 
     fn get_level_stars(self: @StoryZoneProgress, level: u8) -> u8 {
         assert!(level >= 1 && level <= 10, "invalid level");
-        let shift: u8 = (level - 1) * 2;
-        let packed: u256 = (*self.level_stars).into();
-        (BitShift::shr(packed, shift.into()) & 0x3).try_into().unwrap()
+        let shift: u32 = ((level - 1) * 2).into();
+        ((BitShift::shr(*self.level_stars, shift) & 0x3_u32)).try_into().unwrap()
     }
 
     fn set_level_stars(ref self: StoryZoneProgress, level: u8, stars: u8) {
         assert!(level >= 1 && level <= 10, "invalid level");
-        let shift: u8 = (level - 1) * 2;
-        let mut packed: u256 = self.level_stars.into();
-        let current: u256 = BitShift::shr(packed, shift.into()) & 0x3;
-        packed = packed - BitShift::shl(current, shift.into());
-        packed = packed | BitShift::shl((stars & 0x3).into(), shift.into());
-        self.level_stars = packed.try_into().unwrap();
+        let shift: u32 = ((level - 1) * 2).into();
+        let current: u32 = BitShift::shr(self.level_stars, shift) & 0x3_u32;
+        let star_val: u32 = (stars & 0x3).into();
+        self.level_stars = self.level_stars
+            - BitShift::shl(current, shift)
+            + BitShift::shl(star_val, shift);
     }
 }
 

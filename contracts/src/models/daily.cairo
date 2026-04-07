@@ -72,7 +72,7 @@ pub struct DailyEntry {
     /// Final rank (set during settlement, 0 = unranked)
     pub rank: u32,
     /// zStar reward amount (set during settlement)
-    pub star_reward: u256,
+    pub star_reward: u64,
 }
 
 // ============================================================

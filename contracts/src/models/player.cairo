@@ -103,7 +103,7 @@ pub struct PlayerBestRun {
     /// Whether the zone run was fully cleared (L10 boss beaten)
     pub zone_cleared: bool,
     /// Packed best stars by level (2 bits per level, levels 1-10)
-    pub best_level_stars: felt252,
+    pub best_level_stars: u32,
     /// Game ID of the best run
     pub best_game_id: felt252,
 }
@@ -139,31 +139,31 @@ pub impl PlayerBestRunImpl of PlayerBestRunTrait {
 
     fn get_best_level_stars(self: @PlayerBestRun, level: u8) -> u8 {
         assert(level >= 1 && level <= 10, 'invalid level');
-        let shift: u8 = (level - 1) * 2;
-        let packed: u256 = (*self.best_level_stars).into();
-        (BitShift::shr(packed, shift.into()) & 0x3).try_into().unwrap()
+        let shift: u32 = ((level - 1) * 2).into();
+        ((BitShift::shr(*self.best_level_stars, shift) & 0x3_u32)).try_into().unwrap()
     }
 
     fn set_best_level_stars(ref self: PlayerBestRun, level: u8, stars: u8) {
         assert(level >= 1 && level <= 10, 'invalid level');
-        let shift: u8 = (level - 1) * 2;
-        let mut packed: u256 = self.best_level_stars.into();
-        let current: u256 = BitShift::shr(packed, shift.into()) & 0x3;
-        packed = packed - BitShift::shl(current, shift.into());
-        packed = packed | BitShift::shl((stars & 0x3).into(), shift.into());
-        self.best_level_stars = packed.try_into().unwrap();
+        let shift: u32 = ((level - 1) * 2).into();
+        let current: u32 = BitShift::shr(self.best_level_stars, shift) & 0x3_u32;
+        let star_val: u32 = (stars & 0x3).into();
+        self.best_level_stars = self.best_level_stars
+            - BitShift::shl(current, shift)
+            + BitShift::shl(star_val, shift);
     }
 
-    fn update_best_level_stars(ref self: PlayerBestRun, run_level_stars: felt252) {
-        let run_packed: u256 = run_level_stars.into();
+    fn update_best_level_stars(ref self: PlayerBestRun, run_level_stars: u32) {
         let mut level: u8 = 1;
         loop {
             if level > 10 {
                 break;
             }
 
-            let shift: u8 = (level - 1) * 2;
-            let run_stars: u8 = (BitShift::shr(run_packed, shift.into()) & 0x3).try_into().unwrap();
+            let shift: u32 = ((level - 1) * 2).into();
+            let run_stars: u8 = ((BitShift::shr(run_level_stars, shift) & 0x3_u32))
+                .try_into()
+                .unwrap();
             let current_best = self.get_best_level_stars(level);
             if run_stars > current_best {
                 self.set_best_level_stars(level, run_stars);

@@ -27,7 +27,7 @@ pub struct Game {
     // Level system (bit-packed run progress)
     // ----------------------------------------
     pub run_data: felt252, // Bit-packed: level/score/moves + zone/endless state
-    pub level_stars: felt252, // 2 bits per level × 10 levels = 20 bits used
+    pub level_stars: u32, // 2 bits per level × 10 levels = 20 bits used
     // ----------------------------------------
     // Timestamps
     // ----------------------------------------
@@ -196,8 +196,7 @@ pub impl GameImpl of GameTrait {
     fn get_level_stars(self: Game, level: u8) -> u8 {
         assert!(level >= 1 && level <= 10, "Level must be 1-10");
         let shift: u32 = ((level - 1) * 2).into();
-        let data: u256 = self.level_stars.into();
-        (BitShift::shr(data, shift.into()) & 0x3_u256).try_into().unwrap()
+        ((BitShift::shr(self.level_stars, shift) & 0x3_u32)).try_into().unwrap()
     }
 
     /// Set stars earned for a specific level (1-indexed, value 0-3)
@@ -205,10 +204,9 @@ pub impl GameImpl of GameTrait {
         assert!(level >= 1 && level <= 10, "Level must be 1-10");
         assert!(stars <= 3, "Stars must be 0-3");
         let shift: u32 = ((level - 1) * 2).into();
-        let mut data: u256 = self.level_stars.into();
-        let mask: u256 = BitShift::shl(0x3_u256, shift.into());
-        data = (data & ~mask) | BitShift::shl(stars.into() & 0x3_u256, shift.into());
-        self.level_stars = data.try_into().unwrap();
+        let mask: u32 = BitShift::shl(0x3_u32, shift);
+        let star_val: u32 = (stars & 0x3).into();
+        self.level_stars = (self.level_stars & ~mask) | BitShift::shl(star_val, shift);
     }
 }
 

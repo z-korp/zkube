@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x12c8d8293f8e3b03b1e0650b1f8d2344770319f0067a22d3245933e24dc2095",
-    "seed": "zkube_v3_6",
+    "address": "0x2bde96e025e027ca70855a3386db8ba4171e144d2c94f5ba43f3bf184a73446",
+    "seed": "zkube_v3_7",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,8 +33,8 @@
   },
   "contracts": [
     {
-      "address": "0x1ec24e5fa3794f3e92056e3022ca5e1f93d51901f50d6cd163401aa873f5736",
-      "class_hash": "0x3830195821737f1d22076b0a41c7a2fd52685fe9eb4caaababc5e60d567f9b0",
+      "address": "0x7e7776dc9cc7a49e59af6da35364acc3d46826fe10f83506373630d099a7004",
+      "class_hash": "0x24a7bd31fd3b9af8a194d6f54cfa200db91acd7e801d2bd6310c3fd134e267f",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x06e5f1a7bf27f6075006ea9835d6614c7889779e9db19d5edf5c7e894c77868b",
@@ -61,8 +61,8 @@
       ]
     },
     {
-      "address": "0x7ce8051a2aec94c1961922929069940e27a6c185fdef62342624605e84faf56",
-      "class_hash": "0x1433f861f51e1b94a55b04d2e146bc8c3ef31b5091f4a4a69cd83089e714c67",
+      "address": "0x10ed654a1b41b53f4abb21b392ce2c06505be25a42375e889b375ba72c89201",
+      "class_hash": "0xbcac74ebcc3abb2bcd16dd4636c0bb30f521df93b4d4338c03c06791175c5",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
       ],
@@ -78,8 +78,8 @@
       ]
     },
     {
-      "address": "0x75d809b477375f7f221d203f18237e9e633b3934c1409beb565d7a9e7c99a0f",
-      "class_hash": "0x5ffaf6774e1c96a5f79ad9d1ff95b6f264de5d4d65bab44d947174c30ce47fd",
+      "address": "0x3ad5a42df425c49ac96abc4f3c5fcae4dde658b66717871f1238d8d10327822",
+      "class_hash": "0x57e8775fd39efacd1da700e91053a999d8a5f45239150b81f817ddbf90e9e72",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x013e661f437432e76575402d45f0b523f01246b211fcc015aab2dc20b6b43a5c",
@@ -98,8 +98,8 @@
       ]
     },
     {
-      "address": "0x23ae770d30da604cfb35f58e25c45303c2cfdc8d6d8d500a45c4f4ef251f4b8",
-      "class_hash": "0x575bd2e19787c6fbd4b3b91bb7706316bac366dc4c8b758177005355af844f",
+      "address": "0x50573686707aad3f90959fd6e807add2917831a063cf3620e2d4dcee3c327f2",
+      "class_hash": "0x416c3356ba38c2fd252b022ce1f77cc536c5e1cd37b00f35c84971b4a1616a8",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-grid_system",
       "selector": "0x2732f9d5d9f7ff5bcdb81566cb6589ca0fbf32cdb06911ea678adb3b5b06c37",
@@ -113,8 +113,8 @@
       ]
     },
     {
-      "address": "0x327d708ac6d87d6587c77fc0fd823e8952602914509d3443432411abf490eea",
-      "class_hash": "0x5ba7305cec8dfb5669fd0eac1afc46e9e066fa4c39d05cf8fa15aab1e1fd6d8",
+      "address": "0x5047b9a9a0123642652bb3ead70ee8c890ca53c9779deaf2f98e1762c372d76",
+      "class_hash": "0x29dc93f123f0c9b534f4802f6ea5dd12ae6c803cc2717b112e8750ae511f5d6",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-level_system",
       "selector": "0x1689592ed01fb67e736e3075b7d3b060bfd9ea2904147c7e161bc3f08ae2e9",
@@ -128,8 +128,8 @@
       ]
     },
     {
-      "address": "0x428cc675cd1ea3b3e11abd70cd52fe35e35476f8727f96f8b2f631dcf8860d9",
-      "class_hash": "0xc0ab3938284c2f577513681c28c271f829c9625cd614ecc7cbce920633c8e7",
+      "address": "0x7289546501beef7ee79f934b3fd70f2e1eccb95aa84c62314a5ab33c2205ebc",
+      "class_hash": "0x678f4c93371dcfaadb412c5b9ba6ce7f06422f80d954cf0320a88afd227750a",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-move_system",
       "selector": "0x2c6e7f38e7f45f67fca81df91805a8f3ee1d9842366e3e3d32f13f46cbf60d",
@@ -139,7 +139,7 @@
       ]
     },
     {
-      "address": "0x5a2bc0552d665561d8baa4a70f1e286ba5fdfe790ac7822e77f62e352210998",
+      "address": "0x752b476d45e81603fb839f9008e7372a92ebd70b82d9d3bca0de9819a4b5873",
       "class_hash": "0x68ab76dd32b69dba397729a1da6968540fd85af1d41cbb5dbca4bfc32819f96",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-progress_system",
@@ -154,8 +154,8 @@
       ]
     },
     {
-      "address": "0x37ba056d4e5c3c387a4bc31384b3509425986f0bc6e26b0de6f716d6b7ae8ef",
-      "class_hash": "0x285dcc05a42f92bb508b75667ee9339cea43159d1177f7865141fcd87f37eed",
+      "address": "0xf5041c6d82eb6ce3bc496be47ef49488a4db3f8357d34ec67f775fbf6a6e41",
+      "class_hash": "0x6589729ae757fd08a3056150cc274f2677abab11a1fcd209b6e53ede00f6e47",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-renderer_systems",
       "selector": "0x14312cd8629f0b08020c8365b6bfacc2459756f792e6b9e3fb4ef6ba891facb",
@@ -164,8 +164,8 @@
       ]
     },
     {
-      "address": "0x55b0df8913977621e60fd5c417c3951dfd8a33a83e2b382f545703fcfe6babc",
-      "class_hash": "0x226015d27dc007904ab8c19ee61a040953a4d187fdf4339db137923f809962e",
+      "address": "0x4125f1121e01d810ccbd358a3aa986e0a4e2cb9be5af97d61ef2405bf1c784",
+      "class_hash": "0xfd7baf76dfa04a513b7fadd178bc96a2e0f84b58dda034e661f98694e5daa4",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-story_system",
       "selector": "0x7a30a121577725a5eb4f24e5c76d572f923bfd472c815d956aa4c88dd231e74",
@@ -328,7 +328,7 @@
         },
         {
           "name": "star_cost",
-          "type": "core::integer::u256",
+          "type": "core::integer::u128",
           "key": false
         },
         {
@@ -342,7 +342,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x2b021cd3a74e4263d6db73b36cdfb7ba161d91f25911429f53da577a1ab828e",
+      "class_hash": "0x456669a690edfef4f4c623e7d8542e49ee6253d4a4f192e493ed5ed53dd40f1",
       "tag": "zkube_v2_1_0-CosmeticDef",
       "selector": "0x32f7a303a8fd651045e60448f035b058e679633503fda05c8d5402012586aae"
     },
@@ -501,11 +501,11 @@
         },
         {
           "name": "star_reward",
-          "type": "core::integer::u256",
+          "type": "core::integer::u64",
           "key": false
         }
       ],
-      "class_hash": "0x4eb5a0df990704db47e412e79dfa2e70bb5844bf18ac6a3eb361981773ce632",
+      "class_hash": "0x4aec2eb882b96ccc35194caf86dbac3a9344b3535177012ed9c056a4c213ced",
       "tag": "zkube_v2_1_0-DailyEntry",
       "selector": "0x7bff9a52b6f3888dc9d75faa69ae64f639d3d77db78e1b9d8875354fcf6f324"
     },
@@ -543,7 +543,7 @@
         },
         {
           "name": "level_stars",
-          "type": "core::felt252",
+          "type": "core::integer::u32",
           "key": false
         },
         {
@@ -557,7 +557,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x2471f12a0c704f9294676b8b6f2bd93486aabedaa4cd58fd42da7c05755f239",
+      "class_hash": "0x6ed8ce8cf1123a201653981d2ea6274c5ff500749b50ddd14a9b7389c1f165f",
       "tag": "zkube_v2_1_0-Game",
       "selector": "0x212f984c537417083cef0fe9c6b025ed029e56cbb38717d7c1c9f3727a613a7"
     },
@@ -938,7 +938,7 @@
         },
         {
           "name": "price",
-          "type": "core::integer::u256",
+          "type": "core::integer::u128",
           "key": false
         },
         {
@@ -948,11 +948,11 @@
         },
         {
           "name": "star_cost",
-          "type": "core::integer::u256",
+          "type": "core::integer::u128",
           "key": false
         }
       ],
-      "class_hash": "0xf85f250c0a19e317039a696f0e8354fadb842e2c3abb3156661e6acec54923",
+      "class_hash": "0x3eb21949c0719d9e357656a209306b839a1d814f1c0154b3ae56fc6205622ec",
       "tag": "zkube_v2_1_0-GameSettingsMetadata",
       "selector": "0x3a91be404fcd894e2708605982bde8c55c9bffce983af7a2bdff69f071ce2c4"
     },
@@ -1122,7 +1122,7 @@
         },
         {
           "name": "best_level_stars",
-          "type": "core::felt252",
+          "type": "core::integer::u32",
           "key": false
         },
         {
@@ -1131,7 +1131,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x26421e2a703cc1a5bbdfa14bd0a1dddca98d3977bb255fb349649b1226d5511",
+      "class_hash": "0x55fa4dd3d68a4e0f1023fa81414a428bf422bd8215fdf068885e95c3d4202f3",
       "tag": "zkube_v2_1_0-PlayerBestRun",
       "selector": "0x1812a81d7ee2793a73ae15c1c6c8b2e0bb3a6212d5a64b765de473eaf426ac4"
     },
@@ -1358,7 +1358,7 @@
         },
         {
           "name": "level_stars",
-          "type": "core::felt252",
+          "type": "core::integer::u32",
           "key": false
         },
         {
@@ -1377,7 +1377,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x7a24c2c07388f315961114396241580525d99a889db2cfc5772f73f4624257",
+      "class_hash": "0x50a0d8ddb9179403012947d10de9f89f6dae08dd988c6322e2123ac5dbe86b2",
       "tag": "zkube_v2_1_0-StoryZoneProgress",
       "selector": "0x25cae23854a81845b0d9073ded2fb3cd6dd2dbc187425087f30b7e3b1e1f809"
     },
@@ -6114,7 +6114,7 @@
         },
         {
           "name": "price",
-          "type": "core::integer::u256"
+          "type": "core::integer::u128"
         },
         {
           "name": "payment_token",
@@ -6122,7 +6122,7 @@
         },
         {
           "name": "star_cost",
-          "type": "core::integer::u256"
+          "type": "core::integer::u128"
         }
       ]
     },
@@ -6160,7 +6160,7 @@
         },
         {
           "name": "price",
-          "type": "core::integer::u256"
+          "type": "core::integer::u128"
         },
         {
           "name": "payment_token",
@@ -6168,7 +6168,7 @@
         },
         {
           "name": "star_cost",
-          "type": "core::integer::u256"
+          "type": "core::integer::u128"
         }
       ]
     },
@@ -6360,7 +6360,7 @@
         },
         {
           "name": "star_cost",
-          "type": "core::integer::u256"
+          "type": "core::integer::u128"
         },
         {
           "name": "category",
@@ -6382,7 +6382,7 @@
         },
         {
           "name": "star_cost",
-          "type": "core::integer::u256"
+          "type": "core::integer::u128"
         },
         {
           "name": "category",
@@ -6608,7 +6608,7 @@
         },
         {
           "name": "star_reward",
-          "type": "core::integer::u256"
+          "type": "core::integer::u64"
         }
       ]
     },
@@ -6642,7 +6642,7 @@
         },
         {
           "name": "star_reward",
-          "type": "core::integer::u256"
+          "type": "core::integer::u64"
         }
       ]
     },
@@ -6758,7 +6758,7 @@
         },
         {
           "name": "level_stars",
-          "type": "core::felt252"
+          "type": "core::integer::u32"
         },
         {
           "name": "started_at",
@@ -6964,7 +6964,7 @@
         },
         {
           "name": "level_stars",
-          "type": "core::felt252"
+          "type": "core::integer::u32"
         },
         {
           "name": "started_at",
@@ -7234,7 +7234,7 @@
         },
         {
           "name": "best_level_stars",
-          "type": "core::felt252"
+          "type": "core::integer::u32"
         },
         {
           "name": "best_game_id",
@@ -7264,7 +7264,7 @@
         },
         {
           "name": "best_level_stars",
-          "type": "core::felt252"
+          "type": "core::integer::u32"
         },
         {
           "name": "best_game_id",
@@ -7434,7 +7434,7 @@
         },
         {
           "name": "level_stars",
-          "type": "core::felt252"
+          "type": "core::integer::u32"
         },
         {
           "name": "highest_cleared",
@@ -7456,7 +7456,7 @@
       "members": [
         {
           "name": "level_stars",
-          "type": "core::felt252"
+          "type": "core::integer::u32"
         },
         {
           "name": "highest_cleared",
@@ -7863,7 +7863,7 @@
             },
             {
               "name": "price",
-              "type": "core::integer::u256"
+              "type": "core::integer::u128"
             },
             {
               "name": "payment_token",

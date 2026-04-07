@@ -2,23 +2,23 @@ use alexandria_math::BitShift;
 
 /// Bit-packing helpers for efficient storage.
 ///
-/// run_data layout (118 bits used, 134 reserved):
-/// - 0-7: current_level
-/// - 8-15: level_score
-/// - 16-23: level_moves
-/// - 24-31: constraint_progress
-/// - 32-39: constraint_2_progress
-/// - 40-47: max_combo_run
+/// run_data layout (107 bits used, 145 reserved):
+/// - 0-7: current_level (u8)
+/// - 8-15: level_score (u8)
+/// - 16-23: level_moves (u8)
+/// - 24-31: constraint_progress (u8)
+/// - 32-39: constraint_2_progress (u8)
+/// - 40-47: max_combo_run (u8)
 /// - 48-79: total_score (u32)
-/// - 80: zone_cleared
-/// - 81-88: current_difficulty
-/// - 89-92: zone_id
-/// - 93-100: active_mutator_id
-/// - 101: run_type (0=Zone, 1=Endless)
-/// - 102-103: bonus_type (0=None, 1=Hammer, 2=Totem, 3=Wave)
-/// - 104-107: bonus_charges (u4)
-/// - 108-115: level_lines_cleared (u8)
-/// - 116-117: bonus_slot (u2, 0-2)
+/// - 80: zone_cleared (bool)
+/// - 81-84: current_difficulty (4 bits, 0-9 for Difficulty enum)
+/// - 85-88: zone_id (4 bits, 0-15)
+/// - 89-93: active_mutator_id (5 bits, 0-31)
+/// - 94: run_type (0=Zone, 1=Endless)
+/// - 95-96: bonus_type (0=None, 1=Hammer, 2=Totem, 3=Wave)
+/// - 97-100: bonus_charges (4 bits, 0-15)
+/// - 101-104: level_lines_cleared (4 bits, 0-15)
+/// - 105-106: bonus_slot (2 bits, 0-2)
 
 /// Unpacked run data structure (zone-based runs + endless)
 #[derive(Copy, Drop, Serde, Debug, PartialEq)]
@@ -53,19 +53,20 @@ mod RunDataBits {
     pub const TOTAL_SCORE_POS: u8 = 48;
     pub const ZONE_CLEARED_POS: u8 = 80;
     pub const CURRENT_DIFFICULTY_POS: u8 = 81;
-    pub const ZONE_ID_POS: u8 = 89;
-    pub const ACTIVE_MUTATOR_ID_POS: u8 = 93;
-    pub const RUN_TYPE_POS: u8 = 101;
-    pub const BONUS_TYPE_POS: u8 = 102;
-    pub const BONUS_CHARGES_POS: u8 = 104;
-    pub const LEVEL_LINES_CLEARED_POS: u8 = 108;
-    pub const BONUS_SLOT_POS: u8 = 116;
+    pub const ZONE_ID_POS: u8 = 85;
+    pub const ACTIVE_MUTATOR_ID_POS: u8 = 89;
+    pub const RUN_TYPE_POS: u8 = 94;
+    pub const BONUS_TYPE_POS: u8 = 95;
+    pub const BONUS_CHARGES_POS: u8 = 97;
+    pub const LEVEL_LINES_CLEARED_POS: u8 = 101;
+    pub const BONUS_SLOT_POS: u8 = 105;
 
     pub const U8_MASK: u256 = 0xFF;
     pub const U32_MASK: u256 = 0xFFFFFFFF;
     pub const BOOL_MASK: u256 = 0x1;
     pub const TWO_BITS_MASK: u256 = 0x3;
     pub const FOUR_BITS_MASK: u256 = 0xF;
+    pub const FIVE_BITS_MASK: u256 = 0x1F;
 }
 
 #[generate_trait]
@@ -83,7 +84,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
             zone_cleared: false,
             current_difficulty: 0,
             zone_id: zone_id & 0xF,
-            active_mutator_id,
+            active_mutator_id: active_mutator_id & 0x1F,
             run_type: run_type & 0x1,
             bonus_type: 0,
             bonus_charges: 0,
@@ -140,7 +141,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                self.current_difficulty.into() & RunDataBits::U8_MASK,
+                self.current_difficulty.into() & RunDataBits::FOUR_BITS_MASK,
                 RunDataBits::CURRENT_DIFFICULTY_POS.into(),
             );
         packed = packed
@@ -149,7 +150,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                self.active_mutator_id.into() & RunDataBits::U8_MASK,
+                self.active_mutator_id.into() & RunDataBits::FIVE_BITS_MASK,
                 RunDataBits::ACTIVE_MUTATOR_ID_POS.into(),
             );
         packed = packed
@@ -168,7 +169,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                self.level_lines_cleared.into() & RunDataBits::U8_MASK,
+                self.level_lines_cleared.into() & RunDataBits::FOUR_BITS_MASK,
                 RunDataBits::LEVEL_LINES_CLEARED_POS.into(),
             );
         packed = packed
@@ -218,7 +219,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
             zone_cleared: (BitShift::shr(data, RunDataBits::ZONE_CLEARED_POS.into())
                 & RunDataBits::BOOL_MASK) == 1,
             current_difficulty: (BitShift::shr(data, RunDataBits::CURRENT_DIFFICULTY_POS.into())
-                & RunDataBits::U8_MASK)
+                & RunDataBits::FOUR_BITS_MASK)
                 .try_into()
                 .unwrap(),
             zone_id: (BitShift::shr(data, RunDataBits::ZONE_ID_POS.into())
@@ -226,7 +227,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 .try_into()
                 .unwrap(),
             active_mutator_id: (BitShift::shr(data, RunDataBits::ACTIVE_MUTATOR_ID_POS.into())
-                & RunDataBits::U8_MASK)
+                & RunDataBits::FIVE_BITS_MASK)
                 .try_into()
                 .unwrap(),
             run_type: (BitShift::shr(data, RunDataBits::RUN_TYPE_POS.into())
@@ -242,7 +243,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 .try_into()
                 .unwrap(),
             level_lines_cleared: (BitShift::shr(data, RunDataBits::LEVEL_LINES_CLEARED_POS.into())
-                & RunDataBits::U8_MASK)
+                & RunDataBits::FOUR_BITS_MASK)
                 .try_into()
                 .unwrap(),
             bonus_slot: (BitShift::shr(data, RunDataBits::BONUS_SLOT_POS.into())

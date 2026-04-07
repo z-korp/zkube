@@ -294,7 +294,7 @@ mod daily_challenge_system {
 
                 let star_reward = InternalImpl::compute_star_reward(rank, total_participants);
                 if star_reward > 0 {
-                    InternalImpl::mint_zstar(ref self, ref world, player, star_reward);
+                    InternalImpl::mint_zstar(ref self, ref world, player, star_reward.into());
 
                     // Store rank and reward in DailyEntry
                     let mut entry_mut: DailyEntry = world.read_model((challenge_id, player));
@@ -418,7 +418,7 @@ mod daily_challenge_system {
 
                 let star_reward = InternalImpl::compute_weekly_star_reward(rank, total);
                 if star_reward > 0 {
-                    InternalImpl::mint_zstar(ref self, ref world, player, star_reward);
+                    InternalImpl::mint_zstar(ref self, ref world, player, star_reward.into());
                 }
 
                 rank += 1;
@@ -525,7 +525,7 @@ mod daily_challenge_system {
             MutatorEffectsTrait::normalize(mutator_id, stored)
         }
 
-        fn compute_weekly_star_reward(rank: u32, total_participants: u32) -> u256 {
+        fn compute_weekly_star_reward(rank: u32, total_participants: u32) -> u64 {
             if total_participants == 0 {
                 return 0;
             }
@@ -545,7 +545,7 @@ mod daily_challenge_system {
             }
         }
 
-        fn compute_star_reward(rank: u32, total_participants: u32) -> u256 {
+        fn compute_star_reward(rank: u32, total_participants: u32) -> u64 {
             if total_participants == 0 {
                 return 0;
             }

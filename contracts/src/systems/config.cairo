@@ -75,7 +75,7 @@ pub trait IConfigSystem<T> {
     fn get_zstar_address(self: @T) -> ContractAddress;
     /// Admin: set map pricing
     fn set_zone_pricing(
-        ref self: T, settings_id: u32, is_free: bool, price: u256, payment_token: ContractAddress,
+        ref self: T, settings_id: u32, is_free: bool, price: u128, payment_token: ContractAddress,
     );
     /// Admin: set map enabled/disabled
     fn set_zone_enabled(ref self: T, settings_id: u32, enabled: bool);
@@ -2017,7 +2017,7 @@ mod config_system {
             let existing: ZoneEntitlement = world.read_model((caller, settings_id));
             assert!(existing.purchased_at == 0, "Map already purchased");
 
-            let mut effective_price = metadata.price;
+            let mut effective_price: u256 = metadata.price.into();
             let mut stars_to_burn: u256 = 0;
             if !metadata.star_cost.is_zero() {
                 let zstar_erc20 = IERC20Dispatcher {
@@ -2025,7 +2025,7 @@ mod config_system {
                 };
                 let star_balance = zstar_erc20.balance_of(caller);
                 let (computed_burn, computed_price) = InternalImpl::compute_hybrid_terms(
-                    star_balance, metadata.star_cost, metadata.price,
+                    star_balance, metadata.star_cost.into(), metadata.price.into(),
                 );
                 stars_to_burn = computed_burn;
                 effective_price = computed_price;
@@ -2063,10 +2063,11 @@ mod config_system {
                 contract_address: self.zstar_token_address.read(),
             };
             let star_balance = zstar_erc20.balance_of(caller);
-            assert!(star_balance >= metadata.star_cost, "Not enough zStar");
+            let star_cost_u256: u256 = metadata.star_cost.into();
+            assert!(star_balance >= star_cost_u256, "Not enough zStar");
 
             let zstar = IZStarTokenDispatcher { contract_address: self.zstar_token_address.read() };
-            zstar.burn(caller, metadata.star_cost);
+            zstar.burn(caller, star_cost_u256);
 
             let entitlement = ZoneEntitlement {
                 player: caller, settings_id, purchased_at: get_block_timestamp(),
@@ -2109,7 +2110,7 @@ mod config_system {
             ref self: ContractState,
             settings_id: u32,
             is_free: bool,
-            price: u256,
+            price: u128,
             payment_token: ContractAddress,
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
