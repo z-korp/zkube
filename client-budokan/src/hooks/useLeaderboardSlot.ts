@@ -27,11 +27,11 @@ type UseLeaderboardSlotResult = {
 
 /**
  * Hook for the Endless leaderboard tab.
- * Queries PlayerBestRun entities with run_type=1 (endless),
- * deduplicates per player (best score across all zones),
- * and resolves usernames via Cartridge Controller.
+ * Queries PlayerBestRun entities with run_type=1 (endless).
+ * When settingsId is provided, filters to a specific zone.
+ * Otherwise deduplicates per player (best score across all zones).
  */
-export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
+export const useLeaderboardSlot = (settingsId?: number): UseLeaderboardSlotResult => {
   const {
     setup: {
       contractComponents: { PlayerBestRun },
@@ -52,6 +52,9 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
 
       // Only endless mode (run_type=1)
       if (data.run_type !== 1) continue;
+
+      // Filter by zone settings_id if provided
+      if (settingsId !== undefined && data.settings_id !== settingsId) continue;
 
       // Skip entries with no actual run
       if (!data.best_score && !data.best_level) continue;
@@ -78,7 +81,7 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
     });
 
     return entries;
-  }, [allEntities, PlayerBestRun]);
+  }, [allEntities, PlayerBestRun, settingsId]);
 
   const addresses = useMemo(
     () => rawEntries.map((e) => e.player),

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "motion/react";
 import { Trophy, Loader2 } from "lucide-react";
 import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
@@ -9,6 +9,7 @@ import { usePlayerLeaderboard } from "@/hooks/usePlayerLeaderboard";
 import { getThemeColors } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
+import { ZONE_NAMES } from "@/config/profileData";
 import PageHeader from "@/ui/components/shared/PageHeader";
 
 const TROPHY_IMAGES: Record<number, string> = {
@@ -25,17 +26,37 @@ const rowVariants: any = {
   })
 };
 
+function computeWeeklyReward(rank: number, total: number): number {
+  if (total === 0) return 0;
+  const pct = (rank * 100) / total;
+  if (pct < 2) return 30;
+  if (pct < 5) return 20;
+  if (pct < 10) return 15;
+  if (pct < 25) return 10;
+  if (pct < 50) return 3;
+  return 0;
+}
+
+const ZONES = Array.from({ length: 10 }, (_, i) => ({
+  id: i + 1,
+  name: ZONE_NAMES[i + 1] ?? `Zone ${i + 1}`,
+  endlessSettingsId: i * 2 + 1,
+}));
+
 const LeaderboardPage: React.FC = () => {
   const { themeTemplate } = useTheme();
   const colors = getThemeColors(themeTemplate);
   const { account } = useAccountCustom();
-  const { games, loading } = useLeaderboardSlot();
   const { challenge } = useCurrentChallenge();
   const { entries: dailyEntries } = useDailyLeaderboard(challenge?.challenge_id);
   const { entries: playerEntries } = usePlayerLeaderboard();
   const [activeTab, setActiveTab] = useState<"daily" | "endless" | "player">("endless");
+  const [selectedZone, setSelectedZone] = useState(1);
   const navigate = useNavigationStore((s) => s.navigate);
   const setProfileAddress = useNavigationStore((s) => s.setProfileAddress);
+
+  const endlessSettingsId = (selectedZone - 1) * 2 + 1;
+  const { games, loading } = useLeaderboardSlot(endlessSettingsId);
 
   const normalizedAccount = account?.address?.toLowerCase();
 
@@ -45,40 +66,45 @@ const LeaderboardPage: React.FC = () => {
     navigate("profile");
   };
 
-  const rankRows =
-    activeTab === "daily"
-      ? dailyEntries.slice(0, 30).map((entry) => ({
-          id: `daily-${entry.rank}`,
-          rank: entry.rank,
-          name: entry.playerName ?? entry.player,
-          score: entry.value,
-          playerAddress: entry.player,
-          isYou: normalizedAccount === entry.player.toLowerCase(),
-        }))
-      : activeTab === "player"
-        ? playerEntries.slice(0, 30).map((entry) => ({
-            id: `player-${entry.rank}`,
-            rank: entry.rank,
-            name: entry.playerName ?? entry.player,
-            score: entry.lifetimeXp,
-            playerAddress: entry.player,
-            isYou: normalizedAccount === entry.player.toLowerCase(),
-          }))
-        : games.slice(0, 30).map((entry, index) => ({
-              id: entry.token_id.toString(),
-              rank: index + 1,
-              name: entry.player_name || "Anonymous",
-              score: entry.score,
-              playerAddress: entry.player_address,
-              isYou:
-                !!normalizedAccount &&
-                !!entry.player_address &&
-                entry.player_address.toLowerCase() === normalizedAccount,
-          }));
+  const rankRows = useMemo(() => {
+    if (activeTab === "daily") {
+      return dailyEntries.slice(0, 30).map((entry) => ({
+        id: `daily-${entry.rank}`,
+        rank: entry.rank,
+        name: entry.playerName ?? entry.player,
+        score: entry.value,
+        playerAddress: entry.player,
+        isYou: normalizedAccount === entry.player.toLowerCase(),
+      }));
+    }
+    if (activeTab === "player") {
+      return playerEntries.slice(0, 30).map((entry) => ({
+        id: `player-${entry.rank}`,
+        rank: entry.rank,
+        name: entry.playerName ?? entry.player,
+        score: entry.lifetimeXp,
+        playerAddress: entry.player,
+        isYou: normalizedAccount === entry.player.toLowerCase(),
+      }));
+    }
+    return games.slice(0, 30).map((entry, index) => ({
+      id: entry.token_id.toString(),
+      rank: index + 1,
+      name: entry.player_name || "Anonymous",
+      score: entry.score,
+      playerAddress: entry.player_address,
+      isYou:
+        !!normalizedAccount &&
+        !!entry.player_address &&
+        entry.player_address.toLowerCase() === normalizedAccount,
+    }));
+  }, [activeTab, dailyEntries, playerEntries, games, normalizedAccount]);
+
+  const totalParticipants = activeTab === "endless" ? games.length : 0;
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
-      <div className="pb-2">
+      <div className="shrink-0 pb-2">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -112,6 +138,24 @@ const LeaderboardPage: React.FC = () => {
             </button>
           ))}
         </div>
+
+        {activeTab === "endless" && (
+          <div className="mx-4 mt-2 flex gap-1.5 overflow-x-auto hide-scrollbar pb-1">
+            {ZONES.map((zone) => (
+              <button
+                key={zone.id}
+                onClick={() => setSelectedZone(zone.id)}
+                className={`shrink-0 rounded-lg px-2.5 py-1 font-sans text-[11px] font-semibold transition-colors ${
+                  selectedZone === zone.id
+                    ? "bg-white/20 text-white border border-white/30"
+                    : "bg-white/5 text-white/40 border border-transparent hover:text-white/60"
+                }`}
+              >
+                {zone.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mx-4 mt-2 mb-4 flex-1 min-h-0 overflow-y-auto hide-scrollbar">
@@ -121,10 +165,10 @@ const LeaderboardPage: React.FC = () => {
             <p className="font-sans text-sm font-medium">Loading rankings...</p>
           </div>
         ) : rankRows.length === 0 ? (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center justify-center py-16 text-center" 
+            className="flex flex-col items-center justify-center py-16 text-center"
             style={{ color: colors.textMuted }}
           >
             <Trophy className="h-12 w-12 mb-4 opacity-50" />
@@ -133,61 +177,74 @@ const LeaderboardPage: React.FC = () => {
           </motion.div>
         ) : (
           <motion.div
-            key={activeTab}
+            key={`${activeTab}-${selectedZone}`}
             initial="hidden"
             animate="visible"
             className="mx-auto max-w-[500px] space-y-2"
           >
-            {rankRows.map((entry, index) => (
-              <motion.div
-                custom={index}
-                variants={rowVariants}
-                key={entry.id}
-                onClick={() => handleRowClick(entry.playerAddress)}
-                className="flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-xl shadow-lg shadow-black/20 transition-all active:scale-[0.98]"
-                style={{
-                  backgroundColor:
-                    entry.rank === 1
-                      ? "rgba(255,215,0,0.2)"
-                      : entry.rank === 2
-                        ? "rgba(192,192,192,0.18)"
-                        : entry.rank === 3
-                          ? "rgba(205,127,50,0.18)"
-                          : entry.isYou
-                            ? `${colors.accent}2A`
-                            : "rgba(255,255,255,0.1)",
-                  borderColor:
-                    entry.rank <= 3
-                      ? "rgba(255,255,255,0.3)"
-                      : entry.isYou
-                        ? `${colors.accent}75`
-                        : "rgba(255,255,255,0.14)",
-                }}
-              >
-                <div className="flex w-8 items-center justify-center text-center font-sans text-base font-black" style={{ color: entry.rank <= 3 ? colors.accent2 : colors.textMuted }}>
-                  {entry.rank <= 3 ? (
-                    <img
-                      src={TROPHY_IMAGES[entry.rank]}
-                      alt={`Rank ${entry.rank}`}
-                      className="h-6 w-6"
-                      draggable={false}
-                    />
-                  ) : (
-                    entry.rank
-                  )}
-                </div>
+            {rankRows.map((entry, index) => {
+              const reward = activeTab === "endless"
+                ? computeWeeklyReward(entry.rank, totalParticipants)
+                : 0;
 
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-sans text-sm font-extrabold" style={{ color: colors.text }}>
-                    {entry.name} {entry.isYou ? "(You)" : ""}
-                  </p>
-                </div>
+              return (
+                <motion.div
+                  custom={index}
+                  variants={rowVariants}
+                  key={entry.id}
+                  onClick={() => handleRowClick(entry.playerAddress)}
+                  className="flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-xl shadow-lg shadow-black/20 transition-all active:scale-[0.98]"
+                  style={{
+                    backgroundColor:
+                      entry.rank === 1
+                        ? "rgba(255,215,0,0.2)"
+                        : entry.rank === 2
+                          ? "rgba(192,192,192,0.18)"
+                          : entry.rank === 3
+                            ? "rgba(205,127,50,0.18)"
+                            : entry.isYou
+                              ? `${colors.accent}2A`
+                              : "rgba(255,255,255,0.1)",
+                    borderColor:
+                      entry.rank <= 3
+                        ? "rgba(255,255,255,0.3)"
+                        : entry.isYou
+                          ? `${colors.accent}75`
+                          : "rgba(255,255,255,0.14)",
+                  }}
+                >
+                  <div className="flex w-8 items-center justify-center text-center font-sans text-base font-black" style={{ color: entry.rank <= 3 ? colors.accent2 : colors.textMuted }}>
+                    {entry.rank <= 3 ? (
+                      <img
+                        src={TROPHY_IMAGES[entry.rank]}
+                        alt={`Rank ${entry.rank}`}
+                        className="h-6 w-6"
+                        draggable={false}
+                      />
+                    ) : (
+                      entry.rank
+                    )}
+                  </div>
 
-                <div className="font-sans text-[16px] font-extrabold tracking-wide" style={{ color: colors.text }}>
-                  {entry.score.toLocaleString()}{activeTab === "player" ? " XP" : ""}
-                </div>
-              </motion.div>
-            ))}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-sans text-sm font-extrabold" style={{ color: colors.text }}>
+                      {entry.name} {entry.isYou ? "(You)" : ""}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="font-sans text-[16px] font-extrabold tracking-wide" style={{ color: colors.text }}>
+                      {entry.score.toLocaleString()}{activeTab === "player" ? " XP" : ""}
+                    </div>
+                    {reward > 0 && (
+                      <div className="shrink-0 rounded-full bg-yellow-500/20 px-1.5 py-0.5 text-[10px] font-bold text-yellow-300">
+                        +{reward} ★
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
           </motion.div>
         )}
       </div>

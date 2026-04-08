@@ -67,23 +67,7 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
         best_run.update_best_level_stars(game.level_stars);
     }
     if run_type == 0 && run_data.zone_cleared && !best_run.zone_cleared {
-        world
-            .emit_event(@ZoneClearBonus { player, settings_id: settings.settings_id, amount: 100 });
-        player_meta.increment_xp(10000);
-
-        match world.dns_address(@"config_system") {
-            Option::Some(config_address) => {
-                let config_dispatcher = IConfigSystemDispatcher {
-                    contract_address: config_address,
-                };
-                let zstar_address = config_dispatcher.get_zstar_address();
-                if !zstar_address.is_zero() {
-                    let zstar = IZStarTokenDispatcher { contract_address: zstar_address };
-                    zstar.mint(player, 100);
-                }
-            },
-            Option::None => {},
-        }
+        player_meta.increment_xp(1000);
     }
 
     world.write_model(@player_meta);

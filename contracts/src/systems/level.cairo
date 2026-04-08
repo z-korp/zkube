@@ -199,7 +199,7 @@ mod level_system {
                                     if !player_meta.exists() {
                                         player_meta = PlayerMetaTrait::new(story_player);
                                     }
-                                    player_meta.increment_xp(delta.into() * 100);
+                                    player_meta.increment_xp(delta.into() * 10);
                                     world.write_model(@player_meta);
                                 }
                             },
@@ -268,7 +268,7 @@ mod level_system {
                                 if !player_meta.exists() {
                                     player_meta = PlayerMetaTrait::new(player);
                                 }
-                                player_meta.increment_xp(delta.into() * 100);
+                                player_meta.increment_xp(delta.into() * 10);
                                 world.write_model(@player_meta);
                             }
                         },

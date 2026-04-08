@@ -70,7 +70,7 @@ mod story_system {
                     let zstar_address = config_dispatcher.get_zstar_address();
                     if !zstar_address.is_zero() {
                         let zstar = IZStarTokenDispatcher { contract_address: zstar_address };
-                        zstar.mint(player, 70);
+                        zstar.mint(player, 20);
                     }
                 },
                 Option::None => {},
@@ -80,7 +80,7 @@ mod story_system {
             if !player_meta.exists() {
                 player_meta = PlayerMetaTrait::new(player);
             }
-            player_meta.increment_xp(7000);
+            player_meta.increment_xp(700);
             world.write_model(@player_meta);
         }
     }
@@ -201,7 +201,7 @@ mod story_system {
                     },
                     Option::None => {},
                 }
-                player_meta.increment_xp(500);
+                player_meta.increment_xp(50);
             }
 
             world.write_model(@game);

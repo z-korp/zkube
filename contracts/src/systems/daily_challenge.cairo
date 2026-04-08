@@ -193,7 +193,7 @@ mod daily_challenge_system {
             } else if player_meta.last_active > 0 && timestamp - player_meta.last_active > 604800 {
                 // Returning player bonus (>7 days inactive)
                 InternalImpl::mint_zstar(ref self, ref world, player, 5);
-                player_meta.increment_xp(500);
+                player_meta.increment_xp(50);
             }
             player_meta.increment_runs();
             player_meta.last_active = timestamp;
@@ -369,7 +369,7 @@ mod daily_challenge_system {
                 if !player_meta.exists() {
                     player_meta = PlayerMetaTrait::new(player);
                 }
-                player_meta.increment_xp(300);
+                player_meta.increment_xp(30);
                 world.write_model(@player_meta);
             }
         }

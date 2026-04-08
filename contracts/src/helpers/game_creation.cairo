@@ -115,7 +115,7 @@ pub fn create_game(
             },
             Option::None => {},
         }
-        player_meta.increment_xp(500);
+        player_meta.increment_xp(50);
     }
 
     let libs = GameLibsImpl::new(world);
