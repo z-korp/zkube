@@ -51,6 +51,17 @@ pub struct DailyAttempt {
     pub challenge_id: u32,
 }
 
+/// Tracks the player's currently active daily game (keyed by player).
+/// Prevents starting a new daily game while one is in progress.
+#[derive(Copy, Drop, Serde, IntrospectPacked)]
+#[dojo::model]
+pub struct ActiveDailyAttempt {
+    #[key]
+    pub player: ContractAddress,
+    pub game_id: felt252,
+    pub challenge_id: u32,
+}
+
 /// Per-player entry tracking for a daily challenge (compound key)
 #[derive(Copy, Drop, Serde, Introspect)]
 #[dojo::model]
@@ -104,6 +115,22 @@ pub impl DailyEntryImpl of DailyEntryTrait {
     #[inline(always)]
     fn exists(self: @DailyEntry) -> bool {
         *self.attempts > 0
+    }
+}
+
+#[generate_trait]
+pub impl ActiveDailyAttemptImpl of ActiveDailyAttemptTrait {
+    fn new(player: ContractAddress, game_id: felt252, challenge_id: u32) -> ActiveDailyAttempt {
+        ActiveDailyAttempt { player, game_id, challenge_id }
+    }
+
+    fn empty(player: ContractAddress) -> ActiveDailyAttempt {
+        ActiveDailyAttempt { player, game_id: 0, challenge_id: 0 }
+    }
+
+    #[inline(always)]
+    fn exists(self: @ActiveDailyAttempt) -> bool {
+        *self.game_id != 0
     }
 }
 

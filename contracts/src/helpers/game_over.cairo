@@ -8,7 +8,8 @@ use starknet::{ContractAddress, get_block_timestamp};
 use zkube::events::RunEnded;
 use zkube::helpers::config::ConfigUtilsTrait;
 use zkube::models::daily::{
-    DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait, GameChallenge,
+    ActiveDailyAttempt, ActiveDailyAttemptTrait, DailyChallenge, DailyChallengeTrait, DailyEntry,
+    DailyEntryTrait, GameChallenge,
 };
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
@@ -96,6 +97,12 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
                 ended_at: get_block_timestamp(),
             },
         );
+
+    // Clear active daily attempt if this game matches.
+    let active_daily: ActiveDailyAttempt = world.read_model(player);
+    if active_daily.exists() && active_daily.game_id == game.game_id {
+        world.write_model(@ActiveDailyAttemptTrait::empty(player));
+    }
 
     // Auto-submit result for daily challenge games (skip if settled or ended).
     let game_challenge: GameChallenge = world.read_model(game.game_id);

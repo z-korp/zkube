@@ -41,8 +41,8 @@ mod daily_challenge_system {
     use zkube::helpers::{daily, weekly};
     use zkube::models::config::{GameSettings, GameSettingsTrait};
     use zkube::models::daily::{
-        DailyAttempt, DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait,
-        GameChallenge,
+        ActiveDailyAttempt, ActiveDailyAttemptTrait, DailyAttempt, DailyChallenge,
+        DailyChallengeTrait, DailyEntry, DailyEntryTrait, GameChallenge,
     };
     use zkube::models::game::{Game, GameLevelTrait, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
@@ -69,6 +69,13 @@ mod daily_challenge_system {
             let timestamp = get_block_timestamp();
             let tx_info = get_tx_info().unbox();
             let tx_hash = tx_info.transaction_hash;
+
+            // Guard: reject if player already has an active daily game
+            let active: ActiveDailyAttempt = world.read_model(player);
+            if active.exists() {
+                let existing_game: Game = world.read_model(active.game_id);
+                assert!(!existing_game.is_non_zero() || existing_game.over, "active daily game");
+            }
 
             // Compute day_id from UTC midnight boundaries
             let day_id: u32 = (timestamp / 86400).try_into().unwrap();
@@ -198,6 +205,9 @@ mod daily_challenge_system {
             player_meta.increment_runs();
             player_meta.last_active = timestamp;
 
+            // Track active daily game
+            let active_daily = ActiveDailyAttemptTrait::new(player, game_id, day_id);
+
             // Write all models
             world.write_model(@game);
             world.write_model(@game_seed);
@@ -206,6 +216,7 @@ mod daily_challenge_system {
             world.write_model(@entry);
             world.write_model(@game_challenge);
             world.write_model(@player_meta);
+            world.write_model(@active_daily);
 
             // Initialize grid
             let libs = GameLibsImpl::new(world);
