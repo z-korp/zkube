@@ -129,7 +129,7 @@ mod game_system {
                     Option::None,
                     1,
                     Option::None, // license
-                    Option::None, // game_fee_bps
+                    Option::None // game_fee_bps
                 );
         }
 
