@@ -11,7 +11,8 @@ pub struct WeeklyEndless {
 }
 
 pub const SECONDS_PER_WEEK: u64 = 604800;
-pub const EPOCH: u64 = 0;
+/// Monday-aligned epoch offset (Unix epoch was Thursday; +4 days = Monday)
+pub const EPOCH: u64 = 345600;
 
 pub fn current_week_id(timestamp: u64) -> u32 {
     ((timestamp - EPOCH) / SECONDS_PER_WEEK).try_into().unwrap()
