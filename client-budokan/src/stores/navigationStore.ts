@@ -24,6 +24,7 @@ interface NavigationState {
   gameId: bigint | null;
   mapZoneId: number;
   selectedMode: number;
+  profileAddress: string | null;
   pendingPreviewLevel: number | null;
   pendingLevelCompletion: PendingLevelCompletion | null;
   navigate: (page: PageId, gameId?: bigint) => void;
@@ -31,6 +32,7 @@ interface NavigationState {
   setGameId: (id: bigint | null) => void;
   setMapZoneId: (zoneId: number) => void;
   setSelectedMode: (mode: number) => void;
+  setProfileAddress: (address: string | null) => void;
   setPendingPreviewLevel: (level: number | null) => void;
   setPendingLevelCompletion: (data: PendingLevelCompletion | null) => void;
 }
@@ -62,6 +64,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
   gameId: null,
   mapZoneId: 1,
   selectedMode: 0,
+  profileAddress: null,
   pendingPreviewLevel: null,
   pendingLevelCompletion: null,
 
@@ -102,6 +105,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
   setGameId: (id) => set({ gameId: id }),
   setMapZoneId: (zoneId) => set({ mapZoneId: zoneId }),
   setSelectedMode: (mode) => set({ selectedMode: mode }),
+  setProfileAddress: (address) => set({ profileAddress: address }),
   setPendingPreviewLevel: (level) => set({ pendingPreviewLevel: level }),
   setPendingLevelCompletion: (data) => set({ pendingLevelCompletion: data }),
 }));

@@ -64,13 +64,25 @@ const ProfilePage: React.FC = () => {
   const { themeTemplate } = useTheme();
   const colors = getThemeColors(themeTemplate);
 
-  const { username } = useControllerUsername();
-  const { playerMeta } = usePlayerMeta();
+  const { username: connectedUsername } = useControllerUsername();
   const { account } = useAccountCustom();
-  const { balance: zStarBalance } = useZStarBalance(account?.address);
-  const { zones, totalStars } = useZoneProgress(account?.address, zStarBalance);
-  const { quests } = useQuests();
+  const profileAddress = useNavigationStore((s) => s.profileAddress);
+  const setProfileAddress = useNavigationStore((s) => s.setProfileAddress);
   const navigate = useNavigationStore((s) => s.navigate);
+
+  // Viewing another player's profile vs own
+  const viewingAddress = profileAddress ?? account?.address;
+  const isOwnProfile = !profileAddress || profileAddress === account?.address;
+
+  // Clear profileAddress when leaving (so bottom nav "Profile" always shows own)
+  // This is handled by resetting on mount when navigated via bottom nav
+  const { playerMeta } = usePlayerMeta(viewingAddress);
+  const { balance: zStarBalance } = useZStarBalance(viewingAddress);
+  const { zones, totalStars } = useZoneProgress(viewingAddress, zStarBalance);
+  const { quests } = useQuests();
+
+  // Resolve username for viewed profile
+  const username = isOwnProfile ? connectedUsername : undefined;
 
   const xp = playerMeta?.lifetimeXp ?? 0;
   const level = getLevelFromXp(xp);
@@ -84,7 +96,7 @@ const ProfilePage: React.FC = () => {
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
   const [unlockZone, setUnlockZone] = useState<ZoneProgressData | null>(null);
 
-  if (!account) {
+  if (!account && !profileAddress) {
     return (
       <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
         <PageHeader title="Profile" />
@@ -104,15 +116,24 @@ const ProfilePage: React.FC = () => {
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
       <PageHeader
-        title="Profile"
+        title={isOwnProfile ? "Profile" : "Player Profile"}
         rightSlot={
-          <button
-            onClick={() => navigate("settings")}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] shadow-lg backdrop-blur-md transition-all hover:bg-white/[0.08] active:scale-95"
-            aria-label="Settings"
-          >
-            <Settings size={20} className="text-white/80" />
-          </button>
+          isOwnProfile ? (
+            <button
+              onClick={() => navigate("settings")}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] shadow-lg backdrop-blur-md transition-all hover:bg-white/[0.08] active:scale-95"
+              aria-label="Settings"
+            >
+              <Settings size={20} className="text-white/80" />
+            </button>
+          ) : (
+            <button
+              onClick={() => { setProfileAddress(null); navigate("ranks"); }}
+              className="flex h-10 items-center justify-center gap-1 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 shadow-lg backdrop-blur-md transition-all hover:bg-white/[0.08] active:scale-95"
+            >
+              <span className="font-sans text-xs font-medium text-white/80">Back</span>
+            </button>
+          )
         }
       />
 

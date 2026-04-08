@@ -22,8 +22,9 @@ export interface PlayerMeta {
   lastActive: number;
 }
 
-export const usePlayerMeta = () => {
-  const { address } = useAccount();
+export const usePlayerMeta = (overrideAddress?: string) => {
+  const { address: connectedAddress } = useAccount();
+  const address = overrideAddress || connectedAddress;
   const {
     setup: {
       clientModels: {

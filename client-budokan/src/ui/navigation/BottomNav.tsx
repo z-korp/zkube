@@ -8,6 +8,7 @@ import { motion } from "motion/react";
 const BottomNav = () => {
   const currentPage = useNavigationStore((s) => s.currentPage);
   const navigate = useNavigationStore((s) => s.navigate);
+  const setProfileAddress = useNavigationStore((s) => s.setProfileAddress);
   const { themeTemplate } = useTheme();
   const colors = getThemeColors(themeTemplate);
 
@@ -30,7 +31,7 @@ const BottomNav = () => {
         return (
           <button
             key={tab.id}
-            onClick={() => navigate(tab.id)}
+            onClick={() => { if (tab.id === "profile") setProfileAddress(null); navigate(tab.id); }}
             className="relative flex flex-1 flex-col items-center justify-center gap-1 py-1 transition-colors"
             style={{ color: isActive ? colors.accent : "rgba(255, 255, 255, 0.4)" }}
           >

@@ -8,6 +8,7 @@ import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
 import { usePlayerLeaderboard } from "@/hooks/usePlayerLeaderboard";
 import { getThemeColors } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import { useNavigationStore } from "@/stores/navigationStore";
 import PageHeader from "@/ui/components/shared/PageHeader";
 
 const TROPHY_IMAGES: Record<number, string> = {
@@ -33,8 +34,16 @@ const LeaderboardPage: React.FC = () => {
   const { entries: dailyEntries } = useDailyLeaderboard(challenge?.challenge_id);
   const { entries: playerEntries } = usePlayerLeaderboard();
   const [activeTab, setActiveTab] = useState<"daily" | "endless" | "player">("endless");
+  const navigate = useNavigationStore((s) => s.navigate);
+  const setProfileAddress = useNavigationStore((s) => s.setProfileAddress);
 
   const normalizedAccount = account?.address?.toLowerCase();
+
+  const handleRowClick = (playerAddress: string | undefined) => {
+    if (!playerAddress) return;
+    setProfileAddress(playerAddress);
+    navigate("profile");
+  };
 
   const rankRows =
     activeTab === "daily"
@@ -43,7 +52,7 @@ const LeaderboardPage: React.FC = () => {
           rank: entry.rank,
           name: entry.playerName ?? entry.player,
           score: entry.value,
-          stars: 0,
+          playerAddress: entry.player,
           isYou: normalizedAccount === entry.player.toLowerCase(),
         }))
       : activeTab === "player"
@@ -52,7 +61,7 @@ const LeaderboardPage: React.FC = () => {
             rank: entry.rank,
             name: entry.playerName ?? entry.player,
             score: entry.lifetimeXp,
-            stars: 0,
+            playerAddress: entry.player,
             isYou: normalizedAccount === entry.player.toLowerCase(),
           }))
         : games.slice(0, 30).map((entry, index) => ({
@@ -60,7 +69,7 @@ const LeaderboardPage: React.FC = () => {
               rank: index + 1,
               name: entry.player_name || "Anonymous",
               score: entry.score,
-              stars: entry.stars,
+              playerAddress: entry.player_address,
               isYou:
                 !!normalizedAccount &&
                 !!entry.player_address &&
@@ -134,7 +143,8 @@ const LeaderboardPage: React.FC = () => {
                 custom={index}
                 variants={rowVariants}
                 key={entry.id}
-                className="flex items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-xl shadow-lg shadow-black/20"
+                onClick={() => handleRowClick(entry.playerAddress)}
+                className="flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-xl shadow-lg shadow-black/20 transition-all active:scale-[0.98]"
                 style={{
                   backgroundColor:
                     entry.rank === 1
@@ -171,16 +181,6 @@ const LeaderboardPage: React.FC = () => {
                   <p className="truncate font-sans text-sm font-extrabold" style={{ color: colors.text }}>
                     {entry.name} {entry.isYou ? "(You)" : ""}
                   </p>
-                  <div className="mt-0.5 flex items-center gap-0.5">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <span key={i} className="text-[9px]" style={{ color: entry.stars >= (i + 1) * 10 ? colors.accent2 : colors.textMuted }}>
-                        ★
-                      </span>
-                    ))}
-                    <span className="ml-1 text-[8px]" style={{ color: colors.textMuted }}>
-                      {entry.stars}
-                    </span>
-                  </div>
                 </div>
 
                 <div className="font-sans text-[16px] font-extrabold tracking-wide" style={{ color: colors.text }}>
