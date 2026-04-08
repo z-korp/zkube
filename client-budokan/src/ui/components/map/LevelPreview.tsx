@@ -108,7 +108,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
 
   const canPlay =
     node.type !== "draft" &&
-    (node.state === "current" || node.state === "available" || node.state === "playing");
+    (node.state === "current" || node.state === "available" || node.state === "playing" || node.state === "cleared" || node.state === "visited");
 
   const difficultyLabel = DIFFICULTY_LABELS[difficulty] ?? difficulty;
 
@@ -251,7 +251,9 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
 
         {canPlay && (
           <div className="mt-5">
-            <ArcadeButton onClick={onPlay}>Play</ArcadeButton>
+            <ArcadeButton onClick={onPlay}>
+              {node.state === "cleared" || node.state === "visited" ? "Replay" : "Play"}
+            </ArcadeButton>
           </div>
         )}
       </motion.div>

@@ -24,6 +24,7 @@ import { useNavigationStore } from "@/stores/navigationStore";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useDojo } from "@/dojo/useDojo";
 import { useActiveStoryAttempt } from "@/hooks/useActiveStoryAttempt";
+import { useActiveDailyAttempt } from "@/hooks/useActiveDailyAttempt";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
 import { ZONE_NAMES } from "@/config/profileData";
 import LevelPreview from "@/ui/components/map/LevelPreview";
@@ -86,6 +87,8 @@ const MapPage: React.FC = () => {
   const goBack = useNavigationStore((state) => state.goBack);
   const gameId = useNavigationStore((state) => state.gameId);
   const mapZoneId = useNavigationStore((state) => state.mapZoneId);
+  const isDailyMap = useNavigationStore((state) => state.isDailyMap);
+  const setIsDailyMap = useNavigationStore((state) => state.setIsDailyMap);
   const pendingPreviewLevel = useNavigationStore(
     (state) => state.pendingPreviewLevel,
   );
@@ -107,6 +110,7 @@ const MapPage: React.FC = () => {
     },
   } = useDojo();
   const activeStoryRun = useActiveStoryAttempt();
+  const activeDailyRun = useActiveDailyAttempt();
 
   const { game, seed } = useGame({
     gameId: gameId ?? undefined,
@@ -117,6 +121,20 @@ const MapPage: React.FC = () => {
 
   const zoneState = useMemo(
     () => {
+      if (isDailyMap && game) {
+        // For daily map, derive zone state from the active daily game
+        const currentLevel = game.level ?? 1;
+        const stars: number[] = [];
+        for (let i = 1; i <= 10; i++) {
+          stars.push(game.getLevelStars(i));
+        }
+        return {
+          zoneId: mapZoneId,
+          unlocked: true,
+          highestCleared: game.over ? currentLevel : Math.max(currentLevel - 1, 0),
+          levelStars: stars,
+        };
+      }
       const z = zones.find((zone) => zone.zoneId === mapZoneId);
       if (!z) return undefined;
       return {
@@ -126,19 +144,24 @@ const MapPage: React.FC = () => {
         levelStars: z.levelStars ?? [],
       };
     },
-    [zones, mapZoneId],
+    [zones, mapZoneId, isDailyMap, game],
   );
+
+  const activeNode = useMemo(() => {
+    if (isDailyMap && activeDailyRun && game && !game.over) {
+      return { zoneId: mapZoneId, level: game.level ?? 1 };
+    }
+    if (activeStoryRun) {
+      return { zoneId: activeStoryRun.zoneId, level: activeStoryRun.level };
+    }
+    return null;
+  }, [isDailyMap, activeDailyRun, game, mapZoneId, activeStoryRun]);
 
   const mapData = useMapData({
     seed,
     zoneId: mapZoneId,
     zoneState,
-    activeStoryNode: activeStoryRun
-      ? {
-          zoneId: activeStoryRun.zoneId,
-          level: activeStoryRun.level,
-        }
-      : null,
+    activeStoryNode: activeNode,
   });
 
   const zoneLayouts = useMapLayout({
@@ -182,6 +205,17 @@ const MapPage: React.FC = () => {
   const handlePlay = async () => {
     if (!account || !selectedNode || selectedNode.contractLevel == null) return;
 
+    // Daily mode: navigate to play with the active daily game
+    if (isDailyMap) {
+      if (activeDailyRun && game && !game.over) {
+        setSelectedNode(null);
+        navigate("play", activeDailyRun.gameId);
+      } else {
+        showToast({ message: "Start a new daily attempt to play.", type: "error" });
+      }
+      return;
+    }
+
     if (activeStoryRun && activeStoryRun.gameId !== 0n) {
       const isPlayingNode =
         selectedNode.zone === activeStoryRun.zoneId &&
@@ -193,11 +227,14 @@ const MapPage: React.FC = () => {
         return;
       }
 
-      showToast({
-        message: `Run in progress on Zone ${activeStoryRun.zoneId}, Level ${activeStoryRun.level}.`,
-        type: "error",
-      });
-      return;
+      // Allow replay of cleared levels even with an active run
+      if (selectedNode.state !== "cleared" && selectedNode.state !== "visited") {
+        showToast({
+          message: `Run in progress on Zone ${activeStoryRun.zoneId}, Level ${activeStoryRun.level}.`,
+          type: "error",
+        });
+        return;
+      }
     }
 
     try {
@@ -221,8 +258,15 @@ const MapPage: React.FC = () => {
   const pathTheme = getMapPathTheme(themeId);
   const layout = zoneLayouts[0];
   const nodes = mapData.nodes;
-  const zoneName = ZONE_NAMES[mapZoneId] ?? `Zone ${mapZoneId}`;
-  const zoneStars = zoneProgressData?.stars ?? 0;
+  const zoneName = isDailyMap ? `Daily · ${ZONE_NAMES[mapZoneId] ?? `Zone ${mapZoneId}`}` : (ZONE_NAMES[mapZoneId] ?? `Zone ${mapZoneId}`);
+  const zoneStars = useMemo(() => {
+    if (isDailyMap && game) {
+      let total = 0;
+      for (let i = 1; i <= 10; i++) total += game.getLevelStars(i);
+      return total;
+    }
+    return zoneProgressData?.stars ?? 0;
+  }, [isDailyMap, game, zoneProgressData]);
 
   // SVG info node position (top-right area)
   const INFO_CX = VB_W - 8;
@@ -241,7 +285,7 @@ const MapPage: React.FC = () => {
         className="absolute top-0 left-0 right-0 z-20 flex items-center gap-2 px-3 pt-3 pb-1 pointer-events-none"
       >
         <button
-          onClick={goBack}
+          onClick={() => { if (isDailyMap) setIsDailyMap(false); goBack(); }}
           className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/30 backdrop-blur-md"
           style={{ color: colors.accent }}
         >

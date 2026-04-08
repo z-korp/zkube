@@ -1,16 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
 import { usePlayerEntry } from "@/hooks/usePlayerEntry";
 import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
-import { getBlockColors, getThemeColors } from "@/config/themes";
+import { useActiveDailyAttempt } from "@/hooks/useActiveDailyAttempt";
+import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { getMutatorDef } from "@/config/mutatorConfig";
 import { ZONE_NAMES } from "@/config/profileData";
 import { motion } from "motion/react";
+import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 
 const TROPHY_IMAGES: Record<number, string> = {
   1: "/assets/trophies/gold.png",
@@ -18,7 +20,18 @@ const TROPHY_IMAGES: Record<number, string> = {
   3: "/assets/trophies/bronze.png",
 };
 
-const CountdownPill: React.FC<{ endTime: number; accent: string; border: string; text: string }> = ({ endTime, accent, border, text }) => {
+const parseCompositeValue = (value: number): { stars: number; score: number } => {
+  const stars = Math.floor(value / 0x100000000);
+  const score = value % 0x100000000;
+  return { stars, score };
+};
+
+const getThemeId = (zoneId: number): ThemeId => {
+  const normalized = Math.min(10, Math.max(1, zoneId));
+  return `theme-${normalized}` as ThemeId;
+};
+
+const CountdownPill: React.FC<{ endTime: number; accent: string }> = ({ endTime, accent }) => {
   const [sec, setSec] = useState(() =>
     Math.max(0, endTime - Math.floor(Date.now() / 1000)),
   );
@@ -34,15 +47,20 @@ const CountdownPill: React.FC<{ endTime: number; accent: string; border: string;
   const s = (sec % 60).toString().padStart(2, "0");
 
   return (
-    <motion.div
-      animate={{ scale: [1, 1.05, 1] }}
-      transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-      className="rounded-lg border px-3 py-1 font-display text-[11px] font-bold shadow-sm backdrop-blur-md"
-      style={{ borderColor: `${accent}80`, backgroundColor: border, color: text, boxShadow: `0 0 10px ${accent}33` }}
+    <div
+      className="rounded-full border px-3 py-1 font-sans text-xs font-bold tabular-nums"
+      style={{ borderColor: `${accent}55`, backgroundColor: `${accent}18`, color: accent }}
     >
       {sec > 0 ? `${h}:${m}:${s}` : "ENDED"}
-    </motion.div>
+    </div>
   );
+};
+
+const normalizeAddress = (address: string | undefined): string | undefined => {
+  if (!address) return undefined;
+  if (!address.startsWith("0x")) return address;
+  const hex = address.slice(2).replace(/^0+/, "") || "0";
+  return `0x${hex}`;
 };
 
 const DailyChallengePage: React.FC = () => {
@@ -50,9 +68,13 @@ const DailyChallengePage: React.FC = () => {
   const { themeTemplate } = useTheme();
   const colors = getThemeColors(themeTemplate);
   const navigate = useNavigationStore((state) => state.navigate);
+  const goBack = useNavigationStore((state) => state.goBack);
+  const setMapZoneId = useNavigationStore((state) => state.setMapZoneId);
+  const setIsDailyMap = useNavigationStore((state) => state.setIsDailyMap);
   const {
     setup: { systemCalls },
   } = useDojo();
+  const activeDailyRun = useActiveDailyAttempt();
 
   const { challenge, isLoading: challengeLoading } = useCurrentChallenge();
   const { entry, isRegistered } = usePlayerEntry(
@@ -72,9 +94,12 @@ const DailyChallengePage: React.FC = () => {
     challenge.start_time <= now &&
     challenge.end_time > now;
 
-  const zoneName = challenge?.zone_id
-    ? (ZONE_NAMES[challenge.zone_id] ?? `Zone ${challenge.zone_id}`)
-    : null;
+  const zoneId = challenge?.zone_id ?? 1;
+  const zoneName = ZONE_NAMES[zoneId] ?? `Zone ${zoneId}`;
+  const themeId = getThemeId(zoneId);
+  const zoneImages = getThemeImages(themeId);
+  const zoneColors = getThemeColors(themeId);
+
   const activeMutator = challenge?.active_mutator_id
     ? getMutatorDef(challenge.active_mutator_id)
     : null;
@@ -82,236 +107,251 @@ const DailyChallengePage: React.FC = () => {
     ? getMutatorDef(challenge.passive_mutator_id)
     : null;
 
-  const starReward = entry?.star_reward
-    ? BigInt(entry.star_reward)
-    : 0n;
+  const starReward = entry?.star_reward ? BigInt(entry.star_reward) : 0n;
 
-  const previewGrid = useMemo(() => {
-    const seedSource = challenge ? BigInt((challenge as { seed?: bigint }).seed ?? challenge.challenge_id) : 1n;
-    const shift = Number(seedSource % 11n);
-    const rows = 5;
-    const cols = 8;
-    return Array.from({ length: rows * cols }).map((_, i) => {
-      const r = Math.floor(i / cols);
-      const c = i % cols;
-      if (r < 2) return 0;
-      const val = (r * cols + c + shift) % 5;
-      return val as 0 | 1 | 2 | 3 | 4;
-    });
-  }, [challenge]);
+  const playerRank = useMemo(() => {
+    if (!account?.address || !leaderboard.length) return null;
+    const normalized = normalizeAddress(account.address);
+    return leaderboard.find((e) => normalizeAddress(e.player) === normalized) ?? null;
+  }, [account?.address, leaderboard]);
 
   const handlePlay = useCallback(async () => {
     if (!account || starting) return;
+
+    // If there's already an active daily game, go to its map
+    if (activeDailyRun) {
+      setMapZoneId(zoneId);
+      setIsDailyMap(true);
+      navigate("map", activeDailyRun.gameId);
+      return;
+    }
+
+    // Start a new daily game, then go to map
     setStarting(true);
     try {
       const result = await systemCalls.startDailyGame({ account });
       if (result.game_id !== 0n) {
-        navigate("play", result.game_id);
+        setMapZoneId(zoneId);
+        setIsDailyMap(true);
+        navigate("map", result.game_id);
       }
     } finally {
       setStarting(false);
     }
-  }, [account, starting, systemCalls, navigate]);
+  }, [account, starting, systemCalls, navigate, setMapZoneId, setIsDailyMap, zoneId, activeDailyRun]);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <h1 className="pt-4 pb-2 text-center font-sans text-xl font-bold tracking-wide text-white">Daily Challenge</h1>
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(5,10,18,0.12)_0%,rgba(5,10,18,0.05)_45%,rgba(5,10,18,0.56)_100%)]" />
 
-      <div className="mx-2 mt-1 mb-[72px] rounded-2xl border border-white/[0.06] bg-black/40 backdrop-blur-sm p-3 overflow-y-auto flex-1 min-h-0">
-        <div className="mx-auto flex w-full max-w-[500px] flex-col gap-3">
+      <div className="relative z-10 flex min-h-10 items-center justify-center px-6 pb-2">
+        <div className="absolute left-6 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center">
+          <button
+            onClick={goBack}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] shadow-lg backdrop-blur-md transition-all hover:bg-white/[0.08] active:scale-95"
+          >
+            <ChevronLeft size={20} className="text-white/80" />
+          </button>
+        </div>
+        <h1 className="text-center font-display text-2xl font-bold tracking-wide text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
+          Daily Challenge
+        </h1>
+      </div>
+
+      <div className="relative z-10 mx-4 mt-4 flex flex-1 min-h-0 flex-col overflow-y-auto hide-scrollbar pb-3">
+        <div className="mx-auto flex w-full max-w-[500px] flex-col gap-4">
           {challengeLoading && (
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-8 text-center shadow-lg shadow-black/20 backdrop-blur-xl">
-              <Loader2 size={24} className="mx-auto animate-spin" style={{ color: colors.accent }} />
+            <div className="flex flex-1 items-center justify-center py-16">
+              <Loader2 size={28} className="animate-spin" style={{ color: colors.accent }} />
             </div>
           )}
 
           {!challengeLoading && !challenge && (
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-8 text-center shadow-lg shadow-black/20 backdrop-blur-xl">
-              <img src="/assets/trophies/gold.png" alt="Trophy" className="mx-auto mb-4 h-16 w-16 opacity-80" draggable={false} />
-              <p className="mb-1 font-display text-xl text-white">
-                Today's Challenge
-              </p>
+            <div className="rounded-2xl border border-white/[0.12] bg-white/[0.06] p-6 text-center backdrop-blur-xl">
+              <p className="mb-2 font-display text-xl text-white">No Challenge Yet</p>
               <p className="mb-4 font-sans text-sm text-white/60">
                 Be the first to play today! A new challenge will be generated automatically.
               </p>
-              {account && (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  type="button"
-                  disabled={starting}
-                  onClick={handlePlay}
-                  className="mx-auto flex items-center justify-center rounded-2xl px-6 py-3 font-display text-[15px] font-black tracking-[0.12em] shadow-xl disabled:opacity-50"
-                  style={{
-                    background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent}E6)`,
-                    color: "#0a1628",
-                  }}
-                >
-                  {starting ? "STARTING..." : "PLAY DAILY"}
-                </motion.button>
+              {account && isActive !== false && (
+                <ArcadeButton disabled={starting} onClick={handlePlay}>
+                  {starting ? "Starting..." : activeDailyRun ? "Resume Daily" : "Play Daily"}
+                </ArcadeButton>
               )}
             </div>
           )}
 
           {challenge && (
             <>
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-display text-[20px] font-extrabold tracking-wide text-white">
-                    ⚡ Daily Challenge
-                  </p>
-                  <p className="font-sans text-[11px] font-medium text-white/60">
-                    {new Date(challenge.start_time * 1000).toLocaleDateString()} · Same seed for all
-                  </p>
+              {/* Zone hero */}
+              <div className="relative overflow-hidden rounded-2xl border border-white/[0.12]">
+                <img
+                  src={zoneImages.themeIcon}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" />
+                <div className="relative z-10 flex items-end justify-between p-4">
+                  <div>
+                    <p className="font-sans text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: zoneColors.accent }}>
+                      {new Date(challenge.start_time * 1000).toLocaleDateString(navigator.language, { weekday: "long", month: "short", day: "numeric" })}
+                    </p>
+                    <p className="font-display text-2xl font-black text-white">{zoneName}</p>
+                    <p className="font-sans text-xs font-semibold text-white/60">
+                      {challenge.total_entries} player{challenge.total_entries !== 1 ? "s" : ""} competing
+                    </p>
+                  </div>
+                  {isActive && <CountdownPill endTime={challenge.end_time} accent={zoneColors.accent} />}
                 </div>
-                {isActive && (
-                  <CountdownPill
-                    endTime={challenge.end_time}
-                    accent={colors.accent}
-                    border="rgba(255,255,255,0.04)"
-                    text={colors.accent}
-                  />
-                )}
               </div>
 
-              {(zoneName || activeMutator || passiveMutator) && (
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {zoneName && (
-                    <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 font-sans text-[10px] font-bold text-white/80">
-                      {zoneName}
-                    </span>
-                  )}
+              {/* Mutators */}
+              {(activeMutator?.id || passiveMutator?.id) ? (
+                <div className="space-y-2">
                   {activeMutator && activeMutator.id !== 0 && (
-                    <span className="rounded-full border border-orange-400/30 bg-orange-500/10 px-2.5 py-1 font-sans text-[10px] font-bold text-orange-300">
-                      {activeMutator.icon} {activeMutator.name}
-                    </span>
+                    <div className="rounded-xl border border-orange-400/20 bg-orange-500/8 px-3 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{activeMutator.icon}</span>
+                        <p className="font-sans text-sm font-bold text-orange-300">{activeMutator.name}</p>
+                        <span className="rounded-full bg-orange-500/20 px-1.5 py-0.5 font-sans text-[9px] font-bold uppercase text-orange-300/80">Active</span>
+                      </div>
+                      <p className="mt-1 font-sans text-xs text-white/60">{activeMutator.description}</p>
+                      {activeMutator.effects.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {activeMutator.effects.map((e) => (
+                            <span key={e} className="rounded-full bg-orange-500/10 px-2 py-0.5 font-sans text-[10px] font-semibold text-orange-200/70">{e}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   )}
                   {passiveMutator && passiveMutator.id !== 0 && (
-                    <span className="rounded-full border border-purple-400/30 bg-purple-500/10 px-2.5 py-1 font-sans text-[10px] font-bold text-purple-300">
-                      {passiveMutator.icon} {passiveMutator.name}
-                    </span>
+                    <div className="rounded-xl border border-purple-400/20 bg-purple-500/8 px-3 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{passiveMutator.icon}</span>
+                        <p className="font-sans text-sm font-bold text-purple-300">{passiveMutator.name}</p>
+                        <span className="rounded-full bg-purple-500/20 px-1.5 py-0.5 font-sans text-[9px] font-bold uppercase text-purple-300/80">Passive</span>
+                      </div>
+                      <p className="mt-1 font-sans text-xs text-white/60">{passiveMutator.description}</p>
+                      {passiveMutator.effects.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {passiveMutator.effects.map((e) => (
+                            <span key={e} className="rounded-full bg-purple-500/10 px-2 py-0.5 font-sans text-[10px] font-semibold text-purple-200/70">{e}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
+              ) : null}
 
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ type: "spring", stiffness: 300, damping: 24 }}
-                className="rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 shadow-lg shadow-black/20 backdrop-blur-xl"
-              >
-                <p className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.15em] text-white/60">
-                  TODAY'S TOP 3
-                </p>
-                <motion.div
-                  initial="hidden"
-                  animate="show"
-                  variants={{
-                    hidden: { opacity: 0 },
-                    show: { opacity: 1, transition: { staggerChildren: 0.05 } }
-                  }}
-                  className="space-y-1.5"
-                >
-                  {leaderboard.slice(0, 3).map((le, idx) => (
-                    <motion.div
-                      variants={{
-                        hidden: { opacity: 0, x: -10 },
-                        show: { opacity: 1, x: 0 }
-                      }}
-                      key={le.rank}
-                      className="flex items-center justify-between pt-1.5 first:pt-0"
-                      style={{ borderTop: idx > 0 ? `1px solid rgba(255,255,255,0.06)` : "none" }}
-                    >
-                      <span className="flex items-center gap-2 font-sans text-[11px] font-medium text-white">
-                        <img
-                          src={TROPHY_IMAGES[idx + 1]}
-                          alt={`Rank ${idx + 1}`}
-                          className="h-5 w-5 drop-shadow-md"
-                          draggable={false}
-                        />
-                        {le.playerName}
+              {/* Player result */}
+              {isRegistered && entry && (
+                <div className="rounded-xl border border-white/[0.12] bg-white/[0.06] px-4 py-3 backdrop-blur-xl">
+                  <p className="font-sans text-[10px] font-bold uppercase tracking-[0.12em] text-white/50">Your Result</p>
+                  <div className="mt-1 flex items-baseline justify-between">
+                    <p className="font-sans text-lg font-bold" style={{ color: zoneColors.accent }}>
+                      {entry.best_score?.toLocaleString() ?? 0}
+                      <span className="ml-1.5 text-xs text-white/50">pts</span>
+                    </p>
+                    <div className="flex items-center gap-3">
+                      {entry.best_stars > 0 && (
+                        <span className="font-sans text-xs font-semibold text-yellow-300">
+                          {"★".repeat(entry.best_stars)}
+                        </span>
+                      )}
+                      <span className="rounded-full border px-2 py-0.5 font-sans text-xs font-bold" style={{ borderColor: `${zoneColors.accent}55`, color: zoneColors.accent }}>
+                        {playerRank ? `#${playerRank.rank}` : entry.rank > 0 ? `#${entry.rank}` : "—"}
                       </span>
-                      <span className="font-display text-[13px] font-bold tracking-wide" style={{ color: colors.accent }}>
-                        {le.value.toLocaleString()}
-                      </span>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              </motion.div>
-
-              <div className="flex justify-center py-2">
-                <div className="text-center">
-                  <div
-                    className="inline-block rounded-2xl border border-white/[0.08] bg-white/[0.02] p-2 shadow-lg shadow-black/20 backdrop-blur-xl"
-                    style={{ boxShadow: `0 0 20px ${colors.accent}1A, inset 0 0 10px ${colors.accent}0D` }}
-                  >
-                    <div className="grid grid-cols-8 gap-1">
-                      {previewGrid.map((block, idx) => {
-                        const validBlock = block >= 1 && block <= 4;
-                        const blockColor = validBlock
-                          ? getBlockColors(themeTemplate, block as 1 | 2 | 3 | 4).fill
-                          : "transparent";
-                        return (
-                          <div
-                            key={`preview-${idx}`}
-                            className="h-[22px] w-[22px] rounded-[4px] border"
-                            style={{
-                              borderColor: validBlock ? `${blockColor}66` : `rgba(255,255,255,0.06)`,
-                              backgroundColor: validBlock ? `${blockColor}99` : "rgba(255,255,255,0.02)",
-                              boxShadow: validBlock ? `0 0 8px ${blockColor}4D` : "none",
-                            }}
-                          />
-                        );
-                      })}
                     </div>
                   </div>
-                  <p className="mt-3 font-sans text-[11px] font-medium text-white/60">
-                    {challenge.total_entries} players today
-                  </p>
-                </div>
-              </div>
-
-              {isActive && account && (
-                <motion.button
-                  animate={{ boxShadow: [`0 8px 20px -4px ${colors.accent}66`, `0 8px 30px 0px ${colors.accent}99`, `0 8px 20px -4px ${colors.accent}66`] }}
-                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  type="button"
-                  disabled={starting}
-                  onClick={handlePlay}
-                  className="flex w-full items-center justify-center rounded-2xl px-4 py-4 font-display text-[17px] font-black tracking-[0.12em] shadow-xl disabled:opacity-50"
-                  style={{
-                    background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent}E6)`,
-                    color: "#0a1628",
-                    boxShadow: `inset 0 2px 0 rgba(255,255,255,0.4)`,
-                  }}
-                >
-                  {starting ? "STARTING..." : "PLAY DAILY"}
-                </motion.button>
-              )}
-
-              {isRegistered && entry && (
-                <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-4 shadow-lg shadow-black/20 backdrop-blur-xl">
-                  <p className="font-sans text-[12px] font-medium text-white">
-                    Your best: <span className="font-display text-[14px] font-bold" style={{ color: colors.accent }}>{entry.best_score}</span> · Rank {entry.rank > 0 ? `#${entry.rank}` : "—"}
-                  </p>
-                  {entry.best_stars > 0 && (
-                    <p className="mt-1 font-sans text-[11px] text-white/60">
-                      Stars: {entry.best_stars} · Attempts: {entry.attempts}
-                    </p>
+                  {entry.attempts > 1 && (
+                    <p className="mt-0.5 font-sans text-[10px] text-white/40">{entry.attempts} attempts</p>
                   )}
                   {starReward > 0n && (
-                    <p className="mt-1 font-sans text-[11px] font-semibold text-yellow-300">
-                      ⭐ Star Reward: {starReward.toString()}
+                    <p className="mt-1 font-sans text-xs font-semibold text-yellow-300">
+                      Star Reward: {starReward.toString()}★
                     </p>
                   )}
                 </div>
               )}
+
+              {/* Leaderboard */}
+              <div className="rounded-xl border border-white/[0.10] bg-white/[0.04] px-4 py-3 backdrop-blur-xl">
+                <p className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.15em] text-white/50">
+                  Leaderboard
+                </p>
+                {leaderboard.length === 0 ? (
+                  <p className="py-2 text-center font-sans text-xs text-white/40">No entries yet</p>
+                ) : (
+                  <div className="space-y-0">
+                    {leaderboard.slice(0, 10).map((le, idx) => {
+                      const isPlayer = account?.address && normalizeAddress(le.player) === normalizeAddress(account.address);
+                      return (
+                        <div
+                          key={le.rank}
+                          className="flex items-center justify-between py-1.5"
+                          style={{
+                            borderTop: idx > 0 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                            backgroundColor: isPlayer ? `${zoneColors.accent}0D` : "transparent",
+                            borderRadius: isPlayer ? 8 : 0,
+                            padding: isPlayer ? "6px 8px" : undefined,
+                            margin: isPlayer ? "2px -8px" : undefined,
+                          }}
+                        >
+                          <span className="flex items-center gap-2 font-sans text-xs font-medium text-white">
+                            {TROPHY_IMAGES[le.rank] ? (
+                              <img src={TROPHY_IMAGES[le.rank]} alt="" className="h-5 w-5 drop-shadow-md" draggable={false} />
+                            ) : (
+                              <span className="flex h-5 w-5 items-center justify-center font-sans text-[10px] font-bold text-white/40">
+                                {le.rank}
+                              </span>
+                            )}
+                            <span style={{ color: isPlayer ? zoneColors.accent : undefined, fontWeight: isPlayer ? 700 : 500 }}>
+                              {le.playerName}{isPlayer ? " (You)" : ""}
+                            </span>
+                          </span>
+                          <span className="flex items-center gap-1.5 font-sans text-xs font-bold tabular-nums" style={{ color: zoneColors.accent }}>
+                            <span className="text-yellow-300">{"★".repeat(parseCompositeValue(le.value).stars)}</span>
+                            <span>{parseCompositeValue(le.value).score.toLocaleString()}</span>
+                          </span>
+                        </div>
+                      );
+                    })}
+                    {leaderboard.length > 10 && playerRank && playerRank.rank > 10 && (
+                      <>
+                        <div className="py-1 text-center font-sans text-[10px] text-white/30">···</div>
+                        <div
+                          className="flex items-center justify-between rounded-lg py-1.5 px-2"
+                          style={{ backgroundColor: `${zoneColors.accent}0D` }}
+                        >
+                          <span className="flex items-center gap-2 font-sans text-xs font-bold" style={{ color: zoneColors.accent }}>
+                            <span className="flex h-5 w-5 items-center justify-center font-sans text-[10px] font-bold">
+                              {playerRank.rank}
+                            </span>
+                            {playerRank.playerName} (You)
+                          </span>
+                          <span className="font-sans text-xs font-bold tabular-nums" style={{ color: zoneColors.accent }}>
+                            {playerRank.value.toLocaleString()}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
       </div>
+
+      {/* Play button */}
+      {isActive && account && challenge && (
+        <div className="relative z-20 mt-auto px-4 pb-3">
+          <ArcadeButton disabled={starting} onClick={handlePlay}>
+            {starting ? "Starting..." : activeDailyRun ? "Resume Daily" : "Play Daily"}
+          </ArcadeButton>
+        </div>
+      )}
     </div>
   );
 };

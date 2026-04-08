@@ -396,6 +396,28 @@ export function defineContractComponents(world: World) {
         }
       );
     })(),
+    ActiveDailyAttempt: (() => {
+      return defineComponent(
+        world,
+        {
+          player: RecsType.BigInt,
+          game_id: RecsType.BigInt,
+          challenge_id: RecsType.Number,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "ActiveDailyAttempt",
+            types: [
+              "ContractAddress",   // player (key)
+              "felt252",           // game_id
+              "u32",               // challenge_id
+            ],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
     WeeklyEndless: (() => {
       return defineComponent(
         world,

@@ -9,18 +9,20 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import { usePlayerBestRun } from "@/hooks/usePlayerBestRun";
+import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useZStarBalance } from "@/hooks/useZStarBalance";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
 import { useActiveStoryAttempt } from "@/hooks/useActiveStoryAttempt";
 import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
 import { usePlayerEntry } from "@/hooks/usePlayerEntry";
-import { ZONE_NAMES } from "@/config/profileData";
+import { ZONE_NAMES, getLevelFromXp, getTitleForLevel, type ZoneProgressData } from "@/config/profileData";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { showToast } from "@/utils/toast";
 import { BookOpen, Infinity as InfinityIcon, Zap } from "lucide-react";
 import Connect from "@/ui/components/Connect";
 import ModePill from "@/ui/components/shared/ModePill";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
+import UnlockModal from "@/ui/components/profile/UnlockModal";
 
 const normalizeAddress = (address: string | undefined): string | undefined => {
   if (!address) return undefined;
@@ -84,6 +86,10 @@ const HomePage: React.FC = () => {
   const setSelectedMode = useNavigationStore((s) => s.setSelectedMode);
   const [isStartingGame, setIsStartingGame] = useState(false);
   const [activeZone, setActiveZone] = useState(0);
+  const [unlockZone, setUnlockZone] = useState<ZoneProgressData | null>(null);
+  const { playerMeta } = usePlayerMeta(account?.address);
+  const playerLevel = getLevelFromXp(playerMeta?.lifetimeXp ?? 0);
+  const playerTitle = getTitleForLevel(playerLevel);
   const { balance: zStarBalance } = useZStarBalance(account?.address);
   const { zones, totalStars } = useZoneProgress(account?.address, zStarBalance);
   const { challenge, isLoading: challengeLoading } = useCurrentChallenge();
@@ -225,14 +231,28 @@ const HomePage: React.FC = () => {
   const selectedZonePlayable = isZoneSelectable(zone);
 
   const handlePrimaryAction = useCallback(() => {
-    if (!zone || !account) return;
+    if (!account) return;
 
-    if (selectedMode === 0 && activeStoryAttemptId !== null) {
-      setMapZoneId(zone.zoneId);
-      navigate("map", activeStoryAttemptId);
+    // Daily mode
+    if (selectedMode === 2) {
+      navigate("daily");
       return;
     }
 
+    if (!zone) return;
+
+    // Story mode — always go to map
+    if (selectedMode === 0) {
+      setMapZoneId(zone.zoneId);
+      if (activeStoryAttemptId !== null) {
+        navigate("map", activeStoryAttemptId);
+      } else {
+        navigate("map");
+      }
+      return;
+    }
+
+    // Endless mode
     if (selectedMode === 1 && activeEndlessGameId !== null) {
       navigate("play", activeEndlessGameId);
       return;
@@ -284,11 +304,11 @@ const HomePage: React.FC = () => {
                       color: "#0a1628",
                     }}
                   >
-                    {(username || "PL").slice(0, 2).toUpperCase()}
+                    {playerLevel}
                   </div>
                   <div className="min-w-0">
                     <p className="truncate font-sans text-[15px] font-bold text-white">{username || "Player"}</p>
-                    <p className="font-sans text-[11px] font-semibold text-white/75">★ {totalStars} collected</p>
+                    <p className="font-sans text-[11px] font-semibold text-white/75">{playerTitle}</p>
                   </div>
                 </div>
                 <span className="rounded-full border px-2.5 py-1 font-sans text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: colors.accent, borderColor: `${colors.accent}66`, backgroundColor: `${colors.accent}22` }}>
@@ -296,61 +316,33 @@ const HomePage: React.FC = () => {
                 </span>
               </motion.div>
 
-              <motion.button
-                variants={itemVariants}
-                whileTap={{ scale: 0.99 }}
-                type="button"
-                onClick={() => navigate("daily")}
-                className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border border-white/[0.16] bg-white/[0.08] px-4 py-3 text-left shadow-lg backdrop-blur-xl"
-              >
-                <div className="pointer-events-none absolute inset-[-100%_0] w-[300%] animate-shimmer bg-gradient-to-r from-transparent via-white/[0.09] to-transparent bg-[length:50%_100%]" />
-                <div className="relative z-10">
-                    <p className="font-sans text-[13px] font-extrabold uppercase tracking-[0.08em]" style={{ color: colors.accent }}>
-                      ⚡ Daily Challenge{dailyZoneName && <span className="ml-1.5 text-[10px] font-bold text-white/60">· {dailyZoneName}</span>}
-                    </p>
-                  <p className="mt-0.5 font-sans text-xs font-semibold text-white/80">
-                    {challengeLoading
-                      ? "Loading..."
-                      : !challenge
-                        ? "Be the first to play today!"
-                        : hasPlayedDaily && dailyEntry
-                          ? `Your best: ${dailyEntry.best_score?.toLocaleString() ?? 0}${dailyEntry.rank > 0 ? ` · Rank #${dailyEntry.rank}` : ""}${dailyCountdown ? ` · ${dailyCountdown}` : ""}`
-                          : `${dailyCountdown ?? "Challenge ended"} · ${challenge.total_entries ?? 0} player${(challenge.total_entries ?? 0) !== 1 ? "s" : ""}`}
-                  </p>
-                </div>
-                <span className="relative z-10 rounded-full px-3 py-1.5 font-sans text-xs font-extrabold uppercase tracking-[0.08em]" style={{ backgroundColor: colors.accent, color: "#0a1628" }}>
-                  Play
-                </span>
-              </motion.button>
-
               <motion.div variants={itemVariants} className="my-1 flex items-center gap-2">
                 <div className="flex-1 border-t border-white/[0.06]" />
                 <span className="font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-white/30">Choose Your Mode</span>
                 <div className="flex-1 border-t border-white/[0.06]" />
               </motion.div>
 
+              <motion.div variants={itemVariants}>
+                <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
+              </motion.div>
+
               <motion.div variants={itemVariants} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="ml-1 font-sans text-[12px] font-bold uppercase tracking-[0.18em] text-white/80">Select Zone</p>
-                  <div className="w-[56%] min-w-[176px] max-w-[224px]">
-                    <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
-                  </div>
-                </div>
-                <p className="ml-1 font-sans text-[10px] font-medium text-white/50">
-                  {selectedMode === 0
-                    ? "10 levels per zone · Beat the boss · Earn stars"
-                    : "Infinite survival · Weekly leaderboard · NFT runs"}
-                </p>
-                {selectedMode === 1 && !endlessZoneOneUnlocked && (
-                  <div className="flex items-center gap-2 rounded-xl border border-amber-400/20 bg-amber-500/10 px-3 py-2">
-                    <span className="text-sm">🔒</span>
-                    <p className="font-sans text-[11px] font-semibold text-amber-300/90">
-                      Beat the Zone 1 Story boss to unlock Endless mode
+                {selectedMode === 2 ? (
+                  <div className="rounded-2xl border border-white/[0.16] bg-white/[0.08] px-4 py-4 backdrop-blur-xl">
+                    <p className="font-sans text-[13px] font-extrabold uppercase tracking-[0.08em]" style={{ color: colors.accent }}>
+                      Today's Challenge{dailyZoneName && <span className="ml-1.5 text-[10px] font-bold text-white/60">· {dailyZoneName}</span>}
+                    </p>
+                    <p className="mt-1 font-sans text-xs font-semibold text-white/80">
+                      {challengeLoading
+                        ? "Loading..."
+                        : !challenge
+                          ? "Be the first to play today!"
+                          : hasPlayedDaily && dailyEntry
+                            ? `Your best: ${dailyEntry.best_score?.toLocaleString() ?? 0}${dailyEntry.rank > 0 ? ` · Rank #${dailyEntry.rank}` : ""}${dailyCountdown ? ` · ${dailyCountdown}` : ""}`
+                            : `${dailyCountdown ?? "Challenge ended"} · ${challenge.total_entries ?? 0} player${(challenge.total_entries ?? 0) !== 1 ? "s" : ""}`}
                     </p>
                   </div>
-                )}
-
-                {zones.length === 0 ? (
+                ) : zones.length === 0 ? (
                   <div className="rounded-2xl border border-white/[0.14] bg-white/[0.12] p-4 text-center font-sans text-sm font-semibold text-white/80 backdrop-blur-xl">
                     Loading zones...
                   </div>
@@ -368,8 +360,8 @@ const HomePage: React.FC = () => {
 
                       let statusText = `${z.stars}/${z.maxStars} ★`;
                       if (isEndlessMode) {
-                        if (z.zoneId !== 1) statusText = "Coming soon";
-                        else if (!endlessZoneOneUnlocked) statusText = "Beat Story Boss";
+                        if (!z.unlocked) statusText = "Unlock Story";
+                        else if (!z.bossCleared) statusText = "Beat Boss";
                         else statusText = `Best ${endlessBestScore.toLocaleString()}`;
                       } else if (!z.unlocked && !z.isFree) {
                         statusText = (z.starCost ?? 0) > 0
@@ -383,13 +375,17 @@ const HomePage: React.FC = () => {
                           key={z.settingsId}
                           type="button"
                           onClick={() => {
-                            if (isSelectable) setActiveZone(idx);
+                            if (isSelectable) {
+                              setActiveZone(idx);
+                            } else if (!z.unlocked && !z.isFree && selectedMode === 0) {
+                              setUnlockZone(z);
+                            }
                           }}
-                          className="relative flex h-44 w-36 shrink-0 snap-center flex-col items-start justify-end overflow-hidden rounded-3xl border p-3 text-left"
+                          className="relative flex h-[clamp(8rem,22vw,11rem)] w-[clamp(6.5rem,17vw,9rem)] shrink-0 snap-center flex-col items-start justify-end overflow-hidden rounded-2xl p-2 text-left"
                           style={{
-                            borderColor: isSelected ? cardAccent : "rgba(255,255,255,0.18)",
+                            border: isSelected ? `2px solid ${cardAccent}` : "1px solid rgba(255,255,255,0.18)",
                             opacity: isSelectable ? 1 : 0.58,
-                            boxShadow: isSelected ? `0 0 22px ${cardAccent}55, inset 0 0 10px ${cardAccent}2A` : "0 10px 18px -8px rgba(0,0,0,0.6)",
+                            boxShadow: isSelected ? `0 0 16px ${cardAccent}66, 0 0 4px ${cardAccent}44` : "0 10px 18px -8px rgba(0,0,0,0.6)",
                           }}
                         >
                           <img
@@ -409,7 +405,7 @@ const HomePage: React.FC = () => {
                             >
                               {isEndlessMode ? "Endless" : "Story"}
                             </span>
-                            <p className="font-sans text-xl font-extrabold leading-tight text-white drop-shadow-md">{z.name}</p>
+                            <p className="font-sans text-base font-extrabold leading-tight text-white drop-shadow-md">{z.name}</p>
                             <div className="mt-1 flex items-center justify-between">
                               <p className="font-sans text-[11px] font-bold" style={{ color: isEndlessMode ? "#FFCF9D" : "#FACC15" }}>
                                 {statusText}
@@ -430,6 +426,18 @@ const HomePage: React.FC = () => {
                     })}
                   </div>
                 )}
+              </motion.div>
+
+              <motion.div variants={itemVariants} className="my-1 flex items-center gap-2">
+                <div className="flex-1 border-t border-white/[0.06]" />
+                <span className="font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-white/30">Tournament</span>
+                <div className="flex-1 border-t border-white/[0.06]" />
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <div className="rounded-2xl border border-white/[0.10] bg-white/[0.04] px-4 py-3 text-center backdrop-blur-xl">
+                  <p className="font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-white/30">Coming Soon</p>
+                </div>
               </motion.div>
             </>
           ) : (
@@ -470,19 +478,21 @@ const HomePage: React.FC = () => {
         </motion.div>
       </div>
 
-      <div className="relative z-20 mt-auto flex flex-col gap-2.5 px-4">
+      <div className="relative z-20 mt-auto flex flex-col gap-2.5 px-4 pb-3">
         {account ? (
           <>
-            <ArcadeButton disabled={isStartingGame || !selectedZonePlayable} onClick={handlePrimaryAction}>
+            <ArcadeButton disabled={isStartingGame || (selectedMode === 2 ? (!challenge || challengeLoading) : !selectedZonePlayable)} onClick={handlePrimaryAction}>
               {isStartingGame
                 ? "Starting..."
-                : selectedMode === 0
-                  ? hasActiveStoryRun
-                    ? "Resume Story"
-                    : "Start Story"
-                  : hasActiveEndlessRun
-                    ? "Resume Endless"
-                    : "Play Endless"}
+                : selectedMode === 2
+                  ? "Go to Daily"
+                  : selectedMode === 0
+                    ? hasActiveStoryRun
+                      ? "Resume Story"
+                      : "Play Story"
+                    : hasActiveEndlessRun
+                      ? "Resume Endless"
+                      : "Play Endless"}
             </ArcadeButton>
 
             {selectedMode === 1 && hasActiveEndlessRun ? (
@@ -504,6 +514,8 @@ const HomePage: React.FC = () => {
           </>
         ) : null}
       </div>
+
+      {unlockZone && <UnlockModal colors={colors} zone={unlockZone} onClose={() => setUnlockZone(null)} />}
     </div>
   );
 };

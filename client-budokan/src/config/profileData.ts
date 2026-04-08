@@ -26,15 +26,32 @@ export const ZONE_EMOJIS: Record<number, string> = {
 
 export const ZONE_NAMES: Record<number, string> = {
   1: "Polynesian",
-  2: "Ancient Egypt",
+  2: "Egypt",
   3: "Norse",
-  4: "Ancient Greece",
-  5: "Feudal Japan",
-  6: "Ancient China",
-  7: "Ancient Persia",
+  4: "Greece",
+  5: "Japan",
+  6: "China",
+  7: "Persia",
   8: "Mayan",
   9: "Tribal",
   10: "Inca",
+};
+
+export const getLevelFromXp = (xp: number): number => {
+  let level = 1;
+  for (let i = 0; i < LEVEL_THRESHOLDS.length; i++) {
+    if (xp >= LEVEL_THRESHOLDS[i]) level = i + 1;
+  }
+  return level;
+};
+
+export const getTitleForLevel = (level: number): string => {
+  const unlockLevels = Object.keys(PLAYER_TITLES)
+    .map(Number)
+    .sort((a, b) => a - b)
+    .filter((l) => l <= level);
+  const key = unlockLevels[unlockLevels.length - 1] ?? 1;
+  return PLAYER_TITLES[key] ?? "Novice";
 };
 
 export interface ZoneProgressData {

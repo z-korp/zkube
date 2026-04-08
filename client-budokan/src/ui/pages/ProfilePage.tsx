@@ -20,7 +20,8 @@ import Connect from "@/ui/components/Connect";
 
 import {
   LEVEL_THRESHOLDS,
-  PLAYER_TITLES,
+  getLevelFromXp,
+  getTitleForLevel,
   type ZoneProgressData,
 } from "@/config/profileData";
 
@@ -41,22 +42,6 @@ const itemVariants: any = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
 };
 
-const getLevelFromXp = (xp: number): number => {
-  let level = 1;
-  for (let i = 0; i < LEVEL_THRESHOLDS.length; i++) {
-    if (xp >= LEVEL_THRESHOLDS[i]) level = i + 1;
-  }
-  return level;
-};
-
-const getTitleForLevel = (level: number): string => {
-  const unlockLevels = Object.keys(PLAYER_TITLES)
-    .map(Number)
-    .sort((a, b) => a - b)
-    .filter((l) => l <= level);
-  const key = unlockLevels[unlockLevels.length - 1] ?? 1;
-  return PLAYER_TITLES[key] ?? "Novice";
-};
 
 const ProfilePage: React.FC = () => {
   const { themeTemplate } = useTheme();
@@ -145,23 +130,15 @@ const ProfilePage: React.FC = () => {
             className="rounded-3xl border border-white/[0.16] bg-white/[0.12] p-4 backdrop-blur-2xl shadow-lg shadow-black/20"
           >
             <div className="mb-3 flex items-center gap-3">
-            <div className="relative">
-              <div
-                className="flex h-14 w-14 items-center justify-center rounded-2xl font-sans text-2xl font-black"
-                style={{
-                  background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent2})`,
-                  color: colors.background,
-                  boxShadow: colors.glow,
-                }}
-              >
-                {(username || "PL").slice(0, 2).toUpperCase()}
-              </div>
-              <div
-                className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-lg border-2 font-sans text-[11px] font-black"
-                style={{ background: colors.accent, color: colors.background, borderColor: colors.background }}
-              >
-                {level}
-              </div>
+            <div
+              className="flex h-14 w-14 items-center justify-center rounded-2xl font-sans text-2xl font-black"
+              style={{
+                background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent2})`,
+                color: colors.background,
+                boxShadow: colors.glow,
+              }}
+            >
+              {level}
             </div>
 
             <div className="min-w-0 flex-1">
@@ -169,7 +146,7 @@ const ProfilePage: React.FC = () => {
                 {username ?? "Player"}
               </p>
               <p className="font-sans text-sm font-semibold" style={{ color: colors.textMuted }}>
-                Level {level} · {title}
+                {title}
               </p>
             </div>
 

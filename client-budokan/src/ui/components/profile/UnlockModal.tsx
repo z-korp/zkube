@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { ThemeColors } from "@/config/themes";
 import type { ZoneProgressData } from "@/config/profileData";
 import { useDojo } from "@/dojo/useDojo";
@@ -13,6 +14,8 @@ interface UnlockModalProps {
   onClose: () => void;
 }
 
+const DISCOUNT_TIERS = [0, 10, 20, 30, 40, 50] as const;
+
 const UnlockModal: React.FC<UnlockModalProps> = ({ colors, zone, onClose }) => {
   const {
     setup: { systemCalls, client },
@@ -22,15 +25,26 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ colors, zone, onClose }) => {
   const settingsId = zone.settingsId;
   const starCost = zone.starCost ?? 1;
   const currentStars = zone.currentStars ?? 0;
-  const discount = Math.min(100, Math.floor((currentStars / starCost) * 100));
   const basePriceRaw = zone.price ?? 0n;
+  const canUnlockWithStars = currentStars >= starCost;
+
+  const [selectedDiscount, setSelectedDiscount] = useState<number>(() => {
+    // Default to the max discount the user can afford
+    let maxAffordable = 0;
+    for (const tier of DISCOUNT_TIERS) {
+      const starsNeeded = Math.ceil((tier * starCost) / 100);
+      if (currentStars >= starsNeeded) maxAffordable = tier;
+    }
+    return maxAffordable;
+  });
+
+  const starsForDiscount = Math.ceil((selectedDiscount * starCost) / 100);
   const finalPriceRaw = BigInt(
-    Math.max(0, Math.floor((Number(basePriceRaw) * (100 - discount)) / 100)),
+    Math.max(0, Math.floor((Number(basePriceRaw) * (100 - selectedDiscount)) / 100)),
   );
   const basePrice = formatUsdcAmount(basePriceRaw);
   const finalPrice = formatUsdcAmount(finalPriceRaw);
   const starsRemaining = Math.max(starCost - currentStars, 0);
-  const canUnlockWithStars = currentStars >= starCost;
 
   const handleUnlockWithStars = async () => {
     if (!account) return;
@@ -68,7 +82,7 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ colors, zone, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-2 md:items-center md:p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-3 pb-[110px] pt-3 md:p-6">
       <button
         type="button"
         aria-label="Close unlock modal"
@@ -77,7 +91,7 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ colors, zone, onClose }) => {
       />
 
       <div
-        className="relative w-full max-w-[980px] rounded-3xl border border-white/[0.2] bg-slate-950/92 px-4 pb-5 pt-4 shadow-[0_30px_80px_rgba(0,0,0,0.6)] backdrop-blur-2xl md:px-6 md:pb-6"
+        className="relative max-h-full w-full max-w-[980px] overflow-y-auto rounded-3xl border border-white/[0.2] bg-slate-950/92 px-4 pb-4 pt-4 shadow-[0_30px_80px_rgba(0,0,0,0.6)] backdrop-blur-2xl md:px-6 md:pb-6"
         style={{
           background: `linear-gradient(180deg, ${colors.backgroundGradientStart}F2, ${colors.background}F0)`,
         }}
@@ -102,13 +116,12 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ colors, zone, onClose }) => {
               Unlock Zone
             </p>
             <p className="truncate font-display text-2xl font-black text-white md:text-3xl">{zone.name}</p>
-            <p className="font-sans text-sm font-semibold text-white/70">10 levels · Boss battle · Endless mode</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_1fr] md:gap-4">
           <section
-            className="rounded-2xl border border-white/[0.14] bg-white/[0.06] p-4 backdrop-blur-xl"
+            className="flex flex-col rounded-2xl border border-white/[0.14] bg-white/[0.06] p-4 backdrop-blur-xl"
             style={{ boxShadow: `inset 0 0 12px ${colors.accent2}1F` }}
           >
             <p className="mb-2 font-sans text-xs font-bold uppercase tracking-[0.12em]" style={{ color: colors.accent2 }}>
@@ -127,15 +140,15 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ colors, zone, onClose }) => {
               {starsRemaining} stars to go
             </p>
 
-            {canUnlockWithStars ? (
-              <div className="mt-3">
+            <div className="mt-auto pt-3">
+              {canUnlockWithStars ? (
                 <ArcadeButton onClick={handleUnlockWithStars}>Unlock Free</ArcadeButton>
-              </div>
-            ) : (
-              <p className="mt-3 font-sans text-sm font-semibold text-white/65">
-                Keep playing story levels to collect stars.
-              </p>
-            )}
+              ) : (
+                <p className="font-sans text-sm font-semibold text-white/65">
+                  Keep playing story levels to collect stars.
+                </p>
+              )}
+            </div>
           </section>
 
           <div className="hidden items-center justify-center md:flex">
@@ -143,14 +156,14 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ colors, zone, onClose }) => {
           </div>
 
           <section
-            className="rounded-2xl border border-white/[0.14] bg-white/[0.06] p-4 backdrop-blur-xl"
+            className="flex flex-col rounded-2xl border border-white/[0.14] bg-white/[0.06] p-4 backdrop-blur-xl"
             style={{ boxShadow: `inset 0 0 12px ${colors.accent}1F` }}
           >
             <p className="mb-2 font-sans text-xs font-bold uppercase tracking-[0.12em]" style={{ color: colors.accent }}>
               Buy with USDC
             </p>
 
-            {discount > 0 && (
+            {selectedDiscount > 0 && (
               <p className="font-sans text-sm font-semibold text-white/50 line-through">
                 {basePrice} USDC
               </p>
@@ -160,43 +173,55 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ colors, zone, onClose }) => {
               {finalPrice} USDC
             </p>
 
-            {discount > 0 ? (
+            {selectedDiscount > 0 ? (
               <p className="mt-1 inline-flex rounded-full bg-pink-500/25 px-2 py-0.5 font-sans text-xs font-bold text-pink-200">
-                {discount}% discount from stars
+                {selectedDiscount}% discount · {starsForDiscount}★ burned
               </p>
             ) : (
-              <p className="mt-1 font-sans text-sm text-white/70">Price lowers as you collect stars.</p>
+              <p className="mt-1 font-sans text-sm text-white/70">Use stars below to lower the price.</p>
             )}
 
-            <div className="mt-4">
+            <div className="mt-3 rounded-xl border border-white/[0.1] bg-white/[0.04] p-3">
+              <p className="mb-2 font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-white/70">
+                Star Discount
+              </p>
+              <div className="flex gap-1.5">
+                {DISCOUNT_TIERS.map((tier) => {
+                  const starsNeeded = Math.ceil((tier * starCost) / 100);
+                  const canAfford = currentStars >= starsNeeded;
+                  const isActive = selectedDiscount === tier;
+
+                  return (
+                    <button
+                      key={tier}
+                      type="button"
+                      disabled={!canAfford}
+                      onClick={() => setSelectedDiscount(tier)}
+                      className="flex-1 rounded-lg py-1.5 text-center font-sans text-[11px] font-bold transition-all"
+                      style={{
+                        background: isActive ? `${colors.accent}33` : canAfford ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.02)",
+                        border: isActive ? `1.5px solid ${colors.accent}` : "1.5px solid transparent",
+                        color: isActive ? colors.accent : canAfford ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.25)",
+                        cursor: canAfford ? "pointer" : "not-allowed",
+                      }}
+                    >
+                      {tier}%
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-1.5 font-sans text-[10px] text-white/50">
+                {selectedDiscount > 0
+                  ? `Burns ${starsForDiscount} of your ${currentStars}★`
+                  : "Select a tier to burn stars for a discount"}
+              </p>
+            </div>
+
+            <div className="mt-auto pt-3">
               <ArcadeButton onClick={handlePurchaseMap}>Buy Now</ArcadeButton>
             </div>
           </section>
         </div>
-
-        <section className="mt-4 rounded-2xl border border-white/[0.1] bg-white/[0.04] p-3">
-          <p className="mb-2 font-sans text-xs font-bold uppercase tracking-[0.12em] text-white/70">
-            Star Discount Scale
-          </p>
-
-          <div className="mb-1.5 grid grid-cols-10 gap-1">
-            {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90].map((pct) => {
-              const active = discount >= pct;
-              return (
-                <div
-                  key={pct}
-                  className="h-3 rounded-full"
-                  style={{ background: active ? `${colors.accent}A6` : "rgba(255,255,255,0.08)" }}
-                />
-              );
-            })}
-          </div>
-
-          <div className="flex items-center justify-between text-xs font-semibold text-white/65">
-            <span>0★ = full price</span>
-            <span style={{ color: colors.accent }}>90%★ = 90% off</span>
-          </div>
-        </section>
       </div>
     </div>
   );

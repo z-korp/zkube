@@ -23,6 +23,7 @@ interface NavigationState {
   transitionDirection: "forward" | "back" | null;
   gameId: bigint | null;
   mapZoneId: number;
+  isDailyMap: boolean;
   selectedMode: number;
   profileAddress: string | null;
   pendingPreviewLevel: number | null;
@@ -31,6 +32,7 @@ interface NavigationState {
   goBack: () => void;
   setGameId: (id: bigint | null) => void;
   setMapZoneId: (zoneId: number) => void;
+  setIsDailyMap: (isDaily: boolean) => void;
   setSelectedMode: (mode: number) => void;
   setProfileAddress: (address: string | null) => void;
   setPendingPreviewLevel: (level: number | null) => void;
@@ -63,6 +65,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
   transitionDirection: null,
   gameId: null,
   mapZoneId: 1,
+  isDailyMap: false,
   selectedMode: 0,
   profileAddress: null,
   pendingPreviewLevel: null,
@@ -104,6 +107,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
 
   setGameId: (id) => set({ gameId: id }),
   setMapZoneId: (zoneId) => set({ mapZoneId: zoneId }),
+  setIsDailyMap: (isDaily) => set({ isDailyMap: isDaily }),
   setSelectedMode: (mode) => set({ selectedMode: mode }),
   setProfileAddress: (address) => set({ profileAddress: address }),
   setPendingPreviewLevel: (level) => set({ pendingPreviewLevel: level }),
