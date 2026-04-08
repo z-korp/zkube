@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Has, getComponentValue, runQuery } from "@dojoengine/recs";
+import { Has, getComponentValue } from "@dojoengine/recs";
+import { useEntityQuery } from "@dojoengine/react";
 import { useDojo } from "@/dojo/useDojo";
 import { useGetUsernames, normalizeAddress } from "./useGetUsernames";
 
@@ -22,13 +23,7 @@ export function useDailyLeaderboard(challengeId: number | undefined) {
     },
   } = useDojo();
 
-  const allEntities = useMemo(() => {
-    try {
-      return Array.from(runQuery([Has(DailyEntry)]));
-    } catch {
-      return [];
-    }
-  }, [DailyEntry]);
+  const allEntities = useEntityQuery([Has(DailyEntry)]);
 
   const rawEntries = useMemo(() => {
     if (challengeId === undefined) return [];

@@ -1,6 +1,7 @@
 import { useDojo } from "@/dojo/useDojo";
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
+import { getComponentValue, Has } from "@dojoengine/recs";
+import { useEntityQuery } from "@dojoengine/react";
 import { useGetUsernames, normalizeAddress } from "./useGetUsernames";
 import { unpackRunData } from "@/dojo/game/helpers/runDataPacking";
 
@@ -110,15 +111,121 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
     },
   } = useDojo();
 
-  const [rawGames, setRawGames] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [tokenOwnerMap, setTokenOwnerMap] = useState<Map<bigint, { owner: string; playerName?: string }>>(new Map());
+  const [tokenDataLoading, setTokenDataLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const refetch = useCallback(() => {
     setRefreshTrigger((prev) => prev + 1);
   }, []);
 
-  const shouldFetch = true;
+  // Reactive RECS query — updates when Game entities change
+  const gameEntityIds = useEntityQuery([Has(Game)]);
+
+  // Fetch token ownership data from Torii GraphQL (async, separate from RECS)
+  useEffect(() => {
+    let cancelled = false;
+    const fetchTokenData = async () => {
+      setTokenDataLoading(true);
+      const toriiUrl = VITE_PUBLIC_TORII;
+      const gameTokenAddress = VITE_PUBLIC_GAME_TOKEN_ADDRESS?.toLowerCase();
+      const map = new Map<bigint, { owner: string; playerName?: string }>();
+
+      if (toriiUrl) {
+        try {
+          const response = await fetch(`${toriiUrl}/graphql`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              query: TOKEN_TRANSFERS_QUERY,
+              variables: { limit: 500 },
+            }),
+          });
+
+          if (response.ok) {
+            const result: TokenTransfersResponse = await response.json();
+            const edges = result.data?.tokenTransfers?.edges || [];
+
+            for (const edge of edges) {
+              const meta = edge.node.tokenMetadata;
+              if (meta.__typename !== "ERC721__Token") continue;
+
+              const erc721Meta = meta as ERC721TokenMetadata;
+
+              if (gameTokenAddress) {
+                const tokenContract = erc721Meta.contractAddress?.toLowerCase();
+                if (!tokenContract?.includes(gameTokenAddress.replace("0x", ""))) continue;
+              }
+
+              const tokenId = BigInt(erc721Meta.tokenId);
+              const owner = edge.node.to;
+              const playerName = parsePlayerName(erc721Meta.metadata);
+              map.set(tokenId, { owner, playerName });
+            }
+          }
+        } catch (error) {
+          console.error("[useLeaderboardSlot] Error fetching token data:", error);
+        }
+      }
+
+      if (!cancelled) {
+        setTokenOwnerMap(map);
+        setTokenDataLoading(false);
+      }
+    };
+
+    fetchTokenData();
+    return () => { cancelled = true; };
+  }, [refreshTrigger]);
+
+  // Build game list reactively from RECS entities + token data
+  const rawGames = useMemo(() => {
+    const gameList: LeaderboardEntry[] = [];
+    const seenIds = new Set<bigint>();
+
+    for (const entity of gameEntityIds) {
+      const gameData = getComponentValue(Game, entity);
+
+      if (!gameData || gameData.game_id === 0n) continue;
+
+      if (seenIds.has(gameData.game_id)) continue;
+      seenIds.add(gameData.game_id);
+
+      if (gameData.blocks === 0n) continue;
+
+      const runDataPacked = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
+      const runData = unpackRunData(runDataPacked);
+      const level = runData.currentLevel;
+      const totalScore = runData.totalScore;
+
+      const tokenInfo = tokenOwnerMap.get(gameData.game_id);
+
+      gameList.push({
+        token_id: gameData.game_id,
+        game_id: gameData.game_id,
+        level,
+        totalCubes: 0,
+        totalScore,
+        gameOver: gameData.over || false,
+        score: totalScore,
+        player_address: tokenInfo?.owner,
+        player_name: tokenInfo?.playerName,
+        owner: tokenInfo?.owner,
+        started_at: gameData.started_at ? Number(gameData.started_at) : 0,
+      });
+    }
+
+    gameList.sort((a, b) => {
+      if (b.level !== a.level) return b.level - a.level;
+      if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+      if (b.totalCubes !== a.totalCubes) return b.totalCubes - a.totalCubes;
+      return (a.started_at ?? 0) - (b.started_at ?? 0);
+    });
+
+    return gameList;
+  }, [gameEntityIds, Game, tokenOwnerMap]);
+
+  const loading = tokenDataLoading && rawGames.length === 0;
 
   // Extract unique addresses that need username lookups
   const addressesNeedingLookup = useMemo(() => {
@@ -133,126 +240,7 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
     return result;
   }, [rawGames]);
 
-  // Batch fetch usernames for all addresses
   const { usernames } = useGetUsernames(addressesNeedingLookup);
-
-  // Fetch raw game data
-  useEffect(() => {
-    if (!shouldFetch) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchGames = async () => {
-      setLoading(true);
-      try {
-        const toriiUrl = VITE_PUBLIC_TORII;
-        const gameTokenAddress = VITE_PUBLIC_GAME_TOKEN_ADDRESS?.toLowerCase();
-
-        // First, fetch token ownership data from Torii GraphQL
-        let tokenOwnerMap = new Map<bigint, { owner: string; playerName?: string }>();
-        
-        if (toriiUrl) {
-          try {
-            const response = await fetch(`${toriiUrl}/graphql`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                query: TOKEN_TRANSFERS_QUERY,
-                variables: { limit: 500 },
-              }),
-            });
-
-            if (response.ok) {
-              const result: TokenTransfersResponse = await response.json();
-              const edges = result.data?.tokenTransfers?.edges || [];
-
-              for (const edge of edges) {
-                const meta = edge.node.tokenMetadata;
-                if (meta.__typename !== "ERC721__Token") continue;
-
-                const erc721Meta = meta as ERC721TokenMetadata;
-                
-                // Filter by game token contract if configured
-                if (gameTokenAddress) {
-                  const tokenContract = erc721Meta.contractAddress?.toLowerCase();
-                  if (!tokenContract?.includes(gameTokenAddress.replace("0x", ""))) continue;
-                }
-
-                const tokenId = BigInt(erc721Meta.tokenId);
-                const owner = edge.node.to;
-                const playerName = parsePlayerName(erc721Meta.metadata);
-
-                tokenOwnerMap.set(tokenId, { owner, playerName });
-              }
-            }
-          } catch (error) {
-            console.error("[useLeaderboardSlot] Error fetching token data:", error);
-          }
-        }
-
-        // Query all Game entities from RECS
-        const gameEntities = runQuery([Has(Game)]);
-
-        const gameList: LeaderboardEntry[] = [];
-        const seenIds = new Set<bigint>();
-
-        for (const entity of gameEntities) {
-          const gameData = getComponentValue(Game, entity);
-
-          if (!gameData || gameData.game_id === 0n) continue;
-
-          // Deduplicate
-          if (seenIds.has(gameData.game_id)) continue;
-          seenIds.add(gameData.game_id);
-
-          // Skip games that haven't started
-          if (gameData.blocks === 0n) continue;
-
-          // Extract level data from run_data using the canonical unpacker
-          const runDataPacked = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
-          const runData = unpackRunData(runDataPacked);
-          const level = runData.currentLevel;
-          const totalCubes = 0;
-          const totalScore = runData.totalScore;
-
-          // Get owner info from token data
-          const tokenInfo = tokenOwnerMap.get(gameData.game_id);
-          
-          gameList.push({
-            token_id: gameData.game_id,
-            game_id: gameData.game_id,
-            level,
-            totalCubes,
-            totalScore,
-            gameOver: gameData.over || false,
-            score: totalScore, // Alias for compatibility
-            player_address: tokenInfo?.owner,
-            player_name: tokenInfo?.playerName,
-            owner: tokenInfo?.owner,
-            started_at: gameData.started_at ? Number(gameData.started_at) : 0,
-          });
-        }
-
-        // Sort by: level (desc) -> totalScore (desc) -> totalCubes (desc) -> timestamp (asc, earlier = better)
-        gameList.sort((a, b) => {
-          if (b.level !== a.level) return b.level - a.level;
-          if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
-          if (b.totalCubes !== a.totalCubes) return b.totalCubes - a.totalCubes;
-          return (a.started_at ?? 0) - (b.started_at ?? 0);
-        });
-
-        setRawGames(gameList);
-      } catch (error) {
-        console.error("[useLeaderboardSlot] Error fetching leaderboard:", error);
-        setRawGames([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGames();
-  }, [Game, refreshTrigger, shouldFetch]);
 
   // Combine raw games with resolved usernames
   const games = useMemo(() => {

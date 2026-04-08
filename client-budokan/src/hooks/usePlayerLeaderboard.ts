@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Has, getComponentValue, runQuery } from "@dojoengine/recs";
+import { Has, getComponentValue } from "@dojoengine/recs";
+import { useEntityQuery } from "@dojoengine/react";
 import { useDojo } from "@/dojo/useDojo";
 import { useGetUsernames, normalizeAddress } from "./useGetUsernames";
 import { unpackMetaData } from "@/dojo/game/helpers/metaDataPacking";
@@ -19,13 +20,7 @@ export function usePlayerLeaderboard() {
     },
   } = useDojo();
 
-  const allEntities = useMemo(() => {
-    try {
-      return Array.from(runQuery([Has(PlayerMeta)]));
-    } catch {
-      return [];
-    }
-  }, [PlayerMeta]);
+  const allEntities = useEntityQuery([Has(PlayerMeta)]);
 
   const rawEntries = useMemo(() => {
     const entries: Omit<PlayerLeaderboardEntry, "rank" | "playerName">[] = [];
