@@ -91,7 +91,11 @@ const HomePage: React.FC = () => {
   const playerLevel = getLevelFromXp(playerMeta?.lifetimeXp ?? 0);
   const playerTitle = getTitleForLevel(playerLevel);
   const { balance: zStarBalance } = useZStarBalance(account?.address);
-  const { zones, totalStars } = useZoneProgress(account?.address, zStarBalance);
+  const { zones: rawZones, totalStars } = useZoneProgress(account?.address, zStarBalance);
+  const zones = useMemo(() =>
+    [...rawZones].sort((a, b) => (a.unlocked === b.unlocked ? 0 : a.unlocked ? -1 : 1)),
+    [rawZones],
+  );
   const { challenge, isLoading: challengeLoading } = useCurrentChallenge();
   const { entry: dailyEntry, isRegistered: hasPlayedDaily } = usePlayerEntry(
     challenge?.challenge_id,
