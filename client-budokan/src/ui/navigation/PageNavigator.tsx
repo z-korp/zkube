@@ -1,9 +1,7 @@
-import { Suspense } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { FULLSCREEN_PAGES, useNavigationStore } from "@/stores/navigationStore";
 import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import BottomNav from "@/ui/navigation/BottomNav";
-import { Loading } from "@/ui/screens/Loading";
 
 interface PageNavigatorProps {
   children: React.ReactNode;
@@ -35,9 +33,7 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ children }) => {
               transition={SLIDE_TRANSITION}
               className={`absolute inset-0 h-full min-h-0 overflow-x-hidden ${isFullscreenPage ? "overflow-hidden" : "overflow-y-auto"}`}
             >
-              <Suspense fallback={<Loading />}>
-                {children}
-              </Suspense>
+              {children}
             </motion.div>
           </AnimatePresence>
           <BottomNav />

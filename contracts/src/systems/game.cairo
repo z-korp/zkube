@@ -128,6 +128,8 @@ mod game_system {
                     Option::None,
                     Option::None,
                     1,
+                    Option::None, // license
+                    Option::None, // game_fee_bps
                 );
         }
 

@@ -4,7 +4,7 @@ version = 1
 [[package]]
 name = "achievement"
 version = "0.0.0"
-source = "git+https://github.com/cartridge-gg/arcade.git?rev=fc2e81c#fc2e81c8d4cee706bb26cb2396d941fd0657c277"
+source = "git+https://github.com/cartridge-gg/arcade.git?branch=main#9da344a040073182ed65c67863d43ee30aebc718"
 dependencies = [
  "dojo",
  "graffiti",
@@ -88,8 +88,8 @@ source = "git+https://github.com/EkuboProtocol/starknet-contracts.git?tag=v4.0.1
 
 [[package]]
 name = "game_components_embeddable_game_standard"
-version = "1.5.1"
-source = "git+https://github.com/Provable-Games/game-components.git?branch=next#372b00d888c592abf6b7710fa1a41b6c2b5e60bd"
+version = "1.1.3"
+source = "git+https://github.com/Provable-Games/game-components.git?branch=main#090bf820b2d7b9c1c1b415cfc56947e81d72c250"
 dependencies = [
  "game_components_interfaces",
  "game_components_metagame",
@@ -102,35 +102,36 @@ dependencies = [
 
 [[package]]
 name = "game_components_interfaces"
-version = "1.5.1"
-source = "git+https://github.com/Provable-Games/game-components.git?branch=next#372b00d888c592abf6b7710fa1a41b6c2b5e60bd"
+version = "1.1.3"
+source = "git+https://github.com/Provable-Games/game-components.git?branch=main#090bf820b2d7b9c1c1b415cfc56947e81d72c250"
 dependencies = [
  "ekubo",
- "interfaces",
+ "metagame_extensions_interfaces",
 ]
 
 [[package]]
 name = "game_components_metagame"
-version = "1.5.1"
-source = "git+https://github.com/Provable-Games/game-components.git?branch=next#372b00d888c592abf6b7710fa1a41b6c2b5e60bd"
+version = "1.1.3"
+source = "git+https://github.com/Provable-Games/game-components.git?branch=main#090bf820b2d7b9c1c1b415cfc56947e81d72c250"
 dependencies = [
+ "game_components_embeddable_game_standard",
  "game_components_interfaces",
  "game_components_utilities",
- "interfaces",
+ "metagame_extensions_interfaces",
  "openzeppelin_interfaces",
  "openzeppelin_introspection",
 ]
 
 [[package]]
 name = "game_components_test_common"
-version = "1.5.1"
-source = "git+https://github.com/Provable-Games/game-components.git?branch=next#372b00d888c592abf6b7710fa1a41b6c2b5e60bd"
+version = "1.1.3"
+source = "git+https://github.com/Provable-Games/game-components.git?branch=main#090bf820b2d7b9c1c1b415cfc56947e81d72c250"
 dependencies = [
  "game_components_embeddable_game_standard",
  "game_components_interfaces",
  "game_components_metagame",
  "game_components_utilities",
- "interfaces",
+ "metagame_extensions_interfaces",
  "openzeppelin_access",
  "openzeppelin_interfaces",
  "openzeppelin_introspection",
@@ -140,8 +141,8 @@ dependencies = [
 
 [[package]]
 name = "game_components_utilities"
-version = "1.5.1"
-source = "git+https://github.com/Provable-Games/game-components.git?branch=next#372b00d888c592abf6b7710fa1a41b6c2b5e60bd"
+version = "1.1.3"
+source = "git+https://github.com/Provable-Games/game-components.git?branch=main#090bf820b2d7b9c1c1b415cfc56947e81d72c250"
 dependencies = [
  "alexandria_encoding",
  "game_components_embeddable_game_standard",
@@ -155,9 +156,9 @@ version = "0.1.0"
 source = "git+https://github.com/z-korp/graffiti#e0608cf9790c00e0e8b0eb99a63a55ef588785ce"
 
 [[package]]
-name = "interfaces"
-version = "0.1.0"
-source = "git+https://github.com/Provable-Games/metagame_extensions.git?branch=next#73021b79e97042ba32c8c3760df94f90f9dc7b11"
+name = "metagame_extensions_interfaces"
+version = "0.1.2"
+source = "git+https://github.com/Provable-Games/metagame_extensions.git?tag=v0.1.2#296a62059593be6d91ca14e81b591211e4342b87"
 
 [[package]]
 name = "openzeppelin_access"
@@ -208,7 +209,7 @@ source = "git+https://github.com/dojoengine/origami?tag=v1.7.0#1ddafcb8c33fe9697
 [[package]]
 name = "quest"
 version = "0.0.0"
-source = "git+https://github.com/cartridge-gg/arcade.git?rev=fc2e81c#fc2e81c8d4cee706bb26cb2396d941fd0657c277"
+source = "git+https://github.com/cartridge-gg/arcade.git?branch=main#9da344a040073182ed65c67863d43ee30aebc718"
 dependencies = [
  "dojo",
  "graffiti",
@@ -216,13 +217,13 @@ dependencies = [
 
 [[package]]
 name = "snforge_scarb_plugin"
-version = "0.55.0"
-source = "git+https://github.com/foundry-rs/starknet-foundry?tag=v0.55.0#8891212a4fe99f1787298042f828ebd4e4abe9a3"
+version = "0.58.1"
+source = "git+https://github.com/foundry-rs/starknet-foundry?tag=v0.58.1#5892ff56f01f18c76f3ebfd2af00c8088211c1d5"
 
 [[package]]
 name = "snforge_std"
-version = "0.55.0"
-source = "git+https://github.com/foundry-rs/starknet-foundry?tag=v0.55.0#8891212a4fe99f1787298042f828ebd4e4abe9a3"
+version = "0.58.1"
+source = "git+https://github.com/foundry-rs/starknet-foundry?tag=v0.58.1#5892ff56f01f18c76f3ebfd2af00c8088211c1d5"
 dependencies = [
  "snforge_scarb_plugin",
 ]
