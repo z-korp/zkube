@@ -26,8 +26,10 @@ const rowVariants: any = {
   })
 };
 
-function computeWeeklyReward(rank: number, total: number): number {
+// Contract uses 0-based rank for percentile: (rank * 100) / total
+function computeWeeklyReward(rank1Based: number, total: number): number {
   if (total === 0) return 0;
+  const rank = rank1Based - 1; // contract uses 0-based index
   const pct = (rank * 100) / total;
   if (pct < 2) return 30;
   if (pct < 5) return 20;
