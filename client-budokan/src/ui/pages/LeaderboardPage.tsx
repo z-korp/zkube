@@ -55,20 +55,17 @@ const LeaderboardPage: React.FC = () => {
             stars: 0,
             isYou: normalizedAccount === entry.player.toLowerCase(),
           }))
-        : games.slice(0, 30).map((entry, index) => {
-            const starCount = Math.min(30, Math.max(0, entry.level * 3));
-            return {
+        : games.slice(0, 30).map((entry, index) => ({
               id: entry.token_id.toString(),
               rank: index + 1,
               name: entry.player_name || "Anonymous",
               score: entry.score,
-              stars: starCount,
+              stars: entry.stars,
               isYou:
                 !!normalizedAccount &&
                 !!entry.player_address &&
                 entry.player_address.toLowerCase() === normalizedAccount,
-            };
-          });
+          }));
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
