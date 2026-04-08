@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, useEffect, useState } from "react";
 import { Toaster } from "./ui/elements/sonner";
 import { TooltipProvider } from "@/ui/elements/tooltip";
 import PageNavigator from "@/ui/navigation/PageNavigator";
@@ -7,8 +7,7 @@ import type { PageId } from "@/stores/navigationStore";
 import { getToastPlacement } from "@/utils/toast";
 import { useAccount } from "@starknet-react/core";
 import { Loading } from "@/ui/screens/Loading";
-
-const HomePage = lazy(() => import("@/ui/pages/HomePage"));
+import HomePage from "@/ui/pages/HomePage";
 const PlayScreen = lazy(() => import("@/ui/pages/PlayScreen"));
 const MapPage = lazy(() => import("@/ui/pages/MapPage"));
 const SettingsPage = lazy(() => import("@/ui/pages/SettingsPage"));
@@ -63,11 +62,9 @@ export default function App() {
 
   return (
     <TooltipProvider>
-      <Suspense fallback={<Loading />}>
-        <PageNavigator>
-          {pageComponents[currentPage] ?? pageComponents.home}
-        </PageNavigator>
-      </Suspense>
+      <PageNavigator>
+        {pageComponents[currentPage] ?? pageComponents.home}
+      </PageNavigator>
       <Toaster position={getToastPlacement()} />
     </TooltipProvider>
   );
