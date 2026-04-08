@@ -102,15 +102,15 @@ pub impl AchievementDefsImpl of AchievementDefsTrait {
     fn combo_master_iii() -> AchievementDefinitionProps {
         make_achievement(
             'COMBO_MASTER_III',
-            array![task(ZTask::Combo5, 1)].span(),
-            metadata('COMBO_MASTER', 3, "Combo Master III", "Hit a 5+ combo", 3000),
+            array![task(ZTask::HighCombo, 1)].span(),
+            metadata('COMBO_MASTER', 3, "Combo Master III", "Hit a 10+ combo streak", 3000),
         )
     }
     fn combo_master_iv() -> AchievementDefinitionProps {
         make_achievement(
             'COMBO_MASTER_IV',
-            array![task(ZTask::Combo5, 10)].span(),
-            metadata('COMBO_MASTER', 4, "Combo Master IV", "Hit 10 combos of 5+", 5000),
+            array![task(ZTask::HighCombo, 10)].span(),
+            metadata('COMBO_MASTER', 4, "Combo Master IV", "Hit 10 combo streaks of 10+", 5000),
         )
     }
 

@@ -173,14 +173,17 @@ mod move_system {
             if lines_cleared > 0 {
                 progress_tasks.append((Task::LineClear.identifier(), lines_cleared.into()));
             }
+            if game.combo_counter >= 2 {
+                progress_tasks.append((Task::Combo2.identifier(), 1));
+            }
             if game.combo_counter >= 3 {
                 progress_tasks.append((Task::Combo3.identifier(), 1));
             }
             if game.combo_counter >= 4 {
                 progress_tasks.append((Task::Combo4.identifier(), 1));
             }
-            if game.combo_counter >= 5 {
-                progress_tasks.append((Task::Combo5.identifier(), 1));
+            if game.combo_counter >= 10 {
+                progress_tasks.append((Task::HighCombo.identifier(), 1));
             }
 
             // Reuse the passive mutator def already read for the grid call.

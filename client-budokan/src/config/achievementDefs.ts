@@ -40,8 +40,8 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
 
   { id: feltFromShortString("COMBO_MASTER_I"), shortId: "COMBO_MASTER_I", name: "Combo Master I", description: "Hit a 3+ combo", target: 1, xp: 500, category: "Combo Master", tier: 1, icon: "🔥", taskId: feltFromShortString("COMBO_3") },
   { id: feltFromShortString("COMBO_MASTER_II"), shortId: "COMBO_MASTER_II", name: "Combo Master II", description: "Hit a 4+ combo", target: 1, xp: 1500, category: "Combo Master", tier: 2, icon: "⚡", taskId: feltFromShortString("COMBO_4") },
-  { id: feltFromShortString("COMBO_MASTER_III"), shortId: "COMBO_MASTER_III", name: "Combo Master III", description: "Hit a 5+ combo", target: 1, xp: 3000, category: "Combo Master", tier: 3, icon: "💥", taskId: feltFromShortString("COMBO_5") },
-  { id: feltFromShortString("COMBO_MASTER_IV"), shortId: "COMBO_MASTER_IV", name: "Combo Master IV", description: "Hit 10 combos of 5+", target: 10, xp: 5000, category: "Combo Master", tier: 4, icon: "🌋", taskId: feltFromShortString("COMBO_5") },
+  { id: feltFromShortString("COMBO_MASTER_III"), shortId: "COMBO_MASTER_III", name: "Combo Master III", description: "Hit a 10+ combo streak", target: 1, xp: 3000, category: "Combo Master", tier: 3, icon: "💥", taskId: feltFromShortString("HIGH_COMBO") },
+  { id: feltFromShortString("COMBO_MASTER_IV"), shortId: "COMBO_MASTER_IV", name: "Combo Master IV", description: "Hit 10 combo streaks of 10+", target: 10, xp: 5000, category: "Combo Master", tier: 4, icon: "🌋", taskId: feltFromShortString("HIGH_COMBO") },
 
   { id: feltFromShortString("BOSS_SLAYER_I"), shortId: "BOSS_SLAYER_I", name: "Boss Slayer I", description: "Defeat 1 boss", target: 1, xp: 500, category: "Boss Slayer", tier: 1, icon: "⚔️", taskId: feltFromShortString("BOSS_DEFEAT") },
   { id: feltFromShortString("BOSS_SLAYER_II"), shortId: "BOSS_SLAYER_II", name: "Boss Slayer II", description: "Defeat 5 bosses", target: 5, xp: 1500, category: "Boss Slayer", tier: 2, icon: "🛡️", taskId: feltFromShortString("BOSS_DEFEAT") },

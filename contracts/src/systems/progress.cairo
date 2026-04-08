@@ -30,19 +30,20 @@ pub trait IQuestClaim<T> {
 mod progress_system {
     use achievement::component::Component as AchievementComponent;
     use achievement::component::Component::AchievementTrait;
+    use core::num::traits::Zero;
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
     use openzeppelin_introspection::src5::SRC5Component;
     use quest::component::Component as QuestComponent;
     use quest::component::Component::QuestTrait;
-    use core::num::traits::Zero;
     use starknet::{ContractAddress, get_caller_address, get_contract_address};
     use zkube::constants::DEFAULT_NS;
     use zkube::elements::achievements::index::{AchievementDefsTrait, AchievementPointsTrait};
     use zkube::elements::quests::index::{
-        QUEST_BONUS_I, QUEST_BONUS_II, QUEST_COMBO_I, QUEST_COMBO_II, QUEST_COMBO_III,
-        QUEST_DAILY_CHALLENGER, QUEST_DAILY_FINISHER, QUEST_LINE_CLEAR_I, QUEST_LINE_CLEAR_II,
-        QUEST_LINE_CLEAR_III, QUEST_WEEKLY_CHALLENGER, QUEST_WEEKLY_GRINDER, QuestDefsTrait,
+        QUEST_BIG_COMBO, QUEST_BONUS_USER, QUEST_COMBO_CHAIN, QUEST_COMBO_STREAK,
+        QUEST_DAILY_FINISHER, QUEST_DAILY_PLAYER, QUEST_LINE_SWEEPER, QUEST_PERFECT_MOVE,
+        QUEST_STREAK_HUNTER, QUEST_WEEKLY_EXPLORER, QUEST_WEEKLY_GRINDER, QUEST_ZONE_RUNNER,
+        QuestDefsTrait,
     };
     use zkube::elements::tasks::index::Task;
     use zkube::elements::tasks::interface::TaskTrait;
@@ -343,15 +344,15 @@ mod progress_system {
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         fn is_daily_rotating_quest(quest_id: felt252) -> bool {
-            quest_id == QUEST_LINE_CLEAR_I
-                || quest_id == QUEST_LINE_CLEAR_II
-                || quest_id == QUEST_LINE_CLEAR_III
-                || quest_id == QUEST_COMBO_I
-                || quest_id == QUEST_COMBO_II
-                || quest_id == QUEST_COMBO_III
-                || quest_id == QUEST_BONUS_I
-                || quest_id == QUEST_BONUS_II
-                || quest_id == QUEST_DAILY_CHALLENGER
+            quest_id == QUEST_LINE_SWEEPER
+                || quest_id == QUEST_COMBO_CHAIN
+                || quest_id == QUEST_COMBO_STREAK
+                || quest_id == QUEST_BIG_COMBO
+                || quest_id == QUEST_BONUS_USER
+                || quest_id == QUEST_DAILY_PLAYER
+                || quest_id == QUEST_STREAK_HUNTER
+                || quest_id == QUEST_ZONE_RUNNER
+                || quest_id == QUEST_PERFECT_MOVE
         }
 
         /// zStar reward per quest claim.
@@ -359,19 +360,19 @@ mod progress_system {
         /// Daily Finisher (3 quests done): 2 stars
         /// Weekly quests: 5 stars each
         fn quest_star_reward(quest_id: felt252) -> u64 {
-            if quest_id == QUEST_WEEKLY_GRINDER || quest_id == QUEST_WEEKLY_CHALLENGER {
+            if quest_id == QUEST_WEEKLY_GRINDER || quest_id == QUEST_WEEKLY_EXPLORER {
                 5
             } else if quest_id == QUEST_DAILY_FINISHER {
                 2
-            } else if quest_id == QUEST_LINE_CLEAR_I
-                || quest_id == QUEST_LINE_CLEAR_II
-                || quest_id == QUEST_LINE_CLEAR_III
-                || quest_id == QUEST_COMBO_I
-                || quest_id == QUEST_COMBO_II
-                || quest_id == QUEST_COMBO_III
-                || quest_id == QUEST_BONUS_I
-                || quest_id == QUEST_BONUS_II
-                || quest_id == QUEST_DAILY_CHALLENGER {
+            } else if quest_id == QUEST_LINE_SWEEPER
+                || quest_id == QUEST_COMBO_CHAIN
+                || quest_id == QUEST_COMBO_STREAK
+                || quest_id == QUEST_BIG_COMBO
+                || quest_id == QUEST_BONUS_USER
+                || quest_id == QUEST_DAILY_PLAYER
+                || quest_id == QUEST_STREAK_HUNTER
+                || quest_id == QUEST_ZONE_RUNNER
+                || quest_id == QUEST_PERFECT_MOVE {
                 1
             } else {
                 0

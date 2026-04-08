@@ -127,7 +127,7 @@
     },
     {
       "address": "0xb28fe442dd681140ecc6cb72a50adb0f7632f3e2463e4602f86a308f7455c3",
-      "class_hash": "0x7e052e3ded936b2323510573f11723d43c221071cac25fc56a868f7e2041b37",
+      "class_hash": "0x22df4e9b5c50275f07cec0e1321a8fd7e455adb7236584c762507d4a20cb0d6",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-move_system",
       "selector": "0x2c6e7f38e7f45f67fca81df91805a8f3ee1d9842366e3e3d32f13f46cbf60d",
@@ -138,7 +138,7 @@
     },
     {
       "address": "0x4e22f3c7723a430cdbdcf4508486d6c3f51b3890ac04eb9e71b6ab5a2db5c64",
-      "class_hash": "0x1189fa5218a6e9d46127d6053bb6b0c4c5b80dc92809b7f5a3f08be1b29eafd",
+      "class_hash": "0x5b8d8c34ce8a1123601d1ffb25cfb3a335f636ac415433a1ed8eb5f80326eba",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-progress_system",
       "selector": "0x77d02bfa20be45e26f3c057bbd9d4fd88f0809bb8e3f881e4b2b89cd81d3c0c",

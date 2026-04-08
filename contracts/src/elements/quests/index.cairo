@@ -5,18 +5,18 @@ use starknet::ContractAddress;
 use zkube::elements::tasks::index::Task as ZTask;
 use zkube::elements::tasks::interface::TaskTrait as ZTaskTrait;
 
-pub const QUEST_LINE_CLEAR_I: felt252 = 'QUEST_LINE_CLEAR_I';
-pub const QUEST_LINE_CLEAR_II: felt252 = 'QUEST_LINE_CLEAR_II';
-pub const QUEST_LINE_CLEAR_III: felt252 = 'QUEST_LINE_CLEAR_III';
-pub const QUEST_COMBO_I: felt252 = 'QUEST_COMBO_I';
-pub const QUEST_COMBO_II: felt252 = 'QUEST_COMBO_II';
-pub const QUEST_COMBO_III: felt252 = 'QUEST_COMBO_III';
-pub const QUEST_BONUS_I: felt252 = 'QUEST_BONUS_I';
-pub const QUEST_BONUS_II: felt252 = 'QUEST_BONUS_II';
-pub const QUEST_DAILY_CHALLENGER: felt252 = 'QUEST_DAILY_CHALLENGER';
+pub const QUEST_LINE_SWEEPER: felt252 = 'QUEST_LINE_SWEEPER';
+pub const QUEST_COMBO_CHAIN: felt252 = 'QUEST_COMBO_CHAIN';
+pub const QUEST_COMBO_STREAK: felt252 = 'QUEST_COMBO_STREAK';
+pub const QUEST_BIG_COMBO: felt252 = 'QUEST_BIG_COMBO';
+pub const QUEST_BONUS_USER: felt252 = 'QUEST_BONUS_USER';
+pub const QUEST_DAILY_PLAYER: felt252 = 'QUEST_DAILY_PLAYER';
+pub const QUEST_STREAK_HUNTER: felt252 = 'QUEST_STREAK_HUNTER';
+pub const QUEST_ZONE_RUNNER: felt252 = 'QUEST_ZONE_RUNNER';
+pub const QUEST_PERFECT_MOVE: felt252 = 'QUEST_PERFECT_MOVE';
 pub const QUEST_DAILY_FINISHER: felt252 = 'QUEST_DAILY_FINISHER';
 pub const QUEST_WEEKLY_GRINDER: felt252 = 'QUEST_WEEKLY_GRINDER';
-pub const QUEST_WEEKLY_CHALLENGER: felt252 = 'QUEST_WEEKLY_CHALLENGER';
+pub const QUEST_WEEKLY_EXPLORER: felt252 = 'QUEST_WEEKLY_EXPLORER';
 
 const DAY: u64 = 86400;
 const THREE_DAYS: u64 = 259200;
@@ -38,121 +38,129 @@ pub struct QuestDefinitionProps {
 pub impl QuestDefsImpl of QuestDefsTrait {
     fn all(registry: ContractAddress) -> Array<QuestDefinitionProps> {
         array![
-            Self::line_clear_i(registry), Self::line_clear_ii(registry),
-            Self::line_clear_iii(registry), Self::combo_i(registry), Self::combo_ii(registry),
-            Self::combo_iii(registry), Self::bonus_i(registry), Self::bonus_ii(registry),
-            Self::daily_challenger(registry), Self::daily_finisher(registry),
-            Self::weekly_grinder(registry), Self::weekly_challenger(registry),
+            Self::line_sweeper(registry), Self::bonus_user(registry), Self::streak_hunter(registry),
+            Self::combo_streak(registry), Self::daily_player(registry),
+            Self::perfect_move(registry), Self::big_combo(registry), Self::zone_runner(registry),
+            Self::combo_chain(registry), Self::daily_finisher(registry),
+            Self::weekly_grinder(registry), Self::weekly_explorer(registry),
         ]
     }
 
-    fn line_clear_i(registry: ContractAddress) -> QuestDefinitionProps {
+    // ── Group 1 daily (start=0, duration=DAY, interval=THREE_DAYS) ──
+
+    fn line_sweeper(registry: ContractAddress) -> QuestDefinitionProps {
         make_quest(
-            QUEST_LINE_CLEAR_I,
+            QUEST_LINE_SWEEPER,
             0,
             DAY,
             THREE_DAYS,
-            array![task(ZTask::LineClear, 30)].span(),
+            array![task(ZTask::LineClear, 20)].span(),
             array![].span(),
-            metadata(registry, "Line Clear I", "Clear 30 lines", 1),
+            metadata(registry, "Line Sweeper", "Clear 20 lines", 1),
         )
     }
 
-    fn line_clear_ii(registry: ContractAddress) -> QuestDefinitionProps {
+    fn bonus_user(registry: ContractAddress) -> QuestDefinitionProps {
         make_quest(
-            QUEST_LINE_CLEAR_II,
-            DAY,
-            DAY,
-            THREE_DAYS,
-            array![task(ZTask::LineClear, 60)].span(),
-            array![].span(),
-            metadata(registry, "Line Clear II", "Clear 60 lines", 1),
-        )
-    }
-
-    fn line_clear_iii(registry: ContractAddress) -> QuestDefinitionProps {
-        make_quest(
-            QUEST_LINE_CLEAR_III,
-            DAY * 2,
-            DAY,
-            THREE_DAYS,
-            array![task(ZTask::LineClear, 100)].span(),
-            array![].span(),
-            metadata(registry, "Line Clear III", "Clear 100 lines", 1),
-        )
-    }
-
-    fn combo_i(registry: ContractAddress) -> QuestDefinitionProps {
-        make_quest(
-            QUEST_COMBO_I,
-            0,
-            DAY,
-            THREE_DAYS,
-            array![task(ZTask::Combo3, 5)].span(),
-            array![].span(),
-            metadata(registry, "Combo I", "Hit 3+ combo 5 times", 1),
-        )
-    }
-
-    fn combo_ii(registry: ContractAddress) -> QuestDefinitionProps {
-        make_quest(
-            QUEST_COMBO_II,
-            DAY,
-            DAY,
-            THREE_DAYS,
-            array![task(ZTask::Combo4, 3)].span(),
-            array![].span(),
-            metadata(registry, "Combo II", "Hit 4+ combo 3 times", 1),
-        )
-    }
-
-    fn combo_iii(registry: ContractAddress) -> QuestDefinitionProps {
-        make_quest(
-            QUEST_COMBO_III,
-            DAY * 2,
-            DAY,
-            THREE_DAYS,
-            array![task(ZTask::Combo5, 1)].span(),
-            array![].span(),
-            metadata(registry, "Combo III", "Hit 5+ combo once", 1),
-        )
-    }
-
-    fn bonus_i(registry: ContractAddress) -> QuestDefinitionProps {
-        make_quest(
-            QUEST_BONUS_I,
+            QUEST_BONUS_USER,
             0,
             DAY,
             THREE_DAYS,
             array![task(ZTask::BonusUsed, 3)].span(),
             array![].span(),
-            metadata(registry, "Bonus I", "Use 3 bonuses", 1),
+            metadata(registry, "Bonus User", "Use 3 bonuses", 1),
         )
     }
 
-    fn bonus_ii(registry: ContractAddress) -> QuestDefinitionProps {
+    fn streak_hunter(registry: ContractAddress) -> QuestDefinitionProps {
         make_quest(
-            QUEST_BONUS_II,
+            QUEST_STREAK_HUNTER,
+            0,
+            DAY,
+            THREE_DAYS,
+            array![task(ZTask::HighCombo, 1)].span(),
+            array![].span(),
+            metadata(registry, "Streak Hunter", "Reach a 10+ combo streak", 1),
+        )
+    }
+
+    // ── Group 2 daily (start=DAY, duration=DAY, interval=THREE_DAYS) ──
+
+    fn combo_streak(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_COMBO_STREAK,
             DAY,
             DAY,
             THREE_DAYS,
-            array![task(ZTask::BonusUsed, 8)].span(),
+            array![task(ZTask::Combo3, 2)].span(),
             array![].span(),
-            metadata(registry, "Bonus II", "Use 8 bonuses", 1),
+            metadata(registry, "Combo Streak", "Hit 3+ combo twice", 1),
         )
     }
 
-    fn daily_challenger(registry: ContractAddress) -> QuestDefinitionProps {
+    fn daily_player(registry: ContractAddress) -> QuestDefinitionProps {
         make_quest(
-            QUEST_DAILY_CHALLENGER,
-            DAY * 2,
+            QUEST_DAILY_PLAYER,
+            DAY,
             DAY,
             THREE_DAYS,
             array![task(ZTask::DailyPlay, 1)].span(),
             array![].span(),
-            metadata(registry, "Daily Challenger", "Play one daily challenge", 1),
+            metadata(registry, "Daily Player", "Play a daily challenge", 1),
         )
     }
+
+    fn perfect_move(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_PERFECT_MOVE,
+            DAY,
+            DAY,
+            THREE_DAYS,
+            array![task(ZTask::PerfectLevel, 1)].span(),
+            array![].span(),
+            metadata(registry, "Perfect Move", "3-star a level", 1),
+        )
+    }
+
+    // ── Group 3 daily (start=DAY*2, duration=DAY, interval=THREE_DAYS) ──
+
+    fn big_combo(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_BIG_COMBO,
+            DAY * 2,
+            DAY,
+            THREE_DAYS,
+            array![task(ZTask::Combo4, 1)].span(),
+            array![].span(),
+            metadata(registry, "Big Combo", "Hit a 4+ combo", 1),
+        )
+    }
+
+    fn zone_runner(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_ZONE_RUNNER,
+            DAY * 2,
+            DAY,
+            THREE_DAYS,
+            array![task(ZTask::GameStart, 2)].span(),
+            array![].span(),
+            metadata(registry, "Zone Runner", "Start 2 games", 1),
+        )
+    }
+
+    fn combo_chain(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_COMBO_CHAIN,
+            DAY * 2,
+            DAY,
+            THREE_DAYS,
+            array![task(ZTask::Combo2, 5)].span(),
+            array![].span(),
+            metadata(registry, "Combo Chain", "Hit 2+ combo 5 times", 1),
+        )
+    }
+
+    // ── Daily meta (start=0, duration=DAY, interval=DAY) ──
 
     fn daily_finisher(registry: ContractAddress) -> QuestDefinitionProps {
         make_quest(
@@ -162,9 +170,11 @@ pub impl QuestDefsImpl of QuestDefsTrait {
             DAY,
             array![task(ZTask::DailyQuestDone, 3)].span(),
             array![].span(),
-            metadata(registry, "Daily Finisher", "Finish 3 daily quests", 2),
+            metadata(registry, "Daily Finisher", "Complete 3 daily quests", 2),
         )
     }
+
+    // ── Weekly (start=0, duration=WEEK, interval=WEEK) ──
 
     fn weekly_grinder(registry: ContractAddress) -> QuestDefinitionProps {
         make_quest(
@@ -172,21 +182,21 @@ pub impl QuestDefsImpl of QuestDefsTrait {
             0,
             WEEK,
             WEEK,
-            array![task(ZTask::LevelComplete, 30)].span(),
+            array![task(ZTask::LineClear, 150)].span(),
             array![].span(),
-            metadata(registry, "Weekly Grinder", "Complete 30 levels this week", 5),
+            metadata(registry, "Weekly Grinder", "Clear 150 lines this week", 5),
         )
     }
 
-    fn weekly_challenger(registry: ContractAddress) -> QuestDefinitionProps {
+    fn weekly_explorer(registry: ContractAddress) -> QuestDefinitionProps {
         make_quest(
-            QUEST_WEEKLY_CHALLENGER,
+            QUEST_WEEKLY_EXPLORER,
             0,
             WEEK,
             WEEK,
             array![task(ZTask::DailyPlay, 3)].span(),
             array![].span(),
-            metadata(registry, "Weekly Challenger", "Play daily challenge 7 times", 5),
+            metadata(registry, "Weekly Explorer", "Play daily challenge 3 times", 5),
         )
     }
 }
