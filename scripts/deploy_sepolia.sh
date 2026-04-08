@@ -139,6 +139,7 @@ print_info "  MinigameRegistryContract deployed at: $REGISTRY_ADDRESS"
 sleep 10
 
 print_info "Step 4: Deploying FullTokenContract..."
+# Constructor: name, symbol, base_uri, royalty_receiver, royalty_fraction, game_registry (Option::Some), event_relayer (Option::None)
 TOKEN_DEPLOY_OUTPUT=$(sozo deploy -P $PROFILE \
     --account-address "$ACCOUNT_ADDRESS" \
     --private-key "$PRIVATE_KEY" \
@@ -149,9 +150,9 @@ TOKEN_DEPLOY_OUTPUT=$(sozo deploy -P $PROFILE \
         str:'ZK' \
         str:'' \
         "$ACCOUNT_ADDRESS" \
+        "$ACCOUNT_ADDRESS" \
         500 \
         0 "$REGISTRY_ADDRESS" \
-        1 \
     2>&1) || true
 TOKEN_ADDRESS=$(extract_address "$TOKEN_DEPLOY_OUTPUT")
 if [ -z "$TOKEN_ADDRESS" ]; then
@@ -186,6 +187,12 @@ if [ -f "$DOJO_CONFIG" ]; then
     sed -i "s|\"0x[0-9a-fA-F]*\", # Denshokan|\"$TOKEN_ADDRESS\", # Denshokan|" "$DOJO_CONFIG"
     sed -i "s|\"0x[0-9a-fA-F]*\", # cube_token_address|\"$ZSTAR_ADDRESS\", # cube_token_address|" "$DOJO_CONFIG"
     print_info "  Updated $DOJO_CONFIG with denshokan + zstar addresses"
+fi
+
+# Remove world_address so sozo deploys a fresh world
+if grep -q '^world_address' "$DOJO_CONFIG"; then
+    print_info "Removing world_address from $DOJO_CONFIG (will be set after migration)..."
+    sed -i '/^world_address/d' "$DOJO_CONFIG"
 fi
 
 print_info "Step 7: Running sozo migrate..."
@@ -241,10 +248,12 @@ CONFIG_SYSTEM=""
 LEVEL_SYSTEM=""
 STORY_SYSTEM=""
 DAILY_CHALLENGE_SYSTEM=""
+PROGRESS_SYSTEM=""
 if [ -f "$MANIFEST_FILE" ]; then
     GAME_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-game_system\") | .address" 2>/dev/null)
     CONFIG_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-config_system\") | .address" 2>/dev/null)
     LEVEL_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-level_system\") | .address" 2>/dev/null)
+    PROGRESS_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-progress_system\") | .address" 2>/dev/null)
     STORY_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-story_system\") | .address" 2>/dev/null)
     DAILY_CHALLENGE_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-daily_challenge_system\") | .address" 2>/dev/null)
 fi
@@ -284,6 +293,7 @@ grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "game_system" "$GAME_SYSTEM"
 grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "level_system" "$LEVEL_SYSTEM"
 grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "story_system" "$STORY_SYSTEM"
 grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "daily_challenge_system" "$DAILY_CHALLENGE_SYSTEM"
+grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "progress_system" "$PROGRESS_SYSTEM"
 grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "config_system" "$CONFIG_SYSTEM"
 grant_zstar_role "BURNER_ROLE" "$BURNER_ROLE_FELT" "config_system" "$CONFIG_SYSTEM"
 
