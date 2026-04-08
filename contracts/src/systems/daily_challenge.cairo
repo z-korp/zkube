@@ -14,9 +14,11 @@ pub trait IDailyChallengeSystem<T> {
     fn get_current_challenge(self: @T) -> u32;
     /// Get player entry for a challenge
     fn get_player_entry(self: @T, challenge_id: u32, player: ContractAddress) -> DailyEntry;
-    /// Settle weekly endless leaderboard.
-    /// `ranked_players` must be sorted by best_score descending (verified on-chain).
-    fn settle_weekly_endless(ref self: T, week_id: u32, ranked_players: Span<ContractAddress>);
+    /// Settle weekly endless leaderboard for a specific zone's endless settings.
+    /// `ranked_players` must be sorted by all-time PB descending (verified on-chain).
+    fn settle_weekly_endless(
+        ref self: T, week_id: u32, settings_id: u32, ranked_players: Span<ContractAddress>,
+    );
 }
 
 #[dojo::contract]
@@ -44,8 +46,8 @@ mod daily_challenge_system {
     };
     use zkube::models::game::{Game, GameLevelTrait, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
-    use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
-    use zkube::models::weekly::{WeeklyEndless, WeeklyEndlessEntry, current_week_id};
+    use zkube::models::player::{PlayerBestRun, PlayerMeta, PlayerMetaTrait};
+    use zkube::models::weekly::{WeeklyEndless, current_week_id};
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use zkube::systems::progress::{IProgressSystemDispatcher, IProgressSystemDispatcherTrait};
 
@@ -384,39 +386,37 @@ mod daily_challenge_system {
         }
 
         fn settle_weekly_endless(
-            ref self: ContractState, week_id: u32, ranked_players: Span<ContractAddress>,
+            ref self: ContractState,
+            week_id: u32,
+            settings_id: u32,
+            ranked_players: Span<ContractAddress>,
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let timestamp = get_block_timestamp();
             let current_week = current_week_id(timestamp);
             assert!(week_id < current_week, "Week has not ended yet");
 
-            let mut weekly_meta: WeeklyEndless = world.read_model(week_id);
-            assert!(!weekly_meta.settled, "Week already settled");
+            // Use composite key (week_id * 1000 + settings_id) to track per-zone settlement
+            let settlement_key: u32 = week_id * 1000 + settings_id;
+            let mut weekly_meta: WeeklyEndless = world.read_model(settlement_key);
+            assert!(!weekly_meta.settled, "Already settled for this week + zone");
 
-            let total = weekly_meta.total_participants;
-            let len = ranked_players.len();
+            let len: u32 = ranked_players.len();
             assert!(len <= weekly::MAX_RANKED_PLAYERS, "Too many ranked players");
 
-            let cap = if total < weekly::MAX_RANKED_PLAYERS {
-                total
-            } else {
-                weekly::MAX_RANKED_PLAYERS
-            };
-
-            // Verify descending order by best_score and distribute rewards
-            let mut prev_score: u32 = 0xFFFFFFFF; // max u32
+            // Verify descending order by all-time PB and distribute rewards
+            let mut prev_score: u32 = 0xFFFFFFFF;
             let mut rank: u32 = 1;
-            while rank <= len && rank <= cap {
+            while rank <= len {
                 let player = *ranked_players.at(rank - 1);
                 assert!(player.is_non_zero(), "Zero address in ranked list");
 
-                let entry: WeeklyEndlessEntry = world.read_model((week_id, player));
-                assert!(entry.submitted, "Player has no entry for this week");
-                assert!(entry.best_score <= prev_score, "Invalid ranking order");
-                prev_score = entry.best_score;
+                let best_run: PlayerBestRun = world.read_model((player, settings_id, 1_u8));
+                assert!(best_run.best_score > 0, "Player has no PB for this endless");
+                assert!(best_run.best_score <= prev_score, "Invalid ranking order");
+                prev_score = best_run.best_score;
 
-                let star_reward = InternalImpl::compute_weekly_star_reward(rank, total);
+                let star_reward = InternalImpl::compute_weekly_star_reward(rank, len);
                 if star_reward > 0 {
                     InternalImpl::mint_zstar(ref self, ref world, player, star_reward.into());
                 }
@@ -424,6 +424,8 @@ mod daily_challenge_system {
                 rank += 1;
             }
 
+            weekly_meta.week_id = settlement_key;
+            weekly_meta.total_participants = len;
             weekly_meta.settled = true;
             world.write_model(@weekly_meta);
         }

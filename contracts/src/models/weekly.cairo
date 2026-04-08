@@ -1,5 +1,6 @@
-use starknet::ContractAddress;
-
+/// Weekly settlement tracker.
+/// Used to prevent double-settlement of weekly endless rewards.
+/// Key is composite: week_id * 1000 + settings_id (to support per-zone settlement).
 #[derive(Copy, Drop, Serde, Introspect)]
 #[dojo::model]
 pub struct WeeklyEndless {
@@ -7,17 +8,6 @@ pub struct WeeklyEndless {
     pub week_id: u32,
     pub total_participants: u32,
     pub settled: bool,
-}
-
-#[derive(Copy, Drop, Serde, Introspect)]
-#[dojo::model]
-pub struct WeeklyEndlessEntry {
-    #[key]
-    pub week_id: u32,
-    #[key]
-    pub player: ContractAddress,
-    pub best_score: u32,
-    pub submitted: bool,
 }
 
 pub const SECONDS_PER_WEEK: u64 = 604800;

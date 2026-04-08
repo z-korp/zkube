@@ -62,7 +62,7 @@
     },
     {
       "address": "0x36b4fdee525ccafe39f507a8cba4a189b93dd87f3a31012c611918737eb4f13",
-      "class_hash": "0xbcac74ebcc3abb2bcd16dd4636c0bb30f521df93b4d4338c03c06791175c5",
+      "class_hash": "0x1c0232ae6810d50a6a9bea24765e2d0fe016e5e9494a5345bcce565f6e49bd8",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
       ],
@@ -79,7 +79,7 @@
     },
     {
       "address": "0x3052706d6cdd94945ede07473c83ee57269990d3e3237c41984539b97782863",
-      "class_hash": "0x57e8775fd39efacd1da700e91053a999d8a5f45239150b81f817ddbf90e9e72",
+      "class_hash": "0x15f22204ce08171291886e13df1d7814417eb53d24eb8cd9fa5dbe21b5b81e0",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x013e661f437432e76575402d45f0b523f01246b211fcc015aab2dc20b6b43a5c",
@@ -112,7 +112,7 @@
     },
     {
       "address": "0x20c1dd450fdf47f14b033eb874ea487e20495e199bdcbaff5d785f1107bde8c",
-      "class_hash": "0x29dc93f123f0c9b534f4802f6ea5dd12ae6c803cc2717b112e8750ae511f5d6",
+      "class_hash": "0x47e2e50d8475f5e803a6d148617361f3b5b271145161b70cde426e61aa551cb",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-level_system",
       "selector": "0x1689592ed01fb67e736e3075b7d3b060bfd9ea2904147c7e161bc3f08ae2e9",
@@ -127,7 +127,7 @@
     },
     {
       "address": "0xb28fe442dd681140ecc6cb72a50adb0f7632f3e2463e4602f86a308f7455c3",
-      "class_hash": "0x6c483f8f100d0fa284c8ed090af6d0254b6eea2526cd52a4efa90f5fbdecea3",
+      "class_hash": "0x2aed65fa758adb8c8acfab6d237ff3557944ebec81fef802b668114b8aae0cd",
       "init_calldata": [],
       "tag": "zkube_v2_1_0-move_system",
       "selector": "0x2c6e7f38e7f45f67fca81df91805a8f3ee1d9842366e3e3d32f13f46cbf60d",
@@ -1400,33 +1400,6 @@
       "class_hash": "0x5d7c91cf36bf35d5b261515149a542ba99d2a2ca06cd91dedf2288c35ca4e2b",
       "tag": "zkube_v2_1_0-WeeklyEndless",
       "selector": "0x521b3b35fc2f0f8eeabb889dff9f5b0861f0ad6771c85554078b2f261c16d85"
-    },
-    {
-      "members": [
-        {
-          "name": "week_id",
-          "type": "core::integer::u32",
-          "key": true
-        },
-        {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "key": true
-        },
-        {
-          "name": "best_score",
-          "type": "core::integer::u32",
-          "key": false
-        },
-        {
-          "name": "submitted",
-          "type": "core::bool",
-          "key": false
-        }
-      ],
-      "class_hash": "0x343b7e6390a3557123d4765b0a3b1c38117fb6d924ab995eb1e08433f6daa96",
-      "tag": "zkube_v2_1_0-WeeklyEndlessEntry",
-      "selector": "0x6800d6fb9f0826be9dd431c9ab53af33d6000d1198114782392316d2d82ff40"
     },
     {
       "members": [
@@ -7508,42 +7481,6 @@
     },
     {
       "type": "struct",
-      "name": "zkube::models::weekly::WeeklyEndlessEntry",
-      "members": [
-        {
-          "name": "week_id",
-          "type": "core::integer::u32"
-        },
-        {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "best_score",
-          "type": "core::integer::u32"
-        },
-        {
-          "name": "submitted",
-          "type": "core::bool"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "zkube::models::weekly::WeeklyEndlessEntryValue",
-      "members": [
-        {
-          "name": "best_score",
-          "type": "core::integer::u32"
-        },
-        {
-          "name": "submitted",
-          "type": "core::bool"
-        }
-      ]
-    },
-    {
-      "type": "struct",
       "name": "zkube::models::weekly::WeeklyEndlessValue",
       "members": [
         {
@@ -7559,12 +7496,6 @@
     {
       "type": "event",
       "name": "zkube::models::weekly::m_WeeklyEndless::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "zkube::models::weekly::m_WeeklyEndlessEntry::Event",
       "kind": "enum",
       "variants": []
     },
@@ -8136,6 +8067,10 @@
           "inputs": [
             {
               "name": "week_id",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "settings_id",
               "type": "core::integer::u32"
             },
             {

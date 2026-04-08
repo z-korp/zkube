@@ -9,7 +9,6 @@ use starknet::{ContractAddress, get_block_timestamp};
 use zkube::events::{RunEnded, ZoneClearBonus};
 use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
 use zkube::helpers::config::ConfigUtilsTrait;
-use zkube::helpers::weekly;
 use zkube::models::daily::{
     DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait, GameChallenge,
 };
@@ -18,7 +17,6 @@ use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, Playe
 use zkube::models::story::{
     ActiveStoryAttempt, ActiveStoryAttemptTrait, StoryAttempt, StoryAttemptTrait,
 };
-use zkube::models::weekly::current_week_id;
 use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
 
 /// Handle game over: update player meta, emit event, submit daily result.
@@ -102,19 +100,8 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
     }
     world.write_model(@best_run);
 
-    if run_type == 1 {
-        let is_eligible = match world.dns_address(@"config_system") {
-            Option::Some(config_address) => {
-                let config = IConfigSystemDispatcher { contract_address: config_address };
-                config.is_star_eligible(settings.settings_id)
-            },
-            Option::None => false,
-        };
-        if is_eligible {
-            let week_id = current_week_id(get_block_timestamp());
-            weekly::update_weekly_entry(ref world, week_id, player, run_data.total_score);
-        }
-    }
+    // Weekly endless settlement uses all-time PlayerBestRun (already updated above).
+    // No per-week entry tracking needed.
 
     // Emit run ended event
     world
