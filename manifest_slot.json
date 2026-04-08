@@ -62,7 +62,7 @@
     },
     {
       "address": "0x3f2df9c8102a83b5508c15b1233201f12c8ba15c269ad35fb7f0b8dd69d45eb",
-      "class_hash": "0x695cf78c8902341fdd78ea0cd8a813017058831e4290a39a6e068b9c3bc0666",
+      "class_hash": "0x395f0c64c9e5c7084bfced2bb15de758229c81d1a165c7937bd4991fc33d288",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
       ],
@@ -79,7 +79,7 @@
     },
     {
       "address": "0x6cae91f0792875bda58c9458173227cc22c2f05cb2c5a3f2243926726592ea4",
-      "class_hash": "0x634c55c23bce80b580b8578cc0a1fe90cf614fc61bac22dcbf681d7bd8bf4e9",
+      "class_hash": "0x4eb335921eae441912d72908e7250269e844c21db23834425185121ca1e62e7",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x013e661f437432e76575402d45f0b523f01246b211fcc015aab2dc20b6b43a5c",
@@ -112,7 +112,7 @@
     },
     {
       "address": "0x56556b22426c80080200869eb8bd023113583e8bdae1d54ca220f50bea01f47",
-      "class_hash": "0x6d28b826a8916c15ebc51909be915399ccecfe759d2f56c8d41728d49549f79",
+      "class_hash": "0x39a677e6f46d55242f5872acd79eab5ca2539c45ed71980f6fd0097c2ac88ec",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-level_system",
       "selector": "0x1b08ed4c0314aa961a2fc61197e117a7e8b346cba235ba64b82c70638171440",
@@ -127,7 +127,7 @@
     },
     {
       "address": "0x3d45d4233fcdb5dc6b0b0b57a1427fba23b326ce19ec1664ee08e804432aa06",
-      "class_hash": "0xb77fd3f12394cf482dac15a73130dc0cfe0cca8641f6257e30bcdade183385",
+      "class_hash": "0x67934e9250fa4575f6c999b9b9b818658f87340cc048a33afb2939c83c91643",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-move_system",
       "selector": "0x23c804211898ab98622b1199ca48308ae9539b9271b1b59e07f12793205883a",
@@ -138,7 +138,7 @@
     },
     {
       "address": "0x1f928f7c0713c8f4a51918f28a2bada5cee6f28a75b9dd9077df0227d4e09b5",
-      "class_hash": "0x66a4cf3edc5f2b52d3ebbec2283b8c16cd881a79267a3dc5fc9f01a2ee3f25b",
+      "class_hash": "0xe657b94c93597addb180e18419c916fb050ac1e256aac5a925f967ec6f789d",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-progress_system",
       "selector": "0x1c30136162078a327946ba1fbf968d1ed050182e82dc3ce91d716d199a759a3",
@@ -279,6 +279,28 @@
       "class_hash": "0x303f6c721f4f73e1dedd330cd9859a4aed22e0b50e859b4cd2f3e023e6a483c",
       "tag": "zkube_v2_1_1-AchievementDefinition",
       "selector": "0x1766dea6a85691f5d90f9af59a079143226ac4f8ce3f6829d5ec8cfc10bca02"
+    },
+    {
+      "members": [
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
+          "name": "game_id",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
+          "name": "challenge_id",
+          "type": "core::integer::u32",
+          "key": false
+        }
+      ],
+      "class_hash": "0x46e33d8448e1a45d7f01fe2d458065444fd77b642cdd5b1a8b624c3ade21808",
+      "tag": "zkube_v2_1_1-ActiveDailyAttempt",
+      "selector": "0x6c0a9423ff453dd7d33bc050c008301b7076d09b5b0afe8db4a69df5a8186c5"
     },
     {
       "members": [
@@ -6407,6 +6429,38 @@
     },
     {
       "type": "struct",
+      "name": "zkube::models::daily::ActiveDailyAttempt",
+      "members": [
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "game_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "challenge_id",
+          "type": "core::integer::u32"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::daily::ActiveDailyAttemptValue",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "challenge_id",
+          "type": "core::integer::u32"
+        }
+      ]
+    },
+    {
+      "type": "struct",
       "name": "zkube::models::daily::DailyAttempt",
       "members": [
         {
@@ -6640,6 +6694,12 @@
           "type": "core::integer::u32"
         }
       ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::daily::m_ActiveDailyAttempt::Event",
+      "kind": "enum",
+      "variants": []
     },
     {
       "type": "event",
