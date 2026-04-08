@@ -63,18 +63,38 @@ Based on all-time personal best — no need to grind every week.
 |--------|--------|-----------|
 | Weekly return | 5 | Inactive >7 days, then play any mode |
 
-### Quests (daily/weekly rotating)
+### Quests (daily/weekly rotating) — mint zStars on claim
 
-Quests do NOT mint zStars directly. They drive engagement and progress toward achievements (which grant XP only). Quest rewards shown in UI are cosmetic star indicators.
+**Daily rotating quests** (3-day cycle, 3 active per day from pool of 9):
 
-**12 quests total:**
-- **Daily rotating** (3-day cycle, pick from 9):
-  - Line Clear I/II/III: clear 30/60/100 lines
-  - Combo I/II/III: hit 3+/4+/5+ combo
-  - Bonus I/II: use 3/8 bonuses
-  - Daily Challenger: play 1 daily challenge
-- **Daily meta**: Daily Finisher (complete 3 daily quests)
-- **Weekly**: Weekly Grinder (30 levels), Weekly Challenger (3 daily plays)
+| Quest | Task | zStars |
+|-------|------|--------|
+| Line Clear I | Clear 30 lines | 1 |
+| Line Clear II | Clear 60 lines | 1 |
+| Line Clear III | Clear 100 lines | 1 |
+| Combo I | Hit 3+ combo 5 times | 1 |
+| Combo II | Hit 4+ combo 3 times | 1 |
+| Combo III | Hit 5+ combo once | 1 |
+| Bonus I | Use 3 bonuses | 1 |
+| Bonus II | Use 8 bonuses | 1 |
+| Daily Challenger | Play 1 daily challenge | 1 |
+
+**Daily meta quest:**
+
+| Quest | Task | zStars |
+|-------|------|--------|
+| Daily Finisher | Complete 3 daily quests | 2 |
+
+**Weekly quests:**
+
+| Quest | Task | zStars |
+|-------|------|--------|
+| Weekly Grinder | Complete 30 levels | 5 |
+| Weekly Challenger | Play daily 3 times | 5 |
+
+**Daily quest earning**: 3 daily quests (3 zStars) + Daily Finisher (2 zStars) = **5 zStars/day**
+**Weekly quest earning**: 2 weekly quests = **10 zStars/week**
+**Combined**: 5×7 + 10 = **45 zStars/week** from quests alone
 
 ### Achievements (one-time, XP only)
 
@@ -103,17 +123,21 @@ Quests do NOT mint zStars directly. They drive engagement and progress toward ac
 |--------|-------------|
 | Zone gameplay (first clear, ~25 stars) | ~25 |
 | Zone perfection (once) | +20 |
+| Daily quests (5/day × 7) | +35 |
+| Weekly quests (2 × 5) | +10 |
 | Daily challenge top 25% (7 days) | +21 |
 | Weekly endless top 25% | +10 |
-| **Peak week total** | **~76** |
+| **Peak week total** | **~121** |
 
 ### Steady State (replaying, no new zones)
 
 | Source | Weekly zStars |
 |--------|-------------|
+| Daily quests (5/day × 7) | 35 |
+| Weekly quests (2 × 5) | 10 |
 | Daily challenge top 25% (7 days) | 21 |
 | Weekly endless top 25% | 10 |
-| **Steady state total** | **~31** |
+| **Steady state total** | **~76** |
 
 ---
 

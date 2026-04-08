@@ -35,16 +35,18 @@ mod progress_system {
     use openzeppelin_introspection::src5::SRC5Component;
     use quest::component::Component as QuestComponent;
     use quest::component::Component::QuestTrait;
+    use core::num::traits::Zero;
     use starknet::{ContractAddress, get_caller_address, get_contract_address};
     use zkube::constants::DEFAULT_NS;
     use zkube::elements::achievements::index::{AchievementDefsTrait, AchievementPointsTrait};
     use zkube::elements::quests::index::{
         QUEST_BONUS_I, QUEST_BONUS_II, QUEST_COMBO_I, QUEST_COMBO_II, QUEST_COMBO_III,
-        QUEST_DAILY_CHALLENGER, QUEST_LINE_CLEAR_I, QUEST_LINE_CLEAR_II, QUEST_LINE_CLEAR_III,
-        QuestDefsTrait,
+        QUEST_DAILY_CHALLENGER, QUEST_DAILY_FINISHER, QUEST_LINE_CLEAR_I, QUEST_LINE_CLEAR_II,
+        QUEST_LINE_CLEAR_III, QUEST_WEEKLY_CHALLENGER, QUEST_WEEKLY_GRINDER, QuestDefsTrait,
     };
     use zkube::elements::tasks::index::Task;
     use zkube::elements::tasks::interface::TaskTrait;
+    use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
     use super::IProgressSystem;
@@ -176,9 +178,25 @@ mod progress_system {
             quest_id: felt252,
             interval_id: u64,
         ) {
-            let _ = player_id;
-            let _ = quest_id;
             let _ = interval_id;
+            let reward = InternalImpl::quest_star_reward(quest_id);
+            if reward == 0 {
+                return;
+            }
+            let mut contract = self.get_contract_mut();
+            let world: WorldStorage = contract.world(@DEFAULT_NS());
+            let player: ContractAddress = player_id.try_into().unwrap();
+            match world.dns_address(@"config_system") {
+                Option::Some(config_address) => {
+                    let config = IConfigSystemDispatcher { contract_address: config_address };
+                    let zstar_address = config.get_zstar_address();
+                    if !zstar_address.is_zero() {
+                        let zstar = IZStarTokenDispatcher { contract_address: zstar_address };
+                        zstar.mint(player, reward.into());
+                    }
+                },
+                Option::None => {},
+            }
         }
     }
 
@@ -334,6 +352,30 @@ mod progress_system {
                 || quest_id == QUEST_BONUS_I
                 || quest_id == QUEST_BONUS_II
                 || quest_id == QUEST_DAILY_CHALLENGER
+        }
+
+        /// zStar reward per quest claim.
+        /// Daily rotating quests: 1 star each
+        /// Daily Finisher (3 quests done): 2 stars
+        /// Weekly quests: 5 stars each
+        fn quest_star_reward(quest_id: felt252) -> u64 {
+            if quest_id == QUEST_WEEKLY_GRINDER || quest_id == QUEST_WEEKLY_CHALLENGER {
+                5
+            } else if quest_id == QUEST_DAILY_FINISHER {
+                2
+            } else if quest_id == QUEST_LINE_CLEAR_I
+                || quest_id == QUEST_LINE_CLEAR_II
+                || quest_id == QUEST_LINE_CLEAR_III
+                || quest_id == QUEST_COMBO_I
+                || quest_id == QUEST_COMBO_II
+                || quest_id == QUEST_COMBO_III
+                || quest_id == QUEST_BONUS_I
+                || quest_id == QUEST_BONUS_II
+                || quest_id == QUEST_DAILY_CHALLENGER {
+                1
+            } else {
+                0
+            }
         }
     }
 }

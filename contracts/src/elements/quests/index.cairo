@@ -78,7 +78,7 @@ pub impl QuestDefsImpl of QuestDefsTrait {
             THREE_DAYS,
             array![task(ZTask::LineClear, 100)].span(),
             array![].span(),
-            metadata(registry, "Line Clear III", "Clear 100 lines", 2),
+            metadata(registry, "Line Clear III", "Clear 100 lines", 1),
         )
     }
 
@@ -114,7 +114,7 @@ pub impl QuestDefsImpl of QuestDefsTrait {
             THREE_DAYS,
             array![task(ZTask::Combo5, 1)].span(),
             array![].span(),
-            metadata(registry, "Combo III", "Hit 5+ combo once", 2),
+            metadata(registry, "Combo III", "Hit 5+ combo once", 1),
         )
     }
 
@@ -138,7 +138,7 @@ pub impl QuestDefsImpl of QuestDefsTrait {
             THREE_DAYS,
             array![task(ZTask::BonusUsed, 8)].span(),
             array![].span(),
-            metadata(registry, "Bonus II", "Use 8 bonuses", 2),
+            metadata(registry, "Bonus II", "Use 8 bonuses", 1),
         )
     }
 
@@ -150,7 +150,7 @@ pub impl QuestDefsImpl of QuestDefsTrait {
             THREE_DAYS,
             array![task(ZTask::DailyPlay, 1)].span(),
             array![].span(),
-            metadata(registry, "Daily Challenger", "Play one daily challenge", 2),
+            metadata(registry, "Daily Challenger", "Play one daily challenge", 1),
         )
     }
 
