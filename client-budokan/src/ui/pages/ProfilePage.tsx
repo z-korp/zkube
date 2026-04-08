@@ -213,14 +213,6 @@ const ProfilePage: React.FC = () => {
                 }}
               >
                 {tabName}
-                {tabName === "Quests" && (
-                  <span
-                    className="ml-1 rounded px-1 py-[1px] align-middle font-display text-[8px] font-bold"
-                    style={{ color: colors.background, background: "#FF6B8A" }}
-                  >
-                    {questsPendingCount}
-                  </span>
-                )}
                 {active && (
                   <motion.div
                     layoutId="profile-tab-indicator"
@@ -244,10 +236,6 @@ const ProfilePage: React.FC = () => {
               bestCombo="--"
               onUnlock={setUnlockZone}
             />
-          )}
-
-          {tab === "Quests" && (
-            <QuestsTab colors={colors} />
           )}
 
           {tab === "Achievements" && <AchievementsTab colors={colors} />}

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Has, getComponentValue } from "@dojoengine/recs";
 import { useEntityQuery } from "@dojoengine/react";
 import { useDojo } from "@/dojo/useDojo";
@@ -39,6 +39,13 @@ export const useLeaderboardSlot = (settingsId?: number): UseLeaderboardSlotResul
   } = useDojo();
 
   const allEntities = useEntityQuery([Has(PlayerBestRun)]);
+
+  // Grace period: show loading for max 3s, then show results (even if empty)
+  const [syncGrace, setSyncGrace] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setSyncGrace(false), 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const rawEntries = useMemo(() => {
     const bestByPlayer = new Map<
@@ -115,7 +122,7 @@ export const useLeaderboardSlot = (settingsId?: number): UseLeaderboardSlotResul
 
   return {
     games,
-    loading: allEntities.length === 0,
+    loading: allEntities.length === 0 && syncGrace,
     refetch: () => {},
   };
 };
