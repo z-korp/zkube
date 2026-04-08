@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { motion } from "motion/react";
+import { motion, type Variants } from "motion/react";
 
 import { useDojo } from "@/dojo/useDojo";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
@@ -12,8 +12,12 @@ import { usePlayerBestRun } from "@/hooks/usePlayerBestRun";
 import { useZStarBalance } from "@/hooks/useZStarBalance";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
 import { useActiveStoryAttempt } from "@/hooks/useActiveStoryAttempt";
+import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
+import { usePlayerEntry } from "@/hooks/usePlayerEntry";
+import { ZONE_NAMES } from "@/config/profileData";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { showToast } from "@/utils/toast";
+import { BookOpen, Infinity as InfinityIcon, Zap } from "lucide-react";
 import Connect from "@/ui/components/Connect";
 import ModePill from "@/ui/components/shared/ModePill";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
@@ -30,7 +34,26 @@ const getThemeId = (zoneId: number): ThemeId => {
   return `theme-${normalized}` as ThemeId;
 };
 
-const containerVariants: any = {
+const useDailyCountdown = (endTime: number | undefined) => {
+  const [remaining, setRemaining] = useState(() =>
+    endTime ? Math.max(0, endTime - Math.floor(Date.now() / 1000)) : 0,
+  );
+
+  useEffect(() => {
+    if (!endTime) return;
+    const tick = () => setRemaining(Math.max(0, endTime - Math.floor(Date.now() / 1000)));
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [endTime]);
+
+  if (!endTime || remaining <= 0) return null;
+  const h = Math.floor(remaining / 3600);
+  const m = Math.floor((remaining % 3600) / 60);
+  return `${h}h ${m}m remaining`;
+};
+
+const containerVariants: Variants = {
   hidden: { opacity: 1 },
   show: {
     opacity: 1,
@@ -40,7 +63,7 @@ const containerVariants: any = {
   },
 };
 
-const itemVariants: any = {
+const itemVariants: Variants = {
   hidden: { opacity: 1, y: 0 },
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
 };
@@ -63,6 +86,13 @@ const HomePage: React.FC = () => {
   const [activeZone, setActiveZone] = useState(0);
   const { balance: zStarBalance } = useZStarBalance(account?.address);
   const { zones, totalStars } = useZoneProgress(account?.address, zStarBalance);
+  const { challenge, isLoading: challengeLoading } = useCurrentChallenge();
+  const { entry: dailyEntry, isRegistered: hasPlayedDaily } = usePlayerEntry(
+    challenge?.challenge_id,
+    account?.address,
+  );
+  const dailyCountdown = useDailyCountdown(challenge?.end_time);
+  const dailyZoneName = challenge?.zone_id ? (ZONE_NAMES[challenge.zone_id] ?? null) : null;
 
   useEffect(() => {
     setMusicPlaylist(["main", "level"]);
@@ -245,7 +275,7 @@ const HomePage: React.FC = () => {
         >
           {account ? (
             <>
-              <motion.div variants={itemVariants} className="flex items-center justify-between rounded-2xl border border-white/[0.16] bg-white/[0.08] px-3 py-2 backdrop-blur-xl">
+              <motion.div variants={itemVariants} className="flex items-center justify-between rounded-2xl border border-white/[0.16] bg-white/[0.08] px-3 py-1.5 backdrop-blur-xl">
                 <div className="flex min-w-0 items-center gap-3">
                   <div
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-sans text-sm font-black"
@@ -276,10 +306,16 @@ const HomePage: React.FC = () => {
                 <div className="pointer-events-none absolute inset-[-100%_0] w-[300%] animate-shimmer bg-gradient-to-r from-transparent via-white/[0.09] to-transparent bg-[length:50%_100%]" />
                 <div className="relative z-10">
                     <p className="font-sans text-[13px] font-extrabold uppercase tracking-[0.08em]" style={{ color: colors.accent }}>
-                      ⚡ Daily Challenge
+                      ⚡ Daily Challenge{dailyZoneName && <span className="ml-1.5 text-[10px] font-bold text-white/60">· {dailyZoneName}</span>}
                     </p>
                   <p className="mt-0.5 font-sans text-xs font-semibold text-white/80">
-                    24h remaining · {Math.max(42, (ownedGames?.length ?? 0) * 3)} players
+                    {challengeLoading
+                      ? "Loading..."
+                      : !challenge
+                        ? "Be the first to play today!"
+                        : hasPlayedDaily && dailyEntry
+                          ? `Your best: ${dailyEntry.best_score?.toLocaleString() ?? 0}${dailyEntry.rank > 0 ? ` · Rank #${dailyEntry.rank}` : ""}${dailyCountdown ? ` · ${dailyCountdown}` : ""}`
+                          : `${dailyCountdown ?? "Challenge ended"} · ${challenge.total_entries ?? 0} player${(challenge.total_entries ?? 0) !== 1 ? "s" : ""}`}
                   </p>
                 </div>
                 <span className="relative z-10 rounded-full px-3 py-1.5 font-sans text-xs font-extrabold uppercase tracking-[0.08em]" style={{ backgroundColor: colors.accent, color: "#0a1628" }}>
@@ -287,13 +323,32 @@ const HomePage: React.FC = () => {
                 </span>
               </motion.button>
 
+              <motion.div variants={itemVariants} className="my-1 flex items-center gap-2">
+                <div className="flex-1 border-t border-white/[0.06]" />
+                <span className="font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-white/30">Choose Your Mode</span>
+                <div className="flex-1 border-t border-white/[0.06]" />
+              </motion.div>
+
               <motion.div variants={itemVariants} className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="ml-1 font-sans text-[11px] font-bold uppercase tracking-[0.18em] text-white/80">Select Zone</p>
-                  <div className="w-[56%] min-w-[176px] max-w-[208px]">
+                  <p className="ml-1 font-sans text-[12px] font-bold uppercase tracking-[0.18em] text-white/80">Select Zone</p>
+                  <div className="w-[56%] min-w-[176px] max-w-[224px]">
                     <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
                   </div>
                 </div>
+                <p className="ml-1 font-sans text-[10px] font-medium text-white/50">
+                  {selectedMode === 0
+                    ? "10 levels per zone · Beat the boss · Earn stars"
+                    : "Infinite survival · Weekly leaderboard · NFT runs"}
+                </p>
+                {selectedMode === 1 && !endlessZoneOneUnlocked && (
+                  <div className="flex items-center gap-2 rounded-xl border border-amber-400/20 bg-amber-500/10 px-3 py-2">
+                    <span className="text-sm">🔒</span>
+                    <p className="font-sans text-[11px] font-semibold text-amber-300/90">
+                      Beat the Zone 1 Story boss to unlock Endless mode
+                    </p>
+                  </div>
+                )}
 
                 {zones.length === 0 ? (
                   <div className="rounded-2xl border border-white/[0.14] bg-white/[0.12] p-4 text-center font-sans text-sm font-semibold text-white/80 backdrop-blur-xl">
@@ -313,7 +368,7 @@ const HomePage: React.FC = () => {
 
                       let statusText = `${z.stars}/${z.maxStars} ★`;
                       if (isEndlessMode) {
-                        if (z.zoneId !== 1) statusText = "MVP soon";
+                        if (z.zoneId !== 1) statusText = "Coming soon";
                         else if (!endlessZoneOneUnlocked) statusText = "Beat Story Boss";
                         else statusText = `Best ${endlessBestScore.toLocaleString()}`;
                       } else if (!z.unlocked && !z.isFree) {
@@ -361,6 +416,14 @@ const HomePage: React.FC = () => {
                               </p>
                               {!isSelectable && <span className="text-sm">🔒</span>}
                             </div>
+                            {!isEndlessMode && z.unlocked && z.maxStars > 0 && (
+                              <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-white/10">
+                                <div
+                                  className="h-full rounded-full transition-all duration-300"
+                                  style={{ width: `${(z.stars / z.maxStars) * 100}%`, backgroundColor: colors.accent }}
+                                />
+                              </div>
+                            )}
                           </div>
                         </motion.button>
                       );
@@ -377,7 +440,29 @@ const HomePage: React.FC = () => {
               <p className="mt-3 font-sans text-base font-semibold text-white/85">
                 Master the grid, defeat the zone bosses, and survive the endless arena.
               </p>
-              <div className="mt-8">
+              <div className="mt-5 flex flex-col gap-2.5 text-left">
+                <div className="flex items-center gap-2.5">
+                  <BookOpen size={16} className="shrink-0 text-white/50" />
+                  <p className="font-sans text-[13px] font-semibold text-white/70">10 themed zones with boss battles</p>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <InfinityIcon size={16} className="shrink-0 text-white/50" />
+                  <p className="font-sans text-[13px] font-semibold text-white/70">Endless mode with weekly leaderboards</p>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <Zap size={16} className="shrink-0 text-white/50" />
+                  <p className="font-sans text-[13px] font-semibold text-white/70">Daily challenges with star rewards</p>
+                </div>
+              </div>
+              {challenge && (
+                <div className="mt-4 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-center">
+                  <p className="font-sans text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">Today's Daily</p>
+                  <p className="mt-0.5 font-sans text-xs font-semibold text-white/60">
+                    {challenge.total_entries} player{(challenge.total_entries ?? 0) !== 1 ? "s" : ""} competing
+                  </p>
+                </div>
+              )}
+              <div className="mt-6">
                 <Connect ctaLabel="PLAY NOW" />
               </div>
             </motion.div>
@@ -411,11 +496,9 @@ const HomePage: React.FC = () => {
               </button>
             ) : null}
 
-            {selectedMode === 1 && zones.length > 0 && !selectedZonePlayable ? (
+            {selectedMode === 1 && zones.length > 0 && !selectedZonePlayable && endlessZoneOneUnlocked ? (
               <p className="text-center font-sans text-[11px] font-semibold text-white/75">
-                {zone?.zoneId === 1
-                  ? "Defeat Zone 1 Story boss to unlock Endless."
-                  : "Only Endless Zone 1 is playable in the MVP."}
+                Only Endless Zone 1 is playable for now.
               </p>
             ) : null}
           </>
