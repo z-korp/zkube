@@ -80,6 +80,31 @@ mod renderer_systems {
             // Score
             details.append(GameDetail { name: 'SCORE', value: run_data.total_score.into() });
 
+            // Zone
+            details.append(GameDetail { name: 'ZONE', value: run_data.zone_id.into() });
+
+            // Mode
+            details
+                .append(
+                    GameDetail {
+                        name: 'MODE',
+                        value: if run_data.run_type == 0 {
+                            'ZONE'
+                        } else {
+                            'ENDLESS'
+                        },
+                    },
+                );
+
+            // Difficulty
+            details
+                .append(
+                    GameDetail { name: 'DIFFICULTY', value: run_data.current_difficulty.into() },
+                );
+
+            // Max Combo
+            details.append(GameDetail { name: 'MAX_COMBO', value: game.max_combo.into() });
+
             details.span()
         }
 
@@ -93,15 +118,22 @@ mod renderer_systems {
             let game: Game = world.read_model(game_id);
             let run_data = game.get_run_data();
 
+            let zone_name = renderer_helper::get_zone_name(run_data.zone_id);
+            let mode_name = renderer_helper::get_mode_name(run_data.run_type);
+
             if game.over {
                 format!(
-                    "A zKube game that reached level {} with a score of {}.",
+                    "A {} {} game of zKube that reached level {} with a score of {}.",
+                    zone_name,
+                    mode_name,
                     run_data.current_level,
                     run_data.total_score,
                 )
             } else {
                 format!(
-                    "An active zKube game on level {} with a score of {}.",
+                    "An active {} {} game of zKube on level {} with a score of {}.",
+                    zone_name,
+                    mode_name,
                     run_data.current_level,
                     run_data.total_score,
                 )
@@ -190,20 +222,17 @@ mod renderer_systems {
             let game: Game = world.read_model(game_id);
             let run_data = game.get_run_data();
             let player_name = _get_player_name(world, game_id);
-            let capped_score: u16 = if run_data.total_score > 65535 {
-                65535
-            } else {
-                run_data.total_score.try_into().unwrap()
-            };
 
             renderer_helper::create_metadata(
                 game_id,
                 player_name,
                 game.over,
-                capped_score,
-                run_data.level_moves.into(),
-                game.combo_counter.into(),
+                run_data.total_score,
+                run_data.current_level,
                 game.max_combo,
+                run_data.zone_id,
+                run_data.current_difficulty,
+                run_data.run_type,
             )
         }
 
@@ -213,8 +242,14 @@ mod renderer_systems {
             let run_data = game.get_run_data();
             let player_name = _get_player_name(world, game_id);
 
-            // Use the helper to generate elements and create SVG
-            let rect = renderer_helper::create_rect();
+            let (bg_color, accent_color, secondary_color) = renderer_helper::get_zone_colors(
+                run_data.zone_id,
+            );
+            let zone_name = renderer_helper::get_zone_name(run_data.zone_id);
+            let difficulty_name = renderer_helper::get_difficulty_name(run_data.current_difficulty);
+            let mode_name = renderer_helper::get_mode_name(run_data.run_type);
+
+            let rect = renderer_helper::create_rect(bg_color, accent_color.clone());
             let mut _name: ByteArray = Default::default();
 
             if player_name != 0 {
@@ -230,69 +265,96 @@ mod renderer_systems {
 
             let _game_id = format!("{}", game_id);
             let _score = format!("{}", run_data.total_score);
-            let _combo = format!("{}", game.combo_counter);
             let _max_combo = format!("{}", game.max_combo);
             let _level = format!("{}", run_data.current_level);
 
             let mut elements = array![
                 rect,
+                // Title row
                 renderer_helper::create_text(
-                    "zKube #" + _game_id.clone(), "30", "40", "24", "middle", "left",
+                    "zKube #" + _game_id.clone(), "30", "40", "24", "middle", "start",
                 ),
-                renderer_helper::create_text(_name.clone(), "30", "80", "20", "middle", "left"),
+                renderer_helper::create_text(
+                    renderer_helper::game_state(game.over).clone(),
+                    "440",
+                    "40",
+                    "16",
+                    "middle",
+                    "end",
+                ),
+                // Player name
+                renderer_helper::create_text(_name.clone(), "30", "72", "20", "middle", "start"),
+                // First separator
+                renderer_helper::create_line("100", accent_color.clone()),
+                // Zone name left, mode right
+                renderer_helper::create_text(zone_name, "30", "135", "18", "middle", "start"),
+                renderer_helper::create_text(mode_name, "440", "135", "18", "middle", "end"),
             ];
 
-            if run_data.total_score != 0 || run_data.current_level > 1 {
-                elements
-                    .append(
-                        renderer_helper::create_text(
-                            renderer_helper::game_state(game.over).clone(),
-                            "300",
-                            "40",
-                            "20",
-                            "middle",
-                            "left",
-                        ),
-                    );
-                elements
-                    .append(
-                        renderer_helper::create_text(
-                            "Level: " + _level.clone(), "30", "125", "18", "middle", "left",
-                        ),
-                    );
-                elements
-                    .append(
-                        renderer_helper::create_text(
-                            "Score: " + _score.clone(), "30", "150", "18", "middle", "left",
-                        ),
-                    );
-                elements
-                    .append(
-                        renderer_helper::create_text(
-                            "Combo: " + _combo.clone(), "30", "175", "18", "middle", "left",
-                        ),
-                    );
-                elements
-                    .append(
-                        renderer_helper::create_text(
-                            "Max Combo: " + _max_combo.clone(), "30", "200", "18", "middle", "left",
-                        ),
-                    );
-            } else {
-                elements
-                    .append(
-                        renderer_helper::create_text(
-                            "Game not started", "240", "40", "20", "middle", "left",
-                        ),
-                    );
-            }
+            // Score section (centered)
+            elements
+                .append(
+                    "<text x='235' y='195' font-size='14' text-anchor='middle' dominant-baseline='middle' fill='"
+                        + secondary_color.clone()
+                        + "'>SCORE</text>",
+                );
+            elements
+                .append(
+                    renderer_helper::create_text(
+                        _score.clone(), "235", "240", "36", "middle", "middle",
+                    ),
+                );
+
+            // Bottom stats row
+            elements
+                .append(
+                    "<text x='80' y='310' font-size='11' text-anchor='middle' dominant-baseline='middle' fill='"
+                        + secondary_color.clone()
+                        + "'>DIFFICULTY</text>",
+                );
+            elements
+                .append(
+                    renderer_helper::create_text(
+                        difficulty_name, "80", "335", "16", "middle", "middle",
+                    ),
+                );
+
+            elements
+                .append(
+                    "<text x='235' y='310' font-size='11' text-anchor='middle' dominant-baseline='middle' fill='"
+                        + secondary_color.clone()
+                        + "'>MAX COMBO</text>",
+                );
+            elements
+                .append(
+                    renderer_helper::create_text(
+                        _max_combo.clone(), "235", "335", "16", "middle", "middle",
+                    ),
+                );
+
+            elements
+                .append(
+                    "<text x='390' y='310' font-size='11' text-anchor='middle' dominant-baseline='middle' fill='"
+                        + secondary_color
+                        + "'>LEVEL</text>",
+                );
+            elements
+                .append(
+                    renderer_helper::create_text(
+                        _level.clone(), "390", "335", "16", "middle", "middle",
+                    ),
+                );
+
+            // Second separator
+            elements.append(renderer_helper::create_line("375", accent_color.clone()));
 
             let mut elements = elements.span();
-            renderer_helper::create_svg(renderer_helper::combine_elements(ref elements))
+            renderer_helper::create_svg(
+                renderer_helper::combine_elements(ref elements), accent_color,
+            )
         }
 
         fn generate_details(self: @ContractState, game_id: felt252) -> Span<GameDetail> {
-            // Reuse the game_details implementation
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
             let run_data = game.get_run_data();
@@ -311,6 +373,27 @@ mod renderer_systems {
             details.append(GameDetail { name: 'LEVEL', value: run_data.current_level.into() });
 
             details.append(GameDetail { name: 'SCORE', value: run_data.total_score.into() });
+
+            details.append(GameDetail { name: 'ZONE', value: run_data.zone_id.into() });
+
+            details
+                .append(
+                    GameDetail {
+                        name: 'MODE',
+                        value: if run_data.run_type == 0 {
+                            'ZONE'
+                        } else {
+                            'ENDLESS'
+                        },
+                    },
+                );
+
+            details
+                .append(
+                    GameDetail { name: 'DIFFICULTY', value: run_data.current_difficulty.into() },
+                );
+
+            details.append(GameDetail { name: 'MAX_COMBO', value: game.max_combo.into() });
 
             details.span()
         }

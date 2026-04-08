@@ -153,7 +153,7 @@
     },
     {
       "address": "0x3d5e2a76681bd76ed1ec27049a645b070ccffa86c1b7fce6ca3e2decf7f3855",
-      "class_hash": "0x79f32225c4c16ebe0ec6b690d8d960cf13d0c1f7f03d7fda4cd88fed13b03b0",
+      "class_hash": "0x42d5faaa755f7d9972bfb4fbc5933fd50df5530a0f4231f7c73e306a759e4ba",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-renderer_systems",
       "selector": "0x70f3bfccd2499c8e5af4b0efbbe08b8ed4d5114b788283cccfb9e7aa3c59741",
