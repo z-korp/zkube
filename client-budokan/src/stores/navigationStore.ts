@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 
-export type TabId = "home" | "rewards" | "profile" | "ranks";
-export type OverlayId = "play" | "daily" | "boss" | "mutator" | "map" | "settings";
+export type TabId = "home" | "rewards" | "profile" | "ranks" | "settings";
+export type OverlayId = "play" | "daily" | "boss" | "mutator" | "map";
 export type PageId = TabId | OverlayId;
 
 export const FULLSCREEN_PAGES: ReadonlySet<PageId> = new Set(["play", "boss", "mutator", "map"]);
@@ -52,7 +52,7 @@ const getBackTarget = (page: PageId): PageId => {
     case "mutator":
       return "rewards";
     case "settings":
-      return "profile";
+      return "home";
     default:
       return "home";
   }

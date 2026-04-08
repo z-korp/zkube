@@ -1,9 +1,10 @@
-import { Home, Gift, User, Trophy } from "lucide-react";
+import { Home, Star, User, Trophy, Settings } from "lucide-react";
 import { useNavigationStore, FULLSCREEN_PAGES } from "@/stores/navigationStore";
 import type { PageId } from "@/stores/navigationStore";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { getThemeColors } from "@/config/themes";
 import { motion } from "motion/react";
+import { useClaimableCount } from "@/hooks/useClaimableCount";
 
 const BottomNav = () => {
   const currentPage = useNavigationStore((s) => s.currentPage);
@@ -11,20 +12,22 @@ const BottomNav = () => {
   const setProfileAddress = useNavigationStore((s) => s.setProfileAddress);
   const { themeTemplate } = useTheme();
   const colors = getThemeColors(themeTemplate);
+  const claimableCount = useClaimableCount();
 
   if (FULLSCREEN_PAGES.has(currentPage)) {
     return null;
   }
 
-  const tabs: { id: PageId; icon: React.ElementType; label: string }[] = [
+  const tabs: { id: PageId; icon: React.ElementType; label: string; badge?: number }[] = [
     { id: "home", icon: Home, label: "Home" },
-    { id: "rewards", icon: Gift, label: "Rewards" },
-    { id: "ranks", icon: Trophy, label: "Ranks" },
+    { id: "rewards", icon: Star, label: "Rewards", badge: claimableCount },
+    { id: "ranks", icon: Trophy, label: "Leaderboard" },
     { id: "profile", icon: User, label: "Profile" },
+    { id: "settings", icon: Settings, label: "Settings" },
   ];
 
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex h-16 w-[90%] max-w-[380px] items-center justify-around rounded-full border border-white/[0.12] bg-black/60 px-4 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex h-16 w-[92%] max-w-[420px] items-center justify-around rounded-full border border-white/[0.12] bg-black/60 px-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
       {tabs.map((tab) => {
         const isActive = currentPage === tab.id;
         const Icon = tab.icon;
@@ -35,8 +38,15 @@ const BottomNav = () => {
             className="relative flex flex-1 flex-col items-center justify-center gap-1 py-1 transition-colors"
             style={{ color: isActive ? colors.accent : "rgba(255, 255, 255, 0.4)" }}
           >
-            <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-            <span className="text-[10px] font-medium tracking-wide font-sans">
+            <div className="relative">
+              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+              {tab.badge && tab.badge > 0 ? (
+                <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 font-sans text-[9px] font-bold text-white shadow-sm">
+                  {tab.badge > 9 ? "9+" : tab.badge}
+                </span>
+              ) : null}
+            </div>
+            <span className="text-[9px] font-medium tracking-wide font-sans">
               {tab.label}
             </span>
             {isActive && (

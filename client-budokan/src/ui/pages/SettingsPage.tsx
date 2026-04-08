@@ -6,7 +6,7 @@ import {
   ChevronLeft,
   UserRound,
 } from "lucide-react";
-import { THEME_IDS, THEME_META, getThemeColors } from "@/config/themes";
+import { THEME_IDS, THEME_META, getThemeColors, type ThemeId } from "@/config/themes";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -14,8 +14,11 @@ import PageHeader from "@/ui/components/shared/PageHeader";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { useZoneProgress } from "@/hooks/useZoneProgress";
+import { useZStarBalance } from "@/hooks/useZStarBalance";
+import { ZONE_THEMES } from "@/hooks/useMapData";
 import { useDisconnect } from "@starknet-react/core";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 const toPercent = (value: number): number => Math.round(value * 100);
 
@@ -27,6 +30,21 @@ const SettingsPage: React.FC = () => {
   const { account } = useAccountCustom();
   const { disconnect } = useDisconnect();
   const [copied, setCopied] = useState(false);
+  const { balance: zStarBalance } = useZStarBalance(account?.address);
+  const { zones } = useZoneProgress(account?.address, zStarBalance);
+
+  const unlockedThemes = useMemo(() => {
+    const themeSet = new Set<ThemeId>();
+    for (const zone of zones) {
+      if (zone.unlocked) {
+        const themeId = ZONE_THEMES[zone.zoneId - 1];
+        if (themeId) themeSet.add(themeId);
+      }
+    }
+    // Fallback: always include at least theme-1
+    if (themeSet.size === 0) themeSet.add("theme-1");
+    return THEME_IDS.filter((id) => themeSet.has(id));
+  }, [zones]);
   const { musicVolume, effectsVolume, setMusicVolume, setEffectsVolume } =
     useMusicPlayer();
 
@@ -140,7 +158,7 @@ const SettingsPage: React.FC = () => {
             </div>
 
               <div className="flex flex-wrap gap-2">
-              {THEME_IDS.map((themeId, index) => {
+              {unlockedThemes.map((themeId, index) => {
                 const themeAssets = ImageAssets(themeId);
                 const isSelected = themeTemplate === themeId;
 
@@ -216,7 +234,19 @@ const SettingsPage: React.FC = () => {
               </div>
 
               <button
-                onClick={() => disconnect()}
+                onClick={() => {
+                  // Clear Cartridge controller storage then disconnect
+                  localStorage.removeItem("sessionSigner");
+                  localStorage.removeItem("session");
+                  localStorage.removeItem("sessionPolicies");
+                  localStorage.removeItem("lastUsedConnector");
+                  for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const key = localStorage.key(i);
+                    if (key?.startsWith("@cartridge/")) localStorage.removeItem(key);
+                  }
+                  disconnect();
+                  window.location.reload();
+                }}
                 className="w-full rounded-xl border border-red-400/35 bg-red-500/15 py-2.5 font-sans text-sm font-bold text-red-300 transition-colors hover:bg-red-500/25"
               >
                 Disconnect

@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { Settings } from "lucide-react";
 
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { getThemeColors } from "@/config/themes";
@@ -8,12 +7,16 @@ import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useZStarBalance } from "@/hooks/useZStarBalance";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
+import { usePlayerStats } from "@/hooks/usePlayerStats";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import type { WalletBalance } from "@/ui/components/profile/OverviewTab";
 import { useNavigationStore } from "@/stores/navigationStore";
 
 import ProgressBar from "@/ui/components/shared/ProgressBar";
 import PageHeader from "@/ui/components/shared/PageHeader";
 import OverviewTab from "@/ui/components/profile/OverviewTab";
+import ZoneProgressTab from "@/ui/components/profile/ZoneProgressTab";
 import AchievementsTab from "@/ui/components/profile/AchievementsTab";
 import UnlockModal from "@/ui/components/profile/UnlockModal";
 import Connect from "@/ui/components/Connect";
@@ -25,7 +28,7 @@ import {
   type ZoneProgressData,
 } from "@/config/profileData";
 
-const TABS = ["Overview", "Achievements"] as const;
+const TABS = ["Overview", "Zones", "Achievements"] as const;
 
 const containerVariants: any = {
   hidden: { opacity: 0 },
@@ -62,6 +65,15 @@ const ProfilePage: React.FC = () => {
   const { playerMeta } = usePlayerMeta(viewingAddress);
   const { balance: zStarBalance } = useZStarBalance(viewingAddress);
   const { zones, totalStars } = useZoneProgress(viewingAddress, zStarBalance);
+  const playerStats = usePlayerStats(viewingAddress);
+
+  const { VITE_PUBLIC_FEE_TOKEN_ADDRESS, VITE_PUBLIC_CUBE_TOKEN_ADDRESS } = import.meta.env;
+  const STRK_TOKEN = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+  const LORDS_TOKEN = "0x0124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49";
+  const { balance: strkBalance } = useTokenBalance(STRK_TOKEN, viewingAddress);
+  const { balance: cubeBalance } = useTokenBalance(VITE_PUBLIC_CUBE_TOKEN_ADDRESS, viewingAddress);
+  const { balance: lordsBalance } = useTokenBalance(LORDS_TOKEN, viewingAddress);
+
   // Resolve username for viewed profile
   const username = isOwnProfile ? connectedUsername : undefined;
 
@@ -71,7 +83,19 @@ const ProfilePage: React.FC = () => {
   const nextLevelXp = LEVEL_THRESHOLDS[level] ?? levelStartXp + 5000;
   const title = getTitleForLevel(level);
   const nextTitle = getTitleForLevel(level + 1);
-  const nextLockedZone = zones.find((zone) => !zone.unlocked && zone.starCost && zone.price !== undefined) ?? null;
+
+  const strkAmount = Number(strkBalance) / 1e18;
+  const usdcAmount = Number(cubeBalance) / 1e6;
+  const lordsAmount = Number(lordsBalance) / 1e18;
+  // TODO: fetch from price feed
+  const strkPriceUsd = 0.5;
+  const lordsPriceUsd = 0.03;
+
+  const walletBalances = useMemo<WalletBalance[]>(() => [
+    { label: "STRK", symbol: "STRK", amount: strkAmount.toFixed(2), usdcValue: strkAmount * strkPriceUsd, icon: "⚡" },
+    { label: "USDC", symbol: "USDC", amount: usdcAmount.toFixed(2), usdcValue: usdcAmount, icon: "💵" },
+    { label: "LORDS", symbol: "LORDS", amount: lordsAmount.toFixed(2), usdcValue: lordsAmount * lordsPriceUsd, icon: "🏰" },
+  ], [strkAmount, strkPriceUsd, usdcAmount, lordsAmount, lordsPriceUsd]);
 
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
   const [unlockZone, setUnlockZone] = useState<ZoneProgressData | null>(null);
@@ -98,22 +122,14 @@ const ProfilePage: React.FC = () => {
       <PageHeader
         title={isOwnProfile ? "Profile" : "Player Profile"}
         rightSlot={
-          isOwnProfile ? (
-            <button
-              onClick={() => navigate("settings")}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] shadow-lg backdrop-blur-md transition-all hover:bg-white/[0.08] active:scale-95"
-              aria-label="Settings"
-            >
-              <Settings size={20} className="text-white/80" />
-            </button>
-          ) : (
+          !isOwnProfile ? (
             <button
               onClick={() => { setProfileAddress(null); navigate("ranks"); }}
               className="flex h-10 items-center justify-center gap-1 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 shadow-lg backdrop-blur-md transition-all hover:bg-white/[0.08] active:scale-95"
             >
               <span className="font-sans text-xs font-medium text-white/80">Back</span>
             </button>
-          )
+          ) : undefined
         }
       />
 
@@ -206,11 +222,23 @@ const ProfilePage: React.FC = () => {
           {tab === "Overview" && (
             <OverviewTab
               colors={colors}
-              zones={zones}
-              nextLockedZone={nextLockedZone}
-              totalStars={totalStars}
               totalGames={playerMeta?.totalRuns ?? 0}
-              bestCombo="--"
+              totalLines={playerStats.totalLines}
+              combo4Count={playerStats.combo4Count}
+              totalBosses={playerStats.totalBosses}
+              walletBalances={walletBalances}
+              onFundAccount={() => {
+                // TODO: integrate Cartridge funding flow or bridge
+                window.open("https://starkgate.starknet.io", "_blank");
+              }}
+            />
+          )}
+
+          {tab === "Zones" && (
+            <ZoneProgressTab
+              colors={colors}
+              zones={zones}
+              totalStars={totalStars}
               onUnlock={setUnlockZone}
             />
           )}

@@ -71,8 +71,26 @@ const ZoneInfoSheet: React.FC<ZoneInfoSheetProps> = ({ zoneId, onClose }) => {
             ) : (
               <InfoRow emoji="🧩" label="No special rules" />
             )}
-            <InfoRow emoji={activeMutator.icon} label={activeMutator.label} />
-            <InfoRow emoji={passiveMutator.icon} label={passiveMutator.label} />
+            <div className="space-y-1">
+              <InfoRow emoji={activeMutator.icon} label={activeMutator.label} />
+              {activeMutator.effects.length > 0 && (
+                <div className="ml-9 flex flex-wrap gap-1">
+                  {activeMutator.effects.map((e) => (
+                    <span key={e} className="rounded-full bg-orange-500/10 px-2 py-0.5 font-sans text-[10px] font-semibold text-orange-200/70">{e}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="space-y-1">
+              <InfoRow emoji={passiveMutator.icon} label={passiveMutator.label} />
+              {passiveMutator.effects.length > 0 && (
+                <div className="ml-9 flex flex-wrap gap-1">
+                  {passiveMutator.effects.map((e) => (
+                    <span key={e} className="rounded-full bg-purple-500/10 px-2 py-0.5 font-sans text-[10px] font-semibold text-purple-200/70">{e}</span>
+                  ))}
+                </div>
+              )}
+            </div>
             <InfoRow emoji="👑" label={settings.bossId > 0 ? `Boss ${settings.bossId} on Level 10` : "Boss on Level 10"} />
         </div>
       </motion.div>
@@ -84,7 +102,8 @@ const getDisplayMutator = (id: number, kind: "Active" | "Passive") => {
   if (id <= 0) {
     return {
       icon: kind === "Active" ? "✨" : "🛡️",
-      label: `${kind} mutator: None`,
+      label: `${kind}: None`,
+      effects: [] as string[],
     };
   }
 
@@ -93,7 +112,8 @@ const getDisplayMutator = (id: number, kind: "Active" | "Passive") => {
 
   return {
     icon: isKnown ? mutator.icon : kind === "Active" ? "✨" : "🛡️",
-    label: `${kind} mutator: ${isKnown ? mutator.name : `Mutator ${id}`}`,
+    label: `${kind}: ${isKnown ? mutator.name : `Mutator ${id}`}`,
+    effects: isKnown ? mutator.effects : [],
   };
 };
 

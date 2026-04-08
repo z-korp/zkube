@@ -89,6 +89,7 @@ export const useZoneProgress = (
         bossCleared: progress.boss_cleared,
         levelStars,
         highestCleared: progress.highest_cleared,
+        perfectionClaimed: progress.perfection_claimed ?? false,
       });
     }
 
@@ -121,6 +122,7 @@ export const useZoneProgress = (
           levelStars: story?.levelStars ?? [],
           highestCleared: story?.highestCleared ?? 0,
           bossCleared: story?.bossCleared ?? false,
+          perfectionClaimed: story?.perfectionClaimed ?? false,
         };
       });
 

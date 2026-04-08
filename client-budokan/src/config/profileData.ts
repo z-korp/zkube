@@ -70,4 +70,5 @@ export interface ZoneProgressData {
   levelStars?: number[];
   highestCleared?: number;
   bossCleared?: boolean;
+  perfectionClaimed?: boolean;
 }
