@@ -67,7 +67,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
           {bonusDescription}
         </div>
       )}
-      <div className="max-w-[500px] mx-auto w-full flex items-center justify-center gap-[clamp(4px,1.5vw,10px)] bg-slate-900/90 backdrop-blur-sm border border-slate-500/50 rounded-lg px-[clamp(8px,2vw,14px)] py-[clamp(8px,2vw,14px)]">
+      <div className="max-w-[500px] mx-auto w-full flex items-center justify-center gap-[clamp(4px,1.5vw,10px)] px-[clamp(8px,2vw,14px)] py-[clamp(8px,2vw,14px)]">
         <motion.button
           onClick={onMap}
           whileHover={{ scale: 1.1 }}

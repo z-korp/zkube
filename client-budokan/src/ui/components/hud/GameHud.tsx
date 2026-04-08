@@ -271,7 +271,7 @@ const GameHud: React.FC<GameHudProps> = ({
 
   return (
     <div className="w-full shrink-0 px-2 pt-2">
-      <div className="relative mx-auto w-full max-w-[500px] rounded-xl border border-slate-500/50 bg-slate-900/90 px-3 py-2.5 backdrop-blur-sm">
+      <div className="relative mx-auto w-full max-w-[500px] px-3 py-2.5">
         <AnimatePresence>
           {isEndless && showDifficultyUp && (
             <motion.div

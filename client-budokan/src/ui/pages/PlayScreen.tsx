@@ -283,7 +283,15 @@ const PlayScreen: React.FC = () => {
   }, [game?.id, game?.bonusCharges, game?.bonusType]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div
+      className="flex h-full min-h-0 flex-col"
+      style={{
+        backgroundImage: `var(--theme-grid-bg-image, none)`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundColor: `var(--theme-grid-bg, #10172A)`,
+      }}
+    >
       <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { motion } from "motion/react";
 import { ChevronUp } from "lucide-react";
-import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
 import { Account } from "starknet";
 import Grid from "./Grid";
@@ -124,16 +123,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   return (
     <>
-        <Card
+        <div
           ref={containerRef}
           className={`relative flex h-full min-h-0 w-full max-w-[500px] flex-col p-2 md:p-3 ${
             isTxProcessing && "cursor-wait"
           }`}
-          style={{
-            backgroundImage: `var(--theme-grid-bg-image, none)`,
-            backgroundSize: "cover",
-            backgroundColor: `var(--theme-grid-bg, #10172A)`,
-          }}
         >
         <div
           className={`flex min-h-0 flex-1 flex-col items-center ${
@@ -185,7 +179,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             </div>
           </div>
         )}
-      </Card>
+      </div>
     </>
   );
 };

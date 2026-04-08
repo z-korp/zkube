@@ -2,7 +2,7 @@
 
 Cairo smart contracts for the zKube puzzle game built with Dojo framework.
 
-For detailed documentation, see [CLAUDE.md](./CLAUDE.md).
+For detailed documentation, see [CLAUDE.md](../CLAUDE.md).
 
 ## Quick Start
 
