@@ -113,7 +113,6 @@ mod config_system {
     };
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
     use zkube::constants::DEFAULT_NS;
-    use zkube::constants::DEFAULT_SETTINGS::DEFAULT_SETTINGS_ID;
     use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::helpers::encoding::U256BytesUsedTraitImpl;
     use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};

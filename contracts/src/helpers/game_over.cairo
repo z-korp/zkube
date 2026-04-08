@@ -1,13 +1,11 @@
 //! Shared game over handling logic.
 //! Consolidates duplicate handle_game_over() from game_system and play_system.
 
-use core::num::traits::Zero;
 use dojo::event::EventStorage;
 use dojo::model::ModelStorage;
-use dojo::world::{WorldStorage, WorldStorageTrait};
+use dojo::world::WorldStorage;
 use starknet::{ContractAddress, get_block_timestamp};
-use zkube::events::{RunEnded, ZoneClearBonus};
-use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
+use zkube::events::RunEnded;
 use zkube::helpers::config::ConfigUtilsTrait;
 use zkube::models::daily::{
     DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait, GameChallenge,
@@ -17,8 +15,6 @@ use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, Playe
 use zkube::models::story::{
     ActiveStoryAttempt, ActiveStoryAttemptTrait, StoryAttempt, StoryAttemptTrait,
 };
-use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
-
 /// Handle game over: update player meta, emit event, submit daily result.
 /// Used by game_system (surrender) and move_system (level failed/game over).
 pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAddress) {
