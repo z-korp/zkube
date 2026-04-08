@@ -126,7 +126,8 @@ const LeaderboardPage: React.FC = () => {
             <p className="font-sans text-base">Finish a run to claim rank #1.</p>
           </motion.div>
         ) : (
-          <motion.div 
+          <motion.div
+            key={activeTab}
             initial="hidden"
             animate="visible"
             className="mx-auto max-w-[500px] space-y-2"
