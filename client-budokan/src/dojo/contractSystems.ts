@@ -127,6 +127,7 @@ export interface SettleChallenge extends Signer {
 
 export interface SettleWeeklyEndless extends Signer {
   week_id: number;
+  settings_id: number;
   ranked_players: BigNumberish[];
 }
 
@@ -541,13 +542,13 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const settle_weekly_endless = async ({ account, week_id, ranked_players }: SettleWeeklyEndless) => {
+    const settle_weekly_endless = async ({ account, week_id, settings_id, ranked_players }: SettleWeeklyEndless) => {
       try {
         return await account.execute([
           {
             contractAddress: contract.address,
             entrypoint: "settle_weekly_endless",
-            calldata: CallData.compile([week_id, ranked_players]),
+            calldata: CallData.compile([week_id, settings_id, ranked_players]),
           },
         ]);
       } catch (error) {

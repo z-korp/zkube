@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x1ee87619a82d3545f8f791bada0cae8046db7e3c32b282be89677b0528cc1ce",
-    "seed": "zkube_v3_9",
+    "address": "0x4315e0cdc96d922fa98b44ed1bef3f230369c5b3bbf69f7a4396c1e2f2d6266",
+    "seed": "zkube_2_1",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,15 +33,15 @@
   },
   "contracts": [
     {
-      "address": "0x2b526f0a5c5653095b2d1ca6475e837bd0fe86ed74ed622ddff558171064c23",
-      "class_hash": "0x24a7bd31fd3b9af8a194d6f54cfa200db91acd7e801d2bd6310c3fd134e267f",
+      "address": "0x178fc6bf6f526f3ccd2b788aefb17a7c5ea8e496cdd2cc3a88851d2ba40518d",
+      "class_hash": "0x152b2f31b20a8ab7c73ed56eb361ec3f785c0882b2498b8425c7b155ff8f805",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x06e5f1a7bf27f6075006ea9835d6614c7889779e9db19d5edf5c7e894c77868b",
         "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
       ],
-      "tag": "zkube_v2_1_0-config_system",
-      "selector": "0x50a9672b31b97cb9c1733bf9c3d979aa30b9ae98bbf9326326d80dd58f7ccbc",
+      "tag": "zkube_v2_1_1-config_system",
+      "selector": "0x450a36f6dda8f4df759a6699e47ee49b10bf4f4159efb8d229b153a40ab464",
       "systems": [
         "dojo_init",
         "add_game_settings",
@@ -61,13 +61,13 @@
       ]
     },
     {
-      "address": "0x36b4fdee525ccafe39f507a8cba4a189b93dd87f3a31012c611918737eb4f13",
-      "class_hash": "0xbcac74ebcc3abb2bcd16dd4636c0bb30f521df93b4d4338c03c06791175c5",
+      "address": "0x3f2df9c8102a83b5508c15b1233201f12c8ba15c269ad35fb7f0b8dd69d45eb",
+      "class_hash": "0x695cf78c8902341fdd78ea0cd8a813017058831e4290a39a6e068b9c3bc0666",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
       ],
-      "tag": "zkube_v2_1_0-daily_challenge_system",
-      "selector": "0x18c67631111101fb76d5568576f753433148e4277de664541b5f88a49e12412",
+      "tag": "zkube_v2_1_1-daily_challenge_system",
+      "selector": "0x47258ce527ba0aa8536e610d86aa013bac6e8c44f21aa574e3e4750edfd34e5",
       "systems": [
         "dojo_init",
         "start_daily_game",
@@ -78,16 +78,16 @@
       ]
     },
     {
-      "address": "0x3052706d6cdd94945ede07473c83ee57269990d3e3237c41984539b97782863",
-      "class_hash": "0x57e8775fd39efacd1da700e91053a999d8a5f45239150b81f817ddbf90e9e72",
+      "address": "0x6cae91f0792875bda58c9458173227cc22c2f05cb2c5a3f2243926726592ea4",
+      "class_hash": "0x30a2c70cbb84ca60f6076f96fad7537bdebc09d0821d7b45b4b7d14017bf7ad",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x013e661f437432e76575402d45f0b523f01246b211fcc015aab2dc20b6b43a5c",
         "0x1",
         "0x0"
       ],
-      "tag": "zkube_v2_1_0-game_system",
-      "selector": "0x250ec127b58d20cbf99da12b321ddb6b6fa983eaabc8709f6f4ca9db558551b",
+      "tag": "zkube_v2_1_1-game_system",
+      "selector": "0x507fb9b931cb0f4749bbdcc1875aae18baf9bf6fa1716ad9071fa46c7d4a483",
       "systems": [
         "dojo_init",
         "create",
@@ -98,11 +98,11 @@
       ]
     },
     {
-      "address": "0x2e5f268f7f30180f27801b0d37297a522c77cde6fee8655bca2d1bb58a036ec",
-      "class_hash": "0x413fa37a85c869c6cd6734a9d6d41df58bec6741f605b3af18149a222c3ee85",
+      "address": "0x62c0bdf3e4b17ff665dee42ec8fa8db60b79af8997147b77fd78569d1d45067",
+      "class_hash": "0xdd041cab9d9683e658b8e9a02ca174fc802fa721a9b1b59aed50306ce06dad",
       "init_calldata": [],
-      "tag": "zkube_v2_1_0-grid_system",
-      "selector": "0x2732f9d5d9f7ff5bcdb81566cb6589ca0fbf32cdb06911ea678adb3b5b06c37",
+      "tag": "zkube_v2_1_1-grid_system",
+      "selector": "0x7bee05eebc6523e85f1898631b25ce16f91b107eb2873ec0234680496839ce7",
       "systems": [
         "initialize_grid",
         "reset_grid_for_level",
@@ -111,11 +111,11 @@
       ]
     },
     {
-      "address": "0x20c1dd450fdf47f14b033eb874ea487e20495e199bdcbaff5d785f1107bde8c",
-      "class_hash": "0x29dc93f123f0c9b534f4802f6ea5dd12ae6c803cc2717b112e8750ae511f5d6",
+      "address": "0x56556b22426c80080200869eb8bd023113583e8bdae1d54ca220f50bea01f47",
+      "class_hash": "0x6d28b826a8916c15ebc51909be915399ccecfe759d2f56c8d41728d49549f79",
       "init_calldata": [],
-      "tag": "zkube_v2_1_0-level_system",
-      "selector": "0x1689592ed01fb67e736e3075b7d3b060bfd9ea2904147c7e161bc3f08ae2e9",
+      "tag": "zkube_v2_1_1-level_system",
+      "selector": "0x1b08ed4c0314aa961a2fc61197e117a7e8b346cba235ba64b82c70638171440",
       "systems": [
         "initialize_level",
         "initialize_endless_level",
@@ -126,22 +126,22 @@
       ]
     },
     {
-      "address": "0xb28fe442dd681140ecc6cb72a50adb0f7632f3e2463e4602f86a308f7455c3",
-      "class_hash": "0x110be2d49454fb29c722c025f8df7ea79641c3e92e35c1e290d76a48ba6e049",
+      "address": "0x3d45d4233fcdb5dc6b0b0b57a1427fba23b326ce19ec1664ee08e804432aa06",
+      "class_hash": "0xb77fd3f12394cf482dac15a73130dc0cfe0cca8641f6257e30bcdade183385",
       "init_calldata": [],
-      "tag": "zkube_v2_1_0-move_system",
-      "selector": "0x2c6e7f38e7f45f67fca81df91805a8f3ee1d9842366e3e3d32f13f46cbf60d",
+      "tag": "zkube_v2_1_1-move_system",
+      "selector": "0x23c804211898ab98622b1199ca48308ae9539b9271b1b59e07f12793205883a",
       "systems": [
         "move",
         "upgrade"
       ]
     },
     {
-      "address": "0x4e22f3c7723a430cdbdcf4508486d6c3f51b3890ac04eb9e71b6ab5a2db5c64",
-      "class_hash": "0x68ab76dd32b69dba397729a1da6968540fd85af1d41cbb5dbca4bfc32819f96",
+      "address": "0x1f928f7c0713c8f4a51918f28a2bada5cee6f28a75b9dd9077df0227d4e09b5",
+      "class_hash": "0x66a4cf3edc5f2b52d3ebbec2283b8c16cd881a79267a3dc5fc9f01a2ee3f25b",
       "init_calldata": [],
-      "tag": "zkube_v2_1_0-progress_system",
-      "selector": "0x77d02bfa20be45e26f3c057bbd9d4fd88f0809bb8e3f881e4b2b89cd81d3c0c",
+      "tag": "zkube_v2_1_1-progress_system",
+      "selector": "0x1c30136162078a327946ba1fbf968d1ed050182e82dc3ce91d716d199a759a3",
       "systems": [
         "dojo_init",
         "emit_progress",
@@ -152,21 +152,21 @@
       ]
     },
     {
-      "address": "0x741859c0a4d7240d08e42cdd794c66eaabb89d75db7b2cd3dac515671e625b9",
-      "class_hash": "0x6589729ae757fd08a3056150cc274f2677abab11a1fcd209b6e53ede00f6e47",
+      "address": "0x3d5e2a76681bd76ed1ec27049a645b070ccffa86c1b7fce6ca3e2decf7f3855",
+      "class_hash": "0x79f32225c4c16ebe0ec6b690d8d960cf13d0c1f7f03d7fda4cd88fed13b03b0",
       "init_calldata": [],
-      "tag": "zkube_v2_1_0-renderer_systems",
-      "selector": "0x14312cd8629f0b08020c8365b6bfacc2459756f792e6b9e3fb4ef6ba891facb",
+      "tag": "zkube_v2_1_1-renderer_systems",
+      "selector": "0x70f3bfccd2499c8e5af4b0efbbe08b8ed4d5114b788283cccfb9e7aa3c59741",
       "systems": [
         "upgrade"
       ]
     },
     {
-      "address": "0x356523e675b4fd368a5ff20cc5d6e3e1032b25b046d59ef2720349611cbeaa2",
-      "class_hash": "0xfd7baf76dfa04a513b7fadd178bc96a2e0f84b58dda034e661f98694e5daa4",
+      "address": "0x4e02ec4c099130ecb5f99836996d5fb69552d4529290e7340346c5ce3bb7b38",
+      "class_hash": "0x45826105b549272563c0ce0e11069528469174385420f05c889d25c0b890d04",
       "init_calldata": [],
-      "tag": "zkube_v2_1_0-story_system",
-      "selector": "0x7a30a121577725a5eb4f24e5c76d572f923bfd472c815d956aa4c88dd231e74",
+      "tag": "zkube_v2_1_1-story_system",
+      "selector": "0x5a41f5aefd500f750fc3a3633da16042691f5ec5462b5c73d5404107acb52a4",
       "systems": [
         "start_story_attempt",
         "replay_story_level",
@@ -206,8 +206,8 @@
         }
       ],
       "class_hash": "0x84c35142a3dc9f93f6c9b7b654dd668d864a972d69f65c3eeda4700cba3c16",
-      "tag": "zkube_v2_1_0-AchievementAdvancement",
-      "selector": "0x833f4b13f9ea3c0b87b7d2e1e5ab8cc5bd9a1278f0442ddbd4be0f9a4150d8"
+      "tag": "zkube_v2_1_1-AchievementAdvancement",
+      "selector": "0x3eb5c6e241440e225ba4afb0d4118edcf13fd879bc9fc5d76463c26102b09db"
     },
     {
       "members": [
@@ -223,8 +223,8 @@
         }
       ],
       "class_hash": "0x72fd35a8c00be26e41ec7f14acdf86496257f61d4d7390405296ba246cd4479",
-      "tag": "zkube_v2_1_0-AchievementAssociation",
-      "selector": "0x7b56847ebbc06019d113bb5b066a516a1bc2ec9cd85144018de088eaab911d0"
+      "tag": "zkube_v2_1_1-AchievementAssociation",
+      "selector": "0x4e3afc2793716aa2bca05782a79a35e233775debcadd5fee93de12b6c7076ff"
     },
     {
       "members": [
@@ -250,8 +250,8 @@
         }
       ],
       "class_hash": "0x7fb19877a9bd8d61f7f03d4b56452b80ebbc2e828c15604f97e2602eec2a97f",
-      "tag": "zkube_v2_1_0-AchievementCompletion",
-      "selector": "0x15e1d0132f91897dbb819d94765314286e12026f3e3f4d658b5656f3ce1db5a"
+      "tag": "zkube_v2_1_1-AchievementCompletion",
+      "selector": "0x66f9497832450cca7820ced083216ac2e50c3d65349b9f17e869938de1dd1ee"
     },
     {
       "members": [
@@ -277,8 +277,8 @@
         }
       ],
       "class_hash": "0x303f6c721f4f73e1dedd330cd9859a4aed22e0b50e859b4cd2f3e023e6a483c",
-      "tag": "zkube_v2_1_0-AchievementDefinition",
-      "selector": "0x589115e72b2243ba5ddc41f50977bd2762392d24394d94a9adb1fc8a9113ab"
+      "tag": "zkube_v2_1_1-AchievementDefinition",
+      "selector": "0x1766dea6a85691f5d90f9af59a079143226ac4f8ce3f6829d5ec8cfc10bca02"
     },
     {
       "members": [
@@ -309,8 +309,8 @@
         }
       ],
       "class_hash": "0x36ec7c3148b9151e47f542d84111120008ae8768eca64d73b224846df1ac0fd",
-      "tag": "zkube_v2_1_0-ActiveStoryAttempt",
-      "selector": "0x2fbbc7ba33bdce8aa467ef1226bd46fc9b9f1c29d10a4bde1153671cb6ad7d6"
+      "tag": "zkube_v2_1_1-ActiveStoryAttempt",
+      "selector": "0x77db96c56241b3ada616a5f9f3db104d6e873b0295010bc340d963c5cdd5659"
     },
     {
       "members": [
@@ -341,8 +341,8 @@
         }
       ],
       "class_hash": "0x456669a690edfef4f4c623e7d8542e49ee6253d4a4f192e493ed5ed53dd40f1",
-      "tag": "zkube_v2_1_0-CosmeticDef",
-      "selector": "0x32f7a303a8fd651045e60448f035b058e679633503fda05c8d5402012586aae"
+      "tag": "zkube_v2_1_1-CosmeticDef",
+      "selector": "0x429e5b64f40f639794cc518ef2241f8a8dabc2ab683382642efc804808a9df4"
     },
     {
       "members": [
@@ -363,8 +363,8 @@
         }
       ],
       "class_hash": "0x2ac11b2b0425c545c5db6b4b073eebc5bc31821e893161b953e5967b9b819e3",
-      "tag": "zkube_v2_1_0-CosmeticUnlock",
-      "selector": "0x2488503acd8f67e1a61f2bab49ff9179f0391041761769175793955ef389a4e"
+      "tag": "zkube_v2_1_1-CosmeticUnlock",
+      "selector": "0x5d58b0f39abf3d9bc8085b711e7f2c2fd0bed18e26459a8e49932fd47b8cb16"
     },
     {
       "members": [
@@ -390,8 +390,8 @@
         }
       ],
       "class_hash": "0x5e6cb489c5e58ee7fef48b36ec663c5ecb47a331c4f7705a4e88eb79b17cf75",
-      "tag": "zkube_v2_1_0-DailyAttempt",
-      "selector": "0x7c1967ce0f5a0ca5eec950d1673abc9c0e26d5d0f13a1706262587d836114db"
+      "tag": "zkube_v2_1_1-DailyAttempt",
+      "selector": "0x140e59bcd0dfaa28dd27c6ba98935cf4b1fdb5f36b8f98968faa59783573757"
     },
     {
       "members": [
@@ -452,8 +452,8 @@
         }
       ],
       "class_hash": "0x59171bc227ae53d36a26c6e8b74aef7b6842edfa3df8d6e892c50472739e8e5",
-      "tag": "zkube_v2_1_0-DailyChallenge",
-      "selector": "0x51da372445b6d0d90ddfc99b1241955eff99a5702feb68f0fd94cd4ba51beb1"
+      "tag": "zkube_v2_1_1-DailyChallenge",
+      "selector": "0x1242653406bead0ec942fa63ad3e33898d29d91b170bbf0df67f676ff9cee53"
     },
     {
       "members": [
@@ -504,8 +504,8 @@
         }
       ],
       "class_hash": "0x4aec2eb882b96ccc35194caf86dbac3a9344b3535177012ed9c056a4c213ced",
-      "tag": "zkube_v2_1_0-DailyEntry",
-      "selector": "0x7bff9a52b6f3888dc9d75faa69ae64f639d3d77db78e1b9d8875354fcf6f324"
+      "tag": "zkube_v2_1_1-DailyEntry",
+      "selector": "0xb3258f2505f1070d565092e2a9c02cc556917dfcd8c11dc06cdd5cf296fb7"
     },
     {
       "members": [
@@ -556,8 +556,8 @@
         }
       ],
       "class_hash": "0x6ed8ce8cf1123a201653981d2ea6274c5ff500749b50ddd14a9b7389c1f165f",
-      "tag": "zkube_v2_1_0-Game",
-      "selector": "0x212f984c537417083cef0fe9c6b025ed029e56cbb38717d7c1c9f3727a613a7"
+      "tag": "zkube_v2_1_1-Game",
+      "selector": "0x5537489f7ced16a0682392d71bb3a3ffa807cc0df67099a591c48a9ec8ce92d"
     },
     {
       "members": [
@@ -573,8 +573,8 @@
         }
       ],
       "class_hash": "0x71fa377dd504638f98b1638644a1324788b516a78416a648d485d0f2e659ad6",
-      "tag": "zkube_v2_1_0-GameChallenge",
-      "selector": "0x5321534770e28554e51e99326ed5eb7916bfa40561789b6d5f1b78ee14851c4"
+      "tag": "zkube_v2_1_1-GameChallenge",
+      "selector": "0x358c8f04f95c004d0faf53fd1c52a0e13b119dc1acdaf585f99057d291bd91a"
     },
     {
       "members": [
@@ -655,8 +655,8 @@
         }
       ],
       "class_hash": "0x760d381dc4133d1dfe9c32d1679034a9f60541342372c5af4f0d9a6f84102da",
-      "tag": "zkube_v2_1_0-GameLevel",
-      "selector": "0x3f1f6d7ddbb67d2560deef4a6c543512dd170f220ded8dd157c11e5b309a4ac"
+      "tag": "zkube_v2_1_1-GameLevel",
+      "selector": "0x33fc42284f9779bb7e3af4defab4ba22378e409089922e9edace4ba24f5dbf1"
     },
     {
       "members": [
@@ -682,8 +682,8 @@
         }
       ],
       "class_hash": "0xb9a2c45702583cb4a437045b9e32aaf11fce71a6c8342462de77821cefb395",
-      "tag": "zkube_v2_1_0-GameSeed",
-      "selector": "0x2115e5ae86cf60bdee0b9dc81dbf7c893ba235989ebc3e4c5d41402cbfdbe3e"
+      "tag": "zkube_v2_1_1-GameSeed",
+      "selector": "0x6a426e1b641761da5c6546d5ac73219627f772228321f4139721b96900596c1"
     },
     {
       "members": [
@@ -889,8 +889,8 @@
         }
       ],
       "class_hash": "0x649ad6c2e3d6e1b86d3f3304829ecbbe98971fd18279f5d856380a6a2d3a353",
-      "tag": "zkube_v2_1_0-GameSettings",
-      "selector": "0x46e4334ad38a90560500caa1615ca3015730bc00a2f4389d7ba5271174034ac"
+      "tag": "zkube_v2_1_1-GameSettings",
+      "selector": "0x7b0d653149d7bca0c09b0394971a4f966cdbde0c5159451d3a3955a9b6570b7"
     },
     {
       "members": [
@@ -951,8 +951,8 @@
         }
       ],
       "class_hash": "0x3eb21949c0719d9e357656a209306b839a1d814f1c0154b3ae56fc6205622ec",
-      "tag": "zkube_v2_1_0-GameSettingsMetadata",
-      "selector": "0x3a91be404fcd894e2708605982bde8c55c9bffce983af7a2bdff69f071ce2c4"
+      "tag": "zkube_v2_1_1-GameSettingsMetadata",
+      "selector": "0x4cd476c641a9f8624d04d7bd881eedf4e55b7a09661fc53e5733ebfdd62455a"
     },
     {
       "members": [
@@ -1078,8 +1078,8 @@
         }
       ],
       "class_hash": "0x4bbe395a6ffd0fd70d9b3003ecad34f11cee08a715553df7cf55a6b36f37915",
-      "tag": "zkube_v2_1_0-MutatorDef",
-      "selector": "0x149499ab3ab23805842b36d159acb907a2e3b46b18e7b9f0e2afea809ab8da4"
+      "tag": "zkube_v2_1_1-MutatorDef",
+      "selector": "0x5fd234af1e3a65b33362c091dd31b54bcd70edcbca23edc65658f522e11340"
     },
     {
       "members": [
@@ -1130,8 +1130,8 @@
         }
       ],
       "class_hash": "0x55fa4dd3d68a4e0f1023fa81414a428bf422bd8215fdf068885e95c3d4202f3",
-      "tag": "zkube_v2_1_0-PlayerBestRun",
-      "selector": "0x1812a81d7ee2793a73ae15c1c6c8b2e0bb3a6212d5a64b765de473eaf426ac4"
+      "tag": "zkube_v2_1_1-PlayerBestRun",
+      "selector": "0x74d3cfe5adc145bcdca43e0ddda203525203e296dd937e0dc8f768c3af523a3"
     },
     {
       "members": [
@@ -1157,8 +1157,8 @@
         }
       ],
       "class_hash": "0x3f0b0392cf435e4ec83bdaba4438b980fb1e6d7f02527d8522b57d78ae3f221",
-      "tag": "zkube_v2_1_0-PlayerMeta",
-      "selector": "0x78204179a8b833ffd7f51e48a660f42780d37ee81044330dd05fe6823edbdc3"
+      "tag": "zkube_v2_1_1-PlayerMeta",
+      "selector": "0x20ad3fb05c3125fe948e4f0c32750feffdf4ff747a215b25971d3e55fc90824"
     },
     {
       "members": [
@@ -1194,8 +1194,8 @@
         }
       ],
       "class_hash": "0x79df0493c5022d0e85cefa85adeb6f030781c1e3e0643dbaaa2bb380c1b14c8",
-      "tag": "zkube_v2_1_0-QuestAdvancement",
-      "selector": "0x193c2feb9cf2853a2e501bd86be1eabe1e2761b267f14ed4c8f9b604d735804"
+      "tag": "zkube_v2_1_1-QuestAdvancement",
+      "selector": "0x6ba1a2578bb521fee2a7ec7ac30f51bb165286e2ca8d4c4169037e832edaf90"
     },
     {
       "members": [
@@ -1211,8 +1211,8 @@
         }
       ],
       "class_hash": "0x21f771d93e80b5da7bc98c8488640ca07ee066ae633c663737466ee5c868f85",
-      "tag": "zkube_v2_1_0-QuestAssociation",
-      "selector": "0x430660123a592e8a911aec9a17350c7061ffdd3f787c4520f7dfc0d9e09738b"
+      "tag": "zkube_v2_1_1-QuestAssociation",
+      "selector": "0x3709b67732f8b0a0ff31c5e426778b4fd58d4ec5cfb71c614f2a505651b846b"
     },
     {
       "members": [
@@ -1248,8 +1248,8 @@
         }
       ],
       "class_hash": "0x500750514442ea487dfd38397a6ba3636823e581a3be187e41ab278d6bf5545",
-      "tag": "zkube_v2_1_0-QuestCompletion",
-      "selector": "0x756a54270cc50fad0de4812f8b72de6b56904392b9f77479a3d1b36fca5972a"
+      "tag": "zkube_v2_1_1-QuestCompletion",
+      "selector": "0x2a6c78e3c95a5e2c89fe7e0d2023812f4bf3b87398bdabb149412f3d99b90d"
     },
     {
       "members": [
@@ -1265,8 +1265,8 @@
         }
       ],
       "class_hash": "0x3e1d5e0de0a7a397eea9bc41240eb8128563aae019691b888d3d69fa6868dd0",
-      "tag": "zkube_v2_1_0-QuestCondition",
-      "selector": "0x56b8d161a18c7aa758049d92454d372e573f4f3076040e7c2f494e87db0fd2b"
+      "tag": "zkube_v2_1_1-QuestCondition",
+      "selector": "0x24fe96d10093a71f3cec60e1ee15af18336a26599a9a5718ba12b38a393d60f"
     },
     {
       "members": [
@@ -1307,8 +1307,8 @@
         }
       ],
       "class_hash": "0x34f69049813e33a860c758ba15c5bb90033e635d7a625e1fe8eb912d39535b7",
-      "tag": "zkube_v2_1_0-QuestDefinition",
-      "selector": "0x2668627a0110622559637d8f357ce5a32e26ac5adf0b6c71acf235a554a95d1"
+      "tag": "zkube_v2_1_1-QuestDefinition",
+      "selector": "0x77422a9ae0bbcfef8ff7d81da448a342bc304b3faae2e9c1168cc2c01d2c461"
     },
     {
       "members": [
@@ -1339,8 +1339,8 @@
         }
       ],
       "class_hash": "0x4748fed75f5c8ac9e4a3a53be23a3e343011b5ebe8e4ced01f3404b6304018b",
-      "tag": "zkube_v2_1_0-StoryAttempt",
-      "selector": "0x7638b88d53245fa24ba12dac5e3fada51277b4a74464d2fc6ddabb740dcbfa"
+      "tag": "zkube_v2_1_1-StoryAttempt",
+      "selector": "0xdcd6620af5605a76d41ceb0e739b8f12fe2f787b507d73a47accd1caa3cdc9"
     },
     {
       "members": [
@@ -1376,8 +1376,8 @@
         }
       ],
       "class_hash": "0x50a0d8ddb9179403012947d10de9f89f6dae08dd988c6322e2123ac5dbe86b2",
-      "tag": "zkube_v2_1_0-StoryZoneProgress",
-      "selector": "0x25cae23854a81845b0d9073ded2fb3cd6dd2dbc187425087f30b7e3b1e1f809"
+      "tag": "zkube_v2_1_1-StoryZoneProgress",
+      "selector": "0x774dafa566b47f6977efe249c8f3ca41c12b6356dd6f946b4ed4bf2bb342ed6"
     },
     {
       "members": [
@@ -1398,35 +1398,8 @@
         }
       ],
       "class_hash": "0x5d7c91cf36bf35d5b261515149a542ba99d2a2ca06cd91dedf2288c35ca4e2b",
-      "tag": "zkube_v2_1_0-WeeklyEndless",
-      "selector": "0x521b3b35fc2f0f8eeabb889dff9f5b0861f0ad6771c85554078b2f261c16d85"
-    },
-    {
-      "members": [
-        {
-          "name": "week_id",
-          "type": "core::integer::u32",
-          "key": true
-        },
-        {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "key": true
-        },
-        {
-          "name": "best_score",
-          "type": "core::integer::u32",
-          "key": false
-        },
-        {
-          "name": "submitted",
-          "type": "core::bool",
-          "key": false
-        }
-      ],
-      "class_hash": "0x343b7e6390a3557123d4765b0a3b1c38117fb6d924ab995eb1e08433f6daa96",
-      "tag": "zkube_v2_1_0-WeeklyEndlessEntry",
-      "selector": "0x6800d6fb9f0826be9dd431c9ab53af33d6000d1198114782392316d2d82ff40"
+      "tag": "zkube_v2_1_1-WeeklyEndless",
+      "selector": "0x3cec0beda8be524ee15661c483d5ce9490fab00d3a232f0d9638c2f8244833f"
     },
     {
       "members": [
@@ -1447,8 +1420,8 @@
         }
       ],
       "class_hash": "0x63c5b3f095140a69cc953ef5047ffd10cb0c7eee751601c2ecfc531a7c10c97",
-      "tag": "zkube_v2_1_0-ZoneEntitlement",
-      "selector": "0x56833ed7f196a27b416a260abe3a708eec98af313665befcc711b31c1cc979f"
+      "tag": "zkube_v2_1_1-ZoneEntitlement",
+      "selector": "0x2758fd16b105e6f77489bafaab701792f6283039a1c717ec0af64933bba40c1"
     }
   ],
   "events": [
@@ -1471,8 +1444,8 @@
         }
       ],
       "class_hash": "0x2021c0a4b7662bc2d97d620c7ec30ae5f3b0f65164c181ff90d32f8f3f5a1ff",
-      "tag": "zkube_v2_1_0-AchievementClaimed",
-      "selector": "0x6cf7684f621221114cce457e26e550b441c593737fdb07c5ddfc1ebf9c9cb9c"
+      "tag": "zkube_v2_1_1-AchievementClaimed",
+      "selector": "0x3630bf9138c7313e24a82bc88c4f7c762476671e1774584ec639b678883f2b7"
     },
     {
       "members": [
@@ -1493,8 +1466,8 @@
         }
       ],
       "class_hash": "0x3e8128b802f64044ae6e20f73a5339e8b0b46eb132ee21c71875b2bcfda207d",
-      "tag": "zkube_v2_1_0-AchievementCompleted",
-      "selector": "0x6fdde626fccd93852fbab77170283950e12d36356ba75eedaf7c34127dcbdd1"
+      "tag": "zkube_v2_1_1-AchievementCompleted",
+      "selector": "0x1ba151d5a7be076748990d57317204a89ab8cc0ed72eed4b092f98191d1b1ac"
     },
     {
       "members": [
@@ -1520,8 +1493,8 @@
         }
       ],
       "class_hash": "0x7fd65bc87eda9fdfc7f23fd4fea15041a71165768f5fcac569ae08a8a37382d",
-      "tag": "zkube_v2_1_0-ConstraintProgress",
-      "selector": "0x286dc06baeba04e57e71176145989da97e3ee789478d728369fcfb8757b8833"
+      "tag": "zkube_v2_1_1-ConstraintProgress",
+      "selector": "0x7c8a7c4a10e1f57eabe09e4268a5c6bbcd5b0b55e73e4df8a964f9a24080703"
     },
     {
       "members": [
@@ -1557,8 +1530,8 @@
         }
       ],
       "class_hash": "0xd5879991031213d467aaa2c35bb9ce85c21ab96a7cc0a8304ad264b3ef6e50",
-      "tag": "zkube_v2_1_0-LevelCompleted",
-      "selector": "0x4066301b559bc46c8cf3a435acbacebd6bc6fe655f773f5e76d2ced9ce9382"
+      "tag": "zkube_v2_1_1-LevelCompleted",
+      "selector": "0x259547df6ac53a620b75646c4011cbc047b86087c416ed6be08f78359098464"
     },
     {
       "members": [
@@ -1604,8 +1577,8 @@
         }
       ],
       "class_hash": "0x1cd85d405c01fb5833dc5b5510ad4d088e76ca7cfd51272466a40e9b2c0b33e",
-      "tag": "zkube_v2_1_0-LevelStarted",
-      "selector": "0x2ecb390817dbe5dcf71d49f27160cdf2ad818fcd4a463e639b1fe5d0566f45b"
+      "tag": "zkube_v2_1_1-LevelStarted",
+      "selector": "0x447c64e11fc222229a994c930a622c7ff8e3894f9f38ba86e0db4915b26b9b5"
     },
     {
       "members": [
@@ -1631,8 +1604,8 @@
         }
       ],
       "class_hash": "0x27d1f7bd54e50a1b2ff2e5700aae8282ee2e1535decef7d374a2789a29ba644",
-      "tag": "zkube_v2_1_0-QuestClaimed",
-      "selector": "0x2062d82320479e3ce3a9130e10ff2e1885d0f1ddeaced29c5af868f805dce3"
+      "tag": "zkube_v2_1_1-QuestClaimed",
+      "selector": "0x61710e915d2777d665dc7475068bc197d13bd23b44daf4d90411aea2343d247"
     },
     {
       "members": [
@@ -1658,8 +1631,8 @@
         }
       ],
       "class_hash": "0x784d071ca2f51df425805af354f1427503bf695c1f3f19ef7c0df83a791e813",
-      "tag": "zkube_v2_1_0-QuestCompleted",
-      "selector": "0x7511c188c1b66ea9683847d8a9ab5321e433be23f93cd37bf84ae54e72d0859"
+      "tag": "zkube_v2_1_1-QuestCompleted",
+      "selector": "0x2b9f4a33f711f8f3127503415524785f14afa6a78196b51a0cddb9b72d9f90f"
     },
     {
       "members": [
@@ -1680,8 +1653,8 @@
         }
       ],
       "class_hash": "0x289f25e88823bbcd58495910cb4bb8c364a118fdbc6b689a98f7d64f72b5545",
-      "tag": "zkube_v2_1_0-QuestCreation",
-      "selector": "0x4f9fc6e69706bfc1f1071328d0424b02d18c336dbb6b52cc8e985ee2fcead79"
+      "tag": "zkube_v2_1_1-QuestCreation",
+      "selector": "0x74f6dcae208f7ed1822a6504d34fa855424e7b90ffb50e67eaa9295e48cc6e6"
     },
     {
       "members": [
@@ -1707,8 +1680,8 @@
         }
       ],
       "class_hash": "0x5b774cbca3f13015a55df518a2b1644704df86e9528fd14a895a8ff34d1a4b2",
-      "tag": "zkube_v2_1_0-QuestProgression",
-      "selector": "0x12bbda9d7ae597379aa0dfe49fa602bdfb4d07e46021e74ff554a50fe06cdab"
+      "tag": "zkube_v2_1_1-QuestProgression",
+      "selector": "0x12b1c2fdb135741756441a9cb59f506c961004e20188bb23f31042a5cd09816"
     },
     {
       "members": [
@@ -1734,8 +1707,8 @@
         }
       ],
       "class_hash": "0x5fcd3abe70d50464efb8803319d5b72d6a2f22ea1571b9d652d1c1eaf792ad1",
-      "tag": "zkube_v2_1_0-QuestUnlocked",
-      "selector": "0x16a7060a28188e75ef0d047165b2156d6b383a0b8f39a84b1e8bc7aa2f296f4"
+      "tag": "zkube_v2_1_1-QuestUnlocked",
+      "selector": "0x6ea13e8dabdb0b8cb4a8ebbbe137c78feefe3e0f04d2e176c2c8888a1223aa6"
     },
     {
       "members": [
@@ -1776,8 +1749,8 @@
         }
       ],
       "class_hash": "0x6f68d4a681baeded8e001a0e2a95b90eef3f622756467183b4f6b1fe25efa16",
-      "tag": "zkube_v2_1_0-RunEnded",
-      "selector": "0x5694c08b08e2fdbcca1bf892704f9915ce0a8b892592d42271747b508207182"
+      "tag": "zkube_v2_1_1-RunEnded",
+      "selector": "0x991c6cc357c081079833e66882900ac8472b8fc37183b4e5497f5649cf9d03"
     },
     {
       "members": [
@@ -1798,8 +1771,8 @@
         }
       ],
       "class_hash": "0x1eaa1a8d6c31856503dacc1cc88f503eb12b9fb5e8aa626897f0df06be832dc",
-      "tag": "zkube_v2_1_0-StartGame",
-      "selector": "0x4f2a15d0f569f5011258516635e8037d6365b27ba57910917e04ba484643b89"
+      "tag": "zkube_v2_1_1-StartGame",
+      "selector": "0x41f9deb1762e0b5ca2b8b99707e8abb4ace505cef951ae12a1adf68140e89a3"
     },
     {
       "members": [
@@ -1865,8 +1838,8 @@
         }
       ],
       "class_hash": "0x29674252693d6b2c1bd4bab4cd55c709fa89af50729c6a5e20048a876120bb9",
-      "tag": "zkube_v2_1_0-TrophyCreation",
-      "selector": "0x3caff9ee9229d16142328aedd22a3b4cb4c32e41d89fb1775254d2ab74b6641"
+      "tag": "zkube_v2_1_1-TrophyCreation",
+      "selector": "0x52de77eb9ea9c8a6155a2ec7b17a9551636ee1c8eae8f29f9bc8cb3008d18d1"
     },
     {
       "members": [
@@ -1892,8 +1865,8 @@
         }
       ],
       "class_hash": "0x4ff45751962a028dcd18736077eeb9608f4c340354d8269a2627d4a72e44225",
-      "tag": "zkube_v2_1_0-TrophyProgression",
-      "selector": "0x5f80fc7881dedad9aafa575e95ce5544a91173023daa1a11c2bb73558213a5d"
+      "tag": "zkube_v2_1_1-TrophyProgression",
+      "selector": "0x6c5954dd6ba4d72ad75d44a9963f44367ee93303c43cf5f6e214ae9d612ffb4"
     },
     {
       "members": [
@@ -1914,8 +1887,8 @@
         }
       ],
       "class_hash": "0x79047be5675f07a803ba2a15ceb866a10a105c352c0fa5e26864f43e03ddcca",
-      "tag": "zkube_v2_1_0-ZoneClearBonus",
-      "selector": "0xfa72c7055fde4457783c8d7b53cc89b204047cb0517481ccad70b769441876"
+      "tag": "zkube_v2_1_1-ZoneClearBonus",
+      "selector": "0x3084360e712d487c514b516c13016aba9bd3b9def35e396731a3f391f25e4cf"
     }
   ],
   "external_contracts": [],
@@ -7508,42 +7481,6 @@
     },
     {
       "type": "struct",
-      "name": "zkube::models::weekly::WeeklyEndlessEntry",
-      "members": [
-        {
-          "name": "week_id",
-          "type": "core::integer::u32"
-        },
-        {
-          "name": "player",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "best_score",
-          "type": "core::integer::u32"
-        },
-        {
-          "name": "submitted",
-          "type": "core::bool"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "zkube::models::weekly::WeeklyEndlessEntryValue",
-      "members": [
-        {
-          "name": "best_score",
-          "type": "core::integer::u32"
-        },
-        {
-          "name": "submitted",
-          "type": "core::bool"
-        }
-      ]
-    },
-    {
-      "type": "struct",
       "name": "zkube::models::weekly::WeeklyEndlessValue",
       "members": [
         {
@@ -7559,12 +7496,6 @@
     {
       "type": "event",
       "name": "zkube::models::weekly::m_WeeklyEndless::Event",
-      "kind": "enum",
-      "variants": []
-    },
-    {
-      "type": "event",
-      "name": "zkube::models::weekly::m_WeeklyEndlessEntry::Event",
       "kind": "enum",
       "variants": []
     },
@@ -8136,6 +8067,10 @@
           "inputs": [
             {
               "name": "week_id",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "settings_id",
               "type": "core::integer::u32"
             },
             {

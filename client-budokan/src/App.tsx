@@ -11,7 +11,7 @@ import HomePage from "@/ui/pages/HomePage";
 const PlayScreen = lazy(() => import("@/ui/pages/PlayScreen"));
 const MapPage = lazy(() => import("@/ui/pages/MapPage"));
 const SettingsPage = lazy(() => import("@/ui/pages/SettingsPage"));
-const MyGamesPage = lazy(() => import("@/ui/pages/MyGamesPage"));
+const RewardsPage = lazy(() => import("@/ui/pages/RewardsPage"));
 const LeaderboardPage = lazy(() => import("@/ui/pages/LeaderboardPage"));
 const ProfilePage = lazy(() => import("@/ui/pages/ProfilePage"));
 const DailyChallengePage = lazy(() => import("@/ui/pages/DailyChallengePage"));
@@ -24,7 +24,7 @@ const pageComponents: Partial<Record<PageId, React.ReactNode>> = {
   map: <MapPage />,
   ranks: <LeaderboardPage />,
   settings: <SettingsPage />,
-  mygames: <MyGamesPage />,
+  rewards: <RewardsPage />,
   profile: <ProfilePage />,
   daily: <DailyChallengePage />,
   boss: <BossRevealPage />,

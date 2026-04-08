@@ -6,7 +6,7 @@ export type ContractComponents = Awaited<
 >;
 
 const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
-const ARCADE_NAMESPACE = "zkube_v2_1_0";
+const ARCADE_NAMESPACE = "zkube_v2_1_1";
 
 export function defineContractComponents(world: World) {
   return {

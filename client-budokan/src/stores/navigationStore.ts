@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 
-export type TabId = "home" | "mygames" | "profile" | "ranks";
+export type TabId = "home" | "rewards" | "profile" | "ranks";
 export type OverlayId = "play" | "daily" | "boss" | "mutator" | "map" | "settings";
 export type PageId = TabId | OverlayId;
 
@@ -48,7 +48,7 @@ const getBackTarget = (page: PageId): PageId => {
     case "map":
       return "home";
     case "mutator":
-      return "mygames";
+      return "rewards";
     case "settings":
       return "profile";
     default:

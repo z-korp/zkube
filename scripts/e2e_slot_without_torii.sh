@@ -3,9 +3,9 @@ set -euo pipefail
 
 WORKDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROFILE="slot"
-GAME_TAG="zkube_v2_1_0-game_system"
-MOVE_TAG="zkube_v2_1_0-move_system"
-GAME_MODEL_TAG="zkube_v2_1_0-Game"
+GAME_TAG="zkube_v2_1_1-game_system"
+MOVE_TAG="zkube_v2_1_1-move_system"
+GAME_MODEL_TAG="zkube_v2_1_1-Game"
 PLAYER_NAME="${PLAYER_NAME:-dj}"
 SETTINGS_ID="${SETTINGS_ID:-0}"
 MODE="${MODE:-0}"

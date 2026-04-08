@@ -9,13 +9,11 @@ import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useZStarBalance } from "@/hooks/useZStarBalance";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { useQuests } from "@/hooks/useQuests";
 import { useNavigationStore } from "@/stores/navigationStore";
 
 import ProgressBar from "@/ui/components/shared/ProgressBar";
 import PageHeader from "@/ui/components/shared/PageHeader";
 import OverviewTab from "@/ui/components/profile/OverviewTab";
-import QuestsTab from "@/ui/components/profile/QuestsTab";
 import AchievementsTab from "@/ui/components/profile/AchievementsTab";
 import UnlockModal from "@/ui/components/profile/UnlockModal";
 import Connect from "@/ui/components/Connect";
@@ -26,7 +24,7 @@ import {
   type ZoneProgressData,
 } from "@/config/profileData";
 
-const TABS = ["Overview", "Quests", "Achievements"] as const;
+const TABS = ["Overview", "Achievements"] as const;
 
 const containerVariants: any = {
   hidden: { opacity: 0 },
@@ -79,8 +77,6 @@ const ProfilePage: React.FC = () => {
   const { playerMeta } = usePlayerMeta(viewingAddress);
   const { balance: zStarBalance } = useZStarBalance(viewingAddress);
   const { zones, totalStars } = useZoneProgress(viewingAddress, zStarBalance);
-  const { quests } = useQuests();
-
   // Resolve username for viewed profile
   const username = isOwnProfile ? connectedUsername : undefined;
 
@@ -90,7 +86,6 @@ const ProfilePage: React.FC = () => {
   const nextLevelXp = LEVEL_THRESHOLDS[level] ?? levelStartXp + 5000;
   const title = getTitleForLevel(level);
   const nextTitle = getTitleForLevel(level + 1);
-  const questsPendingCount = quests.filter((quest) => quest.active && !quest.claimed).length;
   const nextLockedZone = zones.find((zone) => !zone.unlocked && zone.starCost && zone.price !== undefined) ?? null;
 
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");

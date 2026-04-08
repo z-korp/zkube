@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-NAMESPACE="zkube_v2_1_0"
+NAMESPACE="zkube_v2_1_1"
 PROFILE="sepolia"
 CONTRACTS_DIR="./contracts"
 MANIFEST_FILE="./manifest_sepolia.json"
