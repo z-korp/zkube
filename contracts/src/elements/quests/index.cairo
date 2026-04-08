@@ -21,6 +21,8 @@ pub const QUEST_WEEKLY_EXPLORER: felt252 = 'QUEST_WEEKLY_EXPLORER';
 const DAY: u64 = 86400;
 const THREE_DAYS: u64 = 259200;
 const WEEK: u64 = 604800;
+/// Monday-aligned offset (Unix epoch was Thursday; +4 days = Monday)
+const MONDAY_OFFSET: u64 = 345600;
 
 #[derive(Drop)]
 pub struct QuestDefinitionProps {
@@ -174,12 +176,12 @@ pub impl QuestDefsImpl of QuestDefsTrait {
         )
     }
 
-    // ── Weekly (start=0, duration=WEEK, interval=WEEK) ──
+    // ── Weekly (start=MONDAY_OFFSET, duration=WEEK, interval=WEEK) ──
 
     fn weekly_grinder(registry: ContractAddress) -> QuestDefinitionProps {
         make_quest(
             QUEST_WEEKLY_GRINDER,
-            0,
+            MONDAY_OFFSET,
             WEEK,
             WEEK,
             array![task(ZTask::LineClear, 150)].span(),
@@ -191,7 +193,7 @@ pub impl QuestDefsImpl of QuestDefsTrait {
     fn weekly_explorer(registry: ContractAddress) -> QuestDefinitionProps {
         make_quest(
             QUEST_WEEKLY_EXPLORER,
-            0,
+            MONDAY_OFFSET,
             WEEK,
             WEEK,
             array![task(ZTask::DailyPlay, 3)].span(),
