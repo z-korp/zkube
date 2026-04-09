@@ -271,18 +271,25 @@ const MapPage: React.FC = () => {
     return zoneProgressData?.stars ?? 0;
   }, [isDailyMap, game, zoneProgressData]);
 
-  const isFirstVisit = zoneState !== undefined && zoneStars === 0;
+  // For first visit detection, use story zone progress (not daily/game-derived state)
+  const storyZoneStars = zoneProgressData?.stars ?? 0;
+  const isFirstVisit = !isDailyMap && zoneProgressData !== undefined && storyZoneStars === 0;
   const [greetingAutoShown, setGreetingAutoShown] = useState(false);
 
-  // Auto-show guardian greeting only when data is loaded and stars are genuinely 0
+  // Auto-show guardian greeting only for story mode when zone has 0 stars
   useEffect(() => {
     if (greetingAutoShown) return;
-    if (zoneState === undefined) return; // data not loaded yet
-    if (zoneStars === 0) {
+    if (isDailyMap) return; // never auto-show for daily
+    if (zoneProgressData === undefined) return; // data not loaded yet
+    console.log("[GuardianGreeting] zoneId:", mapZoneId, "storyStars:", storyZoneStars, "zoneProgressData:", zoneProgressData);
+    if (storyZoneStars === 0) {
+      console.log("[GuardianGreeting] First visit! Showing greeting for zone", mapZoneId);
       setShowGreeting(true);
       setGreetingAutoShown(true);
+    } else {
+      console.log("[GuardianGreeting] Not first visit, stars:", storyZoneStars);
     }
-  }, [zoneState, zoneStars, greetingAutoShown]);
+  }, [zoneProgressData, storyZoneStars, greetingAutoShown, isDailyMap, mapZoneId]);
 
   return (
     <div className="relative flex h-full flex-col">

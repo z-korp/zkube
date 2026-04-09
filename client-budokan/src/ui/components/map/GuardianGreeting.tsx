@@ -52,8 +52,10 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
             alt={guardian.name}
             className="h-full w-auto object-contain"
             style={{
-              maskImage: "radial-gradient(ellipse 80% 85% at 50% 45%, black 40%, transparent 75%)",
-              WebkitMaskImage: "radial-gradient(ellipse 80% 85% at 50% 45%, black 40%, transparent 75%)",
+              maskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 70%, transparent 95%), linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 70%, transparent 95%), linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)",
+              maskComposite: "intersect",
+              WebkitMaskComposite: "source-in",
             }}
             draggable={false}
             onError={(e) => {
