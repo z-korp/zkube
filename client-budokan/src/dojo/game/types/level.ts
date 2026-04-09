@@ -314,27 +314,45 @@ export function generateLevelConfig(
   level: number,
   settings: GameSettings = DEFAULT_SETTINGS
 ): Level {
-  // Get level cap from settings
-  const levelCap = settings.levelCap || 50;
-
-  // Cap level for calculations (survival mode after cap)
-  const calcLevel = Math.min(level, levelCap);
+  // Zone mode uses a 10-level cap (matching contract's zone_level_cap = 10)
+  const zoneLevelCap = 10;
+  const isEndless = level > zoneLevelCap;
+  const calcLevel = Math.min(level, zoneLevelCap);
 
   // Derive level-specific seed using Poseidon (matching Cairo)
   const levelSeed = deriveLevelSeed(seed, level);
 
-  // 1. Calculate base moves using settings
-  const baseMoves = calculateBaseMoves(
+  if (isEndless) {
+    // Endless mode: fixed moves at maxMoves, ratio escalates by +10 per depth
+    const endlessDepth = level - zoneLevelCap;
+    const endlessRatioX100 = settings.maxRatioX100 + endlessDepth * 10;
+    const endlessPoints = Math.floor((settings.maxMoves * endlessRatioX100) / 100);
+    const difficulty = getDifficultyForLevel(calcLevel, settings);
+    return new Level({
+      level,
+      pointsRequired: endlessPoints,
+      maxMoves: settings.maxMoves,
+      difficulty,
+      constraint: new Constraint({ constraintType: ConstraintType.None, value: 0, requiredCount: 0 }),
+      constraint2: new Constraint({ constraintType: ConstraintType.None, value: 0, requiredCount: 0 }),
+      cube3Threshold: Math.floor((settings.maxMoves * settings.cube3Percent) / 100),
+      cube2Threshold: Math.floor((settings.maxMoves * settings.cube2Percent) / 100),
+    });
+  }
+
+  // Zone mode (levels 1-10): scale over zoneLevelCap
+  const baseMoves = calculateBaseMovesWithCap(
     calcLevel,
     settings.baseMoves,
-    settings.maxMoves
+    settings.maxMoves,
+    zoneLevelCap
   );
 
-  // 2. Calculate ratio for this level using settings
-  const ratioX100 = calculateRatio(
+  const ratioX100 = calculateRatioWithCap(
     calcLevel,
     settings.baseRatioX100,
-    settings.maxRatioX100
+    settings.maxRatioX100,
+    zoneLevelCap
   );
 
   // 3. Calculate base points from moves x ratio
@@ -392,36 +410,38 @@ function deriveLevelSeed(seed: bigint, level: number): bigint {
 }
 
 /**
- * Calculate base moves for a level (before variance)
- * Linear scaling from baseMoves at level 1 to maxMoves at level 50
+ * Calculate base moves with a configurable level cap (matching contract)
+ * Linear scaling from baseMoves at level 1 to maxMoves at levelCap
  */
-function calculateBaseMoves(
+function calculateBaseMovesWithCap(
   level: number,
   baseMoves: number,
-  maxMoves: number
+  maxMoves: number,
+  levelCap: number
 ): number {
-  if (level <= 1) {
+  if (level <= 1 || levelCap <= 1) {
     return baseMoves;
   }
   const range = maxMoves - baseMoves;
-  const progress = Math.floor(((level - 1) * range) / 49);
+  const progress = Math.floor(((level - 1) * range) / (levelCap - 1));
   return baseMoves + progress;
 }
 
 /**
- * Calculate ratio for this level (scaled by 100)
- * Linear scaling from baseRatio at level 1 to maxRatio at level 50
+ * Calculate ratio with a configurable level cap (matching contract)
+ * Linear scaling from baseRatio at level 1 to maxRatio at levelCap
  */
-function calculateRatio(
+function calculateRatioWithCap(
   level: number,
   baseRatioX100: number,
-  maxRatioX100: number
+  maxRatioX100: number,
+  levelCap: number
 ): number {
-  if (level <= 1) {
+  if (level <= 1 || levelCap <= 1) {
     return baseRatioX100;
   }
   const range = maxRatioX100 - baseRatioX100;
-  const progress = Math.floor(((level - 1) * range) / 49);
+  const progress = Math.floor(((level - 1) * range) / (levelCap - 1));
   return baseRatioX100 + progress;
 }
 

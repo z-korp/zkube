@@ -99,6 +99,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        onClick={animationPhase >= 3 ? onClose : undefined}
       >
         {/* Full-height guardian portrait */}
         <div className="relative flex flex-1 min-h-0 items-end justify-center overflow-hidden">
@@ -129,6 +130,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 25 }}
+          onClick={(e) => e.stopPropagation()}
         >
           <div
             className="mx-2 mb-3 rounded-2xl border-2 px-4 pb-4 pt-3"
