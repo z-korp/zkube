@@ -236,12 +236,10 @@ const HomePage: React.FC = () => {
   );
   const activeZone = useMemo(() => {
     const idx = zones.findIndex((z) => z.zoneId === mapZoneId);
-    console.log("[HomePage] activeZone derive:", { mapZoneId, idx, zonesIds: zones.map(z => `${z.zoneId}(${z.unlocked ? 'U' : 'L'})`) });
     return idx >= 0 ? idx : 0;
   }, [zones, mapZoneId]);
   const setActiveZone = useCallback((idx: number) => {
     const z = zones[idx];
-    console.log("[HomePage] setActiveZone:", { idx, zoneId: z?.zoneId });
     if (z) setMapZoneId(z.zoneId);
   }, [zones, setMapZoneId]);
   const { challenge, isLoading: challengeLoading } = useCurrentChallenge();
