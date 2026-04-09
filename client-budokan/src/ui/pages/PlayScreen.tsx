@@ -153,16 +153,27 @@ const PlayScreen: React.FC = () => {
   useEffect(() => {
     if (prevGameOverRef.current !== undefined) {
       if (!prevGameOverRef.current && game?.over) {
+        const pending = useNavigationStore.getState().pendingLevelCompletion;
+        console.log("[GameOver]", {
+          level: game.level,
+          levelScore: game.levelScore,
+          levelMoves: game.levelMoves,
+          totalScore: game.totalScore,
+          zoneCleared: game.zoneCleared,
+          mode: game.mode,
+          targetScore,
+          maxMoves: effectiveGameLevel?.maxMoves,
+          pendingAlreadySet: !!pending,
+        });
         if (game.zoneCleared) {
+          console.log("[GameOver] → VICTORY (zone cleared)");
           playSfx("victory");
           setIsVictoryOpen(true);
         } else if (game.mode === 0 || game.mode === undefined) {
-          // Story/daily: game.over + !zoneCleared = run failed (always)
-          // Level completion is handled by the level-advance effect (line ~199)
-          // which fires when currentLevel > prevLevel && !game.over.
-          // If game.over fires, the run ended without clearing the zone.
-          // Skip if level-advance effect already set a completion.
-          if (!useNavigationStore.getState().pendingLevelCompletion) {
+          if (pending) {
+            console.log("[GameOver] → SKIP (level completion already handled by advance effect)");
+          } else {
+            console.log("[GameOver] → INCOMPLETE (run failed)");
             setPendingLevelCompletion({
               level: game.level,
               levelMoves: game.levelMoves,
@@ -174,14 +185,14 @@ const PlayScreen: React.FC = () => {
             navNavigate("map");
           }
         } else {
-          // Endless mode: show game over
+          console.log("[GameOver] → ENDLESS GAME OVER");
           playSfx("over");
           setIsGameOverOpen(true);
         }
       }
     }
     prevGameOverRef.current = game?.over;
-  }, [game, navNavigate, playSfx, resolveCompletionGameLevel, setPendingLevelCompletion, targetScore]);
+  }, [game, navNavigate, playSfx, resolveCompletionGameLevel, setPendingLevelCompletion, targetScore, effectiveGameLevel]);
 
   const handleCascadeComplete = useCallback(() => {
     setCascadeComplete(true);
@@ -200,8 +211,17 @@ const PlayScreen: React.FC = () => {
       levelStartTotalScoreRef.current = game.totalScore - game.levelScore;
     }
 
-    if (prevState && currentLevel > prevState.level && !game.over) {
+    if (prevState && currentLevel > prevState.level) {
+      console.log("[LevelAdvance]", {
+        prevLevel: prevState.level,
+        currentLevel,
+        gameOver: game.over,
+        cascadeComplete,
+        prevMoves: prevState.levelMoves,
+        prevScore: prevState.levelScore,
+      });
       if (!cascadeComplete) return;
+      // Level advanced — this is a completion even if game.over is also true
       if (checkBossLevel(prevState.level)) {
         playSfx("boss-defeat");
       } else {
