@@ -276,20 +276,29 @@ const MapPage: React.FC = () => {
   const isFirstVisit = !isDailyMap && zoneProgressData !== undefined && storyZoneStars === 0;
   const [greetingAutoShown, setGreetingAutoShown] = useState(false);
 
-  // Auto-show guardian greeting only for story mode when zone has 0 stars
+  // Auto-show guardian greeting only for story mode when zone has genuinely 0 stars
   useEffect(() => {
+    console.log("[GuardianGreeting] check:", {
+      greetingAutoShown,
+      isDailyMap,
+      mapZoneId,
+      zonesCount: zones.length,
+      zoneProgressData: zoneProgressData ? { stars: zoneProgressData.stars, unlocked: zoneProgressData.unlocked, highestCleared: zoneProgressData.highestCleared } : "undefined",
+      storyZoneStars,
+    });
     if (greetingAutoShown) return;
-    if (isDailyMap) return; // never auto-show for daily
-    if (zoneProgressData === undefined) return; // data not loaded yet
-    console.log("[GuardianGreeting] zoneId:", mapZoneId, "storyStars:", storyZoneStars, "zoneProgressData:", zoneProgressData);
-    if (storyZoneStars === 0) {
-      console.log("[GuardianGreeting] First visit! Showing greeting for zone", mapZoneId);
+    if (isDailyMap) return;
+    // Wait until zones have actually loaded from Torii (not just fallbacks)
+    // Fallback zones only have zone 1 and 2, so if we're on zone 1 check highestCleared
+    if (zoneProgressData === undefined) return;
+    // Only trigger if the zone is unlocked AND has 0 stars — locked zones with 0 stars don't count
+    if (!zoneProgressData.unlocked) return;
+    if (storyZoneStars === 0 && zoneProgressData.highestCleared === 0) {
+      console.log("[GuardianGreeting] TRIGGER: first visit zone", mapZoneId);
       setShowGreeting(true);
       setGreetingAutoShown(true);
-    } else {
-      console.log("[GuardianGreeting] Not first visit, stars:", storyZoneStars);
     }
-  }, [zoneProgressData, storyZoneStars, greetingAutoShown, isDailyMap, mapZoneId]);
+  }, [zones.length, zoneProgressData, storyZoneStars, greetingAutoShown, isDailyMap, mapZoneId]);
 
   return (
     <div className="relative flex h-full flex-col">
