@@ -166,6 +166,33 @@
   pointer-events: none; /* To not interfere with user interactions */
 }
 
+/* Boss fight: red vignette overlay on the grid */
+.boss-grid {
+  position: relative;
+}
+
+.boss-grid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+  box-shadow: inset 0 0 50px rgba(239, 68, 68, 0.15),
+              inset 0 0 100px rgba(127, 29, 29, 0.1);
+  animation: bossVignettePulse 3s infinite ease-in-out;
+}
+
+@keyframes bossVignettePulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Boss HUD bar: subtle animated red border glow at bottom */
+.boss-hud-bar {
+  border-bottom: 2px solid rgba(239, 68, 68, 0.4);
+  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.2);
+}
+
 .text-shine {
   background: linear-gradient(
     to right,

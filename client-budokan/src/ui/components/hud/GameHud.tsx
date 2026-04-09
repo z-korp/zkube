@@ -362,14 +362,27 @@ const GameHud: React.FC<GameHudProps> = ({
   }
 
   // ─── STORY MODE HUD ───
+  const hudBarBg = isBoss
+    ? "linear-gradient(180deg, rgba(127,29,29,0.85) 0%, rgba(30,10,10,0.9) 100%)"
+    : undefined;
+
   return (
-    <div className="w-full shrink-0 px-2 pt-2">
-      <div className="relative mx-auto w-full max-w-[500px] px-3 py-2">
+    <div className="w-full shrink-0">
+      <div
+        className={`relative mx-auto w-full max-w-[500px] px-3 py-2 ${
+          isBoss ? "boss-hud-bar" : ""
+        }`}
+        style={{
+          backgroundImage: hudBarBg ?? `url(/assets/common/ui/action-bar.png)`,
+          backgroundSize: "100% 100%",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
         <div className="space-y-1.5">
           {/* Row 1: Back + Avatar + Level + Combo + Constraints */}
           <div className="flex items-center gap-2">
             {onBack && (
-              <button onClick={onBack} className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors shrink-0">
+              <button onClick={onBack} className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/30 hover:bg-black/50 text-slate-300 hover:text-white transition-colors shrink-0">
                 <ArrowLeft className="h-3.5 w-3.5" />
               </button>
             )}
@@ -379,28 +392,36 @@ const GameHud: React.FC<GameHudProps> = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <motion.div
-                    className={`relative w-10 h-10 shrink-0 ${isBoss ? "cursor-help" : ""}`}
+                    className="relative shrink-0"
                     animate={isBoss ? {
                       boxShadow: [
                         "0 0 8px 2px rgba(239,68,68,0.3)",
-                        "0 0 16px 4px rgba(239,68,68,0.6)",
+                        "0 0 20px 6px rgba(239,68,68,0.6)",
                         "0 0 8px 2px rgba(239,68,68,0.3)",
                       ],
                     } : {}}
-                    transition={isBoss ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : {}}
-                    style={{ borderRadius: "9999px" }}
+                    transition={isBoss ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : {}}
+                    style={{
+                      borderRadius: "9999px",
+                      width: isBoss ? 48 : 40,
+                      height: isBoss ? 48 : 40,
+                    }}
                   >
                     <img
                       src={portraitSrc}
                       alt={guardian.name}
                       className={`w-full h-full rounded-full object-cover border-2 ${
-                        isBoss ? "border-red-500/80" : "border-white/20"
+                        isBoss ? "border-red-500" : "border-white/30"
                       }`}
                     />
                     {isBoss && (
-                      <span className="absolute -bottom-0.5 -right-0.5 text-[10px] bg-red-600 rounded-full w-4 h-4 flex items-center justify-center">
+                      <motion.span
+                        className="absolute -bottom-1 -right-1 text-[11px] bg-red-600 rounded-full w-5 h-5 flex items-center justify-center shadow-lg shadow-red-900/50"
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
                         ⚔
-                      </span>
+                      </motion.span>
                     )}
                   </motion.div>
                 </TooltipTrigger>
@@ -410,11 +431,11 @@ const GameHud: React.FC<GameHudProps> = ({
               </Tooltip>
             </TooltipProvider>
 
-            {/* Level + mutator */}
+            {/* Level + mutator + combo */}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <div className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${
-                  isBoss ? "border-red-500/60 bg-red-500/10" : "border-yellow-500/60 bg-yellow-500/10"
+                  isBoss ? "border-red-500/60 bg-red-500/20" : "border-yellow-500/60 bg-yellow-500/10"
                 }`}>
                   <span className={`font-display text-[11px] tracking-wide ${isBoss ? "text-red-300" : "text-yellow-300"}`}>
                     {isBoss ? "BOSS" : "Lv"}
@@ -426,7 +447,7 @@ const GameHud: React.FC<GameHudProps> = ({
                 {activeMutatorId > 0 && (
                   <span className="text-[10px] text-white/50">{mutator.icon}</span>
                 )}
-                <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-1.5 py-0.5">
+                <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/20 px-1.5 py-0.5">
                   <span className="text-[10px]">🔥</span>
                   <motion.span
                     key={combo}
@@ -473,16 +494,23 @@ const GameHud: React.FC<GameHudProps> = ({
 
           {/* Row 2: Score progress bar */}
           <div className="flex items-center gap-2">
-            <span className="font-display text-[9px] uppercase tracking-wide text-slate-400 w-8 shrink-0">Score</span>
-            <div className="flex-1 h-2 overflow-hidden rounded-full bg-slate-700/60">
+            <span className={`font-display text-[9px] uppercase tracking-wide w-8 shrink-0 ${
+              isBoss ? "text-red-400" : "text-slate-400"
+            }`}>{isBoss ? guardian.name : "Score"}</span>
+            <div className={`flex-1 h-2 overflow-hidden rounded-full ${isBoss ? "bg-red-950/60" : "bg-slate-700/60"}`}>
               <motion.div
-                className="h-full rounded-full bg-cyan-500"
+                className={`h-full rounded-full ${isBoss ? "" : "bg-cyan-500"}`}
+                style={isBoss ? {
+                  background: `linear-gradient(90deg, #ef4444 0%, #22c55e ${Math.max(scoreProgress * 100, 10)}%)`,
+                } : undefined}
                 initial={false}
                 animate={{ width: `${scoreProgress * 100}%` }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
               />
             </div>
-            <span className="font-sans text-[11px] font-semibold tabular-nums text-cyan-300 shrink-0">
+            <span className={`font-sans text-[11px] font-semibold tabular-nums shrink-0 ${
+              isBoss ? "text-red-300" : "text-cyan-300"
+            }`}>
               {animatedScore}<span className="text-slate-500">/{targetScore}</span>
             </span>
           </div>

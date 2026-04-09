@@ -86,13 +86,20 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
   if (isGameOver) return null;
 
   return (
-    <div className="w-full px-2 pb-2 shrink-0">
+    <div className="w-full shrink-0">
       {activeBonus !== BonusType.None && bonusDescription && (
         <div className="mb-1 text-center font-sans text-xs font-semibold uppercase tracking-wide text-yellow-300">
           {bonusDescription}
         </div>
       )}
-      <div className="max-w-[500px] mx-auto w-full flex items-center justify-between px-[clamp(8px,2vw,14px)] py-[clamp(8px,2vw,14px)]">
+      <div
+        className="max-w-[500px] mx-auto w-full flex items-center justify-between px-[clamp(12px,3vw,20px)] py-[clamp(10px,2.5vw,16px)]"
+        style={{
+          backgroundImage: "url(/assets/common/ui/action-bar.png)",
+          backgroundSize: "100% 100%",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
         {/* Surrender — bottom left */}
         <Dialog>
           <DialogTrigger asChild>

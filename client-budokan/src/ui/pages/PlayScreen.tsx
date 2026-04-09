@@ -445,7 +445,7 @@ const PlayScreen: React.FC = () => {
         )}
 
         {game && isGameOn && !isGridLoading && !isGameLoading && (
-          <div className="flex h-full w-full flex-col items-center min-h-0">
+          <div className={`flex h-full w-full flex-col items-center min-h-0 ${checkBossLevel(game.level) ? "boss-grid" : ""}`}>
             <GameBoard
               initialGrid={grid}
               nextLine={game.isOver() ? [] : game.next_row}
