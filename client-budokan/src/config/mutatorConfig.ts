@@ -180,9 +180,9 @@ export const getMutatorDef = (id: number, onChainName?: string): MutatorDef =>
 
 export const BONUS_TYPES: Record<number, { name: string; icon: string; description: string }> = {
   0: { name: "None", icon: "", description: "" },
-  1: { name: "Hammer", icon: "/assets/bonus/hammer.png", description: "Destroy a single block" },
-  2: { name: "Totem", icon: "/assets/bonus/tiki.png", description: "Destroy all blocks of one size" },
-  3: { name: "Wave", icon: "/assets/bonus/wave.png", description: "Clear an entire row" },
+  1: { name: "Hammer", icon: "/assets/common/bonus/hammer.png", description: "Destroy a single block" },
+  2: { name: "Totem", icon: "/assets/common/bonus/tiki.png", description: "Destroy all blocks of one size" },
+  3: { name: "Wave", icon: "/assets/common/bonus/wave.png", description: "Clear an entire row" },
 };
 
 export const getBonusType = (id: number) => BONUS_TYPES[id] ?? BONUS_TYPES[0];

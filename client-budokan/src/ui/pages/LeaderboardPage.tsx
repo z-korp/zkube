@@ -13,9 +13,9 @@ import { ZONE_NAMES } from "@/config/profileData";
 import PageHeader from "@/ui/components/shared/PageHeader";
 
 const TROPHY_IMAGES: Record<number, string> = {
-  1: "/assets/trophies/gold.png",
-  2: "/assets/trophies/silver.png",
-  3: "/assets/trophies/bronze.png",
+  1: "/assets/common/trophies/gold.png",
+  2: "/assets/common/trophies/silver.png",
+  3: "/assets/common/trophies/bronze.png",
 };
 
 const rowVariants: any = {

@@ -208,6 +208,3 @@ export function getGuardianPortrait(zoneId: number): string {
   return `/assets/theme-${zoneId}/boss/portrait.png`;
 }
 
-export function getGuardianPortraitSmall(zoneId: number): string {
-  return `/assets/theme-${zoneId}/boss/portrait-small.png`;
-}

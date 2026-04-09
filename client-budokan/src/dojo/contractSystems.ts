@@ -115,11 +115,6 @@ export interface UnlockWithStars extends Signer {
 
 export interface StartDailyGame extends Signer {}
 
-export interface SubmitResult extends Signer {
-  challenge_id: number;
-  game_id: BigNumberish;
-}
-
 export interface SettleChallenge extends Signer {
   challenge_id: number;
   ranked_players: BigNumberish[];
@@ -512,21 +507,6 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const submit_result = async ({ account, challenge_id, game_id }: SubmitResult) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "submit_result",
-            calldata: [challenge_id, game_id],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing submit_result:", error);
-        throw error;
-      }
-    };
-
     const settle_challenge = async ({ account, challenge_id, ranked_players }: SettleChallenge) => {
       try {
         return await account.execute([
@@ -560,7 +540,6 @@ export function setupWorld(config: Config) {
     return {
       address: contract.address,
       start_daily_game,
-      submit_result,
       settle_challenge,
       settle_weekly_endless,
     };

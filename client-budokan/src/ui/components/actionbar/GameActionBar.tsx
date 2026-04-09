@@ -92,23 +92,25 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
           {bonusDescription}
         </div>
       )}
-      <div
-        className="max-w-[500px] mx-auto w-full flex items-center justify-between px-[clamp(12px,3vw,20px)] py-[clamp(10px,2.5vw,16px)]"
-        style={{
-          backgroundImage: "url(/assets/common/ui/action-bar.png)",
-          backgroundSize: "100% 100%",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
-        {/* Surrender — bottom left */}
+      {/* Action bar with chrome image — respect aspect ratio, centered */}
+      <div className="relative mx-auto" style={{ maxWidth: 400 }}>
+        <img
+          src="/assets/common/ui/action-bar.png"
+          alt=""
+          className="w-full h-auto block"
+          draggable={false}
+        />
+
+        {/* Surrender — left socket */}
         <Dialog>
           <DialogTrigger asChild>
             <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="w-[clamp(34px,9vw,42px)] h-[clamp(34px,9vw,42px)] rounded-full flex items-center justify-center bg-red-900/30 hover:bg-red-800/40 text-red-400 hover:text-red-300 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.92 }}
+              className="absolute rounded-full flex items-center justify-center text-red-400 hover:text-red-300 transition-colors"
+              style={{ left: "12%", top: "18%", width: "14%", height: "64%" }}
             >
-              <Flag className="w-[clamp(16px,4vw,20px)] h-[clamp(16px,4vw,20px)]" />
+              <Flag className="w-[40%] h-[40%] drop-shadow-md" />
             </motion.button>
           </DialogTrigger>
           <DialogContent className="max-w-sm">
@@ -127,8 +129,11 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
           </DialogContent>
         </Dialog>
 
-        {/* Bonus slots — center */}
-        <div className="flex items-center gap-[clamp(4px,1.5vw,10px)]">
+        {/* Bonus — center socket */}
+        <div
+          className="absolute flex items-center justify-center"
+          style={{ left: "38%", top: "12%", width: "24%", height: "76%" }}
+        >
           {bonusSlots.map((slot, idx) => {
             const isSelected = activeBonus === slot.type;
             const isUsable = slot.charges > 0;
@@ -140,11 +145,11 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                     <motion.button
                       onClick={slot.onClick}
                       disabled={!isUsable}
-                      whileHover={isUsable ? { scale: 1.1 } : undefined}
-                      whileTap={isUsable ? { scale: 0.9 } : undefined}
-                      className={`relative w-[clamp(38px,10vw,48px)] h-[clamp(38px,10vw,48px)] overflow-visible flex items-center justify-center transition-all ${
+                      whileHover={isUsable ? { scale: 1.08 } : undefined}
+                      whileTap={isUsable ? { scale: 0.92 } : undefined}
+                      className={`relative w-full h-full overflow-visible flex items-center justify-center transition-all ${
                         isSelected
-                          ? "shadow-[0_0_12px_rgba(250,204,21,0.4)]"
+                          ? "drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]"
                           : !isUsable
                             ? "opacity-40 cursor-not-allowed"
                             : "cursor-pointer"
@@ -153,12 +158,12 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                       <img
                         src={slot.icon}
                         alt={slot.name}
-                        className={`w-full h-full object-contain ${
+                        className={`w-[60%] h-[60%] object-contain ${
                           !isUsable ? "grayscale opacity-60" : ""
                         }`}
                       />
                       <span
-                        className={`absolute -bottom-0.5 -right-0.5 font-sans text-[clamp(8px,2vw,11px)] font-bold rounded-full min-w-[clamp(16px,4vw,20px)] h-[clamp(16px,4vw,20px)] flex items-center justify-center px-0.5 z-10 ${
+                        className={`absolute -bottom-1 -right-1 font-sans text-[clamp(8px,2vw,11px)] font-bold rounded-full min-w-[clamp(16px,4vw,20px)] h-[clamp(16px,4vw,20px)] flex items-center justify-center px-0.5 z-10 ${
                           slot.charges > 0
                             ? "bg-yellow-500 text-white"
                             : "bg-slate-600 text-slate-400"
@@ -173,16 +178,10 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                     className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg max-w-[220px]"
                   >
                     <div className="flex flex-col gap-1">
-                      <span className="font-sans text-xs font-bold">
-                        {slot.name}
-                      </span>
-                      <span className="font-sans text-[11px] text-slate-300">
-                        {slot.description}
-                      </span>
+                      <span className="font-sans text-xs font-bold">{slot.name}</span>
+                      <span className="font-sans text-[11px] text-slate-300">{slot.description}</span>
                       {slot.triggerDescription && (
-                        <span className="font-sans text-[10px] text-yellow-400/90 mt-0.5">
-                          {slot.triggerDescription}
-                        </span>
+                        <span className="font-sans text-[10px] text-yellow-400/90 mt-0.5">{slot.triggerDescription}</span>
                       )}
                     </div>
                   </TooltipContent>
@@ -192,15 +191,16 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
           })}
         </div>
 
-        {/* Settings — bottom right */}
+        {/* Settings — right socket */}
         <Dialog>
           <DialogTrigger asChild>
             <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="w-[clamp(34px,9vw,42px)] h-[clamp(34px,9vw,42px)] rounded-full flex items-center justify-center bg-slate-700/30 hover:bg-slate-600/40 text-slate-400 hover:text-slate-300 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.92 }}
+              className="absolute rounded-full flex items-center justify-center text-slate-400 hover:text-slate-200 transition-colors"
+              style={{ right: "12%", top: "18%", width: "14%", height: "64%" }}
             >
-              <Settings className="w-[clamp(16px,4vw,20px)] h-[clamp(16px,4vw,20px)]" />
+              <Settings className="w-[40%] h-[40%] drop-shadow-md" />
             </motion.button>
           </DialogTrigger>
           <DialogContent className="max-w-sm">

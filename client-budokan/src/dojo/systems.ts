@@ -426,20 +426,6 @@ export function systems({ client }: { client: IWorld }) {
     return { game_id: gameId };
   };
 
-  const submitResult = async ({
-    account,
-    ...props
-  }: SystemTypes.SubmitResult) => {
-    if (!client.daily_challenge) {
-      throw new Error("Daily challenge system not available");
-    }
-    await handleTransaction(
-      account,
-      () => client.daily_challenge!.submit_result({ account, ...props }),
-      "Result submitted.",
-    );
-  };
-
   const settleChallenge = async ({
     account,
     ...props
@@ -491,7 +477,6 @@ export function systems({ client }: { client: IWorld }) {
     purchaseMap,
     unlockWithStars,
     startDailyGame,
-    submitResult,
     settleChallenge,
     settleWeeklyEndless,
     questClaim,

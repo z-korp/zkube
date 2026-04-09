@@ -362,211 +362,188 @@ const GameHud: React.FC<GameHudProps> = ({
   }
 
   // ─── STORY MODE HUD ───
-  const hudBarBg = isBoss
-    ? "linear-gradient(180deg, rgba(127,29,29,0.85) 0%, rgba(30,10,10,0.9) 100%)"
-    : undefined;
+  // Socket positions as % of hud-bar.png (1024x336)
+  // Left big socket (guardian): center ~10%, 50%
+  // Small socket (level): center ~21%, 50%
+  // Stars: ~44%, 50%, 56% at ~12%
+  // Center bar: ~26% to ~78%, ~40% to ~72%
+  // Right gear socket (moves): center ~90%, 50%
 
   return (
     <div className="w-full shrink-0">
-      <div
-        className={`relative mx-auto w-full max-w-[500px] px-3 py-2 ${
-          isBoss ? "boss-hud-bar" : ""
-        }`}
-        style={{
-          backgroundImage: hudBarBg ?? `url(/assets/common/ui/action-bar.png)`,
-          backgroundSize: "100% 100%",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
-        <div className="space-y-1.5">
-          {/* Row 1: Back + Avatar + Level + Combo + Constraints */}
-          <div className="flex items-center gap-2">
-            {onBack && (
-              <button onClick={onBack} className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/30 hover:bg-black/50 text-slate-300 hover:text-white transition-colors shrink-0">
-                <ArrowLeft className="h-3.5 w-3.5" />
-              </button>
-            )}
+      {/* ─── Main HUD bar ─── */}
+      <div className="relative mx-auto w-full max-w-[500px] px-2 pt-1">
+        {/* Chrome background */}
+        <img
+          src="/assets/common/ui/hud-bar.png"
+          alt=""
+          className="w-full h-auto block"
+          draggable={false}
+        />
 
-            {/* Guardian avatar */}
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <motion.div
-                    className="relative shrink-0"
-                    animate={isBoss ? {
-                      boxShadow: [
-                        "0 0 8px 2px rgba(239,68,68,0.3)",
-                        "0 0 20px 6px rgba(239,68,68,0.6)",
-                        "0 0 8px 2px rgba(239,68,68,0.3)",
-                      ],
-                    } : {}}
-                    transition={isBoss ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : {}}
-                    style={{
-                      borderRadius: "9999px",
-                      width: isBoss ? 48 : 40,
-                      height: isBoss ? 48 : 40,
-                    }}
-                  >
-                    <img
-                      src={portraitSrc}
-                      alt={guardian.name}
-                      className={`w-full h-full rounded-full object-cover border-2 ${
-                        isBoss ? "border-red-500" : "border-white/30"
-                      }`}
-                    />
-                    {isBoss && (
-                      <motion.span
-                        className="absolute -bottom-1 -right-1 text-[11px] bg-red-600 rounded-full w-5 h-5 flex items-center justify-center shadow-lg shadow-red-900/50"
-                        animate={{ scale: [1, 1.2, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        ⚔
-                      </motion.span>
-                    )}
-                  </motion.div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg">
-                  {avatarTooltipContent}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+        {/* Back button — top left corner */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="absolute top-[4%] left-[1%] w-[5%] h-[16%] flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-slate-300 hover:text-white transition-colors z-10"
+          >
+            <ArrowLeft className="w-3 h-3" />
+          </button>
+        )}
 
-            {/* Level + mutator + combo */}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <div className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${
-                  isBoss ? "border-red-500/60 bg-red-500/20" : "border-yellow-500/60 bg-yellow-500/10"
-                }`}>
-                  <span className={`font-display text-[11px] tracking-wide ${isBoss ? "text-red-300" : "text-yellow-300"}`}>
-                    {isBoss ? "BOSS" : "Lv"}
-                  </span>
-                  <span className={`font-sans text-xs font-bold leading-none tabular-nums ${isBoss ? "text-red-300" : "text-yellow-300"}`}>
-                    {level}
-                  </span>
-                </div>
-                {activeMutatorId > 0 && (
-                  <span className="text-[10px] text-white/50">{mutator.icon}</span>
-                )}
-                <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/20 px-1.5 py-0.5">
-                  <span className="text-[10px]">🔥</span>
-                  <motion.span
-                    key={combo}
-                    animate={{ scale: [1, 1.3, 1] }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                    className={`font-sans text-xs font-semibold tabular-nums ${comboTextColor}`}
-                  >
-                    {combo}x
-                  </motion.span>
-                </div>
-              </div>
-            </div>
-
-            {/* Constraints — right side */}
-            {hasConstraints && (
-              <TooltipProvider delayDuration={200}>
-                <div className="flex items-center gap-1 shrink-0">
-                  {constraints.map((c, i) => {
-                    const description = Constraint.fromContractValues(c.type, c.value, c.count).getDescription();
-                    return (
-                      <Tooltip key={`constraint-${i}`}>
-                        <TooltipTrigger asChild>
-                          <div>
-                            <ProgressRing
-                              progress={getConstraintProgress(c.type, c.progress, c.count, bonusUsedThisLevel)}
-                              size={ringSize}
-                              color={getConstraintColor(c.type, c.progress, c.count, bonusUsedThisLevel)}
-                              icon={getConstraintIcon(c.type)}
-                              badgeTopLeft={getValueBadge(c.type, c.value)}
-                              badgeBottomRight={getProgressBadge(c.type, c.progress, c.count)}
-                            />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="border border-slate-500 bg-slate-900 px-2 py-1 text-xs text-white">
-                          {description}
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  })}
-                </div>
-              </TooltipProvider>
-            )}
-          </div>
-
-          {/* Row 2: Score progress bar */}
-          <div className="flex items-center gap-2">
-            <span className={`font-display text-[9px] uppercase tracking-wide w-8 shrink-0 ${
-              isBoss ? "text-red-400" : "text-slate-400"
-            }`}>{isBoss ? guardian.name : "Score"}</span>
-            <div className={`flex-1 h-2 overflow-hidden rounded-full ${isBoss ? "bg-red-950/60" : "bg-slate-700/60"}`}>
+        {/* Guardian portrait — left big socket */}
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
               <motion.div
-                className={`h-full rounded-full ${isBoss ? "" : "bg-cyan-500"}`}
-                style={isBoss ? {
-                  background: `linear-gradient(90deg, #ef4444 0%, #22c55e ${Math.max(scoreProgress * 100, 10)}%)`,
-                } : undefined}
-                initial={false}
-                animate={{ width: `${scoreProgress * 100}%` }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              />
-            </div>
-            <span className={`font-sans text-[11px] font-semibold tabular-nums shrink-0 ${
-              isBoss ? "text-red-300" : "text-cyan-300"
-            }`}>
-              {animatedScore}<span className="text-slate-500">/{targetScore}</span>
+                className="absolute rounded-full overflow-hidden"
+                style={{ left: "3%", top: "16%", width: "13.5%", height: "0", paddingBottom: "13.5%" }}
+                animate={isBoss ? {
+                  boxShadow: [
+                    "0 0 8px 2px rgba(239,68,68,0.3)",
+                    "0 0 16px 4px rgba(239,68,68,0.6)",
+                    "0 0 8px 2px rgba(239,68,68,0.3)",
+                  ],
+                } : {}}
+                transition={isBoss ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : {}}
+              >
+                <img
+                  src={portraitSrc}
+                  alt={guardian.name}
+                  className="absolute inset-0 w-full h-full rounded-full object-cover"
+                />
+              </motion.div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg">
+              {avatarTooltipContent}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        {/* Level number — small socket */}
+        <div
+          className="absolute flex flex-col items-center justify-center"
+          style={{ left: "17.5%", top: "22%", width: "8%", height: "56%" }}
+        >
+          <span className={`font-display text-[clamp(7px,1.8vw,10px)] leading-none ${isBoss ? "text-red-400" : "text-slate-400"}`}>
+            {isBoss ? "BOSS" : "Lv"}
+          </span>
+          <span className={`font-sans text-[clamp(14px,3.5vw,22px)] font-bold leading-none tabular-nums ${isBoss ? "text-red-300" : "text-yellow-300"}`}>
+            {level}
+          </span>
+        </div>
+
+        {/* Stars — top center (3 stars over the engraved notches) */}
+        <div
+          className="absolute flex items-center justify-center gap-[2%]"
+          style={{ left: "34%", top: "4%", width: "32%", height: "22%" }}
+        >
+          {[1, 2, 3].map((star) => (
+            <span
+              key={star}
+              className={`text-[clamp(10px,2.5vw,16px)] transition-colors drop-shadow-sm ${
+                starsEarned >= star
+                  ? "text-yellow-400 drop-shadow-[0_0_4px_rgba(250,204,21,0.6)]"
+                  : "text-white/10"
+              }`}
+            >
+              ★
             </span>
-          </div>
+          ))}
+        </div>
 
-          {/* Row 3: Moves progress bar with star thresholds */}
-          <div className="flex items-center gap-2">
-            <span className="font-display text-[9px] uppercase tracking-wide text-slate-400 w-8 shrink-0">Moves</span>
-            <div className="relative flex-1 h-2 overflow-visible">
-              {/* Bar background */}
-              <div className="absolute inset-0 rounded-full bg-slate-700/60" />
-              {/* Filled portion */}
-              <motion.div
-                className="absolute inset-y-0 left-0 rounded-full"
-                style={{ backgroundColor: movesBarColor }}
-                initial={false}
-                animate={{ width: `${movesPct}%` }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              />
-              {/* 3-star threshold marker */}
-              {cube3Pct > 0 && cube3Pct < 100 && (
-                <div
-                  className="absolute top-1/2 -translate-y-1/2 w-0.5 h-3.5 bg-yellow-400/70 rounded-full"
-                  style={{ left: `${cube3Pct}%` }}
-                  title={`3★ — ${cube3Threshold} moves left`}
-                />
-              )}
-              {/* 2-star threshold marker */}
-              {cube2Pct > 0 && cube2Pct < 100 && (
-                <div
-                  className="absolute top-1/2 -translate-y-1/2 w-0.5 h-3.5 bg-yellow-400/40 rounded-full"
-                  style={{ left: `${cube2Pct}%` }}
-                  title={`2★ — ${cube2Threshold} moves left`}
-                />
-              )}
-            </div>
-            <div className="flex items-center gap-0.5 shrink-0">
-              <span className="font-sans text-[11px] font-bold tabular-nums" style={{ color: movesBarColor }}>
-                {movesRemaining}
-              </span>
-              <div className="flex items-center ml-0.5">
-                {[1, 2, 3].map((star) => {
-                  const lit = starsEarned >= star;
-                  return (
-                    <span
-                      key={star}
-                      className={`text-[10px] transition-colors ${lit ? "text-yellow-400" : "text-white/15"}`}
-                    >
-                      ★
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
+        {/* Score bar — center recessed channel */}
+        <div
+          className="absolute flex items-center gap-[2%]"
+          style={{ left: "27%", top: "34%", width: "52%", height: "28%" }}
+        >
+          <div className="flex-1 h-[clamp(8px,2vw,14px)] overflow-hidden rounded-full bg-black/40">
+            <motion.div
+              className={`h-full rounded-full ${isBoss ? "" : "bg-gradient-to-r from-cyan-600 to-cyan-400"}`}
+              style={isBoss ? { background: "linear-gradient(90deg, #ef4444, #22c55e)" } : undefined}
+              initial={false}
+              animate={{ width: `${scoreProgress * 100}%` }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            />
           </div>
+          <span className={`font-sans text-[clamp(8px,2vw,12px)] font-bold tabular-nums shrink-0 ${
+            isBoss ? "text-red-300" : "text-cyan-300"
+          }`}>
+            {animatedScore}<span className="text-slate-500">/{targetScore}</span>
+          </span>
+        </div>
+
+        {/* Combo + mutator — below score bar in center area */}
+        <div
+          className="absolute flex items-center justify-center gap-[2%]"
+          style={{ left: "27%", top: "66%", width: "52%", height: "22%" }}
+        >
+          <div className="inline-flex items-center gap-0.5">
+            <span className="text-[clamp(8px,2vw,11px)]">🔥</span>
+            <motion.span
+              key={combo}
+              animate={{ scale: [1, 1.3, 1] }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className={`font-sans text-[clamp(9px,2.2vw,13px)] font-semibold tabular-nums ${comboTextColor}`}
+            >
+              {combo}x
+            </motion.span>
+          </div>
+          {activeMutatorId > 0 && (
+            <span className="text-[clamp(8px,2vw,11px)] text-white/40">{mutator.icon} {mutator.name}</span>
+          )}
+        </div>
+
+        {/* Moves counter — right gear socket */}
+        <div
+          className="absolute flex flex-col items-center justify-center"
+          style={{ right: "2%", top: "14%", width: "15%", height: "72%" }}
+        >
+          <span className="font-display text-[clamp(7px,1.8vw,10px)] leading-none text-slate-400">MOVES</span>
+          <span className={`font-sans text-[clamp(18px,4.5vw,28px)] font-bold leading-none tabular-nums`} style={{ color: movesBarColor }}>
+            {movesRemaining}
+          </span>
         </div>
       </div>
+
+      {/* ─── Constraint bar (only when constraints exist) ─── */}
+      {hasConstraints && (
+        <div className="relative mx-auto w-full max-w-[280px] -mt-1">
+          <img
+            src="/assets/common/ui/constraint-bar.png"
+            alt=""
+            className="w-full h-auto block"
+            draggable={false}
+          />
+          {/* Constraint rings positioned over the two sockets */}
+          <div className="absolute inset-0 flex items-center justify-center gap-[16%]">
+            <TooltipProvider delayDuration={200}>
+              {constraints.map((c, i) => {
+                const description = Constraint.fromContractValues(c.type, c.value, c.count).getDescription();
+                return (
+                  <Tooltip key={`constraint-${i}`}>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <ProgressRing
+                          progress={getConstraintProgress(c.type, c.progress, c.count, bonusUsedThisLevel)}
+                          size={ringSize}
+                          color={getConstraintColor(c.type, c.progress, c.count, bonusUsedThisLevel)}
+                          icon={getConstraintIcon(c.type)}
+                          badgeTopLeft={getValueBadge(c.type, c.value)}
+                          badgeBottomRight={getProgressBadge(c.type, c.progress, c.count)}
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="border border-slate-500 bg-slate-900 px-2 py-1 text-xs text-white">
+                      {description}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </TooltipProvider>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
