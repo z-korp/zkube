@@ -39,20 +39,28 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
-      {/* Full-height portrait — Ace Attorney style */}
+      {/* Full-height portrait — seamlessly fading into background */}
       <div className="relative flex flex-1 min-h-0 items-end justify-center overflow-hidden">
-        <motion.img
-          src={portraitSrc}
-          alt={guardian.name}
-          className="h-[70%] max-h-[420px] w-auto object-contain drop-shadow-2xl"
+        <motion.div
+          className="relative h-[70%] max-h-[420px]"
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 20 }}
-          draggable={false}
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = "none";
-          }}
-        />
+        >
+          <img
+            src={portraitSrc}
+            alt={guardian.name}
+            className="h-full w-auto object-contain"
+            style={{
+              maskImage: "radial-gradient(ellipse 80% 85% at 50% 45%, black 40%, transparent 75%)",
+              WebkitMaskImage: "radial-gradient(ellipse 80% 85% at 50% 45%, black 40%, transparent 75%)",
+            }}
+            draggable={false}
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+            }}
+          />
+        </motion.div>
       </div>
 
       {/* Dialog panel — bottom, full width */}

@@ -635,11 +635,11 @@ const MapPage: React.FC = () => {
                     stroke={colors.accent}
                     strokeWidth={0.6}
                   />
-                  {/* Rotating dashed ring — tight on the circle */}
+                  {/* Rotating dashed ring — exactly on circle edge */}
                   <motion.circle
                     cx={guardianX}
                     cy={guardianY}
-                    r={gr + 0.4}
+                    r={gr}
                     fill="none"
                     stroke={colors.accent}
                     strokeWidth={0.35}
