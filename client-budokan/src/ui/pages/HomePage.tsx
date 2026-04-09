@@ -233,10 +233,12 @@ const HomePage: React.FC = () => {
   );
   const activeZone = useMemo(() => {
     const idx = zones.findIndex((z) => z.zoneId === mapZoneId);
+    console.log("[HomePage] activeZone derive:", { mapZoneId, idx, zonesIds: zones.map(z => z.zoneId) });
     return idx >= 0 ? idx : 0;
   }, [zones, mapZoneId]);
   const setActiveZone = useCallback((idx: number) => {
     const z = zones[idx];
+    console.log("[HomePage] setActiveZone:", { idx, zoneId: z?.zoneId });
     if (z) setMapZoneId(z.zoneId);
   }, [zones, setMapZoneId]);
   const { challenge, isLoading: challengeLoading } = useCurrentChallenge();
@@ -282,10 +284,13 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     if (!zones.length) return;
-    if (isZoneSelectable(zones[activeZone])) return;
+    const currentSelectable = isZoneSelectable(zones[activeZone]);
+    console.log("[HomePage] selectability check:", { activeZone, zoneId: zones[activeZone]?.zoneId, currentSelectable, selectedMode });
+    if (currentSelectable) return;
     const firstSelectableIndex = zones.findIndex((zoneData) => isZoneSelectable(zoneData));
+    console.log("[HomePage] overriding to first selectable:", { firstSelectableIndex, zoneId: zones[firstSelectableIndex]?.zoneId });
     setActiveZone(firstSelectableIndex >= 0 ? firstSelectableIndex : 0);
-  }, [activeZone, isZoneSelectable, zones]);
+  }, [activeZone, isZoneSelectable, zones, selectedMode]);
 
   const zone = zones[activeZone] ?? zones[0];
   const colors = getThemeColors(themeTemplate);
