@@ -157,18 +157,22 @@ const PlayScreen: React.FC = () => {
           playSfx("victory");
           setIsVictoryOpen(true);
         } else if (game.mode === 0 || game.mode === undefined) {
-          // Story/daily: 0 moves remaining = lost, otherwise level completed
-          const movesLeft = (effectiveGameLevel?.maxMoves ?? 0) - game.levelMoves;
-          const isLost = movesLeft <= 0;
-          setPendingLevelCompletion({
-            level: game.level,
-            levelMoves: game.levelMoves,
-            prevTotalScore: levelStartTotalScoreRef.current,
-            totalScore: game.totalScore,
-            gameLevel: resolveCompletionGameLevel(game.level),
-            isIncomplete: isLost,
-          });
-          navNavigate("map");
+          // Story/daily: game.over + !zoneCleared = run failed (always)
+          // Level completion is handled by the level-advance effect (line ~199)
+          // which fires when currentLevel > prevLevel && !game.over.
+          // If game.over fires, the run ended without clearing the zone.
+          // Skip if level-advance effect already set a completion.
+          if (!useNavigationStore.getState().pendingLevelCompletion) {
+            setPendingLevelCompletion({
+              level: game.level,
+              levelMoves: game.levelMoves,
+              prevTotalScore: levelStartTotalScoreRef.current,
+              totalScore: game.totalScore,
+              gameLevel: resolveCompletionGameLevel(game.level),
+              isIncomplete: true,
+            });
+            navNavigate("map");
+          }
         } else {
           // Endless mode: show game over
           playSfx("over");
