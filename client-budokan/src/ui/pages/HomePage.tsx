@@ -236,7 +236,7 @@ const HomePage: React.FC = () => {
   );
   const activeZone = useMemo(() => {
     const idx = zones.findIndex((z) => z.zoneId === mapZoneId);
-    console.log("[HomePage] activeZone derive:", { mapZoneId, idx, zonesIds: zones.map(z => z.zoneId) });
+    console.log("[HomePage] activeZone derive:", { mapZoneId, idx, zonesIds: zones.map(z => `${z.zoneId}(${z.unlocked ? 'U' : 'L'})`) });
     return idx >= 0 ? idx : 0;
   }, [zones, mapZoneId]);
   const setActiveZone = useCallback((idx: number) => {
@@ -287,8 +287,9 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     if (!zones.length) return;
-    const currentSelectable = isZoneSelectable(zones[activeZone]);
-    console.log("[HomePage] selectability check:", { activeZone, zoneId: zones[activeZone]?.zoneId, currentSelectable, selectedMode });
+    const zoneAtIdx = zones[activeZone];
+    const currentSelectable = isZoneSelectable(zoneAtIdx);
+    console.log("[HomePage] selectability check:", { activeZone, zoneId: zoneAtIdx?.zoneId, unlocked: zoneAtIdx?.unlocked, currentSelectable, selectedMode });
     if (currentSelectable) return;
     const firstSelectableIndex = zones.findIndex((zoneData) => isZoneSelectable(zoneData));
     console.log("[HomePage] overriding to first selectable:", { firstSelectableIndex, zoneId: zones[firstSelectableIndex]?.zoneId });
