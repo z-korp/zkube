@@ -273,32 +273,29 @@ const MapPage: React.FC = () => {
 
   // For first visit detection, use story zone progress (not daily/game-derived state)
   const storyZoneStars = zoneProgressData?.stars ?? 0;
-  const isFirstVisit = !isDailyMap && zoneProgressData !== undefined && storyZoneStars === 0;
+  const storyHighestCleared = zoneProgressData?.highestCleared ?? 0;
+  const isFirstVisit = !isDailyMap && zoneProgressData !== undefined && storyZoneStars === 0 && storyHighestCleared === 0;
   const [greetingAutoShown, setGreetingAutoShown] = useState(false);
+  const [dataStabilized, setDataStabilized] = useState(false);
 
-  // Auto-show guardian greeting only for story mode when zone has genuinely 0 stars
+  // Wait for Torii data to stabilize before checking first visit.
+  // The initial render has stale fallback data (stars=0), real data arrives ~500ms later.
   useEffect(() => {
-    console.log("[GuardianGreeting] check:", {
-      greetingAutoShown,
-      isDailyMap,
-      mapZoneId,
-      zonesCount: zones.length,
-      zoneProgressData: zoneProgressData ? { stars: zoneProgressData.stars, unlocked: zoneProgressData.unlocked, highestCleared: zoneProgressData.highestCleared } : "undefined",
-      storyZoneStars,
-    });
-    if (greetingAutoShown) return;
-    if (isDailyMap) return;
-    // Wait until zones have actually loaded from Torii (not just fallbacks)
-    // Fallback zones only have zone 1 and 2, so if we're on zone 1 check highestCleared
-    if (zoneProgressData === undefined) return;
-    // Only trigger if the zone is unlocked AND has 0 stars — locked zones with 0 stars don't count
-    if (!zoneProgressData.unlocked) return;
-    if (storyZoneStars === 0 && zoneProgressData.highestCleared === 0) {
+    const timer = setTimeout(() => setDataStabilized(true), 1500);
+    return () => clearTimeout(timer);
+  }, [mapZoneId]);
+
+  // Auto-show guardian greeting only after data stabilizes
+  useEffect(() => {
+    if (!dataStabilized || greetingAutoShown || isDailyMap) return;
+    if (zoneProgressData === undefined || !zoneProgressData.unlocked) return;
+    console.log("[GuardianGreeting] stable check:", { mapZoneId, stars: storyZoneStars, highestCleared: storyHighestCleared });
+    if (storyZoneStars === 0 && storyHighestCleared === 0) {
       console.log("[GuardianGreeting] TRIGGER: first visit zone", mapZoneId);
       setShowGreeting(true);
       setGreetingAutoShown(true);
     }
-  }, [zones.length, zoneProgressData, storyZoneStars, greetingAutoShown, isDailyMap, mapZoneId]);
+  }, [dataStabilized, zoneProgressData, storyZoneStars, storyHighestCleared, greetingAutoShown, isDailyMap, mapZoneId]);
 
   return (
     <div className="relative flex h-full flex-col">
