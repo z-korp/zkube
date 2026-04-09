@@ -104,16 +104,16 @@ const CtaGuardian: React.FC = () => {
   const fallingLines = useMemo(() => {
     const lineCount = 6;
     const lineDuration = 5;
-    const lineSpacing = 1.8; // overlap — next line starts while previous still falling
+    const lineSpacing = 2.2; // spaced so fastest block clears before slowest of next arrives
     return Array.from({ length: lineCount }).map((_, lineIdx) => {
       const sizes = generateLine();
       let cellOffset = 0;
-      const blocks = sizes.map((size) => {
+      // Speed tiers — shuffled per line, bounded range so lines don't collide
+      const speedPool = [0.85, 0.95, 1.0, 1.1, 1.2, 1.3, 1.15, 1.05];
+      const blocks = sizes.map((size, bi) => {
         const x = cellOffset;
         cellOffset += size;
-        // Each block gets its own random speed — no two fall the same
-        const speed = 0.7 + Math.random() * 0.8; // 0.7x to 1.5x
-        return { size, cellX: x, speed };
+        return { size, cellX: x, speed: speedPool[(bi + lineIdx * 3) % speedPool.length] };
       });
       return {
         blocks,
