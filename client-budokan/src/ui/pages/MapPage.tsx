@@ -669,6 +669,7 @@ const MapPage: React.FC = () => {
             gameLevel={gameLevel}
             gameId={gameId}
             zoneId={mapZoneId}
+            colors={colors}
             levelStars={zoneProgressData?.levelStars ?? []}
             onPlay={handlePlay}
             onClose={() => setSelectedNode(null)}
