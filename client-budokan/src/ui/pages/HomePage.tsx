@@ -216,11 +216,20 @@ const HomePage: React.FC = () => {
   const { themeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
   const navigate = useNavigationStore((s) => s.navigate);
+  const mapZoneId = useNavigationStore((s) => s.mapZoneId);
   const setMapZoneId = useNavigationStore((s) => s.setMapZoneId);
   const selectedMode = useNavigationStore((s) => s.selectedMode);
   const setSelectedMode = useNavigationStore((s) => s.setSelectedMode);
   const [isStartingGame, setIsStartingGame] = useState(false);
-  const [activeZone, setActiveZone] = useState(0);
+  // Derive activeZone index from persisted mapZoneId
+  const activeZone = useMemo(() => {
+    const idx = zones.findIndex((z) => z.zoneId === mapZoneId);
+    return idx >= 0 ? idx : 0;
+  }, [zones, mapZoneId]);
+  const setActiveZone = useCallback((idx: number) => {
+    const z = zones[idx];
+    if (z) setMapZoneId(z.zoneId);
+  }, [zones, setMapZoneId]);
   const [unlockZone, setUnlockZone] = useState<ZoneProgressData | null>(null);
   const { playerMeta } = usePlayerMeta(account?.address);
   const playerLevel = getLevelFromXp(playerMeta?.lifetimeXp ?? 0);
