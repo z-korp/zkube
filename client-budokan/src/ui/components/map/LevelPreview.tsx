@@ -203,7 +203,6 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
                     {ranges.bossConstraintTypes.map((t) => (
                       <p key={t} className="rounded-lg bg-orange-500/8 px-3 py-1.5 font-sans text-[12px] text-orange-200/60">{t}</p>
                     ))}
-                    <p className="rounded-lg bg-orange-500/8 px-3 py-1.5 font-sans text-[12px] text-orange-200/60">Keep Grid Below 8 rows</p>
                   </>
                 ) : (
                   <p className="rounded-lg bg-white/[0.04] px-3 py-1.5 font-sans text-[12px] text-white/40">
