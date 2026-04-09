@@ -157,18 +157,21 @@ const PlayScreen: React.FC = () => {
           playSfx("victory");
           setIsVictoryOpen(true);
         } else if (game.mode === 0 || game.mode === undefined) {
-          // Story/daily mode: game.over without zoneCleared = run ended (fail/surrender)
-          // Level completion is handled during gameplay (auto-advance, navigates to map)
-          // If we reach here, the run failed — always show incomplete
-          setPendingLevelCompletion({
-            level: game.level,
-            levelMoves: game.levelMoves,
-            prevTotalScore: levelStartTotalScoreRef.current,
-            totalScore: game.totalScore,
-            gameLevel: resolveCompletionGameLevel(game.level),
-            isIncomplete: true,
-          });
-          navNavigate("map");
+          // Story/daily mode: game.over without zoneCleared
+          // Check if a level completion was already handled by the level-advance effect
+          // If pendingLevelCompletion is already set, don't override it with incomplete
+          const alreadyHandled = useNavigationStore.getState().pendingLevelCompletion !== null;
+          if (!alreadyHandled) {
+            setPendingLevelCompletion({
+              level: game.level,
+              levelMoves: game.levelMoves,
+              prevTotalScore: levelStartTotalScoreRef.current,
+              totalScore: game.totalScore,
+              gameLevel: resolveCompletionGameLevel(game.level),
+              isIncomplete: true,
+            });
+            navNavigate("map");
+          }
         } else {
           // Endless mode: show game over
           playSfx("over");
