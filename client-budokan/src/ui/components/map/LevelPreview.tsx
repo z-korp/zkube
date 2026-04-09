@@ -103,158 +103,146 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
     (node.state === "current" || node.state === "available" || node.state === "playing" || node.state === "cleared" || node.state === "visited");
 
   const difficultyLabel = DIFFICULTY_LABELS[difficulty] ?? difficulty;
+  const isCleared = node.state === "cleared" || node.state === "visited";
 
   // Guardian contextual line
   const guardianLine = isBossLevel
     ? guardian.trialIntro
-    : node.state === "cleared" || node.state === "visited"
+    : isCleared
       ? stars >= 3 ? "Masterful." : guardian.encouragement
       : guardian.encouragement;
 
   return (
     <motion.div
-      className="absolute inset-0 z-30 flex items-center justify-center bg-black/65 backdrop-blur-sm px-4"
+      className="absolute inset-0 z-30 flex flex-col items-center justify-end bg-black/60 backdrop-blur-sm px-3 pb-4 md:justify-center md:pb-0"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
+      {/* Guardian portrait — floats above the card */}
+      <motion.img
+        src={getGuardianPortrait(zoneId)}
+        alt={guardian.name}
+        className="mb-2 h-20 w-20 rounded-2xl object-cover"
+        style={{
+          border: isBossLevel ? "2px solid rgba(249,115,22,0.5)" : "2px solid rgba(255,255,255,0.15)",
+          boxShadow: isBossLevel ? "0 0 24px rgba(249,115,22,0.25)" : "0 0 16px rgba(0,0,0,0.5)",
+          maskImage: "radial-gradient(circle, black 60%, transparent 100%)",
+          WebkitMaskImage: "radial-gradient(circle, black 60%, transparent 100%)",
+        }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05, type: "spring", stiffness: 300, damping: 25 }}
+        draggable={false}
+      />
+
+      {/* Card */}
       <motion.div
-        className={`relative w-full max-w-md overflow-hidden rounded-2xl border shadow-2xl backdrop-blur-xl ${isBossLevel ? "border-orange-500/30" : "border-white/20"}`}
-        style={{ background: isBossLevel ? "linear-gradient(180deg, rgba(127,29,29,0.95), rgba(15,10,20,0.98))" : "rgba(15,23,42,0.92)" }}
-        initial={{ opacity: 0, scale: 0.85, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 10 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        className={`relative w-full max-w-md overflow-hidden rounded-2xl border shadow-2xl backdrop-blur-xl ${isBossLevel ? "border-orange-500/25" : "border-white/15"}`}
+        style={{ background: isBossLevel ? "linear-gradient(180deg, rgba(127,29,29,0.95), rgba(15,10,20,0.98))" : "linear-gradient(180deg, rgba(15,23,42,0.95), rgba(10,15,30,0.98))" }}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05, type: "spring", stiffness: 300, damping: 25 }}
         onClick={(event) => event.stopPropagation()}
       >
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-3 top-3 z-10 rounded-md p-1 text-slate-300 transition-colors hover:bg-slate-700/60 hover:text-white"
+          className="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/30 text-white/50 hover:text-white/80"
         >
-          <X size={18} />
+          <X size={14} />
         </button>
 
-        {/* Guardian header */}
-        <div className="flex items-center gap-3 px-5 pt-4 pb-2">
-          <img
-            src={getGuardianPortrait(zoneId)}
-            alt={guardian.name}
-            className={`h-12 w-12 rounded-xl object-cover ${isBossLevel ? "ring-2 ring-orange-500/50" : ""}`}
-            draggable={false}
-          />
-          <div className="min-w-0 flex-1">
-            <h3 className="font-display text-xl text-white">
-              {node.type === "draft"
-                ? `Zone ${node.zone} Draft`
-                : isBossLevel
-                  ? `Guardian Trial`
-                  : `Level ${node.contractLevel}`}
-            </h3>
-            <p className="font-sans text-[12px] italic text-white/60">"{guardianLine}"</p>
+        <div className="px-4 pt-3 pb-4">
+          {/* Title + guardian quote */}
+          <div className="mb-3 text-center">
+            <p className={`font-display text-xl font-black ${isBossLevel ? "text-orange-300" : "text-white"}`}>
+              {isBossLevel ? `Trial of ${guardian.name}` : `Level ${node.contractLevel}`}
+            </p>
+            <p className="mt-1 font-sans text-[12px] italic text-white/50">"{guardianLine}"</p>
           </div>
-        </div>
 
-        {/* Boss level special banner */}
-        {isBossLevel && canPlay && node.state !== "cleared" && node.state !== "visited" && (
-          <motion.div
-            className="mx-5 mb-2 rounded-lg border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-center"
-            animate={{ boxShadow: ["0 0 0 rgba(249,115,22,0)", "0 0 20px rgba(249,115,22,0.15)", "0 0 0 rgba(249,115,22,0)"] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <p className="font-display text-sm font-bold text-orange-300">
-              Face {guardian.name}
-            </p>
-            <p className="font-sans text-[10px] text-orange-200/60">Keep the grid under control to survive</p>
-          </motion.div>
-        )}
+          {/* Boss banner */}
+          {isBossLevel && canPlay && !isCleared && (
+            <motion.div
+              className="mb-3 rounded-xl border border-orange-500/25 bg-orange-500/10 px-3 py-2 text-center"
+              animate={{ boxShadow: ["0 0 0 rgba(249,115,22,0)", "0 0 16px rgba(249,115,22,0.12)", "0 0 0 rgba(249,115,22,0)"] }}
+              transition={{ duration: 2.5, repeat: Infinity }}
+            >
+              <p className="font-sans text-[11px] font-bold text-orange-200/70">Keep the grid under control to survive</p>
+            </motion.div>
+          )}
 
-        <div className="px-5 pb-5">
-          {node.type === "draft" ? (
-            <p className="mt-2 text-sm text-slate-200/90">
-              Draft event: choose your run direction before facing the guardian.
-            </p>
-          ) : node.state === "cleared" || node.state === "visited" ? (
-            <div className="mt-2 space-y-3 text-sm font-sans">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Difficulty</span>
-                <span className={`text-lg ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}>
-                  {difficultyLabel}
-                </span>
+          {/* Cleared state */}
+          {isCleared ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between rounded-xl bg-white/[0.05] px-3 py-2">
+                <span className="font-sans text-[12px] text-white/50">Difficulty</span>
+                <span className={`font-sans text-sm font-bold ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}>{difficultyLabel}</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-emerald-500/15 px-3 py-2.5">
-                <span className="text-emerald-200">Cleared</span>
-                <span className="text-lg">
-                  {Array.from({ length: stars }).map((_, i) => <span key={i} className="text-yellow-300">★</span>)}
-                  {stars === 0 && <span className="text-slate-500 text-sm">—</span>}
+              <div className="flex items-center justify-between rounded-xl bg-emerald-500/10 px-3 py-2">
+                <span className="font-sans text-[12px] text-emerald-300">Cleared</span>
+                <span className="text-base">
+                  {stars > 0 ? "★".repeat(stars) + "☆".repeat(3 - stars) : "—"}
                 </span>
               </div>
               {constraints.length > 0 && (
-                <div>
-                  <p className="mb-1 text-slate-400">Constraints</p>
-                  <div className="space-y-1">
-                    {constraints.map((c) => (
-                      <p key={c} className="rounded-md bg-slate-800/80 px-2 py-1 text-slate-100">{c}</p>
-                    ))}
-                  </div>
+                <div className="space-y-1">
+                  {constraints.map((c) => (
+                    <p key={c} className="rounded-xl bg-white/[0.04] px-3 py-1.5 font-sans text-[11px] text-white/70">{c}</p>
+                  ))}
                 </div>
               )}
             </div>
           ) : (
-            <div className="mt-2 space-y-3 text-sm font-sans">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Difficulty</span>
-                <span className={`text-lg ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}>
-                  {difficultyLabel}
-                </span>
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl bg-white/[0.05] px-3 py-2 text-center">
+                  <p className={`font-sans text-sm font-bold ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}>{difficultyLabel}</p>
+                  <p className="font-sans text-[10px] text-white/40">Difficulty</p>
+                </div>
+                <div className="rounded-xl bg-white/[0.05] px-3 py-2 text-center">
+                  <p className="font-sans text-sm font-bold text-white">{pointsRequired}</p>
+                  <p className="font-sans text-[10px] text-white/40">Target Score</p>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Target Score</span>
-                <span className="text-lg text-white">{String(pointsRequired)}</span>
-              </div>
-              <div>
-                <p className="mb-1 text-slate-400">Constraints</p>
-                {constraints.length > 0 ? (
-                  <div className="space-y-1">
-                    {constraints.map((constraint) => (
-                      <p key={constraint} className="rounded-md bg-slate-800/80 px-2 py-1 text-slate-100">{constraint}</p>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="rounded-md bg-slate-800/60 px-2 py-1 text-slate-300">No constraint</p>
-                )}
-              </div>
+
+              {constraints.length > 0 && (
+                <div className="space-y-1">
+                  {constraints.map((c) => (
+                    <p key={c} className="rounded-xl bg-white/[0.04] px-3 py-1.5 font-sans text-[11px] text-white/70">{c}</p>
+                  ))}
+                </div>
+              )}
+
               {maxMoves > 0 && (
-                <div className="space-y-2 pt-1">
-                  <p className="mb-1 text-slate-400">Star Goals</p>
+                <div className="grid grid-cols-3 gap-1.5">
                   {[
-                    { stars: 3, threshold: cube3Threshold },
-                    { stars: 2, threshold: cube2Threshold },
-                    { stars: 1, threshold: maxMoves },
-                  ].map(({ stars, threshold }) => (
-                    <div key={stars} className="flex items-center justify-between rounded-md bg-slate-800/60 px-2.5 py-1.5 text-slate-200">
-                      <span className="inline-flex items-center gap-0.5 text-yellow-300">
-                        {Array.from({ length: 3 }).map((_, i) => (
-                          <span key={i} className={i < stars ? "opacity-100" : "opacity-25"}>★</span>
-                        ))}
-                      </span>
-                      <span className="font-semibold">Finish in {threshold} moves</span>
+                    { s: 3, t: cube3Threshold },
+                    { s: 2, t: cube2Threshold },
+                    { s: 1, t: maxMoves },
+                  ].map(({ s, t }) => (
+                    <div key={s} className="rounded-xl bg-white/[0.04] px-2 py-1.5 text-center">
+                      <p className="font-sans text-xs text-yellow-300">{"★".repeat(s)}{"☆".repeat(3 - s)}</p>
+                      <p className="font-sans text-[10px] text-white/50">≤{t} moves</p>
                     </div>
                   ))}
                 </div>
+              )}
+
+              {!useContractData && (
+                <p className="text-center font-sans text-[9px] text-white/25">Estimated values — actual may vary</p>
               )}
             </div>
           )}
 
           {canPlay && (
-            <div className="mt-5">
+            <div className="mt-4">
               <ArcadeButton onClick={onPlay}>
                 {isBossLevel
                   ? `Face ${guardian.name}`
-                  : node.state === "cleared" || node.state === "visited"
-                    ? "Replay"
-                    : "Play"}
+                  : isCleared ? "Replay" : "Play"}
               </ArcadeButton>
             </div>
           )}
