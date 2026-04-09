@@ -221,15 +221,6 @@ const HomePage: React.FC = () => {
   const selectedMode = useNavigationStore((s) => s.selectedMode);
   const setSelectedMode = useNavigationStore((s) => s.setSelectedMode);
   const [isStartingGame, setIsStartingGame] = useState(false);
-  // Derive activeZone index from persisted mapZoneId
-  const activeZone = useMemo(() => {
-    const idx = zones.findIndex((z) => z.zoneId === mapZoneId);
-    return idx >= 0 ? idx : 0;
-  }, [zones, mapZoneId]);
-  const setActiveZone = useCallback((idx: number) => {
-    const z = zones[idx];
-    if (z) setMapZoneId(z.zoneId);
-  }, [zones, setMapZoneId]);
   const [unlockZone, setUnlockZone] = useState<ZoneProgressData | null>(null);
   const { playerMeta } = usePlayerMeta(account?.address);
   const playerLevel = getLevelFromXp(playerMeta?.lifetimeXp ?? 0);
@@ -240,6 +231,14 @@ const HomePage: React.FC = () => {
     [...rawZones].sort((a, b) => (a.unlocked === b.unlocked ? 0 : a.unlocked ? -1 : 1)),
     [rawZones],
   );
+  const activeZone = useMemo(() => {
+    const idx = zones.findIndex((z) => z.zoneId === mapZoneId);
+    return idx >= 0 ? idx : 0;
+  }, [zones, mapZoneId]);
+  const setActiveZone = useCallback((idx: number) => {
+    const z = zones[idx];
+    if (z) setMapZoneId(z.zoneId);
+  }, [zones, setMapZoneId]);
   const { challenge, isLoading: challengeLoading } = useCurrentChallenge();
   const { entry: dailyEntry, isRegistered: hasPlayedDaily } = usePlayerEntry(
     challenge?.challenge_id,
