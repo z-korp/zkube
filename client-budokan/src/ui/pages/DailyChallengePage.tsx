@@ -228,7 +228,7 @@ const DailyChallengePage: React.FC = () => {
                     </p>
                     <p className="font-display text-xl font-black text-white">{zoneName}</p>
                     <p className="mt-0.5 font-sans text-[12px] italic text-white/60">
-                      "{guardian.greeting}"
+                      "{guardian.dailyGreeting}"
                     </p>
                     <div className="mt-1.5 flex items-center justify-between">
                       <p className="font-sans text-[11px] font-semibold text-white/50">
