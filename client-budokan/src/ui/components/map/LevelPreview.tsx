@@ -50,7 +50,9 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
   const ranges = getLevelRanges(levelNum, settings);
 
   // Exact values when we have contract data or seeded prediction
-  const showExact = useContractData || (hasSeed && node.levelConfig != null);
+  // For cleared levels, replay gets a fresh seed — always show ranges
+  const isReplayCandidate = isCleared && stars < 3;
+  const showExact = !isReplayCandidate && (useContractData || (hasSeed && node.levelConfig != null));
   const exactMoves = useContractData ? gameLevel!.maxMoves : (node.levelConfig?.maxMoves ?? 0);
   const exactPoints = useContractData ? gameLevel!.pointsRequired : (node.levelConfig?.pointsRequired ?? 0);
   const exactCube3 = useContractData ? gameLevel!.cube3Threshold : (node.levelConfig?.cube3Threshold ?? 0);
