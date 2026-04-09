@@ -43,6 +43,8 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
     ? levelStars?.[node.contractLevel - 1] ?? game?.getLevelStars(node.contractLevel) ?? 0
     : 0;
 
+  const isCleared = node.state === "cleared" || node.state === "visited";
+
   // Contract data = authoritative for current playing level
   const useContractData = gameLevel && node.contractLevel === gameLevel.level;
 
@@ -76,7 +78,6 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
 
   const canPlay = node.type !== "draft" &&
     (node.state === "current" || node.state === "available" || node.state === "playing" || node.state === "cleared" || node.state === "visited");
-  const isCleared = node.state === "cleared" || node.state === "visited";
 
   const guardianLine = isBossLevel
     ? isCleared ? guardian.respectLine : guardian.trialIntro
