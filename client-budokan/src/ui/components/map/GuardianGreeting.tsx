@@ -1,5 +1,5 @@
-import { motion } from "motion/react";
-import { X } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import type { ThemeColors } from "@/config/themes";
 import type { ZoneGuardian } from "@/config/bossCharacters";
 import { getGuardianPortrait } from "@/config/bossCharacters";
@@ -28,155 +28,121 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
   const activeMutator = activeMutatorId && activeMutatorId > 0 ? getMutatorDef(activeMutatorId) : null;
   const passiveMutator = passiveMutatorId && passiveMutatorId > 0 ? getMutatorDef(passiveMutatorId) : null;
 
-  const greeting = mode === "endless"
-    ? "The arena awaits. Here, there is no end — only how far you can push."
-    : guardian.greeting;
+  // Build dialog steps based on context
+  const steps: string[] = [];
+
+  if (mode === "endless") {
+    steps.push("The arena awaits. Here, there is no end — only how far you can push.");
+    if (passiveMutator) steps.push(`${passiveMutator.icon} ${passiveMutator.name} shapes the arena. ${passiveMutator.description}`);
+    steps.push("Survive as long as you can. The leaderboard remembers the strongest.");
+  } else {
+    steps.push(guardian.greeting);
+    if (activeMutator && passiveMutator) {
+      steps.push(`${activeMutator.icon} ${activeMutator.name} will grant you power. ${activeMutator.effects[0] ?? activeMutator.description}`);
+      steps.push(`${passiveMutator.icon} ${passiveMutator.name} shapes your journey. ${passiveMutator.effects[0] ?? passiveMutator.description}`);
+    } else if (activeMutator) {
+      steps.push(`${activeMutator.icon} ${activeMutator.name} will be your ally. ${activeMutator.description}`);
+    }
+    if (isFirstVisit) {
+      steps.push("Earn 3 stars on every level for the perfection bonus — 20 bonus stars await the worthy. Now, prove yourself!");
+    }
+  }
+
+  const [step, setStep] = useState(0);
+  const isLastStep = step >= steps.length - 1;
+
+  const handleAdvance = () => {
+    if (isLastStep) {
+      onClose();
+    } else {
+      setStep((s) => s + 1);
+    }
+  };
 
   return (
     <motion.div
-      className="absolute inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+      className="absolute inset-0 z-40 flex items-end justify-center bg-black/60 backdrop-blur-sm px-3 pb-6 md:items-center md:pb-0"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onClick={onClose}
+      onClick={handleAdvance}
     >
       <motion.div
-        className="relative max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl"
-        style={{ background: `linear-gradient(180deg, ${colors.backgroundGradientStart ?? "#0a1628"}F0, ${colors.background ?? "#050a12"}F8)` }}
-        initial={{ opacity: 0, scale: 0.85, y: 30 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 15 }}
+        className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-white/15 shadow-2xl backdrop-blur-xl"
+        style={{ background: `linear-gradient(180deg, ${colors.backgroundGradientStart ?? "#0a1628"}F2, ${colors.background ?? "#050a12"}FA)` }}
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/40 text-white/70 backdrop-blur-md"
-        >
-          <X size={14} />
-        </button>
-
-        {/* Guardian portrait */}
-        <div className="flex justify-center pt-5 pb-2">
-          <div className="relative">
+        <div className="flex items-start gap-3 p-4">
+          {/* Portrait */}
+          <div className="shrink-0">
             <img
               src={portraitSrc}
               alt={guardian.name}
-              className="h-28 w-28 rounded-2xl object-cover"
-              style={{ border: `2px solid ${colors.accent}55`, boxShadow: `0 0 24px ${colors.accent}33` }}
+              className="h-16 w-16 rounded-xl object-cover"
+              style={{ border: `2px solid ${colors.accent}44`, boxShadow: `0 0 16px ${colors.accent}22` }}
               draggable={false}
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = "none";
                 (e.target as HTMLImageElement).parentElement!.querySelector(".emoji-fallback")?.classList.remove("hidden");
               }}
             />
-            <span className="emoji-fallback hidden flex h-28 w-28 items-center justify-center rounded-2xl text-5xl" style={{ background: `${colors.accent}22`, border: `2px solid ${colors.accent}55` }}>
+            <span className="emoji-fallback hidden flex h-16 w-16 items-center justify-center rounded-xl text-3xl" style={{ background: `${colors.accent}22`, border: `2px solid ${colors.accent}44` }}>
               {guardian.emoji}
             </span>
           </div>
-        </div>
 
-        {/* Name + title */}
-        <div className="text-center px-4">
-          <p className="font-display text-xl font-black text-white">{guardian.name}</p>
-          <p className="font-sans text-[11px] font-semibold" style={{ color: colors.accent }}>{guardian.title}</p>
-        </div>
+          {/* Dialog */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between">
+              <p className="font-display text-base font-black text-white">{guardian.name}</p>
+              <button
+                onClick={(e) => { e.stopPropagation(); onClose(); }}
+                className="font-sans text-[10px] font-bold uppercase text-white/30 hover:text-white/60"
+              >
+                Skip
+              </button>
+            </div>
+            <p className="font-sans text-[10px] font-semibold" style={{ color: colors.accent }}>{guardian.title}</p>
 
-        {/* Greeting */}
-        <div className="mx-4 mt-3 rounded-xl bg-white/[0.04] px-3 py-2.5">
-          <p className="font-sans text-[13px] italic text-white/80 leading-relaxed text-center">
-            "{greeting}"
-          </p>
-        </div>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={step}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+                className="mt-2 font-sans text-[13px] leading-relaxed text-white/85"
+              >
+                {steps[step]}
+              </motion.p>
+            </AnimatePresence>
 
-        {/* Zone explanation — shown for story/daily, conversational style */}
-        {mode !== "endless" && (activeMutator || passiveMutator) && (
-          <div className="mx-4 mt-3 space-y-2">
-            {activeMutator && (
-              <div className="flex items-start gap-2.5 rounded-xl bg-white/[0.04] px-3 py-2.5">
-                <span className="mt-0.5 text-lg">{activeMutator.icon}</span>
-                <div>
-                  <p className="font-sans text-[12px] font-bold" style={{ color: colors.text }}>
-                    {activeMutator.name}
-                  </p>
-                  <p className="mt-0.5 font-sans text-[11px] text-white/50">{activeMutator.description}</p>
-                  {activeMutator.effects.length > 0 && (
-                    <div className="mt-1.5 flex flex-wrap gap-1">
-                      {activeMutator.effects.map((e) => (
-                        <span key={e} className="rounded-full bg-orange-500/10 px-1.5 py-0.5 font-sans text-[9px] font-semibold text-orange-200/70">{e}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+            {/* Progress dots + tap hint */}
+            <div className="mt-3 flex items-center justify-between">
+              <div className="flex gap-1">
+                {steps.map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-1.5 rounded-full transition-all duration-200"
+                    style={{
+                      width: i === step ? 12 : 6,
+                      background: i === step ? colors.accent : "rgba(255,255,255,0.15)",
+                    }}
+                  />
+                ))}
               </div>
-            )}
-            {passiveMutator && (
-              <div className="flex items-start gap-2.5 rounded-xl bg-white/[0.04] px-3 py-2.5">
-                <span className="mt-0.5 text-lg">{passiveMutator.icon}</span>
-                <div>
-                  <p className="font-sans text-[12px] font-bold" style={{ color: colors.text }}>
-                    {passiveMutator.name}
-                  </p>
-                  <p className="mt-0.5 font-sans text-[11px] text-white/50">{passiveMutator.description}</p>
-                  {passiveMutator.effects.length > 0 && (
-                    <div className="mt-1.5 flex flex-wrap gap-1">
-                      {passiveMutator.effects.map((e) => (
-                        <span key={e} className="rounded-full bg-purple-500/10 px-1.5 py-0.5 font-sans text-[9px] font-semibold text-purple-200/70">{e}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Perfection goal — only on first visit */}
-            {isFirstVisit && (
-              <div className="flex items-center gap-2.5 rounded-xl bg-white/[0.04] px-3 py-2.5">
-                <span className="text-lg">💎</span>
-                <div>
-                  <p className="font-sans text-[12px] font-bold" style={{ color: colors.text }}>Perfection Bonus</p>
-                  <p className="mt-0.5 font-sans text-[11px] text-white/50">Earn 3 stars on all 10 levels for +20★</p>
-                </div>
-              </div>
-            )}
+              <button
+                onClick={(e) => { e.stopPropagation(); handleAdvance(); }}
+                className="font-sans text-[11px] font-bold"
+                style={{ color: colors.accent }}
+              >
+                {isLastStep ? (mode === "endless" ? "Enter Arena >" : "Begin >") : "Next >"}
+              </button>
+            </div>
           </div>
-        )}
-
-        {/* Endless mode: arena rules */}
-        {mode === "endless" && (activeMutator || passiveMutator) && (
-          <div className="mx-4 mt-3 space-y-1.5">
-            <p className="font-sans text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">Arena Rules</p>
-            {passiveMutator && (
-              <div className="rounded-xl border border-purple-400/20 bg-purple-500/8 px-3 py-2">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm">{passiveMutator.icon}</span>
-                  <span className="font-sans text-[11px] font-bold text-purple-300">{passiveMutator.name}</span>
-                </div>
-                <p className="mt-0.5 font-sans text-[10px] text-white/50">{passiveMutator.description}</p>
-              </div>
-            )}
-            {activeMutator && (
-              <div className="rounded-xl border border-orange-400/20 bg-orange-500/8 px-3 py-2">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm">{activeMutator.icon}</span>
-                  <span className="font-sans text-[11px] font-bold text-orange-300">{activeMutator.name}</span>
-                </div>
-                <p className="mt-0.5 font-sans text-[10px] text-white/50">{activeMutator.description}</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Close button */}
-        <div className="px-4 py-4">
-          <button
-            onClick={onClose}
-            className="w-full rounded-xl py-2.5 font-sans text-[12px] font-bold uppercase tracking-[0.08em] text-white transition-colors"
-            style={{ background: `${colors.accent}33`, border: `1px solid ${colors.accent}55` }}
-          >
-            {mode === "endless" ? "Enter Arena" : isFirstVisit ? "Begin" : "Close"}
-          </button>
         </div>
       </motion.div>
     </motion.div>

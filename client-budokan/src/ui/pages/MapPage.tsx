@@ -271,14 +271,18 @@ const MapPage: React.FC = () => {
     return zoneProgressData?.stars ?? 0;
   }, [isDailyMap, game, zoneProgressData]);
 
-  const isFirstVisit = zoneStars === 0;
+  const isFirstVisit = zoneState !== undefined && zoneStars === 0;
+  const [greetingAutoShown, setGreetingAutoShown] = useState(false);
 
-  // Auto-show guardian greeting when zone has 0 stars
+  // Auto-show guardian greeting only when data is loaded and stars are genuinely 0
   useEffect(() => {
-    if (isFirstVisit) {
+    if (greetingAutoShown) return;
+    if (zoneState === undefined) return; // data not loaded yet
+    if (zoneStars === 0) {
       setShowGreeting(true);
+      setGreetingAutoShown(true);
     }
-  }, [isFirstVisit, mapZoneId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [zoneState, zoneStars, greetingAutoShown]);
 
   return (
     <div className="relative flex h-full flex-col">
@@ -594,28 +598,14 @@ const MapPage: React.FC = () => {
                       </g>
                     )}
 
-                  {node.type === "boss" && (
-                    <text
-                      x={cx}
-                      y={cy + r + 3}
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                      fill={node.state === "cleared" ? colors.accent : "rgba(255,255,255,0.6)"}
-                      fontSize={2.2}
-                      fontWeight="bold"
-                      fontFamily="Outfit, sans-serif"
-                    >
-                      {getZoneGuardian(mapZoneId).name}
-                    </text>
-                  )}
                 </motion.g>
               );
             })}
 
-            {/* Guardian node — bottom of map, below level 1 */}
+            {/* Guardian node — top-left of map */}
             {(() => {
-              const guardianX = 0.5 * VB_W;
-              const guardianY = 0.97 * VB_H;
+              const guardianX = 0.15 * VB_W;
+              const guardianY = 0.06 * VB_H;
               const gr = 5;
               return (
                 <motion.g
@@ -644,6 +634,19 @@ const MapPage: React.FC = () => {
                     fill="none"
                     stroke={colors.accent}
                     strokeWidth={0.6}
+                  />
+                  {/* Pulsing ring to attract attention */}
+                  <motion.circle
+                    cx={guardianX}
+                    cy={guardianY}
+                    r={gr + 1.5}
+                    fill="none"
+                    stroke={colors.accent}
+                    strokeWidth={0.4}
+                    initial={{ opacity: 0.6, scale: 1 }}
+                    animate={{ opacity: 0, scale: 1.4 }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
+                    style={{ transformOrigin: `${guardianX}px ${guardianY}px` }}
                   />
                   <text
                     x={guardianX}
