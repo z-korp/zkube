@@ -74,7 +74,7 @@
     "guardian": {
       "name": "Sobek",
       "title": "The Nile Guardian",
-      "portraitPrompt": "A Nile crocodile spirit god resting in still dark water, only its head and upper back visible above the surface, stylized cel-shaded game art with bold black outlines. Ancient and patient, the crocodile has weathered dark green scales with subtle golden Egyptian eye-of-Horus markings etched into its hide. Two piercing amber eyes glow just above the waterline, watching. Dark ripples spread outward from its snout. A faint golden aura surrounds its head. Moody and atmospheric, the creature is half-hidden in shadow. Dark background, near black. Warm #D4AF37 gold accents only on the eyes and markings. 512x512 pixels, fully opaque."
+      "portraitPrompt": "A Nile crocodile spirit god resting in still dark water, only its head and upper back visible above the surface, stylized cel-shaded game art with bold black outlines. Ancient and patient, the crocodile has weathered dark green scales with one single small golden marking on its forehead. Two piercing amber eyes glow just above the waterline, watching. Dark ripples spread outward from its snout. A faint golden aura surrounds its head. Moody and atmospheric, the creature is half-hidden in shadow. Dark background, near black. Warm #D4AF37 gold accents only on the eyes. 512x512 pixels, fully opaque."
     }
   },
   "theme-3": {
