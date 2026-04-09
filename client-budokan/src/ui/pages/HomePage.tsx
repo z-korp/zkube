@@ -70,8 +70,22 @@ const itemVariants: Variants = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
 };
 
-const BLOCK_WIDTHS: Record<number, number> = { 1: 36, 2: 72, 3: 108, 4: 144 };
-const BLOCK_HEIGHT = 36;
+// Block cell size — total grid is 8 cells wide
+const CELLS = 8;
+
+// Generate a random line that sums to 8 cells
+function generateLine(): number[] {
+  const blocks: number[] = [];
+  let remaining = CELLS;
+  while (remaining > 0) {
+    const maxSize = Math.min(4, remaining);
+    const size = Math.floor(Math.random() * maxSize) + 1;
+    blocks.push(size);
+    remaining -= size;
+  }
+  return blocks;
+}
+
 
 const CtaGuardian: React.FC = () => {
   const guardianIds = Object.keys(ZONE_GUARDIANS).map(Number);
@@ -86,17 +100,26 @@ const CtaGuardian: React.FC = () => {
     1: gImages.block1, 2: gImages.block2, 3: gImages.block3, 4: gImages.block4,
   };
 
-  // Sequential falling blocks — one at a time, no overlap possible
-  const fallingBlocks = useMemo(() => {
-    const sizes = [2, 1, 4, 3, 1, 2, 3, 1, 4, 2];
-    const dur = 2.5;
-    return sizes.map((size, i) => {
-      const widthPct = (BLOCK_WIDTHS[size] / 360) * 100;
+  // Generate lines of blocks — each line sums to 8 cells
+  const fallingLines = useMemo(() => {
+    const lineCount = 6;
+    const lineDuration = 5;
+    const lineSpacing = 1.8; // overlap — next line starts while previous still falling
+    return Array.from({ length: lineCount }).map((_, lineIdx) => {
+      const sizes = generateLine();
+      let cellOffset = 0;
+      const blocks = sizes.map((size) => {
+        const x = cellOffset;
+        cellOffset += size;
+        // Each block gets its own random speed — no two fall the same
+        const speed = 0.7 + Math.random() * 0.8; // 0.7x to 1.5x
+        return { size, cellX: x, speed };
+      });
       return {
-        xPct: 5 + Math.random() * Math.max(5, 90 - widthPct),
-        size,
-        delay: i * dur, // sequential — each starts after the previous ends
-        totalCycle: sizes.length * dur,
+        blocks,
+        delay: lineIdx * lineSpacing,
+        duration: lineDuration,
+        repeatDelay: Math.max(0, lineCount * lineSpacing - lineDuration),
       };
     });
   }, [gZoneId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -136,35 +159,44 @@ const CtaGuardian: React.FC = () => {
         "{g.greeting}"
       </p>
 
-      {/* Falling blocks — one at a time */}
-      <div className="relative w-full flex-1 min-h-[120px] overflow-hidden">
-        {fallingBlocks.map((b, i) => (
-          <motion.img
-            key={i}
-            src={blockSrcs[b.size]}
-            alt=""
-            className="absolute rounded-sm"
-            style={{
-              left: `${b.xPct}%`,
-              width: BLOCK_WIDTHS[b.size],
-              height: BLOCK_HEIGHT,
-              maskImage: "linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)",
-            }}
-            animate={{
-              y: [-40, 160],
-              opacity: [0, 0.85, 0.7, 0],
-            }}
-            transition={{
-              delay: b.delay,
-              duration: 2.5,
-              repeat: Infinity,
-              repeatDelay: b.totalCycle - 2.5,
-              ease: "easeIn",
-            }}
-            draggable={false}
-          />
-        ))}
+      {/* Falling lines — full rows that break apart with gravity */}
+      <div
+        className="relative w-full flex-1 min-h-[140px] overflow-hidden"
+        style={{
+          maskImage: "linear-gradient(to bottom, black 0%, black 55%, transparent 100%)",
+          WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 55%, transparent 100%)",
+        }}
+      >
+        {fallingLines.map((line, li) =>
+          line.blocks.map((b, bi) => {
+            const cellPct = 100 / CELLS;
+            return (
+              <motion.img
+                key={`${li}-${bi}`}
+                src={blockSrcs[b.size]}
+                alt=""
+                className="absolute top-0"
+                style={{
+                  left: `${b.cellX * cellPct}%`,
+                  width: `${b.size * cellPct}%`,
+                  aspectRatio: `${b.size} / 1`,
+                }}
+                animate={{
+                  y: [-20, 280],
+                  opacity: [0, 0.85, 0.8, 0.7],
+                }}
+                transition={{
+                  delay: line.delay,
+                  duration: line.duration / b.speed,
+                  repeat: Infinity,
+                  repeatDelay: line.repeatDelay,
+                  ease: "easeIn",
+                }}
+                draggable={false}
+              />
+            );
+          }),
+        )}
       </div>
     </motion.div>
   );
