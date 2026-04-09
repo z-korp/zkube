@@ -5,6 +5,7 @@ import { Difficulty } from "@/dojo/game/types/difficulty";
 import type { MapNodeData } from "@/hooks/useMapData";
 import type { Game } from "@/dojo/game/models/game";
 import type { GameLevelData } from "@/hooks/useGameLevel";
+import { getZoneGuardian, getGuardianPortrait } from "@/config/bossCharacters";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 
 export interface LevelPreviewProps {
@@ -12,6 +13,7 @@ export interface LevelPreviewProps {
   game: Game | null;
   gameLevel: GameLevelData | null;
   gameId: bigint | null;
+  zoneId: number;
   levelStars?: number[];
   onPlay: () => void;
   onClose: () => void;
@@ -44,10 +46,14 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
   game,
   gameLevel,
   gameId,
+  zoneId,
   levelStars,
   onPlay,
   onClose,
 }) => {
+  const guardian = getZoneGuardian(zoneId);
+  const isBossLevel = node.type === "boss";
+
   const stars =
     node.contractLevel
       ? levelStars?.[node.contractLevel - 1] ?? game?.getLevelStars(node.contractLevel) ?? 0
@@ -78,26 +84,12 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
   const constraints: string[] = [];
   if (useContractData) {
     [
-      {
-        type: gameLevel.constraintType,
-        value: gameLevel.constraintValue,
-        count: gameLevel.constraintCount,
-      },
-      {
-        type: gameLevel.constraint2Type,
-        value: gameLevel.constraint2Value,
-        count: gameLevel.constraint2Count,
-      },
-      {
-        type: gameLevel.constraint3Type,
-        value: gameLevel.constraint3Value,
-        count: gameLevel.constraint3Count,
-      },
+      { type: gameLevel.constraintType, value: gameLevel.constraintValue, count: gameLevel.constraintCount },
+      { type: gameLevel.constraint2Type, value: gameLevel.constraint2Value, count: gameLevel.constraint2Count },
+      { type: gameLevel.constraint3Type, value: gameLevel.constraint3Value, count: gameLevel.constraint3Count },
     ].forEach(({ type, value, count }) => {
       if (type !== ConstraintType.None) {
-        constraints.push(
-          Constraint.fromContractValues(type, value, count).getDescription(),
-        );
+        constraints.push(Constraint.fromContractValues(type, value, count).getDescription());
       }
     });
   } else if (node.levelConfig) {
@@ -112,6 +104,13 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
 
   const difficultyLabel = DIFFICULTY_LABELS[difficulty] ?? difficulty;
 
+  // Guardian contextual line
+  const guardianLine = isBossLevel
+    ? guardian.trialIntro
+    : node.state === "cleared" || node.state === "visited"
+      ? stars >= 3 ? "Masterful." : guardian.encouragement
+      : guardian.encouragement;
+
   return (
     <motion.div
       className="absolute inset-0 z-30 flex items-center justify-center bg-black/65 backdrop-blur-sm px-4"
@@ -121,7 +120,8 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
       onClick={onClose}
     >
       <motion.div
-        className="relative w-full max-w-md rounded-2xl border border-white/20 bg-slate-950/90 p-5 shadow-2xl backdrop-blur-xl"
+        className={`relative w-full max-w-md overflow-hidden rounded-2xl border shadow-2xl backdrop-blur-xl ${isBossLevel ? "border-orange-500/30" : "border-white/20"}`}
+        style={{ background: isBossLevel ? "linear-gradient(180deg, rgba(127,29,29,0.95), rgba(15,10,20,0.98))" : "rgba(15,23,42,0.92)" }}
         initial={{ opacity: 0, scale: 0.85, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 10 }}
@@ -131,131 +131,134 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-3 top-3 rounded-md p-1 text-slate-300 transition-colors hover:bg-slate-700/60 hover:text-white"
+          className="absolute right-3 top-3 z-10 rounded-md p-1 text-slate-300 transition-colors hover:bg-slate-700/60 hover:text-white"
         >
           <X size={18} />
         </button>
 
-        <h3 className="pr-8 font-display text-2xl text-white">
-          {node.type === "draft"
-            ? `Zone ${node.zone} Draft`
-            : node.type === "boss"
-              ? `Guardian Trial ${node.contractLevel}`
-              : `Level ${node.contractLevel}`}
-        </h3>
-
-        {node.type === "draft" ? (
-          <p className="mt-4 text-sm text-slate-200/90">
-            Draft event: choose your run direction before facing the guardian.
-          </p>
-        ) : node.state === "cleared" || node.state === "visited" ? (
-          <div className="mt-4 space-y-3 text-sm font-sans">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Difficulty</span>
-              <span
-                className={`text-lg ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}
-              >
-                {difficultyLabel}
-              </span>
-            </div>
-            <div className="flex items-center justify-between rounded-lg bg-emerald-500/15 px-3 py-2.5">
-              <span className="text-emerald-200">✓ Cleared</span>
-              <span className="text-lg">
-                {Array.from({ length: stars }).map((_, i) => <span key={i} className="text-yellow-300">★</span>)}
-                {stars === 0 && (
-                  <span className="text-slate-500 text-sm">—</span>
-                )}
-              </span>
-            </div>
-
-            {constraints.length > 0 && (
-              <div>
-                <p className="mb-1 text-slate-400">Constraints</p>
-                <div className="space-y-1">
-                  {constraints.map((c) => (
-                    <p
-                      key={c}
-                      className="rounded-md bg-slate-800/80 px-2 py-1 text-slate-100"
-                    >
-                      {c}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            )}
+        {/* Guardian header */}
+        <div className="flex items-center gap-3 px-5 pt-4 pb-2">
+          <img
+            src={getGuardianPortrait(zoneId)}
+            alt={guardian.name}
+            className={`h-12 w-12 rounded-xl object-cover ${isBossLevel ? "ring-2 ring-orange-500/50" : ""}`}
+            draggable={false}
+          />
+          <div className="min-w-0 flex-1">
+            <h3 className="font-display text-xl text-white">
+              {node.type === "draft"
+                ? `Zone ${node.zone} Draft`
+                : isBossLevel
+                  ? `Guardian Trial`
+                  : `Level ${node.contractLevel}`}
+            </h3>
+            <p className="font-sans text-[12px] italic text-white/60">"{guardianLine}"</p>
           </div>
-        ) : (
-          <div className="mt-4 space-y-3 text-sm font-sans">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Difficulty</span>
-              <span
-                className={`text-lg ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}
-              >
-                {difficultyLabel}
-              </span>
-            </div>
+        </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Target Score</span>
-              <span className="text-lg text-white">
-                {String(pointsRequired)}
-              </span>
-            </div>
+        {/* Boss level special banner */}
+        {isBossLevel && canPlay && node.state !== "cleared" && node.state !== "visited" && (
+          <motion.div
+            className="mx-5 mb-2 rounded-lg border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-center"
+            animate={{ boxShadow: ["0 0 0 rgba(249,115,22,0)", "0 0 20px rgba(249,115,22,0.15)", "0 0 0 rgba(249,115,22,0)"] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <p className="font-display text-sm font-bold text-orange-300">
+              Face {guardian.name}
+            </p>
+            <p className="font-sans text-[10px] text-orange-200/60">Keep the grid under control to survive</p>
+          </motion.div>
+        )}
 
-            <div>
-              <p className="mb-1 text-slate-400">Constraints</p>
-              {constraints.length > 0 ? (
-                <div className="space-y-1">
-                  {constraints.map((constraint) => (
-                    <p
-                      key={constraint}
-                      className="rounded-md bg-slate-800/80 px-2 py-1 text-slate-100"
-                    >
-                      {constraint}
-                    </p>
-                  ))}
+        <div className="px-5 pb-5">
+          {node.type === "draft" ? (
+            <p className="mt-2 text-sm text-slate-200/90">
+              Draft event: choose your run direction before facing the guardian.
+            </p>
+          ) : node.state === "cleared" || node.state === "visited" ? (
+            <div className="mt-2 space-y-3 text-sm font-sans">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Difficulty</span>
+                <span className={`text-lg ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}>
+                  {difficultyLabel}
+                </span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-emerald-500/15 px-3 py-2.5">
+                <span className="text-emerald-200">Cleared</span>
+                <span className="text-lg">
+                  {Array.from({ length: stars }).map((_, i) => <span key={i} className="text-yellow-300">★</span>)}
+                  {stars === 0 && <span className="text-slate-500 text-sm">—</span>}
+                </span>
+              </div>
+              {constraints.length > 0 && (
+                <div>
+                  <p className="mb-1 text-slate-400">Constraints</p>
+                  <div className="space-y-1">
+                    {constraints.map((c) => (
+                      <p key={c} className="rounded-md bg-slate-800/80 px-2 py-1 text-slate-100">{c}</p>
+                    ))}
+                  </div>
                 </div>
-              ) : (
-                <p className="rounded-md bg-slate-800/60 px-2 py-1 text-slate-300">
-                  No constraint
-                </p>
               )}
             </div>
-
-            {maxMoves > 0 && (
-              <div className="space-y-2 pt-1">
-                <p className="mb-1 text-slate-400">Star Goals</p>
-                {[
-                  { stars: 3, threshold: cube3Threshold },
-                  { stars: 2, threshold: cube2Threshold },
-                  { stars: 1, threshold: maxMoves },
-                ].map(({ stars, threshold }) => (
-                  <div
-                    key={stars}
-                    className="flex items-center justify-between rounded-md bg-slate-800/60 px-2.5 py-1.5 text-slate-200"
-                  >
-                    <span className="inline-flex items-center gap-0.5 text-yellow-300">
-                      {Array.from({ length: 3 }).map((_, i) => (
-                        <span key={i} className={i < stars ? "opacity-100" : "opacity-25"}>
-                          ★
-                        </span>
-                      ))}
-                    </span>
-                    <span className="font-semibold">Finish in {threshold} moves</span>
-                  </div>
-                ))}
+          ) : (
+            <div className="mt-2 space-y-3 text-sm font-sans">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Difficulty</span>
+                <span className={`text-lg ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}>
+                  {difficultyLabel}
+                </span>
               </div>
-            )}
-          </div>
-        )}
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Target Score</span>
+                <span className="text-lg text-white">{String(pointsRequired)}</span>
+              </div>
+              <div>
+                <p className="mb-1 text-slate-400">Constraints</p>
+                {constraints.length > 0 ? (
+                  <div className="space-y-1">
+                    {constraints.map((constraint) => (
+                      <p key={constraint} className="rounded-md bg-slate-800/80 px-2 py-1 text-slate-100">{constraint}</p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="rounded-md bg-slate-800/60 px-2 py-1 text-slate-300">No constraint</p>
+                )}
+              </div>
+              {maxMoves > 0 && (
+                <div className="space-y-2 pt-1">
+                  <p className="mb-1 text-slate-400">Star Goals</p>
+                  {[
+                    { stars: 3, threshold: cube3Threshold },
+                    { stars: 2, threshold: cube2Threshold },
+                    { stars: 1, threshold: maxMoves },
+                  ].map(({ stars, threshold }) => (
+                    <div key={stars} className="flex items-center justify-between rounded-md bg-slate-800/60 px-2.5 py-1.5 text-slate-200">
+                      <span className="inline-flex items-center gap-0.5 text-yellow-300">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                          <span key={i} className={i < stars ? "opacity-100" : "opacity-25"}>★</span>
+                        ))}
+                      </span>
+                      <span className="font-semibold">Finish in {threshold} moves</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-        {canPlay && (
-          <div className="mt-5">
-            <ArcadeButton onClick={onPlay}>
-              {node.state === "cleared" || node.state === "visited" ? "Replay" : "Play"}
-            </ArcadeButton>
-          </div>
-        )}
+          {canPlay && (
+            <div className="mt-5">
+              <ArcadeButton onClick={onPlay}>
+                {isBossLevel
+                  ? `Face ${guardian.name}`
+                  : node.state === "cleared" || node.state === "visited"
+                    ? "Replay"
+                    : "Play"}
+              </ArcadeButton>
+            </div>
+          )}
+        </div>
       </motion.div>
     </motion.div>
   );

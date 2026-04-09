@@ -663,6 +663,7 @@ const MapPage: React.FC = () => {
             game={game ?? null}
             gameLevel={gameLevel}
             gameId={gameId}
+            zoneId={mapZoneId}
             levelStars={zoneProgressData?.levelStars ?? []}
             onPlay={handlePlay}
             onClose={() => setSelectedNode(null)}
@@ -684,6 +685,7 @@ const MapPage: React.FC = () => {
             prevTotalScore={pendingLevelCompletion.prevTotalScore}
             totalScore={pendingLevelCompletion.totalScore}
             gameLevel={pendingLevelCompletion.gameLevel}
+            zoneId={mapZoneId}
             draftWillOpen={false}
           />
         )}

@@ -8,6 +8,7 @@ import type { GameLevelData } from "@/hooks/useGameLevel";
 import { useMusicPlayer } from "@/contexts/hooks";
 import ConfettiExplosion from "@/ui/components/ConfettiExplosion";
 import type { ConfettiExplosionRef } from "@/ui/components/ConfettiExplosion";
+import { getZoneGuardian, getGuardianPortrait } from "@/config/bossCharacters";
 
 interface LevelCompleteDialogProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface LevelCompleteDialogProps {
   prevTotalScore: number;
   totalScore: number;
   gameLevel: GameLevelData | null;
+  zoneId?: number;
   draftWillOpen?: boolean;
 }
 
@@ -28,8 +30,11 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   prevTotalScore,
   totalScore,
   gameLevel,
+  zoneId = 1,
   draftWillOpen = false,
 }) => {
+  const guardian = getZoneGuardian(zoneId);
+  const isBossLevel = level === 10;
   const [animationPhase, setAnimationPhase] = useState(0);
   const { playSfx } = useMusicPlayer();
   const confettiRef = useRef<ConfettiExplosionRef>(null);
@@ -131,9 +136,23 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
         aria-describedby={undefined}
         className="sm:max-w-[420px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-6 py-8"
       >
-        <DialogTitle className="mb-4 text-center font-display text-3xl text-green-400">
-          Level {level} Complete!
-        </DialogTitle>
+        {/* Guardian reaction */}
+        <div className="mb-3 flex items-center gap-3">
+          <img
+            src={getGuardianPortrait(zoneId)}
+            alt={guardian.name}
+            className={`h-11 w-11 rounded-xl object-cover ${isBossLevel ? "ring-2 ring-yellow-500/50" : ""}`}
+            draggable={false}
+          />
+          <div className="min-w-0 flex-1">
+            <DialogTitle className={`text-left font-display text-2xl ${isBossLevel ? "text-yellow-300" : "text-green-400"}`}>
+              {isBossLevel ? "Trial Passed!" : `Level ${level} Complete!`}
+            </DialogTitle>
+            <p className="font-sans text-[11px] italic text-white/50">
+              "{isBossLevel ? guardian.respectLine : guardian.encouragement}"
+            </p>
+          </div>
+        </div>
 
         <div className="mb-4 flex justify-center gap-3">
           {[1, 2, 3].map((star, index) => {
