@@ -335,7 +335,8 @@ const MapPage: React.FC = () => {
           <svg
             viewBox={`0 0 ${VB_W} ${VB_H}`}
             preserveAspectRatio="xMidYMid meet"
-            className="absolute inset-0 h-full w-full"
+            className="absolute inset-0 h-full w-full transition-opacity duration-300"
+            style={{ opacity: showGreeting ? 0.3 : 1 }}
           >
             {/* Paths */}
             {layout?.edges.map((edge) => {
@@ -611,8 +612,8 @@ const MapPage: React.FC = () => {
                 <motion.g
                   onClick={() => setShowGreeting(true)}
                   initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.8, type: "spring", stiffness: 200, damping: 18 }}
+                  animate={{ scale: [1, 1.06, 1], opacity: 1 }}
+                  transition={{ scale: { duration: 2.5, repeat: Infinity, ease: "easeInOut" }, opacity: { delay: 0.8, duration: 0.4 } }}
                   style={{ cursor: "pointer", transformOrigin: `${guardianX}px ${guardianY}px` }}
                 >
                   <clipPath id="guardian-clip">
@@ -634,19 +635,6 @@ const MapPage: React.FC = () => {
                     fill="none"
                     stroke={colors.accent}
                     strokeWidth={0.6}
-                  />
-                  {/* Rotating dashed ring — exactly on circle edge */}
-                  <motion.circle
-                    cx={guardianX}
-                    cy={guardianY}
-                    r={gr}
-                    fill="none"
-                    stroke={colors.accent}
-                    strokeWidth={0.35}
-                    strokeDasharray="2 1.5"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                    style={{ transformOrigin: `${guardianX}px ${guardianY}px` }}
                   />
                   <text
                     x={guardianX}

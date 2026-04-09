@@ -94,37 +94,14 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
             {greeting}
           </p>
 
-          {/* Mutator info — inline, compact */}
-          {(activeMutator || passiveMutator) && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {activeMutator && (
-                <div className="flex items-center gap-1.5 rounded-lg bg-orange-500/10 px-2.5 py-1.5">
-                  <span className="text-sm">{activeMutator.icon}</span>
-                  <div>
-                    <span className="font-sans text-[11px] font-bold text-orange-300">{activeMutator.name}</span>
-                    {activeMutator.effects[0] && (
-                      <p className="font-sans text-[10px] text-orange-200/60">{activeMutator.effects[0]}</p>
-                    )}
-                  </div>
-                </div>
-              )}
-              {passiveMutator && (
-                <div className="flex items-center gap-1.5 rounded-lg bg-purple-500/10 px-2.5 py-1.5">
-                  <span className="text-sm">{passiveMutator.icon}</span>
-                  <div>
-                    <span className="font-sans text-[11px] font-bold text-purple-300">{passiveMutator.name}</span>
-                    {passiveMutator.effects[0] && (
-                      <p className="font-sans text-[10px] text-purple-200/60">{passiveMutator.effects[0]}</p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Zone hint */}
+          <p className="mt-2 font-sans text-[13px] leading-relaxed text-white/60">
+            {guardian.zoneHint}
+          </p>
 
           {/* Perfection hint on first visit */}
           {isFirstVisit && mode !== "endless" && (
-            <p className="mt-2 font-sans text-[11px] text-pink-300/70">
+            <p className="mt-2 font-sans text-[12px] text-pink-300/70">
               💎 Earn 3 stars on all 10 levels for +20★ perfection bonus
             </p>
           )}
