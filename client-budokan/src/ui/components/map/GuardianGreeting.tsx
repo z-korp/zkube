@@ -11,6 +11,7 @@ interface GuardianGreetingProps {
   mode: "story" | "daily" | "endless";
   activeMutatorId?: number;
   passiveMutatorId?: number;
+  isFirstVisit?: boolean;
   onClose: () => void;
 }
 
@@ -20,6 +21,7 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
   mode,
   activeMutatorId,
   passiveMutatorId,
+  isFirstVisit = false,
   onClose,
 }) => {
   const portraitSrc = getGuardianPortrait(guardian.zoneId);
@@ -27,7 +29,7 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
   const passiveMutator = passiveMutatorId && passiveMutatorId > 0 ? getMutatorDef(passiveMutatorId) : null;
 
   const greeting = mode === "endless"
-    ? `The arena awaits. Here, there is no end — only how far you can push.`
+    ? "The arena awaits. Here, there is no end — only how far you can push."
     : guardian.greeting;
 
   return (
@@ -39,7 +41,7 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
       onClick={onClose}
     >
       <motion.div
-        className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl"
+        className="relative max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl"
         style={{ background: `linear-gradient(180deg, ${colors.backgroundGradientStart ?? "#0a1628"}F0, ${colors.background ?? "#050a12"}F8)` }}
         initial={{ opacity: 0, scale: 0.85, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -65,7 +67,6 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
               style={{ border: `2px solid ${colors.accent}55`, boxShadow: `0 0 24px ${colors.accent}33` }}
               draggable={false}
               onError={(e) => {
-                // Fallback to emoji if portrait not generated yet
                 (e.target as HTMLImageElement).style.display = "none";
                 (e.target as HTMLImageElement).parentElement!.querySelector(".emoji-fallback")?.classList.remove("hidden");
               }}
@@ -89,7 +90,60 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
           </p>
         </div>
 
-        {/* Endless mode: mutator explanation */}
+        {/* Zone explanation — shown for story/daily, conversational style */}
+        {mode !== "endless" && (activeMutator || passiveMutator) && (
+          <div className="mx-4 mt-3 space-y-2">
+            {activeMutator && (
+              <div className="flex items-start gap-2.5 rounded-xl bg-white/[0.04] px-3 py-2.5">
+                <span className="mt-0.5 text-lg">{activeMutator.icon}</span>
+                <div>
+                  <p className="font-sans text-[12px] font-bold" style={{ color: colors.text }}>
+                    {activeMutator.name}
+                  </p>
+                  <p className="mt-0.5 font-sans text-[11px] text-white/50">{activeMutator.description}</p>
+                  {activeMutator.effects.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {activeMutator.effects.map((e) => (
+                        <span key={e} className="rounded-full bg-orange-500/10 px-1.5 py-0.5 font-sans text-[9px] font-semibold text-orange-200/70">{e}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {passiveMutator && (
+              <div className="flex items-start gap-2.5 rounded-xl bg-white/[0.04] px-3 py-2.5">
+                <span className="mt-0.5 text-lg">{passiveMutator.icon}</span>
+                <div>
+                  <p className="font-sans text-[12px] font-bold" style={{ color: colors.text }}>
+                    {passiveMutator.name}
+                  </p>
+                  <p className="mt-0.5 font-sans text-[11px] text-white/50">{passiveMutator.description}</p>
+                  {passiveMutator.effects.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {passiveMutator.effects.map((e) => (
+                        <span key={e} className="rounded-full bg-purple-500/10 px-1.5 py-0.5 font-sans text-[9px] font-semibold text-purple-200/70">{e}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Perfection goal — only on first visit */}
+            {isFirstVisit && (
+              <div className="flex items-center gap-2.5 rounded-xl bg-white/[0.04] px-3 py-2.5">
+                <span className="text-lg">💎</span>
+                <div>
+                  <p className="font-sans text-[12px] font-bold" style={{ color: colors.text }}>Perfection Bonus</p>
+                  <p className="mt-0.5 font-sans text-[11px] text-white/50">Earn 3 stars on all 10 levels for +20★</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Endless mode: arena rules */}
         {mode === "endless" && (activeMutator || passiveMutator) && (
           <div className="mx-4 mt-3 space-y-1.5">
             <p className="font-sans text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">Arena Rules</p>
@@ -100,13 +154,6 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
                   <span className="font-sans text-[11px] font-bold text-purple-300">{passiveMutator.name}</span>
                 </div>
                 <p className="mt-0.5 font-sans text-[10px] text-white/50">{passiveMutator.description}</p>
-                {passiveMutator.effects.length > 0 && (
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {passiveMutator.effects.map((e) => (
-                      <span key={e} className="rounded-full bg-purple-500/10 px-1.5 py-0.5 font-sans text-[9px] font-semibold text-purple-200/70">{e}</span>
-                    ))}
-                  </div>
-                )}
               </div>
             )}
             {activeMutator && (
@@ -116,13 +163,6 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
                   <span className="font-sans text-[11px] font-bold text-orange-300">{activeMutator.name}</span>
                 </div>
                 <p className="mt-0.5 font-sans text-[10px] text-white/50">{activeMutator.description}</p>
-                {activeMutator.effects.length > 0 && (
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {activeMutator.effects.map((e) => (
-                      <span key={e} className="rounded-full bg-orange-500/10 px-1.5 py-0.5 font-sans text-[9px] font-semibold text-orange-200/70">{e}</span>
-                    ))}
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -135,7 +175,7 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
             className="w-full rounded-xl py-2.5 font-sans text-[12px] font-bold uppercase tracking-[0.08em] text-white transition-colors"
             style={{ background: `${colors.accent}33`, border: `1px solid ${colors.accent}55` }}
           >
-            {mode === "endless" ? "Enter Arena" : "Begin"}
+            {mode === "endless" ? "Enter Arena" : isFirstVisit ? "Begin" : "Close"}
           </button>
         </div>
       </motion.div>

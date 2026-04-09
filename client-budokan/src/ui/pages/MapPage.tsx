@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, Info } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { motion } from "motion/react";
-import { getZoneGuardian } from "@/config/bossCharacters";
+import { getZoneGuardian, getGuardianPortrait } from "@/config/bossCharacters";
 import { useGame } from "@/hooks/useGame";
 import { useGameLevel } from "@/hooks/useGameLevel";
 import {
@@ -31,7 +31,6 @@ import { ZONE_NAMES } from "@/config/profileData";
 import LevelPreview from "@/ui/components/map/LevelPreview";
 import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
 import ZoneBackground from "@/ui/components/map/ZoneBackground";
-import ZoneInfoSheet from "@/ui/components/map/ZoneInfoSheet";
 import GuardianGreeting from "@/ui/components/map/GuardianGreeting";
 import { showToast } from "@/utils/toast";
 
@@ -173,17 +172,9 @@ const MapPage: React.FC = () => {
   });
 
   const [selectedNode, setSelectedNode] = useState<MapNodeData | null>(null);
-  const [showInfo, setShowInfo] = useState(false);
   const [showGreeting, setShowGreeting] = useState(false);
 
   const guardian = getZoneGuardian(mapZoneId);
-
-  // Auto-show guardian greeting on first zone entry (no levels cleared)
-  useEffect(() => {
-    if (zoneState && zoneState.highestCleared === 0) {
-      setShowGreeting(true);
-    }
-  }, [zoneState?.zoneId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setMusicPlaylist(["main", "level"]);
@@ -280,6 +271,15 @@ const MapPage: React.FC = () => {
     return zoneProgressData?.stars ?? 0;
   }, [isDailyMap, game, zoneProgressData]);
 
+  const isFirstVisit = zoneStars === 0;
+
+  // Auto-show guardian greeting when zone has 0 stars
+  useEffect(() => {
+    if (isFirstVisit) {
+      setShowGreeting(true);
+    }
+  }, [isFirstVisit, mapZoneId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="relative flex h-full flex-col">
       <ZoneBackground zone={mapZoneId} themeId={themeId} />
@@ -310,19 +310,6 @@ const MapPage: React.FC = () => {
           <span className="font-display text-xl font-black text-white drop-shadow-md">
             {zoneName}
           </span>
-          <button
-            onClick={() => setShowGreeting(true)}
-            className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/30 backdrop-blur-md text-sm"
-          >
-            {guardian.emoji}
-          </button>
-          <button
-            onClick={() => setShowInfo(true)}
-            className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/30 backdrop-blur-md"
-            style={{ color: colors.accent }}
-          >
-            <Info size={14} />
-          </button>
         </div>
 
         <div className="flex items-center gap-1.5 pointer-events-none">
@@ -625,6 +612,55 @@ const MapPage: React.FC = () => {
               );
             })}
 
+            {/* Guardian node — bottom of map, below level 1 */}
+            {(() => {
+              const guardianX = 0.5 * VB_W;
+              const guardianY = 0.97 * VB_H;
+              const gr = 5;
+              return (
+                <motion.g
+                  onClick={() => setShowGreeting(true)}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.8, type: "spring", stiffness: 200, damping: 18 }}
+                  style={{ cursor: "pointer", transformOrigin: `${guardianX}px ${guardianY}px` }}
+                >
+                  <clipPath id="guardian-clip">
+                    <circle cx={guardianX} cy={guardianY} r={gr} />
+                  </clipPath>
+                  <image
+                    href={getGuardianPortrait(mapZoneId)}
+                    x={guardianX - gr}
+                    y={guardianY - gr}
+                    width={gr * 2}
+                    height={gr * 2}
+                    preserveAspectRatio="xMidYMid slice"
+                    clipPath="url(#guardian-clip)"
+                  />
+                  <circle
+                    cx={guardianX}
+                    cy={guardianY}
+                    r={gr}
+                    fill="none"
+                    stroke={colors.accent}
+                    strokeWidth={0.6}
+                  />
+                  <text
+                    x={guardianX}
+                    y={guardianY + gr + 2.5}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill={colors.accent}
+                    fontSize={2}
+                    fontWeight="bold"
+                    fontFamily="Outfit, sans-serif"
+                  >
+                    {guardian.name}
+                  </text>
+                </motion.g>
+              );
+            })()}
+
           </svg>
         </div>
 
@@ -659,17 +695,14 @@ const MapPage: React.FC = () => {
           />
         )}
 
-        {showInfo && (
-          <ZoneInfoSheet zoneId={mapZoneId} onClose={() => setShowInfo(false)} />
-        )}
-
         {showGreeting && (
           <GuardianGreeting
             colors={colors}
             guardian={guardian}
             mode={isDailyMap ? "daily" : "story"}
-            activeMutatorId={zoneState ? (mapZoneId * 2 - 1) : undefined}
-            passiveMutatorId={zoneState ? (mapZoneId * 2) : undefined}
+            activeMutatorId={mapZoneId * 2 - 1}
+            passiveMutatorId={mapZoneId * 2}
+            isFirstVisit={isFirstVisit}
             onClose={() => setShowGreeting(false)}
           />
         )}

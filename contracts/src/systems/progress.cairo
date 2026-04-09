@@ -122,6 +122,18 @@ mod progress_system {
             player_id: felt252,
             achievement_id: felt252,
         ) {
+            // Auto-claim the achievement so XP is awarded and the arcade library
+            // marks it as claimed in the same transaction.
+            let mut contract = self.get_contract_mut();
+            let world: WorldStorage = contract.world(@DEFAULT_NS());
+            self.claim(world, player_id, achievement_id);
+        }
+
+        fn on_claim(
+            ref self: AchievementComponent::ComponentState<ContractState>,
+            player_id: felt252,
+            achievement_id: felt252,
+        ) {
             let mut contract = self.get_contract_mut();
             let mut world: WorldStorage = contract.world(@DEFAULT_NS());
             let player: ContractAddress = player_id.try_into().unwrap();
@@ -131,15 +143,6 @@ mod progress_system {
             }
             player_meta.increment_xp(AchievementPointsTrait::xp_for(achievement_id));
             world.write_model(@player_meta);
-        }
-
-        fn on_claim(
-            ref self: AchievementComponent::ComponentState<ContractState>,
-            player_id: felt252,
-            achievement_id: felt252,
-        ) {
-            let _ = player_id;
-            let _ = achievement_id;
         }
     }
 
