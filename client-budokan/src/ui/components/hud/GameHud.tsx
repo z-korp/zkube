@@ -372,7 +372,7 @@ const GameHud: React.FC<GameHudProps> = ({
   return (
     <div className="w-full shrink-0">
       {/* ─── Main HUD bar ─── */}
-      <div className="relative mx-auto w-full max-w-[500px]">
+      <div className="relative z-10 mx-auto w-full max-w-[500px]">
         {/* Chrome background — drives sizing */}
         <img
           src="/assets/common/ui/hud-bar.png"
@@ -398,7 +398,7 @@ const GameHud: React.FC<GameHudProps> = ({
             <TooltipTrigger asChild>
               <motion.div
                 className="absolute rounded-full overflow-hidden"
-                style={{ left: "3.2%", top: "20%", width: "11%", paddingBottom: "11%" }}
+                style={{ left: "9.2%", top: "32%", width: "10%", height: "30.5%" }}
                 animate={isBoss ? {
                   boxShadow: [
                     "0 0 8px 2px rgba(239,68,68,0.3)",
@@ -424,7 +424,7 @@ const GameHud: React.FC<GameHudProps> = ({
         {/* Level number — small socket */}
         <div
           className="absolute flex flex-col items-center justify-center"
-          style={{ left: "16%", top: "25%", width: "7%", height: "50%" }}
+          style={{ left: "18%", top: "28%", width: "7%", height: "44%" }}
         >
           <span className={`font-display text-[clamp(6px,1.5vw,9px)] leading-none ${isBoss ? "text-red-400" : "text-slate-400"}`}>
             {isBoss ? "BOSS" : "Lv"}
@@ -437,7 +437,7 @@ const GameHud: React.FC<GameHudProps> = ({
         {/* Stars — top center over the 3 engraved notches */}
         <div
           className="absolute flex items-center justify-center gap-[3%]"
-          style={{ left: "30%", top: "6%", width: "40%", height: "26%" }}
+          style={{ left: "35%", top: "10%", width: "30%", height: "30%" }}
         >
           {[1, 2, 3].map((star) => (
             <span
@@ -456,7 +456,7 @@ const GameHud: React.FC<GameHudProps> = ({
         {/* Score bar — center recessed channel */}
         <div
           className="absolute flex items-center gap-[1.5%]"
-          style={{ left: "25%", top: "38%", width: "50%", height: "22%" }}
+          style={{ left: "25%", top: "40%", width: "52%", height: "22%" }}
         >
           <div className="flex-1 h-[clamp(6px,1.8vw,10px)] overflow-hidden rounded-full bg-black/50">
             <motion.div
@@ -477,7 +477,7 @@ const GameHud: React.FC<GameHudProps> = ({
         {/* Combo + mutator — below score bar */}
         <div
           className="absolute flex items-center justify-center gap-[1.5%]"
-          style={{ left: "25%", top: "64%", width: "50%", height: "20%" }}
+          style={{ left: "25%", top: "62%", width: "52%", height: "20%" }}
         >
           <div className="inline-flex items-center gap-0.5">
             <span className="text-[clamp(7px,1.8vw,10px)]">🔥</span>
@@ -498,7 +498,7 @@ const GameHud: React.FC<GameHudProps> = ({
         {/* Moves counter — right gear socket */}
         <div
           className="absolute flex flex-col items-center justify-center"
-          style={{ right: "3%", top: "18%", width: "13%", height: "64%" }}
+          style={{ right: "7.5%", top: "20%", width: "12%", height: "60%" }}
         >
           <span className="font-display text-[clamp(6px,1.5vw,9px)] leading-none text-slate-400">MOVES</span>
           <span className={`font-sans text-[clamp(16px,4vw,26px)] font-bold leading-none tabular-nums`} style={{ color: movesBarColor }}>
@@ -507,9 +507,9 @@ const GameHud: React.FC<GameHudProps> = ({
         </div>
       </div>
 
-      {/* ─── Constraint bar (only when constraints exist) ─── */}
+      {/* ─── Constraint bar — tucked behind the HUD bar bottom ─── */}
       {hasConstraints && (
-        <div className="relative mx-auto w-full max-w-[280px] -mt-1">
+        <div className="relative z-0 mx-auto w-full max-w-[200px] -mt-[3%]">
           <img
             src="/assets/common/ui/constraint-bar.png"
             alt=""
