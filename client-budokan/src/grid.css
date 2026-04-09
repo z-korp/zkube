@@ -51,7 +51,7 @@
   animation: borderRotate var(--d) linear infinite forwards;
 }
 
-.block {
+.grid-block {
   position: absolute;
   background-color: transparent;
   display: flex;
