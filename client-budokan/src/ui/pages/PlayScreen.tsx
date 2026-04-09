@@ -30,6 +30,7 @@ import { ConstraintType } from "@/dojo/game/types/constraint";
 import { DifficultyType } from "@/dojo/game/types/difficulty";
 import { getBonusType } from "@/config/mutatorConfig";
 import { useMutatorDef } from "@/hooks/useMutatorDef";
+import { useSettings } from "@/hooks/useSettings";
 
 const PlayScreen: React.FC = () => {
   const {
@@ -262,22 +263,14 @@ const PlayScreen: React.FC = () => {
   const bonusType = game?.bonusType ?? 0;
   const bonusCharges = game?.bonusCharges ?? 0;
   const gameBonusSlot = game?.bonusSlot ?? 0;
-  const activeMutatorId = game?.activeMutatorId ?? 0;
 
-  const { data: mutatorDef } = useMutatorDef(activeMutatorId);
+  // run_data stores the passive mutator; the active mutator (bonus source) comes from GameSettings
+  const zoneId = game?.zoneId ?? 1;
+  const settingsId = Math.max(0, (zoneId - 1) * 2);
+  const { settings: zoneSettings } = useSettings(settingsId);
+  const bonusMutatorId = zoneSettings.activeMutatorId;
 
-  // Debug: log bonus data to diagnose missing slots
-  console.log("[PlayScreen bonus]", {
-    bonusType,
-    bonusCharges,
-    gameBonusSlot,
-    activeMutatorId,
-    mutatorDef: mutatorDef ? {
-      b1: mutatorDef.bonus1Type,
-      b2: mutatorDef.bonus2Type,
-      b3: mutatorDef.bonus3Type,
-    } : null,
-  });
+  const { data: mutatorDef } = useMutatorDef(bonusMutatorId);
 
   const bonusSlots = useMemo((): BonusSlot[] => {
     if (!mutatorDef) {
