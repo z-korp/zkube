@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { generateLevelConfig, type Level } from "@/dojo/game/types/level";
+import { generateLevelConfig, type Level, type GameSettings } from "@/dojo/game/types/level";
 import type { ThemeId } from "@/config/themes";
 
 export type NodeType = "classic" | "boss";
@@ -47,6 +47,7 @@ export interface UseMapDataParams {
   zoneId: number;
   zoneState: StoryZoneMapState | undefined;
   activeStoryNode?: ActiveStoryNode | null;
+  settings?: GameSettings;
 }
 
 export const NODES_PER_ZONE = 10;
@@ -122,6 +123,7 @@ export function generateMapData({
   zoneId,
   zoneState,
   activeStoryNode = null,
+  settings,
 }: UseMapDataParams): MapData {
   const zoneTheme = getZoneTheme(zoneId);
   const sequence = buildZoneSequence();
@@ -143,7 +145,7 @@ export function generateMapData({
     };
 
     const localLevel = raw.contractLevel ?? LEVELS_PER_ZONE;
-    const levelConfig = generateLevelConfig(seed, localLevel);
+    const levelConfig = generateLevelConfig(seed, localLevel, settings);
     const state = getNodeState(partial, zoneState, activeStoryNode);
 
     return {
@@ -168,9 +170,10 @@ export function useMapData({
   zoneId,
   zoneState,
   activeStoryNode = null,
+  settings,
 }: UseMapDataParams): MapData {
   return useMemo(
-    () => generateMapData({ seed, zoneId, zoneState, activeStoryNode }),
-    [seed, zoneId, zoneState, activeStoryNode],
+    () => generateMapData({ seed, zoneId, zoneState, activeStoryNode, settings }),
+    [seed, zoneId, zoneState, activeStoryNode, settings],
   );
 }

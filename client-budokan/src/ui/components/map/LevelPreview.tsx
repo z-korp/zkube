@@ -1,5 +1,4 @@
 import { motion } from "motion/react";
-import { X } from "lucide-react";
 import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
 import { Difficulty } from "@/dojo/game/types/difficulty";
 import type { MapNodeData } from "@/hooks/useMapData";
@@ -105,7 +104,6 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
   const difficultyLabel = DIFFICULTY_LABELS[difficulty] ?? difficulty;
   const isCleared = node.state === "cleared" || node.state === "visited";
 
-  // Guardian contextual line
   const guardianLine = isBossLevel
     ? guardian.trialIntro
     : isCleared
@@ -114,137 +112,119 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
 
   return (
     <motion.div
-      className="absolute inset-0 z-30 flex flex-col items-center justify-end bg-black/60 backdrop-blur-sm px-3 pb-4 md:justify-center md:pb-0"
+      className="absolute inset-0 z-30 flex flex-col bg-black/60"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
-      {/* Guardian portrait — floats above the card */}
-      <motion.img
-        src={getGuardianPortrait(zoneId)}
-        alt={guardian.name}
-        className="mb-2 h-20 w-20 rounded-2xl object-cover"
-        style={{
-          border: isBossLevel ? "2px solid rgba(249,115,22,0.5)" : "2px solid rgba(255,255,255,0.15)",
-          boxShadow: isBossLevel ? "0 0 24px rgba(249,115,22,0.25)" : "0 0 16px rgba(0,0,0,0.5)",
-          maskImage: "radial-gradient(circle, black 60%, transparent 100%)",
-          WebkitMaskImage: "radial-gradient(circle, black 60%, transparent 100%)",
-        }}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05, type: "spring", stiffness: 300, damping: 25 }}
-        draggable={false}
-      />
+      {/* Full-size guardian — Ace Attorney style */}
+      <div className="relative flex flex-1 min-h-0 items-end justify-center overflow-hidden">
+        <motion.div
+          className="relative h-[55%] max-h-[320px]"
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.05, type: "spring", stiffness: 200, damping: 20 }}
+        >
+          <img
+            src={getGuardianPortrait(zoneId)}
+            alt={guardian.name}
+            className="h-full w-auto object-contain"
+            style={{
+              maskImage: "radial-gradient(ellipse 80% 85% at 50% 45%, black 40%, transparent 75%)",
+              WebkitMaskImage: "radial-gradient(ellipse 80% 85% at 50% 45%, black 40%, transparent 75%)",
+            }}
+            draggable={false}
+          />
+        </motion.div>
+      </div>
 
-      {/* Card */}
+      {/* Dialog panel */}
       <motion.div
-        className={`relative w-full max-w-md overflow-hidden rounded-2xl border shadow-2xl backdrop-blur-xl ${isBossLevel ? "border-orange-500/25" : "border-white/15"}`}
-        style={{ background: isBossLevel ? "linear-gradient(180deg, rgba(127,29,29,0.95), rgba(15,10,20,0.98))" : "linear-gradient(180deg, rgba(15,23,42,0.95), rgba(10,15,30,0.98))" }}
+        className="shrink-0"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05, type: "spring", stiffness: 300, damping: 25 }}
-        onClick={(event) => event.stopPropagation()}
+        transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 25 }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/30 text-white/50 hover:text-white/80"
+        <div
+          className={`mx-2 mb-3 rounded-2xl border-2 px-4 pb-4 pt-3 ${isBossLevel ? "border-orange-500/30" : "border-white/15"}`}
+          style={{
+            background: isBossLevel
+              ? "linear-gradient(180deg, rgba(127,29,29,0.95), rgba(15,10,20,0.98))"
+              : "linear-gradient(180deg, rgba(15,23,42,0.95), rgba(10,15,30,0.98))",
+            boxShadow: isBossLevel
+              ? "0 -4px 32px rgba(249,115,22,0.15)"
+              : "0 -4px 32px rgba(0,0,0,0.4)",
+          }}
         >
-          <X size={14} />
-        </button>
-
-        <div className="px-4 pt-3 pb-4">
           {/* Title + guardian quote */}
-          <div className="mb-3 text-center">
-            <p className={`font-display text-xl font-black ${isBossLevel ? "text-orange-300" : "text-white"}`}>
-              {isBossLevel ? `Trial of ${guardian.name}` : `Level ${node.contractLevel}`}
-            </p>
-            <p className="mt-1 font-sans text-[12px] italic text-white/50">"{guardianLine}"</p>
+          <div className="mb-3">
+            <div className="flex items-center justify-between">
+              <p className={`font-display text-lg font-black ${isBossLevel ? "text-orange-300" : "text-white"}`}>
+                {isBossLevel ? `Trial of ${guardian.name}` : `Level ${node.contractLevel}`}
+              </p>
+              <span className={`font-sans text-sm font-bold ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}>
+                {difficultyLabel}
+              </span>
+            </div>
+            <p className="mt-0.5 font-sans text-[12px] italic text-white/50">"{guardianLine}"</p>
           </div>
+
+          {/* Stats */}
+          {isCleared ? (
+            <div className="flex items-center justify-between rounded-xl bg-emerald-500/10 px-3 py-2 mb-3">
+              <span className="font-sans text-[12px] font-bold text-emerald-300">Cleared</span>
+              <span className="text-base tracking-wider">
+                {"★".repeat(stars)}{"☆".repeat(3 - stars)}
+              </span>
+            </div>
+          ) : (
+            <div className="mb-3 space-y-2">
+              <div className="flex gap-2">
+                <div className="flex-1 rounded-xl bg-white/[0.05] px-3 py-2 text-center">
+                  <p className="font-sans text-sm font-bold text-white">{pointsRequired}</p>
+                  <p className="font-sans text-[9px] text-white/40">Target</p>
+                </div>
+                {maxMoves > 0 && [
+                  { s: 3, t: cube3Threshold },
+                  { s: 2, t: cube2Threshold },
+                  { s: 1, t: maxMoves },
+                ].map(({ s, t }) => (
+                  <div key={s} className="flex-1 rounded-xl bg-white/[0.04] px-2 py-2 text-center">
+                    <p className="font-sans text-xs text-yellow-300">{"★".repeat(s)}</p>
+                    <p className="font-sans text-[9px] text-white/40">≤{t} moves</p>
+                  </div>
+                ))}
+              </div>
+
+              {constraints.length > 0 && (
+                <div className="space-y-1">
+                  {constraints.map((c) => (
+                    <p key={c} className="rounded-lg bg-white/[0.04] px-3 py-1.5 font-sans text-[11px] text-white/60">{c}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Boss banner */}
           {isBossLevel && canPlay && !isCleared && (
-            <motion.div
-              className="mb-3 rounded-xl border border-orange-500/25 bg-orange-500/10 px-3 py-2 text-center"
-              animate={{ boxShadow: ["0 0 0 rgba(249,115,22,0)", "0 0 16px rgba(249,115,22,0.12)", "0 0 0 rgba(249,115,22,0)"] }}
-              transition={{ duration: 2.5, repeat: Infinity }}
+            <motion.p
+              className="mb-3 text-center font-sans text-[11px] font-bold text-orange-200/60"
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
             >
-              <p className="font-sans text-[11px] font-bold text-orange-200/70">Keep the grid under control to survive</p>
-            </motion.div>
-          )}
-
-          {/* Cleared state */}
-          {isCleared ? (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between rounded-xl bg-white/[0.05] px-3 py-2">
-                <span className="font-sans text-[12px] text-white/50">Difficulty</span>
-                <span className={`font-sans text-sm font-bold ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}>{difficultyLabel}</span>
-              </div>
-              <div className="flex items-center justify-between rounded-xl bg-emerald-500/10 px-3 py-2">
-                <span className="font-sans text-[12px] text-emerald-300">Cleared</span>
-                <span className="text-base">
-                  {stars > 0 ? "★".repeat(stars) + "☆".repeat(3 - stars) : "—"}
-                </span>
-              </div>
-              {constraints.length > 0 && (
-                <div className="space-y-1">
-                  {constraints.map((c) => (
-                    <p key={c} className="rounded-xl bg-white/[0.04] px-3 py-1.5 font-sans text-[11px] text-white/70">{c}</p>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl bg-white/[0.05] px-3 py-2 text-center">
-                  <p className={`font-sans text-sm font-bold ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}>{difficultyLabel}</p>
-                  <p className="font-sans text-[10px] text-white/40">Difficulty</p>
-                </div>
-                <div className="rounded-xl bg-white/[0.05] px-3 py-2 text-center">
-                  <p className="font-sans text-sm font-bold text-white">{pointsRequired}</p>
-                  <p className="font-sans text-[10px] text-white/40">Target Score</p>
-                </div>
-              </div>
-
-              {constraints.length > 0 && (
-                <div className="space-y-1">
-                  {constraints.map((c) => (
-                    <p key={c} className="rounded-xl bg-white/[0.04] px-3 py-1.5 font-sans text-[11px] text-white/70">{c}</p>
-                  ))}
-                </div>
-              )}
-
-              {maxMoves > 0 && (
-                <div className="grid grid-cols-3 gap-1.5">
-                  {[
-                    { s: 3, t: cube3Threshold },
-                    { s: 2, t: cube2Threshold },
-                    { s: 1, t: maxMoves },
-                  ].map(({ s, t }) => (
-                    <div key={s} className="rounded-xl bg-white/[0.04] px-2 py-1.5 text-center">
-                      <p className="font-sans text-xs text-yellow-300">{"★".repeat(s)}{"☆".repeat(3 - s)}</p>
-                      <p className="font-sans text-[10px] text-white/50">≤{t} moves</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {!useContractData && (
-                <p className="text-center font-sans text-[9px] text-white/25">Estimated values — actual may vary</p>
-              )}
-            </div>
+              Keep the grid under control to survive
+            </motion.p>
           )}
 
           {canPlay && (
-            <div className="mt-4">
-              <ArcadeButton onClick={onPlay}>
-                {isBossLevel
-                  ? `Face ${guardian.name}`
-                  : isCleared ? "Replay" : "Play"}
-              </ArcadeButton>
-            </div>
+            <ArcadeButton onClick={onPlay}>
+              {isBossLevel
+                ? `Face ${guardian.name}`
+                : isCleared ? "Replay" : "Play"}
+            </ArcadeButton>
           )}
         </div>
       </motion.div>

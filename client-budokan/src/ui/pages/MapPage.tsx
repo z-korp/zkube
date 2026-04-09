@@ -27,6 +27,7 @@ import { useDojo } from "@/dojo/useDojo";
 import { useActiveStoryAttempt } from "@/hooks/useActiveStoryAttempt";
 import { useActiveDailyAttempt } from "@/hooks/useActiveDailyAttempt";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
+import { useSettings } from "@/hooks/useSettings";
 import { ZONE_NAMES } from "@/config/profileData";
 import LevelPreview from "@/ui/components/map/LevelPreview";
 import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
@@ -158,11 +159,15 @@ const MapPage: React.FC = () => {
     return null;
   }, [isDailyMap, activeDailyRun, game, mapZoneId, activeStoryRun]);
 
+  const settingsId = (mapZoneId - 1) * 2;
+  const { settings: zoneSettings } = useSettings(settingsId);
+
   const mapData = useMapData({
     seed,
     zoneId: mapZoneId,
     zoneState,
     activeStoryNode: activeNode,
+    settings: zoneSettings,
   });
 
   const zoneLayouts = useMapLayout({
