@@ -32,6 +32,7 @@ import LevelPreview from "@/ui/components/map/LevelPreview";
 import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
 import ZoneBackground from "@/ui/components/map/ZoneBackground";
 import ZoneInfoSheet from "@/ui/components/map/ZoneInfoSheet";
+import GuardianGreeting from "@/ui/components/map/GuardianGreeting";
 import { showToast } from "@/utils/toast";
 
 const VB_W = 60;
@@ -173,6 +174,16 @@ const MapPage: React.FC = () => {
 
   const [selectedNode, setSelectedNode] = useState<MapNodeData | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [showGreeting, setShowGreeting] = useState(false);
+
+  const guardian = getZoneGuardian(mapZoneId);
+
+  // Auto-show guardian greeting on first zone entry (no levels cleared)
+  useEffect(() => {
+    if (zoneState && zoneState.highestCleared === 0) {
+      setShowGreeting(true);
+    }
+  }, [zoneState?.zoneId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setMusicPlaylist(["main", "level"]);
@@ -299,6 +310,12 @@ const MapPage: React.FC = () => {
           <span className="font-display text-xl font-black text-white drop-shadow-md">
             {zoneName}
           </span>
+          <button
+            onClick={() => setShowGreeting(true)}
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/30 backdrop-blur-md text-sm"
+          >
+            {guardian.emoji}
+          </button>
           <button
             onClick={() => setShowInfo(true)}
             className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/30 backdrop-blur-md"
@@ -644,6 +661,17 @@ const MapPage: React.FC = () => {
 
         {showInfo && (
           <ZoneInfoSheet zoneId={mapZoneId} onClose={() => setShowInfo(false)} />
+        )}
+
+        {showGreeting && (
+          <GuardianGreeting
+            colors={colors}
+            guardian={guardian}
+            mode={isDailyMap ? "daily" : "story"}
+            activeMutatorId={zoneState ? (mapZoneId * 2 - 1) : undefined}
+            passiveMutatorId={zoneState ? (mapZoneId * 2) : undefined}
+            onClose={() => setShowGreeting(false)}
+          />
         )}
 
         {nodes.length === 0 && (

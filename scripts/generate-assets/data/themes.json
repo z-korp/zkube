@@ -31,6 +31,11 @@
     "music": {
       "menu": "A warm Polynesian lo-fi instrumental with soft ukulele fingerpicking over gentle log drum rhythms and ocean wave ambience. Nose flute melody floats through warm island breeze. Around 90 BPM, rhythmic and inviting.",
       "gameplay": "A lively Polynesian instrumental with rhythmic ukulele strumming and warm log drum grooves. Nose flute melody and conch shell accents float over a steady island pulse. Around 115 BPM, sunny and groovy."
+    },
+    "guardian": {
+      "name": "Maui",
+      "title": "Tidecaller",
+      "portraitPrompt": "A Polynesian demigod character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, muscular build with intricate tribal tattoos covering arms and chest, holding a large fish hook weapon. Bold confident grin. Wearing tapa cloth wrap. Blue and silver ocean motifs in the design. Dark background fading to pure black at edges. Vibrant colors with #A9D8FF highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-2": {
@@ -65,6 +70,11 @@
     "music": {
       "menu": "An elegant Egyptian instrumental with a soft oud melody and gentle darbuka hand drum pattern. Arabic maqam Hijaz scale. Around 85 BPM, regal and serene.",
       "gameplay": "A groovy Egyptian fusion instrumental with steady darbuka and riq tambourine rhythm over warm bass oud riffs. Arabic maqam Hijaz scale. 112 BPM, smooth and monumental."
+    },
+    "guardian": {
+      "name": "Nefertari",
+      "title": "Sun Sovereign",
+      "portraitPrompt": "An Egyptian pharaoh queen character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, regal pose with gold headdress featuring a cobra. Kohl-lined eyes, golden light aura. Wearing ornate gold and lapis lazuli collar necklace, white linen gown. Dark background fading to pure black at edges. Vibrant colors with #D4AF37 gold highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-3": {
@@ -99,6 +109,11 @@
     "music": {
       "menu": "A haunting Norse ambient instrumental with deep bowed string drone and sparse nyckelharpa melody. Distant war horn echoes through frozen valleys. Around 80 BPM, vast and mythic.",
       "gameplay": "A steady Norse folk instrumental with rhythmic bodhrán drum and warm nyckelharpa melody over a deep bowed string drone. Distant horn accents. 115 BPM, vast and focused."
+    },
+    "guardian": {
+      "name": "Sigrun",
+      "title": "Frostbane",
+      "portraitPrompt": "A Norse valkyrie warrior woman character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, fierce determined expression. Frost-etched steel armor with Nordic rune engravings, braided silver-white hair, icy blue eyes. Holding a frost-covered shield. Dark background fading to pure black at edges. Vibrant colors with cool blue and silver highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-4": {
@@ -133,6 +148,11 @@
     "music": {
       "menu": "An elegant Ancient Greek instrumental with gentle lyre arpeggios and soft aulos flute melody over a light frame drum rhythm. Mediterranean breeze ambience. Around 85 BPM, contemplative and noble.",
       "gameplay": "A lively Mediterranean instrumental with steady frame drum and tambourine over bright lyre arpeggios and warm aulos melody. 112 BPM, spirited and flowing."
+    },
+    "guardian": {
+      "name": "Athenos",
+      "title": "Marble Sage",
+      "portraitPrompt": "A Greek philosopher-warrior character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, thoughtful contemplative expression. Wearing marble-white toga with gold trim, laurel crown on head. Holding a scroll in one hand. Marble column textures in the background detail. Dark background fading to pure black at edges. Vibrant colors with #4A90D9 blue highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-5": {
@@ -167,6 +187,11 @@
     "music": {
       "menu": "A refined Japanese instrumental with gentle koto plucking and soft shakuhachi bamboo flute melody over wind chime accents. Around 80 BPM, meditative and disciplined.",
       "gameplay": "A focused Japanese instrumental with steady taiko pulse and flowing shinobue flute melody. Gentle shamisen patterns weave through the rhythm. 115 BPM, refined and purposeful."
+    },
+    "guardian": {
+      "name": "Hanzo",
+      "title": "Shadow Blade",
+      "portraitPrompt": "A Japanese samurai master character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, intense focused gaze. Wearing dark lacquered armor with red cord lacing, katana drawn at his side. Clean-shaven with topknot hairstyle. Red and black color scheme. Dark background fading to pure black at edges. Vibrant colors with deep red highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-6": {
@@ -201,6 +226,11 @@
     "music": {
       "menu": "A mystical Chinese instrumental with gentle guzheng zither arpeggios and soft dizi bamboo flute melody floating over a resonant gong drone. Around 85 BPM, flowing and imperial.",
       "gameplay": "A flowing Chinese instrumental with warm erhu melody and steady drum rhythms. Gentle pipa lute runs over soft guzheng arpeggios. 115 BPM, mystical and focused."
+    },
+    "guardian": {
+      "name": "Mei Lin",
+      "title": "Dragon Empress",
+      "portraitPrompt": "A Chinese imperial dragon empress character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, commanding regal presence. Wearing flowing jade-green silk robes embroidered with golden dragon motifs. Hair pinned up with jade ornaments. Serene yet powerful expression. Dark background fading to pure black at edges. Vibrant colors with #4CAF50 green and gold highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-7": {
@@ -235,6 +265,11 @@
     "music": {
       "menu": "An elegant Persian instrumental with soft santur hammered dulcimer arpeggios and gentle ney flute melody. Zarb hand drum keeps a subtle pulse. Around 85 BPM, regal and luminous.",
       "gameplay": "A groovy Persian fusion instrumental with steady tombak drum patterns and bright tar lute melody. Santur cascades over a relaxed daf frame drum groove. 112 BPM, symmetrical and flowing."
+    },
+    "guardian": {
+      "name": "Cyra",
+      "title": "Mosaic Eye",
+      "portraitPrompt": "A Persian enchantress character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, mysterious half-smile. Wearing ornate geometric-patterned veil and silk garments in blue and gold. Intricate tilework-inspired jewelry. Holding a geometric medallion. Dark background fading to pure black at edges. Vibrant colors with #4169E1 blue and gold highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-8": {
@@ -269,6 +304,11 @@
     "music": {
       "menu": "An atmospheric Mesoamerican instrumental with a wooden pan flute melody over gentle rain stick textures and soft clay drum rhythm. Jungle bird calls in the distance. Around 85 BPM, mysterious and ancient.",
       "gameplay": "A rhythmic Mesoamerican instrumental with steady wooden slit drum grooves and gentle seed shaker textures over a warm clay ocarina melody. 115 BPM, mysterious and earthy."
+    },
+    "guardian": {
+      "name": "Ixchel",
+      "title": "Blood Oracle",
+      "portraitPrompt": "A Mayan high priestess character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, primal intensity in her expression. Wearing jade jewelry, elaborate feathered headdress with quetzal feathers, jaguar pelt elements. Face painted with ritual markings. Dark background fading to pure black at edges. Vibrant colors with green and earth-tone highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-9": {
@@ -303,6 +343,11 @@
     "music": {
       "menu": "A warm Central African instrumental with soft thumb piano (likembe) melody over gentle wooden slit drum rhythm. Distant forest ambience with bird calls. Around 80 BPM, ancestral and meditative.",
       "gameplay": "A groovy Central African instrumental with steady wooden slit drum patterns and bright thumb piano melody over gentle shaker and bell accents. 112 BPM, ceremonial and warm."
+    },
+    "guardian": {
+      "name": "Ngoma",
+      "title": "War Drummer",
+      "portraitPrompt": "A tribal war chief character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, rhythmic energy in his pose. Wearing ceremonial war paint in white and teal patterns, bone and bead necklaces, carrying a large wooden drum. Muscular build, proud bearing. Dark background fading to pure black at edges. Vibrant colors with #40C8B8 teal highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-10": {
@@ -337,6 +382,11 @@
     "music": {
       "menu": "A majestic Andean instrumental with gentle charango melody and soft pan flute harmonies over a steady bombo drum pulse. Mountain wind ambience. Around 85 BPM, monumental and serene.",
       "gameplay": "A lively Andean instrumental with steady charango strumming and warm quena flute melody over a grounded bombo drum pulse. 115 BPM, precise and mountainous."
+    },
+    "guardian": {
+      "name": "Intika",
+      "title": "Sun Heir",
+      "portraitPrompt": "An Inca sun prince character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, austere dignified expression. Wearing golden sun disc crown, stone and gold patterned tunic with geometric Inca motifs. Holding a golden staff. Mountain stone textures in background detail. Dark background fading to pure black at edges. Vibrant colors with #DAA520 gold highlights. 512x512 pixels, fully opaque."
     }
   }
 }

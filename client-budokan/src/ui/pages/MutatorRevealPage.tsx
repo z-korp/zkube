@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react";
 
 import { getThemeColors, type ThemeId } from "@/config/themes";
 import { getBonusType, getMutatorDef } from "@/config/mutatorConfig";
+import { getZoneGuardian } from "@/config/bossCharacters";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { useGame } from "@/hooks/useGame";
@@ -20,6 +21,8 @@ const MutatorRevealPage: React.FC = () => {
   const goBack = useNavigationStore((s) => s.goBack);
 
   const { game } = useGame({ gameId: gameId ?? undefined, shouldLog: false });
+  const mapZoneId = useNavigationStore((s) => s.mapZoneId);
+  const guardian = getZoneGuardian(mapZoneId || 1);
 
   const mutatorId = game?.activeMutatorId ?? 0;
   const bonusTypeId = game?.bonusType ?? 0;
@@ -136,7 +139,16 @@ const MutatorRevealPage: React.FC = () => {
             </div>
 
             <motion.p
-              className="font-sans text-[10px] font-semibold uppercase tracking-[0.3em]"
+              className="font-sans text-[11px] italic text-white/60"
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: isSettled ? 0 : 30, opacity: isSettled ? 1 : 0 }}
+              transition={{ delay: isSettled ? 0.2 : 0, duration: 0.35 }}
+            >
+              {guardian.emoji} {guardian.name} grants you:
+            </motion.p>
+
+            <motion.p
+              className="mt-1 font-sans text-[10px] font-semibold uppercase tracking-[0.3em]"
               style={{ color: colors.accent }}
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: isSettled ? 0 : 30, opacity: isSettled ? 1 : 0 }}
