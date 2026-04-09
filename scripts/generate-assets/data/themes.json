@@ -72,9 +72,9 @@
       "gameplay": "A groovy Egyptian fusion instrumental with steady darbuka and riq tambourine rhythm over warm bass oud riffs. Arabic maqam Hijaz scale. 112 BPM, smooth and monumental."
     },
     "guardian": {
-      "name": "Khepri",
-      "title": "The Scarab Sun",
-      "portraitPrompt": "A sacred golden scarab beetle spirit, stylized cel-shaded game art with bold black outlines. Massive scarab with spread jeweled wings, glowing sun disc above its head, hieroglyphic patterns on its carapace. Golden light radiates outward. Dark background fading to pure black at edges. Vibrant colors with #D4AF37 gold highlights. 512x512 pixels, fully opaque."
+      "name": "Sobek",
+      "title": "The Nile Guardian",
+      "portraitPrompt": "A massive ancient Nile crocodile spirit emerging from dark water, stylized cel-shaded game art with bold black outlines. The crocodile is enormous with armored scales that shimmer with golden hieroglyphic patterns, piercing golden eyes glowing with ancient power, jaws slightly open revealing rows of teeth. Dark Nile water drips from its body, golden light reflecting off the surface. Atmospheric, the creature fills the frame with primal presence. Dark background fading to black at edges. Warm golden #D4AF37 glow. 512x512 pixels, fully opaque."
     }
   },
   "theme-3": {
@@ -113,7 +113,7 @@
     "guardian": {
       "name": "Fenris",
       "title": "The Frost Wolf",
-      "portraitPrompt": "A massive frost wolf spirit, stylized cel-shaded game art with bold black outlines. Giant wolf made of ice and snow, glowing icy blue eyes, frost crystals forming along its fur, Nordic runes glowing on its body. Breath visible as cold mist. Dark background fading to pure black at edges. Vibrant colors with cool blue and silver highlights. 512x512 pixels, fully opaque."
+      "portraitPrompt": "A massive frost wolf spirit standing alert, stylized cel-shaded game art with bold black outlines. Giant wolf with thick silver-white fur, glowing icy blue eyes, frost crystals forming along its mane and paws, Nordic runes glowing faintly on its body. The wolf stands proud and watchful, ears forward. Dark background fading to pure black at edges. Vibrant colors with cool blue and silver highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-4": {
@@ -189,9 +189,9 @@
       "gameplay": "A focused Japanese instrumental with steady taiko pulse and flowing shinobue flute melody. Gentle shamisen patterns weave through the rhythm. 115 BPM, refined and purposeful."
     },
     "guardian": {
-      "name": "Tsuru",
-      "title": "The Paper Crane",
-      "portraitPrompt": "An ethereal origami crane spirit, stylized cel-shaded game art with bold black outlines. Giant paper crane made of folded white and red washi paper, delicate fold lines visible, glowing softly from within, cherry blossom petals drifting around it. Dark background fading to pure black at edges. Vibrant colors with deep red and white highlights. 512x512 pixels, fully opaque."
+      "name": "Kitsune",
+      "title": "The Spirit Fox",
+      "portraitPrompt": "A mystical nine-tailed fox spirit, stylized cel-shaded game art with bold black outlines. Elegant white fox with multiple translucent tails flowing behind it, each tail tipped with soft red flame. Piercing intelligent red eyes. Cherry blossom petals drift around it. The fox sits alert and watchful, ethereal and graceful. Atmospheric mist at its feet. Dark background fading to black at edges. Deep red and white highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-6": {
@@ -230,7 +230,7 @@
     "guardian": {
       "name": "Long",
       "title": "The Jade Dragon",
-      "portraitPrompt": "An ancient jade dragon spirit, stylized cel-shaded game art with bold black outlines. Sinuous Chinese dragon carved from translucent green jade, glowing from within, golden whiskers and horns, clouds swirling around its body. Imperial and serene. Dark background fading to pure black at edges. Vibrant colors with #4CAF50 green and gold highlights. 512x512 pixels, fully opaque."
+      "portraitPrompt": "An ancient jade dragon spirit coiling through mist, stylized cel-shaded game art with bold black outlines. Sinuous Chinese dragon with translucent jade-green scales that glow from within, long flowing whiskers, wise ancient eyes. The dragon's body partially dissolves into green ethereal mist. Clouds and jade particles swirl around it. Atmospheric and mystical. Dark background fading to black at edges. #4CAF50 green glow with gold accents. 512x512 pixels, fully opaque."
     }
   },
   "theme-7": {
@@ -267,9 +267,9 @@
       "gameplay": "A groovy Persian fusion instrumental with steady tombak drum patterns and bright tar lute melody. Santur cascades over a relaxed daf frame drum groove. 112 BPM, symmetrical and flowing."
     },
     "guardian": {
-      "name": "Simurgh",
-      "title": "The Mosaic Phoenix",
-      "portraitPrompt": "A geometric phoenix spirit made of living tilework, stylized cel-shaded game art with bold black outlines. Magnificent bird with spread wings composed of intricate Islamic geometric tile patterns in blue and gold, each feather a perfect tessellation. Dark background fading to pure black at edges. Vibrant colors with #4169E1 blue and gold highlights. 512x512 pixels, fully opaque."
+      "name": "Lamassu",
+      "title": "The Gate Guardian",
+      "portraitPrompt": "A massive winged lion spirit from ancient Persia, stylized cel-shaded game art with bold black outlines. The lamassu has the powerful body of a lion with enormous feathered wings spread behind it, intricate blue and gold geometric patterns carved into its mane and wings like living tilework. Wise ancient eyes glow with blue light. The creature sits regally, facing forward with calm authority. Faint geometric tile fragments float in the air around it. Dark background fading to black at edges. #4169E1 blue and gold highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-8": {
@@ -308,7 +308,7 @@
     "guardian": {
       "name": "Balam",
       "title": "The Jungle Jaguar",
-      "portraitPrompt": "A shadow jaguar spirit with three glowing eyes, stylized cel-shaded game art with bold black outlines. Massive black jaguar emerging from jungle shadows, jade spots glowing green, three piercing eyes arranged in a triangle, Mayan glyphs floating around it. Dark background fading to pure black at edges. Vibrant colors with green and earth-tone highlights. 512x512 pixels, fully opaque."
+      "portraitPrompt": "A massive shadow jaguar spirit emerging from jungle darkness, stylized cel-shaded game art with bold black outlines. Black jaguar with jade-green spots that glow like embers, three piercing green eyes arranged in a triangle on its face. The jaguar stalks forward, body partially dissolving into dark smoke at the edges. Mayan glyphs float faintly in the air around it. Atmospheric jungle mist. Dark background fading to black at edges. Green and jade highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-9": {
@@ -345,9 +345,9 @@
       "gameplay": "A groovy Central African instrumental with steady wooden slit drum patterns and bright thumb piano melody over gentle shaker and bell accents. 112 BPM, ceremonial and warm."
     },
     "guardian": {
-      "name": "Djembe",
-      "title": "The Thunder Drum",
-      "portraitPrompt": "A living ceremonial drum spirit, stylized cel-shaded game art with bold black outlines. A massive djembe drum that has come alive — the drum head pulses with sound waves visible as teal energy rings, tribal patterns carved into the wooden body glow with inner light, rhythm lines emanating outward. Dark background fading to pure black at edges. Vibrant colors with #40C8B8 teal highlights. 512x512 pixels, fully opaque."
+      "name": "Mamba",
+      "title": "The Shadow Mamba",
+      "portraitPrompt": "A colossal black mamba snake spirit coiled and alert, stylized cel-shaded game art with bold black outlines. The snake is massive with sleek dark scales that shimmer with teal bioluminescent patterns. Hood slightly flared, mouth open revealing dark interior, piercing teal eyes. Rhythmic teal energy pulses along its body like a heartbeat. Atmospheric dark mist around its coils. Dark background fading to black at edges. #40C8B8 teal highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-10": {
@@ -386,7 +386,7 @@
     "guardian": {
       "name": "Kuntur",
       "title": "The Sun Condor",
-      "portraitPrompt": "A golden condor spirit radiating sunlight, stylized cel-shaded game art with bold black outlines. Enormous Andean condor with wings spread wide, feathers made of hammered gold, a sun disc halo behind its head, Inca geometric patterns on its wings. Mountain peaks visible below. Dark background fading to pure black at edges. Vibrant colors with #DAA520 gold highlights. 512x512 pixels, fully opaque."
+      "portraitPrompt": "A massive Andean condor spirit soaring against a dark sky, stylized cel-shaded game art with bold black outlines. The condor is enormous with dark feathers edged in molten gold, wings spread wide and slightly angled as if banking in flight. A golden sun disc glows behind its head like a halo. Golden light particles trail from its wingtips. The bird fills the frame with power and presence. Dark background fading to black at edges. #DAA520 warm gold highlights. 512x512 pixels, fully opaque."
     }
   }
 }
