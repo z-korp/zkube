@@ -163,7 +163,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
             {isCleared ? (
               <div className="flex items-center justify-between rounded-xl bg-emerald-500/10 px-3 py-2">
                 <span className="font-sans text-[12px] font-bold text-emerald-300">Cleared</span>
-                <span className="text-base tracking-wider">{"★".repeat(stars)}{"☆".repeat(3 - stars)}</span>
+                <span className="text-base tracking-wider">{Array.from({ length: 3 }).map((_, i) => <span key={i} className={i < stars ? "text-yellow-300" : "text-white/25"}>★</span>)}</span>
               </div>
             ) : (
               <>
