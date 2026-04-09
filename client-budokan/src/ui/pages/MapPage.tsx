@@ -627,7 +627,7 @@ const MapPage: React.FC = () => {
               const gr = 5;
               const badgeR = 2;
               const badgeX = guardianX + gr * 0.7;
-              const badgeY = guardianY - gr * 0.7;
+              const badgeY = guardianY + gr * 0.7;
               return (
                 <motion.g
                   onClick={() => setShowGreeting(true)}
