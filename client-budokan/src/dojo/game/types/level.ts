@@ -1289,3 +1289,114 @@ export function parseGameSettings(raw: any): GameSettings {
     cube2Percent: DEFAULT_SETTINGS.cube2Percent,
   };
 }
+
+/* ------------------------------------------------------------------ */
+/*  Level ranges — predictable without seed                            */
+/* ------------------------------------------------------------------ */
+
+export interface LevelRanges {
+  difficulty: string;
+  movesMin: number;
+  movesMax: number;
+  pointsMin: number;
+  pointsMax: number;
+  star3MovesMin: number;
+  star3MovesMax: number;
+  star2MovesMin: number;
+  star2MovesMax: number;
+  star1MovesMin: number;
+  star1MovesMax: number;
+  constraintCountMin: number;
+  constraintCountMax: number;
+  isBoss: boolean;
+  bossConstraintTypes: string[];
+}
+
+/**
+ * Compute predictable level ranges without needing a seed.
+ * Uses settings-only calculations (difficulty, base scaling, budget count).
+ */
+export function getLevelRanges(level: number, settings: GameSettings = DEFAULT_SETTINGS): LevelRanges {
+  const zoneLevelCap = 10;
+  const calcLevel = Math.min(level, zoneLevelCap);
+  const isBoss = level === 10;
+
+  const baseMoves = calculateBaseMovesWithCap(calcLevel, settings.baseMoves, settings.maxMoves, zoneLevelCap);
+  const ratioX100 = calculateRatioWithCap(calcLevel, settings.baseRatioX100, settings.maxRatioX100, zoneLevelCap);
+  const basePoints = Math.floor((baseMoves * ratioX100) / 100);
+
+  const variancePercent = getVariancePercent(calcLevel, settings);
+  const low = (100 - variancePercent) / 100;
+  const high = (100 + variancePercent) / 100;
+
+  const movesMin = Math.floor(baseMoves * low);
+  const movesMax = Math.ceil(baseMoves * high);
+  const pointsMin = Math.floor(basePoints * low);
+  const pointsMax = Math.ceil(basePoints * high);
+
+  const star3MovesMin = Math.floor(movesMin * settings.cube3Percent / 100);
+  const star3MovesMax = Math.floor(movesMax * settings.cube3Percent / 100);
+  const star2MovesMin = Math.floor(movesMin * settings.cube2Percent / 100);
+  const star2MovesMax = Math.floor(movesMax * settings.cube2Percent / 100);
+
+  const difficulty = getDifficultyForLevel(calcLevel, settings);
+
+  // Constraint count from budget
+  let constraintCountMin = 0;
+  let constraintCountMax = 0;
+  if (settings.constraintsEnabled && level >= settings.constraintStartLevel) {
+    const tier = difficultyToTier(difficulty.value);
+    const budgetMax = interpolate(settings.veryeasyBudgetMax, settings.masterBudgetMax, tier, 7);
+    const budgetMin = Math.ceil(budgetMax * 0.70);
+    [constraintCountMin, constraintCountMax] = getConstraintCountRangeFromBudget(budgetMin, budgetMax);
+  }
+  if (isBoss) {
+    constraintCountMin = 2;
+    constraintCountMax = 2;
+  }
+
+  // Boss constraint types
+  const bossConstraintTypes: string[] = [];
+  if (isBoss && settings.bossId > 0) {
+    const identity = getBossIdentity(settings.bossId);
+    const typeNames: Record<number, string> = {
+      1: "Combo Lines",
+      2: "Break Blocks",
+      3: "Combo Streak",
+      4: "Keep Grid Below",
+    };
+    if (identity.primaryType > 0) bossConstraintTypes.push(typeNames[identity.primaryType] ?? "Unknown");
+    if (identity.secondaryType > 0) bossConstraintTypes.push(typeNames[identity.secondaryType] ?? "Unknown");
+  }
+
+  return {
+    difficulty: difficulty.value,
+    movesMin,
+    movesMax,
+    pointsMin,
+    pointsMax,
+    star3MovesMin,
+    star3MovesMax,
+    star2MovesMin,
+    star2MovesMax,
+    star1MovesMin: movesMin,
+    star1MovesMax: movesMax,
+    constraintCountMin,
+    constraintCountMax,
+    isBoss,
+    bossConstraintTypes,
+  };
+}
+
+function difficultyToTier(difficultyValue: string): number {
+  const map: Record<string, number> = {
+    VeryEasy: 0, Easy: 1, Medium: 2, MediumHard: 3,
+    Hard: 4, VeryHard: 5, Expert: 6, Master: 7,
+  };
+  return map[difficultyValue] ?? 4;
+}
+
+function interpolate(veryeasyVal: number, masterVal: number, tier: number, maxTier: number): number {
+  if (maxTier <= 0) return veryeasyVal;
+  return veryeasyVal + Math.floor((masterVal - veryeasyVal) * tier / maxTier);
+}
