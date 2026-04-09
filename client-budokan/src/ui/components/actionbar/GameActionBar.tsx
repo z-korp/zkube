@@ -106,7 +106,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                     disabled={!isUsable}
                     whileHover={isUsable ? { scale: 1.1 } : undefined}
                     whileTap={isUsable ? { scale: 0.9 } : undefined}
-                    className={`relative w-[clamp(38px,10vw,48px)] h-[clamp(38px,10vw,48px)] rounded-full overflow-visible flex items-center justify-center transition-all ${
+                    className={`relative w-[clamp(38px,10vw,48px)] h-[clamp(38px,10vw,48px)] overflow-visible flex items-center justify-center transition-all ${
                       isSelected
                         ? "shadow-[0_0_12px_rgba(250,204,21,0.4)]"
                         : !isUsable
@@ -117,7 +117,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                     <img
                       src={slot.icon}
                       alt={slot.name}
-                      className={`w-full h-full rounded-full object-cover ${
+                      className={`w-full h-full object-contain ${
                         !isUsable ? "grayscale opacity-60" : ""
                       }`}
                     />
