@@ -5,7 +5,7 @@ import type { MapNodeData } from "@/hooks/useMapData";
 import type { Game } from "@/dojo/game/models/game";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import type { ThemeColors } from "@/config/themes";
-import { getZoneGuardian, getGuardianPortrait } from "@/config/bossCharacters";
+import { getZoneGuardian, getGuardianPortrait, getGuardianStarText } from "@/config/bossCharacters";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 
 export interface LevelPreviewProps {
@@ -87,9 +87,9 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
   const difficultyLabel = DIFFICULTY_LABELS[difficulty] ?? difficulty;
 
   const guardianLine = isBossLevel
-    ? guardian.trialIntro
+    ? isCleared ? guardian.respectLine : guardian.trialIntro
     : isCleared
-      ? stars >= 3 ? "Masterful." : guardian.encouragement
+      ? getGuardianStarText(guardian, stars)
       : guardian.encouragement;
 
   return (

@@ -9,6 +9,10 @@ export interface ZoneGuardian {
   encouragement: string;
   trialIntro: string;
   respectLine: string;
+  oneStar: string;
+  twoStar: string;
+  threeStar: string;
+  incomplete: string;
   emoji: string;
 }
 
@@ -24,6 +28,10 @@ export const ZONE_GUARDIANS: Record<number, ZoneGuardian> = {
     encouragement: "The current is with you. Trust the flow.",
     trialIntro: "The ocean's final wave approaches. Show me you've learned its rhythm.",
     respectLine: "The tides accept you. Swim with us now.",
+    oneStar: "You survived the wave, but the ocean has more to teach.",
+    twoStar: "Good form. The current carried you well.",
+    threeStar: "The ocean itself bows. Perfect rhythm.",
+    incomplete: "The tide recedes... but it always returns. Try again.",
     emoji: "🐢",
   },
   2: {
@@ -37,6 +45,10 @@ export const ZONE_GUARDIANS: Record<number, ZoneGuardian> = {
     encouragement: "Patience and precision. The Nile rewards those who wait.",
     trialIntro: "The waters rise. Face the jaws of the Nile or be swept away.",
     respectLine: "The Nile parts for you. You have earned safe passage.",
+    oneStar: "You crossed the river, but barely. The Nile demands more.",
+    twoStar: "A worthy passage. The sands note your precision.",
+    threeStar: "Flawless. The pharaohs would envy your discipline.",
+    incomplete: "The sands swallow those who hesitate. Return stronger.",
     emoji: "🐊",
   },
   3: {
@@ -50,6 +62,10 @@ export const ZONE_GUARDIANS: Record<number, ZoneGuardian> = {
     encouragement: "Strike hard. Strike fast. The frost does not wait.",
     trialIntro: "The blizzard howls. Face the storm or be buried beneath it.",
     respectLine: "The pack accepts your strength. Run with us through the ice.",
+    oneStar: "You endured, but the frost nearly claimed you.",
+    twoStar: "Strong. The ice bends to your will.",
+    threeStar: "Even the blizzard could not touch you. Legendary.",
+    incomplete: "The cold takes the weak. Return with fire in your heart.",
     emoji: "🐺",
   },
   4: {
@@ -63,6 +79,10 @@ export const ZONE_GUARDIANS: Record<number, ZoneGuardian> = {
     encouragement: "Think before you act. Every move is a theorem.",
     trialIntro: "Wisdom alone is not enough. Now prove you can act on it.",
     respectLine: "Knowledge and action, united. The owl sees your worth.",
+    oneStar: "A passing grade, but far from elegant.",
+    twoStar: "Well reasoned. Your logic holds.",
+    threeStar: "A theorem proven without flaw. Brilliant.",
+    incomplete: "The equation remains unsolved. Reconsider your approach.",
     emoji: "🦉",
   },
   5: {
@@ -76,6 +96,10 @@ export const ZONE_GUARDIANS: Record<number, ZoneGuardian> = {
     encouragement: "One strike. One purpose. Make it count.",
     trialIntro: "Nine tails, nine chances. You will not get a tenth.",
     respectLine: "The fox bows to your precision. Walk the spirit path.",
+    oneStar: "Your blade landed, but it lacked grace.",
+    twoStar: "A clean strike. The dojo acknowledges you.",
+    threeStar: "One cut, one kill. The way of the blade, perfected.",
+    incomplete: "A dull blade cannot cut. Sharpen your focus and return.",
     emoji: "🦊",
   },
   6: {
@@ -89,6 +113,10 @@ export const ZONE_GUARDIANS: Record<number, ZoneGuardian> = {
     encouragement: "Flow like the river. It carves mountains given time.",
     trialIntro: "The dragon stirs. Withstand its breath or be consumed.",
     respectLine: "The dragon bows. Your endurance is worthy of the heavens.",
+    oneStar: "You survived the flood, but only just.",
+    twoStar: "The river bends to your patience. Well done.",
+    threeStar: "Even the dragon's torrent could not shake you. Imperial.",
+    incomplete: "The current swept you away. Plant your feet deeper next time.",
     emoji: "🐲",
   },
   7: {
@@ -102,6 +130,10 @@ export const ZONE_GUARDIANS: Record<number, ZoneGuardian> = {
     encouragement: "Look deeper. The pattern reveals itself to the patient eye.",
     trialIntro: "The gate opens for those who see the pattern. Prove your sight.",
     respectLine: "The gate stands open. You see what others cannot.",
+    oneStar: "You found the pattern, but missed its beauty.",
+    twoStar: "The mosaic takes shape under your hands.",
+    threeStar: "Every tile in its place. The pattern is complete.",
+    incomplete: "The tiles scatter. Gather them and try again.",
     emoji: "🦁",
   },
   8: {
@@ -115,6 +147,10 @@ export const ZONE_GUARDIANS: Record<number, ZoneGuardian> = {
     encouragement: "The ritual demands everything. Give it all.",
     trialIntro: "Three eyes open. Three powers converge. Survive the jaguar's gaze.",
     respectLine: "The jungle accepts you as one of its own. Walk unseen.",
+    oneStar: "The ritual was... adequate. The jungle expects more.",
+    twoStar: "The spirits stir. Your offering pleases them.",
+    threeStar: "A perfect ritual. The jungle sings your name.",
+    incomplete: "The ritual failed. The spirits turn away. Begin anew.",
     emoji: "🐆",
   },
   9: {
@@ -128,6 +164,10 @@ export const ZONE_GUARDIANS: Record<number, ZoneGuardian> = {
     encouragement: "Feel the pulse. Let it guide your strikes.",
     trialIntro: "The mamba strikes without warning. Match its speed or be consumed.",
     respectLine: "You move like shadow. The mamba acknowledges its equal.",
+    oneStar: "You kept the beat, but stumbled on the drops.",
+    twoStar: "Your rhythm is strong. The drums resonate.",
+    threeStar: "Thunder itself dances to your beat. Flawless.",
+    incomplete: "You lost the rhythm. Listen again, and return.",
     emoji: "🐍",
   },
   10: {
@@ -141,9 +181,20 @@ export const ZONE_GUARDIANS: Record<number, ZoneGuardian> = {
     encouragement: "Less is more. One wing beat, one purpose.",
     trialIntro: "The summit awaits. With nothing but your will, prove you belong among the stars.",
     respectLine: "You stand at the peak. The sun condor carries your name to the heavens.",
+    oneStar: "You reached the ledge, but the summit is far above.",
+    twoStar: "The altitude tests you, and you endure.",
+    threeStar: "The peak is yours. The sun shines on no one brighter.",
+    incomplete: "The mountain rejects the unprepared. Train and return.",
     emoji: "🦅",
   },
 };
+
+export function getGuardianStarText(guardian: ZoneGuardian, stars: number): string {
+  if (stars >= 3) return guardian.threeStar;
+  if (stars >= 2) return guardian.twoStar;
+  if (stars >= 1) return guardian.oneStar;
+  return guardian.incomplete;
+}
 
 export function getZoneGuardian(zoneId: number): ZoneGuardian {
   return ZONE_GUARDIANS[zoneId] ?? ZONE_GUARDIANS[1];

@@ -165,7 +165,19 @@ const PlayScreen: React.FC = () => {
             gameLevel: resolveCompletionGameLevel(game.level),
           });
           navNavigate("map");
+        } else if (game.mode === 0 || game.mode === undefined) {
+          // Story/daily mode: show incomplete dialog and go to map
+          setPendingLevelCompletion({
+            level: game.level,
+            levelMoves: game.levelMoves,
+            prevTotalScore: levelStartTotalScoreRef.current,
+            totalScore: game.totalScore,
+            gameLevel: resolveCompletionGameLevel(game.level),
+            isIncomplete: true,
+          });
+          navNavigate("map");
         } else {
+          // Endless mode: show game over
           playSfx("over");
           setIsGameOverOpen(true);
         }

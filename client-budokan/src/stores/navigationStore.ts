@@ -14,6 +14,7 @@ export interface PendingLevelCompletion {
   prevTotalScore: number;
   totalScore: number;
   gameLevel: GameLevelData | null;
+  isIncomplete?: boolean;
 }
 
 interface NavigationState {

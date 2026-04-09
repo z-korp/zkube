@@ -676,8 +676,9 @@ const MapPage: React.FC = () => {
             isOpen={true}
             onClose={() => {
               const completedLevel = pendingLevelCompletion.level;
+              const wasIncomplete = pendingLevelCompletion.isIncomplete;
               setPendingLevelCompletion(null);
-              if (completedLevel < 10) {
+              if (!wasIncomplete && completedLevel < 10) {
                 setPendingPreviewLevel(completedLevel + 1);
               }
             }}
@@ -687,6 +688,8 @@ const MapPage: React.FC = () => {
             totalScore={pendingLevelCompletion.totalScore}
             gameLevel={pendingLevelCompletion.gameLevel}
             zoneId={mapZoneId}
+            colors={colors}
+            isIncomplete={pendingLevelCompletion.isIncomplete}
             draftWillOpen={false}
           />
         )}
