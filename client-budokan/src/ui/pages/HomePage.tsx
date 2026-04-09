@@ -285,16 +285,17 @@ const HomePage: React.FC = () => {
     [endlessZoneOneUnlocked, selectedMode],
   );
 
+  // Only reset zone selection when MODE changes — not on data updates
+  const [lastMode, setLastMode] = useState(selectedMode);
   useEffect(() => {
+    if (selectedMode === lastMode) return;
+    setLastMode(selectedMode);
     if (!zones.length) return;
-    const zoneAtIdx = zones[activeZone];
-    const currentSelectable = isZoneSelectable(zoneAtIdx);
-    console.log("[HomePage] selectability check:", { activeZone, zoneId: zoneAtIdx?.zoneId, unlocked: zoneAtIdx?.unlocked, currentSelectable, selectedMode });
+    const currentSelectable = isZoneSelectable(zones[activeZone]);
     if (currentSelectable) return;
     const firstSelectableIndex = zones.findIndex((zoneData) => isZoneSelectable(zoneData));
-    console.log("[HomePage] overriding to first selectable:", { firstSelectableIndex, zoneId: zones[firstSelectableIndex]?.zoneId });
-    setActiveZone(firstSelectableIndex >= 0 ? firstSelectableIndex : 0);
-  }, [activeZone, isZoneSelectable, zones, selectedMode]);
+    if (firstSelectableIndex >= 0) setActiveZone(firstSelectableIndex);
+  }, [selectedMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const zone = zones[activeZone] ?? zones[0];
   const colors = getThemeColors(themeTemplate);
