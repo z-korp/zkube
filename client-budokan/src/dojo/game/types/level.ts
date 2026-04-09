@@ -1396,7 +1396,3 @@ function difficultyToTier(difficultyValue: string): number {
   return map[difficultyValue] ?? 4;
 }
 
-function interpolate(veryeasyVal: number, masterVal: number, tier: number, maxTier: number): number {
-  if (maxTier <= 0) return veryeasyVal;
-  return veryeasyVal + Math.floor((masterVal - veryeasyVal) * tier / maxTier);
-}

@@ -46,7 +46,6 @@ interface GridProps {
   account: Account | null;
   isTxProcessing: boolean;
   setIsTxProcessing: React.Dispatch<React.SetStateAction<boolean>>;
-  activeBonusLevel: number;
   levelTransitionPending: boolean;
   onCascadeComplete?: () => void;
 }
@@ -64,7 +63,6 @@ const Grid: React.FC<GridProps> = ({
   account,
   isTxProcessing,
   setIsTxProcessing,
-  activeBonusLevel,
   levelTransitionPending,
   onCascadeComplete,
 }) => {
@@ -243,8 +241,6 @@ const Grid: React.FC<GridProps> = ({
   gridPositionRef.current = gridPosition;
   const bonusRef = useRef(bonus);
   bonusRef.current = bonus;
-  const activeBonusLevelRef = useRef(activeBonusLevel);
-  activeBonusLevelRef.current = activeBonusLevel;
   const isTxProcessingRef = useRef(isTxProcessing);
   isTxProcessingRef.current = isTxProcessing;
 
@@ -266,8 +262,6 @@ const Grid: React.FC<GridProps> = ({
     const currentBonus = bonusRef.current;
     const currentBlocks = blocksRef.current;
     const currentGridPosition = gridPositionRef.current;
-    const currentActiveBonusLevel = activeBonusLevelRef.current;
-
     // GRID bonuses: Hammer, Totem, Wave — modify blocks, then gravity state machine
     if (currentBonus === BonusType.Hammer) {
       // Hammer: destroy single block at target position
@@ -291,12 +285,8 @@ const Grid: React.FC<GridProps> = ({
       setBlocks(removeBlocksSameWidth(block, currentBlocks));
     } else if (currentBonus === BonusType.Wave) {
       setBlockBonus(block);
-      const rowCount = currentActiveBonusLevel + 1;
-      const rows: number[] = [];
-      for (let i = 0; i < rowCount; i++) {
-        const r = block.y + i;
-        if (r < gridHeight) rows.push(r);
-      }
+      // Wave clears exactly 1 row (matches contract behavior)
+      const rows: number[] = [block.y];
       getBlocksInRows(rows, currentBlocks).forEach((b) => {
         if (currentGridPosition === null) return;
         handleTriggerLocalExplosion(

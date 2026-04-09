@@ -12,6 +12,8 @@ import { useNavigationStore } from "@/stores/navigationStore";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import GameHud from "@/ui/components/hud/GameHud";
 import GameActionBar from "@/ui/components/actionbar/GameActionBar";
+import { buildTriggerDescription } from "@/ui/components/actionbar/GameActionBar";
+import type { BonusSlot } from "@/ui/components/actionbar/GameActionBar";
 import GameBoard from "@/ui/components/GameBoard";
 import GameOverDialog from "@/ui/components/GameOverDialog";
 import VictoryDialog from "@/ui/components/VictoryDialog";
@@ -27,6 +29,7 @@ import { generateLevelConfig } from "@/dojo/game/types/level";
 import { ConstraintType } from "@/dojo/game/types/constraint";
 import { DifficultyType } from "@/dojo/game/types/difficulty";
 import { getBonusType } from "@/config/mutatorConfig";
+import { useMutatorDef } from "@/hooks/useMutatorDef";
 
 const PlayScreen: React.FC = () => {
   const {
@@ -37,7 +40,6 @@ const PlayScreen: React.FC = () => {
   const { account } = useAccountCustom();
   const gameId = useNavigationStore((s) => s.gameId);
   const navNavigate = useNavigationStore((s) => s.navigate);
-  const goBack = useNavigationStore((s) => s.goBack);
   const setPendingLevelCompletion = useNavigationStore(
     (s) => s.setPendingLevelCompletion,
   );
@@ -258,27 +260,61 @@ const PlayScreen: React.FC = () => {
 
   const bonusType = game?.bonusType ?? 0;
   const bonusCharges = game?.bonusCharges ?? 0;
-  const activeBonusLevel = Math.max(0, bonusCharges - 1);
+  const gameBonusSlot = game?.bonusSlot ?? 0;
+  const activeMutatorId = game?.activeMutatorId ?? 0;
 
-  const bonusSlots = useMemo(() => {
-    if (bonusType <= 0) return [];
-    const mapped = bonusType as BonusType;
-    const bonusInfo = getBonusType(bonusType);
-    return [
-      {
-        type: mapped,
-        count: bonusCharges,
-        level: activeBonusLevel,
-        bagSize: bonusCharges,
-        icon: bonusInfo.icon,
-        tooltip: `${bonusInfo.name}: ${bonusInfo.description} (${bonusCharges} charges)`,
+  const { data: mutatorDef } = useMutatorDef(activeMutatorId);
+
+  const bonusSlots = useMemo((): BonusSlot[] => {
+    if (!mutatorDef) {
+      // Fallback: show just the active bonus if no mutator data
+      if (bonusType <= 0) return [];
+      const info = getBonusType(bonusType);
+      return [{
+        type: bonusType as BonusType,
+        charges: bonusCharges,
+        isActive: true,
+        icon: info.icon,
+        name: info.name,
+        description: info.description,
+        triggerDescription: "",
+        startingCharges: 0,
         onClick: () => {
           if (bonusCharges <= 0) return;
-          setActiveBonus((prev) => (prev === mapped ? BonusType.None : mapped));
+          setActiveBonus((prev) => (prev === (bonusType as BonusType) ? BonusType.None : bonusType as BonusType));
         },
-      },
+      }];
+    }
+
+    const slotDefs = [
+      { type: mutatorDef.bonus1Type, triggerType: mutatorDef.bonus1TriggerType, threshold: mutatorDef.bonus1TriggerThreshold, starting: mutatorDef.bonus1StartingCharges },
+      { type: mutatorDef.bonus2Type, triggerType: mutatorDef.bonus2TriggerType, threshold: mutatorDef.bonus2TriggerThreshold, starting: mutatorDef.bonus2StartingCharges },
+      { type: mutatorDef.bonus3Type, triggerType: mutatorDef.bonus3TriggerType, threshold: mutatorDef.bonus3TriggerThreshold, starting: mutatorDef.bonus3StartingCharges },
     ];
-  }, [bonusType, bonusCharges, activeBonusLevel]);
+
+    return slotDefs
+      .map((def, idx) => {
+        if (def.type === 0) return null;
+        const info = getBonusType(def.type);
+        const isActiveSlot = idx === gameBonusSlot && def.type === bonusType;
+        const mapped = def.type as BonusType;
+        return {
+          type: mapped,
+          charges: isActiveSlot ? bonusCharges : 0,
+          isActive: isActiveSlot,
+          icon: info.icon,
+          name: info.name,
+          description: info.description,
+          triggerDescription: buildTriggerDescription(def.triggerType, def.threshold, def.starting),
+          startingCharges: def.starting,
+          onClick: () => {
+            if (!isActiveSlot || bonusCharges <= 0) return;
+            setActiveBonus((prev) => (prev === mapped ? BonusType.None : mapped));
+          },
+        };
+      })
+      .filter((s): s is BonusSlot => s !== null);
+  }, [mutatorDef, bonusType, bonusCharges, gameBonusSlot]);
 
   const bonusInfo = getBonusType(bonusType);
   const bonusDescription =
@@ -393,7 +429,6 @@ const PlayScreen: React.FC = () => {
               game={game}
               activeBonus={activeBonus}
               bonusDescription={bonusDescription}
-              activeBonusLevel={activeBonusLevel}
               onCascadeComplete={handleCascadeComplete}
             />
           </div>
@@ -408,7 +443,6 @@ const PlayScreen: React.FC = () => {
               game={game}
               activeBonus={activeBonus}
               bonusDescription={bonusDescription}
-              activeBonusLevel={activeBonusLevel}
               onCascadeComplete={handleCascadeComplete}
             />
           </div>
@@ -421,7 +455,6 @@ const PlayScreen: React.FC = () => {
           activeBonus={activeBonus}
           bonusDescription={bonusDescription}
           onSurrender={handleSurrender}
-          onMap={goBack}
           isGameOver={game.over}
         />
       )}

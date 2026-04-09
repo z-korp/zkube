@@ -12,14 +12,14 @@ export class Bonus {
     return this.type;
   }
 
-  getEffect(level = 0): string {
+  getEffect(): string {
     switch (this.type) {
       case BonusType.Hammer:
         return "Destroy target block";
       case BonusType.Totem:
         return "Clear blocks of same size";
       case BonusType.Wave:
-        return `Clear ${level + 1} row(s)`;
+        return "Clear entire row";
       default:
         return "";
     }
