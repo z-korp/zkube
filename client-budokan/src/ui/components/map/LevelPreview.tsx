@@ -193,7 +193,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
             {showExact && constraints.length > 0 ? (
               <div className="space-y-1">
                 {constraints.map((c) => (
-                  <p key={c} className="rounded-lg bg-white/[0.04] px-3 py-1.5 font-sans text-[12px] text-white/60">{c}</p>
+                  <p key={c} className="rounded-lg bg-amber-500/8 border border-amber-400/15 px-3 py-1.5 font-sans text-[12px] text-amber-200/70">{c}</p>
                 ))}
               </div>
             ) : !showExact && (ranges.constraintCountMin > 0 || isBossLevel) ? (
@@ -201,11 +201,11 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
                 {isBossLevel && ranges.bossConstraintTypes.length > 0 ? (
                   <>
                     {ranges.bossConstraintTypes.map((t) => (
-                      <p key={t} className="rounded-lg bg-orange-500/8 px-3 py-1.5 font-sans text-[12px] text-orange-200/60">{t}</p>
+                      <p key={t} className="rounded-lg bg-orange-500/8 border border-orange-400/15 px-3 py-1.5 font-sans text-[12px] text-orange-200/70">{t}</p>
                     ))}
                   </>
                 ) : (
-                  <p className="rounded-lg bg-white/[0.04] px-3 py-1.5 font-sans text-[12px] text-white/40">
+                  <p className="rounded-lg bg-amber-500/8 border border-amber-400/15 px-3 py-1.5 font-sans text-[12px] text-amber-200/70">
                     {ranges.constraintCountMin === ranges.constraintCountMax
                       ? `${ranges.constraintCountMin} constraint${ranges.constraintCountMin !== 1 ? "s" : ""}`
                       : `${ranges.constraintCountMin}–${ranges.constraintCountMax} constraints`}
