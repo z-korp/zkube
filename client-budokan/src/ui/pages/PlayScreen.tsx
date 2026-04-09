@@ -266,6 +266,19 @@ const PlayScreen: React.FC = () => {
 
   const { data: mutatorDef } = useMutatorDef(activeMutatorId);
 
+  // Debug: log bonus data to diagnose missing slots
+  console.log("[PlayScreen bonus]", {
+    bonusType,
+    bonusCharges,
+    gameBonusSlot,
+    activeMutatorId,
+    mutatorDef: mutatorDef ? {
+      b1: mutatorDef.bonus1Type,
+      b2: mutatorDef.bonus2Type,
+      b3: mutatorDef.bonus3Type,
+    } : null,
+  });
+
   const bonusSlots = useMemo((): BonusSlot[] => {
     if (!mutatorDef) {
       // Fallback: show just the active bonus if no mutator data

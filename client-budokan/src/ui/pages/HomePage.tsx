@@ -228,7 +228,10 @@ const HomePage: React.FC = () => {
   const { balance: zStarBalance } = useZStarBalance(account?.address);
   const { zones: rawZones, totalStars } = useZoneProgress(account?.address, zStarBalance);
   const zones = useMemo(() =>
-    [...rawZones].sort((a, b) => (a.unlocked === b.unlocked ? 0 : a.unlocked ? -1 : 1)),
+    [...rawZones].sort((a, b) => {
+      if (a.unlocked !== b.unlocked) return a.unlocked ? -1 : 1;
+      return a.zoneId - b.zoneId; // stable tiebreaker
+    }),
     [rawZones],
   );
   const activeZone = useMemo(() => {
