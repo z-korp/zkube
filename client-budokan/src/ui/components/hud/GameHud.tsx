@@ -372,8 +372,8 @@ const GameHud: React.FC<GameHudProps> = ({
   return (
     <div className="w-full shrink-0">
       {/* ─── Main HUD bar ─── */}
-      <div className="relative mx-auto w-full max-w-[500px] px-2 pt-1">
-        {/* Chrome background */}
+      <div className="relative mx-auto w-full max-w-[500px]">
+        {/* Chrome background — drives sizing */}
         <img
           src="/assets/common/ui/hud-bar.png"
           alt=""
@@ -381,23 +381,24 @@ const GameHud: React.FC<GameHudProps> = ({
           draggable={false}
         />
 
-        {/* Back button — top left corner */}
+        {/* Back button — top-left, outside the frame */}
         {onBack && (
           <button
             onClick={onBack}
-            className="absolute top-[4%] left-[1%] w-[5%] h-[16%] flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-slate-300 hover:text-white transition-colors z-10"
+            className="absolute z-10 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 text-slate-300 hover:text-white transition-colors"
+            style={{ top: "2%", left: "0%", width: "6%", paddingBottom: "6%" }}
           >
-            <ArrowLeft className="w-3 h-3" />
+            <ArrowLeft className="absolute w-[50%] h-[50%]" />
           </button>
         )}
 
-        {/* Guardian portrait — left big socket */}
+        {/* Guardian portrait — left shield socket */}
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
               <motion.div
                 className="absolute rounded-full overflow-hidden"
-                style={{ left: "3%", top: "16%", width: "13.5%", height: "0", paddingBottom: "13.5%" }}
+                style={{ left: "3.2%", top: "20%", width: "11%", paddingBottom: "11%" }}
                 animate={isBoss ? {
                   boxShadow: [
                     "0 0 8px 2px rgba(239,68,68,0.3)",
@@ -423,28 +424,28 @@ const GameHud: React.FC<GameHudProps> = ({
         {/* Level number — small socket */}
         <div
           className="absolute flex flex-col items-center justify-center"
-          style={{ left: "17.5%", top: "22%", width: "8%", height: "56%" }}
+          style={{ left: "16%", top: "25%", width: "7%", height: "50%" }}
         >
-          <span className={`font-display text-[clamp(7px,1.8vw,10px)] leading-none ${isBoss ? "text-red-400" : "text-slate-400"}`}>
+          <span className={`font-display text-[clamp(6px,1.5vw,9px)] leading-none ${isBoss ? "text-red-400" : "text-slate-400"}`}>
             {isBoss ? "BOSS" : "Lv"}
           </span>
-          <span className={`font-sans text-[clamp(14px,3.5vw,22px)] font-bold leading-none tabular-nums ${isBoss ? "text-red-300" : "text-yellow-300"}`}>
+          <span className={`font-sans text-[clamp(12px,3vw,20px)] font-bold leading-none tabular-nums ${isBoss ? "text-red-300" : "text-yellow-300"}`}>
             {level}
           </span>
         </div>
 
-        {/* Stars — top center (3 stars over the engraved notches) */}
+        {/* Stars — top center over the 3 engraved notches */}
         <div
-          className="absolute flex items-center justify-center gap-[2%]"
-          style={{ left: "34%", top: "4%", width: "32%", height: "22%" }}
+          className="absolute flex items-center justify-center gap-[3%]"
+          style={{ left: "30%", top: "6%", width: "40%", height: "26%" }}
         >
           {[1, 2, 3].map((star) => (
             <span
               key={star}
-              className={`text-[clamp(10px,2.5vw,16px)] transition-colors drop-shadow-sm ${
+              className={`text-[clamp(12px,3vw,18px)] transition-colors ${
                 starsEarned >= star
-                  ? "text-yellow-400 drop-shadow-[0_0_4px_rgba(250,204,21,0.6)]"
-                  : "text-white/10"
+                  ? "text-yellow-400 drop-shadow-[0_0_6px_rgba(250,204,21,0.7)]"
+                  : "text-white/15"
               }`}
             >
               ★
@@ -454,10 +455,10 @@ const GameHud: React.FC<GameHudProps> = ({
 
         {/* Score bar — center recessed channel */}
         <div
-          className="absolute flex items-center gap-[2%]"
-          style={{ left: "27%", top: "34%", width: "52%", height: "28%" }}
+          className="absolute flex items-center gap-[1.5%]"
+          style={{ left: "25%", top: "38%", width: "50%", height: "22%" }}
         >
-          <div className="flex-1 h-[clamp(8px,2vw,14px)] overflow-hidden rounded-full bg-black/40">
+          <div className="flex-1 h-[clamp(6px,1.8vw,10px)] overflow-hidden rounded-full bg-black/50">
             <motion.div
               className={`h-full rounded-full ${isBoss ? "" : "bg-gradient-to-r from-cyan-600 to-cyan-400"}`}
               style={isBoss ? { background: "linear-gradient(90deg, #ef4444, #22c55e)" } : undefined}
@@ -466,41 +467,41 @@ const GameHud: React.FC<GameHudProps> = ({
               transition={{ duration: 0.3, ease: "easeOut" }}
             />
           </div>
-          <span className={`font-sans text-[clamp(8px,2vw,12px)] font-bold tabular-nums shrink-0 ${
+          <span className={`font-sans text-[clamp(7px,1.8vw,11px)] font-bold tabular-nums shrink-0 ${
             isBoss ? "text-red-300" : "text-cyan-300"
           }`}>
             {animatedScore}<span className="text-slate-500">/{targetScore}</span>
           </span>
         </div>
 
-        {/* Combo + mutator — below score bar in center area */}
+        {/* Combo + mutator — below score bar */}
         <div
-          className="absolute flex items-center justify-center gap-[2%]"
-          style={{ left: "27%", top: "66%", width: "52%", height: "22%" }}
+          className="absolute flex items-center justify-center gap-[1.5%]"
+          style={{ left: "25%", top: "64%", width: "50%", height: "20%" }}
         >
           <div className="inline-flex items-center gap-0.5">
-            <span className="text-[clamp(8px,2vw,11px)]">🔥</span>
+            <span className="text-[clamp(7px,1.8vw,10px)]">🔥</span>
             <motion.span
               key={combo}
               animate={{ scale: [1, 1.3, 1] }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className={`font-sans text-[clamp(9px,2.2vw,13px)] font-semibold tabular-nums ${comboTextColor}`}
+              className={`font-sans text-[clamp(8px,2vw,12px)] font-semibold tabular-nums ${comboTextColor}`}
             >
               {combo}x
             </motion.span>
           </div>
           {activeMutatorId > 0 && (
-            <span className="text-[clamp(8px,2vw,11px)] text-white/40">{mutator.icon} {mutator.name}</span>
+            <span className="text-[clamp(7px,1.8vw,10px)] text-white/40">{mutator.icon} {mutator.name}</span>
           )}
         </div>
 
         {/* Moves counter — right gear socket */}
         <div
           className="absolute flex flex-col items-center justify-center"
-          style={{ right: "2%", top: "14%", width: "15%", height: "72%" }}
+          style={{ right: "3%", top: "18%", width: "13%", height: "64%" }}
         >
-          <span className="font-display text-[clamp(7px,1.8vw,10px)] leading-none text-slate-400">MOVES</span>
-          <span className={`font-sans text-[clamp(18px,4.5vw,28px)] font-bold leading-none tabular-nums`} style={{ color: movesBarColor }}>
+          <span className="font-display text-[clamp(6px,1.5vw,9px)] leading-none text-slate-400">MOVES</span>
+          <span className={`font-sans text-[clamp(16px,4vw,26px)] font-bold leading-none tabular-nums`} style={{ color: movesBarColor }}>
             {movesRemaining}
           </span>
         </div>
