@@ -154,7 +154,6 @@ const PlayScreen: React.FC = () => {
     if (prevGameOverRef.current !== undefined) {
       if (!prevGameOverRef.current && game?.over) {
         const pending = useNavigationStore.getState().pendingLevelCompletion;
-        console.log("[GameOver]", {
           level: game.level,
           levelScore: game.levelScore,
           levelMoves: game.levelMoves,
@@ -166,17 +165,14 @@ const PlayScreen: React.FC = () => {
           pendingAlreadySet: !!pending,
         });
         if (game.zoneCleared) {
-          console.log("[GameOver] → VICTORY (zone cleared)");
           playSfx("victory");
           setIsVictoryOpen(true);
         } else if (game.mode === 0 || game.mode === undefined) {
           if (pending) {
-            console.log("[GameOver] → SKIP (level completion already handled by advance effect)");
           } else {
             // Check if the level was actually completed (score met, moves remaining)
             const maxMoves = effectiveGameLevel?.maxMoves ?? 0;
             const levelCompleted = targetScore > 0 && game.levelScore >= targetScore && game.levelMoves < maxMoves;
-            console.log("[GameOver] → ", levelCompleted ? "COMPLETED (score met, moves left)" : "INCOMPLETE (run failed)", { levelCompleted, levelScore: game.levelScore, targetScore, levelMoves: game.levelMoves, maxMoves });
             setPendingLevelCompletion({
               level: game.level,
               levelMoves: game.levelMoves,
@@ -188,7 +184,6 @@ const PlayScreen: React.FC = () => {
             navNavigate("map");
           }
         } else {
-          console.log("[GameOver] → ENDLESS GAME OVER");
           playSfx("over");
           setIsGameOverOpen(true);
         }
@@ -215,7 +210,6 @@ const PlayScreen: React.FC = () => {
     }
 
     if (prevState && currentLevel > prevState.level) {
-      console.log("[LevelAdvance]", {
         prevLevel: prevState.level,
         currentLevel,
         gameOver: game.over,
