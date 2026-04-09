@@ -354,7 +354,7 @@ const MapPage: React.FC = () => {
             viewBox={`0 0 ${VB_W} ${VB_H}`}
             preserveAspectRatio="xMidYMid meet"
             className="absolute inset-0 h-full w-full transition-opacity duration-300"
-            style={{ opacity: showGreeting ? 0.3 : 1 }}
+            style={{ opacity: (showGreeting || selectedNode) ? 0.3 : 1 }}
           >
             {/* Paths */}
             {layout?.edges.map((edge) => {

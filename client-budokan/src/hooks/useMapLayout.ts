@@ -58,8 +58,8 @@ function clamp(value: number, min: number, max: number): number {
 const Y_TOP = 0.08;
 const Y_BOTTOM = 0.92;
 
-/** 3-lane X positions — right lane shifted left to avoid guardian node at x=0.82 */
-const LANES = [0.2, 0.5, 0.72] as const;
+/** 3-lane X positions — wide spread for visual variety */
+const LANES = [0.2, 0.5, 0.8] as const;
 
 /** Maximum jitter applied to X */
 const X_JITTER = 0.10;
@@ -79,9 +79,6 @@ function buildZoneLayout(
 
   // Evenly space nodes vertically with guaranteed monotonic ascent
   const yStep = (Y_BOTTOM - Y_TOP) / Math.max(lastNode, 1);
-
-  // Mirror direction: even zones start right, odd zones start left
-  const mirrored = zoneIndex % 2 === 1;
 
   let lane = 1;
 
@@ -119,11 +116,8 @@ function buildZoneLayout(
       lane = moveRoll < 0.5 ? 1 : 0;
     }
 
-    // Mirror: swap left/right lanes for odd zones
-    const effectiveLane = mirrored ? (2 - lane) : lane;
-
     const xJitter = (hashToUnit(seed, zoneIndex, i, 202) - 0.5) * X_JITTER;
-    const x = clamp(LANES[effectiveLane] + xJitter, 0.14, 0.86);
+    const x = clamp(LANES[lane] + xJitter, 0.14, 0.86);
 
     points.push({ x, y });
   }
