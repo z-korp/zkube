@@ -429,6 +429,43 @@ const MapPage: React.FC = () => {
               );
             })}
 
+            {/* Guardian node — bottom-right, aligned with level 1, loads first */}
+            {(() => {
+              const level1Pt = layout?.points[0];
+              const guardianX = 0.82 * VB_W;
+              const guardianY = level1Pt ? level1Pt.y * VB_H : 0.92 * VB_H;
+              const gr = 5;
+              const badgeR = 2;
+              const badgeX = guardianX + gr * 0.7;
+              const badgeY = guardianY + gr * 0.7;
+              return (
+                <motion.g
+                  onClick={() => setShowGreeting(true)}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: [1, 1.04, 1], opacity: 1 }}
+                  transition={{ scale: { duration: 3, repeat: Infinity, ease: "easeInOut" }, opacity: { delay: 0.1, duration: 0.3 } }}
+                  style={{ cursor: "pointer", transformOrigin: `${guardianX}px ${guardianY}px` }}
+                >
+                  <clipPath id="guardian-clip">
+                    <circle cx={guardianX} cy={guardianY} r={gr} />
+                  </clipPath>
+                  <image
+                    href={getGuardianPortrait(mapZoneId)}
+                    x={guardianX - gr}
+                    y={guardianY - gr}
+                    width={gr * 2}
+                    height={gr * 2}
+                    preserveAspectRatio="xMidYMid slice"
+                    clipPath="url(#guardian-clip)"
+                  />
+                  <circle cx={guardianX} cy={guardianY} r={gr} fill="none" stroke={colors.accent} strokeWidth={0.6} />
+                  <circle cx={badgeX} cy={badgeY} r={badgeR} fill={colors.accent} />
+                  <text x={badgeX} y={badgeY + 0.2} textAnchor="middle" dominantBaseline="central" fill="#0a1628" fontSize={2.4} fontWeight="bold" fontFamily="Outfit, sans-serif">?</text>
+                  <text x={guardianX} y={guardianY + gr + 2.5} textAnchor="middle" dominantBaseline="central" fill={colors.accent} fontSize={2} fontWeight="bold" fontFamily="Outfit, sans-serif">{guardian.name}</text>
+                </motion.g>
+              );
+            })()}
+
             {/* Level nodes */}
             {nodes.map((node) => {
               const pt = layout?.points[node.nodeInZone];
@@ -616,72 +653,6 @@ const MapPage: React.FC = () => {
               );
             })}
 
-            {/* Guardian node — bottom-right, aligned with level 1 */}
-            {(() => {
-              const level1Pt = layout?.points[0];
-              const guardianX = 0.82 * VB_W;
-              const guardianY = level1Pt ? level1Pt.y * VB_H : 0.92 * VB_H;
-              const gr = 5;
-              const badgeR = 2;
-              const badgeX = guardianX + gr * 0.7;
-              const badgeY = guardianY + gr * 0.7;
-              return (
-                <motion.g
-                  onClick={() => setShowGreeting(true)}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: [1, 1.04, 1], opacity: 1 }}
-                  transition={{ scale: { duration: 3, repeat: Infinity, ease: "easeInOut" }, opacity: { delay: 0.8, duration: 0.4 } }}
-                  style={{ cursor: "pointer", transformOrigin: `${guardianX}px ${guardianY}px` }}
-                >
-                  <clipPath id="guardian-clip">
-                    <circle cx={guardianX} cy={guardianY} r={gr} />
-                  </clipPath>
-                  <image
-                    href={getGuardianPortrait(mapZoneId)}
-                    x={guardianX - gr}
-                    y={guardianY - gr}
-                    width={gr * 2}
-                    height={gr * 2}
-                    preserveAspectRatio="xMidYMid slice"
-                    clipPath="url(#guardian-clip)"
-                  />
-                  <circle
-                    cx={guardianX}
-                    cy={guardianY}
-                    r={gr}
-                    fill="none"
-                    stroke={colors.accent}
-                    strokeWidth={0.6}
-                  />
-                  {/* ? help badge */}
-                  <circle cx={badgeX} cy={badgeY} r={badgeR} fill={colors.accent} />
-                  <text
-                    x={badgeX}
-                    y={badgeY + 0.2}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fill="#0a1628"
-                    fontSize={2.4}
-                    fontWeight="bold"
-                    fontFamily="Outfit, sans-serif"
-                  >
-                    ?
-                  </text>
-                  <text
-                    x={guardianX}
-                    y={guardianY + gr + 2.5}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fill={colors.accent}
-                    fontSize={2}
-                    fontWeight="bold"
-                    fontFamily="Outfit, sans-serif"
-                  >
-                    {guardian.name}
-                  </text>
-                </motion.g>
-              );
-            })()}
 
           </svg>
         </div>
