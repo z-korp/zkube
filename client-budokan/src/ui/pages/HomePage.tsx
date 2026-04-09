@@ -115,11 +115,12 @@ const CtaGuardian: React.FC = () => {
         cellOffset += size;
         return { size, cellX: x, speed: speedPool[(bi + lineIdx * 3) % speedPool.length] };
       });
+      const totalCycle = lineCount * lineSpacing;
       return {
         blocks,
         delay: lineIdx * lineSpacing,
         duration: lineDuration,
-        repeatDelay: Math.max(0, lineCount * lineSpacing - lineDuration),
+        totalCycle,
       };
     });
   }, [gZoneId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -189,7 +190,9 @@ const CtaGuardian: React.FC = () => {
                   delay: line.delay,
                   duration: line.duration / b.speed,
                   repeat: Infinity,
-                  repeatDelay: line.repeatDelay,
+                  // All blocks in a line must restart together:
+                  // total = duration + repeatDelay = totalCycle (constant per line)
+                  repeatDelay: line.totalCycle - line.duration / b.speed,
                   ease: "easeIn",
                 }}
                 draggable={false}
