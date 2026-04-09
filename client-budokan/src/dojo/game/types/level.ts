@@ -13,18 +13,18 @@
 
 import { hash } from "starknet";
 import { Difficulty, DifficultyType } from "./difficulty";
-import { Constraint } from "./constraint";
+import { Constraint, ConstraintType } from "./constraint";
 import { BOSS_LEVELS } from "@/dojo/game/constants";
 
 /**
  * GameSettings interface matching the Cairo contract
  * Used for configurable game modes
- * 
+ *
  * Constraint system uses budget-based generation:
- * - Primary constraint is always ClearLines (from level 3+)
- * - Secondary constraint based on dual_chance (ClearLines)
- * - times_cap = budget / line_cost(lines)
- * - Line costs: 2->2, 3->4, 4->6, 5->10, 6->15, 7+->20
+ * - Regular levels generate ComboLines, BreakBlocks, or ComboStreak
+ * - Type selection uses weighted distribution based on budget
+ * - Boss levels use identity-based constraint types from boss.cairo
+ * - Line costs: 2->3, 3->10, 4->20, 5->30, 6->40, 7->60, 8->80
  */
 /** Default settings ID (only games with this ID earn cubes/quests) */
 export const DEFAULT_SETTINGS_ID = 0;
@@ -109,7 +109,7 @@ export interface GameSettings {
 
 /**
  * Default settings matching Cairo's GameSettingsDefaults
- * Uses budget-based constraint system with line costs
+ * Uses budget-based constraint system with weighted type selection
  */
 export const DEFAULT_SETTINGS: GameSettings = {
   settingsId: DEFAULT_SETTINGS_ID,
@@ -131,7 +131,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   constraintsEnabled: true,
   constraintStartLevel: 3,  // Constraints start at level 3
   // Constraint Distribution (VeryEasy to Master, budget-based)
-  // Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
+  // Line costs: 2->3, 3->10, 4->20, 5->30, 6->40, 7->60, 8->80
   veryeasyMinLines: 2,
   masterMinLines: 4,
   veryeasyMaxLines: 2,   // Only 2 lines early (trivial)
@@ -571,7 +571,8 @@ function getConstraintParams(
 /**
  * Returns the weighted difficulty cost for clearing N lines at once.
  * Higher line counts are exponentially harder to achieve in practice.
- * Line costs: 2->2, 3->4, 4->6, 5->10, 6->15, 7+->20
+ * Line costs: 2->3, 3->10, 4->20, 5->30, 6->40, 7->60, 8->80
+ * Matches Cairo LevelGeneratorTrait::line_cost()
  */
 function lineCost(lines: number): number {
   switch (lines) {
@@ -579,106 +580,403 @@ function lineCost(lines: number): number {
     case 1:
       return 1;
     case 2:
-      return 2;
+      return 3;
     case 3:
-      return 4;
-    case 4:
-      return 6;
-    case 5:
       return 10;
+    case 4:
+      return 20;
+    case 5:
+      return 30;
     case 6:
-      return 15;
+      return 40;
+    case 7:
+      return 60;
     default:
-      return 20; // 7+ (theoretical, grid max)
+      return 80; // 8+
   }
 }
 
 /**
- * Generate a ClearLines constraint using the weighted budget system
- * Algorithm:
- * 1. Roll budget within [budget_min, budget_max]
- * 2. Roll lines within [min_lines, max_lines]
- * 3. Compute times_cap = budget / line_cost(lines)
- * 4. Feasibility repair: reduce lines if times_cap < min_times
- * 5. Roll times with skew-high distribution (max of two rolls)
+ * Cost for breaking blocks of a given size.
+ * Smaller blocks are easier to find, so cheaper.
+ * Matches Cairo LevelGeneratorTrait::break_cost()
  */
-function generateClearLinesConstraint(
-  seed: bigint,
-  minLines: number,
-  maxLines: number,
-  budgetMin: number,
-  budgetMax: number,
-  minTimes: number
-): Constraint {
-  // Step 1: Roll budget within [budget_min, budget_max]
-  const budgetRange = budgetMax > budgetMin ? budgetMax - budgetMin + 1 : 1;
-  const budget = budgetMin + Number(seed % BigInt(budgetRange));
-
-  // Step 2: Roll lines within [min_lines, max_lines]
-  const linesRange = maxLines > minLines ? maxLines - minLines + 1 : 1;
-  let lines = minLines + Number((seed / BigInt(100)) % BigInt(linesRange));
-
-  // Step 3: Compute times_cap = budget / line_cost(lines)
-  let cost = lineCost(lines);
-  let timesCap = cost > 0 ? Math.floor(budget / cost) : 1;
-
-  // Step 4: Feasibility repair - reduce lines until times_cap >= min_times
-  let repairCount = 0;
-  while (timesCap < minTimes && lines > 2 && repairCount < 5) {
-    lines = lines - 1;
-    cost = lineCost(lines);
-    timesCap = cost > 0 ? Math.floor(budget / cost) : 1;
-    repairCount++;
+function breakCost(size: number): number {
+  switch (size) {
+    case 1:
+      return 4;
+    case 2:
+      return 5;
+    case 3:
+      return 6;
+    default:
+      return 7; // size 4+
   }
-
-  // If still infeasible, reduce min_times requirement to times_cap
-  const effectiveMinTimes =
-    timesCap < minTimes ? (timesCap >= 1 ? timesCap : 1) : minTimes;
-
-  // Step 5: Roll times with skew-high distribution (max of two rolls)
-  let times: number;
-  if (timesCap <= 1) {
-    times = 1;
-  } else {
-    const t1 = 1 + Number((seed / BigInt(1000)) % BigInt(timesCap));
-    const t2 = 1 + Number((seed / BigInt(10000)) % BigInt(timesCap));
-    const maxT = Math.max(t1, t2);
-    // Enforce minimum times floor
-    times = maxT < effectiveMinTimes ? effectiveMinTimes : maxT;
-  }
-
-  return Constraint.clearLines(lines, times);
 }
 
 /**
- * Maybe generate a secondary constraint (another ClearLines)
+ * Scale factor for BreakBlocks target counts by size.
+ * Matches Cairo LevelGeneratorTrait::break_scale()
  */
-function maybeGenerateSecondaryConstraint(
-  seed: bigint,
-  minLines: number,
-  maxLines: number,
+function breakScale(size: number): number {
+  switch (size) {
+    case 1:
+      return 3;
+    case 2:
+      return 3;
+    case 3:
+      return 2;
+    default:
+      return 2;
+  }
+}
+
+/**
+ * Maximum allowed ComboLines repetitions.
+ * Matches Cairo LevelGeneratorTrait::get_max_combo_lines_times()
+ */
+const MAX_COMBO_LINES_TIMES = 5;
+
+/**
+ * Budget utilization floor (x100).
+ * Matches Cairo LevelGeneratorTrait::budget_utilization_floor_x100()
+ */
+const BUDGET_UTILIZATION_FLOOR_X100 = 70;
+
+/**
+ * ceil(numerator / denominator) for positive integers.
+ * Matches Cairo LevelGeneratorTrait::ceil_div_u16_by_u8()
+ */
+function ceilDiv(numerator: number, denominator: number): number {
+  if (denominator === 0) return 0;
+  return Math.floor((numerator + denominator - 1) / denominator);
+}
+
+/**
+ * Compute minimum spend for a sampled budget using utilization floor.
+ * Matches Cairo LevelGeneratorTrait::min_budget_spend()
+ */
+function minBudgetSpend(budget: number): number {
+  const raw = budget * BUDGET_UTILIZATION_FLOOR_X100;
+  let minSpend = Math.floor((raw + 99) / 100);
+  if (minSpend < 1) minSpend = 1;
+  if (minSpend > budget) minSpend = budget;
+  return minSpend;
+}
+
+/**
+ * Get type selection weights from budget.
+ * Returns [comboLinesWeight, breakBlocksWeight]. ComboStreak = 100 - sum.
+ * Matches Cairo LevelGeneratorTrait::get_type_weights_from_budget()
+ */
+function getTypeWeightsFromBudget(budget: number): [number, number] {
+  if (budget <= 5) return [38, 38];
+  if (budget <= 9) return [34, 34];
+  if (budget <= 14) return [31, 31];
+  if (budget <= 20) return [29, 29];
+  if (budget <= 26) return [28, 28];
+  if (budget <= 32) return [27, 27];
+  if (budget <= 38) return [26, 26];
+  return [25, 25];
+}
+
+/**
+ * Select a constraint type using budget-weighted probabilities.
+ * Returns one of ComboLines / BreakBlocks / ComboStreak.
+ * Matches Cairo LevelGeneratorTrait::select_constraint_type()
+ */
+function selectConstraintType(seed: bigint, budget: number): ConstraintType {
+  const seedU256 = seed < 0n ? -seed : seed;
+  const roll = Number((seedU256 / 10000n) % 100n);
+  const [clearLinesW, breakBlocksW] = getTypeWeightsFromBudget(budget);
+  if (roll < clearLinesW) return ConstraintType.ComboLines;
+  if (roll < clearLinesW + breakBlocksW) return ConstraintType.BreakBlocks;
+  return ConstraintType.ComboStreak;
+}
+
+/**
+ * Cycle to next regular constraint type.
+ * ComboLines -> BreakBlocks -> ComboStreak -> ComboLines
+ * Matches Cairo LevelGeneratorTrait::next_regular_type()
+ */
+function nextRegularType(t: ConstraintType): ConstraintType {
+  switch (t) {
+    case ConstraintType.ComboLines:
+      return ConstraintType.BreakBlocks;
+    case ConstraintType.BreakBlocks:
+      return ConstraintType.ComboStreak;
+    case ConstraintType.ComboStreak:
+      return ConstraintType.ComboLines;
+    default:
+      return ConstraintType.ComboLines;
+  }
+}
+
+/**
+ * Get deterministic constraint count range from budget range.
+ * Matches Cairo LevelGeneratorTrait::get_constraint_count_range_from_budget()
+ */
+function getConstraintCountRangeFromBudget(
   budgetMin: number,
-  budgetMax: number,
-  minTimes: number,
-  dualChance: number,
-  _secondaryNoBonusChance: number
+  budgetMax: number
+): [number, number] {
+  const avgBudget = Math.floor((budgetMin + budgetMax) / 2);
+  if (avgBudget <= 3) return [0, 0];
+  if (avgBudget <= 8) return [1, 1];
+  if (avgBudget <= 16) return [1, 2];
+  if (avgBudget <= 24) return [2, 2];
+  if (avgBudget <= 32) return [2, 3];
+  return [3, 3];
+}
+
+/**
+ * Generate a ComboLines constraint from budget.
+ * Candidate pairs (lines, times) must satisfy utilization band.
+ * Matches Cairo LevelGeneratorTrait::generate_combo_lines_from_budget()
+ */
+function generateComboLinesFromBudget(seed: bigint, budget: number): Constraint {
+  const seedU256 = seed < 0n ? -seed : seed;
+  const minSpend = minBudgetSpend(budget);
+
+  // Count valid candidates
+  let candidatesCount = 0;
+  for (let linesScan = 2; linesScan <= 8; linesScan++) {
+    const cost = lineCost(linesScan);
+    if (cost <= budget) {
+      let timesCapRaw = Math.floor(budget / cost);
+      let timesCap = timesCapRaw > MAX_COMBO_LINES_TIMES
+        ? MAX_COMBO_LINES_TIMES
+        : timesCapRaw < 1 ? 1 : timesCapRaw;
+      const timesMin = ceilDiv(minSpend, cost);
+      if (timesMin <= timesCap) {
+        candidatesCount += timesCap - timesMin + 1;
+      }
+    }
+  }
+
+  if (candidatesCount === 0) {
+    return Constraint.clearLines(2, 1);
+  }
+
+  const pick = Number(seedU256 % BigInt(candidatesCount));
+  let idx = 0;
+  let chosenLines = 2;
+  let chosenTimes = 1;
+
+  for (let linesScan2 = 2; linesScan2 <= 8; linesScan2++) {
+    const cost = lineCost(linesScan2);
+    if (cost <= budget) {
+      let timesCapRaw = Math.floor(budget / cost);
+      let timesCap = timesCapRaw > MAX_COMBO_LINES_TIMES
+        ? MAX_COMBO_LINES_TIMES
+        : timesCapRaw < 1 ? 1 : timesCapRaw;
+      const timesMin = ceilDiv(minSpend, cost);
+      if (timesMin <= timesCap) {
+        for (let t = timesMin; t <= timesCap; t++) {
+          if (idx === pick) {
+            chosenLines = linesScan2;
+            chosenTimes = t;
+            break;
+          }
+          idx++;
+        }
+        if (idx > pick) break;
+      }
+    }
+  }
+
+  return Constraint.clearLines(chosenLines, chosenTimes);
+}
+
+/**
+ * Generate a BreakBlocks constraint from budget.
+ * Candidate pairs (size, count) must satisfy utilization band.
+ * Matches Cairo LevelGeneratorTrait::generate_break_blocks_from_budget()
+ */
+function generateBreakBlocksFromBudget(seed: bigint, budget: number): Constraint {
+  const seedU256 = seed < 0n ? -seed : seed;
+  const minSpend = minBudgetSpend(budget);
+
+  // Max block size by budget
+  const maxSize = budget < 10 ? 2 : budget < 20 ? 3 : 4;
+
+  // Count valid candidates
+  let candidatesCount = 0;
+  for (let sizeScan = 1; sizeScan <= maxSize; sizeScan++) {
+    const scale = breakScale(sizeScan);
+    const cost = breakCost(sizeScan);
+    const maxUnits = budget * scale;
+    const minUnits = minSpend * scale;
+
+    let countMinBudget = ceilDiv(minUnits, cost);
+    let countMaxBudget = Math.floor(maxUnits / cost);
+    const countMin = countMinBudget < 1 ? 1 : countMinBudget;
+    const countMax = countMaxBudget > 120 ? 120 : countMaxBudget;
+
+    if (countMin <= countMax) {
+      candidatesCount += countMax - countMin + 1;
+    }
+  }
+
+  if (candidatesCount === 0) {
+    return Constraint.breakBlocks(1, 1);
+  }
+
+  const pick = Number(seedU256 % BigInt(candidatesCount));
+  let idx = 0;
+  let chosenSize = 1;
+  let chosenCount = 1;
+
+  for (let sizeScan2 = 1; sizeScan2 <= maxSize; sizeScan2++) {
+    const scale = breakScale(sizeScan2);
+    const cost = breakCost(sizeScan2);
+    const maxUnits = budget * scale;
+    const minUnits = minSpend * scale;
+
+    let countMinBudget = ceilDiv(minUnits, cost);
+    let countMaxBudget = Math.floor(maxUnits / cost);
+    const countMin = countMinBudget < 1 ? 1 : countMinBudget;
+    const countMax = countMaxBudget > 120 ? 120 : countMaxBudget;
+
+    if (countMin <= countMax) {
+      for (let c = countMin; c <= countMax; c++) {
+        if (idx === pick) {
+          chosenSize = sizeScan2;
+          chosenCount = c;
+          break;
+        }
+        idx++;
+      }
+      if (idx > pick) break;
+    }
+  }
+
+  return Constraint.breakBlocks(chosenSize, chosenCount);
+}
+
+/**
+ * Generate a ComboStreak constraint from budget.
+ * Target is half of budget (floor division).
+ * Matches Cairo LevelGeneratorTrait::generate_combo_streak_from_budget()
+ */
+function generateComboStreakFromBudget(_seed: bigint, budget: number): Constraint {
+  const target = Math.floor(budget / 2);
+  return Constraint.achieveCombo(target);
+}
+
+/**
+ * Generate a constraint of a specific type using the budget system.
+ * Matches Cairo LevelGeneratorTrait::generate_constraint_from_budget()
+ */
+function generateConstraintFromBudget(
+  seed: bigint,
+  budget: number,
+  constraintType: ConstraintType
 ): Constraint {
-  // Roll to see if we get a secondary constraint at all
-  const dualRoll = Number((seed / BigInt(100000)) % BigInt(100));
-  if (dualRoll >= dualChance) {
+  switch (constraintType) {
+    case ConstraintType.ComboLines:
+      return generateComboLinesFromBudget(seed, budget);
+    case ConstraintType.BreakBlocks:
+      return generateBreakBlocksFromBudget(seed, budget);
+    case ConstraintType.ComboStreak:
+      return generateComboStreakFromBudget(seed, budget);
+    case ConstraintType.KeepGridBelow:
+      return Constraint.keepGridBelow(8);
+    case ConstraintType.None:
+    default:
+      return Constraint.none();
+  }
+}
+
+// ============================================================================
+// Boss Identity System (matching boss.cairo)
+// ============================================================================
+
+interface BossIdentity {
+  id: number;
+  primaryType: ConstraintType;
+  secondaryType: ConstraintType;
+  tertiaryType: ConstraintType;
+}
+
+/**
+ * Get boss identity by ID (1-10).
+ * Returns the boss's fixed constraint type combination.
+ * Matches Cairo get_boss_identity() from boss.cairo
+ */
+function getBossIdentity(bossId: number): BossIdentity {
+  switch (bossId) {
+    case 1:
+      return { id: 1, primaryType: ConstraintType.ComboLines, secondaryType: ConstraintType.ComboStreak, tertiaryType: ConstraintType.KeepGridBelow };
+    case 2:
+      return { id: 2, primaryType: ConstraintType.BreakBlocks, secondaryType: ConstraintType.ComboLines, tertiaryType: ConstraintType.KeepGridBelow };
+    case 3:
+      return { id: 3, primaryType: ConstraintType.ComboStreak, secondaryType: ConstraintType.ComboLines, tertiaryType: ConstraintType.BreakBlocks };
+    case 4:
+      return { id: 4, primaryType: ConstraintType.KeepGridBelow, secondaryType: ConstraintType.ComboLines, tertiaryType: ConstraintType.ComboStreak };
+    case 5:
+      return { id: 5, primaryType: ConstraintType.BreakBlocks, secondaryType: ConstraintType.ComboStreak, tertiaryType: ConstraintType.ComboLines };
+    case 6:
+      return { id: 6, primaryType: ConstraintType.KeepGridBelow, secondaryType: ConstraintType.ComboLines, tertiaryType: ConstraintType.BreakBlocks };
+    case 7:
+      return { id: 7, primaryType: ConstraintType.ComboStreak, secondaryType: ConstraintType.ComboLines, tertiaryType: ConstraintType.BreakBlocks };
+    case 8:
+      return { id: 8, primaryType: ConstraintType.BreakBlocks, secondaryType: ConstraintType.ComboStreak, tertiaryType: ConstraintType.KeepGridBelow };
+    case 9:
+      return { id: 9, primaryType: ConstraintType.KeepGridBelow, secondaryType: ConstraintType.ComboStreak, tertiaryType: ConstraintType.BreakBlocks };
+    case 10:
+      return { id: 10, primaryType: ConstraintType.ComboLines, secondaryType: ConstraintType.BreakBlocks, tertiaryType: ConstraintType.ComboStreak };
+    default:
+      // Fallback: same as boss 1
+      return { id: 1, primaryType: ConstraintType.ComboLines, secondaryType: ConstraintType.ComboStreak, tertiaryType: ConstraintType.KeepGridBelow };
+  }
+}
+
+/**
+ * Generate a boss constraint using the budget system.
+ * KeepGridBelow uses a fixed cap of 8.
+ * Matches Cairo generate_boss_constraint() from boss.cairo
+ */
+function generateBossConstraint(
+  constraintType: ConstraintType,
+  budgetMax: number,
+  seed: bigint,
+  _level: number
+): Constraint {
+  if (constraintType === ConstraintType.KeepGridBelow) {
+    return Constraint.keepGridBelow(8);
+  }
+  if (constraintType === ConstraintType.None) {
     return Constraint.none();
   }
+  return generateConstraintFromBudget(seed, budgetMax, constraintType);
+}
 
-  // Generate another ClearLines constraint with shifted seed
-  const secondarySeed = seed / BigInt(10000000);
-  return generateClearLinesConstraint(
-    secondarySeed,
-    minLines,
-    maxLines,
-    budgetMin,
-    budgetMax,
-    minTimes
-  );
+/**
+ * Generate boss constraints using the boss identity system.
+ * Zone boss is dual-only (primary + secondary); tertiary is None.
+ * Matches Cairo generate_boss_constraints() from boss.cairo
+ */
+function generateBossConstraints(
+  bossId: number,
+  level: number,
+  seed: bigint,
+  budgetMax: number
+): { constraint: Constraint; constraint2: Constraint } {
+  const identity = getBossIdentity(bossId);
+
+  const seedAbs = seed < 0n ? -seed : seed;
+
+  // Primary constraint at budget_max
+  const primarySeed = seed;
+  const c1 = generateBossConstraint(identity.primaryType, budgetMax, primarySeed, level);
+
+  // Secondary constraint with shifted seed (seed / 10000000)
+  const secondarySeed = seedAbs / 10000000n;
+  const c2 = generateBossConstraint(identity.secondaryType, budgetMax, secondarySeed, level);
+
+  // Tertiary is disabled in zone-mode boss flow (dual-only)
+  return { constraint: c1, constraint2: c2 };
 }
 
 /**
@@ -689,110 +987,24 @@ function isBossLevel(level: number): boolean {
 }
 
 /**
- * Generate ClearLines constraint with MAX budget (for boss levels)
- * Uses budgetMax directly instead of rolling
+ * Derive a unique seed for a specific constraint index using Poseidon.
+ * Matches Cairo: poseidon(level_seed, i, 'CONSTRAINT')
  */
-function generateClearLinesConstraintMaxBudget(
-  seed: bigint,
-  minLines: number,
-  maxLines: number,
-  budgetMax: number,
-  minTimes: number
-): Constraint {
-  // Use max budget directly (no rolling)
-  const budget = budgetMax;
-  
-  // Roll lines within [minLines, maxLines]
-  const linesRange = maxLines > minLines ? maxLines - minLines + 1 : 1;
-  let lines = minLines + Number((seed / BigInt(100)) % BigInt(linesRange));
-  
-  // Compute times_cap = budget / line_cost(lines)
-  let cost = lineCost(lines);
-  let timesCap = cost > 0 ? Math.floor(budget / cost) : 1;
-  
-  // Feasibility repair - reduce lines until timesCap >= minTimes
-  let repairCount = 0;
-  while (timesCap < minTimes && lines > 2 && repairCount < 5) {
-    lines = lines - 1;
-    cost = lineCost(lines);
-    timesCap = cost > 0 ? Math.floor(budget / cost) : 1;
-    repairCount++;
-  }
-  
-  // If still infeasible, reduce minTimes requirement
-  const effectiveMinTimes = timesCap < minTimes 
-    ? (timesCap >= 1 ? timesCap : 1)
-    : minTimes;
-  
-  // Roll times with skew-high distribution
-  let times: number;
-  if (timesCap <= 1) {
-    times = 1;
-  } else {
-    const t1 = 1 + Number((seed / BigInt(1000)) % BigInt(timesCap));
-    const t2 = 1 + Number((seed / BigInt(10000)) % BigInt(timesCap));
-    const maxT = Math.max(t1, t2);
-    times = maxT < effectiveMinTimes ? effectiveMinTimes : maxT;
-  }
-  
-  return Constraint.clearLines(lines, times);
-}
-
-/**
- * Generate boss secondary constraint (always generated)
- */
-function generateBossSecondaryConstraint(
-  seed: bigint,
-  minLines: number,
-  maxLines: number,
-  budgetMax: number,
-  minTimes: number,
-  _secondaryNoBonusChance: number
-): Constraint {
-  // Generate another ClearLines constraint with shifted seed and max budget
-  const secondarySeed = seed / BigInt(10000000);
-  return generateClearLinesConstraintMaxBudget(
-    secondarySeed, minLines, maxLines, budgetMax, minTimes
-  );
-}
-
-/**
- * Generate seeded boss constraints with max budget
- * Boss levels always have dual constraints
- */
-function generateBossConstraintsSeeded(
-  levelSeed: bigint,
-  difficulty: Difficulty,
-  settings: GameSettings
-): { constraint: Constraint; constraint2: Constraint } {
-  const params = getConstraintParams(difficulty, settings);
-  
-  // Primary: Always ClearLines with MAX budget
-  const constraint = generateClearLinesConstraintMaxBudget(
+function deriveConstraintSeed(levelSeed: bigint, index: number): bigint {
+  const constraintSelector = BigInt("0x434f4e53545241494e54"); // 'CONSTRAINT' as felt252
+  const hashResult = hash.computePoseidonHashOnElements([
     levelSeed,
-    params.minLines,
-    params.maxLines,
-    params.budgetMax,
-    params.minTimes
-  );
-  
-  // Secondary: Always generated (forced dual)
-  const constraint2 = generateBossSecondaryConstraint(
-    levelSeed,
-    params.minLines,
-    params.maxLines,
-    params.budgetMax,
-    params.minTimes,
-    params.secondaryNoBonusChance
-  );
-  
-  return { constraint, constraint2 };
+    BigInt(index),
+    constraintSelector,
+  ]);
+  return BigInt(hashResult);
 }
 
 /**
- * Generate constraints using settings (supports dual constraints)
- * Primary is always ClearLines (from level 3+), secondary depends on dual_chance
- * Boss levels (10, 20, 30, 40, 50) always have dual constraints with max budget
+ * Generate constraints using settings with budget-based type selection.
+ * Regular levels generate ComboLines, BreakBlocks, or ComboStreak.
+ * Boss levels use the boss identity system.
+ * Matches Cairo LevelGeneratorTrait::generate_constraints_with_settings()
  */
 function generateConstraintsWithSettings(
   levelSeed: bigint,
@@ -810,37 +1022,76 @@ function generateConstraintsWithSettings(
     return { constraint: Constraint.none(), constraint2: Constraint.none() };
   }
 
-  // Boss levels always have dual constraints with max budget
+  // Boss levels use the boss identity system
   if (isBossLevel(level)) {
-    return generateBossConstraintsSeeded(levelSeed, difficulty, settings);
+    const bossId = settings.bossId || 0;
+    const params = getConstraintParams(difficulty, settings);
+    return generateBossConstraints(bossId, level, levelSeed, params.budgetMax);
   }
 
   // Get interpolated parameters for this difficulty
   const params = getConstraintParams(difficulty, settings);
 
-  // Generate primary constraint (always ClearLines)
-  const constraint = generateClearLinesConstraint(
-    levelSeed,
-    params.minLines,
-    params.maxLines,
+  // Determine how many constraints this level has from budget range
+  const [countMin, countMax] = getConstraintCountRangeFromBudget(
     params.budgetMin,
-    params.budgetMax,
-    params.minTimes
+    params.budgetMax
   );
 
-  // Check if we should have a secondary constraint
-  const constraint2 = maybeGenerateSecondaryConstraint(
-    levelSeed,
-    params.minLines,
-    params.maxLines,
-    params.budgetMin,
-    params.budgetMax,
-    params.minTimes,
-    params.dualChance,
-    params.secondaryNoBonusChance
-  );
+  // If tier has 0 constraints, return none
+  if (countMax === 0) {
+    return { constraint: Constraint.none(), constraint2: Constraint.none() };
+  }
 
-  return { constraint, constraint2 };
+  // Roll constraint count in [countMin, countMax]
+  const seedU256 = levelSeed < 0n ? -levelSeed : levelSeed;
+  let count: number;
+  if (countMin === countMax) {
+    count = countMin;
+  } else {
+    const countRange = countMax - countMin + 1;
+    count = countMin + Number(seedU256 % BigInt(countRange));
+  }
+
+  // Generate each constraint with independent budget rolls and type selection
+  const constraints: Constraint[] = [];
+  const usedTypes: ConstraintType[] = [];
+
+  for (let i = 0; i < count; i++) {
+    // Derive a unique seed for this constraint index
+    const constraintSeed = deriveConstraintSeed(levelSeed, i);
+    const constraintSeedU256 = constraintSeed < 0n ? -constraintSeed : constraintSeed;
+
+    // Roll budget within [budgetMin, budgetMax]
+    const budgetRange = params.budgetMax > params.budgetMin
+      ? params.budgetMax - params.budgetMin + 1
+      : 1;
+    const budget = params.budgetMin + Number(constraintSeedU256 % BigInt(budgetRange));
+
+    // Roll constraint type, avoiding duplicates
+    let constraintType = selectConstraintType(constraintSeed, budget);
+
+    // If this type was already used, cycle to next unused type
+    let attempts = 0;
+    while (attempts < 4) {
+      if (!usedTypes.includes(constraintType)) {
+        break;
+      }
+      constraintType = nextRegularType(constraintType);
+      attempts++;
+    }
+
+    // Generate constraint from budget
+    const constraint = generateConstraintFromBudget(constraintSeed, budget, constraintType);
+    constraints.push(constraint);
+    usedTypes.push(constraintType);
+  }
+
+  // Pad to 2 constraints (client uses constraint + constraint2)
+  const c1 = constraints.length > 0 ? constraints[0] : Constraint.none();
+  const c2 = constraints.length > 1 ? constraints[1] : Constraint.none();
+
+  return { constraint: c1, constraint2: c2 };
 }
 
 /**

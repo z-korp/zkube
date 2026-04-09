@@ -27,6 +27,7 @@ import { useDojo } from "@/dojo/useDojo";
 import { useActiveStoryAttempt } from "@/hooks/useActiveStoryAttempt";
 import { useActiveDailyAttempt } from "@/hooks/useActiveDailyAttempt";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
+import { useSettings } from "@/hooks/useSettings";
 import { ZONE_NAMES } from "@/config/profileData";
 import LevelPreview from "@/ui/components/map/LevelPreview";
 import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
@@ -158,11 +159,15 @@ const MapPage: React.FC = () => {
     return null;
   }, [isDailyMap, activeDailyRun, game, mapZoneId, activeStoryRun]);
 
+  const settingsId = (mapZoneId - 1) * 2;
+  const { settings: zoneSettings, isLoading: settingsLoading } = useSettings(settingsId);
+
   const mapData = useMapData({
     seed,
     zoneId: mapZoneId,
     zoneState,
     activeStoryNode: activeNode,
+    settings: settingsLoading ? undefined : zoneSettings,
   });
 
   const zoneLayouts = useMapLayout({
@@ -289,9 +294,7 @@ const MapPage: React.FC = () => {
   useEffect(() => {
     if (!dataStabilized || greetingAutoShown || isDailyMap) return;
     if (zoneProgressData === undefined || !zoneProgressData.unlocked) return;
-    console.log("[GuardianGreeting] stable check:", { mapZoneId, stars: storyZoneStars, highestCleared: storyHighestCleared });
     if (storyZoneStars === 0 && storyHighestCleared === 0) {
-      console.log("[GuardianGreeting] TRIGGER: first visit zone", mapZoneId);
       setShowGreeting(true);
       setGreetingAutoShown(true);
     }
