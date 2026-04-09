@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, Loader2 } from "lucide-react";
+import { hash } from "starknet";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
@@ -24,6 +25,16 @@ const parseCompositeValue = (value: number): { stars: number; score: number } =>
   const stars = Math.floor(value / 0x100000000);
   const score = value % 0x100000000;
   return { stars, score };
+};
+
+/** Compute today's daily zone from day_id — mirrors contract logic */
+const computeDailyZoneId = (dayId: number): number => {
+  const DAILY_CHALLENGE_FELT = BigInt(
+    Array.from("DAILY_CHALLENGE").reduce((acc, c) => (acc << 8n) | BigInt(c.charCodeAt(0)), 0n),
+  );
+  const seed = BigInt(hash.computePoseidonHashOnElements([BigInt(dayId), DAILY_CHALLENGE_FELT]));
+  const seedU256 = seed < 0n ? seed + (1n << 256n) : seed;
+  return Number((seedU256 % 10n) + 1n);
 };
 
 const getThemeId = (zoneId: number): ThemeId => {
@@ -88,13 +99,15 @@ const DailyChallengePage: React.FC = () => {
   const [starting, setStarting] = useState(false);
 
   const now = useMemo(() => Math.floor(Date.now() / 1000), []);
+  const todayDayId = Math.floor(now / 86400);
+  const isActiveDailyFromToday = activeDailyRun ? activeDailyRun.challengeId === todayDayId : false;
   const isActive =
     challenge &&
     !challenge.settled &&
     challenge.start_time <= now &&
     challenge.end_time > now;
 
-  const zoneId = challenge?.zone_id ?? 1;
+  const zoneId = challenge?.zone_id ?? computeDailyZoneId(todayDayId);
   const zoneName = ZONE_NAMES[zoneId] ?? `Zone ${zoneId}`;
   const themeId = getThemeId(zoneId);
   const zoneImages = getThemeImages(themeId);
@@ -118,27 +131,37 @@ const DailyChallengePage: React.FC = () => {
   const handlePlay = useCallback(async () => {
     if (!account || starting) return;
 
-    // If there's already an active daily game, go to its map
-    if (activeDailyRun) {
-      setMapZoneId(zoneId);
+    // If there's an active daily game from today, resume it
+    if (activeDailyRun && isActiveDailyFromToday) {
+      const dailyZone = challenge?.zone_id ?? computeDailyZoneId(todayDayId);
+      setMapZoneId(dailyZone);
       setIsDailyMap(true);
       navigate("map", activeDailyRun.gameId);
       return;
     }
 
-    // Start a new daily game, then go to map
     setStarting(true);
     try {
+      // If there's a stale daily run from a previous day, surrender it first
+      if (activeDailyRun && !isActiveDailyFromToday) {
+        await systemCalls.surrender({ account, game_id: activeDailyRun.gameId });
+      }
+
+      // Start a new daily game, then go to map
       const result = await systemCalls.startDailyGame({ account });
       if (result.game_id !== 0n) {
-        setMapZoneId(zoneId);
+        // Use computed zone for today (contract may not be synced yet)
+        const dailyZone = computeDailyZoneId(todayDayId);
+        setMapZoneId(dailyZone);
         setIsDailyMap(true);
+        // Brief wait for Torii to index the new game
+        await new Promise((r) => setTimeout(r, 1500));
         navigate("map", result.game_id);
       }
     } finally {
       setStarting(false);
     }
-  }, [account, starting, systemCalls, navigate, setMapZoneId, setIsDailyMap, zoneId, activeDailyRun]);
+  }, [account, starting, systemCalls, navigate, setMapZoneId, setIsDailyMap, zoneId, activeDailyRun, isActiveDailyFromToday]);
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
@@ -169,14 +192,9 @@ const DailyChallengePage: React.FC = () => {
           {!challengeLoading && !challenge && (
             <div className="rounded-2xl border border-white/[0.12] bg-white/[0.06] p-6 text-center backdrop-blur-xl">
               <p className="mb-2 font-display text-xl text-white">No Challenge Yet</p>
-              <p className="mb-4 font-sans text-sm text-white/60">
+              <p className="font-sans text-sm text-white/60">
                 Be the first to play today! A new challenge will be generated automatically.
               </p>
-              {account && isActive !== false && (
-                <ArcadeButton disabled={starting} onClick={handlePlay}>
-                  {starting ? "Starting..." : activeDailyRun ? "Resume Daily" : "Play Daily"}
-                </ArcadeButton>
-              )}
             </div>
           )}
 
@@ -185,7 +203,7 @@ const DailyChallengePage: React.FC = () => {
               {/* Zone hero */}
               <div className="relative overflow-hidden rounded-2xl border border-white/[0.12]">
                 <img
-                  src={zoneImages.themeIcon}
+                  src={zoneImages.background}
                   alt=""
                   className="absolute inset-0 h-full w-full object-cover"
                 />
@@ -345,10 +363,10 @@ const DailyChallengePage: React.FC = () => {
       </div>
 
       {/* Play button */}
-      {isActive && account && challenge && (
+      {account && !challengeLoading && (isActive || !challenge) && (
         <div className="relative z-20 mt-auto px-4 pb-3">
           <ArcadeButton disabled={starting} onClick={handlePlay}>
-            {starting ? "Starting..." : activeDailyRun ? "Resume Daily" : "Play Daily"}
+            {starting ? "Starting..." : isActiveDailyFromToday ? "Resume Daily" : "Play Daily"}
           </ArcadeButton>
         </div>
       )}

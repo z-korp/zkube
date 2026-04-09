@@ -40,7 +40,7 @@ mod level_system {
     use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::random::RandomImpl;
     use zkube::models::config::GameSettings;
-    use zkube::models::daily::GameChallenge;
+    use zkube::models::daily::{DailyAttempt, DailyAttemptTrait, DailyEntry, DailyEntryTrait};
     use zkube::models::game::{Game, GameLevel, GameLevelTrait, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
@@ -243,6 +243,87 @@ mod level_system {
                 return (0, 0, false);
             }
 
+            // Daily game path: update DailyEntry per-level stars, then end game.
+            let daily_game: DailyAttempt = world.read_model(game_id);
+            if daily_game.exists() {
+                let daily_player = daily_game.player;
+                let challenge_id = daily_game.challenge_id;
+
+                let mut entry: DailyEntry = world.read_model((challenge_id, daily_player));
+
+                // Delta star tracking (same logic as story path)
+                if completed_level <= 10 && stars > 0 {
+                    let previous_best = entry.get_level_stars(completed_level);
+                    if stars > previous_best {
+                        let delta: u8 = stars - previous_best;
+                        entry.set_level_stars(completed_level, stars);
+                        entry.total_stars += delta;
+                        entry.last_star_time = starknet::get_block_timestamp();
+
+                        // Delta mint zStar + XP
+                        match world.dns_address(@"config_system") {
+                            Option::Some(config_address) => {
+                                let config = IConfigSystemDispatcher {
+                                    contract_address: config_address,
+                                };
+                                if config.is_star_eligible(sid) {
+                                    let zstar_address = config.get_zstar_address();
+                                    if !zstar_address.is_zero() {
+                                        let zstar = IZStarTokenDispatcher {
+                                            contract_address: zstar_address,
+                                        };
+                                        zstar.mint(daily_player, delta.into());
+                                    }
+
+                                    let mut player_meta: PlayerMeta = world
+                                        .read_model(daily_player);
+                                    if !player_meta.exists() {
+                                        player_meta = PlayerMetaTrait::new(daily_player);
+                                    }
+                                    player_meta.increment_xp(delta.into() * 10);
+                                    world.write_model(@player_meta);
+                                }
+                            },
+                            Option::None => {},
+                        }
+                    }
+                }
+
+                // Advance highest_cleared for non-replay forward progress
+                if !daily_game.is_replay && stars > 0 && completed_level > entry.highest_cleared {
+                    entry.highest_cleared = completed_level;
+                }
+
+                world.write_model(@entry);
+
+                world
+                    .emit_event(
+                        @LevelCompleted {
+                            game_id,
+                            player: daily_player,
+                            level: completed_level,
+                            moves_used: final_moves.into(),
+                            score: final_score.into(),
+                            total_score,
+                        },
+                    );
+
+                let progress_address = world
+                    .dns_address(@"progress_system")
+                    .expect('ProgressSystem not found');
+                let progress_dispatcher = IProgressSystemDispatcher {
+                    contract_address: progress_address,
+                };
+                progress_dispatcher
+                    .emit_progress(daily_player, Task::LevelComplete.identifier(), 1, sid);
+
+                // End game (one level per game, like story)
+                game.over = true;
+                world.write_model(@game);
+                game_over::handle_game_over(ref world, game, daily_player);
+                return (0, 0, false);
+            }
+
             // Delta star minting: only mint the improvement over previous best
             if completed_level <= 10 && stars > 0 {
                 let mut best_run: PlayerBestRun = world.read_model((player, sid, 0_u8));
@@ -385,23 +466,13 @@ mod level_system {
             // Write game before grid reset; grid system reads current_level from run_data.
             world.write_model(@game);
 
-            // Reseed per level: daily games use deterministic reseeding from
-            // the shared seed so all players see the same levels; non-daily
-            // games use VRF/pseudo-random reseeding.
-            let game_challenge: GameChallenge = world.read_model(game_id);
-            let is_daily_game = game_challenge.challenge_id > 0;
-
-            let next_level_seed = if is_daily_game {
-                GameTrait::generate_level_seed(base_seed.seed, next_level)
-            } else {
-                let vrf_salt = core::poseidon::poseidon_hash_span(
-                    array![game_id.into(), next_level.into()].span(),
-                );
-                let next_seed_random = RandomImpl::from_vrf_enabled(
-                    base_seed.vrf_enabled, vrf_salt,
-                );
-                next_seed_random.seed
-            };
+            // Reseed per level using VRF/pseudo-random.
+            // (Daily games never reach advance_level — they return early in finalize_level.)
+            let vrf_salt = core::poseidon::poseidon_hash_span(
+                array![game_id.into(), next_level.into()].span(),
+            );
+            let next_seed_random = RandomImpl::from_vrf_enabled(base_seed.vrf_enabled, vrf_salt);
+            let next_level_seed = next_seed_random.seed;
 
             let next_game_seed = GameSeed {
                 game_id,

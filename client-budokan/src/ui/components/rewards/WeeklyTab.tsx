@@ -5,11 +5,14 @@ import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import type { Entity } from "@dojoengine/recs";
 
-import type { ThemeColors } from "@/config/themes";
+import { getThemeImages, type ThemeColors, type ThemeId } from "@/config/themes";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
+import { useZoneProgress } from "@/hooks/useZoneProgress";
+import { useZStarBalance } from "@/hooks/useZStarBalance";
 import { ZONE_NAMES } from "@/config/profileData";
+import TierContext from "@/ui/components/rewards/TierContext";
 
 const SECONDS_PER_WEEK = 604800;
 
@@ -46,11 +49,11 @@ const ZONES = Array.from({ length: 10 }, (_, i) => ({
 }));
 
 const REWARD_TIERS = [
-  { label: "Top 1%", reward: 30 },
-  { label: "Top 5%", reward: 20 },
-  { label: "Top 10%", reward: 15 },
-  { label: "Top 25%", reward: 10 },
-  { label: "Top 50%", reward: 3 },
+  { pct: 2, label: "Top 1%", reward: 30 },
+  { pct: 5, label: "Top 5%", reward: 20 },
+  { pct: 10, label: "Top 10%", reward: 15 },
+  { pct: 25, label: "Top 25%", reward: 10 },
+  { pct: 50, label: "Top 50%", reward: 3 },
 ];
 
 interface WeeklyTabProps {
@@ -65,6 +68,13 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
       contractComponents: { WeeklyEndless },
     },
   } = useDojo();
+  const { balance: zStarBalance } = useZStarBalance(account?.address);
+  const { zones: zoneProgress } = useZoneProgress(account?.address, zStarBalance);
+
+  const unlockedZones = useMemo(
+    () => ZONES.filter((zone) => zoneProgress.some((z) => z.zoneId === zone.id && z.unlocked)),
+    [zoneProgress],
+  );
 
   const [selectedZone, setSelectedZone] = useState(1);
   const [settling, setSettling] = useState(false);
@@ -105,6 +115,11 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
   }, [games, normalizedAccount]);
 
   const myReward = myRank ? computeWeeklyReward(myRank, games.length) : 0;
+
+  const tierEntries = useMemo(() =>
+    games.map((g, i) => ({ rank: i + 1, score: g.score, name: g.player_name || "Anonymous" })),
+    [games],
+  );
 
   const handleSettle = useCallback(async () => {
     if (!account || settling || games.length === 0) return;
@@ -159,17 +174,22 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
       </motion.section>
 
       <div className="flex gap-1.5 overflow-x-auto hide-scrollbar pb-1">
-        {ZONES.map((zone) => (
+        {unlockedZones.map((zone) => (
           <button
             key={zone.id}
             onClick={() => setSelectedZone(zone.id)}
-            className={`shrink-0 rounded-lg px-2.5 py-1 font-sans text-[11px] font-semibold transition-colors ${
+            className={`shrink-0 rounded-lg p-0.5 transition-all ${
               selectedZone === zone.id
-                ? "bg-white/20 text-white border border-white/30"
-                : "bg-white/5 text-white/40 border border-transparent hover:text-white/60"
+                ? "border-2 border-white/60 shadow-[0_0_8px_rgba(255,255,255,0.2)]"
+                : "border-2 border-transparent hover:border-white/20"
             }`}
           >
-            {zone.name}
+            <img
+              src={getThemeImages(`theme-${zone.id}` as ThemeId).themeIcon}
+              alt={zone.name}
+              className="h-7 w-7 rounded-lg object-cover"
+              draggable={false}
+            />
           </button>
         ))}
       </div>
@@ -234,52 +254,19 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
         </motion.section>
       )}
 
-      <motion.section
-        variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}
-        className="rounded-2xl border px-4 py-3 backdrop-blur-xl"
-        style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.12)" }}
-      >
-        <p className="mb-2 font-sans text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: colors.textMuted }}>
-          Top Players — {ZONE_NAMES[selectedZone]}
-        </p>
-        {games.length === 0 ? (
-          <p className="py-4 text-center font-sans text-sm text-white/50">No entries for this zone</p>
-        ) : (
-          <div className="flex flex-col gap-1.5">
-            {games.slice(0, 5).map((entry, i) => (
-              <div key={entry.token_id.toString()} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-1.5">
-                <div className="flex items-center gap-2">
-                  <span className="w-5 font-sans text-xs font-black" style={{ color: i < 3 ? colors.accent2 : colors.textMuted }}>
-                    {i + 1}
-                  </span>
-                  <span className="font-sans text-xs font-semibold text-white/80">
-                    {entry.player_name ?? "Anonymous"}
-                  </span>
-                </div>
-                <span className="font-sans text-xs font-bold text-white/60">{entry.score.toLocaleString()}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </motion.section>
-
-      <motion.section
-        variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}
-        className="rounded-2xl border px-4 py-3 backdrop-blur-xl"
-        style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.10)" }}
-      >
-        <p className="mb-2 font-sans text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: colors.textMuted }}>
-          Weekly Reward Tiers
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {REWARD_TIERS.map((tier) => (
-            <div key={tier.label} className="rounded-lg bg-white/5 px-2.5 py-1.5">
-              <span className="font-sans text-[11px] font-semibold text-white/50">{tier.label}: </span>
-              <span className="font-sans text-[11px] font-bold text-yellow-300">+{tier.reward}★</span>
-            </div>
-          ))}
-        </div>
-      </motion.section>
+      {myRank && (
+        <motion.section variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}>
+          <TierContext
+            colors={colors}
+            myRank={myRank}
+            myScore={games[myRank - 1]?.score ?? 0}
+            totalEntries={games.length}
+            tiers={REWARD_TIERS}
+            entries={tierEntries}
+            scoreLabel=" pts"
+          />
+        </motion.section>
+      )}
     </motion.div>
   );
 };

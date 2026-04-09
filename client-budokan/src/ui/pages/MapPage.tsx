@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Info } from "lucide-react";
 import { motion } from "motion/react";
 import { useGame } from "@/hooks/useGame";
 import { useGameLevel } from "@/hooks/useGameLevel";
@@ -268,35 +268,56 @@ const MapPage: React.FC = () => {
     return zoneProgressData?.stars ?? 0;
   }, [isDailyMap, game, zoneProgressData]);
 
-  // SVG info node position (top-right area)
-  const INFO_CX = VB_W - 8;
-  const INFO_CY = 6;
-  const INFO_R = 3.5;
-
   return (
     <div className="relative flex h-full flex-col">
       <ZoneBackground zone={mapZoneId} themeId={themeId} />
 
-      {/* Floating overlay: back + zone name + stars */}
+      {/* Floating overlay: back + zone name + stars + info */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="absolute top-0 left-0 right-0 z-20 flex items-center gap-2 px-3 pt-3 pb-1 pointer-events-none"
+        className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-3 pt-3 pb-1 pointer-events-none"
       >
-        <button
-          onClick={() => { if (isDailyMap) setIsDailyMap(false); goBack(); }}
-          className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/30 backdrop-blur-md"
-          style={{ color: colors.accent }}
-        >
-          <ChevronLeft size={16} />
-        </button>
-        <span className="font-display text-[14px] font-bold text-white drop-shadow-md">
-          {zoneName}
-        </span>
-        <span className="font-sans text-[11px] font-semibold text-white/60 drop-shadow-md">
-          {zoneStars}/30 ★
-        </span>
+        <div className="flex items-center gap-2 pointer-events-auto">
+          <button
+            onClick={() => { if (isDailyMap) setIsDailyMap(false); goBack(); }}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/30 backdrop-blur-md"
+            style={{ color: colors.accent }}
+          >
+            <ChevronLeft size={16} />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 pointer-events-auto">
+          {isDailyMap && (
+            <span className="rounded-full border px-2 py-0.5 font-sans text-[10px] font-bold uppercase backdrop-blur-md" style={{ borderColor: `${colors.accent}55`, backgroundColor: "rgba(0,0,0,0.3)", color: colors.accent }}>
+              Daily
+            </span>
+          )}
+          <span className="font-display text-xl font-black text-white drop-shadow-md">
+            {zoneName}
+          </span>
+          <button
+            onClick={() => setShowInfo(true)}
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/30 backdrop-blur-md"
+            style={{ color: colors.accent }}
+          >
+            <Info size={14} />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-1.5 pointer-events-none">
+          <span className="font-display text-base font-black drop-shadow-md" style={{ color: zoneProgressData?.perfectionClaimed ? "#ec4899" : colors.accent }}>
+            {zoneStars}/30 ★
+          </span>
+          {zoneStars >= 30 && !zoneProgressData?.perfectionClaimed && (
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-pink-500/30 text-[10px] drop-shadow-md">🎁</span>
+          )}
+          {zoneProgressData?.perfectionClaimed && (
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-pink-500/20 text-[10px] drop-shadow-md">💎</span>
+          )}
+        </div>
       </motion.div>
 
       {/* Map SVG */}
@@ -525,7 +546,7 @@ const MapPage: React.FC = () => {
                       fill="#ffffff"
                       fontSize={2.2}
                       fontWeight="bold"
-                      fontFamily="Bangers"
+                      fontFamily="Outfit, sans-serif"
                     >
                       {label}
                     </text>
@@ -571,36 +592,6 @@ const MapPage: React.FC = () => {
               );
             })}
 
-            {/* Info node */}
-            <motion.g
-              onClick={() => setShowInfo(true)}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.6, type: "spring", stiffness: 200, damping: 18 }}
-              style={{ cursor: "pointer", transformOrigin: `${INFO_CX}px ${INFO_CY}px` }}
-            >
-              <circle
-                cx={INFO_CX}
-                cy={INFO_CY}
-                r={INFO_R}
-                fill="rgba(0,0,0,0.5)"
-                stroke={colors.accent}
-                strokeWidth={0.4}
-                strokeDasharray="1.5 1"
-              />
-              <text
-                x={INFO_CX}
-                y={INFO_CY + 0.3}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fill={colors.accent}
-                fontSize={4}
-                fontWeight="bold"
-                fontFamily="sans-serif"
-              >
-                ℹ
-              </text>
-            </motion.g>
           </svg>
         </div>
 

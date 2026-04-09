@@ -9,6 +9,7 @@ import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
 import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
 import { ZONE_NAMES } from "@/config/profileData";
 import { getMutatorDef } from "@/config/mutatorConfig";
+import TierContext from "@/ui/components/rewards/TierContext";
 
 const itemVariants: any = {
   hidden: { opacity: 0, y: 12 },
@@ -62,11 +63,11 @@ interface DailyTabProps {
 }
 
 const REWARD_TIERS = [
-  { label: "Top 1%", reward: 10 },
-  { label: "Top 5%", reward: 7 },
-  { label: "Top 10%", reward: 5 },
-  { label: "Top 25%", reward: 3 },
-  { label: "Top 50%", reward: 1 },
+  { pct: 1, label: "Top 1%", reward: 10 },
+  { pct: 5, label: "Top 5%", reward: 7 },
+  { pct: 10, label: "Top 10%", reward: 5 },
+  { pct: 25, label: "Top 25%", reward: 3 },
+  { pct: 50, label: "Top 50%", reward: 1 },
 ];
 
 const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
@@ -93,6 +94,11 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
   }, [entries, normalizedAccount]);
 
   const myReward = myEntry ? computeDailyReward(myEntry.rank, entries.length) : 0;
+
+  const tierEntries = useMemo(() =>
+    entries.map((e) => ({ rank: e.rank, score: e.value, name: e.playerName ?? e.player.slice(0, 8) })),
+    [entries],
+  );
 
   const handleSettle = useCallback(async () => {
     if (!account || !challenge || settling) return;
@@ -233,52 +239,19 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
         </motion.section>
       )}
 
-      <motion.section
-        variants={itemVariants}
-        className="rounded-2xl border px-4 py-3 backdrop-blur-xl"
-        style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.12)" }}
-      >
-        <p className="mb-2 font-sans text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: colors.textMuted }}>
-          Top Players
-        </p>
-        {entries.length === 0 ? (
-          <p className="py-4 text-center font-sans text-sm text-white/50">No entries yet</p>
-        ) : (
-          <div className="flex flex-col gap-1.5">
-            {entries.slice(0, 5).map((entry) => (
-              <div key={`daily-${entry.rank}`} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-1.5">
-                <div className="flex items-center gap-2">
-                  <span className="w-5 font-sans text-xs font-black" style={{ color: entry.rank <= 3 ? colors.accent2 : colors.textMuted }}>
-                    {entry.rank}
-                  </span>
-                  <span className="font-sans text-xs font-semibold text-white/80">
-                    {entry.playerName ?? entry.player.slice(0, 8)}
-                  </span>
-                </div>
-                <span className="font-sans text-xs font-bold text-white/60">{entry.value.toLocaleString()}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </motion.section>
-
-      <motion.section
-        variants={itemVariants}
-        className="rounded-2xl border px-4 py-3 backdrop-blur-xl"
-        style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.10)" }}
-      >
-        <p className="mb-2 font-sans text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: colors.textMuted }}>
-          Daily Reward Tiers
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {REWARD_TIERS.map((tier) => (
-            <div key={tier.label} className="rounded-lg bg-white/5 px-2.5 py-1.5">
-              <span className="font-sans text-[11px] font-semibold text-white/50">{tier.label}: </span>
-              <span className="font-sans text-[11px] font-bold text-yellow-300">+{tier.reward}★</span>
-            </div>
-          ))}
-        </div>
-      </motion.section>
+      {myEntry && (
+        <motion.section variants={itemVariants}>
+          <TierContext
+            colors={colors}
+            myRank={myEntry.rank}
+            myScore={myEntry.value}
+            myName={myEntry.playerName ?? "You"}
+            totalEntries={entries.length}
+            tiers={REWARD_TIERS}
+            entries={tierEntries}
+          />
+        </motion.section>
+      )}
     </motion.div>
   );
 };

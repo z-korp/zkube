@@ -8,15 +8,14 @@ use starknet::{ContractAddress, get_block_timestamp};
 use zkube::events::RunEnded;
 use zkube::helpers::config::ConfigUtilsTrait;
 use zkube::models::daily::{
-    ActiveDailyAttempt, ActiveDailyAttemptTrait, DailyChallenge, DailyChallengeTrait, DailyEntry,
-    DailyEntryTrait, GameChallenge,
+    ActiveDailyAttempt, ActiveDailyAttemptTrait, DailyAttempt, DailyAttemptTrait,
 };
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{PlayerBestRun, PlayerBestRunTrait, PlayerMeta, PlayerMetaTrait};
 use zkube::models::story::{
     ActiveStoryAttempt, ActiveStoryAttemptTrait, StoryAttempt, StoryAttemptTrait,
 };
-/// Handle game over: update player meta, emit event, submit daily result.
+/// Handle game over: update player meta, emit event.
 /// Used by game_system (surrender) and move_system (level failed/game over).
 pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAddress) {
     let run_data = game.get_run_data();
@@ -54,6 +53,34 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
         return;
     }
 
+    // Daily game path: clear active attempt and return early.
+    // Stars are tracked per-level in finalize_level, not on game_over.
+    let daily_game: DailyAttempt = world.read_model(game.game_id);
+    if daily_game.exists() {
+        let active_daily: ActiveDailyAttempt = world.read_model(player);
+        if active_daily.exists() && active_daily.game_id == game.game_id {
+            world.write_model(@ActiveDailyAttemptTrait::empty(player));
+        }
+
+        player_meta.increment_daily_stars();
+        world.write_model(@player_meta);
+
+        world
+            .emit_event(
+                @RunEnded {
+                    game_id: game.game_id,
+                    player,
+                    final_level: run_data.current_level,
+                    final_score: run_data.total_score,
+                    current_difficulty: run_data.current_difficulty,
+                    started_at: game.started_at,
+                    ended_at: get_block_timestamp(),
+                },
+            );
+        return;
+    }
+
+    // Token game path: update PlayerBestRun
     let total_stars = if run_type == 0 {
         calculate_total_stars(game)
     } else {
@@ -81,9 +108,6 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
     }
     world.write_model(@best_run);
 
-    // Weekly endless settlement uses all-time PlayerBestRun (already updated above).
-    // No per-week entry tracking needed.
-
     // Emit run ended event
     world
         .emit_event(
@@ -97,48 +121,6 @@ pub fn handle_game_over(ref world: WorldStorage, game: Game, player: ContractAdd
                 ended_at: get_block_timestamp(),
             },
         );
-
-    // Clear active daily attempt if this game matches.
-    let active_daily: ActiveDailyAttempt = world.read_model(player);
-    if active_daily.exists() && active_daily.game_id == game.game_id {
-        world.write_model(@ActiveDailyAttemptTrait::empty(player));
-    }
-
-    // Auto-submit result for daily challenge games (skip if settled or ended).
-    let game_challenge: GameChallenge = world.read_model(game.game_id);
-    if game_challenge.challenge_id > 0 {
-        let challenge: DailyChallenge = world.read_model(game_challenge.challenge_id);
-        let timestamp = starknet::get_block_timestamp();
-        if challenge.exists() && !challenge.settled && !challenge.has_ended(timestamp) {
-            auto_submit_daily_result(
-                ref world,
-                game_challenge.challenge_id,
-                game.game_id,
-                player,
-                run_data.total_score,
-                run_data.current_level,
-                total_stars,
-            );
-
-            // Participation star for completing a daily challenge game.
-            // handle_game_over is called only once the run is over.
-            player_meta.increment_daily_stars();
-            world.write_model(@player_meta);
-        }
-    }
-}
-
-/// Compute ranking value by run type.
-/// - Zone: (total_stars << 32) | total_score  (stars-first composite)
-/// - Endless: total_score
-fn compute_ranking_value(run_type: u8, total_stars: u8, total_score: u32) -> u64 {
-    if run_type == 1 {
-        total_score.into()
-    } else {
-        let stars_u64: u64 = total_stars.into();
-        let score_u64: u64 = total_score.into();
-        (stars_u64 * 0x100000000) + score_u64
-    }
 }
 
 /// Sum stars across map levels 1..10.
@@ -150,42 +132,4 @@ fn calculate_total_stars(game: Game) -> u8 {
         level += 1;
     }
     stars
-}
-
-/// Auto-submit a game result to the daily challenge entry.
-/// Called inline during game_over -- updates the player's DailyEntry
-/// with their best score. Settlement verifies ordering off-chain.
-fn auto_submit_daily_result(
-    ref world: WorldStorage,
-    challenge_id: u32,
-    game_id: felt252,
-    player: ContractAddress,
-    total_score: u32,
-    current_level: u8,
-    total_stars: u8,
-) {
-    let challenge: DailyChallenge = world.read_model(challenge_id);
-    if challenge.settled {
-        return; // Challenge already settled, skip
-    }
-
-    let mut entry: DailyEntry = world.read_model((challenge_id, player));
-    if !entry.exists() {
-        return; // Player hasn't registered, skip
-    }
-
-    // Daily challenges are always zone runs — use zone composite ranking.
-    let ranking_value = compute_ranking_value(0, total_stars, total_score);
-
-    // Check if this beats the player's current best
-    let current_best: u64 = compute_ranking_value(0, entry.best_stars, entry.best_score);
-
-    if ranking_value > current_best {
-        // Update entry with new bests
-        entry.best_score = total_score;
-        entry.best_level = current_level;
-        entry.best_stars = total_stars;
-        entry.best_game_id = game_id;
-        world.write_model(@entry);
-    }
 }

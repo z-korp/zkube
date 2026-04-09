@@ -1,7 +1,8 @@
+use alexandria_math::BitShift;
 use starknet::ContractAddress;
 
 /// Maps a game to its daily challenge (if any)
-/// Written when a game is created via start_daily_game()
+/// DEPRECATED: Kept for migration safety. No longer written by new code.
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
 #[dojo::model]
 pub struct GameChallenge {
@@ -25,7 +26,7 @@ pub struct DailyChallenge {
     pub start_time: u64,
     /// start_time + 86400
     pub end_time: u64,
-    /// Unique player count (incremented only on first attempt)
+    /// Unique player count (incremented only on first join)
     pub total_entries: u32,
     /// True once reward distribution is finalized
     pub settled: bool,
@@ -39,8 +40,8 @@ pub struct DailyChallenge {
     pub boss_id: u8,
 }
 
-/// Per-player attempt for a daily game — links game_id to daily context
-/// Analogous to StoryAttempt for settings resolution + auth bypass
+/// Per-player attempt for a daily game — links game_id to daily context.
+/// Each game plays ONE level (like story mode).
 #[derive(Copy, Drop, Serde, Introspect)]
 #[dojo::model]
 pub struct DailyAttempt {
@@ -49,6 +50,8 @@ pub struct DailyAttempt {
     pub player: ContractAddress,
     pub zone_id: u8,
     pub challenge_id: u32,
+    pub level: u8,
+    pub is_replay: bool,
 }
 
 /// Tracks the player's currently active daily game (keyed by player).
@@ -60,9 +63,13 @@ pub struct ActiveDailyAttempt {
     pub player: ContractAddress,
     pub game_id: felt252,
     pub challenge_id: u32,
+    pub level: u8,
+    pub is_replay: bool,
 }
 
-/// Per-player entry tracking for a daily challenge (compound key)
+/// Per-player zone-like progress for a daily challenge (compound key).
+/// Tracks per-level stars, total stars, and progression — used as live leaderboard source.
+/// Ranking: total_stars DESC, last_star_time ASC (earlier = better tiebreak).
 #[derive(Copy, Drop, Serde, Introspect)]
 #[dojo::model]
 pub struct DailyEntry {
@@ -70,16 +77,16 @@ pub struct DailyEntry {
     pub challenge_id: u32,
     #[key]
     pub player: ContractAddress,
-    /// Number of attempts by this player
-    pub attempts: u32,
-    /// Best score achieved across all attempts
-    pub best_score: u32,
-    /// Best level reached across all attempts
-    pub best_level: u8,
-    /// Best stars earned across all attempts
-    pub best_stars: u8,
-    /// Game ID of the best run (for verification)
-    pub best_game_id: felt252,
+    /// Packed level stars: 2 bits per level (levels 1-10), same encoding as StoryZoneProgress
+    pub level_stars: u32,
+    /// Sum of all level stars (0-30)
+    pub total_stars: u8,
+    /// Furthest level cleared (0-10)
+    pub highest_cleared: u8,
+    /// Timestamp of last star increase (leaderboard tiebreak — earlier is better)
+    pub last_star_time: u64,
+    /// When the player first joined this daily (existence sentinel: >0 = exists)
+    pub joined_at: u64,
     /// Final rank (set during settlement, 0 = unranked)
     pub rank: u32,
     /// zStar reward amount (set during settlement)
@@ -111,21 +118,55 @@ pub impl DailyChallengeImpl of DailyChallengeTrait {
 
 #[generate_trait]
 pub impl DailyEntryImpl of DailyEntryTrait {
-    /// Check if this entry exists (has at least one attempt)
+    fn new(challenge_id: u32, player: ContractAddress, joined_at: u64) -> DailyEntry {
+        DailyEntry {
+            challenge_id,
+            player,
+            level_stars: 0,
+            total_stars: 0,
+            highest_cleared: 0,
+            last_star_time: 0,
+            joined_at,
+            rank: 0,
+            star_reward: 0,
+        }
+    }
+
+    /// Check if this entry exists (player has joined this daily)
     #[inline(always)]
     fn exists(self: @DailyEntry) -> bool {
-        *self.attempts > 0
+        *self.joined_at > 0
+    }
+
+    /// Get stars for a specific level (2-bit packed, levels 1-10)
+    fn get_level_stars(self: @DailyEntry, level: u8) -> u8 {
+        assert!(level >= 1 && level <= 10, "invalid level");
+        let shift: u32 = ((level - 1) * 2).into();
+        ((BitShift::shr(*self.level_stars, shift) & 0x3_u32)).try_into().unwrap()
+    }
+
+    /// Set stars for a specific level (2-bit packed, levels 1-10)
+    fn set_level_stars(ref self: DailyEntry, level: u8, stars: u8) {
+        assert!(level >= 1 && level <= 10, "invalid level");
+        let shift: u32 = ((level - 1) * 2).into();
+        let current: u32 = BitShift::shr(self.level_stars, shift) & 0x3_u32;
+        let star_val: u32 = (stars & 0x3).into();
+        self.level_stars = self.level_stars
+            - BitShift::shl(current, shift)
+            + BitShift::shl(star_val, shift);
     }
 }
 
 #[generate_trait]
 pub impl ActiveDailyAttemptImpl of ActiveDailyAttemptTrait {
-    fn new(player: ContractAddress, game_id: felt252, challenge_id: u32) -> ActiveDailyAttempt {
-        ActiveDailyAttempt { player, game_id, challenge_id }
+    fn new(
+        player: ContractAddress, game_id: felt252, challenge_id: u32, level: u8, is_replay: bool,
+    ) -> ActiveDailyAttempt {
+        ActiveDailyAttempt { player, game_id, challenge_id, level, is_replay }
     }
 
     fn empty(player: ContractAddress) -> ActiveDailyAttempt {
-        ActiveDailyAttempt { player, game_id: 0, challenge_id: 0 }
+        ActiveDailyAttempt { player, game_id: 0, challenge_id: 0, level: 0, is_replay: false }
     }
 
     #[inline(always)]
@@ -146,7 +187,9 @@ pub impl DailyAttemptImpl of DailyAttemptTrait {
 
 #[cfg(test)]
 mod tests {
-    use super::{DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait};
+    use super::{
+        ActiveDailyAttemptTrait, DailyChallenge, DailyChallengeTrait, DailyEntry, DailyEntryTrait,
+    };
 
     fn make_challenge(start: u64, end: u64) -> DailyChallenge {
         DailyChallenge {
@@ -208,18 +251,8 @@ mod tests {
 
     #[test]
     fn test_entry_exists() {
-        let entry = DailyEntry {
-            challenge_id: 1,
-            player: 0x1_felt252.try_into().unwrap(),
-            attempts: 1,
-            best_score: 0,
-            best_level: 0,
-            best_stars: 0,
-            best_game_id: 0,
-            rank: 0,
-            star_reward: 0,
-        };
-        assert!(entry.exists(), "Entry with attempts > 0 should exist");
+        let entry = DailyEntryTrait::new(1, 0x1_felt252.try_into().unwrap(), 1000);
+        assert!(entry.exists(), "Entry with joined_at > 0 should exist");
     }
 
     #[test]
@@ -227,14 +260,35 @@ mod tests {
         let entry = DailyEntry {
             challenge_id: 1,
             player: 0x1_felt252.try_into().unwrap(),
-            attempts: 0,
-            best_score: 0,
-            best_level: 0,
-            best_stars: 0,
-            best_game_id: 0,
+            level_stars: 0,
+            total_stars: 0,
+            highest_cleared: 0,
+            last_star_time: 0,
+            joined_at: 0,
             rank: 0,
             star_reward: 0,
         };
-        assert!(!entry.exists(), "Entry with 0 attempts should not exist");
+        assert!(!entry.exists(), "Entry with joined_at 0 should not exist");
+    }
+
+    #[test]
+    fn test_entry_level_stars_roundtrip() {
+        let mut entry = DailyEntryTrait::new(1, 0x1_felt252.try_into().unwrap(), 1000);
+
+        entry.set_level_stars(1, 3);
+        entry.set_level_stars(6, 2);
+        entry.set_level_stars(10, 1);
+
+        assert!(entry.get_level_stars(1) == 3, "level 1 stars");
+        assert!(entry.get_level_stars(6) == 2, "level 6 stars");
+        assert!(entry.get_level_stars(10) == 1, "level 10 stars");
+        assert!(entry.get_level_stars(2) == 0, "unset levels should be zero");
+    }
+
+    #[test]
+    fn test_active_daily_empty_is_not_active() {
+        let player: starknet::ContractAddress = 'PLAYER'.try_into().unwrap();
+        let active = ActiveDailyAttemptTrait::empty(player);
+        assert!(!active.exists(), "empty active daily game should not exist");
     }
 }

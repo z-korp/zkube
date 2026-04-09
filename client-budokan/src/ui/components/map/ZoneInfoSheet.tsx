@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
 import { getMutatorDef } from "@/config/mutatorConfig";
 import { ZONE_NAMES } from "@/config/profileData";
+import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
 
 interface ZoneInfoSheetProps {
   zoneId: number;
@@ -14,117 +15,117 @@ const ZoneInfoSheet: React.FC<ZoneInfoSheetProps> = ({ zoneId, onClose }) => {
   const { settings } = useSettings(settingsId);
 
   const zoneName = ZONE_NAMES[zoneId] ?? `Zone ${zoneId}`;
+  const themeId = `theme-${zoneId}` as ThemeId;
+  const colors = getThemeColors(themeId);
+  const images = getThemeImages(themeId);
 
-  const activeMutator = getDisplayMutator(settings.activeMutatorId, "Active");
-  const passiveMutator = getDisplayMutator(settings.passiveMutatorId, "Passive");
-
-  const hasConstraints = settings.constraintsEnabled;
-  const constraintStart = settings.constraintStartLevel;
-
-  const difficultyLabel =
-    settings.tier1Threshold <= 2
-      ? "Ramps up fast!"
-      : settings.tier1Threshold <= 4
-        ? "Gets harder mid-way"
-        : "Slow and steady";
+  const activeMutator = settings.activeMutatorId > 0 ? getMutatorDef(settings.activeMutatorId) : null;
+  const passiveMutator = settings.passiveMutatorId > 0 ? getMutatorDef(settings.passiveMutatorId) : null;
 
   return (
     <motion.div
-      className="absolute inset-0 z-30 flex items-center justify-center bg-black/65 backdrop-blur-sm px-4"
+      className="absolute inset-0 z-30 flex items-end justify-center bg-black/65 backdrop-blur-sm px-3 pb-4 md:items-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
       <motion.div
-        className="relative w-full max-w-sm rounded-2xl border border-white/20 bg-slate-950/90 p-5 shadow-2xl backdrop-blur-xl"
-        initial={{ opacity: 0, scale: 0.85, y: 20 }}
+        className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl"
+        style={{ background: `linear-gradient(180deg, ${colors.backgroundGradientStart ?? "#0a1628"}F0, ${colors.background ?? "#050a12"}F5)` }}
+        initial={{ opacity: 0, scale: 0.9, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 10 }}
+        exit={{ opacity: 0, scale: 0.95, y: 15 }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-3 top-3 rounded-md p-1 text-slate-300 transition-colors hover:bg-slate-700/60 hover:text-white"
-        >
-          <X size={18} />
-        </button>
+        {/* Zone hero header */}
+        <div className="relative h-24 overflow-hidden">
+          <img src={images.background} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-black/40 text-white/70 backdrop-blur-md"
+          >
+            <X size={14} />
+          </button>
+          <div className="absolute bottom-3 left-4">
+            <p className="font-display text-xl font-black text-white drop-shadow-md">{zoneName}</p>
+          </div>
+        </div>
 
-        <h3 className="pr-8 font-display text-xl text-white">
-          Zone {zoneId} · {zoneName}
-        </h3>
+        <div className="px-4 py-3 space-y-3">
+          {/* Quick stats */}
+          <div className="flex gap-2">
+            <div className="flex-1 rounded-xl bg-white/[0.06] px-3 py-2 text-center">
+              <p className="font-sans text-lg font-black" style={{ color: colors.accent }}>10</p>
+              <p className="font-sans text-[10px] font-semibold text-white/50">Levels</p>
+            </div>
+            <div className="flex-1 rounded-xl bg-white/[0.06] px-3 py-2 text-center">
+              <p className="font-sans text-lg font-black" style={{ color: colors.accent }}>{settings.baseMoves}–{settings.maxMoves}</p>
+              <p className="font-sans text-[10px] font-semibold text-white/50">Moves</p>
+            </div>
+            <div className="flex-1 rounded-xl bg-white/[0.06] px-3 py-2 text-center">
+              <p className="font-sans text-lg font-black" style={{ color: colors.accent }}>30</p>
+              <p className="font-sans text-[10px] font-semibold text-white/50">Max ★</p>
+            </div>
+          </div>
 
-        <div className="mt-4 space-y-3">
-            <InfoRow emoji="📏" label="10 Levels + 1 Boss" />
-            <InfoRow
-              emoji="🎯"
-              label={`${settings.baseMoves}–${settings.maxMoves} moves per level`}
-            />
-            <InfoRow emoji="📈" label={difficultyLabel} />
-            {hasConstraints ? (
-              <InfoRow
-                emoji="🧩"
-                label={`Special rules from Level ${constraintStart}`}
-              />
-            ) : (
-              <InfoRow emoji="🧩" label="No special rules" />
-            )}
-            <div className="space-y-1">
-              <InfoRow emoji={activeMutator.icon} label={activeMutator.label} />
-              {activeMutator.effects.length > 0 && (
-                <div className="ml-9 flex flex-wrap gap-1">
-                  {activeMutator.effects.map((e) => (
-                    <span key={e} className="rounded-full bg-orange-500/10 px-2 py-0.5 font-sans text-[10px] font-semibold text-orange-200/70">{e}</span>
-                  ))}
+          {/* Mutators */}
+          {(activeMutator || passiveMutator) && (
+            <div className="space-y-1.5">
+              <p className="font-sans text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">Mutators</p>
+              {activeMutator && (
+                <div className="rounded-xl border border-orange-400/20 bg-orange-500/8 px-3 py-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm">{activeMutator.icon}</span>
+                    <span className="font-sans text-[12px] font-bold text-orange-300">{activeMutator.name}</span>
+                    <span className="rounded-full bg-orange-500/20 px-1.5 py-0.5 font-sans text-[8px] font-bold uppercase text-orange-300/80">Active</span>
+                  </div>
+                  {activeMutator.effects.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {activeMutator.effects.map((e) => (
+                        <span key={e} className="rounded-full bg-orange-500/10 px-1.5 py-0.5 font-sans text-[9px] font-semibold text-orange-200/70">{e}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              {passiveMutator && (
+                <div className="rounded-xl border border-purple-400/20 bg-purple-500/8 px-3 py-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm">{passiveMutator.icon}</span>
+                    <span className="font-sans text-[12px] font-bold text-purple-300">{passiveMutator.name}</span>
+                    <span className="rounded-full bg-purple-500/20 px-1.5 py-0.5 font-sans text-[8px] font-bold uppercase text-purple-300/80">Passive</span>
+                  </div>
+                  {passiveMutator.effects.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {passiveMutator.effects.map((e) => (
+                        <span key={e} className="rounded-full bg-purple-500/10 px-1.5 py-0.5 font-sans text-[9px] font-semibold text-purple-200/70">{e}</span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-            <div className="space-y-1">
-              <InfoRow emoji={passiveMutator.icon} label={passiveMutator.label} />
-              {passiveMutator.effects.length > 0 && (
-                <div className="ml-9 flex flex-wrap gap-1">
-                  {passiveMutator.effects.map((e) => (
-                    <span key={e} className="rounded-full bg-purple-500/10 px-2 py-0.5 font-sans text-[10px] font-semibold text-purple-200/70">{e}</span>
-                  ))}
-                </div>
-              )}
+          )}
+
+          {/* Perfection goal */}
+          <div className="rounded-xl border border-pink-400/20 bg-pink-500/8 px-3 py-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm">💎</span>
+                <span className="font-sans text-[12px] font-bold text-pink-300">Perfection Bonus</span>
+              </div>
+              <span className="font-sans text-[12px] font-black text-pink-300">+20★</span>
             </div>
-            <InfoRow emoji="👑" label={settings.bossId > 0 ? `Boss ${settings.bossId} on Level 10` : "Boss on Level 10"} />
+            <p className="mt-0.5 font-sans text-[10px] text-white/50">Earn 3 stars on all 10 levels</p>
+          </div>
         </div>
       </motion.div>
     </motion.div>
   );
 };
-
-const getDisplayMutator = (id: number, kind: "Active" | "Passive") => {
-  if (id <= 0) {
-    return {
-      icon: kind === "Active" ? "✨" : "🛡️",
-      label: `${kind}: None`,
-      effects: [] as string[],
-    };
-  }
-
-  const mutator = getMutatorDef(id);
-  const isKnown = mutator.id !== 0;
-
-  return {
-    icon: isKnown ? mutator.icon : kind === "Active" ? "✨" : "🛡️",
-    label: `${kind}: ${isKnown ? mutator.name : `Mutator ${id}`}`,
-    effects: isKnown ? mutator.effects : [],
-  };
-};
-
-const InfoRow: React.FC<{ emoji: string; label: string }> = ({
-  emoji,
-  label,
-}) => (
-  <div className="flex items-center gap-3 rounded-lg bg-white/[0.04] px-3 py-2">
-    <span className="text-lg leading-none">{emoji}</span>
-    <span className="font-sans text-sm text-white/90">{label}</span>
-  </div>
-);
 
 export default ZoneInfoSheet;

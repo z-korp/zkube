@@ -6,7 +6,7 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
 import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
 import { usePlayerLeaderboard } from "@/hooks/usePlayerLeaderboard";
-import { getThemeColors } from "@/config/themes";
+import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { ZONE_NAMES } from "@/config/profileData";
@@ -52,7 +52,7 @@ const LeaderboardPage: React.FC = () => {
   const { challenge } = useCurrentChallenge();
   const { entries: dailyEntries } = useDailyLeaderboard(challenge?.challenge_id);
   const { entries: playerEntries } = usePlayerLeaderboard();
-  const [activeTab, setActiveTab] = useState<"daily" | "endless" | "player">("endless");
+  const [activeTab, setActiveTab] = useState<"daily" | "endless" | "player">("daily");
   const [selectedZone, setSelectedZone] = useState(1);
   const navigate = useNavigationStore((s) => s.navigate);
   const setProfileAddress = useNavigationStore((s) => s.setProfileAddress);
@@ -104,6 +104,22 @@ const LeaderboardPage: React.FC = () => {
 
   const totalParticipants = activeTab === "endless" ? games.length : 0;
 
+  const myRank = useMemo(() => {
+    if (!normalizedAccount) return null;
+    if (activeTab === "daily") {
+      const entry = dailyEntries.find((e) => e.player.toLowerCase() === normalizedAccount);
+      return entry ? { rank: entry.rank, total: dailyEntries.length, score: entry.value, name: entry.playerName ?? "You" } : null;
+    }
+    if (activeTab === "player") {
+      const entry = playerEntries.find((e) => e.player.toLowerCase() === normalizedAccount);
+      return entry ? { rank: entry.rank, total: playerEntries.length, score: entry.lifetimeXp, name: entry.playerName ?? "You" } : null;
+    }
+    const idx = games.findIndex((g) => g.player_address?.toLowerCase() === normalizedAccount);
+    return idx >= 0 ? { rank: idx + 1, total: games.length, score: games[idx].score, name: games[idx].player_name || "You" } : null;
+  }, [activeTab, dailyEntries, playerEntries, games, normalizedAccount]);
+
+  const isMyRankVisible = myRank ? rankRows.some((r) => r.isYou) : false;
+
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
       <div className="shrink-0 pb-2">
@@ -147,13 +163,18 @@ const LeaderboardPage: React.FC = () => {
               <button
                 key={zone.id}
                 onClick={() => setSelectedZone(zone.id)}
-                className={`shrink-0 rounded-lg px-2.5 py-1 font-sans text-[11px] font-semibold transition-colors ${
+                className={`shrink-0 rounded-lg p-0.5 transition-all ${
                   selectedZone === zone.id
-                    ? "bg-white/20 text-white border border-white/30"
-                    : "bg-white/5 text-white/40 border border-transparent hover:text-white/60"
+                    ? "border-2 border-white/60 shadow-[0_0_8px_rgba(255,255,255,0.2)]"
+                    : "border-2 border-transparent hover:border-white/20"
                 }`}
               >
-                {zone.name}
+                <img
+                  src={getThemeImages(`theme-${zone.id}` as ThemeId).themeIcon}
+                  alt={zone.name}
+                  className="h-7 w-7 rounded-lg object-cover"
+                  draggable={false}
+                />
               </button>
             ))}
           </div>
@@ -247,6 +268,53 @@ const LeaderboardPage: React.FC = () => {
                 </motion.div>
               );
             })}
+
+            {/* Show user's rank if not visible in top 30 */}
+            {myRank && !isMyRankVisible && (
+              <>
+                <div className="py-1 text-center font-sans text-[10px] text-white/30">···</div>
+                <motion.div
+                  custom={rankRows.length}
+                  variants={rowVariants}
+                  className="flex items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-xl shadow-lg shadow-black/20"
+                  style={{
+                    backgroundColor: `${colors.accent}2A`,
+                    borderColor: `${colors.accent}75`,
+                  }}
+                >
+                  <div className="flex w-8 items-center justify-center text-center font-sans text-base font-black" style={{ color: colors.accent }}>
+                    {myRank.rank}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-sans text-sm font-extrabold" style={{ color: colors.text }}>
+                      {myRank.name} (You)
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-sans text-[16px] font-extrabold tracking-wide" style={{ color: colors.text }}>
+                      {myRank.score.toLocaleString()}{activeTab === "player" ? " XP" : ""}
+                    </div>
+                    {activeTab === "endless" && (() => {
+                      const reward = computeWeeklyReward(myRank.rank, myRank.total);
+                      return reward > 0 ? (
+                        <div className="shrink-0 rounded-full bg-yellow-500/20 px-1.5 py-0.5 text-[10px] font-bold text-yellow-300">
+                          +{reward} ★
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+                </motion.div>
+              </>
+            )}
+
+            {/* Not ranked message */}
+            {!myRank && normalizedAccount && rankRows.length > 0 && (
+              <div className="mt-2 rounded-2xl border border-white/[0.10] bg-white/[0.04] px-4 py-3 text-center">
+                <p className="font-sans text-xs font-semibold text-white/50">
+                  You're not ranked yet — finish a run to appear here
+                </p>
+              </div>
+            )}
           </motion.div>
         )}
       </div>

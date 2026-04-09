@@ -3,13 +3,15 @@ use zkube::models::daily::DailyEntry;
 
 #[starknet::interface]
 pub trait IDailyChallengeSystem<T> {
-    /// Start a daily challenge game. Auto-creates today's challenge on first call.
+    /// Start the next daily challenge level. Auto-creates today's challenge on first call.
+    /// First call of the day joins the daily and starts level 1.
+    /// Subsequent calls start at highest_cleared + 1.
     fn start_daily_game(ref self: T) -> felt252;
+    /// Replay a previously cleared daily level for better stars.
+    fn replay_daily_level(ref self: T, level: u8) -> felt252;
     /// Settle a daily challenge after it ends.
-    /// `ranked_players` must be sorted by ranking_value descending (verified on-chain).
+    /// `ranked_players` must be sorted by (total_stars DESC, last_star_time ASC).
     fn settle_challenge(ref self: T, challenge_id: u32, ranked_players: Span<ContractAddress>);
-    /// Manual result submission (backup -- game_over auto-submits)
-    fn submit_result(ref self: T, challenge_id: u32, game_id: felt252);
     /// Get today's challenge ID (day_id = timestamp / 86400)
     fn get_current_challenge(self: @T) -> u32;
     /// Get player entry for a challenge
@@ -42,7 +44,7 @@ mod daily_challenge_system {
     use zkube::models::config::{GameSettings, GameSettingsTrait};
     use zkube::models::daily::{
         ActiveDailyAttempt, ActiveDailyAttemptTrait, DailyAttempt, DailyChallenge,
-        DailyChallengeTrait, DailyEntry, DailyEntryTrait, GameChallenge,
+        DailyChallengeTrait, DailyEntry, DailyEntryTrait,
     };
     use zkube::models::game::{Game, GameLevelTrait, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
@@ -64,6 +66,143 @@ mod daily_challenge_system {
     #[abi(embed_v0)]
     impl DailyChallengeImpl of super::IDailyChallengeSystem<ContractState> {
         fn start_daily_game(ref self: ContractState) -> felt252 {
+            InternalImpl::create_daily_attempt(ref self, 0)
+        }
+
+        fn replay_daily_level(ref self: ContractState, level: u8) -> felt252 {
+            assert!(level >= 1 && level <= 10, "invalid level");
+            InternalImpl::create_daily_attempt(ref self, level)
+        }
+
+        fn settle_challenge(
+            ref self: ContractState, challenge_id: u32, ranked_players: Span<ContractAddress>,
+        ) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let timestamp = get_block_timestamp();
+
+            let mut challenge: DailyChallenge = world.read_model(challenge_id);
+            assert!(challenge.exists(), "Challenge does not exist");
+            assert!(challenge.has_ended(timestamp), "Challenge has not ended yet");
+            assert!(!challenge.settled, "Challenge already settled");
+
+            let total_participants = challenge.total_entries;
+
+            // Early return if no entries -- just mark as settled
+            if total_participants == 0 {
+                challenge.settled = true;
+                world.write_model(@challenge);
+                return;
+            }
+
+            // Cap the ranked list length
+            let len = ranked_players.len();
+            assert!(len <= daily::MAX_RANKED_PLAYERS, "Too many ranked players");
+
+            // N = ceil(total_entries / 4), capped
+            let num_winners = (total_participants + 3) / 4;
+            let capped_winners = if num_winners > daily::MAX_RANKED_PLAYERS {
+                daily::MAX_RANKED_PLAYERS
+            } else {
+                num_winners
+            };
+
+            // Verify descending order and distribute rewards.
+            // Ranking: total_stars DESC, last_star_time ASC (earlier = better).
+            // Composite: (total_stars << 48) | (MAX_48 - last_star_time_truncated)
+            let mut prev_value: u64 = 0xFFFFFFFFFFFFFFFF; // max u64
+            let mut rank: u32 = 1;
+            while rank <= len && rank <= capped_winners {
+                let player = *ranked_players.at(rank - 1);
+                assert!(player.is_non_zero(), "Zero address in ranked list");
+
+                let entry: DailyEntry = world.read_model((challenge_id, player));
+                assert!(entry.exists(), "Player has no entry for this challenge");
+
+                let value = InternalImpl::compute_ranking_value(
+                    entry.total_stars, entry.last_star_time,
+                );
+                assert!(value <= prev_value, "Invalid ranking order");
+                prev_value = value;
+
+                let star_reward = InternalImpl::compute_star_reward(rank, total_participants);
+                if star_reward > 0 {
+                    InternalImpl::mint_zstar(ref self, ref world, player, star_reward.into());
+
+                    // Store rank and reward in DailyEntry
+                    let mut entry_mut: DailyEntry = world.read_model((challenge_id, player));
+                    entry_mut.rank = rank;
+                    entry_mut.star_reward = star_reward;
+                    world.write_model(@entry_mut);
+                }
+
+                rank += 1;
+            }
+
+            challenge.settled = true;
+            world.write_model(@challenge);
+        }
+
+        fn get_current_challenge(self: @ContractState) -> u32 {
+            (get_block_timestamp() / 86400).try_into().unwrap()
+        }
+
+        fn get_player_entry(
+            self: @ContractState, challenge_id: u32, player: ContractAddress,
+        ) -> DailyEntry {
+            let world: WorldStorage = self.world(@DEFAULT_NS());
+            world.read_model((challenge_id, player))
+        }
+
+        fn settle_weekly_endless(
+            ref self: ContractState,
+            week_id: u32,
+            settings_id: u32,
+            ranked_players: Span<ContractAddress>,
+        ) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let timestamp = get_block_timestamp();
+            let current_week = current_week_id(timestamp);
+            assert!(week_id < current_week, "Week has not ended yet");
+
+            // Use composite key (week_id * 1000 + settings_id) to track per-zone settlement
+            let settlement_key: u32 = week_id * 1000 + settings_id;
+            let mut weekly_meta: WeeklyEndless = world.read_model(settlement_key);
+            assert!(!weekly_meta.settled, "Already settled for this week + zone");
+
+            let len: u32 = ranked_players.len();
+            assert!(len <= weekly::MAX_RANKED_PLAYERS, "Too many ranked players");
+
+            // Verify descending order by all-time PB and distribute rewards
+            let mut prev_score: u32 = 0xFFFFFFFF;
+            let mut rank: u32 = 1;
+            while rank <= len {
+                let player = *ranked_players.at(rank - 1);
+                assert!(player.is_non_zero(), "Zero address in ranked list");
+
+                let best_run: PlayerBestRun = world.read_model((player, settings_id, 1_u8));
+                assert!(best_run.best_score > 0, "Player has no PB for this endless");
+                assert!(best_run.best_score <= prev_score, "Invalid ranking order");
+                prev_score = best_run.best_score;
+
+                let star_reward = InternalImpl::compute_weekly_star_reward(rank, len);
+                if star_reward > 0 {
+                    InternalImpl::mint_zstar(ref self, ref world, player, star_reward.into());
+                }
+
+                rank += 1;
+            }
+
+            weekly_meta.week_id = settlement_key;
+            weekly_meta.total_participants = len;
+            weekly_meta.settled = true;
+            world.write_model(@weekly_meta);
+        }
+    }
+
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        /// Shared logic for start_daily_game (requested_level=0) and replay_daily_level.
+        fn create_daily_attempt(ref self: ContractState, requested_level: u8) -> felt252 {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let player = get_caller_address();
             let timestamp = get_block_timestamp();
@@ -127,26 +266,45 @@ mod daily_challenge_system {
             let settings: GameSettings = world.read_model(challenge.settings_id);
             assert!(settings.exists(), "missing settings");
 
+            // Read/create DailyEntry
+            let mut entry: DailyEntry = world.read_model((day_id, player));
+            let is_new_player = !entry.exists();
+            if is_new_player {
+                entry = DailyEntryTrait::new(day_id, player, timestamp);
+                challenge.total_entries += 1;
+                world.write_model(@challenge);
+            }
+
+            // Determine target level
+            let is_replay = requested_level != 0;
+            let level = if is_replay {
+                assert!(requested_level <= entry.highest_cleared, "level locked");
+                requested_level
+            } else {
+                let next = entry.highest_cleared + 1;
+                assert!(next <= 10, "all levels cleared");
+                next
+            };
+
             // Generate unique game_id
             let game_id = poseidon_hash_span(
-                array![player.into(), day_id.into(), timestamp.into(), tx_hash].span(),
+                array![player.into(), day_id.into(), level.into(), timestamp.into(), tx_hash]
+                    .span(),
             );
 
             // Read bonus config from the active mutator
-            let bonus_mutator_def = InternalImpl::read_mutator_def(
-                world, challenge.active_mutator_id,
-            );
+            let bonus_mutator_def = Self::read_mutator_def(world, challenge.active_mutator_id);
             let seed_u256: u256 = challenge.seed.into();
-            let (bonus_slot, bonus_type, starting_charges) = InternalImpl::select_bonus_slot(
+            let (bonus_slot, bonus_type, starting_charges) = Self::select_bonus_slot(
                 seed_u256, @bonus_mutator_def,
             );
 
-            // Create Game: zone run_type=0
+            // Create Game: zone run_type=0, single level
             let mut game = GameTrait::new_empty(
                 game_id, timestamp, challenge.zone_id, challenge.passive_mutator_id, 0,
             );
             let mut run_data = game.get_run_data();
-            run_data.current_level = 1;
+            run_data.current_level = level;
             run_data.bonus_slot = bonus_slot;
             run_data.bonus_type = bonus_type;
             run_data.bonus_charges = if starting_charges > 15 {
@@ -156,42 +314,24 @@ mod daily_challenge_system {
             };
             game.set_run_data(run_data);
 
-            // Create GameSeed with shared daily seed
-            let level_seed = GameTrait::generate_level_seed(challenge.seed, 1);
+            // Create GameSeed with shared daily seed, level-specific seed
+            let level_seed = GameTrait::generate_level_seed(challenge.seed, level);
             let game_seed = GameSeed {
                 game_id, seed: challenge.seed, level_seed, vrf_enabled: false,
             };
 
             // Generate level config using passive mutator
-            let passive_mutator_def = InternalImpl::read_mutator_def(
-                world, challenge.passive_mutator_id,
-            );
+            let passive_mutator_def = Self::read_mutator_def(world, challenge.passive_mutator_id);
             let level_config = LevelGeneratorTrait::generate(
-                level_seed, 1, settings, @passive_mutator_def,
+                level_seed, level, settings, @passive_mutator_def,
             );
             let mut game_level = GameLevelTrait::from_level_config(game_id, level_config);
             game_level.mutator_id = challenge.passive_mutator_id;
 
             // Create DailyAttempt (links game to daily context)
             let daily_attempt = DailyAttempt {
-                game_id, player, zone_id: challenge.zone_id, challenge_id: day_id,
+                game_id, player, zone_id: challenge.zone_id, challenge_id: day_id, level, is_replay,
             };
-
-            // Create/update DailyEntry
-            let mut entry: DailyEntry = world.read_model((day_id, player));
-            let is_new_player = !entry.exists();
-            entry.challenge_id = day_id;
-            entry.player = player;
-            entry.attempts += 1;
-
-            // Create GameChallenge mapping
-            let game_challenge = GameChallenge { game_id, challenge_id: day_id };
-
-            // Update total_entries for new players
-            if is_new_player {
-                challenge.total_entries += 1;
-                world.write_model(@challenge);
-            }
 
             // Update PlayerMeta
             let mut player_meta: PlayerMeta = world.read_model(player);
@@ -199,14 +339,16 @@ mod daily_challenge_system {
                 player_meta = PlayerMetaTrait::new(player);
             } else if player_meta.last_active > 0 && timestamp - player_meta.last_active > 604800 {
                 // Returning player bonus (>7 days inactive)
-                InternalImpl::mint_zstar(ref self, ref world, player, 5);
+                Self::mint_zstar(ref self, ref world, player, 5);
                 player_meta.increment_xp(50);
             }
             player_meta.increment_runs();
             player_meta.last_active = timestamp;
 
             // Track active daily game
-            let active_daily = ActiveDailyAttemptTrait::new(player, game_id, day_id);
+            let active_daily = ActiveDailyAttemptTrait::new(
+                player, game_id, day_id, level, is_replay,
+            );
 
             // Write all models
             world.write_model(@game);
@@ -214,7 +356,6 @@ mod daily_challenge_system {
             world.write_model(@game_level);
             world.write_model(@daily_attempt);
             world.write_model(@entry);
-            world.write_model(@game_challenge);
             world.write_model(@player_meta);
             world.write_model(@active_daily);
 
@@ -229,7 +370,7 @@ mod daily_challenge_system {
                     @LevelStarted {
                         game_id,
                         player,
-                        level: 1,
+                        level,
                         points_required: level_config.points_required,
                         max_moves: game_level.max_moves,
                         constraint_type: level_config.constraint.constraint_type,
@@ -259,208 +400,15 @@ mod daily_challenge_system {
             game_id
         }
 
-        fn settle_challenge(
-            ref self: ContractState, challenge_id: u32, ranked_players: Span<ContractAddress>,
-        ) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-            let timestamp = get_block_timestamp();
-
-            let mut challenge: DailyChallenge = world.read_model(challenge_id);
-            assert!(challenge.exists(), "Challenge does not exist");
-            assert!(challenge.has_ended(timestamp), "Challenge has not ended yet");
-            assert!(!challenge.settled, "Challenge already settled");
-
-            let total_participants = challenge.total_entries;
-
-            // Early return if no entries -- just mark as settled
-            if total_participants == 0 {
-                challenge.settled = true;
-                world.write_model(@challenge);
-                return;
-            }
-
-            // Cap the ranked list length
-            let len = ranked_players.len();
-            assert!(len <= daily::MAX_RANKED_PLAYERS, "Too many ranked players");
-
-            // N = ceil(total_entries / 4), capped
-            let num_winners = (total_participants + 3) / 4;
-            let capped_winners = if num_winners > daily::MAX_RANKED_PLAYERS {
-                daily::MAX_RANKED_PLAYERS
-            } else {
-                num_winners
-            };
-
-            // Verify descending order and distribute rewards
-            let mut prev_value: u64 = 0xFFFFFFFFFFFFFFFF; // max u64
-            let mut rank: u32 = 1;
-            while rank <= len && rank <= capped_winners {
-                let player = *ranked_players.at(rank - 1);
-                assert!(player.is_non_zero(), "Zero address in ranked list");
-
-                let entry: DailyEntry = world.read_model((challenge_id, player));
-                assert!(entry.exists(), "Player has no entry for this challenge");
-
-                let value = InternalImpl::compute_ranking_value(entry.best_stars, entry.best_score);
-                assert!(value <= prev_value, "Invalid ranking order");
-                prev_value = value;
-
-                let star_reward = InternalImpl::compute_star_reward(rank, total_participants);
-                if star_reward > 0 {
-                    InternalImpl::mint_zstar(ref self, ref world, player, star_reward.into());
-
-                    // Store rank and reward in DailyEntry
-                    let mut entry_mut: DailyEntry = world.read_model((challenge_id, player));
-                    entry_mut.rank = rank;
-                    entry_mut.star_reward = star_reward;
-                    world.write_model(@entry_mut);
-                }
-
-                rank += 1;
-            }
-
-            challenge.settled = true;
-            world.write_model(@challenge);
-        }
-
-        fn submit_result(ref self: ContractState, challenge_id: u32, game_id: felt252) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-            let player = get_caller_address();
-
-            let challenge: DailyChallenge = world.read_model(challenge_id);
-            assert!(challenge.exists(), "Challenge does not exist");
-            assert!(!challenge.settled, "Challenge already settled");
-
-            let mut entry: DailyEntry = world.read_model((challenge_id, player));
-            assert!(entry.exists(), "Player has no entry for this challenge");
-
-            // Verify game exists and is over
-            let game: Game = world.read_model(game_id);
-            assert!(game.over, "Game is not over yet");
-
-            // Verify game belongs to this challenge via GameChallenge mapping
-            let game_challenge: GameChallenge = world.read_model(game_id);
-            assert!(
-                game_challenge.challenge_id == challenge_id,
-                "Game does not belong to this challenge",
-            );
-
-            // Extract metrics from game run_data
-            let run_data = game.get_run_data();
-            let score: u32 = run_data.total_score;
-            let level = run_data.current_level;
-
-            // Zone composite ranking: (total_stars << 32) | total_score
-            let stars = InternalImpl::calculate_total_stars(game);
-            let ranking_value: u64 = InternalImpl::compute_ranking_value(stars, score);
-
-            // Check if this beats the player's current best
-            let current_best: u64 = if entry.best_game_id == 0 {
-                0
-            } else {
-                let best_game: Game = world.read_model(entry.best_game_id);
-                let best_stars = InternalImpl::calculate_total_stars(best_game);
-                InternalImpl::compute_ranking_value(best_stars, entry.best_score)
-            };
-
-            let is_first_submission = entry.best_game_id == 0;
-
-            if ranking_value > current_best {
-                // Update entry with new bests
-                entry.best_score = score;
-                entry.best_level = level;
-                entry.best_stars = stars;
-                entry.best_game_id = game_id;
-                world.write_model(@entry);
-            }
-
-            if is_first_submission {
-                InternalImpl::mint_zstar(ref self, ref world, player, 3);
-                let mut player_meta: PlayerMeta = world.read_model(player);
-                if !player_meta.exists() {
-                    player_meta = PlayerMetaTrait::new(player);
-                }
-                player_meta.increment_xp(30);
-                world.write_model(@player_meta);
-            }
-        }
-
-        fn get_current_challenge(self: @ContractState) -> u32 {
-            (get_block_timestamp() / 86400).try_into().unwrap()
-        }
-
-        fn get_player_entry(
-            self: @ContractState, challenge_id: u32, player: ContractAddress,
-        ) -> DailyEntry {
-            let world: WorldStorage = self.world(@DEFAULT_NS());
-            world.read_model((challenge_id, player))
-        }
-
-        fn settle_weekly_endless(
-            ref self: ContractState,
-            week_id: u32,
-            settings_id: u32,
-            ranked_players: Span<ContractAddress>,
-        ) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-            let timestamp = get_block_timestamp();
-            let current_week = current_week_id(timestamp);
-            assert!(week_id < current_week, "Week has not ended yet");
-
-            // Use composite key (week_id * 1000 + settings_id) to track per-zone settlement
-            let settlement_key: u32 = week_id * 1000 + settings_id;
-            let mut weekly_meta: WeeklyEndless = world.read_model(settlement_key);
-            assert!(!weekly_meta.settled, "Already settled for this week + zone");
-
-            let len: u32 = ranked_players.len();
-            assert!(len <= weekly::MAX_RANKED_PLAYERS, "Too many ranked players");
-
-            // Verify descending order by all-time PB and distribute rewards
-            let mut prev_score: u32 = 0xFFFFFFFF;
-            let mut rank: u32 = 1;
-            while rank <= len {
-                let player = *ranked_players.at(rank - 1);
-                assert!(player.is_non_zero(), "Zero address in ranked list");
-
-                let best_run: PlayerBestRun = world.read_model((player, settings_id, 1_u8));
-                assert!(best_run.best_score > 0, "Player has no PB for this endless");
-                assert!(best_run.best_score <= prev_score, "Invalid ranking order");
-                prev_score = best_run.best_score;
-
-                let star_reward = InternalImpl::compute_weekly_star_reward(rank, len);
-                if star_reward > 0 {
-                    InternalImpl::mint_zstar(ref self, ref world, player, star_reward.into());
-                }
-
-                rank += 1;
-            }
-
-            weekly_meta.week_id = settlement_key;
-            weekly_meta.total_participants = len;
-            weekly_meta.settled = true;
-            world.write_model(@weekly_meta);
-        }
-    }
-
-    #[generate_trait]
-    impl InternalImpl of InternalTrait {
-        /// Compute zone composite ranking value: (total_stars << 32) | total_score
+        /// Compute ranking value: total_stars DESC, last_star_time ASC.
+        /// Uses (total_stars << 48) | (MAX_48 - truncated_time) to pack into u64.
         #[inline(always)]
-        fn compute_ranking_value(total_stars: u8, total_score: u32) -> u64 {
+        fn compute_ranking_value(total_stars: u8, last_star_time: u64) -> u64 {
             let stars_u64: u64 = total_stars.into();
-            let score_u64: u64 = total_score.into();
-            (stars_u64 * 0x100000000) + score_u64
-        }
-
-        /// Sum stars across zone levels 1..10.
-        fn calculate_total_stars(game: Game) -> u8 {
-            let mut stars: u8 = 0;
-            let mut level: u8 = 1;
-            while level <= 10 {
-                stars += game.get_level_stars(level);
-                level += 1;
-            }
-            stars
+            let max_48: u64 = 0xFFFFFFFFFFFF; // 2^48 - 1
+            let time_truncated: u64 = last_star_time & max_48;
+            let time_inverted: u64 = max_48 - time_truncated;
+            (stars_u64 * 0x1000000000000) + time_inverted
         }
 
         #[inline(always)]

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { motion } from "motion/react";
 
 import type { ThemeColors } from "@/config/themes";
@@ -37,15 +37,6 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors }) => {
   const activeWeekly = weekly.filter((quest) => quest.active);
   const activeFinisher = finisher.filter((quest) => quest.active);
 
-  const claimableCount = useMemo(
-    () => quests.filter((quest) => quest.active && quest.completed && !quest.claimed).length,
-    [quests],
-  );
-  const completedCount = useMemo(
-    () => quests.filter((quest) => quest.active && quest.completed).length,
-    [quests],
-  );
-
   const handleClaim = useCallback(
     async (quest: QuestStatus) => {
       if (!account?.address || claimingId) return;
@@ -72,44 +63,21 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors }) => {
     return colors.accent;
   };
 
+  const combinedDaily = useMemo(() => [...activeDaily, ...activeFinisher], [activeDaily, activeFinisher]);
+
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-4 pb-2">
-      <motion.section
-        variants={itemVariants}
-        className="rounded-2xl border px-4 py-3.5 backdrop-blur-xl"
-        style={{ background: "rgba(255,255,255,0.11)", borderColor: "rgba(255,255,255,0.18)" }}
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-sans text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: colors.textMuted }}>
-              Quest Board
-            </p>
-            <p className="mt-1 font-sans text-[18px] font-extrabold" style={{ color: colors.text }}>
-              {claimableCount > 0 ? `${claimableCount} reward${claimableCount > 1 ? "s" : ""} ready` : "Keep your streak alive"}
-            </p>
-          </div>
-
-          <div className="text-right">
-            <p className="font-sans text-[20px] font-black leading-none" style={{ color: colors.accent }}>
-              {completedCount}
-            </p>
-            <p className="font-sans text-[11px] font-semibold" style={{ color: colors.textMuted }}>
-              completed
-            </p>
-          </div>
-        </div>
-      </motion.section>
-
       <QuestSection
         colors={colors}
         title="Daily Quests"
         subtitle="Refreshes in a rotating cycle"
         badge="Daily"
         badgeColor={colors.accent}
-        quests={activeDaily}
+        quests={combinedDaily}
         getQuestColor={getQuestColor}
         onClaim={handleClaim}
         claimingId={claimingId}
+        finisherDividerIndex={activeDaily.length}
       />
       <QuestSection
         colors={colors}
@@ -118,17 +86,6 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors }) => {
         badge="Weekly"
         badgeColor="#B89BFF"
         quests={activeWeekly}
-        getQuestColor={getQuestColor}
-        onClaim={handleClaim}
-        claimingId={claimingId}
-      />
-      <QuestSection
-        colors={colors}
-        title="Daily Finisher"
-        subtitle="Complete dailies to unlock the bonus reward"
-        badge="Bonus"
-        badgeColor="#FF7CA8"
-        quests={activeFinisher}
         getQuestColor={getQuestColor}
         onClaim={handleClaim}
         claimingId={claimingId}
@@ -147,6 +104,7 @@ interface QuestSectionProps {
   badgeColor: string;
   onClaim: (quest: QuestStatus) => void;
   claimingId: bigint | null;
+  finisherDividerIndex?: number;
 }
 
 const QuestSection: React.FC<QuestSectionProps> = ({
@@ -159,12 +117,17 @@ const QuestSection: React.FC<QuestSectionProps> = ({
   badgeColor,
   onClaim,
   claimingId,
+  finisherDividerIndex,
 }) => {
   const sortedQuests = [...quests].sort((a, b) => {
     const aRank = a.claimed ? 2 : a.completed ? 0 : 1;
     const bRank = b.claimed ? 2 : b.completed ? 0 : 1;
     return aRank - bRank;
   });
+
+  const hasFinisherQuests =
+    finisherDividerIndex !== undefined &&
+    finisherDividerIndex < quests.length;
 
   return (
     <motion.section variants={itemVariants} className="rounded-2xl border p-3 backdrop-blur-xl" style={{ background: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.15)" }}>
@@ -192,15 +155,25 @@ const QuestSection: React.FC<QuestSectionProps> = ({
         </p>
       ) : (
         <div className="flex flex-col gap-2.5">
-          {sortedQuests.map((quest) => (
-            <QuestCard
-              key={quest.id}
-              colors={colors}
-              quest={quest}
-              color={getQuestColor(quest)}
-              onClaim={onClaim}
-              claimingId={claimingId}
-            />
+          {sortedQuests.map((quest, i) => (
+            <React.Fragment key={quest.id}>
+              {hasFinisherQuests && quest.type === "finisher" && i > 0 && sortedQuests[i - 1]?.type !== "finisher" && (
+                <div className="flex items-center gap-2 py-1">
+                  <div className="h-px flex-1 bg-white/10" />
+                  <span className="font-sans text-[10px] font-bold uppercase tracking-wide" style={{ color: "#FF7CA8" }}>
+                    Daily Finisher
+                  </span>
+                  <div className="h-px flex-1 bg-white/10" />
+                </div>
+              )}
+              <QuestCard
+                colors={colors}
+                quest={quest}
+                color={getQuestColor(quest)}
+                onClaim={onClaim}
+                claimingId={claimingId}
+              />
+            </React.Fragment>
           ))}
         </div>
       )}

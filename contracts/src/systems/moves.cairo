@@ -28,7 +28,7 @@ mod move_system {
     use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::{game_over, grid_ops, level_check, token};
     use zkube::models::config::{GameSettings, GameSettingsTrait};
-    use zkube::models::daily::{DailyAttempt, DailyAttemptTrait, DailyChallenge};
+    use zkube::models::daily::{DailyAttempt, DailyAttemptTrait, DailyChallenge, DailyEntry};
     use zkube::models::game::{Game, GameAssert, GameLevel, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
     use zkube::models::player::PlayerBestRun;
@@ -290,6 +290,14 @@ mod move_system {
                             let story_progress: StoryZoneProgress = world
                                 .read_model((player, story_game.zone_id));
                             if !story_progress.boss_cleared {
+                                progress_tasks.append((Task::ZoneComplete.identifier(), 1));
+                            }
+                        } else if is_daily_game {
+                            // ZoneComplete on first clear — check DailyEntry.highest_cleared
+                            let daily_ref: DailyAttempt = world.read_model(game_id);
+                            let daily_entry: DailyEntry = world
+                                .read_model((daily_ref.challenge_id, player));
+                            if daily_entry.highest_cleared < 10 {
                                 progress_tasks.append((Task::ZoneComplete.identifier(), 1));
                             }
                         } else {

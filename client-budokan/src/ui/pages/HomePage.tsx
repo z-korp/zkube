@@ -332,19 +332,34 @@ const HomePage: React.FC = () => {
 
               <motion.div variants={itemVariants} className="space-y-2">
                 {selectedMode === 2 ? (
-                  <div className="rounded-2xl border border-white/[0.16] bg-white/[0.08] px-4 py-4 backdrop-blur-xl">
-                    <p className="font-sans text-[13px] font-extrabold uppercase tracking-[0.08em]" style={{ color: colors.accent }}>
-                      Today's Challenge{dailyZoneName && <span className="ml-1.5 text-[10px] font-bold text-white/60">· {dailyZoneName}</span>}
-                    </p>
-                    <p className="mt-1 font-sans text-xs font-semibold text-white/80">
-                      {challengeLoading
-                        ? "Loading..."
-                        : !challenge
-                          ? "Be the first to play today!"
-                          : hasPlayedDaily && dailyEntry
-                            ? `Your best: ${dailyEntry.best_score?.toLocaleString() ?? 0}${dailyEntry.rank > 0 ? ` · Rank #${dailyEntry.rank}` : ""}${dailyCountdown ? ` · ${dailyCountdown}` : ""}`
-                            : `${dailyCountdown ?? "Challenge ended"} · ${challenge.total_entries ?? 0} player${(challenge.total_entries ?? 0) !== 1 ? "s" : ""}`}
-                    </p>
+                  <div className="relative overflow-hidden rounded-2xl border border-white/[0.16]">
+                    {challenge?.zone_id ? (
+                      <img
+                        src={getThemeImages(getThemeId(challenge.zone_id)).background}
+                        alt=""
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${colors.accent}33, ${colors.accent2}22)` }} />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" />
+                    <div className="relative z-10 px-4 py-4">
+                      <p className="font-sans text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: colors.accent }}>
+                        Today's Challenge
+                      </p>
+                      <p className="mt-0.5 font-display text-xl font-black text-white">
+                        {dailyZoneName ?? "Daily Challenge"}
+                      </p>
+                      <p className="mt-1 font-sans text-xs font-semibold text-white/70">
+                        {challengeLoading
+                          ? "Loading..."
+                          : !challenge
+                            ? "Be the first to play today!"
+                            : hasPlayedDaily && dailyEntry
+                              ? `Your best: ${dailyEntry.best_score?.toLocaleString() ?? 0}${dailyEntry.rank > 0 ? ` · Rank #${dailyEntry.rank}` : ""}${dailyCountdown ? ` · ${dailyCountdown}` : ""}`
+                              : `${dailyCountdown ?? "New daily available"} · ${challenge.total_entries ?? 0} player${(challenge.total_entries ?? 0) !== 1 ? "s" : ""}`}
+                      </p>
+                    </div>
                   </div>
                 ) : zones.length === 0 ? (
                   <div className="rounded-2xl border border-white/[0.14] bg-white/[0.12] p-4 text-center font-sans text-sm font-semibold text-white/80 backdrop-blur-xl">
@@ -485,7 +500,7 @@ const HomePage: React.FC = () => {
       <div className="relative z-20 mt-auto flex flex-col gap-2.5 px-4 pb-3">
         {account ? (
           <>
-            <ArcadeButton disabled={isStartingGame || (selectedMode === 2 ? (!challenge || challengeLoading) : !selectedZonePlayable)} onClick={handlePrimaryAction}>
+            <ArcadeButton disabled={isStartingGame || (selectedMode === 2 ? challengeLoading : !selectedZonePlayable)} onClick={handlePrimaryAction}>
               {isStartingGame
                 ? "Starting..."
                 : selectedMode === 2
