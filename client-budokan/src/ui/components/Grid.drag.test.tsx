@@ -95,7 +95,6 @@ describe("Grid drag interactions", () => {
     setOptimisticScore: vi.fn(),
     setOptimisticCombo: vi.fn(),
     setOptimisticMaxCombo: vi.fn(),
-    activeBonusLevel: 0,
     levelTransitionPending: false,
   };
 

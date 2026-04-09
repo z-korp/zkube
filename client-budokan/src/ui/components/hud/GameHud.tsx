@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { ArrowLeft } from "lucide-react";
 import ProgressRing from "@/ui/components/shared/ProgressRing";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import type { GameLevelData } from "@/hooks/useGameLevel";
@@ -31,6 +32,7 @@ interface GameHudProps {
   totalScore?: number;
   currentDifficulty?: number;
   zoneId?: number;
+  onBack?: () => void;
 }
 
 const RING_SIZE_MOBILE = 44;
@@ -159,6 +161,7 @@ const GameHud: React.FC<GameHudProps> = ({
   totalScore = 0,
   currentDifficulty = 0,
   zoneId = 1,
+  onBack,
 }) => {
   const isDesktop = useSyncExternalStore(subscribeResize, getIsDesktop, () => false);
   const ringSize = isDesktop ? RING_SIZE_DESKTOP : RING_SIZE_MOBILE;
@@ -295,6 +298,15 @@ const GameHud: React.FC<GameHudProps> = ({
           <div className="space-y-2.5">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 space-y-1.5">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {onBack && (
+                    <button
+                      onClick={onBack}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                  )}
                 <div
                   className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1"
                   style={{ borderColor: `${currentTier.color}80`, backgroundColor: `${currentTier.color}22` }}
@@ -310,6 +322,7 @@ const GameHud: React.FC<GameHudProps> = ({
                     <span className="max-w-[120px] truncate font-sans text-[10px] font-medium text-white/80">{mutator.name}</span>
                   </div>
                 )}
+                </div>
               </div>
 
               <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-right">
@@ -361,6 +374,14 @@ const GameHud: React.FC<GameHudProps> = ({
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 space-y-1.5">
                 <div className="flex flex-wrap items-center gap-1.5">
+                  {onBack && (
+                    <button
+                      onClick={onBack}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                  )}
                   <div className="inline-flex items-center gap-1.5 rounded-full border border-yellow-500/60 bg-yellow-500/10 px-2 py-1">
                     <span className="font-display text-sm tracking-wide text-yellow-300">Lv</span>
                     <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-yellow-500 bg-slate-900 px-1 font-sans text-sm font-bold leading-none text-yellow-300 tabular-nums">

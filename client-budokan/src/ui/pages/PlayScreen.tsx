@@ -40,6 +40,7 @@ const PlayScreen: React.FC = () => {
   const { account } = useAccountCustom();
   const gameId = useNavigationStore((s) => s.gameId);
   const navNavigate = useNavigationStore((s) => s.navigate);
+  const goBack = useNavigationStore((s) => s.goBack);
   const setPendingLevelCompletion = useNavigationStore(
     (s) => s.setPendingLevelCompletion,
   );
@@ -387,6 +388,7 @@ const PlayScreen: React.FC = () => {
           totalScore={game?.totalScore ?? 0}
           currentDifficulty={game?.currentDifficulty ?? 0}
           zoneId={game?.zoneId ?? 1}
+          onBack={goBack}
         />
       )}
 

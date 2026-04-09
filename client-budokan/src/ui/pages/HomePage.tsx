@@ -16,9 +16,9 @@ import { useActiveStoryAttempt } from "@/hooks/useActiveStoryAttempt";
 import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
 import { usePlayerEntry } from "@/hooks/usePlayerEntry";
 import { ZONE_NAMES, getLevelFromXp, getTitleForLevel, type ZoneProgressData } from "@/config/profileData";
+import { ZONE_GUARDIANS, getGuardianPortrait } from "@/config/bossCharacters";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { showToast } from "@/utils/toast";
-import { BookOpen, Infinity as InfinityIcon, Zap } from "lucide-react";
 import Connect from "@/ui/components/Connect";
 import ModePill from "@/ui/components/shared/ModePill";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
@@ -68,6 +68,106 @@ const containerVariants: Variants = {
 const itemVariants: Variants = {
   hidden: { opacity: 1, y: 0 },
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+};
+
+const BLOCK_WIDTHS: Record<number, number> = { 1: 36, 2: 72, 3: 108, 4: 144 };
+const BLOCK_HEIGHT = 36;
+
+const CtaGuardian: React.FC = () => {
+  const guardianIds = Object.keys(ZONE_GUARDIANS).map(Number);
+  const randomIdx = Math.floor(Date.now() / 60000) % guardianIds.length;
+  const gZoneId = guardianIds[randomIdx];
+  const g = ZONE_GUARDIANS[gZoneId];
+  const gThemeId = `theme-${gZoneId}` as ThemeId;
+  const gImages = getThemeImages(gThemeId);
+  const gColors = getThemeColors(gThemeId);
+
+  const blockSrcs: Record<number, string> = {
+    1: gImages.block1, 2: gImages.block2, 3: gImages.block3, 4: gImages.block4,
+  };
+
+  // Sequential falling blocks — one at a time, no overlap possible
+  const fallingBlocks = useMemo(() => {
+    const sizes = [2, 1, 4, 3, 1, 2, 3, 1, 4, 2];
+    const dur = 2.5;
+    return sizes.map((size, i) => {
+      const widthPct = (BLOCK_WIDTHS[size] / 360) * 100;
+      return {
+        xPct: 5 + Math.random() * Math.max(5, 90 - widthPct),
+        size,
+        delay: i * dur, // sequential — each starts after the previous ends
+        totalCycle: sizes.length * dur,
+      };
+    });
+  }, [gZoneId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <motion.div
+      variants={itemVariants}
+      className="relative mx-auto mt-2 flex max-w-[360px] flex-col items-center gap-4"
+    >
+      {/* Guardian portrait in a circle */}
+      <motion.div
+        className="relative h-36 w-36 overflow-hidden rounded-full"
+        style={{
+          border: `3px solid ${gColors.accent}44`,
+          boxShadow: `0 0 30px ${gColors.accent}22`,
+        }}
+        initial={{ opacity: 0, scale: 0.85 }}
+        animate={{
+          opacity: 1,
+          scale: [1, 1.03, 1],
+        }}
+        transition={{
+          opacity: { delay: 0.2, duration: 0.5 },
+          scale: { delay: 0.5, duration: 4, repeat: Infinity, ease: "easeInOut" },
+        }}
+      >
+        <img
+          src={getGuardianPortrait(gZoneId)}
+          alt={g.name}
+          className="h-full w-full object-cover"
+          draggable={false}
+        />
+      </motion.div>
+
+      {/* Catchphrase */}
+      <p className="text-center font-sans text-[14px] italic text-white/50">
+        "{g.greeting}"
+      </p>
+
+      {/* Falling blocks — one at a time */}
+      <div className="relative w-full flex-1 min-h-[120px] overflow-hidden">
+        {fallingBlocks.map((b, i) => (
+          <motion.img
+            key={i}
+            src={blockSrcs[b.size]}
+            alt=""
+            className="absolute rounded-sm"
+            style={{
+              left: `${b.xPct}%`,
+              width: BLOCK_WIDTHS[b.size],
+              height: BLOCK_HEIGHT,
+              maskImage: "linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)",
+            }}
+            animate={{
+              y: [-40, 160],
+              opacity: [0, 0.85, 0.7, 0],
+            }}
+            transition={{
+              delay: b.delay,
+              duration: 2.5,
+              repeat: Infinity,
+              repeatDelay: b.totalCycle - 2.5,
+              ease: "easeIn",
+            }}
+            draggable={false}
+          />
+        ))}
+      </div>
+    </motion.div>
+  );
 };
 
 const HomePage: React.FC = () => {
@@ -460,45 +560,15 @@ const HomePage: React.FC = () => {
               </motion.div>
             </>
           ) : (
-            <motion.div variants={itemVariants} className="mx-auto mt-[16vh] max-w-[340px] rounded-2xl border border-white/[0.16] bg-white/[0.08] px-5 py-7 text-center backdrop-blur-xl">
-              <p className="font-sans text-3xl font-black leading-tight text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.6)]">
-                Match. Clear. Conquer.
-              </p>
-              <p className="mt-3 font-sans text-base font-semibold text-white/85">
-                Master the grid, defeat the zone guardians, and survive the endless arena.
-              </p>
-              <div className="mt-5 flex flex-col gap-2.5 text-left">
-                <div className="flex items-center gap-2.5">
-                  <BookOpen size={16} className="shrink-0 text-white/50" />
-                  <p className="font-sans text-[13px] font-semibold text-white/70">10 themed zones with guardian trials</p>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <InfinityIcon size={16} className="shrink-0 text-white/50" />
-                  <p className="font-sans text-[13px] font-semibold text-white/70">Endless mode with weekly leaderboards</p>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <Zap size={16} className="shrink-0 text-white/50" />
-                  <p className="font-sans text-[13px] font-semibold text-white/70">Daily challenges with star rewards</p>
-                </div>
-              </div>
-              {challenge && (
-                <div className="mt-4 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-center">
-                  <p className="font-sans text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">Today's Daily</p>
-                  <p className="mt-0.5 font-sans text-xs font-semibold text-white/60">
-                    {challenge.total_entries} player{(challenge.total_entries ?? 0) !== 1 ? "s" : ""} competing
-                  </p>
-                </div>
-              )}
-              <div className="mt-6">
-                <Connect ctaLabel="PLAY NOW" />
-              </div>
-            </motion.div>
+            <CtaGuardian />
           )}
         </motion.div>
       </div>
 
       <div className="relative z-20 mt-auto flex flex-col gap-2.5 px-4 pb-3">
-        {account ? (
+        {!account ? (
+          <Connect ctaLabel="PLAY NOW" />
+        ) : (
           <>
             <ArcadeButton disabled={isStartingGame || (selectedMode === 2 ? challengeLoading : !selectedZonePlayable)} onClick={handlePrimaryAction}>
               {isStartingGame
@@ -531,7 +601,7 @@ const HomePage: React.FC = () => {
               </p>
             ) : null}
           </>
-        ) : null}
+        )}
       </div>
 
       {unlockZone && <UnlockModal colors={colors} zone={unlockZone} onClose={() => setUnlockZone(null)} />}
