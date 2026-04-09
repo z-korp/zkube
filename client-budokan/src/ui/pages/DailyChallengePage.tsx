@@ -12,7 +12,7 @@ import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { getMutatorDef } from "@/config/mutatorConfig";
 import { ZONE_NAMES } from "@/config/profileData";
-import { getZoneGuardian } from "@/config/bossCharacters";
+import { getZoneGuardian, getGuardianPortrait } from "@/config/bossCharacters";
 import { motion } from "motion/react";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 
@@ -192,83 +192,73 @@ const DailyChallengePage: React.FC = () => {
           )}
 
           {!challengeLoading && !challenge && (
-            <div className="rounded-2xl border border-white/[0.12] bg-white/[0.06] p-6 text-center backdrop-blur-xl">
-              <p className="mb-2 font-display text-xl text-white">No Challenge Yet</p>
-              <p className="font-sans text-sm text-white/60">
-                Be the first to play today! A new challenge will be generated automatically.
+            <div className="relative overflow-hidden rounded-2xl border border-white/[0.12] bg-white/[0.06] p-6 text-center backdrop-blur-xl">
+              <img
+                src={getGuardianPortrait(zoneId)}
+                alt={guardian.name}
+                className="mx-auto mb-3 h-24 w-24 rounded-2xl object-cover"
+                style={{ border: `2px solid ${zoneColors.accent}44`, boxShadow: `0 0 20px ${zoneColors.accent}22` }}
+                draggable={false}
+              />
+              <p className="font-display text-xl font-black text-white">{guardian.name}</p>
+              <p className="font-sans text-[11px] font-semibold" style={{ color: zoneColors.accent }}>{guardian.title}</p>
+              <p className="mt-2 font-sans text-sm text-white/60">
+                No challenge yet — be the first to play today!
               </p>
             </div>
           )}
 
           {challenge && (
             <>
-              {/* Zone hero */}
+              {/* Guardian hero — portrait + zone info merged */}
               <div className="relative overflow-hidden rounded-2xl border border-white/[0.12]">
-                <img
-                  src={zoneImages.background}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" />
-                <div className="relative z-10 flex items-end justify-between p-4">
-                  <div>
+                <img src={zoneImages.background} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
+                <div className="relative z-10 flex items-end gap-3 p-4">
+                  <img
+                    src={getGuardianPortrait(zoneId)}
+                    alt={guardian.name}
+                    className="h-20 w-20 shrink-0 rounded-xl object-cover"
+                    style={{ border: `2px solid ${zoneColors.accent}44`, boxShadow: `0 0 16px ${zoneColors.accent}22` }}
+                    draggable={false}
+                  />
+                  <div className="min-w-0 flex-1">
                     <p className="font-sans text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: zoneColors.accent }}>
                       {new Date(challenge.start_time * 1000).toLocaleDateString(navigator.language, { weekday: "long", month: "short", day: "numeric" })}
                     </p>
-                    <p className="font-display text-2xl font-black text-white">{zoneName}</p>
-                    <p className="font-sans text-xs font-semibold text-white/60">
-                      {challenge.total_entries} player{challenge.total_entries !== 1 ? "s" : ""} competing
+                    <p className="font-display text-xl font-black text-white">{zoneName}</p>
+                    <p className="mt-0.5 font-sans text-[12px] italic text-white/60">
+                      "{guardian.greeting}"
                     </p>
+                    <div className="mt-1.5 flex items-center justify-between">
+                      <p className="font-sans text-[11px] font-semibold text-white/50">
+                        {challenge.total_entries} player{challenge.total_entries !== 1 ? "s" : ""}
+                      </p>
+                      {isActive && <CountdownPill endTime={challenge.end_time} accent={zoneColors.accent} />}
+                    </div>
                   </div>
-                  {isActive && <CountdownPill endTime={challenge.end_time} accent={zoneColors.accent} />}
                 </div>
               </div>
 
-              {/* Guardian */}
-              <div className="rounded-xl bg-white/[0.04] px-3 py-2.5">
-                <p className="font-sans text-[12px] italic text-white/70 leading-relaxed">
-                  "{guardian.greeting}"
-                </p>
-                <p className="mt-1 text-right font-sans text-[10px] font-bold" style={{ color: zoneColors.accent }}>
-                  — {guardian.name}, {guardian.title}
-                </p>
-              </div>
-
-              {/* Mutators */}
+              {/* Zone rules — compact mutator strip */}
               {(activeMutator?.id || passiveMutator?.id) ? (
-                <div className="space-y-2">
+                <div className="flex gap-2">
                   {activeMutator && activeMutator.id !== 0 && (
-                    <div className="rounded-xl border border-orange-400/20 bg-orange-500/8 px-3 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base">{activeMutator.icon}</span>
-                        <p className="font-sans text-sm font-bold text-orange-300">{activeMutator.name}</p>
-                        <span className="rounded-full bg-orange-500/20 px-1.5 py-0.5 font-sans text-[9px] font-bold uppercase text-orange-300/80">Active</span>
+                    <div className="flex-1 rounded-xl bg-orange-500/8 border border-orange-400/15 px-3 py-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm">{activeMutator.icon}</span>
+                        <span className="font-sans text-[11px] font-bold text-orange-300">{activeMutator.name}</span>
                       </div>
-                      <p className="mt-1 font-sans text-xs text-white/60">{activeMutator.description}</p>
-                      {activeMutator.effects.length > 0 && (
-                        <div className="mt-1.5 flex flex-wrap gap-1">
-                          {activeMutator.effects.map((e) => (
-                            <span key={e} className="rounded-full bg-orange-500/10 px-2 py-0.5 font-sans text-[10px] font-semibold text-orange-200/70">{e}</span>
-                          ))}
-                        </div>
-                      )}
+                      <p className="mt-0.5 font-sans text-[10px] text-white/50">{activeMutator.description}</p>
                     </div>
                   )}
                   {passiveMutator && passiveMutator.id !== 0 && (
-                    <div className="rounded-xl border border-purple-400/20 bg-purple-500/8 px-3 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base">{passiveMutator.icon}</span>
-                        <p className="font-sans text-sm font-bold text-purple-300">{passiveMutator.name}</p>
-                        <span className="rounded-full bg-purple-500/20 px-1.5 py-0.5 font-sans text-[9px] font-bold uppercase text-purple-300/80">Passive</span>
+                    <div className="flex-1 rounded-xl bg-purple-500/8 border border-purple-400/15 px-3 py-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm">{passiveMutator.icon}</span>
+                        <span className="font-sans text-[11px] font-bold text-purple-300">{passiveMutator.name}</span>
                       </div>
-                      <p className="mt-1 font-sans text-xs text-white/60">{passiveMutator.description}</p>
-                      {passiveMutator.effects.length > 0 && (
-                        <div className="mt-1.5 flex flex-wrap gap-1">
-                          {passiveMutator.effects.map((e) => (
-                            <span key={e} className="rounded-full bg-purple-500/10 px-2 py-0.5 font-sans text-[10px] font-semibold text-purple-200/70">{e}</span>
-                          ))}
-                        </div>
-                      )}
+                      <p className="mt-0.5 font-sans text-[10px] text-white/50">{passiveMutator.description}</p>
                     </div>
                   )}
                 </div>
