@@ -154,22 +154,11 @@ const PlayScreen: React.FC = () => {
     if (prevGameOverRef.current !== undefined) {
       if (!prevGameOverRef.current && game?.over) {
         const pending = useNavigationStore.getState().pendingLevelCompletion;
-          level: game.level,
-          levelScore: game.levelScore,
-          levelMoves: game.levelMoves,
-          totalScore: game.totalScore,
-          zoneCleared: game.zoneCleared,
-          mode: game.mode,
-          targetScore,
-          maxMoves: effectiveGameLevel?.maxMoves,
-          pendingAlreadySet: !!pending,
-        });
         if (game.zoneCleared) {
           playSfx("victory");
           setIsVictoryOpen(true);
         } else if (game.mode === 0 || game.mode === undefined) {
-          if (pending) {
-          } else {
+          if (!pending) {
             // Check if the level was actually completed (score met, moves remaining)
             const maxMoves = effectiveGameLevel?.maxMoves ?? 0;
             const levelCompleted = targetScore > 0 && game.levelScore >= targetScore && game.levelMoves < maxMoves;
@@ -210,13 +199,6 @@ const PlayScreen: React.FC = () => {
     }
 
     if (prevState && currentLevel > prevState.level) {
-        prevLevel: prevState.level,
-        currentLevel,
-        gameOver: game.over,
-        cascadeComplete,
-        prevMoves: prevState.levelMoves,
-        prevScore: prevState.levelScore,
-      });
       if (!cascadeComplete) return;
       // Level advanced — this is a completion even if game.over is also true
       if (checkBossLevel(prevState.level)) {
