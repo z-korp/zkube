@@ -33,9 +33,9 @@
       "gameplay": "A lively Polynesian instrumental with rhythmic ukulele strumming and warm log drum grooves. Nose flute melody and conch shell accents float over a steady island pulse. Around 115 BPM, sunny and groovy."
     },
     "guardian": {
-      "name": "Maui",
-      "title": "Tidecaller",
-      "portraitPrompt": "A Polynesian demigod character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, muscular build with intricate tribal tattoos covering arms and chest, holding a large fish hook weapon. Bold confident grin. Wearing tapa cloth wrap. Blue and silver ocean motifs in the design. Dark background fading to pure black at edges. Vibrant colors with #A9D8FF highlights. 512x512 pixels, fully opaque."
+      "name": "Mako",
+      "title": "Spirit of the Tides",
+      "portraitPrompt": "A majestic ancient sea turtle spirit, stylized cel-shaded game art with bold black outlines. The turtle is massive with glowing blue tribal patterns on its shell, wise ancient eyes, ocean waves flowing around it. Ethereal translucent fins trailing blue light. Dark background fading to pure black at edges. Vibrant colors with #A9D8FF highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-2": {
@@ -72,9 +72,9 @@
       "gameplay": "A groovy Egyptian fusion instrumental with steady darbuka and riq tambourine rhythm over warm bass oud riffs. Arabic maqam Hijaz scale. 112 BPM, smooth and monumental."
     },
     "guardian": {
-      "name": "Nefertari",
-      "title": "Sun Sovereign",
-      "portraitPrompt": "An Egyptian pharaoh queen character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, regal pose with gold headdress featuring a cobra. Kohl-lined eyes, golden light aura. Wearing ornate gold and lapis lazuli collar necklace, white linen gown. Dark background fading to pure black at edges. Vibrant colors with #D4AF37 gold highlights. 512x512 pixels, fully opaque."
+      "name": "Khepri",
+      "title": "The Scarab Sun",
+      "portraitPrompt": "A sacred golden scarab beetle spirit, stylized cel-shaded game art with bold black outlines. Massive scarab with spread jeweled wings, glowing sun disc above its head, hieroglyphic patterns on its carapace. Golden light radiates outward. Dark background fading to pure black at edges. Vibrant colors with #D4AF37 gold highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-3": {
@@ -111,9 +111,9 @@
       "gameplay": "A steady Norse folk instrumental with rhythmic bodhrán drum and warm nyckelharpa melody over a deep bowed string drone. Distant horn accents. 115 BPM, vast and focused."
     },
     "guardian": {
-      "name": "Sigrun",
-      "title": "Frostbane",
-      "portraitPrompt": "A Norse valkyrie warrior woman character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, fierce determined expression. Frost-etched steel armor with Nordic rune engravings, braided silver-white hair, icy blue eyes. Holding a frost-covered shield. Dark background fading to pure black at edges. Vibrant colors with cool blue and silver highlights. 512x512 pixels, fully opaque."
+      "name": "Fenris",
+      "title": "The Frost Wolf",
+      "portraitPrompt": "A massive frost wolf spirit, stylized cel-shaded game art with bold black outlines. Giant wolf made of ice and snow, glowing icy blue eyes, frost crystals forming along its fur, Nordic runes glowing on its body. Breath visible as cold mist. Dark background fading to pure black at edges. Vibrant colors with cool blue and silver highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-4": {
@@ -150,9 +150,9 @@
       "gameplay": "A lively Mediterranean instrumental with steady frame drum and tambourine over bright lyre arpeggios and warm aulos melody. 112 BPM, spirited and flowing."
     },
     "guardian": {
-      "name": "Athenos",
-      "title": "Marble Sage",
-      "portraitPrompt": "A Greek philosopher-warrior character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, thoughtful contemplative expression. Wearing marble-white toga with gold trim, laurel crown on head. Holding a scroll in one hand. Marble column textures in the background detail. Dark background fading to pure black at edges. Vibrant colors with #4A90D9 blue highlights. 512x512 pixels, fully opaque."
+      "name": "Noctua",
+      "title": "The Marble Owl",
+      "portraitPrompt": "A wise owl spirit carved from living marble, stylized cel-shaded game art with bold black outlines. Great horned owl with marble-white feathers veined with gold, piercing intelligent eyes, laurel leaves woven into its plumage. Perched on a Greek column fragment. Dark background fading to pure black at edges. Vibrant colors with #4A90D9 blue highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-5": {
@@ -189,9 +189,9 @@
       "gameplay": "A focused Japanese instrumental with steady taiko pulse and flowing shinobue flute melody. Gentle shamisen patterns weave through the rhythm. 115 BPM, refined and purposeful."
     },
     "guardian": {
-      "name": "Hanzo",
-      "title": "Shadow Blade",
-      "portraitPrompt": "A Japanese samurai master character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, intense focused gaze. Wearing dark lacquered armor with red cord lacing, katana drawn at his side. Clean-shaven with topknot hairstyle. Red and black color scheme. Dark background fading to pure black at edges. Vibrant colors with deep red highlights. 512x512 pixels, fully opaque."
+      "name": "Tsuru",
+      "title": "The Paper Crane",
+      "portraitPrompt": "An ethereal origami crane spirit, stylized cel-shaded game art with bold black outlines. Giant paper crane made of folded white and red washi paper, delicate fold lines visible, glowing softly from within, cherry blossom petals drifting around it. Dark background fading to pure black at edges. Vibrant colors with deep red and white highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-6": {
@@ -228,9 +228,9 @@
       "gameplay": "A flowing Chinese instrumental with warm erhu melody and steady drum rhythms. Gentle pipa lute runs over soft guzheng arpeggios. 115 BPM, mystical and focused."
     },
     "guardian": {
-      "name": "Mei Lin",
-      "title": "Dragon Empress",
-      "portraitPrompt": "A Chinese imperial dragon empress character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, commanding regal presence. Wearing flowing jade-green silk robes embroidered with golden dragon motifs. Hair pinned up with jade ornaments. Serene yet powerful expression. Dark background fading to pure black at edges. Vibrant colors with #4CAF50 green and gold highlights. 512x512 pixels, fully opaque."
+      "name": "Long",
+      "title": "The Jade Dragon",
+      "portraitPrompt": "An ancient jade dragon spirit, stylized cel-shaded game art with bold black outlines. Sinuous Chinese dragon carved from translucent green jade, glowing from within, golden whiskers and horns, clouds swirling around its body. Imperial and serene. Dark background fading to pure black at edges. Vibrant colors with #4CAF50 green and gold highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-7": {
@@ -267,9 +267,9 @@
       "gameplay": "A groovy Persian fusion instrumental with steady tombak drum patterns and bright tar lute melody. Santur cascades over a relaxed daf frame drum groove. 112 BPM, symmetrical and flowing."
     },
     "guardian": {
-      "name": "Cyra",
-      "title": "Mosaic Eye",
-      "portraitPrompt": "A Persian enchantress character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, mysterious half-smile. Wearing ornate geometric-patterned veil and silk garments in blue and gold. Intricate tilework-inspired jewelry. Holding a geometric medallion. Dark background fading to pure black at edges. Vibrant colors with #4169E1 blue and gold highlights. 512x512 pixels, fully opaque."
+      "name": "Simurgh",
+      "title": "The Mosaic Phoenix",
+      "portraitPrompt": "A geometric phoenix spirit made of living tilework, stylized cel-shaded game art with bold black outlines. Magnificent bird with spread wings composed of intricate Islamic geometric tile patterns in blue and gold, each feather a perfect tessellation. Dark background fading to pure black at edges. Vibrant colors with #4169E1 blue and gold highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-8": {
@@ -306,9 +306,9 @@
       "gameplay": "A rhythmic Mesoamerican instrumental with steady wooden slit drum grooves and gentle seed shaker textures over a warm clay ocarina melody. 115 BPM, mysterious and earthy."
     },
     "guardian": {
-      "name": "Ixchel",
-      "title": "Blood Oracle",
-      "portraitPrompt": "A Mayan high priestess character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, primal intensity in her expression. Wearing jade jewelry, elaborate feathered headdress with quetzal feathers, jaguar pelt elements. Face painted with ritual markings. Dark background fading to pure black at edges. Vibrant colors with green and earth-tone highlights. 512x512 pixels, fully opaque."
+      "name": "Balam",
+      "title": "The Jungle Jaguar",
+      "portraitPrompt": "A shadow jaguar spirit with three glowing eyes, stylized cel-shaded game art with bold black outlines. Massive black jaguar emerging from jungle shadows, jade spots glowing green, three piercing eyes arranged in a triangle, Mayan glyphs floating around it. Dark background fading to pure black at edges. Vibrant colors with green and earth-tone highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-9": {
@@ -345,9 +345,9 @@
       "gameplay": "A groovy Central African instrumental with steady wooden slit drum patterns and bright thumb piano melody over gentle shaker and bell accents. 112 BPM, ceremonial and warm."
     },
     "guardian": {
-      "name": "Ngoma",
-      "title": "War Drummer",
-      "portraitPrompt": "A tribal war chief character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, rhythmic energy in his pose. Wearing ceremonial war paint in white and teal patterns, bone and bead necklaces, carrying a large wooden drum. Muscular build, proud bearing. Dark background fading to pure black at edges. Vibrant colors with #40C8B8 teal highlights. 512x512 pixels, fully opaque."
+      "name": "Djembe",
+      "title": "The Thunder Drum",
+      "portraitPrompt": "A living ceremonial drum spirit, stylized cel-shaded game art with bold black outlines. A massive djembe drum that has come alive — the drum head pulses with sound waves visible as teal energy rings, tribal patterns carved into the wooden body glow with inner light, rhythm lines emanating outward. Dark background fading to pure black at edges. Vibrant colors with #40C8B8 teal highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-10": {
@@ -384,9 +384,9 @@
       "gameplay": "A lively Andean instrumental with steady charango strumming and warm quena flute melody over a grounded bombo drum pulse. 115 BPM, precise and mountainous."
     },
     "guardian": {
-      "name": "Intika",
-      "title": "Sun Heir",
-      "portraitPrompt": "An Inca sun prince character portrait, stylized cel-shaded game art with bold black outlines. Half-body view, austere dignified expression. Wearing golden sun disc crown, stone and gold patterned tunic with geometric Inca motifs. Holding a golden staff. Mountain stone textures in background detail. Dark background fading to pure black at edges. Vibrant colors with #DAA520 gold highlights. 512x512 pixels, fully opaque."
+      "name": "Kuntur",
+      "title": "The Sun Condor",
+      "portraitPrompt": "A golden condor spirit radiating sunlight, stylized cel-shaded game art with bold black outlines. Enormous Andean condor with wings spread wide, feathers made of hammered gold, a sun disc halo behind its head, Inca geometric patterns on its wings. Mountain peaks visible below. Dark background fading to pure black at edges. Vibrant colors with #DAA520 gold highlights. 512x512 pixels, fully opaque."
     }
   }
 }
