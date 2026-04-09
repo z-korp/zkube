@@ -46,7 +46,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     { label: "Games", value: totalGames.toLocaleString() },
     { label: "4+ Combos", value: combo4Count > 0 ? combo4Count.toLocaleString() : "--" },
     { label: "Lines", value: totalLines > 0 ? totalLines.toLocaleString() : "--" },
-    { label: "Bosses", value: totalBosses > 0 ? totalBosses.toLocaleString() : "--" },
+    { label: "Guardians", value: totalBosses > 0 ? totalBosses.toLocaleString() : "--" },
   ];
 
   const totalUsdcValue = walletBalances.reduce((sum, b) => sum + b.usdcValue, 0);

@@ -12,6 +12,7 @@ import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { getMutatorDef } from "@/config/mutatorConfig";
 import { ZONE_NAMES } from "@/config/profileData";
+import { getZoneGuardian } from "@/config/bossCharacters";
 import { motion } from "motion/react";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 
@@ -112,6 +113,7 @@ const DailyChallengePage: React.FC = () => {
   const themeId = getThemeId(zoneId);
   const zoneImages = getThemeImages(themeId);
   const zoneColors = getThemeColors(themeId);
+  const guardian = getZoneGuardian(zoneId);
 
   const activeMutator = challenge?.active_mutator_id
     ? getMutatorDef(challenge.active_mutator_id)
@@ -220,6 +222,16 @@ const DailyChallengePage: React.FC = () => {
                   </div>
                   {isActive && <CountdownPill endTime={challenge.end_time} accent={zoneColors.accent} />}
                 </div>
+              </div>
+
+              {/* Guardian */}
+              <div className="rounded-xl bg-white/[0.04] px-3 py-2.5">
+                <p className="font-sans text-[12px] italic text-white/70 leading-relaxed">
+                  "{guardian.greeting}"
+                </p>
+                <p className="mt-1 text-right font-sans text-[10px] font-bold" style={{ color: zoneColors.accent }}>
+                  — {guardian.name}, {guardian.title}
+                </p>
               </div>
 
               {/* Mutators */}

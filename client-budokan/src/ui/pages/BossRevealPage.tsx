@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { ChevronLeft } from "lucide-react";
 
 import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
-import { getBossDisplay } from "@/config/bossIdentities";
+import { getZoneGuardian } from "@/config/bossCharacters";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -46,7 +46,7 @@ function toConstraintDisplay(type: ConstraintType, value: number, count: number)
       return {
         icon: "/assets/common/constraints/constraint-clear-lines.png",
         title: "Adaptive objective",
-        description: "Face a dynamic boss condition this encounter",
+        description: "Face a dynamic guardian condition this encounter",
       };
   }
 }
@@ -69,8 +69,8 @@ const BossRevealPage: React.FC = () => {
     playSfx("boss-intro");
   }, [playSfx]);
 
-  const bossId = useMemo(() => Number((seed % 10n) + 1n), [seed]);
-  const boss = getBossDisplay(bossId);
+  const mapZoneId = useNavigationStore((s) => s.mapZoneId);
+  const guardian = getZoneGuardian(mapZoneId);
 
   const constraints = useMemo(() => {
     if (!gameLevel) {
@@ -116,7 +116,7 @@ const BossRevealPage: React.FC = () => {
         >
           <img
             src={themeImages.mapNodeBoss}
-            alt="Boss"
+            alt="Guardian"
             className="h-20 w-20"
             style={{ filter: `drop-shadow(0 0 20px ${colors.accent}80)` }}
             draggable={false}
@@ -127,25 +127,25 @@ const BossRevealPage: React.FC = () => {
           className="font-['DM_Sans'] text-[10px] font-semibold uppercase tracking-[0.3em]"
           style={{ color: colors.accent }}
         >
-          Level 10 · Boss
+          Guardian Trial
         </p>
 
         <h1
           className="mt-1 font-display text-[22px] font-black"
           style={{ color: colors.text, textShadow: colors.glow }}
         >
-          {boss.name}
+          {guardian.name}
         </h1>
 
-        <p className="mt-1 font-['DM_Sans'] text-[11px]" style={{ color: colors.textMuted }}>
-          {boss.title}
+        <p className="mt-1 font-sans text-[11px] font-semibold" style={{ color: colors.accent }}>
+          {guardian.title}
         </p>
 
         <p
-          className="mt-1 text-center font-['DM_Sans'] text-[11px] leading-[1.45]"
+          className="mt-2 text-center font-sans text-[12px] leading-[1.5]"
           style={{ color: colors.textMuted }}
         >
-          {boss.description}
+          {guardian.trialIntro}
         </p>
 
         <div className="mt-5 flex w-full flex-col gap-2">
@@ -182,7 +182,7 @@ const BossRevealPage: React.FC = () => {
             boxShadow: "0 0 30px rgba(255,59,59,0.4)",
           }}
         >
-          FIGHT BOSS
+          FACE GUARDIAN
         </button>
       </div>
     </div>

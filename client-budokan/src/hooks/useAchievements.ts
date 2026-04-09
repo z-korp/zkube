@@ -77,7 +77,7 @@ export const ACHIEVEMENT_CATEGORIES: AchievementCategory[] = [
   "Grinder",
   "Sweeper",
   "Combo Master",
-  "Boss Slayer",
+  "Guardian Slayer",
   "Explorer",
   "Challenger",
 ];

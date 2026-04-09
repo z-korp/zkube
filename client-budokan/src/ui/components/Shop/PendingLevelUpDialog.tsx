@@ -21,7 +21,7 @@ const PendingLevelUpDialog: React.FC<PendingLevelUpDialogProps> = ({
           Bonus Level-Up Removed
         </DialogTitle>
         <p className="text-sm text-slate-300 text-center">
-          Boss level bonus upgrades are no longer part of the run flow.
+          Guardian level bonus upgrades are no longer part of the run flow.
         </p>
         <Button onClick={onClose} variant="outline" className="w-full mt-4">
           Close

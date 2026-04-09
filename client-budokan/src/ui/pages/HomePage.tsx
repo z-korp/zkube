@@ -175,7 +175,7 @@ const HomePage: React.FC = () => {
 
             if (!selectedZone.bossCleared) {
               showToast({
-                message: "Beat Story Zone 1 boss to unlock Endless.",
+                message: "Clear Zone 1 Guardian to unlock Endless.",
                 type: "error",
               });
               return;
@@ -380,7 +380,7 @@ const HomePage: React.FC = () => {
                       let statusText = `${z.stars}/${z.maxStars} ★`;
                       if (isEndlessMode) {
                         if (!z.unlocked) statusText = "Unlock Story";
-                        else if (!z.bossCleared) statusText = "Beat Boss";
+                        else if (!z.bossCleared) statusText = "Clear Guardian";
                         else statusText = `Best ${endlessBestScore.toLocaleString()}`;
                       } else if (!z.unlocked && !z.isFree) {
                         statusText = (z.starCost ?? 0) > 0
@@ -465,12 +465,12 @@ const HomePage: React.FC = () => {
                 Match. Clear. Conquer.
               </p>
               <p className="mt-3 font-sans text-base font-semibold text-white/85">
-                Master the grid, defeat the zone bosses, and survive the endless arena.
+                Master the grid, defeat the zone guardians, and survive the endless arena.
               </p>
               <div className="mt-5 flex flex-col gap-2.5 text-left">
                 <div className="flex items-center gap-2.5">
                   <BookOpen size={16} className="shrink-0 text-white/50" />
-                  <p className="font-sans text-[13px] font-semibold text-white/70">10 themed zones with boss battles</p>
+                  <p className="font-sans text-[13px] font-semibold text-white/70">10 themed zones with guardian trials</p>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <InfinityIcon size={16} className="shrink-0 text-white/50" />

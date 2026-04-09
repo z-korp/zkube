@@ -140,13 +140,13 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
           {node.type === "draft"
             ? `Zone ${node.zone} Draft`
             : node.type === "boss"
-              ? `Boss Level ${node.contractLevel}`
+              ? `Guardian Trial ${node.contractLevel}`
               : `Level ${node.contractLevel}`}
         </h3>
 
         {node.type === "draft" ? (
           <p className="mt-4 text-sm text-slate-200/90">
-            Draft event: choose your run direction before pushing to the boss.
+            Draft event: choose your run direction before facing the guardian.
           </p>
         ) : node.state === "cleared" || node.state === "visited" ? (
           <div className="mt-4 space-y-3 text-sm font-sans">

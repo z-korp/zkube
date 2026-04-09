@@ -136,7 +136,7 @@ const TutorialInfoStep: React.FC<TutorialInfoStepProps> = ({
           {item.level && (
             <div className="flex items-center gap-3 mb-2">
               <span className="text-xs font-bold px-2 py-1 rounded bg-gradient-to-r from-red-600 to-orange-500 text-white uppercase tracking-wide">
-                Boss
+                Guardian
               </span>
               <span className="text-white font-semibold">Levels {item.level}</span>
             </div>

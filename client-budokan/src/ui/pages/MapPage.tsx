@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, Info } from "lucide-react";
 import { motion } from "motion/react";
+import { getZoneGuardian } from "@/config/bossCharacters";
 import { useGame } from "@/hooks/useGame";
 import { useGameLevel } from "@/hooks/useGameLevel";
 import {
@@ -588,6 +589,21 @@ const MapPage: React.FC = () => {
                         })}
                       </g>
                     )}
+
+                  {node.type === "boss" && (
+                    <text
+                      x={cx}
+                      y={cy + r + 3}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fill={node.state === "cleared" ? colors.accent : "rgba(255,255,255,0.6)"}
+                      fontSize={2.2}
+                      fontWeight="bold"
+                      fontFamily="Outfit, sans-serif"
+                    >
+                      {getZoneGuardian(mapZoneId).name}
+                    </text>
+                  )}
                 </motion.g>
               );
             })}

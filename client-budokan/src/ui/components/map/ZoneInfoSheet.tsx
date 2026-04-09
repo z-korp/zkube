@@ -4,6 +4,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { getMutatorDef } from "@/config/mutatorConfig";
 import { ZONE_NAMES } from "@/config/profileData";
 import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
+import { getZoneGuardian } from "@/config/bossCharacters";
 
 interface ZoneInfoSheetProps {
   zoneId: number;
@@ -21,6 +22,7 @@ const ZoneInfoSheet: React.FC<ZoneInfoSheetProps> = ({ zoneId, onClose }) => {
 
   const activeMutator = settings.activeMutatorId > 0 ? getMutatorDef(settings.activeMutatorId) : null;
   const passiveMutator = settings.passiveMutatorId > 0 ? getMutatorDef(settings.passiveMutatorId) : null;
+  const guardian = getZoneGuardian(zoneId);
 
   return (
     <motion.div
@@ -56,6 +58,16 @@ const ZoneInfoSheet: React.FC<ZoneInfoSheetProps> = ({ zoneId, onClose }) => {
         </div>
 
         <div className="px-4 py-3 space-y-3">
+          {/* Guardian greeting */}
+          <div className="rounded-xl bg-white/[0.04] px-3 py-2.5">
+            <p className="font-sans text-[12px] italic text-white/70 leading-relaxed">
+              "{guardian.greeting}"
+            </p>
+            <p className="mt-1 text-right font-sans text-[10px] font-bold" style={{ color: colors.accent }}>
+              — {guardian.name}, {guardian.title}
+            </p>
+          </div>
+
           {/* Quick stats */}
           <div className="flex gap-2">
             <div className="flex-1 rounded-xl bg-white/[0.06] px-3 py-2 text-center">

@@ -10,7 +10,7 @@ export type AchievementCategory =
   | "Grinder"
   | "Sweeper"
   | "Combo Master"
-  | "Boss Slayer"
+  | "Guardian Slayer"
   | "Explorer"
   | "Challenger";
 
@@ -43,10 +43,10 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
   { id: feltFromShortString("COMBO_MASTER_III"), shortId: "COMBO_MASTER_III", name: "Combo Master III", description: "Hit a 10+ combo streak", target: 1, xp: 3000, category: "Combo Master", tier: 3, icon: "💥", taskId: feltFromShortString("HIGH_COMBO") },
   { id: feltFromShortString("COMBO_MASTER_IV"), shortId: "COMBO_MASTER_IV", name: "Combo Master IV", description: "Hit 10 combo streaks of 10+", target: 10, xp: 5000, category: "Combo Master", tier: 4, icon: "🌋", taskId: feltFromShortString("HIGH_COMBO") },
 
-  { id: feltFromShortString("BOSS_SLAYER_I"), shortId: "BOSS_SLAYER_I", name: "Boss Slayer I", description: "Defeat 1 boss", target: 1, xp: 500, category: "Boss Slayer", tier: 1, icon: "⚔️", taskId: feltFromShortString("BOSS_DEFEAT") },
-  { id: feltFromShortString("BOSS_SLAYER_II"), shortId: "BOSS_SLAYER_II", name: "Boss Slayer II", description: "Defeat 5 bosses", target: 5, xp: 1500, category: "Boss Slayer", tier: 2, icon: "🛡️", taskId: feltFromShortString("BOSS_DEFEAT") },
-  { id: feltFromShortString("BOSS_SLAYER_III"), shortId: "BOSS_SLAYER_III", name: "Boss Slayer III", description: "Defeat 15 bosses", target: 15, xp: 3000, category: "Boss Slayer", tier: 3, icon: "👹", taskId: feltFromShortString("BOSS_DEFEAT") },
-  { id: feltFromShortString("BOSS_SLAYER_IV"), shortId: "BOSS_SLAYER_IV", name: "Boss Slayer IV", description: "Defeat 50 bosses", target: 50, xp: 5000, category: "Boss Slayer", tier: 4, icon: "👑", taskId: feltFromShortString("BOSS_DEFEAT") },
+  { id: feltFromShortString("BOSS_SLAYER_I"), shortId: "BOSS_SLAYER_I", name: "Guardian Slayer I", description: "Clear 1 guardian", target: 1, xp: 500, category: "Guardian Slayer", tier: 1, icon: "⚔️", taskId: feltFromShortString("BOSS_DEFEAT") },
+  { id: feltFromShortString("BOSS_SLAYER_II"), shortId: "BOSS_SLAYER_II", name: "Guardian Slayer II", description: "Clear 5 guardians", target: 5, xp: 1500, category: "Guardian Slayer", tier: 2, icon: "🛡️", taskId: feltFromShortString("BOSS_DEFEAT") },
+  { id: feltFromShortString("BOSS_SLAYER_III"), shortId: "BOSS_SLAYER_III", name: "Guardian Slayer III", description: "Clear 15 guardians", target: 15, xp: 3000, category: "Guardian Slayer", tier: 3, icon: "👹", taskId: feltFromShortString("BOSS_DEFEAT") },
+  { id: feltFromShortString("BOSS_SLAYER_IV"), shortId: "BOSS_SLAYER_IV", name: "Guardian Slayer IV", description: "Clear 50 guardians", target: 50, xp: 5000, category: "Guardian Slayer", tier: 4, icon: "👑", taskId: feltFromShortString("BOSS_DEFEAT") },
 
   { id: feltFromShortString("EXPLORER_I"), shortId: "EXPLORER_I", name: "Explorer I", description: "Complete 1 zone", target: 1, xp: 1000, category: "Explorer", tier: 1, icon: "🗺️", taskId: feltFromShortString("ZONE_COMPLETE") },
   { id: feltFromShortString("EXPLORER_II"), shortId: "EXPLORER_II", name: "Explorer II", description: "Complete 3 zones", target: 3, xp: 2000, category: "Explorer", tier: 2, icon: "🌍", taskId: feltFromShortString("ZONE_COMPLETE") },

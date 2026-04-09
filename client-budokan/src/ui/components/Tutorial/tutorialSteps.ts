@@ -409,17 +409,17 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     ],
     footer: "Higher level bonuses have stronger effects!",
   },
-  // Step 11: Boss Levels & Complete (Info)
+  // Step 11: Guardian Trials & Complete (Info)
   {
     id: 11,
-    title: "Boss Levels",
+    title: "Guardian Trials",
     type: "info",
     infoType: "boss",
-    description: "Every 10 levels is a boss level with extra challenges and rewards!",
-    mobileDescription: "Boss = big rewards",
+    description: "Every 10 levels is a guardian trial with extra challenges and rewards!",
+    mobileDescription: "Guardian = big rewards",
     items: [
-      { level: "10, 20, 30, 40, 50", desc: "Boss levels with dual constraints" },
-      { reward: "Free Level-Up!", desc: "Upgrade any bonus after defeating a boss" },
+      { level: "10, 20, 30, 40, 50", desc: "Guardian trials with dual constraints" },
+      { reward: "Free Level-Up!", desc: "Upgrade any bonus after clearing a guardian" },
     ],
     footer: "Reach level 50 to achieve victory! Good luck!",
     isComplete: true,
