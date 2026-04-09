@@ -173,14 +173,17 @@ const PlayScreen: React.FC = () => {
           if (pending) {
             console.log("[GameOver] → SKIP (level completion already handled by advance effect)");
           } else {
-            console.log("[GameOver] → INCOMPLETE (run failed)");
+            // Check if the level was actually completed (score met, moves remaining)
+            const maxMoves = effectiveGameLevel?.maxMoves ?? 0;
+            const levelCompleted = targetScore > 0 && game.levelScore >= targetScore && game.levelMoves < maxMoves;
+            console.log("[GameOver] → ", levelCompleted ? "COMPLETED (score met, moves left)" : "INCOMPLETE (run failed)", { levelCompleted, levelScore: game.levelScore, targetScore, levelMoves: game.levelMoves, maxMoves });
             setPendingLevelCompletion({
               level: game.level,
               levelMoves: game.levelMoves,
               prevTotalScore: levelStartTotalScoreRef.current,
               totalScore: game.totalScore,
               gameLevel: resolveCompletionGameLevel(game.level),
-              isIncomplete: true,
+              isIncomplete: !levelCompleted,
             });
             navNavigate("map");
           }
