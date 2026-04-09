@@ -635,17 +635,17 @@ const MapPage: React.FC = () => {
                     stroke={colors.accent}
                     strokeWidth={0.6}
                   />
-                  {/* Rotating dashed ring */}
+                  {/* Rotating dashed ring — tight on the circle */}
                   <motion.circle
                     cx={guardianX}
                     cy={guardianY}
-                    r={gr + 1.2}
+                    r={gr + 0.4}
                     fill="none"
                     stroke={colors.accent}
-                    strokeWidth={0.3}
-                    strokeDasharray="2 2"
+                    strokeWidth={0.35}
+                    strokeDasharray="2 1.5"
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
                     style={{ transformOrigin: `${guardianX}px ${guardianY}px` }}
                   />
                   <text
