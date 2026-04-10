@@ -33,7 +33,6 @@ pub trait IConfigSystem<T> {
         constraint_start_level: u8,
         // Constraint Distribution (packed - use pack_constraint_* helpers)
         constraint_lines_budgets: u64, // Packed: lines(4x4bits) + budgets(4x8bits) + times(2x4bits)
-        constraint_chances: u32, // Packed: dual_chance(2x8bits) + secondary_no_bonus(2x8bits)
         // Block Distribution (VeryEasy to Master scaling)
         veryeasy_size1_weight: u8,
         veryeasy_size2_weight: u8,
@@ -214,7 +213,6 @@ mod config_system {
         z1_map.active_mutator_id = 1;
         z1_map.passive_mutator_id = 2;
         z1_map.boss_id = 1;
-        z1_map.allowed_mutators = 0;
         z1_map.endless_difficulty_thresholds = 0;
         z1_map.endless_score_multipliers = 0;
         world.write_model(@z1_map);
@@ -222,7 +220,7 @@ mod config_system {
             .write_model(
                 @GameSettingsMetadata {
                     settings_id: 0_u32,
-                    name: 'Polynesian',
+                    name: 'Tiki',
                     description: "Explore the Polynesian islands...",
                     created_by: creator_address,
                     created_at: current_timestamp,
@@ -243,7 +241,6 @@ mod config_system {
         z1_endless.active_mutator_id = 0;
         z1_endless.passive_mutator_id = 2;
         z1_endless.boss_id = 0;
-        z1_endless.allowed_mutators = 0;
         z1_endless.endless_difficulty_thresholds = 0; // use defaults
         z1_endless.endless_score_multipliers = 0; // use defaults
         world.write_model(@z1_endless);
@@ -251,7 +248,7 @@ mod config_system {
             .write_model(
                 @GameSettingsMetadata {
                     settings_id: 1_u32,
-                    name: 'Polynesian Endless',
+                    name: 'Tiki Endless',
                     description: "Survive the endless tides...",
                     created_by: creator_address,
                     created_at: current_timestamp,
@@ -285,7 +282,6 @@ mod config_system {
         z2_map.active_mutator_id = 3;
         z2_map.passive_mutator_id = 4;
         z2_map.boss_id = 2;
-        z2_map.allowed_mutators = 0;
         z2_map.endless_difficulty_thresholds = 0;
         z2_map.endless_score_multipliers = 0;
         world.write_model(@z2_map);
@@ -293,7 +289,7 @@ mod config_system {
             .write_model(
                 @GameSettingsMetadata {
                     settings_id: 2_u32,
-                    name: 'Ancient Egypt',
+                    name: 'Egypt',
                     description: "Push into the Egyptian ruins...",
                     created_by: creator_address,
                     created_at: current_timestamp,
@@ -314,7 +310,6 @@ mod config_system {
         z2_endless.active_mutator_id = 0;
         z2_endless.passive_mutator_id = 4;
         z2_endless.boss_id = 0;
-        z2_endless.allowed_mutators = 0;
         // packed [0, 20, 55, 105, 200, 370, 650, 1170]
         z2_endless.endless_difficulty_thresholds = 92697735950297376096128832307220;
         // packed [10, 15, 20, 35, 50, 70, 100, 130]
@@ -358,7 +353,6 @@ mod config_system {
         z3_map.active_mutator_id = 5;
         z3_map.passive_mutator_id = 6;
         z3_map.boss_id = 3;
-        z3_map.allowed_mutators = 0;
         z3_map.endless_difficulty_thresholds = 0;
         z3_map.endless_score_multipliers = 0;
         world.write_model(@z3_map);
@@ -387,7 +381,6 @@ mod config_system {
         z3_endless.active_mutator_id = 0;
         z3_endless.passive_mutator_id = 6;
         z3_endless.boss_id = 0;
-        z3_endless.allowed_mutators = 0;
         // packed [0, 15, 35, 70, 130, 240, 420, 750]
         z3_endless.endless_difficulty_thresholds = 59421629638969746509149254123535;
         // packed [10, 15, 20, 30, 45, 65, 90, 120]
@@ -431,7 +424,6 @@ mod config_system {
         z4_map.active_mutator_id = 7;
         z4_map.passive_mutator_id = 8;
         z4_map.boss_id = 4;
-        z4_map.allowed_mutators = 0;
         z4_map.endless_difficulty_thresholds = 0;
         z4_map.endless_score_multipliers = 0;
         world.write_model(@z4_map);
@@ -439,7 +431,7 @@ mod config_system {
             .write_model(
                 @GameSettingsMetadata {
                     settings_id: 6_u32,
-                    name: 'Ancient Greece',
+                    name: 'Greece',
                     description: "Master the art of precision...",
                     created_by: creator_address,
                     created_at: current_timestamp,
@@ -460,7 +452,6 @@ mod config_system {
         z4_endless.active_mutator_id = 0;
         z4_endless.passive_mutator_id = 8;
         z4_endless.boss_id = 0;
-        z4_endless.allowed_mutators = 0;
         // packed [0, 12, 30, 60, 120, 220, 400, 700]
         z4_endless.endless_difficulty_thresholds = 55460197334371199640621654343692;
         // packed [10, 15, 20, 30, 40, 60, 80, 100]
@@ -505,7 +496,6 @@ mod config_system {
         z5_map.active_mutator_id = 9;
         z5_map.passive_mutator_id = 10;
         z5_map.boss_id = 6;
-        z5_map.allowed_mutators = 0;
         z5_map.endless_difficulty_thresholds = 0;
         z5_map.endless_score_multipliers = 0;
         world.write_model(@z5_map);
@@ -513,7 +503,7 @@ mod config_system {
             .write_model(
                 @GameSettingsMetadata {
                     settings_id: 8_u32,
-                    name: 'Ancient China',
+                    name: 'China',
                     description: "Unleash the dragon's wrath...",
                     created_by: creator_address,
                     created_at: current_timestamp,
@@ -534,7 +524,6 @@ mod config_system {
         z5_endless.active_mutator_id = 0;
         z5_endless.passive_mutator_id = 10;
         z5_endless.boss_id = 0;
-        z5_endless.allowed_mutators = 0;
         // packed [0, 18, 45, 90, 170, 310, 550, 950]
         z5_endless.endless_difficulty_thresholds = 75267419303470447273895393034258;
         // packed [10, 15, 20, 30, 45, 65, 90, 120]
@@ -579,7 +568,6 @@ mod config_system {
         z6_map.active_mutator_id = 11;
         z6_map.passive_mutator_id = 12;
         z6_map.boss_id = 7;
-        z6_map.allowed_mutators = 0;
         z6_map.endless_difficulty_thresholds = 0;
         z6_map.endless_score_multipliers = 0;
         world.write_model(@z6_map);
@@ -587,7 +575,7 @@ mod config_system {
             .write_model(
                 @GameSettingsMetadata {
                     settings_id: 10_u32,
-                    name: 'Ancient Persia',
+                    name: 'Persia',
                     description: "Create intricate mosaic patterns...",
                     created_by: creator_address,
                     created_at: current_timestamp,
@@ -608,7 +596,6 @@ mod config_system {
         z6_endless.active_mutator_id = 0;
         z6_endless.passive_mutator_id = 12;
         z6_endless.boss_id = 0;
-        z6_endless.allowed_mutators = 0;
         // packed [0, 13, 35, 70, 135, 250, 440, 780]
         z6_endless.endless_difficulty_thresholds = 61798498693098537777651045826573;
         // packed [10, 15, 20, 30, 45, 60, 85, 110]
@@ -653,7 +640,6 @@ mod config_system {
         z7_map.active_mutator_id = 13;
         z7_map.passive_mutator_id = 14;
         z7_map.boss_id = 5;
-        z7_map.allowed_mutators = 0;
         z7_map.endless_difficulty_thresholds = 0;
         z7_map.endless_score_multipliers = 0;
         world.write_model(@z7_map);
@@ -661,7 +647,7 @@ mod config_system {
             .write_model(
                 @GameSettingsMetadata {
                     settings_id: 12_u32,
-                    name: 'Feudal Japan',
+                    name: 'Japan',
                     description: "Master lethal efficiency...",
                     created_by: creator_address,
                     created_at: current_timestamp,
@@ -682,7 +668,6 @@ mod config_system {
         z7_endless.active_mutator_id = 0;
         z7_endless.passive_mutator_id = 14;
         z7_endless.boss_id = 0;
-        z7_endless.allowed_mutators = 0;
         // packed [0, 10, 25, 50, 100, 180, 320, 550]
         z7_endless.endless_difficulty_thresholds = 43575876242428104438765219020810;
         // packed [10, 15, 25, 35, 50, 70, 90, 110]
@@ -726,7 +711,6 @@ mod config_system {
         z8_map.active_mutator_id = 15;
         z8_map.passive_mutator_id = 16;
         z8_map.boss_id = 8;
-        z8_map.allowed_mutators = 0;
         z8_map.endless_difficulty_thresholds = 0;
         z8_map.endless_score_multipliers = 0;
         world.write_model(@z8_map);
@@ -755,7 +739,6 @@ mod config_system {
         z8_endless.active_mutator_id = 0;
         z8_endless.passive_mutator_id = 16;
         z8_endless.boss_id = 0;
-        z8_endless.allowed_mutators = 0;
         // packed [0, 18, 45, 95, 180, 330, 580, 1000]
         z8_endless.endless_difficulty_thresholds = 79228863697327190288693264711698;
         // packed [10, 15, 25, 35, 50, 70, 100, 130]
@@ -799,7 +782,6 @@ mod config_system {
         z9_map.active_mutator_id = 17;
         z9_map.passive_mutator_id = 18;
         z9_map.boss_id = 9;
-        z9_map.allowed_mutators = 0;
         z9_map.endless_difficulty_thresholds = 0;
         z9_map.endless_score_multipliers = 0;
         world.write_model(@z9_map);
@@ -828,7 +810,6 @@ mod config_system {
         z9_endless.active_mutator_id = 0;
         z9_endless.passive_mutator_id = 18;
         z9_endless.boss_id = 0;
-        z9_endless.allowed_mutators = 0;
         // packed [0, 14, 35, 75, 140, 260, 460, 800]
         z9_endless.endless_difficulty_thresholds = 63383086122084685670238872862734;
         // packed [10, 15, 25, 35, 50, 70, 95, 120]
@@ -872,7 +853,6 @@ mod config_system {
         z10_map.active_mutator_id = 19;
         z10_map.passive_mutator_id = 20;
         z10_map.boss_id = 10;
-        z10_map.allowed_mutators = 0;
         z10_map.endless_difficulty_thresholds = 0;
         z10_map.endless_score_multipliers = 0;
         world.write_model(@z10_map);
@@ -901,7 +881,6 @@ mod config_system {
         z10_endless.active_mutator_id = 0;
         z10_endless.passive_mutator_id = 20;
         z10_endless.boss_id = 0;
-        z10_endless.allowed_mutators = 0;
         // packed [0, 20, 50, 110, 210, 380, 660, 1100]
         z10_endless.endless_difficulty_thresholds = 87151776663741538866380839976980;
         // packed [10, 20, 30, 40, 60, 80, 110, 150]
@@ -937,7 +916,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 1,
-                    name: 'Tidecaller',
                     zone_id: 1,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -971,7 +949,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 3,
-                    name: 'Pharaohs Command',
                     zone_id: 2,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1005,7 +982,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 5,
-                    name: 'Ragnarok',
                     zone_id: 3,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1039,7 +1015,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 7,
-                    name: 'Athenas Chisel',
                     zone_id: 4,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1073,7 +1048,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 9,
-                    name: 'Dragon Breath',
                     zone_id: 5,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1107,7 +1081,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 11,
-                    name: 'Mosaic Eye',
                     zone_id: 6,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1141,7 +1114,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 13,
-                    name: 'Iai Strike',
                     zone_id: 7,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1175,7 +1147,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 15,
-                    name: 'Blood Ritual',
                     zone_id: 8,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1209,7 +1180,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 17,
-                    name: 'War Beat',
                     zone_id: 9,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1243,7 +1213,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 19,
-                    name: 'Intis Demand',
                     zone_id: 10,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1282,7 +1251,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 2,
-                    name: 'Calm Tides',
                     zone_id: 1,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1313,7 +1281,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 4,
-                    name: 'Foundation Stone',
                     zone_id: 2,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1344,7 +1311,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 6,
-                    name: 'Frozen Rage',
                     zone_id: 3,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1375,7 +1341,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 8,
-                    name: 'Marble Discipline',
                     zone_id: 4,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1406,7 +1371,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 10,
-                    name: 'Imperial Scale',
                     zone_id: 5,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1437,7 +1401,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 12,
-                    name: 'Geometric Flow',
                     zone_id: 6,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1468,7 +1431,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 14,
-                    name: 'Bushido',
                     zone_id: 7,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1499,7 +1461,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 16,
-                    name: 'Jungle Altar',
                     zone_id: 8,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1530,7 +1491,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 18,
-                    name: 'Primal Pulse',
                     zone_id: 9,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1561,7 +1521,6 @@ mod config_system {
             .write_model(
                 @MutatorDef {
                     mutator_id: 20,
-                    name: 'Altitude',
                     zone_id: 10,
                     moves_modifier: 128,
                     ratio_modifier: 128,
@@ -1808,7 +1767,6 @@ mod config_system {
             constraint_start_level: u8,
             // Constraint Distribution (packed)
             constraint_lines_budgets: u64,
-            constraint_chances: u32,
             // Block Distribution (VeryEasy to Master)
             veryeasy_size1_weight: u8,
             veryeasy_size2_weight: u8,
@@ -1855,7 +1813,6 @@ mod config_system {
                     constraints_enabled,
                     constraint_start_level,
                     constraint_lines_budgets,
-                    constraint_chances,
                     veryeasy_size1_weight,
                     veryeasy_size2_weight,
                     veryeasy_size3_weight,
@@ -1907,7 +1864,6 @@ mod config_system {
                 constraint_start_level,
                 // Constraint Distribution (packed)
                 constraint_lines_budgets,
-                constraint_chances,
                 // Block Distribution (VeryEasy to Master)
                 veryeasy_size1_weight,
                 veryeasy_size2_weight,
@@ -1928,8 +1884,6 @@ mod config_system {
                 mid_level_threshold,
                 // Level Cap
                 level_cap,
-                // Mutator Settings (default: none)
-                allowed_mutators: 0,
                 // Endless Mode Settings (defaults)
                 endless_difficulty_thresholds: 0,
                 endless_score_multipliers: 0,
@@ -2208,20 +2162,6 @@ mod config_system {
             )
         }
 
-        /// Unpack constraint_chances field
-        fn _unpack_chances(packed: u32) -> (u8, u8, u8, u8) {
-            let veryeasy_dual_chance: u8 = (packed & 0xFF).try_into().unwrap();
-            let master_dual_chance: u8 = ((packed / 0x100) & 0xFF).try_into().unwrap();
-            let veryeasy_secondary_no_bonus: u8 = ((packed / 0x10000) & 0xFF).try_into().unwrap();
-            let master_secondary_no_bonus: u8 = ((packed / 0x1000000) & 0xFF).try_into().unwrap();
-            (
-                veryeasy_dual_chance,
-                master_dual_chance,
-                veryeasy_secondary_no_bonus,
-                master_secondary_no_bonus,
-            )
-        }
-
         fn _validate_settings(
             self: @ContractState,
             base_moves: u16,
@@ -2240,7 +2180,6 @@ mod config_system {
             constraint_start_level: u8,
             // Constraint distribution (packed)
             constraint_lines_budgets: u64,
-            constraint_chances: u32,
             // Block distribution (VeryEasy to Master)
             veryeasy_size1_weight: u8,
             veryeasy_size2_weight: u8,
@@ -2303,16 +2242,6 @@ mod config_system {
                 Self::_unpack_lines_budgets(
                 constraint_lines_budgets,
             );
-            let (
-                veryeasy_dual_chance,
-                master_dual_chance,
-                veryeasy_secondary_no_bonus,
-                master_secondary_no_bonus,
-            ) =
-                Self::_unpack_chances(
-                constraint_chances,
-            );
-
             // Budget-only constraint model: budget_min is derived from budget_max (70% ceil).
             assert!(master_budget_max > 0, "Master budget_max must be > 0");
             let veryeasy_budget_min: u16 = (veryeasy_budget_max.into() * 70 + 99) / 100;
@@ -2325,14 +2254,6 @@ mod config_system {
                 master_budget_min <= master_budget_max.into(),
                 "Derived Master budget_min must be <= budget_max",
             );
-
-            // Validate dual chance and secondary no bonus chance
-            assert!(veryeasy_dual_chance <= 100, "VeryEasy dual chance must be <= 100");
-            assert!(master_dual_chance <= 100, "Master dual chance must be <= 100");
-            assert!(
-                veryeasy_secondary_no_bonus <= 100, "VeryEasy secondary no bonus must be <= 100",
-            );
-            assert!(master_secondary_no_bonus <= 100, "Master secondary no bonus must be <= 100");
 
             // Validate block weights (must have at least some weight to generate blocks)
             let veryeasy_total: u16 = veryeasy_size1_weight.into()
@@ -2398,7 +2319,6 @@ mod config_system {
             GameSetting {
                 name: 'LINES_BUDGET', value: game_settings.constraint_lines_budgets.into(),
             },
-            GameSetting { name: 'CHANCES', value: game_settings.constraint_chances.into() },
             GameSetting { name: 'VE_S1', value: game_settings.veryeasy_size1_weight.into() },
             GameSetting { name: 'VE_S2', value: game_settings.veryeasy_size2_weight.into() },
             GameSetting { name: 'VE_S3', value: game_settings.veryeasy_size3_weight.into() },

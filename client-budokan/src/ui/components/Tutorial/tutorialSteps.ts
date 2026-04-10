@@ -41,7 +41,7 @@ export interface InteractiveStep extends TutorialStepBase {
   targetBlock: TutorialTarget | null;
   successCondition: string;
   constraint?: {
-    type: "ComboLines" | "KeepGridBelow";
+    type: "ComboLines";
     value: number;
     count: number;
   };

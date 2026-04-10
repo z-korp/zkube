@@ -3,8 +3,6 @@ import { useComponentValue } from "@dojoengine/react";
 import type { Entity } from "@dojoengine/recs";
 import { useDojo } from "@/dojo/useDojo";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
-import { shortString } from "starknet";
-
 const normalizeEntityId = (entityId: string): Entity => {
   if (!entityId.startsWith("0x")) return entityId as Entity;
   const hex = entityId.slice(2).replace(/^0+/, "") || "0";
@@ -13,7 +11,6 @@ const normalizeEntityId = (entityId: string): Entity => {
 
 export interface MutatorDefData {
   mutatorId: number;
-  name: string;
   zoneId: number;
   // Passive stat modifiers
   movesModifier: number;
@@ -40,17 +37,6 @@ export interface MutatorDefData {
   bonus3StartingCharges: number;
 }
 
-function decodeFelt252Name(raw: bigint | string | number | undefined): string {
-  if (!raw) return "";
-  try {
-    const hex = typeof raw === "bigint" ? `0x${raw.toString(16)}` : String(raw);
-    if (hex === "0x0" || hex === "0") return "";
-    return shortString.decodeShortString(hex);
-  } catch {
-    return "";
-  }
-}
-
 export function useMutatorDef(mutatorId: number): {
   data: MutatorDefData | null;
   isLoading: boolean;
@@ -74,7 +60,6 @@ export function useMutatorDef(mutatorId: number): {
     if (!raw || mutatorId === 0) return null;
     return {
       mutatorId: raw.mutator_id ?? mutatorId,
-      name: decodeFelt252Name(raw.name),
       zoneId: raw.zone_id ?? 0,
       movesModifier: raw.moves_modifier ?? 128,
       ratioModifier: raw.ratio_modifier ?? 128,

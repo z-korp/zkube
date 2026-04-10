@@ -76,7 +76,6 @@ export interface AddCustomGameSettings extends Signer {
   constraints_enabled: number;
   constraint_start_level: number;
   constraint_lines_budgets: string;
-  constraint_chances: number;
   veryeasy_size1_weight: number;
   veryeasy_size2_weight: number;
   veryeasy_size3_weight: number;
@@ -114,6 +113,7 @@ export interface UnlockWithStars extends Signer {
 }
 
 export interface StartDailyGame extends Signer {}
+export interface ReplayDailyLevel extends Signer { level: number; }
 
 export interface SettleChallenge extends Signer {
   challenge_id: number;
@@ -369,7 +369,6 @@ export function setupWorld(config: Config) {
       constraints_enabled,
       constraint_start_level,
       constraint_lines_budgets,
-      constraint_chances,
       veryeasy_size1_weight,
       veryeasy_size2_weight,
       veryeasy_size3_weight,
@@ -414,7 +413,6 @@ export function setupWorld(config: Config) {
               constraints_enabled,
               constraint_start_level,
               constraint_lines_budgets,
-              constraint_chances,
               veryeasy_size1_weight,
               veryeasy_size2_weight,
               veryeasy_size3_weight,
@@ -507,6 +505,21 @@ export function setupWorld(config: Config) {
       }
     };
 
+    const replay_daily_level = async ({ account, level }: ReplayDailyLevel) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "replay_daily_level",
+            calldata: [level],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing replay_daily_level:", error);
+        throw error;
+      }
+    };
+
     const settle_challenge = async ({ account, challenge_id, ranked_players }: SettleChallenge) => {
       try {
         return await account.execute([
@@ -540,6 +553,7 @@ export function setupWorld(config: Config) {
     return {
       address: contract.address,
       start_daily_game,
+      replay_daily_level,
       settle_challenge,
       settle_weekly_endless,
     };

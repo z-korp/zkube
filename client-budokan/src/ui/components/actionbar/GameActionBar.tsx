@@ -98,7 +98,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
   const guardian = useMemo(() => getZoneGuardian(zoneId), [zoneId]);
   const portraitSrc = useMemo(() => getGuardianPortrait(zoneId), [zoneId]);
   const { data: onChainMutator } = useMutatorDef(activeMutatorId);
-  const mutator = getMutatorDef(activeMutatorId, onChainMutator?.name);
+  const mutator = getMutatorDef(activeMutatorId);
 
   if (isGameOver) return null;
 

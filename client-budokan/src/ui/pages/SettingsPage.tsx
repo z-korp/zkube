@@ -17,8 +17,9 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
 import { useZStarBalance } from "@/hooks/useZStarBalance";
 import { ZONE_THEMES } from "@/hooks/useMapData";
-import { useDisconnect } from "@starknet-react/core";
+import { useAccount, useDisconnect } from "@starknet-react/core";
 import Connect from "@/ui/components/Connect";
+import ControllerConnector from "@cartridge/connector/controller";
 import { useMemo, useState } from "react";
 
 const toPercent = (value: number): number => Math.round(value * 100);
@@ -29,6 +30,7 @@ const SettingsPage: React.FC = () => {
   const goBack = useNavigationStore((s) => s.goBack);
   const { username } = useControllerUsername();
   const { account } = useAccountCustom();
+  const { connector } = useAccount();
   const { disconnect } = useDisconnect();
   const [copied, setCopied] = useState(false);
   const { balance: zStarBalance } = useZStarBalance(account?.address);
@@ -215,8 +217,21 @@ const SettingsPage: React.FC = () => {
             {account ? (
               <div className="space-y-3">
                 <div className="rounded-xl border border-white/[0.1] bg-white/[0.05] px-3 py-2.5">
-                  <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.1em] text-white/55">Username</p>
-                  <p className="font-sans text-base font-semibold text-white">{username ?? "Controller User"}</p>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.1em] text-white/55">Username</p>
+                      <p className="font-sans text-base font-semibold text-white">{username ?? "Controller User"}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const cc = connector as ControllerConnector;
+                        cc?.controller?.openProfile?.();
+                      }}
+                      className="inline-flex items-center gap-1 rounded-lg border border-white/[0.15] bg-white/[0.08] px-2.5 py-1.5 font-sans text-xs font-semibold text-white/80"
+                    >
+                      Controller
+                    </button>
+                  </div>
                 </div>
 
                 <div className="rounded-xl border border-white/[0.1] bg-white/[0.05] px-3 py-2.5">
@@ -236,18 +251,7 @@ const SettingsPage: React.FC = () => {
                 </div>
 
                 <button
-                  onClick={() => {
-                    localStorage.removeItem("sessionSigner");
-                    localStorage.removeItem("session");
-                    localStorage.removeItem("sessionPolicies");
-                    localStorage.removeItem("lastUsedConnector");
-                    for (let i = localStorage.length - 1; i >= 0; i--) {
-                      const key = localStorage.key(i);
-                      if (key?.startsWith("@cartridge/")) localStorage.removeItem(key);
-                    }
-                    disconnect();
-                    window.location.reload();
-                  }}
+                  onClick={() => disconnect()}
                   className="w-full rounded-xl border border-red-400/35 bg-red-500/15 py-2.5 font-sans text-sm font-bold text-red-300 transition-colors hover:bg-red-500/25"
                 >
                   Disconnect

@@ -156,14 +156,18 @@ mod level_system {
             let total_score = run_data.total_score;
             let story_game: StoryAttempt = world.read_model(game_id);
 
-            let stars = InternalImpl::calculate_stars_for_level(game_level, final_moves.into());
+            // Get settings for star threshold modifier and delta minting
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+            let passive_mutator = InternalImpl::read_mutator_def(
+                world, settings.passive_mutator_id,
+            );
+            let stars = InternalImpl::calculate_stars_for_level(
+                game_level, final_moves.into(), passive_mutator.star_threshold_modifier,
+            );
             if completed_level <= 10 {
                 game.set_level_stars(completed_level, stars);
             }
             world.write_model(@game);
-
-            // Get settings for star-eligibility check and delta minting
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
             let sid = settings.settings_id;
 
             if story_game.exists() {
@@ -411,9 +415,33 @@ mod level_system {
             MutatorEffectsTrait::normalize(mutator_id, stored)
         }
 
-        fn calculate_stars_for_level(game_level: GameLevel, moves_used: u16) -> u8 {
-            let cube_3_threshold = game_level.max_moves * 40 / 100;
-            let cube_2_threshold = game_level.max_moves * 70 / 100;
+        fn calculate_stars_for_level(
+            game_level: GameLevel, moves_used: u16, star_threshold_modifier: u8,
+        ) -> u8 {
+            // star_threshold_modifier uses bias-128 encoding: 128=neutral, <128=easier, >128=harder
+            let (is_positive, magnitude) = zkube::helpers::mutator::decode_bias(
+                star_threshold_modifier,
+            );
+            let mag: u16 = magnitude.into();
+
+            // Apply offset to base 40% / 70%
+            let star3_pct: u16 = if is_positive {
+                let raw = 40_u16 + mag;
+                if raw > 90 { 90 } else { raw }
+            } else {
+                if mag >= 30 { 10 } else { 40_u16 - mag }
+            };
+            let star2_pct: u16 = if is_positive {
+                let raw = 70_u16 + mag;
+                if raw > 99 { 99 } else { raw }
+            } else {
+                let raw = if mag >= 70 { 0_u16 } else { 70_u16 - mag };
+                let floor = star3_pct + 1;
+                if raw < floor { floor } else { raw }
+            };
+
+            let cube_3_threshold = game_level.max_moves * star3_pct / 100;
+            let cube_2_threshold = game_level.max_moves * star2_pct / 100;
             if moves_used <= cube_3_threshold {
                 3
             } else if moves_used <= cube_2_threshold {

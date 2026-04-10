@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { getZoneGuardian, getGuardianPortrait } from "@/config/bossCharacters";
 import { useGame } from "@/hooks/useGame";
 import { useGameLevel } from "@/hooks/useGameLevel";
+import { useMutatorDef } from "@/hooks/useMutatorDef";
 import {
   NODES_PER_ZONE,
   getZoneTheme,
@@ -163,6 +164,9 @@ const MapPage: React.FC = () => {
 
   const settingsId = (mapZoneId - 1) * 2;
   const { settings: zoneSettings, isLoading: settingsLoading } = useSettings(settingsId);
+  const passiveMutatorId = zoneSettings?.passiveMutatorId ?? 0;
+  const { data: passiveMutator } = useMutatorDef(passiveMutatorId);
+  const starModifier = passiveMutator?.starThresholdModifier ?? 128;
 
   const mapData = useMapData({
     seed,
@@ -170,6 +174,7 @@ const MapPage: React.FC = () => {
     zoneState,
     activeStoryNode: activeNode,
     settings: settingsLoading ? undefined : zoneSettings,
+    starThresholdModifier: starModifier,
   });
 
   // Per-zone seed: story zones get a fixed seed from zoneId, daily gets day-based seed
@@ -299,12 +304,16 @@ const MapPage: React.FC = () => {
   const [greetingAutoShown, setGreetingAutoShown] = useState(false);
   const [dataStabilized, setDataStabilized] = useState(false);
 
-  // Wait for Torii data to stabilize before checking first visit.
-  // The initial render has stale fallback data (stars=0), real data arrives ~500ms later.
+  // Stabilize as soon as Torii responds (zoneProgressData defined), or after 1500ms ceiling.
   useEffect(() => {
+    setDataStabilized(false);
     const timer = setTimeout(() => setDataStabilized(true), 1500);
     return () => clearTimeout(timer);
   }, [mapZoneId]);
+
+  useEffect(() => {
+    if (zoneProgressData !== undefined) setDataStabilized(true);
+  }, [zoneProgressData]);
 
   // Auto-show guardian greeting only after data stabilizes
   useEffect(() => {

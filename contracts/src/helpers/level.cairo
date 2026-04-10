@@ -114,25 +114,17 @@ pub impl LevelGenerator of LevelGeneratorTrait {
 
         // Generate constraints: use boss identity system for boss levels, otherwise normal
         // generation Respect constraints_enabled setting for both boss and regular levels
-        let (constraint, constraint_2, constraint_3) = if !settings.are_constraints_enabled() {
+        let (constraint, constraint_2) = if !settings.are_constraints_enabled() {
             (
-                LevelConstraintTrait::none(),
                 LevelConstraintTrait::none(),
                 LevelConstraintTrait::none(),
             )
         } else if BossLevel::is_boss_level(level) {
             // Boss level uses the boss identity system with budget_max
-            // Use boss_id from settings instead of deriving from seed
             let boss_id = settings.boss_id;
             let (_min_lines, _max_lines, _budget_min, budget_max, _min_times) = settings
                 .get_constraint_params_for_difficulty(difficulty);
-            let (c1, c2, c3) = boss::generate_boss_constraints(
-                boss_id, level, level_seed, budget_max,
-            );
-
-            // Zone boss is always dual at level 10.
-            let _ = c3;
-            (c1, c2, LevelConstraintTrait::none())
+            boss::generate_boss_constraints(boss_id, level_seed, budget_max)
         } else {
             // Regular levels: deterministic count-based constraint generation
             Self::generate_constraints_with_settings(
@@ -141,7 +133,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         };
 
         let mut config = LevelConfig {
-            level, points_required, max_moves, difficulty, constraint, constraint_2, constraint_3,
+            level, points_required, max_moves, difficulty, constraint, constraint_2,
         };
 
         MutatorEffectsTrait::apply_mutator_to_level(mutator_def, ref config);
@@ -161,7 +153,6 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             difficulty: Difficulty::VeryEasy,
             constraint: LevelConstraintTrait::none(),
             constraint_2: LevelConstraintTrait::none(),
-            constraint_3: LevelConstraintTrait::none(),
         }
     }
 
@@ -289,18 +280,17 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     /// constraint_min/constraint_max. Roll count in [min, max], generate that many.
     /// Regular levels generate ComboLines, BreakBlocks, ComboStreak only.
     ///
-    /// Returns (constraint_1, constraint_2, constraint_3)
+    /// Returns (constraint_1, constraint_2)
     fn generate_constraints_with_settings(
         level_seed: felt252,
         level: u8,
         difficulty: Difficulty,
         settings: GameSettings,
         points_required: u16,
-    ) -> (LevelConstraint, LevelConstraint, LevelConstraint) {
+    ) -> (LevelConstraint, LevelConstraint) {
         // Check if constraints are enabled
         if !settings.are_constraints_enabled() {
             return (
-                LevelConstraintTrait::none(),
                 LevelConstraintTrait::none(),
                 LevelConstraintTrait::none(),
             );
@@ -309,7 +299,6 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         // No constraint before the start level (levels 1-2 have no constraints)
         if level < settings.constraint_start_level {
             return (
-                LevelConstraintTrait::none(),
                 LevelConstraintTrait::none(),
                 LevelConstraintTrait::none(),
             );
@@ -329,7 +318,6 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         // If tier has 0 constraints, return none
         if count_max == 0 {
             return (
-                LevelConstraintTrait::none(),
                 LevelConstraintTrait::none(),
                 LevelConstraintTrait::none(),
             );
@@ -391,7 +379,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             i += 1;
         }
 
-        // Pad to 3 constraints (fill with None)
+        // Pad to 2 constraints (fill with None)
         let c1 = if constraints.len() > 0 {
             *constraints.at(0)
         } else {
@@ -402,13 +390,8 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         } else {
             LevelConstraintTrait::none()
         };
-        let c3 = if constraints.len() > 2 {
-            *constraints.at(2)
-        } else {
-            LevelConstraintTrait::none()
-        };
 
-        (c1, c2, c3)
+        (c1, c2)
     }
 
     /// Check if a constraint type is already in the used types array
@@ -468,7 +451,6 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     /// Get deterministic constraint count range from budget range.
     /// Returns (constraint_min, constraint_max).
     /// Roll a random count in [min, max] to determine how many constraints a level has.
-    /// KeepGridBelow is boss-only — never generated on regular levels.
     fn get_constraint_count_range_from_budget(budget_min: u8, budget_max: u8) -> (u8, u8) {
         let avg_budget: u8 = (((budget_min.into() + budget_max.into()) / 2_u16))
             .try_into()
@@ -533,7 +515,6 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             ConstraintType::ComboLines => Self::generate_combo_lines_from_budget(seed, budget),
             ConstraintType::BreakBlocks => Self::generate_break_blocks_from_budget(seed, budget),
             ConstraintType::ComboStreak => Self::generate_combo_streak_from_budget(seed, budget),
-            ConstraintType::KeepGridBelow => LevelConstraintTrait::keep_grid_below(),
             ConstraintType::None => LevelConstraintTrait::none(),
         }
     }

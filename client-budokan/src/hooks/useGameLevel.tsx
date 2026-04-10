@@ -4,6 +4,8 @@ import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import type { Entity } from "@dojoengine/recs";
 import { ConstraintType } from "@/dojo/game/types/constraint";
+import { useMutatorDef } from "./useMutatorDef";
+import { applyStarThresholdModifier } from "@/dojo/game/types/level";
 
 // Normalize entity ID to match Torii's format (no leading zeros after 0x)
 const normalizeEntityId = (entityId: string): Entity => {
@@ -12,10 +14,6 @@ const normalizeEntityId = (entityId: string): Entity => {
   const hex = entityId.slice(2).replace(/^0+/, "") || "0";
   return `0x${hex}` as Entity;
 };
-
-/** Default star threshold percentages (matches contract defaults) */
-const STAR_3_PERCENT = 40;
-const STAR_2_PERCENT = 70;
 
 export interface GameLevelData {
   gameId: bigint;
@@ -30,9 +28,6 @@ export interface GameLevelData {
   constraint2Type: ConstraintType;
   constraint2Value: number;
   constraint2Count: number;
-  constraint3Type: ConstraintType;
-  constraint3Value: number;
-  constraint3Count: number;
   mutatorId: number;
   // Derived client-side from maxMoves
   star3Threshold: number;
@@ -66,6 +61,8 @@ export const useGameLevel = ({
   }, [gameId]);
 
   const component = useComponentValue(GameLevel, gameKey ?? ("0x0" as Entity));
+  const passiveMutatorId = component?.mutator_id ?? 0;
+  const { data: passiveMutator } = useMutatorDef(passiveMutatorId);
 
   // Track if we need to retry fetching
   const [retryCount, setRetryCount] = useState(0);
@@ -89,6 +86,8 @@ export const useGameLevel = ({
     if (!component) return null;
 
     const maxMoves = component.max_moves;
+    const modifier = passiveMutator?.starThresholdModifier ?? 128;
+    const { star3Pct, star2Pct } = applyStarThresholdModifier(modifier);
     const data: GameLevelData = {
       gameId: component.game_id,
       level: component.level,
@@ -101,16 +100,13 @@ export const useGameLevel = ({
       constraint2Type: component.constraint2_type as ConstraintType,
       constraint2Value: component.constraint2_value,
       constraint2Count: component.constraint2_count,
-      constraint3Type: component.constraint3_type as ConstraintType,
-      constraint3Value: component.constraint3_value,
-      constraint3Count: component.constraint3_count,
       mutatorId: component.mutator_id ?? 0,
-      star3Threshold: Math.floor((maxMoves * STAR_3_PERCENT) / 100),
-      star2Threshold: Math.floor((maxMoves * STAR_2_PERCENT) / 100),
+      star3Threshold: Math.floor((maxMoves * star3Pct) / 100),
+      star2Threshold: Math.floor((maxMoves * star2Pct) / 100),
     };
 
     return data;
-  }, [component, retryCount]);
+  }, [component, retryCount, passiveMutator]);
 
   return gameLevel;
 };

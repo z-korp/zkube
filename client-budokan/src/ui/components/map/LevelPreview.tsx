@@ -7,6 +7,7 @@ import type { GameLevelData } from "@/hooks/useGameLevel";
 import type { ThemeColors } from "@/config/themes";
 import { getZoneGuardian, getGuardianPortrait, getGuardianStarText } from "@/config/bossCharacters";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
+import { useMutatorDef } from "@/hooks/useMutatorDef";
 
 export interface LevelPreviewProps {
   node: MapNodeData;
@@ -44,12 +45,15 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
     : 0;
 
   const isCleared = node.state === "cleared" || node.state === "visited";
+  const passiveMutatorId = settings?.passiveMutatorId ?? 0;
+  const { data: passiveMutator } = useMutatorDef(passiveMutatorId);
+  const starModifier = passiveMutator?.starThresholdModifier ?? 128;
 
   // Contract data = authoritative for current playing level
   const useContractData = gameLevel && node.contractLevel === gameLevel.level;
 
   // Ranges from settings (always available)
-  const ranges = getLevelRanges(levelNum, settings);
+  const ranges = getLevelRanges(levelNum, settings, starModifier);
 
   // Exact values when we have contract data or seeded prediction
   // For cleared levels, replay gets a fresh seed — always show ranges
@@ -66,7 +70,6 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
     [
       { type: gameLevel!.constraintType, value: gameLevel!.constraintValue, count: gameLevel!.constraintCount },
       { type: gameLevel!.constraint2Type, value: gameLevel!.constraint2Value, count: gameLevel!.constraint2Count },
-      { type: gameLevel!.constraint3Type, value: gameLevel!.constraint3Value, count: gameLevel!.constraint3Count },
     ].forEach(({ type, value, count }) => {
       if (type !== ConstraintType.None) constraints.push(Constraint.fromContractValues(type, value, count).getDescription());
     });

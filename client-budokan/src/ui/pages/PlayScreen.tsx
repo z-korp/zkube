@@ -80,9 +80,6 @@ const PlayScreen: React.FC = () => {
         constraint2Type: fallback.constraint2.constraintType,
         constraint2Value: fallback.constraint2.value,
         constraint2Count: fallback.constraint2.requiredCount,
-        constraint3Type: ConstraintType.None,
-        constraint3Value: 0,
-        constraint3Count: 0,
         mutatorId: 0,
         star3Threshold: fallback.star3Threshold,
         star2Threshold: fallback.star2Threshold,
@@ -414,7 +411,6 @@ const PlayScreen: React.FC = () => {
           combo={game.isOver() ? 0 : game.combo}
           constraintProgress={game.constraintProgress}
           constraint2Progress={game.constraint2Progress}
-          constraint3Progress={0}
           bonusUsedThisLevel={false}
           gameLevel={effectiveGameLevel}
           activeMutatorId={game.activeMutatorId}

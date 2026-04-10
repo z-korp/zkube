@@ -1,12 +1,11 @@
 /// Constraint types for the level system
 /// Constraints are level-specific objectives that must be met to complete a level
 ///
-/// 5 constraint types (0-4):
+/// 4 constraint types (0-3):
 /// - None: No constraint
 /// - ComboLines: Clear X lines in a single move, Y times
 /// - BreakBlocks: Destroy X blocks of a specific size, accumulating count
 /// - ComboStreak: Reach a combo of X (one-shot: progress=1 once triggered)
-/// - KeepGridBelow: Keep grid below X filled rows (boss-only, fail-on-breach)
 
 #[derive(Copy, Drop, Serde, PartialEq, Introspect, Debug)]
 pub enum ConstraintType {
@@ -21,8 +20,6 @@ pub enum ConstraintType {
     /// Must achieve a combo of at least X lines in a single level
     /// value = combo_target, required_count = 1 (one-shot)
     ComboStreak,
-    /// Must keep grid below X filled rows (boss-only, fail-on-breach)
-    KeepGridBelow,
 }
 
 /// A level constraint with its parameters
@@ -35,14 +32,12 @@ pub struct LevelConstraint {
     /// - BreakBlocks: block size to target (1-4)
     /// - ComboStreak: combo target to reach
     /// - None: 0
-    /// - KeepGridBelow: exclusive filled-row cap (must stay below this many rows)
     pub value: u8,
     /// Meaning varies by type:
     /// - ComboLines: how many times to achieve it
     /// - BreakBlocks: total blocks to destroy
     /// - ComboStreak: 1 (always one-shot)
     /// - None: 0
-    /// - KeepGridBelow: 1 (unused by evaluation, kept for consistency)
     pub required_count: u8,
 }
 
@@ -113,27 +108,6 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
         }
     }
 
-    /// Create a KeepGridBelow constraint with an exclusive filled-row cap.
-    /// Example: max_rows_exclusive = 8 means the grid must stay below 8 filled rows.
-    #[inline(always)]
-    fn keep_grid_below_with_cap(max_rows_exclusive: u8) -> LevelConstraint {
-        let cap = if max_rows_exclusive < 1 {
-            1
-        } else {
-            max_rows_exclusive
-        };
-        LevelConstraint {
-            constraint_type: ConstraintType::KeepGridBelow, value: cap, required_count: 1,
-        }
-    }
-
-    /// Create a default KeepGridBelow constraint.
-    /// Default cap is 8 filled rows (exclusive).
-    #[inline(always)]
-    fn keep_grid_below() -> LevelConstraint {
-        Self::keep_grid_below_with_cap(8)
-    }
-
     /// Check if constraint is satisfied
     /// - progress: current accumulated progress
     /// - bonus_used: whether any bonus was used this level
@@ -145,7 +119,6 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
             ConstraintType::ComboLines => progress >= self.required_count,
             ConstraintType::BreakBlocks => progress >= self.required_count,
             ConstraintType::ComboStreak => progress >= 1,
-            ConstraintType::KeepGridBelow => progress == 0,
         }
     }
 
@@ -194,30 +167,6 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
                     0
                 }
             },
-            ConstraintType::KeepGridBelow => {
-                // Violation flag mode for "keep grid below cap".
-                // progress: 0 = still valid, 1 = breached at least once.
-                // value stores the exclusive row cap (e.g. 8 means rows_filled_after must be <= 7).
-                if current_progress >= 1 {
-                    1
-                } else {
-                    let rows_filled_after: u8 = if ctx.grid_is_empty {
-                        0
-                    } else {
-                        ctx.highest_row_after + 1
-                    };
-                    let max_rows_exclusive: u8 = if self.value == 0 {
-                        1
-                    } else {
-                        self.value
-                    };
-                    if rows_filled_after >= max_rows_exclusive {
-                        1
-                    } else {
-                        0
-                    }
-                }
-            },
         }
     }
 
@@ -228,7 +177,6 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
             ConstraintType::ComboLines => 'COMBO_LINES',
             ConstraintType::BreakBlocks => 'BREAK_BLOCKS',
             ConstraintType::ComboStreak => 'COMBO_STREAK',
-            ConstraintType::KeepGridBelow => 'KEEP_GRID_BELOW',
         }
     }
 
@@ -238,33 +186,25 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
         self.constraint_type == ConstraintType::BreakBlocks
     }
 
-    /// Check if this constraint is a boss-only type
-    #[inline(always)]
-    fn is_boss_only(self: LevelConstraint) -> bool {
-        self.constraint_type == ConstraintType::KeepGridBelow
-    }
 }
 
 /// Check if ANY of the given constraints require BreakBlocks tracking
 pub fn any_needs_break_blocks(
-    c1: LevelConstraint, c2: LevelConstraint, c3: LevelConstraint,
+    c1: LevelConstraint, c2: LevelConstraint,
 ) -> bool {
     c1.needs_break_blocks_tracking()
         || c2.needs_break_blocks_tracking()
-        || c3.needs_break_blocks_tracking()
 }
 
 /// Get the target block size for BreakBlocks from up to 3 constraints.
 /// Returns 0 if no BreakBlocks constraint is active.
 pub fn get_break_blocks_target_size(
-    c1: LevelConstraint, c2: LevelConstraint, c3: LevelConstraint,
+    c1: LevelConstraint, c2: LevelConstraint,
 ) -> u8 {
     if c1.needs_break_blocks_tracking() {
         c1.value
     } else if c2.needs_break_blocks_tracking() {
         c2.value
-    } else if c3.needs_break_blocks_tracking() {
-        c3.value
     } else {
         0
     }
@@ -279,7 +219,6 @@ impl ConstraintTypeIntoU8 of Into<ConstraintType, u8> {
             ConstraintType::ComboLines => 1,
             ConstraintType::BreakBlocks => 2,
             ConstraintType::ComboStreak => 3,
-            ConstraintType::KeepGridBelow => 4,
         }
     }
 }
@@ -292,7 +231,6 @@ impl U8IntoConstraintType of Into<u8, ConstraintType> {
             1 => ConstraintType::ComboLines,
             2 => ConstraintType::BreakBlocks,
             3 => ConstraintType::ComboStreak,
-            4 => ConstraintType::KeepGridBelow,
             _ => ConstraintType::None,
         }
     }
@@ -463,79 +401,26 @@ mod tests {
     }
 
     #[test]
-    fn test_constraint_keep_grid_below() {
-        let constraint = LevelConstraintTrait::keep_grid_below_with_cap(8);
-
-        // Satisfied initially (not breached yet)
-        assert!(constraint.is_satisfied(0, false), "Should be satisfied before breach");
-
-        // 7 filled rows (below cap) keeps it valid
-        let ctx = ConstraintContext {
-            lines_cleared: 5,
-            combo_counter: 0,
-            highest_row_before: 3,
-            highest_row_after: 6,
-            grid_is_empty: false,
-            blocks_destroyed_of_target_size: 0,
-        };
-        let progress = constraint.update_progress(0, ctx);
-        assert!(progress == 0, "Below-cap grid should keep constraint valid");
-
-        // 8 filled rows (at cap) breaches the constraint
-        let ctx2 = ConstraintContext {
-            lines_cleared: 0,
-            combo_counter: 0,
-            highest_row_before: 7,
-            highest_row_after: 7,
-            grid_is_empty: false,
-            blocks_destroyed_of_target_size: 0,
-        };
-        let progress2 = constraint.update_progress(0, ctx2);
-        assert!(progress2 == 1, "At-cap grid should breach");
-
-        // Once breached, it stays breached
-        let ctx3 = ConstraintContext {
-            lines_cleared: 0,
-            combo_counter: 0,
-            highest_row_before: 7,
-            highest_row_after: 2,
-            grid_is_empty: false,
-            blocks_destroyed_of_target_size: 0,
-        };
-        let progress3 = constraint.update_progress(progress2, ctx3);
-        assert!(progress3 == 1, "Breach should be sticky");
-
-        assert!(!constraint.is_satisfied(1, false), "Breached keep-grid-below should fail");
-    }
-
-    #[test]
     fn test_constraint_type_conversion() {
         let none: u8 = ConstraintType::None.into();
         let clear: u8 = ConstraintType::ComboLines.into();
         let break_b: u8 = ConstraintType::BreakBlocks.into();
         let combo: u8 = ConstraintType::ComboStreak.into();
-        let keep_grid_below: u8 = ConstraintType::KeepGridBelow.into();
 
         assert!(none == 0, "None should be 0");
         assert!(clear == 1, "ComboLines should be 1");
         assert!(break_b == 2, "BreakBlocks should be 2");
         assert!(combo == 3, "ComboStreak should be 3");
-        assert!(keep_grid_below == 4, "KeepGridBelow should be 4");
 
         let none_back: ConstraintType = 0_u8.into();
         let clear_back: ConstraintType = 1_u8.into();
         let break_back: ConstraintType = 2_u8.into();
         let combo_back: ConstraintType = 3_u8.into();
-        let keep_grid_below_back: ConstraintType = 4_u8.into();
 
         assert!(none_back == ConstraintType::None, "Should convert back to None");
         assert!(clear_back == ConstraintType::ComboLines, "Should convert back to ComboLines");
         assert!(break_back == ConstraintType::BreakBlocks, "Should convert back to BreakBlocks");
         assert!(combo_back == ConstraintType::ComboStreak, "Should convert back to ComboStreak");
-        assert!(
-            keep_grid_below_back == ConstraintType::KeepGridBelow,
-            "Should convert back to KeepGridBelow",
-        );
     }
 
     #[test]
@@ -549,21 +434,4 @@ mod tests {
         assert!(ctx.blocks_destroyed_of_target_size == 0, "Should be 0");
     }
 
-    #[test]
-    fn test_boss_only_check() {
-        assert!(!LevelConstraintTrait::none().is_boss_only(), "None is not boss-only");
-        assert!(
-            !LevelConstraintTrait::combo_lines(3, 2).is_boss_only(), "ComboLines is not boss-only",
-        );
-        assert!(
-            !LevelConstraintTrait::break_blocks(2, 5).is_boss_only(),
-            "BreakBlocks is not boss-only",
-        );
-        assert!(
-            !LevelConstraintTrait::combo_streak(5).is_boss_only(), "ComboStreak is not boss-only",
-        );
-        assert!(
-            LevelConstraintTrait::keep_grid_below().is_boss_only(), "KeepGridBelow is boss-only",
-        );
-    }
 }

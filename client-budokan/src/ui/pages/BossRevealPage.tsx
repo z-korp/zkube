@@ -36,12 +36,6 @@ function toConstraintDisplay(type: ConstraintType, value: number, count: number)
         title: `Reach ${value}x combo streak`,
         description: "Maintain momentum with precise consecutive clears",
       };
-    case ConstraintType.KeepGridBelow:
-      return {
-        icon: "/assets/common/constraints/constraint-keep-grid-below.png",
-        title: `Keep grid below ${value} rows`,
-        description: "Control vertical growth and never let the board overflow",
-      };
     default:
       return {
         icon: "/assets/common/constraints/constraint-clear-lines.png",
@@ -81,9 +75,9 @@ const BossRevealPage: React.FC = () => {
           description: "Stack line chains to survive the opening barrage",
         },
         {
-          icon: "/assets/common/constraints/constraint-keep-grid-below.png",
-          title: "Grid control",
-          description: "Keep your board stable while damage ramps up",
+          icon: "/assets/common/constraints/constraint-break-blocks.png",
+          title: "Block destruction",
+          description: "Target specific block sizes under intense pressure",
         },
       ];
     }
@@ -91,10 +85,8 @@ const BossRevealPage: React.FC = () => {
     const rows = [
       { type: gameLevel.constraintType, value: gameLevel.constraintValue, count: gameLevel.constraintCount },
       { type: gameLevel.constraint2Type, value: gameLevel.constraint2Value, count: gameLevel.constraint2Count },
-      { type: gameLevel.constraint3Type, value: gameLevel.constraint3Value, count: gameLevel.constraint3Count },
     ]
       .filter((c) => c.type !== ConstraintType.None)
-      .slice(0, 2)
       .map((c) => toConstraintDisplay(c.type, c.value, c.count));
 
     return rows.length ? rows : [toConstraintDisplay(ConstraintType.ComboLines, 3, 2)];

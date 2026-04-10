@@ -33,8 +33,8 @@
   },
   "contracts": [
     {
-      "address": "0x178fc6bf6f526f3ccd2b788aefb17a7c5ea8e496cdd2cc3a88851d2ba40518d",
-      "class_hash": "0x152b2f31b20a8ab7c73ed56eb361ec3f785c0882b2498b8425c7b155ff8f805",
+      "address": "0x640e4add03fab40f5bbd73cc3339d763f28a9a2b3c9a9c6f2e22d2b777abf74",
+      "class_hash": "0x3c5bed0823477774485a7225c321c06cb21a003e6e279a1717752f67c09103",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
         "0x06e5f1a7bf27f6075006ea9835d6614c7889779e9db19d5edf5c7e894c77868b",
@@ -61,8 +61,8 @@
       ]
     },
     {
-      "address": "0x3f2df9c8102a83b5508c15b1233201f12c8ba15c269ad35fb7f0b8dd69d45eb",
-      "class_hash": "0x395f0c64c9e5c7084bfced2bb15de758229c81d1a165c7937bd4991fc33d288",
+      "address": "0x31137492aa96b0d56379c3b14910decf9e8c6a91d96680f13f7cb1568dc0678",
+      "class_hash": "0x4fc62653c70e3c6733ac82cdcab321961b7fa36ad083e0c10954a3dedd90e30",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
       ],
@@ -71,18 +71,18 @@
       "systems": [
         "dojo_init",
         "start_daily_game",
+        "replay_daily_level",
         "settle_challenge",
-        "submit_result",
         "settle_weekly_endless",
         "upgrade"
       ]
     },
     {
-      "address": "0x6cae91f0792875bda58c9458173227cc22c2f05cb2c5a3f2243926726592ea4",
-      "class_hash": "0x4eb335921eae441912d72908e7250269e844c21db23834425185121ca1e62e7",
+      "address": "0x5e02a1f750b3fa0e835d454705b664ecb23166cdb49459b1c96c1e3eaf9a2f4",
+      "class_hash": "0x185496085d8f5a83b27ab62fc8448da16d3a2aabe73ae8d77876e9afef82a5f",
       "init_calldata": [
         "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec",
-        "0x013e661f437432e76575402d45f0b523f01246b211fcc015aab2dc20b6b43a5c",
+        "0x02da434b91623ae07cb7f71a774687d22d5e69e362b79961854b0ea360650056",
         "0x1",
         "0x0"
       ],
@@ -98,8 +98,8 @@
       ]
     },
     {
-      "address": "0x62c0bdf3e4b17ff665dee42ec8fa8db60b79af8997147b77fd78569d1d45067",
-      "class_hash": "0xdd041cab9d9683e658b8e9a02ca174fc802fa721a9b1b59aed50306ce06dad",
+      "address": "0x55968098229ce2b50e71084ce1edf1356b644972f6b63fb59a400a9b90474dd",
+      "class_hash": "0x639aa4109c48b30cf651fb127a214bb6491b39ff7f0a9a1ffe0304ce4655b5f",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-grid_system",
       "selector": "0x7bee05eebc6523e85f1898631b25ce16f91b107eb2873ec0234680496839ce7",
@@ -111,8 +111,8 @@
       ]
     },
     {
-      "address": "0x56556b22426c80080200869eb8bd023113583e8bdae1d54ca220f50bea01f47",
-      "class_hash": "0x39a677e6f46d55242f5872acd79eab5ca2539c45ed71980f6fd0097c2ac88ec",
+      "address": "0x6529fd7f2f9fb974b37372eca5e8b9288b67cbe46791821bc6e702fee1ff150",
+      "class_hash": "0x522989433e228b77e1edf47860b339995f4bf095f34dce0409aaf2155e8312c",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-level_system",
       "selector": "0x1b08ed4c0314aa961a2fc61197e117a7e8b346cba235ba64b82c70638171440",
@@ -126,8 +126,8 @@
       ]
     },
     {
-      "address": "0x3d45d4233fcdb5dc6b0b0b57a1427fba23b326ce19ec1664ee08e804432aa06",
-      "class_hash": "0x67934e9250fa4575f6c999b9b9b818658f87340cc048a33afb2939c83c91643",
+      "address": "0x5580afcc9152c1dc858d8aa7d350ad849a182c06f18114a43061379bc779a8d",
+      "class_hash": "0x5a013579ca3686ea52767bc08edabcc4cbf023697b0f17f104db423a30fc012",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-move_system",
       "selector": "0x23c804211898ab98622b1199ca48308ae9539b9271b1b59e07f12793205883a",
@@ -137,8 +137,8 @@
       ]
     },
     {
-      "address": "0x1f928f7c0713c8f4a51918f28a2bada5cee6f28a75b9dd9077df0227d4e09b5",
-      "class_hash": "0xe657b94c93597addb180e18419c916fb050ac1e256aac5a925f967ec6f789d",
+      "address": "0x6a30d2dcd60aeac87c8cc0a30aa7bd26b07e06243085850960a7943554fa93b",
+      "class_hash": "0x6f6f17256ef22173ac4d86ca028c8031c8fe7b7de584f103d053ce08e9dcd2e",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-progress_system",
       "selector": "0x1c30136162078a327946ba1fbf968d1ed050182e82dc3ce91d716d199a759a3",
@@ -152,7 +152,7 @@
       ]
     },
     {
-      "address": "0x3d5e2a76681bd76ed1ec27049a645b070ccffa86c1b7fce6ca3e2decf7f3855",
+      "address": "0x4fbc9e450aa85f167312c80b2f73a04b717092b33eb93b78e1be57742bb9a87",
       "class_hash": "0x42d5faaa755f7d9972bfb4fbc5933fd50df5530a0f4231f7c73e306a759e4ba",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-renderer_systems",
@@ -162,8 +162,8 @@
       ]
     },
     {
-      "address": "0x4e02ec4c099130ecb5f99836996d5fb69552d4529290e7340346c5ce3bb7b38",
-      "class_hash": "0x45826105b549272563c0ce0e11069528469174385420f05c889d25c0b890d04",
+      "address": "0x71b7285475e6c8aa786b82f2a057d72065b6f11ac4a019984afdcf324fdd4ab",
+      "class_hash": "0x2a8c805339a46d953f0d497d4f65a60ee0508ab516fc214ab529342b058050c",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-story_system",
       "selector": "0x5a41f5aefd500f750fc3a3633da16042691f5ec5462b5c73d5404107acb52a4",
@@ -296,9 +296,19 @@
           "name": "challenge_id",
           "type": "core::integer::u32",
           "key": false
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "is_replay",
+          "type": "core::bool",
+          "key": false
         }
       ],
-      "class_hash": "0x46e33d8448e1a45d7f01fe2d458065444fd77b642cdd5b1a8b624c3ade21808",
+      "class_hash": "0x6184a968cc2a87350864a81b734f6228a7f10d005ed001a6b3f24b3ab10805c",
       "tag": "zkube_v2_1_1-ActiveDailyAttempt",
       "selector": "0x6c0a9423ff453dd7d33bc050c008301b7076d09b5b0afe8db4a69df5a8186c5"
     },
@@ -409,9 +419,19 @@
           "name": "challenge_id",
           "type": "core::integer::u32",
           "key": false
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "is_replay",
+          "type": "core::bool",
+          "key": false
         }
       ],
-      "class_hash": "0x5e6cb489c5e58ee7fef48b36ec663c5ecb47a331c4f7705a4e88eb79b17cf75",
+      "class_hash": "0x5ef2ea09a8797b0433f11e00db8014fce984e7e663a49e2a645e35104b32249",
       "tag": "zkube_v2_1_1-DailyAttempt",
       "selector": "0x140e59bcd0dfaa28dd27c6ba98935cf4b1fdb5f36b8f98968faa59783573757"
     },
@@ -490,28 +510,28 @@
           "key": true
         },
         {
-          "name": "attempts",
+          "name": "level_stars",
           "type": "core::integer::u32",
           "key": false
         },
         {
-          "name": "best_score",
-          "type": "core::integer::u32",
-          "key": false
-        },
-        {
-          "name": "best_level",
+          "name": "total_stars",
           "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "best_stars",
+          "name": "highest_cleared",
           "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "best_game_id",
-          "type": "core::felt252",
+          "name": "last_star_time",
+          "type": "core::integer::u64",
+          "key": false
+        },
+        {
+          "name": "joined_at",
+          "type": "core::integer::u64",
           "key": false
         },
         {
@@ -525,7 +545,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x4aec2eb882b96ccc35194caf86dbac3a9344b3535177012ed9c056a4c213ced",
+      "class_hash": "0x59ffc922d69ab834b4948551d7b266286e9628a05c12e875266cea62a434a0",
       "tag": "zkube_v2_1_1-DailyEntry",
       "selector": "0xb3258f2505f1070d565092e2a9c02cc556917dfcd8c11dc06cdd5cf296fb7"
     },
@@ -656,27 +676,12 @@
           "key": false
         },
         {
-          "name": "constraint3_type",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "constraint3_value",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "constraint3_count",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
           "name": "mutator_id",
           "type": "core::integer::u8",
           "key": false
         }
       ],
-      "class_hash": "0x760d381dc4133d1dfe9c32d1679034a9f60541342372c5af4f0d9a6f84102da",
+      "class_hash": "0x3f708bcf39c20f3aa0fed4401f7a3635bdc0f7492ea59d48060faba14005bcc",
       "tag": "zkube_v2_1_1-GameLevel",
       "selector": "0x33fc42284f9779bb7e3af4defab4ba22378e409089922e9edace4ba24f5dbf1"
     },
@@ -790,11 +795,6 @@
           "key": false
         },
         {
-          "name": "constraint_chances",
-          "type": "core::integer::u32",
-          "key": false
-        },
-        {
           "name": "veryeasy_size1_weight",
           "type": "core::integer::u8",
           "key": false
@@ -875,11 +875,6 @@
           "key": false
         },
         {
-          "name": "allowed_mutators",
-          "type": "core::integer::u32",
-          "key": false
-        },
-        {
           "name": "endless_difficulty_thresholds",
           "type": "core::felt252",
           "key": false
@@ -910,7 +905,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x649ad6c2e3d6e1b86d3f3304829ecbbe98971fd18279f5d856380a6a2d3a353",
+      "class_hash": "0x6b46f8d625a43fad90d817c03ccd87b0efe10f230ddbddaed8cca6dd524c0b4",
       "tag": "zkube_v2_1_1-GameSettings",
       "selector": "0x7b0d653149d7bca0c09b0394971a4f966cdbde0c5159451d3a3955a9b6570b7"
     },
@@ -982,11 +977,6 @@
           "name": "mutator_id",
           "type": "core::integer::u8",
           "key": true
-        },
-        {
-          "name": "name",
-          "type": "core::felt252",
-          "key": false
         },
         {
           "name": "zone_id",
@@ -1099,7 +1089,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x4bbe395a6ffd0fd70d9b3003ecad34f11cee08a715553df7cf55a6b36f37915",
+      "class_hash": "0x417269c4d18bb5772282f554d3f1bc75cbad6ea0562d4c2f20bf983a80b9c61",
       "tag": "zkube_v2_1_1-MutatorDef",
       "selector": "0x5fd234af1e3a65b33362c091dd31b54bcd70edcbca23edc65658f522e11340"
     },
@@ -1514,7 +1504,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x7fd65bc87eda9fdfc7f23fd4fea15041a71165768f5fcac569ae08a8a37382d",
+      "class_hash": "0x4158ae75b5d9bb7151bf3fb529bf1865d61243f11a894508826e186ac67574f",
       "tag": "zkube_v2_1_1-ConstraintProgress",
       "selector": "0x7c8a7c4a10e1f57eabe09e4268a5c6bbcd5b0b55e73e4df8a964f9a24080703"
     },
@@ -1598,7 +1588,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x1cd85d405c01fb5833dc5b5510ad4d088e76ca7cfd51272466a40e9b2c0b33e",
+      "class_hash": "0x391ccb9a5b569fefad7b58306b1c181381cf9c12ceae0d9ba519382851c8bb5",
       "tag": "zkube_v2_1_1-LevelStarted",
       "selector": "0x447c64e11fc222229a994c930a622c7ff8e3894f9f38ba86e0db4915b26b9b5"
     },
@@ -5972,10 +5962,6 @@
           "type": "core::integer::u64"
         },
         {
-          "name": "constraint_chances",
-          "type": "core::integer::u32"
-        },
-        {
           "name": "veryeasy_size1_weight",
           "type": "core::integer::u8"
         },
@@ -6038,10 +6024,6 @@
         {
           "name": "level_cap",
           "type": "core::integer::u8"
-        },
-        {
-          "name": "allowed_mutators",
-          "type": "core::integer::u32"
         },
         {
           "name": "endless_difficulty_thresholds",
@@ -6230,10 +6212,6 @@
           "type": "core::integer::u64"
         },
         {
-          "name": "constraint_chances",
-          "type": "core::integer::u32"
-        },
-        {
           "name": "veryeasy_size1_weight",
           "type": "core::integer::u8"
         },
@@ -6296,10 +6274,6 @@
         {
           "name": "level_cap",
           "type": "core::integer::u8"
-        },
-        {
-          "name": "allowed_mutators",
-          "type": "core::integer::u32"
         },
         {
           "name": "endless_difficulty_thresholds",
@@ -6442,6 +6416,14 @@
         {
           "name": "challenge_id",
           "type": "core::integer::u32"
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "is_replay",
+          "type": "core::bool"
         }
       ]
     },
@@ -6456,6 +6438,14 @@
         {
           "name": "challenge_id",
           "type": "core::integer::u32"
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "is_replay",
+          "type": "core::bool"
         }
       ]
     },
@@ -6478,6 +6468,14 @@
         {
           "name": "challenge_id",
           "type": "core::integer::u32"
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "is_replay",
+          "type": "core::bool"
         }
       ]
     },
@@ -6496,6 +6494,14 @@
         {
           "name": "challenge_id",
           "type": "core::integer::u32"
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "is_replay",
+          "type": "core::bool"
         }
       ]
     },
@@ -6608,24 +6614,24 @@
           "type": "core::starknet::contract_address::ContractAddress"
         },
         {
-          "name": "attempts",
+          "name": "level_stars",
           "type": "core::integer::u32"
         },
         {
-          "name": "best_score",
-          "type": "core::integer::u32"
-        },
-        {
-          "name": "best_level",
+          "name": "total_stars",
           "type": "core::integer::u8"
         },
         {
-          "name": "best_stars",
+          "name": "highest_cleared",
           "type": "core::integer::u8"
         },
         {
-          "name": "best_game_id",
-          "type": "core::felt252"
+          "name": "last_star_time",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "joined_at",
+          "type": "core::integer::u64"
         },
         {
           "name": "rank",
@@ -6642,24 +6648,24 @@
       "name": "zkube::models::daily::DailyEntryValue",
       "members": [
         {
-          "name": "attempts",
+          "name": "level_stars",
           "type": "core::integer::u32"
         },
         {
-          "name": "best_score",
-          "type": "core::integer::u32"
-        },
-        {
-          "name": "best_level",
+          "name": "total_stars",
           "type": "core::integer::u8"
         },
         {
-          "name": "best_stars",
+          "name": "highest_cleared",
           "type": "core::integer::u8"
         },
         {
-          "name": "best_game_id",
-          "type": "core::felt252"
+          "name": "last_star_time",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "joined_at",
+          "type": "core::integer::u64"
         },
         {
           "name": "rank",
@@ -6850,18 +6856,6 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "constraint3_type",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "constraint3_value",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "constraint3_count",
-          "type": "core::integer::u8"
-        },
-        {
           "name": "mutator_id",
           "type": "core::integer::u8"
         }
@@ -6909,18 +6903,6 @@
         },
         {
           "name": "constraint2_count",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "constraint3_type",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "constraint3_value",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "constraint3_count",
           "type": "core::integer::u8"
         },
         {
@@ -7034,10 +7016,6 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "name",
-          "type": "core::felt252"
-        },
-        {
           "name": "zone_id",
           "type": "core::integer::u8"
         },
@@ -7131,10 +7109,6 @@
       "type": "struct",
       "name": "zkube::models::mutator::MutatorDefValue",
       "members": [
-        {
-          "name": "name",
-          "type": "core::felt252"
-        },
         {
           "name": "zone_id",
           "type": "core::integer::u8"
@@ -7660,10 +7634,6 @@
               "type": "core::integer::u64"
             },
             {
-              "name": "constraint_chances",
-              "type": "core::integer::u32"
-            },
-            {
               "name": "veryeasy_size1_weight",
               "type": "core::integer::u8"
             },
@@ -8060,6 +8030,22 @@
         },
         {
           "type": "function",
+          "name": "replay_daily_level",
+          "inputs": [
+            {
+              "name": "level",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::felt252"
+            }
+          ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
           "name": "settle_challenge",
           "inputs": [
             {
@@ -8069,22 +8055,6 @@
             {
               "name": "ranked_players",
               "type": "core::array::Span::<core::starknet::contract_address::ContractAddress>"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "submit_result",
-          "inputs": [
-            {
-              "name": "challenge_id",
-              "type": "core::integer::u32"
-            },
-            {
-              "name": "game_id",
-              "type": "core::felt252"
             }
           ],
           "outputs": [],
@@ -8794,10 +8764,6 @@
         },
         {
           "name": "ComboStreak",
-          "type": "()"
-        },
-        {
-          "name": "KeepGridBelow",
           "type": "()"
         }
       ]

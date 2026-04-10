@@ -4,7 +4,7 @@ description = "Reversed tetris fully onchain."
 cover_uri = "file://assets/cover.png"
 icon_uri = "file://assets/icon.png"
 website = "https://app.zkube.xyz"
-seed = "zkube_2_2"
+seed = "zkube_2_1"
 
 [world.socials]
 x = "https://x.com/zKube_game"
@@ -18,6 +18,7 @@ default = "zkube_v2_1_1"
 rpc_url = "https://api.cartridge.gg/x/zkube-djizus-slot/katana"
 account_address = "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec"
 private_key = "0xc5b2fcab997346f3ea1c00b002ecf6f382c5f9c9659a3894eb783c5320f912"
+world_address = "0x04315e0cdc96d922fa98b44ed1bef3f230369c5b3bbf69f7a4396c1e2f2d6266"
 # world_address is set after migration (removed for fresh deploy due to packed model changes)
 
 [writers]
@@ -36,7 +37,7 @@ private_key = "0xc5b2fcab997346f3ea1c00b002ecf6f382c5f9c9659a3894eb783c5320f912"
 [init_call_args]
 "zkube_v2_1_1-game_system" = [
     "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec", # creator
-    "0x013e661f437432e76575402d45f0b523f01246b211fcc015aab2dc20b6b43a5c", # denshokan
+    "0x02da434b91623ae07cb7f71a774687d22d5e69e362b79961854b0ea360650056", # denshokan
     "0x1",        # renderer_address: Option::None — fallback to DNS
     "0x0",        # vrf_address: no VRF on katana
 ]

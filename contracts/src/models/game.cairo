@@ -69,10 +69,6 @@ pub struct GameLevel {
     pub constraint2_type: u8,
     pub constraint2_value: u8,
     pub constraint2_count: u8,
-    // Tertiary constraint (boss levels 40/50)
-    pub constraint3_type: u8,
-    pub constraint3_value: u8,
-    pub constraint3_count: u8,
     // Mutator
     pub mutator_id: u8 // Active mutator for this level (0=none)
 }
@@ -94,9 +90,6 @@ pub impl GameLevelImpl of GameLevelTrait {
             constraint2_type: config.constraint_2.constraint_type.into(),
             constraint2_value: config.constraint_2.value,
             constraint2_count: config.constraint_2.required_count,
-            constraint3_type: config.constraint_3.constraint_type.into(),
-            constraint3_value: config.constraint_3.value,
-            constraint3_count: config.constraint_3.required_count,
             mutator_id: 0,
         }
     }

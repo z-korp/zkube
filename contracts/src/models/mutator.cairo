@@ -17,7 +17,6 @@
 pub struct MutatorDef {
     #[key]
     pub mutator_id: u8,
-    pub name: felt252,
     pub zone_id: u8,
     // === Stat Modifier Fields (passive mutator) ===
     pub moves_modifier: u8,
@@ -50,8 +49,7 @@ pub struct MutatorDef {
 pub impl MutatorDefImpl of MutatorDefTrait {
     #[inline(always)]
     fn exists(self: @MutatorDef) -> bool {
-        *self.name != 0
-            || *self.zone_id != 0
+        *self.zone_id != 0
             || *self.moves_modifier != 0
             || *self.ratio_modifier != 0
             || *self.difficulty_offset != 0

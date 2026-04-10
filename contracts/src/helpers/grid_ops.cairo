@@ -60,15 +60,14 @@ pub fn execute_move_inline(
         value: game_level.constraint2_value,
         required_count: game_level.constraint2_count,
     };
-    let constraint_3 = LevelConstraintTrait::none();
 
     // Compute highest occupied row BEFORE the move (for constraint context)
     let highest_row_before = highest_occupied_row(game.blocks);
 
     // Check if we need to track BreakBlocks (expensive — only when active)
-    let track_break_blocks = any_needs_break_blocks(constraint, constraint_2, constraint_3);
+    let track_break_blocks = any_needs_break_blocks(constraint, constraint_2);
     let break_target_size = if track_break_blocks {
-        get_break_blocks_target_size(constraint, constraint_2, constraint_3)
+        get_break_blocks_target_size(constraint, constraint_2)
     } else {
         0
     };

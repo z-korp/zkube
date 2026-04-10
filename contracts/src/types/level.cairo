@@ -19,8 +19,6 @@ pub struct LevelConfig {
     pub constraint: LevelConstraint,
     /// Secondary constraint (can be None for single constraint levels)
     pub constraint_2: LevelConstraint,
-    /// Tertiary constraint (can be None; only used on triple-constraint boss levels 40/50)
-    pub constraint_3: LevelConstraint,
 }
 
 #[generate_trait]
@@ -34,13 +32,11 @@ pub impl LevelConfigImpl of LevelConfigTrait {
         current_score: u16,
         constraint_progress: u8,
         constraint_2_progress: u8,
-        constraint_3_progress: u8,
         bonus_used: bool,
     ) -> bool {
         current_score >= self.points_required
             && self.constraint.is_satisfied(constraint_progress, bonus_used)
             && self.constraint_2.is_satisfied(constraint_2_progress, bonus_used)
-            && self.constraint_3.is_satisfied(constraint_3_progress, bonus_used)
     }
 
     /// Check if level failed (exceeded move limit without completing)
@@ -51,7 +47,6 @@ pub impl LevelConfigImpl of LevelConfigTrait {
         current_moves: u16,
         constraint_progress: u8,
         constraint_2_progress: u8,
-        constraint_3_progress: u8,
         bonus_used: bool,
     ) -> bool {
         current_moves >= self.max_moves
@@ -60,7 +55,6 @@ pub impl LevelConfigImpl of LevelConfigTrait {
                     current_score,
                     constraint_progress,
                     constraint_2_progress,
-                    constraint_3_progress,
                     bonus_used,
                 )
     }
@@ -101,7 +95,6 @@ mod tests {
             difficulty: Difficulty::Medium,
             constraint: LevelConstraintTrait::combo_lines(2, 1),
             constraint_2: LevelConstraintTrait::none(), // No secondary constraint
-            constraint_3: LevelConstraintTrait::none() // No tertiary constraint
         }
     }
 
@@ -111,17 +104,17 @@ mod tests {
     fn test_is_complete() {
         let config = create_test_config();
 
-        // Not complete: score too low (constraint_2/3_progress=0 since they are None)
-        assert!(!config.is_complete(40, 1, 0, 0, false), "Should not be complete with low score");
+        // Not complete: score too low (constraint_2_progress=0 since it is None)
+        assert!(!config.is_complete(40, 1, 0, false), "Should not be complete with low score");
 
         // Not complete: constraint not met
         assert!(
-            !config.is_complete(50, 0, 0, 0, false), "Should not be complete without constraint",
+            !config.is_complete(50, 0, 0, false), "Should not be complete without constraint",
         );
 
         // Complete: score met and constraint met
-        assert!(config.is_complete(50, 1, 0, 0, false), "Should be complete");
-        assert!(config.is_complete(60, 2, 0, 0, false), "Should be complete with higher score");
+        assert!(config.is_complete(50, 1, 0, false), "Should be complete");
+        assert!(config.is_complete(60, 2, 0, false), "Should be complete with higher score");
     }
 
     #[test]
@@ -129,14 +122,14 @@ mod tests {
         let config = create_test_config();
 
         // Not failed: still have moves
-        assert!(!config.is_failed(40, 25, 0, 0, 0, false), "Should not be failed with moves left");
+        assert!(!config.is_failed(40, 25, 0, 0, false), "Should not be failed with moves left");
 
         // Not failed: completed even at move limit
-        assert!(!config.is_failed(50, 30, 1, 0, 0, false), "Should not be failed if completed");
+        assert!(!config.is_failed(50, 30, 1, 0, false), "Should not be failed if completed");
 
         // Failed: move limit reached without completing
-        assert!(config.is_failed(40, 30, 0, 0, 0, false), "Should be failed at move limit");
-        assert!(config.is_failed(50, 30, 0, 0, 0, false), "Should be failed - constraint not met");
+        assert!(config.is_failed(40, 30, 0, 0, false), "Should be failed at move limit");
+        assert!(config.is_failed(50, 30, 0, 0, false), "Should be failed - constraint not met");
     }
 
     #[test]
@@ -149,66 +142,20 @@ mod tests {
             difficulty: Difficulty::Hard,
             constraint: LevelConstraintTrait::combo_lines(3, 2), // Clear 3+ lines, 2 times
             constraint_2: LevelConstraintTrait::combo_lines(2, 3), // Clear 2+ lines, 3 times
-            constraint_3: LevelConstraintTrait::none(),
         };
 
         // Not complete: first constraint not met
         assert!(
-            !config.is_complete(60, 1, 3, 0, false), "Should not complete - constraint 1 not met",
+            !config.is_complete(60, 1, 3, false), "Should not complete - constraint 1 not met",
         );
 
         // Not complete: second constraint not met
         assert!(
-            !config.is_complete(60, 2, 2, 0, false), "Should not complete - constraint 2 not met",
+            !config.is_complete(60, 2, 2, false), "Should not complete - constraint 2 not met",
         );
 
         // Complete: both constraints met
-        assert!(config.is_complete(60, 2, 3, 0, false), "Should complete with both constraints");
-    }
-
-    #[test]
-    fn test_mixed_constraints() {
-        // ComboLines + KeepGridBelow
-        let config = LevelConfig {
-            level: 25,
-            points_required: 70,
-            max_moves: 40,
-            difficulty: Difficulty::Hard,
-            constraint: LevelConstraintTrait::combo_lines(3, 2),
-            constraint_2: LevelConstraintTrait::keep_grid_below(),
-            constraint_3: LevelConstraintTrait::none(),
-        };
-
-        // Not complete: KeepGridBelow breached
-        assert!(!config.is_complete(70, 2, 1, 0, false), "Should not complete - grid cap breached");
-
-        // Complete: both constraints met (ComboLines satisfied, keep-grid-below not breached)
-        assert!(config.is_complete(70, 2, 0, 0, false), "Should complete with both constraints");
-    }
-
-    #[test]
-    fn test_triple_constraints() {
-        // ComboLines + ComboStreak + KeepGridBelow (boss level 40/50)
-        let config = LevelConfig {
-            level: 40,
-            points_required: 80,
-            max_moves: 50,
-            difficulty: Difficulty::Expert,
-            constraint: LevelConstraintTrait::combo_lines(3, 3),
-            constraint_2: LevelConstraintTrait::combo_streak(5),
-            constraint_3: LevelConstraintTrait::keep_grid_below(),
-        };
-
-        // Not complete: third constraint (KeepGridBelow) failed
-        assert!(!config.is_complete(80, 3, 1, 1, false), "Should not complete - grid cap breached");
-
-        // Not complete: second constraint not met
-        assert!(
-            !config.is_complete(80, 3, 0, 0, false), "Should not complete - combo not achieved",
-        );
-
-        // Complete: all three constraints met
-        assert!(config.is_complete(80, 3, 1, 0, false), "Should complete with triple constraints");
+        assert!(config.is_complete(60, 2, 3, false), "Should complete with both constraints");
     }
 
     #[test]

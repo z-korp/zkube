@@ -12,8 +12,6 @@ export enum ConstraintType {
   BreakBlocks = 2,
   /** Must reach a combo of X (one-shot) */
   ComboStreak = 3,
-  /** Must keep grid below X filled rows (boss-only, fail-on-breach) */
-  KeepGridBelow = 4,
 }
 
 export interface LevelConstraint {
@@ -52,10 +50,6 @@ export class Constraint {
     return new Constraint(ConstraintType.ComboStreak, comboTarget, 1);
   }
 
-  static keepGridBelow(maxRowsExclusive: number): Constraint {
-    return new Constraint(ConstraintType.KeepGridBelow, maxRowsExclusive, 1);
-  }
-
   static fromContractValues(type: number, value: number, count: number): Constraint {
     return new Constraint(type as ConstraintType, value, count);
   }
@@ -70,8 +64,6 @@ export class Constraint {
         return progress >= this.requiredCount;
       case ConstraintType.ComboStreak:
         return progress >= 1;
-      case ConstraintType.KeepGridBelow:
-        return progress === 0;
       default:
         return true;
     }
@@ -87,8 +79,6 @@ export class Constraint {
         return `Break ${this.requiredCount} size-${this.value} blocks`;
       case ConstraintType.ComboStreak:
         return `Reach ${this.value}x combo`;
-      case ConstraintType.KeepGridBelow:
-        return `Keep below ${this.value} rows`;
       default:
         return "Unknown";
     }
@@ -104,8 +94,6 @@ export class Constraint {
         return `Break ${this.requiredCount}x size-${this.value}`;
       case ConstraintType.ComboStreak:
         return `${this.value}x combo`;
-      case ConstraintType.KeepGridBelow:
-        return `Below ${this.value}r`;
       default:
         return "";
     }

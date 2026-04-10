@@ -69,12 +69,6 @@ pub struct GameSettings {
     //   Bits 48-51: veryeasy_min_times (4 bits)
     //   Bits 52-55: master_min_times
     pub constraint_lines_budgets: u64,
-    // constraint_chances (u32): dual_chance(2x8bits) + secondary_no_bonus(2x8bits) = 32 bits
-    //   Bits 0-7:   veryeasy_dual_chance (8 bits, 0-100)
-    //   Bits 8-15:  master_dual_chance
-    //   Bits 16-23: veryeasy_secondary_no_bonus_chance
-    //   Bits 24-31: master_secondary_no_bonus_chance
-    pub constraint_chances: u32,
     // === Block Distribution (scales from VeryEasy to Master, tiers 0-7) ===
     // Weights for each block size (interpolated by difficulty tier)
     // Weights are relative - they get normalized to sum to 100%
@@ -99,8 +93,6 @@ pub struct GameSettings {
     pub mid_level_threshold: u8, // End of "mid" levels (default: 25)
     // === Level Cap ===
     pub level_cap: u8, // Max level for scaling (default: 50)
-    // === Mutator Settings ===
-    pub allowed_mutators: u32, // Bitmask of mutator IDs allowed for this map (default: 0 = none)
     // === Endless Mode Settings ===
     // Packed score thresholds for 8 difficulty tiers (8 × u16 = 128 bits)
     // Tier 0 threshold is always 0 (VeryEasy). Tiers 1-7 packed here.
@@ -151,11 +143,6 @@ pub mod GameSettingsDefaults {
     // Budget system: budget_min derived from budget_max (70% floor)
     pub const VERYEASY_BUDGET_MAX: u8 = 0; // No regular constraints at VeryEasy
     pub const MASTER_BUDGET_MAX: u8 = 80; // Wider ceiling for endgame variety
-    // Constraint chances (kept for packed model layout compatibility, zeroed out)
-    pub const VERYEASY_DUAL_CHANCE: u8 = 0;
-    pub const MASTER_DUAL_CHANCE: u8 = 0;
-    pub const VERYEASY_SECONDARY_NO_BONUS_CHANCE: u8 = 0;
-    pub const MASTER_SECONDARY_NO_BONUS_CHANCE: u8 = 0;
 
     // Pre-packed default values for constraint fields
     // constraint_lines_budgets packing: lines(4x4) + budgets(4x8) + times(2x4) = 56 bits
@@ -176,16 +163,6 @@ pub mod GameSettingsDefaults {
         // Times (4 bits each) - deprecated, set to zero
         packed = packed | ((0_u64 & 0xF) * 0x1000000000000); // bits 48-51
         packed = packed | ((0_u64 & 0xF) * 0x10000000000000); // bits 52-55
-        packed
-    }
-
-    // constraint_chances packing: dual_chance(2x8) + secondary_no_bonus(2x8) = 32 bits
-    pub fn DEFAULT_CONSTRAINT_CHANCES() -> u32 {
-        let mut packed: u32 = 0;
-        packed = packed | VERYEASY_DUAL_CHANCE.into(); // bits 0-7
-        packed = packed | (MASTER_DUAL_CHANCE.into() * 0x100); // bits 8-15
-        packed = packed | (VERYEASY_SECONDARY_NO_BONUS_CHANCE.into() * 0x10000); // bits 16-23
-        packed = packed | (MASTER_SECONDARY_NO_BONUS_CHANCE.into() * 0x1000000); // bits 24-31
         packed
     }
 
@@ -273,7 +250,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             constraint_start_level: GameSettingsDefaults::CONSTRAINT_START_LEVEL,
             // Constraint Distribution (packed)
             constraint_lines_budgets: GameSettingsDefaults::DEFAULT_CONSTRAINT_LINES_BUDGETS(),
-            constraint_chances: GameSettingsDefaults::DEFAULT_CONSTRAINT_CHANCES(),
             // Block Distribution
             veryeasy_size1_weight: GameSettingsDefaults::VERYEASY_SIZE1_WEIGHT,
             veryeasy_size2_weight: GameSettingsDefaults::VERYEASY_SIZE2_WEIGHT,
@@ -294,8 +270,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             mid_level_threshold: GameSettingsDefaults::MID_LEVEL_THRESHOLD,
             // Level Cap
             level_cap: GameSettingsDefaults::LEVEL_CAP,
-            // Mutator Settings
-            allowed_mutators: 0, // No mutators by default
             // Endless Mode Settings
             endless_difficulty_thresholds: 0, // 0 = use hardcoded defaults
             endless_score_multipliers: 0, // 0 = use hardcoded defaults
@@ -399,27 +373,8 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         )
     }
 
-    /// Unpack constraint_chances field
-    /// Returns (veryeasy_dual_chance, master_dual_chance, veryeasy_secondary_no_bonus,
-    /// master_secondary_no_bonus)
-    fn unpack_chances(self: GameSettings) -> (u8, u8, u8, u8) {
-        let packed = self.constraint_chances;
-        let veryeasy_dual_chance: u8 = (packed & 0xFF).try_into().unwrap();
-        let master_dual_chance: u8 = ((packed / 0x100) & 0xFF).try_into().unwrap();
-        let veryeasy_secondary_no_bonus: u8 = ((packed / 0x10000) & 0xFF).try_into().unwrap();
-        let master_secondary_no_bonus: u8 = ((packed / 0x1000000) & 0xFF).try_into().unwrap();
-        (
-            veryeasy_dual_chance,
-            master_dual_chance,
-            veryeasy_secondary_no_bonus,
-            master_secondary_no_bonus,
-        )
-    }
-
     /// Get constraint parameters interpolated for a given difficulty
     /// Returns (min_lines, max_lines, budget_min, budget_max, min_times)
-    /// Note: dual_chance and secondary_no_bonus_chance were removed in the deterministic
-    /// constraint count system. Constraint counts are now hardcoded per tier in level.cairo.
     fn get_constraint_params_for_difficulty(
         self: GameSettings, difficulty: Difficulty,
     ) -> (u8, u8, u8, u8, u8) {
@@ -1048,16 +1003,6 @@ mod tests {
         let (veryeasy_min_lines, _, veryeasy_max_lines, _, _, _, _, _, _, _) = settings
             .unpack_lines_budgets();
         assert!(veryeasy_min_lines <= veryeasy_max_lines, "Default veryeasy lines should be valid");
-    }
-
-    #[test]
-    fn test_validate_dual_chance_bounds() {
-        let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-
-        // Verify dual chances are within bounds
-        let (veryeasy_dual_chance, master_dual_chance, _, _) = settings.unpack_chances();
-        assert!(veryeasy_dual_chance <= 100, "VeryEasy dual chance should be <= 100");
-        assert!(master_dual_chance <= 100, "Master dual chance should be <= 100");
     }
 
     #[test]

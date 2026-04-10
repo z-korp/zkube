@@ -107,7 +107,6 @@ export function defineContractComponents(world: World) {
           constraint_start_level: RecsType.Number,
           // Constraint Distribution (PACKED fields)
           constraint_lines_budgets: RecsType.BigInt, // u64
-          constraint_chances: RecsType.Number,       // u32
           // Block Distribution (VeryEasy to Master)
           veryeasy_size1_weight: RecsType.Number,
           veryeasy_size2_weight: RecsType.Number,
@@ -128,8 +127,6 @@ export function defineContractComponents(world: World) {
           mid_level_threshold: RecsType.Number,
           // Level Cap
           level_cap: RecsType.Number,
-          // Mutator Settings
-          allowed_mutators: RecsType.Number,         // u32 bitmask
           // Endless Mode Settings
           endless_difficulty_thresholds: RecsType.BigInt, // felt252 packed
           endless_score_multipliers: RecsType.BigInt,     // u64 packed
@@ -151,13 +148,11 @@ export function defineContractComponents(world: World) {
               "u8", "u8", "u8", "u8", "u8", "u8", "u8",  // tier thresholds (7)
               "u8", "u8",  // constraint settings
               "u64",  // constraint_lines_budgets
-              "u32",  // constraint_chances
               "u8", "u8", "u8", "u8", "u8",  // veryeasy block weights
               "u8", "u8", "u8", "u8", "u8",  // master block weights
               "u8", "u8", "u8",  // variance
               "u8", "u8",  // level thresholds
               "u8",  // level_cap
-              "u32",  // allowed_mutators
               "felt252",  // endless_difficulty_thresholds
               "u64",  // endless_score_multipliers
               "u8",  // zone_id
@@ -205,9 +200,6 @@ export function defineContractComponents(world: World) {
           constraint2_type: RecsType.Number,
           constraint2_value: RecsType.Number,
           constraint2_count: RecsType.Number,
-          constraint3_type: RecsType.Number,
-          constraint3_value: RecsType.Number,
-          constraint3_count: RecsType.Number,
           mutator_id: RecsType.Number,
         },
         {
@@ -226,9 +218,6 @@ export function defineContractComponents(world: World) {
               "u8",   // constraint2_type
               "u8",   // constraint2_value
               "u8",   // constraint2_count
-              "u8",   // constraint3_type
-              "u8",   // constraint3_value
-              "u8",   // constraint3_count
               "u8",   // mutator_id
             ],
             customTypes: [],
@@ -541,7 +530,6 @@ export function defineContractComponents(world: World) {
         world,
         {
           mutator_id: RecsType.Number,
-          name: RecsType.BigInt,
           zone_id: RecsType.Number,
           moves_modifier: RecsType.Number,
           ratio_modifier: RecsType.Number,
@@ -570,7 +558,7 @@ export function defineContractComponents(world: World) {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "MutatorDef",
             types: [
-              "u8", "felt252", "u8",
+              "u8", "u8",
               "u8", "u8", "u8",
               "u16", "u8", "u16",
               "u8", "u8", "u8",

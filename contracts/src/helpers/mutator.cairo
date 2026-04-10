@@ -13,7 +13,6 @@ pub impl MutatorEffectsImpl of MutatorEffectsTrait {
     fn neutral(mutator_id: u8) -> MutatorDef {
         MutatorDef {
             mutator_id,
-            name: 0,
             zone_id: 0,
             moves_modifier: MutatorDefaults::BIAS_ZERO,
             ratio_modifier: MutatorDefaults::BIAS_ZERO,
@@ -144,7 +143,7 @@ pub impl MutatorEffectsImpl of MutatorEffectsTrait {
     }
 }
 
-fn decode_bias(value: u8) -> (bool, u8) {
+pub fn decode_bias(value: u8) -> (bool, u8) {
     if value >= MutatorDefaults::BIAS_ZERO {
         (true, value - MutatorDefaults::BIAS_ZERO)
     } else {

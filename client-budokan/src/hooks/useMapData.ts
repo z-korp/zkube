@@ -48,6 +48,7 @@ export interface UseMapDataParams {
   zoneState: StoryZoneMapState | undefined;
   activeStoryNode?: ActiveStoryNode | null;
   settings?: GameSettings;
+  starThresholdModifier?: number;
 }
 
 export const NODES_PER_ZONE = 10;
@@ -123,6 +124,7 @@ export function generateMapData({
   zoneState,
   activeStoryNode = null,
   settings,
+  starThresholdModifier = 128,
 }: UseMapDataParams): MapData {
   const zoneTheme = getZoneTheme(zoneId);
   const sequence = buildZoneSequence();
@@ -144,7 +146,7 @@ export function generateMapData({
     };
 
     const localLevel = raw.contractLevel ?? LEVELS_PER_ZONE;
-    const levelConfig = generateLevelConfig(seed, localLevel, settings);
+    const levelConfig = generateLevelConfig(seed, localLevel, settings, starThresholdModifier);
     const state = getNodeState(partial, zoneState, activeStoryNode);
 
     return {
@@ -170,9 +172,10 @@ export function useMapData({
   zoneState,
   activeStoryNode = null,
   settings,
+  starThresholdModifier = 128,
 }: UseMapDataParams): MapData {
   return useMemo(
-    () => generateMapData({ seed, zoneId, zoneState, activeStoryNode, settings }),
-    [seed, zoneId, zoneState, activeStoryNode, settings],
+    () => generateMapData({ seed, zoneId, zoneState, activeStoryNode, settings, starThresholdModifier }),
+    [seed, zoneId, zoneState, activeStoryNode, settings, starThresholdModifier],
   );
 }

@@ -26,6 +26,17 @@ import { BOSS_LEVELS } from "@/dojo/game/constants";
  * - Boss levels use identity-based constraint types from boss.cairo
  * - Line costs: 2->3, 3->10, 4->20, 5->30, 6->40, 7->60, 8->80
  */
+/**
+ * Apply star_threshold_modifier (bias-128) to base 40%/70% star thresholds.
+ * 128 = neutral, <128 = easier (lower %), >128 = harder (higher %).
+ */
+export function applyStarThresholdModifier(modifier: number): { star3Pct: number; star2Pct: number } {
+  const offset = modifier - 128;
+  const star3Pct = Math.max(10, Math.min(90, 40 + offset));
+  const star2Pct = Math.max(star3Pct + 1, Math.min(99, 70 + offset));
+  return { star3Pct, star2Pct };
+}
+
 /** Default settings ID (only games with this ID earn cubes/quests) */
 export const DEFAULT_SETTINGS_ID = 0;
 
@@ -66,10 +77,6 @@ export interface GameSettings {
   masterBudgetMax: number;
   veryeasyMinTimes: number;
   masterMinTimes: number;
-  veryeasyDualChance: number;
-  masterDualChance: number;
-  veryeasySecondaryNoBonusChance: number;
-  masterSecondaryNoBonusChance: number;
   // Block Distribution (VeryEasy to Master)
   veryeasySize1Weight: number;
   veryeasySize2Weight: number;
@@ -97,8 +104,6 @@ export interface GameSettings {
   passiveMutatorId: number;
   // Boss
   bossId: number;
-  // Mutators
-  allowedMutators: number;
   // Endless mode
   endlessDifficultyThresholds: number[];
   endlessScoreMultipliers: number[];
@@ -142,10 +147,6 @@ export const DEFAULT_SETTINGS: GameSettings = {
   masterBudgetMax: 40,   // Allows 6x3, 5x5, 4x10 at Master
   veryeasyMinTimes: 1,   // At least 1 time
   masterMinTimes: 2,     // At least 2 times at Master
-  veryeasyDualChance: 0,    // No dual early
-  masterDualChance: 100,    // Always dual at Master
-  veryeasySecondaryNoBonusChance: 0,   // Never early
-  masterSecondaryNoBonusChance: 30,    // 30% at Master
   // Block Distribution (VeryEasy to Master)
   veryeasySize1Weight: 20,
   veryeasySize2Weight: 33,
@@ -170,7 +171,6 @@ export const DEFAULT_SETTINGS: GameSettings = {
   activeMutatorId: 0,
   passiveMutatorId: 0,
   bossId: 1,
-  allowedMutators: 1,
   endlessDifficultyThresholds: [0, 15, 40, 80, 150, 280, 500, 900],
   endlessScoreMultipliers: [10, 12, 14, 17, 20, 25, 33, 40],
   star3Percent: 40,
@@ -312,7 +312,8 @@ export class Level {
 export function generateLevelConfig(
   seed: bigint,
   level: number,
-  settings: GameSettings = DEFAULT_SETTINGS
+  settings: GameSettings = DEFAULT_SETTINGS,
+  starThresholdModifier: number = 128,
 ): Level {
   // Zone mode uses a 10-level cap (matching contract's zone_level_cap = 10)
   const zoneLevelCap = 10;
@@ -335,8 +336,8 @@ export function generateLevelConfig(
       difficulty,
       constraint: new Constraint({ constraintType: ConstraintType.None, value: 0, requiredCount: 0 }),
       constraint2: new Constraint({ constraintType: ConstraintType.None, value: 0, requiredCount: 0 }),
-      star3Threshold: Math.floor((settings.maxMoves * settings.star3Percent) / 100),
-      star2Threshold: Math.floor((settings.maxMoves * settings.star2Percent) / 100),
+      star3Threshold: Math.floor((settings.maxMoves * applyStarThresholdModifier(starThresholdModifier).star3Pct) / 100),
+      star2Threshold: Math.floor((settings.maxMoves * applyStarThresholdModifier(starThresholdModifier).star2Pct) / 100),
     });
   }
 
@@ -366,13 +367,10 @@ export function generateLevelConfig(
   const pointsRequired = applyFactor(basePoints, varianceFactor);
   const maxMoves = applyFactor(baseMoves, varianceFactor);
 
-  // Calculate cube thresholds using settings
-  const star3Threshold = Math.floor(
-    (maxMoves * settings.star3Percent) / 100
-  );
-  const star2Threshold = Math.floor(
-    (maxMoves * settings.star2Percent) / 100
-  );
+  // Calculate cube thresholds using star threshold modifier
+  const { star3Pct, star2Pct } = applyStarThresholdModifier(starThresholdModifier);
+  const star3Threshold = Math.floor((maxMoves * star3Pct) / 100);
+  const star2Threshold = Math.floor((maxMoves * star2Pct) / 100);
 
   // Get difficulty from settings
   const difficulty = getDifficultyForLevel(calcLevel, settings);
@@ -535,8 +533,6 @@ function getConstraintParams(
   budgetMin: number;
   budgetMax: number;
   minTimes: number;
-  dualChance: number;
-  secondaryNoBonusChance: number;
 } {
   // Get difficulty tier (0-7) using the into() method
   const tier = difficulty.into();
@@ -570,18 +566,6 @@ function getConstraintParams(
     minTimes: interpolate(
       settings.veryeasyMinTimes,
       settings.masterMinTimes,
-      tier,
-      maxTier
-    ),
-    dualChance: interpolate(
-      settings.veryeasyDualChance,
-      settings.masterDualChance,
-      tier,
-      maxTier
-    ),
-    secondaryNoBonusChance: interpolate(
-      settings.veryeasySecondaryNoBonusChance,
-      settings.masterSecondaryNoBonusChance,
       tier,
       maxTier
     ),
@@ -900,8 +884,6 @@ function generateConstraintFromBudget(
       return generateBreakBlocksFromBudget(seed, budget);
     case ConstraintType.ComboStreak:
       return generateComboStreakFromBudget(seed, budget);
-    case ConstraintType.KeepGridBelow:
-      return Constraint.keepGridBelow(8);
     case ConstraintType.None:
     default:
       return Constraint.none();
@@ -916,7 +898,6 @@ interface BossIdentity {
   id: number;
   primaryType: ConstraintType;
   secondaryType: ConstraintType;
-  tertiaryType: ConstraintType;
 }
 
 /**
@@ -927,34 +908,33 @@ interface BossIdentity {
 function getBossIdentity(bossId: number): BossIdentity {
   switch (bossId) {
     case 1:
-      return { id: 1, primaryType: ConstraintType.ComboLines, secondaryType: ConstraintType.ComboStreak, tertiaryType: ConstraintType.KeepGridBelow };
+      return { id: 1, primaryType: ConstraintType.ComboLines, secondaryType: ConstraintType.ComboStreak };
     case 2:
-      return { id: 2, primaryType: ConstraintType.BreakBlocks, secondaryType: ConstraintType.ComboLines, tertiaryType: ConstraintType.KeepGridBelow };
+      return { id: 2, primaryType: ConstraintType.BreakBlocks, secondaryType: ConstraintType.ComboLines };
     case 3:
-      return { id: 3, primaryType: ConstraintType.ComboStreak, secondaryType: ConstraintType.ComboLines, tertiaryType: ConstraintType.BreakBlocks };
+      return { id: 3, primaryType: ConstraintType.ComboStreak, secondaryType: ConstraintType.ComboLines };
     case 4:
-      return { id: 4, primaryType: ConstraintType.KeepGridBelow, secondaryType: ConstraintType.ComboLines, tertiaryType: ConstraintType.ComboStreak };
+      return { id: 4, primaryType: ConstraintType.ComboLines, secondaryType: ConstraintType.ComboStreak };
     case 5:
-      return { id: 5, primaryType: ConstraintType.BreakBlocks, secondaryType: ConstraintType.ComboStreak, tertiaryType: ConstraintType.ComboLines };
+      return { id: 5, primaryType: ConstraintType.BreakBlocks, secondaryType: ConstraintType.ComboStreak };
     case 6:
-      return { id: 6, primaryType: ConstraintType.KeepGridBelow, secondaryType: ConstraintType.ComboLines, tertiaryType: ConstraintType.BreakBlocks };
+      return { id: 6, primaryType: ConstraintType.ComboLines, secondaryType: ConstraintType.BreakBlocks };
     case 7:
-      return { id: 7, primaryType: ConstraintType.ComboStreak, secondaryType: ConstraintType.ComboLines, tertiaryType: ConstraintType.BreakBlocks };
+      return { id: 7, primaryType: ConstraintType.ComboStreak, secondaryType: ConstraintType.BreakBlocks };
     case 8:
-      return { id: 8, primaryType: ConstraintType.BreakBlocks, secondaryType: ConstraintType.ComboStreak, tertiaryType: ConstraintType.KeepGridBelow };
+      return { id: 8, primaryType: ConstraintType.BreakBlocks, secondaryType: ConstraintType.ComboStreak };
     case 9:
-      return { id: 9, primaryType: ConstraintType.KeepGridBelow, secondaryType: ConstraintType.ComboStreak, tertiaryType: ConstraintType.BreakBlocks };
+      return { id: 9, primaryType: ConstraintType.ComboStreak, secondaryType: ConstraintType.BreakBlocks };
     case 10:
-      return { id: 10, primaryType: ConstraintType.ComboLines, secondaryType: ConstraintType.BreakBlocks, tertiaryType: ConstraintType.ComboStreak };
+      return { id: 10, primaryType: ConstraintType.ComboLines, secondaryType: ConstraintType.BreakBlocks };
     default:
       // Fallback: same as boss 1
-      return { id: 1, primaryType: ConstraintType.ComboLines, secondaryType: ConstraintType.ComboStreak, tertiaryType: ConstraintType.KeepGridBelow };
+      return { id: 1, primaryType: ConstraintType.ComboLines, secondaryType: ConstraintType.ComboStreak };
   }
 }
 
 /**
  * Generate a boss constraint using the budget system.
- * KeepGridBelow uses a fixed cap of 8.
  * Matches Cairo generate_boss_constraint() from boss.cairo
  */
 function generateBossConstraint(
@@ -963,9 +943,6 @@ function generateBossConstraint(
   seed: bigint,
   _level: number
 ): Constraint {
-  if (constraintType === ConstraintType.KeepGridBelow) {
-    return Constraint.keepGridBelow(8);
-  }
   if (constraintType === ConstraintType.None) {
     return Constraint.none();
   }
@@ -1145,25 +1122,6 @@ function unpackConstraintLinesBudgets(packed: bigint | number): {
   };
 }
 
-/**
- * Unpack constraint_chances field (u32 -> individual values)
- * Packing: dual_chance(2x8bits) + secondary_no_bonus(2x8bits) = 32 bits
- */
-function unpackConstraintChances(packed: bigint | number): {
-  veryeasyDualChance: number;
-  masterDualChance: number;
-  veryeasySecondaryNoBonusChance: number;
-  masterSecondaryNoBonusChance: number;
-} {
-  const p = BigInt(packed);
-  return {
-    veryeasyDualChance: Number(p & BigInt(0xff)), // bits 0-7
-    masterDualChance: Number((p >> BigInt(8)) & BigInt(0xff)), // bits 8-15
-    veryeasySecondaryNoBonusChance: Number((p >> BigInt(16)) & BigInt(0xff)), // bits 16-23
-    masterSecondaryNoBonusChance: Number((p >> BigInt(24)) & BigInt(0xff)), // bits 24-31
-  };
-}
-
 function unpackEndlessThresholds(packed: bigint | number | string): number[] {
   const p = BigInt(packed);
   if (p === 0n) return DEFAULT_SETTINGS.endlessDifficultyThresholds;
@@ -1204,18 +1162,6 @@ export function parseGameSettings(raw: any): GameSettings {
           masterMinTimes: DEFAULT_SETTINGS.masterMinTimes,
         };
 
-  const constraintChances =
-    raw.constraint_chances !== undefined
-      ? unpackConstraintChances(raw.constraint_chances)
-      : {
-          veryeasyDualChance: DEFAULT_SETTINGS.veryeasyDualChance,
-          masterDualChance: DEFAULT_SETTINGS.masterDualChance,
-          veryeasySecondaryNoBonusChance:
-            DEFAULT_SETTINGS.veryeasySecondaryNoBonusChance,
-          masterSecondaryNoBonusChance:
-            DEFAULT_SETTINGS.masterSecondaryNoBonusChance,
-        };
-
   return {
     settingsId: raw.settings_id ?? DEFAULT_SETTINGS.settingsId,
     mode: raw.mode ?? DEFAULT_SETTINGS.mode,
@@ -1239,7 +1185,6 @@ export function parseGameSettings(raw: any): GameSettings {
       raw.constraint_start_level ?? DEFAULT_SETTINGS.constraintStartLevel,
     // Unpacked constraint fields
     ...constraintLinesBudgets,
-    ...constraintChances,
     // Block weights
     veryeasySize1Weight:
       raw.veryeasy_size1_weight ?? DEFAULT_SETTINGS.veryeasySize1Weight,
@@ -1278,7 +1223,6 @@ export function parseGameSettings(raw: any): GameSettings {
     activeMutatorId: raw.active_mutator_id ?? DEFAULT_SETTINGS.activeMutatorId,
     passiveMutatorId: raw.passive_mutator_id ?? DEFAULT_SETTINGS.passiveMutatorId,
     bossId: raw.boss_id ?? DEFAULT_SETTINGS.bossId,
-    allowedMutators: raw.allowed_mutators ?? DEFAULT_SETTINGS.allowedMutators,
     endlessDifficultyThresholds: raw.endless_difficulty_thresholds
       ? unpackEndlessThresholds(raw.endless_difficulty_thresholds)
       : DEFAULT_SETTINGS.endlessDifficultyThresholds,
@@ -1316,7 +1260,7 @@ export interface LevelRanges {
  * Compute predictable level ranges without needing a seed.
  * Uses settings-only calculations (difficulty, base scaling, budget count).
  */
-export function getLevelRanges(level: number, settings: GameSettings = DEFAULT_SETTINGS): LevelRanges {
+export function getLevelRanges(level: number, settings: GameSettings = DEFAULT_SETTINGS, starThresholdModifier: number = 128): LevelRanges {
   const zoneLevelCap = 10;
   const calcLevel = Math.min(level, zoneLevelCap);
   const isBoss = level === 10;
@@ -1334,10 +1278,11 @@ export function getLevelRanges(level: number, settings: GameSettings = DEFAULT_S
   const pointsMin = Math.floor(basePoints * low);
   const pointsMax = Math.ceil(basePoints * high);
 
-  const star3MovesMin = Math.floor(movesMin * settings.star3Percent / 100);
-  const star3MovesMax = Math.floor(movesMax * settings.star3Percent / 100);
-  const star2MovesMin = Math.floor(movesMin * settings.star2Percent / 100);
-  const star2MovesMax = Math.floor(movesMax * settings.star2Percent / 100);
+  const { star3Pct, star2Pct } = applyStarThresholdModifier(starThresholdModifier);
+  const star3MovesMin = Math.floor(movesMin * star3Pct / 100);
+  const star3MovesMax = Math.floor(movesMax * star3Pct / 100);
+  const star2MovesMin = Math.floor(movesMin * star2Pct / 100);
+  const star2MovesMax = Math.floor(movesMax * star2Pct / 100);
 
   const difficulty = getDifficultyForLevel(calcLevel, settings);
 
@@ -1363,7 +1308,6 @@ export function getLevelRanges(level: number, settings: GameSettings = DEFAULT_S
       1: "Combo Lines",
       2: "Break Blocks",
       3: "Combo Streak",
-      4: "Keep Grid Below",
     };
     if (identity.primaryType > 0) bossConstraintTypes.push(typeNames[identity.primaryType] ?? "Unknown");
     if (identity.secondaryType > 0) bossConstraintTypes.push(typeNames[identity.secondaryType] ?? "Unknown");

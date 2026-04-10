@@ -28,7 +28,6 @@ interface GameHudProps {
   combo: number;
   constraintProgress: number;
   constraint2Progress: number;
-  constraint3Progress: number;
   bonusUsedThisLevel: boolean;
   gameLevel: GameLevelData | null;
   activeMutatorId?: number;
@@ -81,7 +80,6 @@ const CONSTRAINT_ICON_MAP: Record<ConstraintType, string | null> = {
   [ConstraintType.ComboLines]: getCommonAssetPath("constraints/constraint-clear-lines.png"),
   [ConstraintType.BreakBlocks]: getCommonAssetPath("constraints/constraint-break-blocks.png"),
   [ConstraintType.ComboStreak]: getCommonAssetPath("constraints/constraint-combo.png"),
-  [ConstraintType.KeepGridBelow]: getCommonAssetPath("constraints/constraint-keep-grid-below.png"),
   [ConstraintType.None]: null,
 };
 
@@ -97,9 +95,6 @@ const getConstraintColor = (
   count: number,
   _bonusUsed: boolean,
 ): "green" | "orange" | "red" | "blue" => {
-  if (type === ConstraintType.KeepGridBelow) {
-    return progress >= 1 ? "red" : "green";
-  }
   if (progress >= count) return "green";
   if (progress > 0) return "orange";
   return "blue";
@@ -111,9 +106,6 @@ const getConstraintProgress = (
   count: number,
   _bonusUsed: boolean,
 ): number => {
-  if (type === ConstraintType.KeepGridBelow) {
-    return progress >= 1 ? 0 : 1;
-  }
   return count > 0 ? progress / count : 0;
 };
 
@@ -128,8 +120,6 @@ const getValueBadge = (
       return `${value}`;
     case ConstraintType.ComboStreak:
       return `${value}x`;
-    case ConstraintType.KeepGridBelow:
-      return `<${value}`;
     default:
       return undefined;
   }
@@ -140,9 +130,6 @@ const getProgressBadge = (
   progress: number,
   count: number,
 ): string | undefined => {
-  if (type === ConstraintType.KeepGridBelow) {
-    return undefined;
-  }
   return `${progress}/${count}`;
 };
 
@@ -161,7 +148,6 @@ const GameHud: React.FC<GameHudProps> = ({
   combo,
   constraintProgress,
   constraint2Progress,
-  constraint3Progress,
   bonusUsedThisLevel,
   gameLevel,
   activeMutatorId = 0,
@@ -184,7 +170,7 @@ const GameHud: React.FC<GameHudProps> = ({
   );
 
   const { data: onChainMutator } = useMutatorDef(activeMutatorId);
-  const mutator = getMutatorDef(activeMutatorId, onChainMutator?.name);
+  const mutator = getMutatorDef(activeMutatorId);
 
   const guardian = useMemo(() => getZoneGuardian(zoneId), [zoneId]);
   const portraitSrc = useMemo(() => getGuardianPortrait(zoneId), [zoneId]);
@@ -240,15 +226,11 @@ const GameHud: React.FC<GameHudProps> = ({
       if (gameLevel.constraint2Type !== undefined && gameLevel.constraint2Type !== ConstraintType.None) {
         result.push({ type: gameLevel.constraint2Type, value: gameLevel.constraint2Value, count: gameLevel.constraint2Count, progress: constraint2Progress });
       }
-      if (gameLevel.constraint3Type !== undefined && gameLevel.constraint3Type !== ConstraintType.None) {
-        result.push({ type: gameLevel.constraint3Type, value: gameLevel.constraint3Value, count: gameLevel.constraint3Count, progress: constraint3Progress });
-      }
     }
     return result;
   }, [
     gameLevel?.constraintType, gameLevel?.constraintValue, gameLevel?.constraintCount, constraintProgress,
     gameLevel?.constraint2Type, gameLevel?.constraint2Value, gameLevel?.constraint2Count, constraint2Progress,
-    gameLevel?.constraint3Type, gameLevel?.constraint3Value, gameLevel?.constraint3Count, constraint3Progress,
   ]);
 
   const comboTextColor = combo > 0 ? "text-white" : "text-slate-500";
