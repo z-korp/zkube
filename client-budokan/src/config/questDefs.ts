@@ -1,6 +1,7 @@
 const DAY_SECONDS = 86_400;
 const THREE_DAYS_SECONDS = 259_200;
 const WEEK_SECONDS = 604_800;
+const MONDAY_OFFSET = 345_600; // epoch day 0 = Thursday, +4 days = Monday
 
 const feltFromShortString = (value: string): bigint => {
   let result = 0n;
@@ -172,7 +173,7 @@ export const QUEST_DEFS: QuestDef[] = [
     duration: DAY_SECONDS,
     interval: DAY_SECONDS,
   },
-  // ── Weekly (start=0, duration=WEEK, interval=WEEK) ──
+  // ── Weekly (start=MONDAY_OFFSET, duration=WEEK, interval=WEEK) ──
   {
     id: feltFromShortString("QUEST_WEEKLY_GRINDER"),
     shortId: "QUEST_WEEKLY_GRINDER",
@@ -183,7 +184,7 @@ export const QUEST_DEFS: QuestDef[] = [
     type: "weekly",
     icon: "🏁",
     taskId: feltFromShortString("LINE_CLEAR"),
-    start: 0,
+    start: MONDAY_OFFSET,
     duration: WEEK_SECONDS,
     interval: WEEK_SECONDS,
   },
@@ -197,7 +198,7 @@ export const QUEST_DEFS: QuestDef[] = [
     type: "weekly",
     icon: "🏆",
     taskId: feltFromShortString("DAILY_PLAY"),
-    start: 0,
+    start: MONDAY_OFFSET,
     duration: WEEK_SECONDS,
     interval: WEEK_SECONDS,
   },
