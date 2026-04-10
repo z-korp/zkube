@@ -108,28 +108,28 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
           </div>
 
           {/* Greeting */}
-          <p className="font-sans text-sm leading-relaxed text-white/85">
-            {greeting}
+          <p className="font-sans text-sm leading-relaxed text-white italic">
+            "{greeting}"
           </p>
 
           {/* Hint: daily builds from actual mutators, story uses zone hint */}
           {mode === "daily" && (activeMutator || passiveMutator) ? (
             <div className="mt-2 flex flex-col gap-1.5">
               {activeMutator && (
-                <p className="font-sans text-sm leading-relaxed text-white/70">
+                <p className="font-sans text-sm leading-relaxed text-white">
                   {activeMutator.icon} <span className="font-semibold" style={{ color: colors.accent }}>{activeMutator.name}.</span>{" "}
                   {activeMutator.description}
                 </p>
               )}
               {passiveMutator && (
-                <p className="font-sans text-sm leading-relaxed text-white/70">
+                <p className="font-sans text-sm leading-relaxed text-white">
                   {passiveMutator.icon} <span className="font-semibold" style={{ color: colors.accent }}>{passiveMutator.name}.</span>{" "}
                   {passiveMutator.description}
                 </p>
               )}
             </div>
           ) : (
-            <p className="mt-2 font-sans text-sm leading-relaxed text-white/70">
+            <p className="mt-2 font-sans text-sm leading-relaxed text-white">
               {headlineAccent(guardian.zoneHint, colors.accent)}
             </p>
           )}
