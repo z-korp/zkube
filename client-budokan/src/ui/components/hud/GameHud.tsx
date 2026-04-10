@@ -6,6 +6,7 @@ import { useLerpNumber } from "@/hooks/useLerpNumber";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
 import { getCommonAssetPath } from "@/config/themes";
+import { HudBarSvg, ConstraintBarSvg, HUD_BAR, CONSTRAINT_BAR, circleToPercent, rectToPercent } from "@/ui/components/chrome";
 import { getMutatorDef } from "@/config/mutatorConfig";
 import { useSettings } from "@/hooks/useSettings";
 import { useMutatorDef } from "@/hooks/useMutatorDef";
@@ -362,169 +363,166 @@ const GameHud: React.FC<GameHudProps> = ({
   }
 
   // ─── STORY MODE HUD ───
-  // Socket positions as % of hud-bar.png (1024x336)
-  // Left big socket (guardian): center ~10%, 50%
-  // Small socket (level): center ~21%, 50%
-  // Stars: ~44%, 50%, 56% at ~12%
-  // Center bar: ~26% to ~78%, ~40% to ~72%
-  // Right gear socket (moves): center ~90%, 50%
+  // Positions derived from chromeLayout.ts constants
+  const guardianPos = circleToPercent(HUD_BAR.sockets.guardian, HUD_BAR.viewBox);
+  const levelPos = circleToPercent(HUD_BAR.sockets.level, HUD_BAR.viewBox);
+  const starsPos = rectToPercent(HUD_BAR.sockets.stars, HUD_BAR.viewBox);
+  const scorePos = rectToPercent(HUD_BAR.sockets.scoreBar, HUD_BAR.viewBox);
+  const comboPos = rectToPercent(HUD_BAR.sockets.combo, HUD_BAR.viewBox);
+  const movesPos = circleToPercent(HUD_BAR.sockets.moves, HUD_BAR.viewBox);
+  const cRing1Pos = circleToPercent(CONSTRAINT_BAR.sockets.ring1, CONSTRAINT_BAR.viewBox);
+  const cRing2Pos = circleToPercent(CONSTRAINT_BAR.sockets.ring2, CONSTRAINT_BAR.viewBox);
 
   return (
     <div className="w-full shrink-0">
       {/* ─── Main HUD bar ─── */}
       <div className="relative z-10 mx-auto w-full max-w-[500px]">
-        {/* Chrome background — drives sizing */}
-        <img
-          src="/assets/common/ui/hud-bar.png"
-          alt=""
-          className="w-full h-auto block"
-          draggable={false}
-        />
+        {/* SVG chrome — drives sizing */}
+        <HudBarSvg />
 
-        {/* Back button — top-left, outside the frame */}
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="absolute z-10 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 text-slate-300 hover:text-white transition-colors"
-            style={{ top: "2%", left: "0%", width: "6%", paddingBottom: "6%" }}
-          >
-            <ArrowLeft className="absolute w-[50%] h-[50%]" />
-          </button>
-        )}
-
-        {/* Guardian portrait — left shield socket */}
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <motion.div
-                className="absolute rounded-full overflow-hidden"
-                style={{ left: "9.2%", top: "32%", width: "10%", height: "30.5%" }}
-                animate={isBoss ? {
-                  boxShadow: [
-                    "0 0 8px 2px rgba(239,68,68,0.3)",
-                    "0 0 16px 4px rgba(239,68,68,0.6)",
-                    "0 0 8px 2px rgba(239,68,68,0.3)",
-                  ],
-                } : {}}
-                transition={isBoss ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : {}}
-              >
-                <img
-                  src={portraitSrc}
-                  alt={guardian.name}
-                  className="absolute inset-0 w-full h-full rounded-full object-cover"
-                />
-              </motion.div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg">
-              {avatarTooltipContent}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        {/* Level number — small socket */}
-        <div
-          className="absolute flex flex-col items-center justify-center"
-          style={{ left: "18%", top: "28%", width: "7%", height: "44%" }}
-        >
-          <span className={`font-display text-[clamp(6px,1.5vw,9px)] leading-none ${isBoss ? "text-red-400" : "text-slate-400"}`}>
-            {isBoss ? "BOSS" : "Lv"}
-          </span>
-          <span className={`font-sans text-[clamp(12px,3vw,20px)] font-bold leading-none tabular-nums ${isBoss ? "text-red-300" : "text-yellow-300"}`}>
-            {level}
-          </span>
-        </div>
-
-        {/* Stars — top center over the 3 engraved notches */}
-        <div
-          className="absolute flex items-center justify-center gap-[3%]"
-          style={{ left: "35%", top: "10%", width: "30%", height: "30%" }}
-        >
-          {[1, 2, 3].map((star) => (
-            <span
-              key={star}
-              className={`text-[clamp(12px,3vw,18px)] transition-colors ${
-                starsEarned >= star
-                  ? "text-yellow-400 drop-shadow-[0_0_6px_rgba(250,204,21,0.7)]"
-                  : "text-white/15"
-              }`}
+        {/* Overlay div for interactive elements */}
+        <div className="absolute inset-0">
+          {/* Back button — top-left, outside the frame */}
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="absolute z-10 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 text-slate-300 hover:text-white transition-colors"
+              style={{ top: "2%", left: "0%", width: "6%", aspectRatio: "1" }}
             >
-              ★
-            </span>
-          ))}
-        </div>
-
-        {/* Score bar — center recessed channel */}
-        <div
-          className="absolute flex items-center gap-[1.5%]"
-          style={{ left: "25%", top: "40%", width: "52%", height: "22%" }}
-        >
-          <div className="flex-1 h-[clamp(6px,1.8vw,10px)] overflow-hidden rounded-full bg-black/50">
-            <motion.div
-              className={`h-full rounded-full ${isBoss ? "" : "bg-gradient-to-r from-cyan-600 to-cyan-400"}`}
-              style={isBoss ? { background: "linear-gradient(90deg, #ef4444, #22c55e)" } : undefined}
-              initial={false}
-              animate={{ width: `${scoreProgress * 100}%` }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-            />
-          </div>
-          <span className={`font-sans text-[clamp(7px,1.8vw,11px)] font-bold tabular-nums shrink-0 ${
-            isBoss ? "text-red-300" : "text-cyan-300"
-          }`}>
-            {animatedScore}<span className="text-slate-500">/{targetScore}</span>
-          </span>
-        </div>
-
-        {/* Combo + mutator — below score bar */}
-        <div
-          className="absolute flex items-center justify-center gap-[1.5%]"
-          style={{ left: "25%", top: "62%", width: "52%", height: "20%" }}
-        >
-          <div className="inline-flex items-center gap-0.5">
-            <span className="text-[clamp(7px,1.8vw,10px)]">🔥</span>
-            <motion.span
-              key={combo}
-              animate={{ scale: [1, 1.3, 1] }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className={`font-sans text-[clamp(8px,2vw,12px)] font-semibold tabular-nums ${comboTextColor}`}
-            >
-              {combo}x
-            </motion.span>
-          </div>
-          {activeMutatorId > 0 && (
-            <span className="text-[clamp(7px,1.8vw,10px)] text-white/40">{mutator.icon} {mutator.name}</span>
+              <ArrowLeft className="w-[50%] h-[50%]" />
+            </button>
           )}
-        </div>
 
-        {/* Moves counter — right gear socket */}
-        <div
-          className="absolute flex flex-col items-center justify-center"
-          style={{ right: "7.5%", top: "20%", width: "12%", height: "60%" }}
-        >
-          <span className="font-display text-[clamp(6px,1.5vw,9px)] leading-none text-slate-400">MOVES</span>
-          <span className={`font-sans text-[clamp(16px,4vw,26px)] font-bold leading-none tabular-nums`} style={{ color: movesBarColor }}>
-            {movesRemaining}
-          </span>
+          {/* Guardian portrait — left shield socket */}
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.div
+                  className="absolute rounded-full overflow-hidden"
+                  style={guardianPos}
+                  animate={isBoss ? {
+                    boxShadow: [
+                      "0 0 8px 2px rgba(239,68,68,0.3)",
+                      "0 0 16px 4px rgba(239,68,68,0.6)",
+                      "0 0 8px 2px rgba(239,68,68,0.3)",
+                    ],
+                  } : {}}
+                  transition={isBoss ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : {}}
+                >
+                  <img
+                    src={portraitSrc}
+                    alt={guardian.name}
+                    className="absolute inset-0 w-full h-full rounded-full object-cover"
+                  />
+                </motion.div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg">
+                {avatarTooltipContent}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Level number — small socket */}
+          <div
+            className="absolute flex flex-col items-center justify-center"
+            style={levelPos}
+          >
+            <span className={`font-display text-[clamp(6px,1.5vw,9px)] leading-none ${isBoss ? "text-red-400" : "text-slate-400"}`}>
+              {isBoss ? "BOSS" : "Lv"}
+            </span>
+            <span className={`font-sans text-[clamp(12px,3vw,20px)] font-bold leading-none tabular-nums ${isBoss ? "text-red-300" : "text-yellow-300"}`}>
+              {level}
+            </span>
+          </div>
+
+          {/* Stars — top center */}
+          <div
+            className="absolute flex items-center justify-center gap-[3%]"
+            style={starsPos}
+          >
+            {[1, 2, 3].map((star) => (
+              <span
+                key={star}
+                className={`text-[clamp(12px,3vw,18px)] transition-colors ${
+                  starsEarned >= star
+                    ? "text-yellow-400 drop-shadow-[0_0_6px_rgba(250,204,21,0.7)]"
+                    : "text-white/15"
+                }`}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+
+          {/* Score bar — center recessed channel */}
+          <div
+            className="absolute flex items-center gap-[1.5%]"
+            style={scorePos}
+          >
+            <div className="flex-1 h-[clamp(6px,1.8vw,10px)] overflow-hidden rounded-full bg-black/50">
+              <motion.div
+                className={`h-full rounded-full ${isBoss ? "" : "bg-gradient-to-r from-cyan-600 to-cyan-400"}`}
+                style={isBoss ? { background: "linear-gradient(90deg, #ef4444, #22c55e)" } : undefined}
+                initial={false}
+                animate={{ width: `${scoreProgress * 100}%` }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              />
+            </div>
+            <span className={`font-sans text-[clamp(7px,1.8vw,11px)] font-bold tabular-nums shrink-0 ${
+              isBoss ? "text-red-300" : "text-cyan-300"
+            }`}>
+              {animatedScore}<span className="text-slate-500">/{targetScore}</span>
+            </span>
+          </div>
+
+          {/* Combo + mutator — below score bar */}
+          <div
+            className="absolute flex items-center justify-center gap-[1.5%]"
+            style={comboPos}
+          >
+            <div className="inline-flex items-center gap-0.5">
+              <span className="text-[clamp(7px,1.8vw,10px)]">🔥</span>
+              <motion.span
+                key={combo}
+                animate={{ scale: [1, 1.3, 1] }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className={`font-sans text-[clamp(8px,2vw,12px)] font-semibold tabular-nums ${comboTextColor}`}
+              >
+                {combo}x
+              </motion.span>
+            </div>
+            {activeMutatorId > 0 && (
+              <span className="text-[clamp(7px,1.8vw,10px)] text-white/40">{mutator.icon} {mutator.name}</span>
+            )}
+          </div>
+
+          {/* Moves counter — right gear socket */}
+          <div
+            className="absolute flex flex-col items-center justify-center"
+            style={movesPos}
+          >
+            <span className="font-display text-[clamp(6px,1.5vw,9px)] leading-none text-slate-400">MOVES</span>
+            <span className={`font-sans text-[clamp(16px,4vw,26px)] font-bold leading-none tabular-nums`} style={{ color: movesBarColor }}>
+              {movesRemaining}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* ─── Constraint bar — tucked behind the HUD bar bottom ─── */}
       {hasConstraints && (
         <div className="relative z-0 mx-auto w-full max-w-[200px] -mt-[3%]">
-          <img
-            src="/assets/common/ui/constraint-bar.png"
-            alt=""
-            className="w-full h-auto block"
-            draggable={false}
-          />
+          <ConstraintBarSvg />
           {/* Constraint rings positioned over the two sockets */}
-          <div className="absolute inset-0 flex items-center justify-center gap-[16%]">
+          <div className="absolute inset-0">
             <TooltipProvider delayDuration={200}>
               {constraints.map((c, i) => {
+                const pos = i === 0 ? cRing1Pos : cRing2Pos;
                 const description = Constraint.fromContractValues(c.type, c.value, c.count).getDescription();
                 return (
                   <Tooltip key={`constraint-${i}`}>
                     <TooltipTrigger asChild>
-                      <div>
+                      <div className="absolute flex items-center justify-center" style={pos}>
                         <ProgressRing
                           progress={getConstraintProgress(c.type, c.progress, c.count, bonusUsedThisLevel)}
                           size={ringSize}

@@ -25,26 +25,26 @@
   --gradY: 50%; /* Gradient Y position for radial animation */
 }
 
-/* Static Border Style */
+/* Grid border — SVG frame handles decoration, CSS provides padding */
 .grid-background.static-border {
-  border: 0.35rem solid #030712;
-  border-radius: 5px;
-  padding: 8px;
+  border: 3px solid rgba(139, 115, 85, 0.25);
+  border-radius: 8px;
+  padding: 6px;
 }
 
 .grid-background.animated-border {
   position: relative;
-  border: 0.35rem solid;
-  border-radius: 5px;
-  padding: 8px;
+  border: 3px solid;
+  border-radius: 8px;
+  padding: 6px;
 
   /* Animated Border using conic-gradient */
   border-image: conic-gradient(
       from var(--angle),
-      var(--border-base-color),
+      rgba(139, 115, 85, 0.25),
       var(--border-animation-color) 0.1turn,
       var(--border-animation-color) 0.15turn,
-      var(--border-base-color) 0.25turn
+      rgba(139, 115, 85, 0.25) 0.25turn
     )
     30;
 

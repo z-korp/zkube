@@ -31,7 +31,7 @@ const NextLine = ({
           height: `${gridHeight * gridSize + borderSize}px`,
           width: `${gridWidth * gridSize + borderSize}px`,
           backgroundImage:
-            `linear-gradient(var(--theme-grid-lines, #1E293B) 2px, transparent 2px), linear-gradient(to right, var(--theme-grid-lines, #1E293B) 2px, transparent 2px)`,
+            `linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(to right, rgba(255,255,255,0.07) 1px, transparent 1px)`,
           backgroundSize: `${gridSize}px ${gridSize}px, ${gridSize}px ${gridSize}px`,
         }}
       >

@@ -19,6 +19,7 @@ import {
 import { Slider } from "@/ui/elements/slider";
 import { Button } from "@/ui/elements/button";
 import { useMusicPlayer } from "@/contexts/hooks";
+import { ActionBarSvg, ACTION_BAR, circleToPercent } from "@/ui/components/chrome";
 
 
 export interface BonusSlot {
@@ -92,15 +93,12 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
           {bonusDescription}
         </div>
       )}
-      {/* Action bar with chrome image — respect aspect ratio, centered */}
+      {/* Action bar with SVG chrome — respect aspect ratio, centered */}
       <div className="relative mx-auto" style={{ maxWidth: 400 }}>
-        <img
-          src="/assets/common/ui/action-bar.png"
-          alt=""
-          className="w-full h-auto block"
-          draggable={false}
-        />
+        <ActionBarSvg />
 
+        {/* Overlay div for interactive elements */}
+        <div className="absolute inset-0">
         {/* Surrender — left socket */}
         <Dialog>
           <DialogTrigger asChild>
@@ -108,7 +106,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.92 }}
               className="absolute rounded-full flex items-center justify-center text-red-400 hover:text-red-300 transition-colors"
-              style={{ left: "12%", top: "18%", width: "14%", height: "64%" }}
+              style={circleToPercent(ACTION_BAR.sockets.surrender, ACTION_BAR.viewBox)}
             >
               <Flag className="w-[40%] h-[40%] drop-shadow-md" />
             </motion.button>
@@ -132,7 +130,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
         {/* Bonus — center socket */}
         <div
           className="absolute flex items-center justify-center"
-          style={{ left: "38%", top: "12%", width: "24%", height: "76%" }}
+          style={circleToPercent(ACTION_BAR.sockets.bonus, ACTION_BAR.viewBox)}
         >
           {bonusSlots.map((slot, idx) => {
             const isSelected = activeBonus === slot.type;
@@ -198,7 +196,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.92 }}
               className="absolute rounded-full flex items-center justify-center text-slate-400 hover:text-slate-200 transition-colors"
-              style={{ right: "12%", top: "18%", width: "14%", height: "64%" }}
+              style={circleToPercent(ACTION_BAR.sockets.settings, ACTION_BAR.viewBox)}
             >
               <Settings className="w-[40%] h-[40%] drop-shadow-md" />
             </motion.button>
@@ -248,6 +246,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
     </div>
   );
