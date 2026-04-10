@@ -270,13 +270,13 @@ const DailyChallengePage: React.FC = () => {
                   <p className="font-sans text-[10px] font-bold uppercase tracking-[0.12em] text-white/50">Your Result</p>
                   <div className="mt-1 flex items-baseline justify-between">
                     <p className="font-sans text-lg font-bold" style={{ color: zoneColors.accent }}>
-                      {entry.best_score?.toLocaleString() ?? 0}
-                      <span className="ml-1.5 text-xs text-white/50">pts</span>
+                      {entry.highest_cleared ?? 0}/{10}
+                      <span className="ml-1.5 text-xs text-white/50">levels</span>
                     </p>
                     <div className="flex items-center gap-3">
-                      {entry.best_stars > 0 && (
+                      {(entry.total_stars ?? 0) > 0 && (
                         <span className="font-sans text-xs font-semibold text-yellow-300">
-                          {"★".repeat(entry.best_stars)}
+                          {entry.total_stars}/30 ★
                         </span>
                       )}
                       <span className="rounded-full border px-2 py-0.5 font-sans text-xs font-bold" style={{ borderColor: `${zoneColors.accent}55`, color: zoneColors.accent }}>
@@ -284,9 +284,6 @@ const DailyChallengePage: React.FC = () => {
                       </span>
                     </div>
                   </div>
-                  {entry.attempts > 1 && (
-                    <p className="mt-0.5 font-sans text-[10px] text-white/40">{entry.attempts} attempts</p>
-                  )}
                   {starReward > 0n && (
                     <p className="mt-1 font-sans text-xs font-semibold text-yellow-300">
                       Star Reward: {starReward.toString()}★
