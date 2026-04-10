@@ -74,7 +74,12 @@ pub trait IConfigSystem<T> {
     fn get_zstar_address(self: @T) -> ContractAddress;
     /// Admin: set map pricing
     fn set_zone_pricing(
-        ref self: T, settings_id: u32, is_free: bool, price: u128, payment_token: ContractAddress, star_cost: u128,
+        ref self: T,
+        settings_id: u32,
+        is_free: bool,
+        price: u128,
+        payment_token: ContractAddress,
+        star_cost: u128,
     );
     /// Admin: set map enabled/disabled
     fn set_zone_enabled(ref self: T, settings_id: u32, enabled: bool);
