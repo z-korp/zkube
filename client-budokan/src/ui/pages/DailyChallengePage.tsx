@@ -322,8 +322,8 @@ const DailyChallengePage: React.FC = () => {
                             </span>
                           </span>
                           <span className="flex items-center gap-1.5 font-sans text-xs font-bold tabular-nums" style={{ color: zoneColors.accent }}>
-                            <span className="text-yellow-300">{le.totalStars}★</span>
-                            <span>{le.highestCleared}/10</span>
+                            <span className="text-yellow-300">{le.totalStars ?? 0}★</span>
+                            <span>{le.highestCleared ?? 0}/10</span>
                           </span>
                         </div>
                       );
@@ -342,8 +342,8 @@ const DailyChallengePage: React.FC = () => {
                             {playerRank.playerName} (You)
                           </span>
                           <span className="flex items-center gap-1.5 font-sans text-xs font-bold tabular-nums" style={{ color: zoneColors.accent }}>
-                            <span className="text-yellow-300">{playerRank.totalStars}★</span>
-                            <span>{playerRank.highestCleared}/10</span>
+                            <span className="text-yellow-300">{playerRank.totalStars ?? 0}★</span>
+                            <span>{playerRank.highestCleared ?? 0}/10</span>
                           </span>
                         </div>
                       </>
