@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useRef, useState, useMemo, useCallback, Suspense } from "react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useGame } from "@/hooks/useGame";
@@ -28,12 +28,24 @@ import {
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
 import { DifficultyType } from "@/dojo/game/types/difficulty";
-import { getBonusType, getMutatorDef } from "@/config/mutatorConfig";
+import { getBonusType } from "@/config/mutatorConfig";
 import { useMutatorDef } from "@/hooks/useMutatorDef";
 import { useSettings } from "@/hooks/useSettings";
-import { getZoneGuardian } from "@/config/bossCharacters";
-import { getThemeColors, type ThemeId } from "@/config/themes";
-import GuardianGreeting from "@/ui/components/map/GuardianGreeting";
+
+const EndlessGreetingOverlay = React.lazy(() =>
+  import("@/ui/components/map/GuardianGreeting").then((mod) =>
+    import("@/config/bossCharacters").then((bossMod) =>
+      import("@/config/themes").then((themesMod) => ({
+        default: ({ zoneId, activeMutatorId, onClose }: { zoneId: number; activeMutatorId: number; onClose: () => void }) => {
+          const guardian = bossMod.getZoneGuardian(zoneId);
+          const themeId = `theme-${Math.min(10, Math.max(1, zoneId))}` as import("@/config/themes").ThemeId;
+          const colors = themesMod.getThemeColors(themeId);
+          return <mod.default colors={colors} guardian={guardian} mode="endless" activeMutatorId={activeMutatorId} onClose={onClose} />;
+        },
+      }))
+    )
+  )
+);
 
 const PlayScreen: React.FC = () => {
   const {
@@ -102,11 +114,6 @@ const PlayScreen: React.FC = () => {
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const showEndlessGreeting = useNavigationStore((s) => s.showEndlessGreeting);
-
-  const endlessZoneId = game?.zoneId ?? 1;
-  const endlessGuardian = useMemo(() => getZoneGuardian(endlessZoneId), [endlessZoneId]);
-  const endlessThemeId = `theme-${Math.min(10, Math.max(1, endlessZoneId))}` as ThemeId;
-  const endlessColors = useMemo(() => getThemeColors(endlessThemeId), [endlessThemeId]);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isGameLoading, setIsGameLoading] = useState(true);
   const [cascadeComplete, setCascadeComplete] = useState(false);
@@ -413,13 +420,13 @@ const PlayScreen: React.FC = () => {
 
       {/* Endless greeting overlay */}
       {game && game.mode === 1 && showEndlessGreeting && (
-        <GuardianGreeting
-          colors={endlessColors}
-          guardian={endlessGuardian}
-          mode="endless"
-          activeMutatorId={game.activeMutatorId}
-          onClose={() => useNavigationStore.setState({ showEndlessGreeting: false })}
-        />
+        <Suspense fallback={null}>
+          <EndlessGreetingOverlay
+            zoneId={game.zoneId ?? 1}
+            activeMutatorId={game.activeMutatorId}
+            onClose={() => useNavigationStore.setState({ showEndlessGreeting: false })}
+          />
+        </Suspense>
       )}
 
       {game && !isGameLoading && !isGridLoading && (
