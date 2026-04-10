@@ -74,7 +74,7 @@ const LeaderboardPage: React.FC = () => {
         id: `daily-${entry.rank}`,
         rank: entry.rank,
         name: entry.playerName ?? entry.player,
-        score: entry.value,
+        score: entry.totalStars ?? 0,
         playerAddress: entry.player,
         isYou: normalizedAccount === entry.player.toLowerCase(),
       }));
@@ -108,7 +108,7 @@ const LeaderboardPage: React.FC = () => {
     if (!normalizedAccount) return null;
     if (activeTab === "daily") {
       const entry = dailyEntries.find((e) => e.player.toLowerCase() === normalizedAccount);
-      return entry ? { rank: entry.rank, total: dailyEntries.length, score: entry.value, name: entry.playerName ?? "You" } : null;
+      return entry ? { rank: entry.rank, total: dailyEntries.length, score: entry.totalStars ?? 0, name: entry.playerName ?? "You" } : null;
     }
     if (activeTab === "player") {
       const entry = playerEntries.find((e) => e.player.toLowerCase() === normalizedAccount);
@@ -257,7 +257,7 @@ const LeaderboardPage: React.FC = () => {
 
                   <div className="flex items-center gap-2">
                     <div className="font-sans text-[16px] font-extrabold tracking-wide" style={{ color: colors.text }}>
-                      {entry.score.toLocaleString()}{activeTab === "player" ? " XP" : ""}
+                      {entry.score.toLocaleString()}{activeTab === "player" ? " XP" : activeTab === "daily" ? " ★" : ""}
                     </div>
                     {reward > 0 && (
                       <div className="shrink-0 rounded-full bg-yellow-500/20 px-1.5 py-0.5 text-[10px] font-bold text-yellow-300">
@@ -292,7 +292,7 @@ const LeaderboardPage: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="font-sans text-[16px] font-extrabold tracking-wide" style={{ color: colors.text }}>
-                      {myRank.score.toLocaleString()}{activeTab === "player" ? " XP" : ""}
+                      {myRank.score.toLocaleString()}{activeTab === "player" ? " XP" : activeTab === "daily" ? " ★" : ""}
                     </div>
                     {activeTab === "endless" && (() => {
                       const reward = computeWeeklyReward(myRank.rank, myRank.total);
