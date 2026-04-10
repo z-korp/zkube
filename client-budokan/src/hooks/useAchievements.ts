@@ -52,7 +52,9 @@ export const useAchievements = (): UseAchievementsResult => {
       if (!completion || ownerBigInt === null || BigInt(completion.player_id) !== ownerBigInt) continue;
 
       const key = completion.achievement_id.toString();
-      completionById.set(key, { unclaimed: completion.unclaimed });
+      // timestamp=0 means the library is just tracking progress, not a real completion
+      const isCompleted = (completion.timestamp ?? 0) !== 0;
+      completionById.set(key, { unclaimed: completion.unclaimed, isCompleted });
     }
 
     return ACHIEVEMENT_DEFS.map((achievement) => {
@@ -64,8 +66,8 @@ export const useAchievements = (): UseAchievementsResult => {
       return {
         ...achievement,
         progress,
-        completed: Boolean(completion),
-        claimed: completion ? !completion.unclaimed : false,
+        completed: completion?.isCompleted ?? false,
+        claimed: completion?.isCompleted && !completion.unclaimed ? true : false,
       };
     });
   }, [ownerBigInt, advancementEntityIds, completionEntityIds, AchievementAdvancement, AchievementCompletion]);
