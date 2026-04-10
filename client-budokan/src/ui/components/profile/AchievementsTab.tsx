@@ -32,7 +32,7 @@ const RARITY_BY_TIER = {
 } as const;
 
 const RARITY_COLORS = {
-  Common: "rgba(255,255,255,0.7)",
+  Common: "#B0B8C4",
   Rare: "#7FC3FF",
   Epic: "#B89BFF",
   Legendary: "#FFD86E",
