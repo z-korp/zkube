@@ -480,6 +480,9 @@ const PlayScreen: React.FC = () => {
           bonusDescription={bonusDescription}
           onSurrender={handleSurrender}
           isGameOver={game.over}
+          mode={game?.mode ?? 0}
+          zoneId={game?.zoneId ?? 1}
+          activeMutatorId={game?.activeMutatorId ?? 0}
         />
       )}
     </div>

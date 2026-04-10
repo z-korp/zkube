@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { motion } from "motion/react";
 import { Flag, Settings, Volume2, VolumeX } from "lucide-react";
 import { BonusType } from "@/dojo/game/types/bonusTypes";
@@ -20,6 +21,9 @@ import { Slider } from "@/ui/elements/slider";
 import { Button } from "@/ui/elements/button";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { ActionBarSvg, ACTION_BAR, circleToPercent } from "@/ui/components/chrome";
+import { getZoneGuardian, getGuardianPortrait } from "@/config/bossCharacters";
+import { getMutatorDef } from "@/config/mutatorConfig";
+import { useMutatorDef } from "@/hooks/useMutatorDef";
 
 
 export interface BonusSlot {
@@ -40,6 +44,9 @@ interface GameActionBarProps {
   bonusDescription: string;
   onSurrender: () => void;
   isGameOver: boolean;
+  mode?: number; // 0=story, 1=endless
+  zoneId?: number;
+  activeMutatorId?: number;
 }
 
 const TRIGGER_TYPE_LABELS: Record<number, string> = {
@@ -73,6 +80,9 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
   bonusDescription,
   onSurrender,
   isGameOver,
+  mode = 0,
+  zoneId = 1,
+  activeMutatorId = 0,
 }) => {
   const {
     musicVolume,
@@ -83,6 +93,12 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
     playTheme,
     stopTheme,
   } = useMusicPlayer();
+
+  const isEndless = mode === 1;
+  const guardian = useMemo(() => getZoneGuardian(zoneId), [zoneId]);
+  const portraitSrc = useMemo(() => getGuardianPortrait(zoneId), [zoneId]);
+  const { data: onChainMutator } = useMutatorDef(activeMutatorId);
+  const mutator = getMutatorDef(activeMutatorId, onChainMutator?.name);
 
   if (isGameOver) return null;
 
@@ -127,66 +143,92 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
           </DialogContent>
         </Dialog>
 
-        {/* Bonus — center socket */}
+        {/* Center socket — bonus (story) or guardian (endless) */}
         <div
           className="absolute flex items-center justify-center"
           style={circleToPercent(ACTION_BAR.sockets.bonus, ACTION_BAR.viewBox)}
         >
-          {bonusSlots.map((slot, idx) => {
-            const isSelected = activeBonus === slot.type;
-            const isUsable = slot.charges > 0;
+          {isEndless ? (
+            /* ─── Endless: guardian portrait + rules tooltip ─── */
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="w-full h-full rounded-full overflow-hidden cursor-pointer">
+                    <img
+                      src={portraitSrc}
+                      alt={guardian.name}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg max-w-[220px]">
+                  <div className="flex flex-col gap-1">
+                    <span className="font-sans text-xs font-bold">{guardian.name} — {guardian.title}</span>
+                    <span className="font-sans text-[11px] text-slate-300">{guardian.encouragement}</span>
+                    {activeMutatorId > 0 && (
+                      <span className="font-sans text-[10px] text-yellow-400/90 mt-0.5">
+                        {mutator.icon} {mutator.name}: {mutator.description}
+                      </span>
+                    )}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            /* ─── Story: bonus button (always clickable) ─── */
+            bonusSlots.map((slot, idx) => {
+              const isSelected = activeBonus === slot.type;
+              const hasCharges = slot.charges > 0;
 
-            return (
-              <TooltipProvider key={`${slot.type}-${idx}`} delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <motion.button
-                      onClick={slot.onClick}
-                      disabled={!isUsable}
-                      whileHover={isUsable ? { scale: 1.08 } : undefined}
-                      whileTap={isUsable ? { scale: 0.92 } : undefined}
-                      className={`relative w-full h-full overflow-visible flex items-center justify-center transition-all ${
-                        isSelected
-                          ? "drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]"
-                          : !isUsable
-                            ? "opacity-40 cursor-not-allowed"
-                            : "cursor-pointer"
-                      }`}
-                    >
-                      <img
-                        src={slot.icon}
-                        alt={slot.name}
-                        className={`w-[60%] h-[60%] object-contain ${
-                          !isUsable ? "grayscale opacity-60" : ""
-                        }`}
-                      />
-                      <span
-                        className={`absolute -bottom-1 -right-1 font-sans text-[clamp(8px,2vw,11px)] font-bold rounded-full min-w-[clamp(16px,4vw,20px)] h-[clamp(16px,4vw,20px)] flex items-center justify-center px-0.5 z-10 ${
-                          slot.charges > 0
-                            ? "bg-yellow-500 text-white"
-                            : "bg-slate-600 text-slate-400"
+              return (
+                <TooltipProvider key={`${slot.type}-${idx}`} delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <motion.button
+                        onClick={slot.onClick}
+                        whileHover={{ scale: 1.08 }}
+                        whileTap={{ scale: 0.92 }}
+                        className={`relative w-full h-full overflow-visible flex items-center justify-center cursor-pointer transition-all ${
+                          isSelected
+                            ? "drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]"
+                            : ""
                         }`}
                       >
-                        {slot.charges}
-                      </span>
-                    </motion.button>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="top"
-                    className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg max-w-[220px]"
-                  >
-                    <div className="flex flex-col gap-1">
-                      <span className="font-sans text-xs font-bold">{slot.name}</span>
-                      <span className="font-sans text-[11px] text-slate-300">{slot.description}</span>
-                      {slot.triggerDescription && (
-                        <span className="font-sans text-[10px] text-yellow-400/90 mt-0.5">{slot.triggerDescription}</span>
-                      )}
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            );
-          })}
+                        <img
+                          src={slot.icon}
+                          alt={slot.name}
+                          className={`w-[60%] h-[60%] object-contain ${
+                            !hasCharges ? "grayscale opacity-50" : ""
+                          }`}
+                        />
+                        <span
+                          className={`absolute -bottom-1 -right-1 font-sans text-[clamp(8px,2vw,11px)] font-bold rounded-full min-w-[clamp(16px,4vw,20px)] h-[clamp(16px,4vw,20px)] flex items-center justify-center px-0.5 z-10 ${
+                            hasCharges
+                              ? "bg-yellow-500 text-white"
+                              : "bg-slate-600 text-slate-400"
+                          }`}
+                        >
+                          {slot.charges}
+                        </span>
+                      </motion.button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="top"
+                      className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg max-w-[220px]"
+                    >
+                      <div className="flex flex-col gap-1">
+                        <span className="font-sans text-xs font-bold">{slot.name}</span>
+                        <span className="font-sans text-[11px] text-slate-300">{slot.description}</span>
+                        {slot.triggerDescription && (
+                          <span className="font-sans text-[10px] text-yellow-400/90 mt-0.5">{slot.triggerDescription}</span>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              );
+            })
+          )}
         </div>
 
         {/* Settings — right socket */}
