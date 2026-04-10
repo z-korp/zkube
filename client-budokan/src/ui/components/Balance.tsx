@@ -19,7 +19,7 @@ const FixedWidthDigit: React.FC<{ value: string }> = ({ value }) =>
     <span className="inline-block text-center w-[6px] md:w-[8px]">{value}</span>
   );
 
-const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
+const Balance = ({ address, token_address, symbol = "USDC" }: BalanceProps) => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
   const [targetBalance, setTargetBalance] = useState<number | undefined>(
     undefined
@@ -37,8 +37,10 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   });
   useEffect(() => {
     if (data !== undefined) {
+      const decimals = symbol.toUpperCase() === "USDC" ? 6 : 18;
+      const precision = symbol.toUpperCase() === "USDC" ? 2 : 6;
       const formattedBalance = parseFloat(
-        formatUnits(data as bigint, 18, symbol === "ETH" ? 6 : 2)
+        formatUnits(data as bigint, decimals, precision)
       );
 
       setTargetBalance(formattedBalance);
@@ -46,7 +48,7 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   }, [data, symbol]);
 
   const decimalNumber = useMemo(() => {
-    return symbol === "ETH" ? 6 : 2;
+    return symbol.toUpperCase() === "USDC" ? 2 : 6;
   }, [symbol]);
 
   const displayBalance = useLerpNumber(targetBalance, {

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { IWorld } from "./contractSystems";
 import * as SystemTypes from "./contractSystems";
-import { Account, type TransactionReceipt } from "starknet";
+import { Account, type TransactionReceipt, uint256, type Uint256 } from "starknet";
 import {
   getUrl,
   getWalnutUrl,
@@ -15,37 +15,67 @@ import { createLogger } from "@/utils/logger";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
-// Helper to delay execution
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const SESSION_ERROR_PATTERNS = [
-  "session/deserialize-error",
-  "session/not-registered",
-  "73657373696f6e2f646573657269616c697a652d6572726f72",
-  "73657373696f6e2f6e6f742d726567697374657265",
-];
+const normalizeHex = (value: unknown): string => {
+  if (typeof value !== "string") return "";
+  const withPrefix = value.startsWith("0x") ? value : `0x${value}`;
+  const stripped = withPrefix.slice(2).replace(/^0+/, "") || "0";
+  return `0x${stripped}`.toLowerCase();
+};
 
-function isSessionError(error: unknown): boolean {
-  const message =
-    error instanceof Error
-      ? error.message
-      : typeof error === "string"
-        ? error
-        : JSON.stringify(error);
-  const lower = message.toLowerCase();
-  return SESSION_ERROR_PATTERNS.some((p) => lower.includes(p));
-}
+const parseBigIntSafe = (value: unknown): bigint => {
+  if (typeof value !== "string") return 0n;
+  try {
+    return BigInt(value);
+  } catch {
+    return 0n;
+  }
+};
 
-function clearSessionAndReload() {
-  localStorage.removeItem("sessionSigner");
-  localStorage.removeItem("session");
-  localStorage.removeItem("sessionPolicies");
-  localStorage.removeItem("lastUsedConnector");
-  localStorage.removeItem("controllerSessionVersion");
-  window.location.reload();
-}
+const extractStoryAttemptIdFromEvents = (
+  events: any[],
+  storySystemAddress: string,
+  playerAddress?: string,
+): bigint => {
+  const storyAddress = normalizeHex(storySystemAddress);
+  const player = normalizeHex(playerAddress);
 
-// Maximum retries for pre-confirmed transaction waiting
+  for (const event of events) {
+    const keys: unknown[] = event?.keys ?? [];
+    const data: unknown[] = event?.data ?? [];
+
+    const fromStory = keys.some((key) => normalizeHex(String(key)) === storyAddress);
+    if (!fromStory) continue;
+    if (data.length !== 5) continue;
+
+    const gameId = parseBigIntSafe(String(data[data.length - 1]));
+    if (gameId <= 0n) continue;
+
+    if (!player || data.some((item) => normalizeHex(String(item)) === player)) {
+      return gameId;
+    }
+  }
+
+  for (const event of events) {
+    const keys: unknown[] = event?.keys ?? [];
+    const data: unknown[] = event?.data ?? [];
+
+    const fromStory = keys.some((key) => normalizeHex(String(key)) === storyAddress);
+    if (!fromStory) continue;
+    if (data.length < 3) continue;
+
+    const gameId = parseBigIntSafe(String(data[1]));
+    if (gameId <= 0n) continue;
+
+    if (!player || data.some((item) => normalizeHex(String(item)) === player)) {
+      return gameId;
+    }
+  }
+
+  return 0n;
+};
+
 const MAX_RETRIES = 5;
 const RETRY_DELAY_MS = 500;
 const POLL_INTERVAL_MS = 275;
@@ -53,11 +83,6 @@ const POLL_INTERVAL_MS = 275;
 export function systems({ client }: { client: IWorld }) {
   const log = createLogger("dojo/systems");
 
-  /**
-   * Wait for a transaction to reach PRE_CONFIRMED status (or better).
-   * Uses Starknet's new pre-confirmation feature for faster feedback.
-   * Retries on failure with exponential backoff.
-   */
   const waitForPreConfirmedTransaction = async (
     account: Account,
     txHash: string,
@@ -89,7 +114,6 @@ export function systems({ client }: { client: IWorld }) {
     action: () => Promise<{ transaction_hash: string }>,
     successMessage: string,
   ): Promise<{ transaction_hash: string; events: any[] }> => {
-    // Generate a unique ID for this transaction attempt
     const toastId = `tx-${Date.now()}`;
 
     try {
@@ -101,7 +125,6 @@ export function systems({ client }: { client: IWorld }) {
         });
       }
 
-      // Execute the transaction
       const { transaction_hash } = await action();
       log.debug("Transaction submitted", {
         transaction_hash,
@@ -118,7 +141,6 @@ export function systems({ client }: { client: IWorld }) {
         });
       }
 
-      // Wait for pre-confirmed status (faster than full L2 confirmation)
       const receipt = await waitForPreConfirmedTransaction(
         account,
         transaction_hash,
@@ -126,21 +148,6 @@ export function systems({ client }: { client: IWorld }) {
       const events = receipt.events;
 
       if ((receipt as any).execution_status === "REVERTED") {
-        const revertReason = (receipt as any).revert_reason ?? "";
-        if (isSessionError(revertReason)) {
-          log.warn(
-            "Transaction reverted with session error, clearing and reloading",
-          );
-          showToast({
-            message: "Session expired. Reconnecting...",
-            type: "loading",
-            toastId,
-            durationMs: 3000,
-          });
-          clearSessionAndReload();
-          return { transaction_hash, events: [] };
-        }
-
         log.error("Transaction reverted", receipt);
         if (shouldShowToast()) {
           showToast({
@@ -152,23 +159,10 @@ export function systems({ client }: { client: IWorld }) {
         throw new Error("Transaction reverted");
       }
 
-      // Notify success using same toastId
       notify(successMessage, receipt, toastId);
       return { transaction_hash, events };
     } catch (error) {
       log.error("Error executing transaction", error);
-
-      if (isSessionError(error)) {
-        log.warn("Stale session detected, clearing and reloading");
-        showToast({
-          message: "Session expired. Reconnecting...",
-          type: "loading",
-          toastId,
-          durationMs: 3000,
-        });
-        clearSessionAndReload();
-        return { transaction_hash: "", events: [] };
-      }
 
       if (shouldShowToast()) {
         const errorMessage =
@@ -186,7 +180,7 @@ export function systems({ client }: { client: IWorld }) {
     account,
     settingsId,
     ...props
-  }: SystemTypes.FreeMint): Promise<{ game_id: number }> => {
+  }: SystemTypes.FreeMint): Promise<{ game_id: bigint }> => {
     const { transaction_hash, events } = await handleTransaction(
       account,
       () => client.game.free_mint({ account, ...props, settingsId }),
@@ -194,26 +188,23 @@ export function systems({ client }: { client: IWorld }) {
     );
     log.info("freeMint transaction", { transaction_hash });
 
-    // Try to extract token_id from Transfer event (ERC721)
-    // Transfer event has 5 keys: [selector, from, to, token_id_low, token_id_high]
     const transferEvent = events.find(
       (event: any) => event.keys?.length === 5 && event.data?.length === 0,
     );
 
-    let game_id = 0;
+    let game_id = 0n;
     if (transferEvent) {
-      // token_id is in keys[3] (low) and keys[4] (high) for u256
       const tokenIdLow = BigInt(transferEvent.keys[3] || "0");
       const tokenIdHigh = BigInt(transferEvent.keys[4] || "0");
-      game_id = Number(tokenIdLow + (tokenIdHigh << 128n));
+      const uint256Value: Uint256 = { low: tokenIdLow, high: tokenIdHigh };
+      game_id = uint256.uint256ToBN(uint256Value);
       log.info("freeMint game_id extracted from transfer", { game_id });
     } else {
-      // Fallback: try TokenMetadata event with data.length === 11
       const tokenMetadataEvent = events.find(
         (event: any) => event.data.length === 11,
       );
       if (tokenMetadataEvent) {
-        game_id = parseInt(tokenMetadataEvent.data[1], 16);
+        game_id = BigInt(tokenMetadataEvent.data[1]);
         log.info("freeMint game_id extracted from fallback metadata", {
           game_id,
         });
@@ -228,6 +219,7 @@ export function systems({ client }: { client: IWorld }) {
   const create = async ({ account, ...props }: SystemTypes.Create) => {
     log.debug("create params", {
       token_id: props.token_id,
+      run_type: props.run_type,
     });
     await handleTransaction(
       account,
@@ -235,6 +227,38 @@ export function systems({ client }: { client: IWorld }) {
       "Game has been started.",
     );
     log.info("create success");
+  };
+
+  const createRun = async ({ account, ...props }: SystemTypes.CreateRun) => {
+    log.debug("createRun params", {
+      game_id: props.game_id,
+      run_type: props.run_type,
+    });
+    await handleTransaction(
+      account,
+      () => client.game.createRun({ account, ...props }),
+      "Run has been created.",
+    );
+    log.info("createRun success");
+  };
+
+  const startRun = async ({ account, ...props }: SystemTypes.StartRun): Promise<{ game_id: bigint }> => {
+    if (!client.story_system) throw new Error("Story system not available");
+    const { events } = await handleTransaction(account, () => client.story_system!.startRun({ account, ...props }), "Story run started.");
+    const gameId = extractStoryAttemptIdFromEvents(events, client.story_system.address, account.address);
+    return { game_id: gameId };
+  };
+
+  const replayLevel = async ({ account, ...props }: SystemTypes.ReplayLevel): Promise<{ game_id: bigint }> => {
+    if (!client.story_system) throw new Error("Story system not available");
+    const { events } = await handleTransaction(account, () => client.story_system!.replayLevel({ account, ...props }), "Story level replayed.");
+    const gameId = extractStoryAttemptIdFromEvents(events, client.story_system.address, account.address);
+    return { game_id: gameId };
+  };
+
+  const claimPerfection = async ({ account, ...props }: SystemTypes.ClaimPerfection) => {
+    if (!client.story_system) throw new Error("Story system not available");
+    await handleTransaction(account, () => client.story_system!.claimPerfection({ account, ...props }), "Perfection claimed.");
   };
 
   const surrender = async ({ account, ...props }: SystemTypes.Surrender) => {
@@ -247,8 +271,8 @@ export function systems({ client }: { client: IWorld }) {
 
   const move = async ({ account, ...props }: SystemTypes.Move) => {
     log.debug("move", { account: account.address, ...props });
-    const setMoveComplete = useMoveStore.getState().setMoveComplete; //  Zustand
-    setMoveComplete(false); // Reset before transaction
+    const setMoveComplete = useMoveStore.getState().setMoveComplete;
+    setMoveComplete(false);
 
     try {
       await handleTransaction(
@@ -264,8 +288,10 @@ export function systems({ client }: { client: IWorld }) {
   };
 
   const applyBonus = async ({ account, ...props }: SystemTypes.BonusTx) => {
-    const setMoveComplete = useMoveStore.getState().setMoveComplete; //  Zustand
-    setMoveComplete(false); // Reset before transaction
+    log.debug("applyBonus", { account: account.address, ...props });
+    const setMoveComplete = useMoveStore.getState().setMoveComplete;
+    setMoveComplete(false);
+
     try {
       await handleTransaction(
         account,
@@ -279,97 +305,125 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
-  const startNextLevel = async ({
+  const addCustomGameSettings = async ({
     account,
     ...props
-  }: SystemTypes.StartNextLevel) => {
-    await handleTransaction(
-      account,
-      () => client.game.startNextLevel({ account, ...props }),
-      "Next level started.",
-    );
-  };
-
-  const claimQuest = async ({ account, ...props }: SystemTypes.ClaimQuest) => {
-    if (!client.quest) {
-      throw new Error("Quest system not available");
+  }: SystemTypes.AddCustomGameSettings) => {
+    if (!client.config) {
+      throw new Error("Config system not available");
     }
     await handleTransaction(
       account,
-      () => client.quest!.claim({ account, ...props }),
+      () => client.config!.add_custom_game_settings({ account, ...props }),
+      "Game settings created.",
+    );
+  };
+
+  const purchaseMap = async ({ account, ...props }: SystemTypes.PurchaseMap) => {
+    if (!client.config) {
+      throw new Error("Config system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.config!.purchase_zone_access({ account, ...props }),
+      "Zone unlocked.",
+    );
+  };
+
+  const unlockWithStars = async ({
+    account,
+    ...props
+  }: SystemTypes.UnlockWithStars) => {
+    if (!client.config) {
+      throw new Error("Config system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.config!.unlock_zone_with_stars({ account, ...props }),
+      "Zone unlocked with stars.",
+    );
+  };
+
+  const startDailyGame = async ({
+    account,
+  }: SystemTypes.StartDailyGame): Promise<{ game_id: bigint }> => {
+    if (!client.daily_challenge) {
+      throw new Error("Daily challenge system not available");
+    }
+    const { events } = await handleTransaction(
+      account,
+      () => client.daily_challenge!.start_daily_game({ account }),
+      "Daily game started.",
+    );
+    const dailyAddress = normalizeHex(client.daily_challenge.address);
+    let gameId = 0n;
+    for (const event of events) {
+      const keys: unknown[] = event?.keys ?? [];
+      const data: unknown[] = event?.data ?? [];
+      const fromDaily = keys.some((key) => normalizeHex(String(key)) === dailyAddress);
+      if (!fromDaily || data.length < 3) continue;
+      const candidate = parseBigIntSafe(String(data[data.length - 1]));
+      if (candidate > 0n) {
+        gameId = candidate;
+        break;
+      }
+    }
+    return { game_id: gameId };
+  };
+
+  const settleChallenge = async ({
+    account,
+    ...props
+  }: SystemTypes.SettleChallenge) => {
+    if (!client.daily_challenge) {
+      throw new Error("Daily challenge system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.daily_challenge!.settle_challenge({ account, ...props }),
+      "Challenge settled.",
+    );
+  };
+
+  const settleWeeklyEndless = async ({
+    account,
+    ...props
+  }: SystemTypes.SettleWeeklyEndless) => {
+    if (!client.daily_challenge) {
+      throw new Error("Daily challenge system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.daily_challenge!.settle_weekly_endless({ account, ...props }),
+      "Weekly endless settled.",
+    );
+  };
+
+  const questClaim = async ({ account, ...props }: SystemTypes.QuestClaim) => {
+    if (!client.progress_system) throw new Error("Progress system not available");
+    await handleTransaction(
+      account,
+      () => client.progress_system!.questClaim({ account, ...props }),
       "Quest reward claimed!",
     );
   };
 
-  const rerollDraft = async ({
-    account,
-    ...props
-  }: SystemTypes.DraftReroll) => {
-    await handleTransaction(
-      account,
-      () => client.draft.reroll({ account, ...props }),
-      "Draft rerolled.",
-    );
-  };
-
-  const selectDraft = async ({
-    account,
-    ...props
-  }: SystemTypes.DraftSelect) => {
-    await handleTransaction(
-      account,
-      () => client.draft.select({ account, ...props }),
-      "Draft choice selected.",
-    );
-  };
-
-  const upgradeSkill = async ({
-    account,
-    ...props
-  }: SystemTypes.SkillTreeUpgrade) => {
-    await handleTransaction(
-      account,
-      () => client.skill_tree.upgrade_skill({ account, ...props }),
-      "Skill upgraded.",
-    );
-  };
-
-  const chooseBranch = async ({
-    account,
-    ...props
-  }: SystemTypes.SkillTreeChooseBranch) => {
-    await handleTransaction(
-      account,
-      () => client.skill_tree.choose_branch({ account, ...props }),
-      "Branch selected.",
-    );
-  };
-
-  const respecBranch = async ({
-    account,
-    ...props
-  }: SystemTypes.SkillTreeRespec) => {
-    await handleTransaction(
-      account,
-      () => client.skill_tree.respec_branch({ account, ...props }),
-      "Branch reset.",
-    );
-  };
-
   return {
-    // play
     freeMint,
     create,
+    createRun,
+    startRun,
+    replayLevel,
+    claimPerfection,
     surrender,
     move,
     applyBonus,
-    startNextLevel,
-    // quests
-    claimQuest,
-    rerollDraft,
-    selectDraft,
-    upgradeSkill,
-    chooseBranch,
-    respecBranch,
+    addCustomGameSettings,
+    purchaseMap,
+    unlockWithStars,
+    startDailyGame,
+    settleChallenge,
+    settleWeeklyEndless,
+    questClaim,
   };
 }

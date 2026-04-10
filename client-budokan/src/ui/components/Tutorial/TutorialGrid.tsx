@@ -23,7 +23,7 @@ import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "motion/react";
-import { BonusType } from "@/dojo/game/types/bonus";
+import { BonusType } from "@/dojo/game/types/bonusTypes";
 import BlockContainer from "./TutorialBlock";
 import ConfettiExplosion from "../ConfettiExplosion";
 import type { ConfettiExplosionRef } from "../ConfettiExplosion";
@@ -277,7 +277,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     const handleBonusApplication = (block: Block) => {
       setActionPerformed(true);
       setBlockBonus(block);
-      if (bonus === BonusType.Harvest) {
+      if (bonus === BonusType.Totem) {
         setBlocks((prevBlocks) => {
           const updatedBlocks = removeBlocksSameRow(block, prevBlocks);
           return updatedBlocks;
@@ -289,7 +289,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
             gridPosition.top + b.y * gridSize
           );
         });
-      } else if (bonus === BonusType.Score) {
+      } else if (bonus === BonusType.Wave) {
         setBlocks((prevBlocks) => {
           const updatedBlocks = removeBlocksSameWidth(block, prevBlocks);
           return updatedBlocks;
@@ -301,7 +301,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
             gridPosition.top + b.y * gridSize
           );
         });
-      } else if (bonus === BonusType.Combo) {
+      } else if (bonus === BonusType.Hammer) {
         setBlocks((prevBlocks) => {
           const updatedBlocks = removeBlockId(block, prevBlocks);
           return updatedBlocks;

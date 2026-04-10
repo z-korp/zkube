@@ -4,7 +4,7 @@ import GameBoardTutorial from "./GameBoardTutorial";
 import TutorialInfoStep from "./TutorialInfoStep";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";
-import { BonusType } from "@/dojo/game/types/bonus";
+import { BonusType } from "@/dojo/game/types/bonusTypes";
 import type { Block } from "@/types/types";
 
 // localStorage key for tutorial progress
@@ -244,12 +244,12 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
     
     if (isBonusStep(currentStepConfig)) {
       switch (currentStepConfig.bonusType) {
-        case BonusType.Combo:
-          return <img className="w-8 h-8" src={imgAssets.combo} alt="Combo" />;
-        case BonusType.Harvest:
-          return <img className="w-8 h-8" src={imgAssets.harvest} alt="Harvest" />;
-        case BonusType.Score:
-          return <img className="w-8 h-8" src={imgAssets.score} alt="Score" />;
+        case BonusType.Hammer:
+          return <img className="w-8 h-8" src={imgAssets.combo} alt="Hammer" />;
+        case BonusType.Totem:
+          return <img className="w-8 h-8" src={imgAssets.harvest} alt="Totem" />;
+        case BonusType.Wave:
+          return <img className="w-8 h-8" src={imgAssets.wave} alt="Wave" />;
         default:
           return null;
       }

@@ -6,7 +6,7 @@ export const useGrid = ({
   gameId,
   shouldLog,
 }: {
-  gameId: number | undefined;
+  gameId: bigint | undefined;
   shouldLog: boolean;
 }) => {
   const { game } = useGame({ gameId, shouldLog });

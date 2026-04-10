@@ -70,7 +70,7 @@ const BlockContainer: React.FC<BlockProps> = ({
 
   return (
     <div
-      className={`block block-${block.width} ${
+      className={`grid-block block-${block.width} ${
         isTxProcessing ? "cursor-wait" : ""
       } ${highlightClass} ${isBlockClickable ? "cursor-pointer" : ""}`}
       ref={ref}

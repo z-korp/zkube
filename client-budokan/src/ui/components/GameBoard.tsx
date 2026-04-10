@@ -1,12 +1,13 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
-import { Card } from "@/ui/elements/card";
+import { motion } from "motion/react";
+import { ChevronUp } from "lucide-react";
 import { useDojo } from "@/dojo/useDojo";
 import { Account } from "starknet";
 import Grid from "./Grid";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
 import type { Block } from "@/types/types";
-import { Bonus, BonusType } from "@/dojo/game/types/bonus";
+import { BonusType } from "@/dojo/game/types/bonusTypes";
 import { Game } from "@/dojo/game/models/game";
 import { useMusicPlayer } from "@/contexts/hooks";
 
@@ -19,7 +20,6 @@ interface GameBoardProps {
   game: Game;
   activeBonus: BonusType;
   bonusDescription: string;
-  activeBonusLevel: number;
   onCascadeComplete?: () => void;
 }
 
@@ -30,7 +30,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   game,
   activeBonus,
   bonusDescription,
-  activeBonusLevel,
   onCascadeComplete,
 }) => {
   const {
@@ -42,6 +41,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const ROWS = 10;
   const COLS = 8;
+  const NEXT_LINE_ROWS = 1;
+  const HORIZONTAL_PADDING = 24;
+  const VERTICAL_CHROME = 36;
   const containerRef = useRef<HTMLDivElement>(null);
   const [gridSize, setGridSize] = useState(40);
 
@@ -57,18 +59,22 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
     const observer = new ResizeObserver(([entry]) => {
       const w = entry.contentRect.width;
-      const padding = 24;
-      const cellSize = Math.floor((w - padding) / COLS);
-      setGridSize(Math.max(28, Math.min(cellSize, 56)));
+      const h = entry.contentRect.height;
+      const safeWidth = Math.max(1, w - HORIZONTAL_PADDING);
+      const safeHeight = Math.max(1, h - VERTICAL_CHROME);
+      const cellByWidth = Math.floor(safeWidth / COLS);
+      const cellByHeight = Math.floor(safeHeight / (ROWS + NEXT_LINE_ROWS));
+      const cellSize = Math.min(cellByWidth, cellByHeight);
+      setGridSize(Math.max(28, Math.min(cellSize, 72)));
     });
 
     observer.observe(el);
 
     return () => observer.disconnect();
-  }, [COLS]);
+  }, [COLS, ROWS, NEXT_LINE_ROWS, HORIZONTAL_PADDING, VERTICAL_CHROME]);
 
   const handleBonusTx = useCallback(
-    async (bonusType: BonusType, rowIndex: number, colIndex: number) => {
+    async (_bonusType: BonusType, rowIndex: number, colIndex: number) => {
       if (!account) return;
 
       setIsTxProcessing(true);
@@ -76,7 +82,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
         await applyBonus({
           account: account as Account,
           game_id: game.id,
-          bonus: new Bonus(bonusType).into(),
           row_index: ROWS - rowIndex - 1,
           block_index: colIndex,
         });
@@ -90,12 +95,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const selectBlock = useCallback(
     async (block: Block) => {
-      if (activeBonus === BonusType.Harvest) {
-        handleBonusTx(BonusType.Harvest, block.y, block.x);
-      } else if (activeBonus === BonusType.Score) {
-        handleBonusTx(BonusType.Score, block.y, block.x);
-      } else if (activeBonus === BonusType.Combo) {
-        handleBonusTx(BonusType.Combo, block.y, block.x);
+      if (activeBonus === BonusType.Hammer) {
+        handleBonusTx(BonusType.Hammer, block.y, block.x);
+      } else if (activeBonus === BonusType.Totem) {
+        handleBonusTx(BonusType.Totem, block.y, block.x);
       } else if (activeBonus === BonusType.Wave) {
         handleBonusTx(BonusType.Wave, block.y, block.x);
       } else if (activeBonus === BonusType.None) {
@@ -118,19 +121,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   return (
     <>
-        <Card
+        <div
           ref={containerRef}
-          className={`relative p-2 md:p-3 w-full max-w-[500px] ${
+          className={`relative flex h-full min-h-0 w-full flex-col p-2 md:p-3 ${
             isTxProcessing && "cursor-wait"
           }`}
-          style={{
-            backgroundImage: `var(--theme-grid-bg-image, none)`,
-            backgroundSize: "cover",
-            backgroundColor: `var(--theme-grid-bg, #10172A)`,
-          }}
         >
         <div
-          className={`flex flex-col items-center ${
+          className={`flex min-h-0 flex-1 flex-col items-center ${
             !isTxProcessing && "cursor-move"
           }`}
         >
@@ -147,11 +145,21 @@ const GameBoard: React.FC<GameBoardProps> = ({
             account={account}
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
-            activeBonusLevel={activeBonusLevel}
             levelTransitionPending={game.levelTransitionPending}
             onCascadeComplete={onCascadeComplete}
           />
-          <div className="mt-1">
+          <div className="mt-1 flex items-center justify-center gap-1 py-0.5">
+            <motion.div
+              animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <ChevronUp size={14} className="text-white/50" />
+            </motion.div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
+              Next Row
+            </span>
+          </div>
+          <div>
             <NextLine
               nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
               gridSize={gridSize}
@@ -168,7 +176,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             </div>
           </div>
         )}
-      </Card>
+      </div>
     </>
   );
 };

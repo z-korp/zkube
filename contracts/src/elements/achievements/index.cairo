@@ -1,514 +1,258 @@
-/// Achievement index - Enumerates all achievements for zKube
 use achievement::types::metadata::{AchievementMetadata, MetadataTrait};
-use achievement::types::task::Task as AchievementTask;
-use crate::elements::achievements;
+use achievement::types::reward::AchievementReward;
+use achievement::types::task::{Task, TaskTrait};
+use zkube::elements::tasks::index::Task as ZTask;
+use zkube::elements::tasks::interface::TaskTrait as ZTaskTrait;
 
-// Total number of achievements
-// Play Rhythm: 5 + Line Sweep: 5 + Combo Flow: 5 + Streak Spark: 3 +
-// Cascade Ladder: 8 + Victory Path: 4 + Daily Delusion: 3 = 33
-pub const ACHIEVEMENT_COUNT: u8 = 33;
-
-/// Achievement enum representing all achievements
-#[derive(Copy, Drop)]
-pub enum Achievement {
-    None,
-    // Play Rhythm (Games Played): 10/25/50/100/250
-    GrinderI,
-    GrinderII,
-    GrinderIII,
-    GrinderIV,
-    GrinderV,
-    // Line Sweep (Lines Cleared): 100/500/1000/5000/10000
-    ClearerI,
-    ClearerII,
-    ClearerIII,
-    ClearerIV,
-    ClearerV,
-    // Combo Flow (3+ combos): 10/25/50/100/200
-    ComboI,
-    ComboII,
-    ComboIII,
-    ComboIV,
-    ComboV,
-    // Streak Spark (combo streak): 15/50/100
-    StreakI,
-    StreakII,
-    StreakIII,
-    // Cascade Ladder (one-move clears): 2+/3+/4+/5+/6+/7+/8+/9+
-    CascadeI,
-    CascadeII,
-    CascadeIII,
-    CascadeIV,
-    CascadeV,
-    CascadeVI,
-    CascadeVII,
-    CascadeVIII,
-    // Victory Path (level 50 completions): 1/3/10/50
-    ChampionI,
-    ChampionII,
-    ChampionIII,
-    ChampionIV,
-    // Daily Delusion (daily finisher completions): 1/3/10
-    DailyMasterI,
-    DailyMasterII,
-    DailyMasterIII,
+#[derive(Drop)]
+pub struct AchievementDefinitionProps {
+    pub id: felt252,
+    pub start: u64,
+    pub end: u64,
+    pub tasks: Span<Task>,
+    pub metadata: AchievementMetadata,
 }
 
 #[generate_trait]
-pub impl AchievementImpl of AchievementTrait {
-    fn identifier(self: Achievement) -> felt252 {
-        match self {
-            Achievement::None => 0,
-            Achievement::GrinderI => achievements::grinder::Grinder::identifier(0),
-            Achievement::GrinderII => achievements::grinder::Grinder::identifier(1),
-            Achievement::GrinderIII => achievements::grinder::Grinder::identifier(2),
-            Achievement::GrinderIV => achievements::grinder::Grinder::identifier(3),
-            Achievement::GrinderV => achievements::grinder::Grinder::identifier(4),
-            Achievement::ClearerI => achievements::clearer::Clearer::identifier(0),
-            Achievement::ClearerII => achievements::clearer::Clearer::identifier(1),
-            Achievement::ClearerIII => achievements::clearer::Clearer::identifier(2),
-            Achievement::ClearerIV => achievements::clearer::Clearer::identifier(3),
-            Achievement::ClearerV => achievements::clearer::Clearer::identifier(4),
-            Achievement::ComboI => achievements::combo::Combo::identifier(0),
-            Achievement::ComboII => achievements::combo::Combo::identifier(1),
-            Achievement::ComboIII => achievements::combo::Combo::identifier(2),
-            Achievement::ComboIV => achievements::combo::Combo::identifier(3),
-            Achievement::ComboV => achievements::combo::Combo::identifier(4),
-            Achievement::StreakI => achievements::streak::Streak::identifier(0),
-            Achievement::StreakII => achievements::streak::Streak::identifier(1),
-            Achievement::StreakIII => achievements::streak::Streak::identifier(2),
-            Achievement::CascadeI => achievements::cascade::Cascade::identifier(0),
-            Achievement::CascadeII => achievements::cascade::Cascade::identifier(1),
-            Achievement::CascadeIII => achievements::cascade::Cascade::identifier(2),
-            Achievement::CascadeIV => achievements::cascade::Cascade::identifier(3),
-            Achievement::CascadeV => achievements::cascade::Cascade::identifier(4),
-            Achievement::CascadeVI => achievements::cascade::Cascade::identifier(5),
-            Achievement::CascadeVII => achievements::cascade::Cascade::identifier(6),
-            Achievement::CascadeVIII => achievements::cascade::Cascade::identifier(7),
-            Achievement::ChampionI => achievements::champion::Champion::identifier(0),
-            Achievement::ChampionII => achievements::champion::Champion::identifier(1),
-            Achievement::ChampionIII => achievements::champion::Champion::identifier(2),
-            Achievement::ChampionIV => achievements::champion::Champion::identifier(3),
-            Achievement::DailyMasterI => achievements::master::Master::identifier(0),
-            Achievement::DailyMasterII => achievements::master::Master::identifier(1),
-            Achievement::DailyMasterIII => achievements::master::Master::identifier(2),
-        }
+pub impl AchievementDefsImpl of AchievementDefsTrait {
+    fn all() -> Array<AchievementDefinitionProps> {
+        array![
+            Self::grinder_i(), Self::grinder_ii(), Self::grinder_iii(), Self::grinder_iv(),
+            Self::sweeper_i(), Self::sweeper_ii(), Self::sweeper_iii(), Self::sweeper_iv(),
+            Self::combo_master_i(), Self::combo_master_ii(), Self::combo_master_iii(),
+            Self::combo_master_iv(), Self::boss_slayer_i(), Self::boss_slayer_ii(),
+            Self::boss_slayer_iii(), Self::boss_slayer_iv(), Self::explorer_i(),
+            Self::explorer_ii(), Self::explorer_iii(), Self::explorer_iv(), Self::challenger_i(),
+            Self::challenger_ii(), Self::challenger_iii(), Self::challenger_iv(),
+        ]
     }
 
-    fn tasks(self: Achievement) -> Span<AchievementTask> {
-        match self {
-            Achievement::None => [].span(),
-            Achievement::GrinderI => achievements::grinder::Grinder::tasks(0),
-            Achievement::GrinderII => achievements::grinder::Grinder::tasks(1),
-            Achievement::GrinderIII => achievements::grinder::Grinder::tasks(2),
-            Achievement::GrinderIV => achievements::grinder::Grinder::tasks(3),
-            Achievement::GrinderV => achievements::grinder::Grinder::tasks(4),
-            Achievement::ClearerI => achievements::clearer::Clearer::tasks(0),
-            Achievement::ClearerII => achievements::clearer::Clearer::tasks(1),
-            Achievement::ClearerIII => achievements::clearer::Clearer::tasks(2),
-            Achievement::ClearerIV => achievements::clearer::Clearer::tasks(3),
-            Achievement::ClearerV => achievements::clearer::Clearer::tasks(4),
-            Achievement::ComboI => achievements::combo::Combo::tasks(0),
-            Achievement::ComboII => achievements::combo::Combo::tasks(1),
-            Achievement::ComboIII => achievements::combo::Combo::tasks(2),
-            Achievement::ComboIV => achievements::combo::Combo::tasks(3),
-            Achievement::ComboV => achievements::combo::Combo::tasks(4),
-            Achievement::StreakI => achievements::streak::Streak::tasks(0),
-            Achievement::StreakII => achievements::streak::Streak::tasks(1),
-            Achievement::StreakIII => achievements::streak::Streak::tasks(2),
-            Achievement::CascadeI => achievements::cascade::Cascade::tasks(0),
-            Achievement::CascadeII => achievements::cascade::Cascade::tasks(1),
-            Achievement::CascadeIII => achievements::cascade::Cascade::tasks(2),
-            Achievement::CascadeIV => achievements::cascade::Cascade::tasks(3),
-            Achievement::CascadeV => achievements::cascade::Cascade::tasks(4),
-            Achievement::CascadeVI => achievements::cascade::Cascade::tasks(5),
-            Achievement::CascadeVII => achievements::cascade::Cascade::tasks(6),
-            Achievement::CascadeVIII => achievements::cascade::Cascade::tasks(7),
-            Achievement::ChampionI => achievements::champion::Champion::tasks(0),
-            Achievement::ChampionII => achievements::champion::Champion::tasks(1),
-            Achievement::ChampionIII => achievements::champion::Champion::tasks(2),
-            Achievement::ChampionIV => achievements::champion::Champion::tasks(3),
-            Achievement::DailyMasterI => achievements::master::Master::tasks(0),
-            Achievement::DailyMasterII => achievements::master::Master::tasks(1),
-            Achievement::DailyMasterIII => achievements::master::Master::tasks(2),
-        }
+    fn grinder_i() -> AchievementDefinitionProps {
+        make_achievement(
+            'GRINDER_I',
+            array![task(ZTask::GameStart, 10)].span(),
+            metadata('GRINDER', 1, "Grinder I", "Start 10 game runs", 500),
+        )
+    }
+    fn grinder_ii() -> AchievementDefinitionProps {
+        make_achievement(
+            'GRINDER_II',
+            array![task(ZTask::GameStart, 50)].span(),
+            metadata('GRINDER', 2, "Grinder II", "Start 50 game runs", 1500),
+        )
+    }
+    fn grinder_iii() -> AchievementDefinitionProps {
+        make_achievement(
+            'GRINDER_III',
+            array![task(ZTask::GameStart, 200)].span(),
+            metadata('GRINDER', 3, "Grinder III", "Start 200 game runs", 3000),
+        )
+    }
+    fn grinder_iv() -> AchievementDefinitionProps {
+        make_achievement(
+            'GRINDER_IV',
+            array![task(ZTask::GameStart, 1000)].span(),
+            metadata('GRINDER', 4, "Grinder IV", "Start 1000 game runs", 5000),
+        )
     }
 
-    fn metadata(self: Achievement) -> AchievementMetadata {
-        match self {
-            Achievement::None => MetadataTrait::new(
-                title: '',
-                description: "",
-                icon: '',
-                points: 0,
-                hidden: false,
-                index: 0,
-                group: '',
-                rewards: array![].span(),
-                data: "",
-            ),
-            Achievement::GrinderI => Self::_metadata(
-                achievements::grinder::Grinder::title(0),
-                achievements::grinder::Grinder::description(0),
-                achievements::grinder::Grinder::icon(0),
-                achievements::grinder::Grinder::points(0),
-                achievements::grinder::Grinder::hidden(0),
-                achievements::grinder::Grinder::index(0),
-                achievements::grinder::Grinder::group(),
-            ),
-            Achievement::GrinderII => Self::_metadata(
-                achievements::grinder::Grinder::title(1),
-                achievements::grinder::Grinder::description(1),
-                achievements::grinder::Grinder::icon(1),
-                achievements::grinder::Grinder::points(1),
-                achievements::grinder::Grinder::hidden(1),
-                achievements::grinder::Grinder::index(1),
-                achievements::grinder::Grinder::group(),
-            ),
-            Achievement::GrinderIII => Self::_metadata(
-                achievements::grinder::Grinder::title(2),
-                achievements::grinder::Grinder::description(2),
-                achievements::grinder::Grinder::icon(2),
-                achievements::grinder::Grinder::points(2),
-                achievements::grinder::Grinder::hidden(2),
-                achievements::grinder::Grinder::index(2),
-                achievements::grinder::Grinder::group(),
-            ),
-            Achievement::GrinderIV => Self::_metadata(
-                achievements::grinder::Grinder::title(3),
-                achievements::grinder::Grinder::description(3),
-                achievements::grinder::Grinder::icon(3),
-                achievements::grinder::Grinder::points(3),
-                achievements::grinder::Grinder::hidden(3),
-                achievements::grinder::Grinder::index(3),
-                achievements::grinder::Grinder::group(),
-            ),
-            Achievement::GrinderV => Self::_metadata(
-                achievements::grinder::Grinder::title(4),
-                achievements::grinder::Grinder::description(4),
-                achievements::grinder::Grinder::icon(4),
-                achievements::grinder::Grinder::points(4),
-                achievements::grinder::Grinder::hidden(4),
-                achievements::grinder::Grinder::index(4),
-                achievements::grinder::Grinder::group(),
-            ),
-            Achievement::ClearerI => Self::_metadata(
-                achievements::clearer::Clearer::title(0),
-                achievements::clearer::Clearer::description(0),
-                achievements::clearer::Clearer::icon(0),
-                achievements::clearer::Clearer::points(0),
-                achievements::clearer::Clearer::hidden(0),
-                achievements::clearer::Clearer::index(0),
-                achievements::clearer::Clearer::group(),
-            ),
-            Achievement::ClearerII => Self::_metadata(
-                achievements::clearer::Clearer::title(1),
-                achievements::clearer::Clearer::description(1),
-                achievements::clearer::Clearer::icon(1),
-                achievements::clearer::Clearer::points(1),
-                achievements::clearer::Clearer::hidden(1),
-                achievements::clearer::Clearer::index(1),
-                achievements::clearer::Clearer::group(),
-            ),
-            Achievement::ClearerIII => Self::_metadata(
-                achievements::clearer::Clearer::title(2),
-                achievements::clearer::Clearer::description(2),
-                achievements::clearer::Clearer::icon(2),
-                achievements::clearer::Clearer::points(2),
-                achievements::clearer::Clearer::hidden(2),
-                achievements::clearer::Clearer::index(2),
-                achievements::clearer::Clearer::group(),
-            ),
-            Achievement::ClearerIV => Self::_metadata(
-                achievements::clearer::Clearer::title(3),
-                achievements::clearer::Clearer::description(3),
-                achievements::clearer::Clearer::icon(3),
-                achievements::clearer::Clearer::points(3),
-                achievements::clearer::Clearer::hidden(3),
-                achievements::clearer::Clearer::index(3),
-                achievements::clearer::Clearer::group(),
-            ),
-            Achievement::ClearerV => Self::_metadata(
-                achievements::clearer::Clearer::title(4),
-                achievements::clearer::Clearer::description(4),
-                achievements::clearer::Clearer::icon(4),
-                achievements::clearer::Clearer::points(4),
-                achievements::clearer::Clearer::hidden(4),
-                achievements::clearer::Clearer::index(4),
-                achievements::clearer::Clearer::group(),
-            ),
-            Achievement::ComboI => Self::_metadata(
-                achievements::combo::Combo::title(0),
-                achievements::combo::Combo::description(0),
-                achievements::combo::Combo::icon(0),
-                achievements::combo::Combo::points(0),
-                achievements::combo::Combo::hidden(0),
-                achievements::combo::Combo::index(0),
-                achievements::combo::Combo::group(),
-            ),
-            Achievement::ComboII => Self::_metadata(
-                achievements::combo::Combo::title(1),
-                achievements::combo::Combo::description(1),
-                achievements::combo::Combo::icon(1),
-                achievements::combo::Combo::points(1),
-                achievements::combo::Combo::hidden(1),
-                achievements::combo::Combo::index(1),
-                achievements::combo::Combo::group(),
-            ),
-            Achievement::ComboIII => Self::_metadata(
-                achievements::combo::Combo::title(2),
-                achievements::combo::Combo::description(2),
-                achievements::combo::Combo::icon(2),
-                achievements::combo::Combo::points(2),
-                achievements::combo::Combo::hidden(2),
-                achievements::combo::Combo::index(2),
-                achievements::combo::Combo::group(),
-            ),
-            Achievement::ComboIV => Self::_metadata(
-                achievements::combo::Combo::title(3),
-                achievements::combo::Combo::description(3),
-                achievements::combo::Combo::icon(3),
-                achievements::combo::Combo::points(3),
-                achievements::combo::Combo::hidden(3),
-                achievements::combo::Combo::index(3),
-                achievements::combo::Combo::group(),
-            ),
-            Achievement::ComboV => Self::_metadata(
-                achievements::combo::Combo::title(4),
-                achievements::combo::Combo::description(4),
-                achievements::combo::Combo::icon(4),
-                achievements::combo::Combo::points(4),
-                achievements::combo::Combo::hidden(4),
-                achievements::combo::Combo::index(4),
-                achievements::combo::Combo::group(),
-            ),
-            Achievement::StreakI => Self::_metadata(
-                achievements::streak::Streak::title(0),
-                achievements::streak::Streak::description(0),
-                achievements::streak::Streak::icon(0),
-                achievements::streak::Streak::points(0),
-                achievements::streak::Streak::hidden(0),
-                achievements::streak::Streak::index(0),
-                achievements::streak::Streak::group(),
-            ),
-            Achievement::StreakII => Self::_metadata(
-                achievements::streak::Streak::title(1),
-                achievements::streak::Streak::description(1),
-                achievements::streak::Streak::icon(1),
-                achievements::streak::Streak::points(1),
-                achievements::streak::Streak::hidden(1),
-                achievements::streak::Streak::index(1),
-                achievements::streak::Streak::group(),
-            ),
-            Achievement::StreakIII => Self::_metadata(
-                achievements::streak::Streak::title(2),
-                achievements::streak::Streak::description(2),
-                achievements::streak::Streak::icon(2),
-                achievements::streak::Streak::points(2),
-                achievements::streak::Streak::hidden(2),
-                achievements::streak::Streak::index(2),
-                achievements::streak::Streak::group(),
-            ),
-            Achievement::CascadeI => Self::_metadata(
-                achievements::cascade::Cascade::title(0),
-                achievements::cascade::Cascade::description(0),
-                achievements::cascade::Cascade::icon(0),
-                achievements::cascade::Cascade::points(0),
-                achievements::cascade::Cascade::hidden(0),
-                achievements::cascade::Cascade::index(0),
-                achievements::cascade::Cascade::group(),
-            ),
-            Achievement::CascadeII => Self::_metadata(
-                achievements::cascade::Cascade::title(1),
-                achievements::cascade::Cascade::description(1),
-                achievements::cascade::Cascade::icon(1),
-                achievements::cascade::Cascade::points(1),
-                achievements::cascade::Cascade::hidden(1),
-                achievements::cascade::Cascade::index(1),
-                achievements::cascade::Cascade::group(),
-            ),
-            Achievement::CascadeIII => Self::_metadata(
-                achievements::cascade::Cascade::title(2),
-                achievements::cascade::Cascade::description(2),
-                achievements::cascade::Cascade::icon(2),
-                achievements::cascade::Cascade::points(2),
-                achievements::cascade::Cascade::hidden(2),
-                achievements::cascade::Cascade::index(2),
-                achievements::cascade::Cascade::group(),
-            ),
-            Achievement::CascadeIV => Self::_metadata(
-                achievements::cascade::Cascade::title(3),
-                achievements::cascade::Cascade::description(3),
-                achievements::cascade::Cascade::icon(3),
-                achievements::cascade::Cascade::points(3),
-                achievements::cascade::Cascade::hidden(3),
-                achievements::cascade::Cascade::index(3),
-                achievements::cascade::Cascade::group(),
-            ),
-            Achievement::CascadeV => Self::_metadata(
-                achievements::cascade::Cascade::title(4),
-                achievements::cascade::Cascade::description(4),
-                achievements::cascade::Cascade::icon(4),
-                achievements::cascade::Cascade::points(4),
-                achievements::cascade::Cascade::hidden(4),
-                achievements::cascade::Cascade::index(4),
-                achievements::cascade::Cascade::group(),
-            ),
-            Achievement::CascadeVI => Self::_metadata(
-                achievements::cascade::Cascade::title(5),
-                achievements::cascade::Cascade::description(5),
-                achievements::cascade::Cascade::icon(5),
-                achievements::cascade::Cascade::points(5),
-                achievements::cascade::Cascade::hidden(5),
-                achievements::cascade::Cascade::index(5),
-                achievements::cascade::Cascade::group(),
-            ),
-            Achievement::CascadeVII => Self::_metadata(
-                achievements::cascade::Cascade::title(6),
-                achievements::cascade::Cascade::description(6),
-                achievements::cascade::Cascade::icon(6),
-                achievements::cascade::Cascade::points(6),
-                achievements::cascade::Cascade::hidden(6),
-                achievements::cascade::Cascade::index(6),
-                achievements::cascade::Cascade::group(),
-            ),
-            Achievement::CascadeVIII => Self::_metadata(
-                achievements::cascade::Cascade::title(7),
-                achievements::cascade::Cascade::description(7),
-                achievements::cascade::Cascade::icon(7),
-                achievements::cascade::Cascade::points(7),
-                achievements::cascade::Cascade::hidden(7),
-                achievements::cascade::Cascade::index(7),
-                achievements::cascade::Cascade::group(),
-            ),
-            Achievement::ChampionI => Self::_metadata(
-                achievements::champion::Champion::title(0),
-                achievements::champion::Champion::description(0),
-                achievements::champion::Champion::icon(0),
-                achievements::champion::Champion::points(0),
-                achievements::champion::Champion::hidden(0),
-                achievements::champion::Champion::index(0),
-                achievements::champion::Champion::group(),
-            ),
-            Achievement::ChampionII => Self::_metadata(
-                achievements::champion::Champion::title(1),
-                achievements::champion::Champion::description(1),
-                achievements::champion::Champion::icon(1),
-                achievements::champion::Champion::points(1),
-                achievements::champion::Champion::hidden(1),
-                achievements::champion::Champion::index(1),
-                achievements::champion::Champion::group(),
-            ),
-            Achievement::ChampionIII => Self::_metadata(
-                achievements::champion::Champion::title(2),
-                achievements::champion::Champion::description(2),
-                achievements::champion::Champion::icon(2),
-                achievements::champion::Champion::points(2),
-                achievements::champion::Champion::hidden(2),
-                achievements::champion::Champion::index(2),
-                achievements::champion::Champion::group(),
-            ),
-            Achievement::ChampionIV => Self::_metadata(
-                achievements::champion::Champion::title(3),
-                achievements::champion::Champion::description(3),
-                achievements::champion::Champion::icon(3),
-                achievements::champion::Champion::points(3),
-                achievements::champion::Champion::hidden(3),
-                achievements::champion::Champion::index(3),
-                achievements::champion::Champion::group(),
-            ),
-            Achievement::DailyMasterI => Self::_metadata(
-                achievements::master::Master::title(0),
-                achievements::master::Master::description(0),
-                achievements::master::Master::icon(0),
-                achievements::master::Master::points(0),
-                achievements::master::Master::hidden(0),
-                achievements::master::Master::index(0),
-                achievements::master::Master::group(),
-            ),
-            Achievement::DailyMasterII => Self::_metadata(
-                achievements::master::Master::title(1),
-                achievements::master::Master::description(1),
-                achievements::master::Master::icon(1),
-                achievements::master::Master::points(1),
-                achievements::master::Master::hidden(1),
-                achievements::master::Master::index(1),
-                achievements::master::Master::group(),
-            ),
-            Achievement::DailyMasterIII => Self::_metadata(
-                achievements::master::Master::title(2),
-                achievements::master::Master::description(2),
-                achievements::master::Master::icon(2),
-                achievements::master::Master::points(2),
-                achievements::master::Master::hidden(2),
-                achievements::master::Master::index(2),
-                achievements::master::Master::group(),
-            ),
-        }
+    fn sweeper_i() -> AchievementDefinitionProps {
+        make_achievement(
+            'SWEEPER_I',
+            array![task(ZTask::LineClear, 100)].span(),
+            metadata('SWEEPER', 1, "Sweeper I", "Clear 100 lines", 500),
+        )
+    }
+    fn sweeper_ii() -> AchievementDefinitionProps {
+        make_achievement(
+            'SWEEPER_II',
+            array![task(ZTask::LineClear, 500)].span(),
+            metadata('SWEEPER', 2, "Sweeper II", "Clear 500 lines", 1500),
+        )
+    }
+    fn sweeper_iii() -> AchievementDefinitionProps {
+        make_achievement(
+            'SWEEPER_III',
+            array![task(ZTask::LineClear, 2000)].span(),
+            metadata('SWEEPER', 3, "Sweeper III", "Clear 2000 lines", 3000),
+        )
+    }
+    fn sweeper_iv() -> AchievementDefinitionProps {
+        make_achievement(
+            'SWEEPER_IV',
+            array![task(ZTask::LineClear, 10000)].span(),
+            metadata('SWEEPER', 4, "Sweeper IV", "Clear 10000 lines", 5000),
+        )
     }
 
-    fn _metadata(
-        title: felt252,
-        description: ByteArray,
-        icon: felt252,
-        points: u16,
-        hidden: bool,
-        index: u8,
-        group: felt252,
-    ) -> AchievementMetadata {
-        MetadataTrait::new(
-            title: title,
-            description: description,
-            icon: icon,
-            points: points,
-            hidden: hidden,
-            index: index,
-            group: group,
-            rewards: array![].span(),
-            data: "",
+    fn combo_master_i() -> AchievementDefinitionProps {
+        make_achievement(
+            'COMBO_MASTER_I',
+            array![task(ZTask::Combo3, 1)].span(),
+            metadata('COMBO_MASTER', 1, "Combo Master I", "Hit a 3+ combo", 500),
+        )
+    }
+    fn combo_master_ii() -> AchievementDefinitionProps {
+        make_achievement(
+            'COMBO_MASTER_II',
+            array![task(ZTask::Combo4, 1)].span(),
+            metadata('COMBO_MASTER', 2, "Combo Master II", "Hit a 4+ combo", 1500),
+        )
+    }
+    fn combo_master_iii() -> AchievementDefinitionProps {
+        make_achievement(
+            'COMBO_MASTER_III',
+            array![task(ZTask::HighCombo, 1)].span(),
+            metadata('COMBO_MASTER', 3, "Combo Master III", "Hit a 10+ combo streak", 3000),
+        )
+    }
+    fn combo_master_iv() -> AchievementDefinitionProps {
+        make_achievement(
+            'COMBO_MASTER_IV',
+            array![task(ZTask::HighCombo, 10)].span(),
+            metadata('COMBO_MASTER', 4, "Combo Master IV", "Hit 10 combo streaks of 10+", 5000),
+        )
+    }
+
+    fn boss_slayer_i() -> AchievementDefinitionProps {
+        make_achievement(
+            'BOSS_SLAYER_I',
+            array![task(ZTask::BossDefeat, 1)].span(),
+            metadata('BOSS_SLAYER', 1, "Boss Slayer I", "Defeat 1 boss", 500),
+        )
+    }
+    fn boss_slayer_ii() -> AchievementDefinitionProps {
+        make_achievement(
+            'BOSS_SLAYER_II',
+            array![task(ZTask::BossDefeat, 5)].span(),
+            metadata('BOSS_SLAYER', 2, "Boss Slayer II", "Defeat 5 bosses", 1500),
+        )
+    }
+    fn boss_slayer_iii() -> AchievementDefinitionProps {
+        make_achievement(
+            'BOSS_SLAYER_III',
+            array![task(ZTask::BossDefeat, 15)].span(),
+            metadata('BOSS_SLAYER', 3, "Boss Slayer III", "Defeat 15 bosses", 3000),
+        )
+    }
+    fn boss_slayer_iv() -> AchievementDefinitionProps {
+        make_achievement(
+            'BOSS_SLAYER_IV',
+            array![task(ZTask::BossDefeat, 50)].span(),
+            metadata('BOSS_SLAYER', 4, "Boss Slayer IV", "Defeat 50 bosses", 5000),
+        )
+    }
+
+    fn explorer_i() -> AchievementDefinitionProps {
+        make_achievement(
+            'EXPLORER_I',
+            array![task(ZTask::ZoneComplete, 1)].span(),
+            metadata('EXPLORER', 1, "Explorer I", "Complete 1 zone", 1000),
+        )
+    }
+    fn explorer_ii() -> AchievementDefinitionProps {
+        make_achievement(
+            'EXPLORER_II',
+            array![task(ZTask::ZoneComplete, 3)].span(),
+            metadata('EXPLORER', 2, "Explorer II", "Complete 3 zones", 2000),
+        )
+    }
+    fn explorer_iii() -> AchievementDefinitionProps {
+        make_achievement(
+            'EXPLORER_III',
+            array![task(ZTask::PerfectLevel, 30)].span(),
+            metadata('EXPLORER', 3, "Explorer III", "Get 30 perfect levels", 4000),
+        )
+    }
+    fn explorer_iv() -> AchievementDefinitionProps {
+        make_achievement(
+            'EXPLORER_IV',
+            array![task(ZTask::ZoneComplete, 10)].span(),
+            metadata('EXPLORER', 4, "Explorer IV", "Complete 10 zones", 10000),
+        )
+    }
+
+    fn challenger_i() -> AchievementDefinitionProps {
+        make_achievement(
+            'CHALLENGER_I',
+            array![task(ZTask::DailyPlay, 1)].span(),
+            metadata('CHALLENGER', 1, "Challenger I", "Play 1 daily challenge", 500),
+        )
+    }
+    fn challenger_ii() -> AchievementDefinitionProps {
+        make_achievement(
+            'CHALLENGER_II',
+            array![task(ZTask::DailyPlay, 10)].span(),
+            metadata('CHALLENGER', 2, "Challenger II", "Play 10 daily challenges", 1500),
+        )
+    }
+    fn challenger_iii() -> AchievementDefinitionProps {
+        make_achievement(
+            'CHALLENGER_III',
+            array![task(ZTask::DailyPlay, 50)].span(),
+            metadata('CHALLENGER', 3, "Challenger III", "Play 50 daily challenges", 3000),
+        )
+    }
+    fn challenger_iv() -> AchievementDefinitionProps {
+        make_achievement(
+            'CHALLENGER_IV',
+            array![task(ZTask::DailyPlay, 200)].span(),
+            metadata('CHALLENGER', 4, "Challenger IV", "Play 200 daily challenges", 5000),
         )
     }
 }
 
-// Into<u8, Achievement>
-impl IntoU8Achievement of core::traits::Into<u8, Achievement> {
-    fn into(self: u8) -> Achievement {
-        match self {
-            0 => Achievement::None,
-            1 => Achievement::GrinderI,
-            2 => Achievement::GrinderII,
-            3 => Achievement::GrinderIII,
-            4 => Achievement::GrinderIV,
-            5 => Achievement::GrinderV,
-            6 => Achievement::ClearerI,
-            7 => Achievement::ClearerII,
-            8 => Achievement::ClearerIII,
-            9 => Achievement::ClearerIV,
-            10 => Achievement::ClearerV,
-            11 => Achievement::ComboI,
-            12 => Achievement::ComboII,
-            13 => Achievement::ComboIII,
-            14 => Achievement::ComboIV,
-            15 => Achievement::ComboV,
-            16 => Achievement::StreakI,
-            17 => Achievement::StreakII,
-            18 => Achievement::StreakIII,
-            19 => Achievement::CascadeI,
-            20 => Achievement::CascadeII,
-            21 => Achievement::CascadeIII,
-            22 => Achievement::CascadeIV,
-            23 => Achievement::CascadeV,
-            24 => Achievement::CascadeVI,
-            25 => Achievement::CascadeVII,
-            26 => Achievement::CascadeVIII,
-            27 => Achievement::ChampionI,
-            28 => Achievement::ChampionII,
-            29 => Achievement::ChampionIII,
-            30 => Achievement::ChampionIV,
-            31 => Achievement::DailyMasterI,
-            32 => Achievement::DailyMasterII,
-            33 => Achievement::DailyMasterIII,
-            _ => Achievement::None,
+#[generate_trait]
+pub impl AchievementPointsImpl of AchievementPointsTrait {
+    fn xp_for(id: felt252) -> u32 {
+        match id {
+            'GRINDER_I' => 50,
+            'GRINDER_II' => 150,
+            'GRINDER_III' => 300,
+            'GRINDER_IV' => 500,
+            'SWEEPER_I' => 50,
+            'SWEEPER_II' => 150,
+            'SWEEPER_III' => 300,
+            'SWEEPER_IV' => 500,
+            'COMBO_MASTER_I' => 50,
+            'COMBO_MASTER_II' => 150,
+            'COMBO_MASTER_III' => 300,
+            'COMBO_MASTER_IV' => 500,
+            'BOSS_SLAYER_I' => 50,
+            'BOSS_SLAYER_II' => 150,
+            'BOSS_SLAYER_III' => 300,
+            'BOSS_SLAYER_IV' => 500,
+            'EXPLORER_I' => 100,
+            'EXPLORER_II' => 200,
+            'EXPLORER_III' => 400,
+            'EXPLORER_IV' => 1000,
+            'CHALLENGER_I' => 50,
+            'CHALLENGER_II' => 150,
+            'CHALLENGER_III' => 300,
+            'CHALLENGER_IV' => 500,
+            _ => 0,
         }
     }
+}
+
+fn task(task: ZTask, total: u128) -> Task {
+    let count: u32 = total.try_into().unwrap();
+    TaskTrait::new(task.identifier(), total, task.description(count))
+}
+
+fn make_achievement(
+    id: felt252, tasks: Span<Task>, metadata: AchievementMetadata,
+) -> AchievementDefinitionProps {
+    AchievementDefinitionProps { id, start: 0, end: 0, tasks, metadata }
+}
+
+fn metadata(
+    group: felt252, index: u8, title: ByteArray, description: ByteArray, xp: u16,
+) -> AchievementMetadata {
+    let _ = title;
+    let points: u16 = xp / 100;
+    let rewards: Span<AchievementReward> = array![].span();
+    MetadataTrait::new(
+        'ACHIEVEMENT', description, 'fa-trophy', points, false, index, group, rewards, "",
+    )
 }

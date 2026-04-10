@@ -24,9 +24,9 @@ export interface ThemeMeta {
 
 export const THEME_META: Record<ThemeId, ThemeMeta> = {
   "theme-1": {
-    name: "Polynesian",
+    name: "Tiki",
     description:
-      "Moonlit Polynesian coast in deep cobalt tones, silver surf, and quiet lunar haze with restrained tiki presence",
+      "Moonlit coast in deep cobalt tones, silver surf, and quiet lunar haze with tiki presence",
   },
   "theme-2": {
     name: "Ancient Egypt",
@@ -44,19 +44,19 @@ export const THEME_META: Record<ThemeId, ThemeMeta> = {
       "White marble temples overlooking the Aegean Sea with elegant Greek-key borders and clean architecture",
   },
   "theme-5": {
-    name: "Feudal Japan",
-    description:
-      "Black lacquer dojo with red trim, brushstroke calligraphy, and cherry blossom petals",
-  },
-  "theme-6": {
     name: "Ancient China",
     description:
       "Imperial jade palace with dragon-scale overlays, golden calligraphy, and mystical mist",
   },
-  "theme-7": {
+  "theme-6": {
     name: "Ancient Persia",
     description:
       "Regal Persian palace with blue geometric tile mosaics, golden relief carvings, and luminous symmetry",
+  },
+  "theme-7": {
+    name: "Feudal Japan",
+    description:
+      "Black lacquer dojo with red trim, brushstroke calligraphy, and cherry blossom petals",
   },
   "theme-8": {
     name: "Mayan",
@@ -96,6 +96,12 @@ export interface ThemeColors {
   dangerZone: string;
   dangerZoneAlpha: number;
   accent: string;
+  accent2: string;
+  text: string;
+  textMuted: string;
+  surface: string;
+  border: string;
+  glow: string;
   blocks: Record<1 | 2 | 3 | 4, BlockColors>;
   particles: {
     primary: string[];
@@ -133,6 +139,17 @@ function lighten(hexColor: string, amount: number): string {
     .padStart(2, "0")}`;
 }
 
+function uiColors(accent: string, accent2: string): Pick<ThemeColors, "accent2" | "text" | "textMuted" | "surface" | "border" | "glow"> {
+  return {
+    accent2,
+    text: "#ffffff",
+    textMuted: "rgba(255,255,255,0.5)",
+    surface: "rgba(255,255,255,0.04)",
+    border: "rgba(255,255,255,0.08)",
+    glow: `0 0 16px ${accent}40`,
+  };
+}
+
 const POLYNESIAN_COLORS: ThemeColors = {
   background: "#041A44",
   backgroundGradientStart: lighten("#041A44", 0.06),
@@ -148,6 +165,7 @@ const POLYNESIAN_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#A9D8FF",
+  ...uiColors("#A9D8FF", "#7EC8E3"),
   blocks: {
     1: {
       fill: "#7EC8E3",
@@ -191,6 +209,7 @@ const ANCIENT_EGYPT_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#D4AF37",
+  ...uiColors("#D4AF37", "#F0CF7A"),
   blocks: {
     1: {
       fill: "#F0CF7A",
@@ -234,6 +253,7 @@ const NORSE_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#7EB8DA",
+  ...uiColors("#7EB8DA", "#A9C4DF"),
   blocks: {
     1: {
       fill: "#A9C4DF",
@@ -277,6 +297,7 @@ const ANCIENT_GREECE_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#3B6FA0",
+  ...uiColors("#3B6FA0", "#BFD5E8"),
   blocks: {
     1: {
       fill: "#BFD5E8",
@@ -320,6 +341,7 @@ const FEUDAL_JAPAN_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#C41E3A",
+  ...uiColors("#C41E3A", "#E19AA3"),
   blocks: {
     1: {
       fill: "#E19AA3",
@@ -363,6 +385,7 @@ const ANCIENT_CHINA_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#50C878",
+  ...uiColors("#50C878", "#9CD8B6"),
   blocks: {
     1: {
       fill: "#9CD8B6",
@@ -406,6 +429,7 @@ const ANCIENT_PERSIA_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#1E90FF",
+  ...uiColors("#1E90FF", "#9EB7DF"),
   blocks: {
     1: {
       fill: "#9EB7DF",
@@ -449,6 +473,7 @@ const MAYAN_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#4CAF50",
+  ...uiColors("#4CAF50", "#A9BE72"),
   blocks: {
     1: {
       fill: "#A9BE72",
@@ -492,6 +517,7 @@ const PUEBLO_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#40C8B8",
+  ...uiColors("#40C8B8", "#E0A07A"),
   blocks: {
     1: {
       fill: "#E0A07A",
@@ -535,6 +561,7 @@ const INCA_COLORS: ThemeColors = {
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#D4AF37",
+  ...uiColors("#D4AF37", "#C7BCA9"),
   blocks: {
     1: {
       fill: "#C7BCA9",
@@ -568,9 +595,9 @@ export const THEME_COLORS: Record<ThemeId, ThemeColors> = {
   "theme-2": ANCIENT_EGYPT_COLORS,
   "theme-3": NORSE_COLORS,
   "theme-4": ANCIENT_GREECE_COLORS,
-  "theme-5": FEUDAL_JAPAN_COLORS,
-  "theme-6": ANCIENT_CHINA_COLORS,
-  "theme-7": ANCIENT_PERSIA_COLORS,
+  "theme-5": ANCIENT_CHINA_COLORS,
+  "theme-6": ANCIENT_PERSIA_COLORS,
+  "theme-7": FEUDAL_JAPAN_COLORS,
   "theme-8": MAYAN_COLORS,
   "theme-9": PUEBLO_COLORS,
   "theme-10": INCA_COLORS,

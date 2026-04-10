@@ -15,11 +15,11 @@ pub const MASK_1: u128 = 0x1;
 pub const MASK_7: u32 = 0x7;
 
 // Version
-pub const VERSION: felt252 = 'v1.2.0';
+pub const VERSION: felt252 = 'v1.3.0';
 
 // Tournament / Namespace
 pub fn DEFAULT_NS() -> ByteArray {
-    "zkube_budo_v1_2_0"
+    "zkube_v2_1_1"
 }
 
 pub fn SCORE_MODEL() -> ByteArray {
@@ -40,11 +40,11 @@ pub mod DEFAULT_SETTINGS {
     use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
     use zkube::types::difficulty::Difficulty;
 
-    /// The official default settings ID used for cube minting, quests, and leaderboards
+    /// The official default settings ID used for standard map gameplay and leaderboards
     pub const DEFAULT_SETTINGS_ID: u32 = 0;
 
     /// Check if a settings_id is the official default settings
-    /// Only games using default settings can mint cubes and track quest progress
+    /// Only games using default settings count for standard progression
     pub fn is_default_settings(settings_id: u32) -> bool {
         settings_id == DEFAULT_SETTINGS_ID
     }
@@ -58,10 +58,28 @@ pub mod DEFAULT_SETTINGS {
     ) -> @GameSettingsMetadata {
         @GameSettingsMetadata {
             settings_id: DEFAULT_SETTINGS_ID,
-            name: 'Default',
-            description: "The official zKube settings - progressive difficulty with cube rewards and quest tracking.",
+            name: 'Polynesian',
+            description: "The free Polynesian map - progressive difficulty for core progression.",
             created_by: creator_address,
             created_at: current_timestamp,
+            theme_id: 1,
+            is_free: true,
+            enabled: true,
+            price: 0,
+            payment_token: core::num::traits::Zero::zero(),
+            star_cost: 0,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::DEFAULT_SETTINGS;
+
+    #[test]
+    fn test_is_default_settings() {
+        assert!(DEFAULT_SETTINGS::is_default_settings(0), "0 is default");
+        assert!(!DEFAULT_SETTINGS::is_default_settings(1), "1 is not default");
+        assert!(!DEFAULT_SETTINGS::is_default_settings(100), "100 is not default");
     }
 }

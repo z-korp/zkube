@@ -1,4 +1,4 @@
-use alexandria_math::fast_power::fast_power;
+use alexandria_math::BitShift;
 use zkube::constants;
 use zkube::helpers::packer::Packer;
 
@@ -25,7 +25,7 @@ pub impl Gravity of GravityTrait {
                 pointer *= constants::BLOCK_SIZE.into();
                 continue;
             }
-            let size: u32 = fast_power(2, upper * constants::BLOCK_BIT_COUNT.into());
+            let size: u32 = BitShift::shl(1_u32, upper * constants::BLOCK_BIT_COUNT.into());
             let lower = bottom % size;
             let lower_mask = pointer - 1;
             pointer *= size;

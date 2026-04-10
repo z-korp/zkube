@@ -142,16 +142,11 @@ export interface Game {
 	game_id: BigNumberish;
 	blocks: BigNumberish;
 	next_row: BigNumberish;
-	score: BigNumberish;
-	moves: BigNumberish;
 	combo_counter: BigNumberish;
 	max_combo: BigNumberish;
-	hammer_bonus: BigNumberish;
-	wave_bonus: BigNumberish;
-	totem_bonus: BigNumberish;
-	hammer_used: BigNumberish;
-	wave_used: BigNumberish;
-	totem_used: BigNumberish;
+	run_data: BigNumberish;
+	level_stars: BigNumberish;
+	started_at: BigNumberish;
 	over: boolean;
 }
 
@@ -170,16 +165,11 @@ export interface GameSeedValue {
 export interface GameValue {
 	blocks: BigNumberish;
 	next_row: BigNumberish;
-	score: BigNumberish;
-	moves: BigNumberish;
 	combo_counter: BigNumberish;
 	max_combo: BigNumberish;
-	hammer_bonus: BigNumberish;
-	wave_bonus: BigNumberish;
-	totem_bonus: BigNumberish;
-	hammer_used: BigNumberish;
-	wave_used: BigNumberish;
-	totem_used: BigNumberish;
+	run_data: BigNumberish;
+	level_stars: BigNumberish;
+	started_at: BigNumberish;
 	over: boolean;
 }
 
@@ -282,9 +272,10 @@ export type DifficultyEnum = CairoCustomEnum;
 // Type definition for `zkube::types::bonus::Bonus` enum
 export const bonus = [
 	'None',
-	'Hammer',
-	'Totem',
-	'Wave',
+	'ComboSurge',
+	'Harvest',
+	'Momentum',
+	'Tsunami',
 ] as const;
 export type Bonus = { [key in typeof bonus[number]]: string };
 export type BonusEnum = CairoCustomEnum;
@@ -452,16 +443,11 @@ export const schema: SchemaType = {
 			game_id: 0,
 			blocks: 0,
 			next_row: 0,
-			score: 0,
-			moves: 0,
 			combo_counter: 0,
 			max_combo: 0,
-			hammer_bonus: 0,
-			wave_bonus: 0,
-			totem_bonus: 0,
-			hammer_used: 0,
-			wave_used: 0,
-			totem_used: 0,
+			run_data: 0,
+			level_stars: 0,
+			started_at: 0,
 			over: false,
 		},
 		GameSeed: {
@@ -474,16 +460,11 @@ export const schema: SchemaType = {
 		GameValue: {
 			blocks: 0,
 			next_row: 0,
-			score: 0,
-			moves: 0,
 			combo_counter: 0,
 			max_combo: 0,
-			hammer_bonus: 0,
-			wave_bonus: 0,
-			totem_bonus: 0,
-			hammer_used: 0,
-			wave_used: 0,
-			totem_used: 0,
+			run_data: 0,
+			level_stars: 0,
+			started_at: 0,
 			over: false,
 		},
 		TrophyCreation: {
@@ -543,18 +524,20 @@ export const schema: SchemaType = {
 			game_id: 0,
 		bonus: new CairoCustomEnum({ 
 					None: "",
-				Hammer: undefined,
-				Totem: undefined,
-				Wave: undefined, }),
+				ComboSurge: undefined,
+				Harvest: undefined,
+				Momentum: undefined,
+				Tsunami: undefined, }),
 		},
 		UseBonusValue: {
 			timestamp: 0,
 			game_id: 0,
 		bonus: new CairoCustomEnum({ 
 					None: "",
-				Hammer: undefined,
-				Totem: undefined,
-				Wave: undefined, }),
+				ComboSurge: undefined,
+				Harvest: undefined,
+				Momentum: undefined,
+				Tsunami: undefined, }),
 		},
 	},
 };

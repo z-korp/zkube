@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
-import { BonusType } from "@/dojo/game/types/bonus";
+import { BonusType } from "@/dojo/game/types/bonusTypes";
 import {
   Tooltip,
   TooltipContent,

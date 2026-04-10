@@ -31,7 +31,7 @@ pub fn is_level_complete(game_level: @GameLevel, run_data: @RunData) -> bool {
         value: *game_level.constraint_value,
         required_count: *game_level.constraint_count,
     };
-    if !constraint.is_satisfied(*run_data.constraint_progress, *run_data.bonus_used_this_level) {
+    if !constraint.is_satisfied(*run_data.constraint_progress, false) {
         return false;
     }
 
@@ -41,19 +41,7 @@ pub fn is_level_complete(game_level: @GameLevel, run_data: @RunData) -> bool {
         value: *game_level.constraint2_value,
         required_count: *game_level.constraint2_count,
     };
-    if !constraint_2
-        .is_satisfied(*run_data.constraint_2_progress, *run_data.bonus_used_this_level) {
-        return false;
-    }
-
-    // Check tertiary constraint
-    let constraint_3 = LevelConstraint {
-        constraint_type: (*game_level.constraint3_type).into(),
-        value: *game_level.constraint3_value,
-        required_count: *game_level.constraint3_count,
-    };
-    if !constraint_3
-        .is_satisfied(*run_data.constraint_3_progress, *run_data.bonus_used_this_level) {
+    if !constraint_2.is_satisfied(*run_data.constraint_2_progress, false) {
         return false;
     }
 
@@ -66,16 +54,4 @@ pub fn is_level_failed(game_level: @GameLevel, run_data: @RunData) -> bool {
     let current_moves: u16 = (*run_data.level_moves).into();
 
     current_moves >= *game_level.max_moves && !is_level_complete(game_level, run_data)
-}
-
-/// Calculate cubes earned based on moves used.
-#[inline(always)]
-pub fn calculate_cubes(game_level: @GameLevel, moves_used: u16) -> u8 {
-    if moves_used <= *game_level.cube_3_threshold {
-        3
-    } else if moves_used <= *game_level.cube_2_threshold {
-        2
-    } else {
-        1
-    }
 }

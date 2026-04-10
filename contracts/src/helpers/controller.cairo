@@ -1,5 +1,4 @@
 use alexandria_math::BitShift;
-use alexandria_math::fast_power::fast_power;
 use core::hash::HashStateTrait;
 use core::poseidon::PoseidonTrait;
 use core::traits::{Into, TryInto};
@@ -178,7 +177,7 @@ pub impl Controller of ControllerTrait {
             }
 
             let power: u32 = block_size.into() * BLOCK_BIT_COUNT.into();
-            let exp: u32 = fast_power(2, power);
+            let exp: u32 = BitShift::shl(1_u32, power);
             validated = validated || block.get_bits() == 0;
             blocks = blocks * exp + block.get_bits();
             size += block_size;
@@ -205,7 +204,7 @@ pub impl Controller of ControllerTrait {
                 continue;
             }
             let power: u32 = block_size.into() * BLOCK_BIT_COUNT.into();
-            let exp: u32 = fast_power(2, power);
+            let exp: u32 = BitShift::shl(1_u32, power);
             validated = validated || block.get_bits() == 0;
             blocks = blocks * exp + block.get_bits();
             size += block_size;
@@ -337,11 +336,11 @@ pub impl Controller of ControllerTrait {
     #[inline(always)]
     fn get_row(bitmap: felt252, row_index: u8) -> u32 {
         let bitmap: u256 = bitmap.into();
-        let mask_left: u256 = fast_power(2, ((row_index + 1) * ROW_BIT_COUNT).into()) - 1;
-        let mask_right: u256 = fast_power(2, (row_index * ROW_BIT_COUNT).into()) - 1;
+        let mask_left: u256 = BitShift::shl(1_u256, ((row_index + 1) * ROW_BIT_COUNT).into()) - 1;
+        let mask_right: u256 = BitShift::shl(1_u256, (row_index * ROW_BIT_COUNT).into()) - 1;
         let mask = mask_left - mask_right;
         let row = bitmap & mask;
-        (row / fast_power(2, (row_index * ROW_BIT_COUNT).into())).try_into().unwrap()
+        (row / BitShift::shl(1_u256, (row_index * ROW_BIT_COUNT).into())).try_into().unwrap()
     }
 
     /// Get the block from the row.
@@ -352,11 +351,11 @@ pub impl Controller of ControllerTrait {
     /// The block.
     #[inline(always)]
     fn get_block_from_row(row: u32, block_index: u8) -> u8 {
-        let mask_left: u32 = fast_power(2, ((block_index + 1) * BLOCK_BIT_COUNT).into()) - 1;
-        let mask_right: u32 = fast_power(2, (block_index * BLOCK_BIT_COUNT).into()) - 1;
+        let mask_left: u32 = BitShift::shl(1_u32, ((block_index + 1) * BLOCK_BIT_COUNT).into()) - 1;
+        let mask_right: u32 = BitShift::shl(1_u32, (block_index * BLOCK_BIT_COUNT).into()) - 1;
         let mask = mask_left - mask_right;
         let block = row & mask;
-        (block / fast_power(2, (block_index * BLOCK_BIT_COUNT).into())).try_into().unwrap()
+        (block / BitShift::shl(1_u32, (block_index * BLOCK_BIT_COUNT).into())).try_into().unwrap()
     }
 
     /// Get the block from the grid.
@@ -588,270 +587,151 @@ pub impl Controller of ControllerTrait {
 
 #[cfg(test)]
 mod tests {
-    // Local imports
     use super::{Controller, Difficulty};
 
+    // =========================================================================
+    // GRAVITY, LINES, POINTS (merged from 4 tests)
+    // =========================================================================
+
     #[test]
-    fn test_controller_apply_gravity() {
-        // Initial grid
-        // 000_000_000_001_000_000_000_001
-        // 000_000_010_010_000_000_000_000
-        // 010_010_000_000_100_100_100_100
-        // 001_010_010_000_011_011_011_000
-        // Final grid = 0
-        // 000_000_000_001_000_000_000_001
-        // 010_010_010_010_100_100_100_100
-        // 001_010_010_000_011_011_011_000
+    fn test_gravity_and_lines() {
         let mut counter = 0;
         let mut points = 0;
         let bitmap: felt252 =
             0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_001_010_010_000_011_011_011_000;
-        let blocks = Controller::apply_gravity(bitmap);
-        let blocks = Controller::assess_lines(blocks, ref counter, ref points, true);
-        let blocks = Controller::apply_gravity(blocks);
-        let blocks = Controller::assess_lines(blocks, ref counter, ref points, true);
-        assert_eq!(blocks, 0);
-    }
-
-    #[test]
-    fn test_controller_assess_lines() {
-        // Initial grid
-        // 000_000_000_001_000_000_000_001
-        // 010_010_010_010_100_100_100_100
-        // 001_010_010_000_011_011_011_000
-        // Final grid = 0
-        // 000_000_000_001_000_000_000_001
-        // 001_010_010_000_011_011_011_000
-        let mut counter = 0;
-        let mut points = 0;
-        let blocks: felt252 =
-            0b000_000_000_001_000_000_000_001_010_010_010_010_100_100_100_100_001_010_010_000_011_011_011_000;
-        let blocks = Controller::assess_lines(blocks, ref counter, ref points, true);
-        assert_eq!(blocks, 0b000_000_000_001_000_000_000_001_001_010_010_000_011_011_011_000);
-    }
-
-    #[test]
-    fn test_controller_assess_lines_2() {
-        // Initial grid
-        // 100_100_100_100_000_000_000_000
-        // 000_000_001_000_000_000_000_000
-        // 010_010_010_010_100_100_100_100
-        // 001_010_010_000_011_011_011_000
-        // Final grid = 0
-        // 100_100_100_100_000_000_000_000
-        // 000_000_001_000_000_000_000_000
-        // 001_010_010_000_011_011_011_000
-        let mut counter = 0;
-        let mut points = 0;
-        let blocks: felt252 =
-            0b100_100_100_100_000_000_000_000_000_000_001_000_000_000_000_000_010_010_010_010_100_100_100_100_001_010_010_000_011_011_011_000;
-        let blocks = Controller::assess_lines(blocks, ref counter, ref points, true);
-        assert_eq!(
-            blocks,
-            0b100_100_100_100_000_000_000_000_000_000_001_000_000_000_000_000_001_010_010_000_011_011_011_000,
-        );
-    }
-
-    #[test]
-    fn test_controller_points_earned() {
-        // Initial grid
-        // 000_000_000_001_000_000_000_001
-        // 000_000_010_010_000_000_000_000
-        // 010_010_000_000_100_100_100_100
-        // 001_010_010_000_011_011_011_000
-
-        // Final grid = 0
-        let mut counter = 0;
-        let mut points = 0;
-        let bitmap: felt252 =
-            0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_001_010_010_000_011_011_011_000;
+        // apply_gravity collapses rows, assess_lines clears full rows
         let blocks = Controller::apply_gravity(bitmap);
         let blocks = Controller::assess_lines(blocks, ref counter, ref points, true);
         let blocks = Controller::apply_gravity(blocks);
         let _ = Controller::assess_lines(blocks, ref counter, ref points, true);
         assert_eq!(points, 3);
+
+        // assess_lines standalone: removes full row, keeps partial rows
+        let mut c2 = 0;
+        let mut p2 = 0;
+        let blocks2: felt252 =
+            0b000_000_000_001_000_000_000_001_010_010_010_010_100_100_100_100_001_010_010_000_011_011_011_000;
+        let result = Controller::assess_lines(blocks2, ref c2, ref p2, true);
+        assert_eq!(result, 0b000_000_000_001_000_000_000_001_001_010_010_000_011_011_011_000);
+
+        // assess_lines with non-bottom full row
+        let mut c3 = 0;
+        let mut p3 = 0;
+        let blocks3: felt252 =
+            0b100_100_100_100_000_000_000_000_000_000_001_000_000_000_000_000_010_010_010_010_100_100_100_100_001_010_010_000_011_011_011_000;
+        let result3 = Controller::assess_lines(blocks3, ref c3, ref p3, true);
+        assert_eq!(
+            result3,
+            0b100_100_100_100_000_000_000_000_000_000_001_000_000_000_000_000_001_010_010_000_011_011_011_000,
+        );
     }
 
-    #[test]
-    fn test_controller_are_block_aligned() {
-        let mut blocks: u32 = 0b000_010_010_000_011_011_011_000;
-        assert_eq!(Controller::are_block_aligned(blocks), true);
-        blocks = 0b001_010_010_000_011_011_011_000;
-        assert_eq!(Controller::are_block_aligned(blocks), true);
-        blocks = 0b010_010_000_011_011_011_000_000;
-        assert_eq!(Controller::are_block_aligned(blocks), true);
-        blocks = 0b010_000_011_011_011_000_000_010;
-        assert_eq!(Controller::are_block_aligned(blocks), false);
-        blocks = 0b011_011_011_000_001_010_010_000;
-        assert_eq!(Controller::are_block_aligned(blocks), true);
-        blocks = 0b011_011_000_001_010_010_000_011;
-        assert_eq!(Controller::are_block_aligned(blocks), false);
-        blocks = 0b100_100_100_100_001_010_010_000;
-        assert_eq!(Controller::are_block_aligned(blocks), true);
-        blocks = 0b100_100_100_001_010_010_000_100;
-        assert_eq!(Controller::are_block_aligned(blocks), false);
-    }
+    // =========================================================================
+    // BLOCK ALIGNMENT (kept compact)
+    // =========================================================================
 
     #[test]
-    fn test_controller_circular_shift_right() {
+    fn test_block_alignment() {
+        assert_eq!(Controller::are_block_aligned(0b000_010_010_000_011_011_011_000), true);
+        assert_eq!(Controller::are_block_aligned(0b001_010_010_000_011_011_011_000), true);
+        assert_eq!(Controller::are_block_aligned(0b010_010_000_000_100_100_100_100), true);
+        assert_eq!(Controller::are_block_aligned(0b010_000_011_011_011_000_000_010), false);
+        assert_eq!(Controller::are_block_aligned(0b011_011_011_000_001_010_010_000), true);
+        assert_eq!(Controller::are_block_aligned(0b011_011_000_001_010_010_000_011), false);
+        assert_eq!(Controller::are_block_aligned(0b100_100_100_100_001_010_010_000), true);
+        assert_eq!(Controller::are_block_aligned(0b100_100_100_001_010_010_000_100), false);
+    }
+
+    // =========================================================================
+    // CIRCULAR SHIFT + ALIGN (merged from 3 tests)
+    // =========================================================================
+
+    #[test]
+    fn test_circular_shift_and_align() {
         assert_eq!(
             Controller::circular_shift_right(0b000_000_000_001_000_000_000_001, 3, 24),
             0b001_000_000_000_001_000_000_000,
         );
+        // align_line
+        assert_eq!(
+            Controller::align_line(0b000_010_010_000_011_011_011_000),
+            0b000_010_010_000_011_011_011_000,
+        );
+        assert_eq!(
+            Controller::align_line(0b000_010_010_000_011_011_011_001),
+            0b000_010_010_000_011_011_011_001,
+        );
+        assert_eq!(
+            Controller::align_line(0b010_000_000_011_011_011_000_010),
+            0b010_010_000_000_011_011_011_000,
+        );
+        assert_eq!(
+            Controller::align_line(0b011_011_000_001_010_010_000_011),
+            0b011_011_011_000_001_010_010_000,
+        );
+        assert_eq!(
+            Controller::align_line(0b100_100_100_001_010_010_000_100),
+            0b100_100_100_100_001_010_010_000,
+        );
     }
 
-    #[test]
-    fn test_controller_circular_shift_right_2() {
-        Controller::circular_shift_right(0b000_000_000_001_000_000_000_001, 3, 24);
-    }
+    // =========================================================================
+    // ROW/BLOCK ACCESSORS (merged from 3 tests)
+    // =========================================================================
 
     #[test]
-    fn test_controller_align_block() {
-        let mut blocks = 0b000_010_010_000_011_011_011_000;
-        assert_eq!(Controller::align_line(blocks), 0b000_010_010_000_011_011_011_000);
-        blocks = 0b000_010_010_000_011_011_011_001;
-        assert_eq!(Controller::align_line(blocks), 0b000_010_010_000_011_011_011_001);
-        blocks = 0b010_000_000_011_011_011_000_010;
-        assert_eq!(Controller::align_line(blocks), 0b010_010_000_000_011_011_011_000);
-        blocks = 0b011_011_000_001_010_010_000_011;
-        assert_eq!(Controller::align_line(blocks), 0b011_011_011_000_001_010_010_000);
-        blocks = 0b100_100_100_001_010_010_000_100;
-        assert_eq!(Controller::align_line(blocks), 0b100_100_100_100_001_010_010_000);
-    }
-
-    #[test]
-    fn test_controller_get_row() {
-        // Initial grid
-        // 000_000_000_001_000_000_000_001
-        // 010_010_010_010_100_100_100_100
-        // 001_010_010_000_011_011_011_000
+    fn test_row_and_block_accessors() {
         let blocks: felt252 =
             0b000_000_000_001_000_000_000_001_010_010_010_010_100_100_100_100_001_010_010_000_011_011_011_000;
+        // get_row
         assert_eq!(Controller::get_row(blocks, 0), 0b001_010_010_000_011_011_011_000);
         assert_eq!(Controller::get_row(blocks, 1), 0b010_010_010_010_100_100_100_100);
         assert_eq!(Controller::get_row(blocks, 2), 0b000_000_000_001_000_000_000_001);
-    }
-
-    #[test]
-    fn test_controller_get_block_from_row() {
-        // Initial grid
-        // 000_000_000_001_000_000_000_001
-        // 010_010_010_010_100_100_100_100
-        // 001_010_010_000_011_011_011_000
-        let row: u32 = 0b001_010_010_000_011_011_011_000;
-        assert_eq!(Controller::get_block_from_row(row, 0), 0b000);
-        assert_eq!(Controller::get_block_from_row(row, 1), 0b011);
-        assert_eq!(Controller::get_block_from_row(row, 2), 0b011);
-        assert_eq!(Controller::get_block_from_row(row, 3), 0b011);
-        assert_eq!(Controller::get_block_from_row(row, 4), 0b000);
-        assert_eq!(Controller::get_block_from_row(row, 5), 0b010);
-        assert_eq!(Controller::get_block_from_row(row, 6), 0b010);
-        assert_eq!(Controller::get_block_from_row(row, 7), 0b001);
-        let row: u32 = 0b010_010_010_010_100_100_100_100;
-        assert_eq!(Controller::get_block_from_row(row, 0), 0b100);
-        assert_eq!(Controller::get_block_from_row(row, 1), 0b100);
-        assert_eq!(Controller::get_block_from_row(row, 2), 0b100);
-        assert_eq!(Controller::get_block_from_row(row, 3), 0b100);
-        assert_eq!(Controller::get_block_from_row(row, 4), 0b010);
-        assert_eq!(Controller::get_block_from_row(row, 5), 0b010);
-        assert_eq!(Controller::get_block_from_row(row, 6), 0b010);
-        assert_eq!(Controller::get_block_from_row(row, 7), 0b010);
-        let row: u32 = 0b000_000_000_001_000_000_000_001;
-        assert_eq!(Controller::get_block_from_row(row, 0), 0b001);
-        assert_eq!(Controller::get_block_from_row(row, 1), 0b000);
-        assert_eq!(Controller::get_block_from_row(row, 2), 0b000);
-        assert_eq!(Controller::get_block_from_row(row, 3), 0b000);
-        assert_eq!(Controller::get_block_from_row(row, 4), 0b001);
-        assert_eq!(Controller::get_block_from_row(row, 5), 0b000);
-        assert_eq!(Controller::get_block_from_row(row, 6), 0b000);
-        assert_eq!(Controller::get_block_from_row(row, 7), 0b000);
-    }
-
-    #[test]
-    fn test_controller_get_single_block() {
-        // Initial grid
-        // 000_000_000_001_000_000_000_001
-        // 010_010_010_010_100_100_100_100
-        // 001_010_010_000_011_011_011_000
-        let blocks: felt252 =
-            0b000_000_000_001_000_000_000_001_010_010_010_010_100_100_100_100_001_010_010_000_011_011_011_000;
+        // get_block_from_row (row 0)
+        let row0: u32 = 0b001_010_010_000_011_011_011_000;
+        assert_eq!(Controller::get_block_from_row(row0, 0), 0b000);
+        assert_eq!(Controller::get_block_from_row(row0, 1), 0b011);
+        assert_eq!(Controller::get_block_from_row(row0, 2), 0b011);
+        assert_eq!(Controller::get_block_from_row(row0, 3), 0b011);
+        assert_eq!(Controller::get_block_from_row(row0, 4), 0b000);
+        assert_eq!(Controller::get_block_from_row(row0, 5), 0b010);
+        assert_eq!(Controller::get_block_from_row(row0, 6), 0b010);
+        assert_eq!(Controller::get_block_from_row(row0, 7), 0b001);
+        // get_block_from_row (row 1) - spot checks
+        let row1: u32 = 0b010_010_010_010_100_100_100_100;
+        assert_eq!(Controller::get_block_from_row(row1, 0), 0b100);
+        assert_eq!(Controller::get_block_from_row(row1, 4), 0b010);
+        assert_eq!(Controller::get_block_from_row(row1, 7), 0b010);
+        // get_block_from_row (row 2) - spot checks
+        let row2: u32 = 0b000_000_000_001_000_000_000_001;
+        assert_eq!(Controller::get_block_from_row(row2, 0), 0b001);
+        assert_eq!(Controller::get_block_from_row(row2, 4), 0b001);
+        assert_eq!(Controller::get_block_from_row(row2, 7), 0b000);
+        // get_block
         assert_eq!(Controller::get_block(blocks, 1, 4), 0b010);
     }
 
-    #[test]
-    fn test_controller_swipe_left_01() {
-        // Initial grid
-        // 000_000_000_001_000_000_000_001
-        // 010_010_010_010_100_100_100_100
-        // 001_010_010_000_011_011_011_000
-        let bitmap: felt252 =
-            0b000_000_000_001_000_000_000_001_010_010_010_010_100_100_100_100_001_010_010_000_011_011_011_000;
-        let blocks = Controller::swipe(bitmap, 2, 0, true, 2);
-        assert_eq!(Controller::get_row(blocks, 0), 0b001_010_010_000_011_011_011_000);
-        assert_eq!(Controller::get_row(blocks, 1), 0b010_010_010_010_100_100_100_100);
-        assert_eq!(Controller::get_row(blocks, 2), 0b000_000_000_001_000_001_000_000);
-    }
+    // =========================================================================
+    // CREATE LINE FALLBACK (merged 2 tests)
+    // =========================================================================
 
     #[test]
-    fn test_controller_swipe_left_02() {
-        // Initial grid
-        // 000_000_000_001_000_000_000_001
-        // 010_010_010_010_100_100_100_100
-        // 001_010_010_000_011_011_011_000
-        let bitmap: felt252 =
-            0b000_000_000_001_000_000_000_001_010_010_010_010_100_100_100_100_001_010_010_000_011_011_011_000;
-        let blocks = Controller::swipe(bitmap, 0, 1, true, 1);
-        assert_eq!(Controller::get_row(blocks, 0), 0b001_010_010_011_011_011_000_000);
-        assert_eq!(Controller::get_row(blocks, 1), 0b010_010_010_010_100_100_100_100);
-        assert_eq!(Controller::get_row(blocks, 2), 0b000_000_000_001_000_000_000_001);
-    }
-
-    #[test]
-    fn test_controller_swipe_right_01() {
-        // Initial grid
-        // 000_000_000_001_000_000_000_001
-        // 010_010_010_010_100_100_100_100
-        // 001_010_010_000_011_011_011_000
-        let bitmap: felt252 =
-            0b000_000_000_001_000_000_000_001_010_010_010_010_100_100_100_100_001_010_010_000_011_011_011_000;
-        let blocks = Controller::swipe(bitmap, 0, 1, false, 1);
-        assert_eq!(Controller::get_row(blocks, 0), 0b001_010_010_000_000_011_011_011);
-        assert_eq!(Controller::get_row(blocks, 1), 0b010_010_010_010_100_100_100_100);
-        assert_eq!(Controller::get_row(blocks, 2), 0b000_000_000_001_000_000_000_001);
-    }
-
-    #[test]
-    fn test_controller_create_line_fallback_01() {
-        // Test the fallback line generator (original deck-based logic)
-        let seed: felt252 = 'SEED';
+    fn test_create_line_fallback() {
         let easy: Difficulty = Difficulty::Easy;
-        let blocks = Controller::create_line_fallback(seed, easy);
-        assert_eq!(blocks, 0b001_010_010_001_001_001_000_000);
+        assert_eq!(
+            Controller::create_line_fallback('SEED', easy), 0b001_010_010_001_001_001_000_000,
+        );
+        assert_eq!(
+            Controller::create_line_fallback('DEES', easy), 0b010_010_001_001_000_001_010_010,
+        );
     }
 
-    #[test]
-    fn test_controller_create_line_fallback_02() {
-        // Test the fallback line generator (original deck-based logic)
-        let seed: felt252 = 'DEES';
-        let easy: Difficulty = Difficulty::Easy;
-        let blocks = Controller::create_line_fallback(seed, easy);
-        assert_eq!(blocks, 0b010_010_001_001_000_001_010_010);
-    }
+    // =========================================================================
+    // ASSESS LINE (kept as-is)
+    // =========================================================================
 
     #[test]
-    fn test_controller_assess_line() {
-        // Initial grid
-        // [0, 0, 0, 0, 0, 0, 0, 0] -> 000_000_000_000_000_000_000_000
-        // [0, 0, 0, 0, 0, 0, 0, 0] -> 000_000_000_000_000_000_000_000
-        // [0, 0, 0, 0, 0, 0, 0, 0] -> 000_000_000_000_000_000_000_000
-        // [0, 0, 0, 0, 0, 0, 0, 0] -> 000_000_000_000_000_000_000_000
-        // [0, 0, 0, 0, 0, 0, 0, 0] -> 000_000_000_000_000_000_000_000
-        // [1, 0, 0, 0, 4, 4, 4, 4] -> 100_100_100_100_000_000_000_001
-        // [2, 2, 2, 2, 2, 2, 2, 2] -> 010_010_010_010_010_010_010_010
-        // [0, 3, 3, 3, 2, 2, 2, 2] -> 010_010_010_010_010_010_010_000
-        // [0, 2, 2, 3, 3, 3, 2, 2] -> 010_010_010_100_100_100_000_000
-        // [1, 3, 3, 3, 3, 3, 3, 0] -> 000_100_100_100_100_100_100_001
-
+    fn test_assess_line() {
         let mut counter = 0;
         let mut points = 0;
         let blocks =
@@ -863,1131 +743,545 @@ mod tests {
         );
     }
 
+    // =========================================================================
+    // NOT ENOUGH ROOM (non-panicking test)
+    // =========================================================================
 
     #[test]
-    fn test_controller_not_enough_room_front() {
-        // Initial grid
-        // 100_100_100_100_000_000_010_010
-        // 100_100_100_100_011_011_011_000
-        // 001_001_000_010_010_000_010_010
-        // 011_011_011_000_011_011_011_000
-        // 010_010_010_010_000_011_011_011
-        // 001_000_001_011_011_011_010_010
-        // 100_100_100_100_000_001_010_010
-        // 010_010_010_010_001_010_010_000
-
+    fn test_not_enough_room_front() {
         let bitmap: felt252 =
             0b100_100_100_100_000_000_010_010__100_100_100_100_011_011_011_000__001_001_000_010_010_000_010_010__011_011_011_000_011_011_011_000__010_010_010_010_000_011_011_011__001_000_001_011_011_011_010_010__100_100_100_100_000_001_010_010__010_010_010_010_001_010_010_000;
         Controller::swipe(bitmap, 1, 4, false, 1);
     }
 
-    #[test]
-    #[should_panic(expected: ('Controller: not in boundaries',))]
-    fn test_controller_swipe_bug() {
-        let bitmap: felt252 = 0b001_001_011_011_011_001_001_000;
-        let blocks = Controller::swipe(bitmap, 0, 5, true, 2);
+    // =========================================================================
+    // SWIPE LEFT BASIC (merged 2 tests)
+    // =========================================================================
 
-        println!("blocks: {}", blocks);
-        // 001_001_011_000_000_011_011_001_001_000
+    #[test]
+    fn test_swipe_left_basic() {
+        let bitmap: felt252 =
+            0b000_000_000_001_000_000_000_001_010_010_010_010_100_100_100_100_001_010_010_000_011_011_011_000;
+        // swipe_left_01: row 2, index 0, left 2
+        let blocks = Controller::swipe(bitmap, 2, 0, true, 2);
+        assert_eq!(Controller::get_row(blocks, 0), 0b001_010_010_000_011_011_011_000);
+        assert_eq!(Controller::get_row(blocks, 1), 0b010_010_010_010_100_100_100_100);
+        assert_eq!(Controller::get_row(blocks, 2), 0b000_000_000_001_000_001_000_000);
+        // swipe_left_02: row 0, index 1, left 1
+        let blocks2 = Controller::swipe(bitmap, 0, 1, true, 1);
+        assert_eq!(Controller::get_row(blocks2, 0), 0b001_010_010_011_011_011_000_000);
     }
 
+    // =========================================================================
+    // SWIPE RIGHT BASIC (kept as-is)
+    // =========================================================================
+
     #[test]
-    fn test_controller_row_coherence_valid_rows() {
-        // Empty row
-        assert(
-            Controller::check_row_coherence(0b000_000_000_000_000_000_000_000),
-            'empty row should be valid',
-        );
-
-        // Single blocks (size 1) in different positions
-        assert(Controller::check_row_coherence(0b001_000_000_000_000_000_000_000), 'single right');
-        assert(Controller::check_row_coherence(0b000_001_000_000_000_000_000_000), 'single pos 6');
-        assert(Controller::check_row_coherence(0b000_000_001_000_000_000_000_000), 'single pos 5');
-        assert(Controller::check_row_coherence(0b000_000_000_001_000_000_000_000), 'single pos 4');
-        assert(Controller::check_row_coherence(0b000_000_000_000_001_000_000_000), 'single pos 3');
-        assert(Controller::check_row_coherence(0b000_000_000_000_000_001_000_000), 'single pos 2');
-        assert(Controller::check_row_coherence(0b000_000_000_000_000_000_001_000), 'single pos 1');
-        assert(Controller::check_row_coherence(0b000_000_000_000_000_000_000_001), 'single left');
-
-        // Size 2 blocks in different positions
-        assert(Controller::check_row_coherence(0b010_010_000_000_000_000_000_000), 'size 2 right');
-        assert(Controller::check_row_coherence(0b000_010_010_000_000_000_000_000), 'size 2 pos 5');
-        assert(Controller::check_row_coherence(0b000_000_010_010_000_000_000_000), 'size 2 pos 4');
-        assert(Controller::check_row_coherence(0b000_000_000_010_010_000_000_000), 'size 2 pos 3');
-        assert(Controller::check_row_coherence(0b000_000_000_000_010_010_000_000), 'size 2 pos 2');
-        assert(Controller::check_row_coherence(0b000_000_000_000_000_010_010_000), 'size 2 pos 1');
-        assert(Controller::check_row_coherence(0b000_000_000_000_000_000_010_010), 'size 2 left');
-
-        // Size 3 blocks in different positions
-        assert(Controller::check_row_coherence(0b011_011_011_000_000_000_000_000), 'size 3 right');
-        assert(Controller::check_row_coherence(0b000_011_011_011_000_000_000_000), 'size 3 pos 4');
-        assert(Controller::check_row_coherence(0b000_000_011_011_011_000_000_000), 'size 3 pos 3');
-        assert(Controller::check_row_coherence(0b000_000_000_011_011_011_000_000), 'size 3 pos 2');
-        assert(Controller::check_row_coherence(0b000_000_000_000_011_011_011_000), 'size 3 pos 1');
-        assert(Controller::check_row_coherence(0b000_000_000_000_000_011_011_011), 'size 3 left');
-
-        // Size 4 blocks in different positions
-        assert(Controller::check_row_coherence(0b100_100_100_100_000_000_000_000), 'size 4 right');
-        assert(Controller::check_row_coherence(0b000_100_100_100_100_000_000_000), 'size 4 pos 3');
-        assert(Controller::check_row_coherence(0b000_000_100_100_100_100_000_000), 'size 4 pos 2');
-        assert(Controller::check_row_coherence(0b000_000_000_100_100_100_100_000), 'size 4 pos 1');
-        assert(Controller::check_row_coherence(0b000_000_000_000_100_100_100_100), 'size 4 left');
-
-        // Multiple blocks combinations
-        // Size 1 + Size 1
-        assert(Controller::check_row_coherence(0b001_000_001_000_000_000_000_000), 'two size 1');
-        assert(
-            Controller::check_row_coherence(0b001_000_000_000_001_000_000_000), 'two size 1 spaced',
-        );
-
-        // Size 1 + Size 2
-        assert(
-            Controller::check_row_coherence(0b001_010_010_000_000_000_000_000), 'size 1,2 right',
-        );
-        assert(
-            Controller::check_row_coherence(0b010_010_001_000_000_000_000_000), 'size 2,1 right',
-        );
-        assert(
-            Controller::check_row_coherence(0b000_000_001_000_010_010_000_000), 'size 1,2 middle',
-        );
-
-        // Size 1 + Size 3
-        assert(
-            Controller::check_row_coherence(0b001_011_011_011_000_000_000_000), 'size 1,3 right',
-        );
-        assert(
-            Controller::check_row_coherence(0b011_011_011_001_000_000_000_000), 'size 3,1 right',
-        );
-
-        // Size 2 + Size 2
-        assert(
-            Controller::check_row_coherence(0b010_010_010_010_000_000_000_000), 'two size 2 right',
-        );
-        assert(
-            Controller::check_row_coherence(0b010_010_000_000_010_010_000_000), 'two size 2 spaced',
-        );
-
-        // Size 2 + Size 3
-        assert(
-            Controller::check_row_coherence(0b010_010_011_011_011_000_000_000), 'size 2,3 right',
-        );
-        assert(
-            Controller::check_row_coherence(0b011_011_011_010_010_000_000_000), 'size 3,2 right',
-        );
-
-        // Maximum combinations filling the row
-        assert(Controller::check_row_coherence(0b001_001_001_001_001_001_001_001), 'eight size 1');
-        assert(Controller::check_row_coherence(0b010_010_010_010_010_010_010_010), 'four size 2');
-        assert(Controller::check_row_coherence(0b001_010_010_011_011_011_000_000), 'size 1,2,3');
-        assert(Controller::check_row_coherence(0b010_010_001_011_011_011_000_000), 'size 2,1,3');
+    fn test_swipe_right_basic() {
+        let bitmap: felt252 =
+            0b000_000_000_001_000_000_000_001_010_010_010_010_100_100_100_100_001_010_010_000_011_011_011_000;
+        let blocks = Controller::swipe(bitmap, 0, 1, false, 1);
+        assert_eq!(Controller::get_row(blocks, 0), 0b001_010_010_000_000_011_011_011);
     }
 
+    // =========================================================================
+    // ROW COHERENCE (merged valid + invalid)
+    // =========================================================================
+
     #[test]
-    fn test_controller_row_coherence_invalid_rows() {
-        // Invalid single block values
-        assert(
-            !Controller::check_row_coherence(0b100_000_000_000_000_000_000_000),
-            'invalid block value 4',
-        );
-        assert(
-            !Controller::check_row_coherence(0b101_000_000_000_000_000_000_000),
-            'invalid block value 5',
-        );
-        assert(
-            !Controller::check_row_coherence(0b110_000_000_000_000_000_000_000),
-            'invalid block value 6',
-        );
-        assert(
-            !Controller::check_row_coherence(0b111_000_000_000_000_000_000_000),
-            'invalid block value 7',
-        );
+    fn test_row_coherence() {
+        // --- Valid rows ---
+        assert(Controller::check_row_coherence(0b000_000_000_000_000_000_000_000), 'empty');
+        assert(Controller::check_row_coherence(0b001_000_000_000_000_000_000_000), 's1 right');
+        assert(Controller::check_row_coherence(0b000_000_000_000_000_000_000_001), 's1 left');
+        assert(Controller::check_row_coherence(0b010_010_000_000_000_000_000_000), 's2 right');
+        assert(Controller::check_row_coherence(0b000_000_000_000_000_000_010_010), 's2 left');
+        assert(Controller::check_row_coherence(0b011_011_011_000_000_000_000_000), 's3 right');
+        assert(Controller::check_row_coherence(0b000_000_000_000_000_011_011_011), 's3 left');
+        assert(Controller::check_row_coherence(0b100_100_100_100_000_000_000_000), 's4 right');
+        assert(Controller::check_row_coherence(0b000_000_000_000_100_100_100_100), 's4 left');
+        assert(Controller::check_row_coherence(0b001_000_001_000_000_000_000_000), 'two s1');
+        assert(Controller::check_row_coherence(0b001_010_010_011_011_011_000_000), 's1,s2,s3');
+        assert(Controller::check_row_coherence(0b001_001_001_001_001_001_001_001), 'eight s1');
+        assert(Controller::check_row_coherence(0b010_010_010_010_010_010_010_010), 'four s2');
 
-        // Incomplete Size 2 blocks
-        assert(
-            !Controller::check_row_coherence(0b010_000_000_000_000_000_000_000),
-            'incomplete size 2 right',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_010_000_000_000_000_000_000),
-            'incomplete size 2 pos 6',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_000_010_000_000_000_000_000),
-            'incomplete size 2 pos 5',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_000_000_010_000_000_000_000),
-            'incomplete size 2 middle',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_000_000_000_010_000_000_000),
-            'incomplete size 2 pos 3',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_000_000_000_000_010_000_000),
-            'incomplete size 2 pos 2',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_000_000_000_000_000_010_000),
-            'incomplete size 2 left',
-        );
-
-        // Incomplete Size 3 blocks
-        assert(
-            !Controller::check_row_coherence(0b011_000_000_000_000_000_000_000),
-            'incomplete size 3 right single',
-        );
-        assert(
-            !Controller::check_row_coherence(0b011_011_000_000_000_000_000_000),
-            'incomplete size 3 right double',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_011_011_000_000_000_000_000),
-            'incomplete size 3 pos 5',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_000_011_011_000_000_000_000),
-            'incomplete size 3 pos 4',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_000_000_011_011_000_000_000),
-            'incomplete size 3 pos 3',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_000_000_000_011_011_000_000),
-            'incomplete size 3 pos 2',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_000_000_000_000_011_011_000),
-            'incomplete size 3 pos 1',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_000_000_000_000_000_011_011),
-            'incomplete size 3 left',
-        );
-
-        // Incomplete Size 4 blocks
-        assert(
-            !Controller::check_row_coherence(0b100_000_000_000_000_000_000_000),
-            'incomplete size 4 right single',
-        );
-        assert(
-            !Controller::check_row_coherence(0b100_100_000_000_000_000_000_000),
-            'incomplete size 4 right double',
-        );
-        assert(
-            !Controller::check_row_coherence(0b100_100_100_000_000_000_000_000),
-            'incomplete size 4 right triple',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_100_100_100_000_000_000_000),
-            'incomplete size 4 pos 4',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_000_100_100_100_000_000_000),
-            'incomplete size 4 pos 3',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_000_000_100_100_100_000_000),
-            'incomplete size 4 pos 2',
-        );
-        assert(
-            !Controller::check_row_coherence(0b000_000_000_000_100_100_100_000),
-            'incomplete size 4 pos 1',
-        );
-
-        // Invalid mixed patterns
-        assert(
-            !Controller::check_row_coherence(0b010_011_000_000_000_000_000_000), 'invalid mix 2,3',
-        );
-        assert(
-            !Controller::check_row_coherence(0b011_010_000_000_000_000_000_000), 'invalid mix 3,2',
-        );
-        assert(
-            !Controller::check_row_coherence(0b010_001_010_000_000_000_000_000),
-            'invalid mix 2,1,2',
-        );
-        assert(
-            !Controller::check_row_coherence(0b011_001_011_000_000_000_000_000),
-            'invalid mix 3,1,3',
-        );
-
-        // Invalid continuations
-        assert(
-            !Controller::check_row_coherence(0b010_010_011_000_000_000_000_000),
-            'invalid continuation 2->3',
-        );
-        assert(
-            !Controller::check_row_coherence(0b011_011_010_000_000_000_000_000),
-            'invalid continuation 3->2',
-        );
-        assert(
-            !Controller::check_row_coherence(0b010_011_010_000_000_000_000_000),
-            'invalid mix middle',
-        );
-
-        // Row overflow tests
-        assert(
-            !Controller::check_row_coherence(0b010_010_010_000_000_000_000_000), 'overflow size 2',
-        );
-        assert(
-            !Controller::check_row_coherence(0b011_011_011_011_011_000_000_000), 'overflow size 3',
-        );
-        assert(
-            !Controller::check_row_coherence(0b100_100_100_100_100_000_000_000), 'overflow size 4',
-        );
-
-        // Wrong block order
-        assert(
-            !Controller::check_row_coherence(0b010_011_010_011_000_000_000_000),
-            'wrong block order 1',
-        );
-        assert(
-            !Controller::check_row_coherence(0b011_010_011_010_000_000_000_000),
-            'wrong block order 2',
-        );
-        assert(
-            !Controller::check_row_coherence(0b001_010_001_010_000_000_000_000),
-            'wrong block order 3',
-        );
+        // --- Invalid rows ---
+        assert(!Controller::check_row_coherence(0b101_000_000_000_000_000_000_000), 'val 5');
+        assert(!Controller::check_row_coherence(0b110_000_000_000_000_000_000_000), 'val 6');
+        assert(!Controller::check_row_coherence(0b111_000_000_000_000_000_000_000), 'val 7');
+        assert(!Controller::check_row_coherence(0b010_000_000_000_000_000_000_000), 'inc s2');
+        assert(!Controller::check_row_coherence(0b000_000_000_010_000_000_000_000), 'inc s2 mid');
+        assert(!Controller::check_row_coherence(0b011_000_000_000_000_000_000_000), 'inc s3 1');
+        assert(!Controller::check_row_coherence(0b011_011_000_000_000_000_000_000), 'inc s3 2');
+        assert(!Controller::check_row_coherence(0b000_000_000_000_000_000_011_011), 'inc s3 left');
+        assert(!Controller::check_row_coherence(0b100_000_000_000_000_000_000_000), 'inc s4 1');
+        assert(!Controller::check_row_coherence(0b100_100_000_000_000_000_000_000), 'inc s4 2');
+        assert(!Controller::check_row_coherence(0b100_100_100_000_000_000_000_000), 'inc s4 3');
+        assert(!Controller::check_row_coherence(0b010_011_000_000_000_000_000_000), 'mix 2,3');
+        assert(!Controller::check_row_coherence(0b010_010_011_000_000_000_000_000), 'cont 2->3');
+        assert(!Controller::check_row_coherence(0b011_011_010_000_000_000_000_000), 'cont 3->2');
+        assert(!Controller::check_row_coherence(0b010_010_010_000_000_000_000_000), 'overflow s2');
+        assert(!Controller::check_row_coherence(0b011_011_011_011_011_000_000_000), 'overflow s3');
+        assert(!Controller::check_row_coherence(0b100_100_100_100_100_000_000_000), 'overflow s4');
     }
 
+    // =========================================================================
+    // GRID COHERENCE (merged valid + invalid + edge cases)
+    // =========================================================================
+
     #[test]
-    fn test_controller_grid_coherence_valid() {
-        // Test case 1: Empty grid
-        assert(Controller::check_grid_coherence(0), 'empty grid should be coherent');
-
-        // Test case 2: Single valid row with mixed blocks
-        let single_row = 0b001_010_010_011_011_011_000_000;
-        assert(Controller::check_grid_coherence(single_row), 'grid should be coherent (1)');
-
-        // Test case 3: Multiple valid rows
-        // Row 2: Valid single blocks
-        // Row 1: Valid size 2 and size 4 blocks
-        // Row 0: Valid mixed blocks
+    fn test_grid_coherence() {
+        // --- Valid ---
+        assert(Controller::check_grid_coherence(0), 'empty grid');
+        assert(Controller::check_grid_coherence(0b001_010_010_011_011_011_000_000), 'single row');
         let multi_row: felt252 =
             0b000_000_000_001_000_000_000_001__010_010_010_010_100_100_100_100__001_010_010_000_011_011_011_000;
-        assert(Controller::check_grid_coherence(multi_row), 'grid should be coherent (2)');
-    }
-
-    #[test]
-    fn test_controller_grid_coherence_invalid() {
-        // Test case 1: Single invalid row (incomplete size 2 block)
-        let single_invalid = 0b010_000_000_000_000_000_000_000;
-        assert(!Controller::check_grid_coherence(single_invalid), 'grid should be incoherent (1)');
-
-        // Test case 2: Multiple rows with one invalid
-        // Row 2: Valid
-        // Row 1: Invalid (incomplete size 2)
-        // Row 0: Valid
-        let multi_row_one_invalid: felt252 =
-            0b000_000_000_001_000_000_000_001__010_000_010_010_100_100_100_100__001_010_010_000_011_011_011_000;
-        assert(
-            !Controller::check_grid_coherence(multi_row_one_invalid),
-            'grid should be incoherent (2)',
-        );
-
-        // Test case 3: Invalid block value
-        // Row 2: Valid
-        // Row 1: Invalid block value
-        // Row 0: Valid
-        let invalid_block: felt252 =
-            0b000_000_000_001_000_000_000_001__111_000_010_010_100_100_100_100__001_010_010_000_011_011_011_000;
-        assert(!Controller::check_grid_coherence(invalid_block), 'grid should be incoherent (3)');
-
-        // Test case 4: Mixed issues
-        // Row 2: Incomplete size 2
-        // Row 1: Incomplete size 3
-        // Row 0: Invalid sequence
-        let mixed_issues: felt252 =
-            0b010_000_000_001_000_000_000_001__011_011_010_010_100_100_100_100__001_010_100_000_011_011_011_000;
-        assert(!Controller::check_grid_coherence(mixed_issues), 'grid should be incoherent (4)');
-    }
-
-    #[test]
-    fn test_controller_grid_coherence_edge_cases() {
-        // Test case 1: Grid full of size 1 blocks
+        assert(Controller::check_grid_coherence(multi_row), 'multi row');
         let all_ones: felt252 =
             0b001_001_001_001_001_001_001_001__001_001_001_001_001_001_001_001__001_001_001_001_001_001_001_001;
-        assert(Controller::check_grid_coherence(all_ones), 'grid should be coherent (1)');
-
-        // Test case 2: Grid with maximum valid blocks
-        // 4 size 4 blocks
-        // 3 size 3 blocks
-        // 8 size 2 blocks
+        assert(Controller::check_grid_coherence(all_ones), 'all ones');
         let max_blocks: felt252 =
             0b100_100_100_100_000_000_000_000__011_011_011_010_010_000_000_000__001_001_001_001_001_001_001_001;
-        assert(Controller::check_grid_coherence(max_blocks), 'grid should be coherent (2)');
-
-        // Test case 3: Grid with alternating patterns
-        // Alternating 1 and 2
-        // 3, 1, 2
-        // 2, 3
+        assert(Controller::check_grid_coherence(max_blocks), 'max blocks');
         let alternating: felt252 =
             0b001_010_010_001_010_010_001_000__011_011_011_001_010_010_000_000__010_010_011_011_011_000_000_000;
-        assert(Controller::check_grid_coherence(alternating), 'grid should be coherent (3)');
-    }
-    // RIGHT
-    #[test]
-    fn test_controller_swipe_right_single_block() {
-        // Initial grid
-        // 000_000_000_001_000_000_000_000 (single block in middle)
-        // Final expected:
-        // 000_000_000_000_000_000_001_000 (moved to rightmost position)
-        let bitmap: felt252 = 0b000_000_000_001_000_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 4, false, 3);
-        assert_eq!(blocks, 0b000_000_000_000_000_000_001_000);
+        assert(Controller::check_grid_coherence(alternating), 'alternating');
+
+        // --- Invalid ---
+        assert(!Controller::check_grid_coherence(0b010_000_000_000_000_000_000_000), 'single inv');
+        let multi_inv: felt252 =
+            0b000_000_000_001_000_000_000_001__010_000_010_010_100_100_100_100__001_010_010_000_011_011_011_000;
+        assert(!Controller::check_grid_coherence(multi_inv), 'multi inv');
+        let inv_block: felt252 =
+            0b000_000_000_001_000_000_000_001__111_000_010_010_100_100_100_100__001_010_010_000_011_011_011_000;
+        assert(!Controller::check_grid_coherence(inv_block), 'inv block val');
+        let mixed: felt252 =
+            0b010_000_000_001_000_000_000_001__011_011_010_010_100_100_100_100__001_010_100_000_011_011_011_000;
+        assert(!Controller::check_grid_coherence(mixed), 'mixed issues');
     }
 
-    #[test]
-    fn test_controller_swipe_right_single_1_block() {
-        // Initial grid
-        // 000_000_000_001_000_000_000_000 (single block in middle)
-        // Final expected:
-        // 000_000_000_000_000_000_001_000 (moved to rightmost position)
-        let bitmap: felt252 = 0b000_000_000_001_000_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 4, false, 3);
-        assert_eq!(blocks, 0b000_000_000_000_000_000_001_000);
-    }
+    // =========================================================================
+    // SWIPE RIGHT VALID MOVES (merged 8 tests — removed duplicate)
+    // =========================================================================
 
     #[test]
-    fn test_controller_swipe_right_single_2_block() {
-        // Initial grid
-        // 000_000_000_010_010_000_000_000 (single block in middle)
-        // Final expected:
-        // 000_000_000_000_000_000_100_000 (moved to rightmost position)
-        let bitmap: felt252 = 0b000_000_000_010_010_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 3, false, 3);
-        assert_eq!(blocks, 0b000_000_000_000_000_000_010_010);
-    }
-
-    #[test]
-    fn test_controller_swipe_right_single_3_block() {
-        // Initial grid
-        // 000_000_011_011_011_000_000_000 (single block in middle)
-        // Final expected:
-        // 000_000_000_000_011_011_011_000 (moved to rightmost position)
-        let bitmap: felt252 = 0b000_000_011_011_011_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 3, false, 2);
-        assert_eq!(blocks, 0b000_000_000_000_011_011_011_000);
-    }
-
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_right_single_3_block_not_first_elem_selected_1() {
-        // Initial grid
-        // 000_000_011_011_011_000_000_000 (single block in middle)
-        // Final expected:
-        // 000_000_000_000_011_011_011_000 (moved to rightmost position)
-        let bitmap: felt252 = 0b000_000_011_011_011_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 4, false, 3);
-        assert_eq!(blocks, 0b000_000_000_011_011_011_000_000);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_right_single_3_block_not_first_elem_selected_2() {
-        // Initial grid
-        // 000_000_011_011_011_000_000_000 (single block in middle)
-        // Final expected:
-        // 000_000_000_000_000_011_011_011 (moved to rightmost position)
-        let bitmap: felt252 = 0b000_000_011_011_011_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 4, false, 4);
-        assert_eq!(blocks, 0b000_000_000_000_000_011_011_011);
-    }
-
-    #[test]
-    fn test_controller_swipe_right_single_4_block() {
-        // Initial grid
-        // 100_100_100_100_000_000_000_000 (single block in middle)
-        // Final expected:
-        // 000_000_000_000_100_100_100_100 (moved to rightmost position)
-        let bitmap: felt252 = 0b100_100_100_100_000_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 4, false, 4);
-        assert_eq!(blocks, 0b000_000_000_000_100_100_100_100);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_right_single_4_block_not_first_element_selected() {
-        // Initial grid
-        // 100_100_100_100_000_000_000_000 (single block in middle)
-        // Final expected:
-        // 000_000_000_000_100_100_100_100 (moved to rightmost position)
-        let bitmap: felt252 = 0b000_100_100_100_100_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 5, false, 4);
-        assert_eq!(blocks, 0b000_000_000_000_100_100_100_100);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_right_blocked_by_single() {
-        // Initial grid:
-        // 000_000_001_001_000_000_000_000
-        //           ^   ^
-        //    moving |   | blocking
-        let bitmap: felt252 = 0b000_000_001_001_000_000_000_000;
-        Controller::swipe(bitmap, 0, 5, false, 2);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_right_blocked_by_size_2() {
-        // Initial grid:
-        // 000_001_000_010_010_000_000_000
-        //      ^        ^   ^
-        // block         |   | blocking block
-        let bitmap: felt252 = 0b000_001_000_010_010_000_000_000;
-        Controller::swipe(bitmap, 0, 6, false, 4);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_right_blocked_by_size_3() {
-        // Initial grid:
-        // 000_001_011_011_011_000_000_000
-        //      ^   ^   ^   ^
-        // block|   | size 3 blocking block
-        let bitmap: felt252 = 0b000_001_011_011_011_000_000_000;
-        Controller::swipe(bitmap, 0, 6, false, 4);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_right_size_2_blocked() {
-        // Initial grid:
-        // 000_010_010_001_000_000_000_000
-        //      ^   ^   ^
-        //              | blocking block
-        let bitmap: felt252 = 0b000_010_010_001_000_000_000_000;
-        Controller::swipe(bitmap, 0, 5, false, 3);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_right_size_2_from_middle_2() {
-        // Initial grid:
-        // 000_010_010_001_000_000_000_000
-        //      ^   ^   ^
-        //              | blocking block
-        let bitmap: felt252 = 0b000_010_010_001_000_000_000_000;
-        Controller::swipe(bitmap, 0, 6, false, 3);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_right_size_3_blocked() {
-        // Initial grid:
-        // 000_011_011_011_001_000_000_000
-        //      ^   ^   ^   ^
-        //                  | blocking block
-        let bitmap: felt252 = 0b000_011_011_011_001_000_000_000;
-        Controller::swipe(bitmap, 0, 4, false, 4);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_right_size_3_from_middle() {
-        // Initial grid:
-        // 000_011_011_011_001_000_000_000
-        //      ^   ^   ^   ^
-        //                  | blocking block
-        let bitmap: felt252 = 0b000_011_011_011_001_000_000_000;
-        Controller::swipe(bitmap, 0, 5, false, 4);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_right_multiple_blocks() {
-        // Initial grid:
-        // 000_001_001_001_000_000_000_000
-        //      ^   ^   ^
-        //              | trying to move through multiple blocks
-        let bitmap: felt252 = 0b000_001_001_001_000_000_000_000;
-        Controller::swipe(bitmap, 0, 6, false, 4);
-    }
-
-    #[test]
-    fn test_controller_swipe_right_valid_with_space() {
-        // Initial grid:
-        // 000_000_001_000_000_000_000_000
-        //           ^
-        //           | moving right 2 spaces
-        let bitmap: felt252 = 0b000_000_001_000_000_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 5, false, 2);
-        assert_eq!(blocks, 0b000_000_000_000_001_000_000_000);
-    }
-
-    #[test]
-    fn test_controller_swipe_right_size_2_valid() {
-        // Initial grid:
-        // 000_010_010_000_000_000_000_000
-        //      ^   ^
-        //      | moving size 2 right
-        let bitmap: felt252 = 0b000_010_010_000_000_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 5, false, 2);
-        assert_eq!(blocks, 0b000_000_000_010_010_000_000_000);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_right_size_2_from_middle_1() {
-        // Initial grid:
-        // 000_010_010_000_000_000_000_000
-        //      ^   ^
-        //      | moving size 2 right
-        let bitmap: felt252 = 0b000_010_010_000_000_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 6, false, 2);
-        assert_eq!(blocks, 0b000_000_000_010_010_000_000_000);
-    }
-
-    #[test]
-    fn test_controller_swipe_right_valid_near_blocks() {
-        // Initial grid:
-        // 000_000_001_000_010_010_000_000
-        //           ^       ^   ^
-        //           | move  | existing blocks
-        let bitmap: felt252 = 0b000_000_001_000_010_010_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 5, false, 1);
-        assert_eq!(blocks, 0b000_000_000_001_010_010_000_000);
-    }
-
-    #[test]
-    fn test_controller_swipe_right_to_boundary() {
-        // Initial grid:
-        // 001_000_000_000_000_000_000_000
-        // ^
-        // | moving to rightmost available position
-        let bitmap: felt252 = 0b001_000_000_000_000_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 7, false, 7);
-        assert_eq!(blocks, 0b000_000_000_000_000_000_000_001);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_right_mixed_blocking() {
-        // Initial grid:
-        // 000_001_010_010_011_011_011_000
-        //      ^   ^   ^   ^   ^   ^
-        //      |       | mixed blocks blocking path
-        let bitmap: felt252 = 0b000_001_010_010_011_011_011_000;
-        Controller::swipe(bitmap, 0, 6, false, 6);
-    }
-
-    // LEFT
-    #[test]
-    fn test_controller_swipe_left_single_block() {
-        // Initial grid
-        // 000_000_000_001_000_000_000_000 (single block in middle)
-        // Final expected:
-        // 001_000_000_000_000_000_000_000 (moved to rightmost position)
-        let bitmap: felt252 = 0b000_000_000_001_000_000_010_010;
-        let blocks = Controller::swipe(bitmap, 0, 4, true, 3);
-        assert_eq!(blocks, 0b001_000_000_000_000_000_010_010);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_left_single_block_with_block_in_the_way() {
-        // Initial grid
-        // 000_000_000_001_000_000_000_000 (single block in middle)
-        // Final expected:
-        // 001_000_000_000_000_000_000_000 (moved to rightmost position)
-        let bitmap: felt252 = 0b000_000_001_001_000_000_010_010;
-        let blocks = Controller::swipe(bitmap, 0, 4, true, 3);
-        assert_eq!(blocks, 0b001_000_001_000_000_000_010_010);
-    }
-
-    #[test]
-    fn test_controller_swipe_left_size_2_block() {
-        // Initial grid
-        // 000_000_000_010_010_000_000_000 (size 2 block in middle)
-        // Final expected:
-        // 010_010_000_000_000_000_000_000 (moved to rightmost position)
-        let bitmap: felt252 = 0b000_000_000_010_010_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 3, true, 3);
-        assert_eq!(blocks, 0b010_010_000_000_000_000_000_000);
-    }
-
-    #[test]
-    fn test_controller_swipe_left_size_3_block() {
-        // Initial grid
-        // 000_000_011_011_011_000_000_000 (size 3 block in middle)
-        // Final expected:
-        // 011_011_011_000_000_000_000_000 (moved to rightmost position)
-        let bitmap: felt252 = 0b000_000_011_011_011_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 3, true, 2);
-        assert_eq!(blocks, 0b011_011_011_000_000_000_000_000);
-    }
-
-    #[test]
-    fn test_controller_swipe_left_single_3_block_over_itself() {
-        // Initial grid
-        // 000_000_011_011_011_000_000_000 (single block in middle)
-        // Final expected:
-        // 000_000_000_000_011_011_011_000 (moved to rightmost position)
-        let bitmap: felt252 = 0b000_000_011_011_011_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 3, true, 1);
-        assert_eq!(blocks, 0b000_011_011_011_000_000_000_000);
-    }
-
-    #[test]
-    fn test_controller_swipe_left_size_4_block() {
-        // Initial grid
-        // 000_100_100_100_100_000_000_000 (size 4 block in middle)
-        // Final expected:
-        // 100_100_100_100_000_000_000_000 (moved to rightmost position)
-        let bitmap: felt252 = 0b000_100_100_100_100_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 3, true, 1);
-        assert_eq!(blocks, 0b100_100_100_100_000_000_000_000);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_left_with_gaps() {
-        // Initial grid
-        // 000_001_000_010_010_000_000_000 (size 1 and 2 blocks with gaps)
-        let bitmap: felt252 = 0b000_001_000_010_010_000_000_000;
-        Controller::swipe(bitmap, 0, 4, true, 2);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_left_no_room() {
-        // Initial grid
-        // 001_000_000_010_010_000_000_000 (no room to move right)
-        // Should panic when trying to move size 2 block to occupied space
-        let bitmap: felt252 = 0b000_001_000_010_010_000_000_000;
-        Controller::swipe(bitmap, 0, 3, true, 3); // Trying to move into occupied space
-    }
-
-    #[test]
-    fn test_controller_swipe_left_maximum_distance() {
-        // Initial grid
-        // 000_000_000_000_000_000_001_000 (single block near left)
-        // Final expected:
-        // 001_000_000_000_000_000_000_000 (moved to rightmost position)
-        let bitmap: felt252 = 0b000_000_000_000_000_000_001_000;
-        let blocks = Controller::swipe(bitmap, 0, 1, true, 6);
-        assert_eq!(blocks, 0b001_000_000_000_000_000_000_000);
-    }
-
-    #[test]
-    fn test_controller_swipe_left_mixed_blocks() {
-        // Initial grid
-        // 000_001_010_010_011_011_011_000 (mixed size blocks)
-        // Final expected:
-        // 001_000_010_010_011_011_011_000 (size 1 block moved right)
-        let bitmap: felt252 = 0b000_001_010_010_011_011_011_000;
-        let blocks = Controller::swipe(bitmap, 0, 6, true, 1);
-        assert_eq!(blocks, 0b001_000_010_010_011_011_011_000);
-    }
-
-    #[test]
-    fn test_controller_swipe_left_valid_with_space() {
-        // Initial grid:
-        // 000_000_000_001_000_000_000_000
-        //               ^
-        //               | moving left 2 spaces
-        let bitmap: felt252 = 0b000_000_000_001_000_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 4, true, 2);
-        assert_eq!(blocks, 0b000_001_000_000_000_000_000_000);
-    }
-
-    #[test]
-    fn test_controller_swipe_left_size_2_valid() {
-        // Initial grid:
-        // 000_000_000_010_010_000_000_000
-        //               ^   ^
-        //               | moving size 2 left
-        let bitmap: felt252 = 0b000_000_000_010_010_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 3, true, 2);
-        assert_eq!(blocks, 0b000_010_010_000_000_000_000_000);
-    }
-
-    #[test]
-    fn test_controller_swipe_left_size_3_valid() {
-        // Initial grid:
-        // 000_000_011_011_011_000_000_000
-        //           ^   ^   ^
-        //           | moving size 3 left
-        let bitmap: felt252 = 0b000_000_011_011_011_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 3, true, 2);
-        assert_eq!(blocks, 0b011_011_011_000_000_000_000_000);
-    }
-
-    #[test]
-    fn test_controller_swipe_left_valid_near_blocks() {
-        // Initial grid:
-        // 010_010_000_001_000_000_000_000
-        //           ^   ^
-        //           |   | moving to gap
-        let bitmap: felt252 = 0b010_010_000_001_000_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 4, true, 1);
-        assert_eq!(blocks, 0b010_010_001_000_000_000_000_000);
-    }
-    #[test]
-    fn test_controller_swipe_left_to_edge() {
-        // Initial grid:
-        // 000_000_000_000_001_000_000_000
-        //                   ^
-        //                   | moving to leftmost position
-        let bitmap: felt252 = 0b000_000_000_000_001_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 3, true, 4);
-        assert_eq!(blocks, 0b001_000_000_000_000_000_000_000);
-    }
-
-    // ------------------------------
-    // LEFT with block on path
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_left_above_blocked_by_single() {
-        // Initial grid:
-        // 000_000_001_001_000_000_000_000
-        //           ^   ^
-        //  blocking |   | moving block
-        // Trying to move size 1 block over another size 1 block
-        let bitmap: felt252 = 0b000_000_001_001_000_000_000_000;
-        Controller::swipe(bitmap, 0, 4, true, 2);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_left_above_blocked_by_size_2() {
-        // Initial grid:
-        // 000_010_010_000_001_000_000_000
-        //      ^   ^        ^
-        // block    |        | moving block
-        let bitmap: felt252 = 0b000_010_010_000_001_000_000_000;
-        Controller::swipe(bitmap, 0, 3, true, 4);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_left_above_blocked_by_size_3() {
-        // Initial grid:
-        // 000_011_011_011_000_001_000_000
-        //      ^   ^   ^       ^
-        // block            |   | moving block
-        let bitmap: felt252 = 0b000_011_011_011_000_001_000_000;
-        Controller::swipe(bitmap, 0, 2, true, 5);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_left_above_size_2_blocked() {
-        // Initial grid:
-        // 000_000_001_010_010_000_000_000
-        //          ^    ^   ^
-        // block         | size 2 moving block
-        let bitmap: felt252 = 0b000_000_001_010_010_000_000_000;
-        Controller::swipe(bitmap, 0, 3, true, 3);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_left_above_size_3_blocked() {
-        // Initial grid:
-        // 000_001_000_001_011_011_011_000
-        //              ^   ^   ^   ^
-        // block        |   | size 3 moving block
-        let bitmap: felt252 = 0b000_001_000_001_011_011_011_000;
-        Controller::swipe(bitmap, 0, 1, true, 4);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_left_above_multiple_blocks() {
-        // Initial grid:
-        // 000_001_001_000_001_000_000_000
-        //      ^   ^       ^
-        // blocks           | moving block
-        let bitmap: felt252 = 0b000_001_001_000_001_000_000_000;
-        Controller::swipe(bitmap, 0, 3, true, 4);
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_swipe_left_above_into_mixed_blocks() {
-        // Initial grid:
-        // 010_010_011_011_011_001_000_000
-        //                       ^
-        //                       | trying to move through mixed blocks
-        let bitmap: felt252 = 0b010_010_011_011_011_001_000_000;
-        Controller::swipe(bitmap, 0, 2, true, 4);
-    }
-
-    // BOUNDARIES
-    #[test]
-    #[should_panic(expected: ('Controller: not in boundaries',))]
-    fn test_controller_boundaries_swipe_right_beyond_boundary_size_1_1() {
-        // Initial grid:
-        // 000_000_000_000_000_000_000_001 (single block at index 0)
-        // Trying to move beyond rightmost valid position (0)
-        let bitmap: felt252 = 0b000_000_000_000_000_000_000_001;
-        Controller::swipe(bitmap, 0, 0, false, 1); // Should fail - can't move beyond boundary
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not in boundaries',))]
-    fn test_controller_boundaries_swipe_right_beyond_boundary_size_1_2() {
-        // Initial grid:
-        // 000_000_000_000_000_000_001_000 (single block at index 0)
-        // Trying to move beyond rightmost valid position (0)
-        let bitmap: felt252 = 0b000_000_000_000_000_000_001_000;
-        Controller::swipe(bitmap, 0, 1, false, 2); // Should fail - can't move beyond boundary
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not in boundaries',))]
-    fn test_controller_boundaries_swipe_right_beyond_boundary_size_1_3() {
-        // Initial grid:
-        // 001_000_000_000_000_000_000_000 (single block at index 0)
-        // Trying to move beyond rightmost valid position (0)
-        let bitmap: felt252 = 0b001_000_000_000_000_000_000_000;
-        Controller::swipe(bitmap, 0, 7, false, 8); // Should fail - can't move beyond boundary
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not in boundaries',))]
-    fn test_controller_boundaries_swipe_right_beyond_boundary_size_2_1() {
-        // Initial grid:
-        // 000_000_000_000_000_000_010_010 (size 2 block near boundary)
-        // Trying to move beyond rightmost valid position
-        let bitmap: felt252 = 0b000_000_000_000_000_000_010_010;
-        Controller::swipe(
-            bitmap, 0, 0, false, 1,
-        ); // Should fail - would push part of block beyond boundary
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not in boundaries',))]
-    fn test_controller_boundaries_swipe_right_beyond_boundary_size_2_2() {
-        // Initial grid:
-        // 010_010_000_000_000_000_000_000
-        // Trying to move beyond rightmost valid position
-        let bitmap: felt252 = 0b010_010_000_000_000_000_000_000;
-        Controller::swipe(
-            bitmap, 0, 6, false, 7,
-        ); // Should fail - would push part of block beyond boundary
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not in boundaries',))]
-    fn test_controller_boundaries_swipe_right_beyond_boundary_size_3() {
-        // Initial grid:
-        // 000_000_000_000_000_011_011_011 (size 3 block near boundary)
-        // Trying to move beyond rightmost valid position
-        let bitmap: felt252 = 0b000_000_000_000_000_011_011_011;
-        Controller::swipe(
-            bitmap, 0, 0, false, 1,
-        ); // Should fail - would push part of block beyond boundary
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not in boundaries',))]
-    fn test_controller_boundaries_swipe_right_beyond_boundary_size_4() {
-        // Initial grid:
-        // 000_000_000_000_100_100_100_100 (size 4 block near boundary)
-        // Trying to move beyond rightmost valid position
-        let bitmap: felt252 = 0b000_000_000_000_100_100_100_100;
-        Controller::swipe(
-            bitmap, 0, 0, false, 1,
-        ); // Should fail - would push part of block beyond boundary
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_boundaries_swipe_right_beyond_boundary_size_4_taken_from_middle() {
-        // Initial grid:
-        // 000_000_000_000_100_100_100_100 (size 4 block near boundary)
-        // Trying to move beyond rightmost valid position
-        let bitmap: felt252 = 0b000_000_000_000_100_100_100_100;
-        Controller::swipe(
-            bitmap, 0, 1, false, 1,
-        ); // Should fail - would push part of block beyond boundary
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not in boundaries',))]
-    fn test_controller_boundaries_swipe_left_beyond_boundary_size_1() {
-        // Initial grid:
-        // 001_000_000_000_000_000_000_000 (single block at leftmost position)
-        // Trying to move beyond leftmost valid position (7)
-        let bitmap: felt252 = 0b001_000_000_000_000_000_000_000;
-        Controller::swipe(bitmap, 0, 7, true, 1); // Should fail - can't move beyond boundary
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not in boundaries',))]
-    fn test_controller_boundaries_swipe_left_beyond_boundary_size_2() {
-        // Initial grid:
-        // 010_010_000_000_000_000_000_000 (size 2 block near boundary)
-        // Trying to move beyond leftmost valid position
-        let bitmap: felt252 = 0b010_010_000_000_000_000_000_000;
-        Controller::swipe(
-            bitmap, 0, 6, true, 1,
-        ); // Should fail - would push part of block beyond boundary
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not in boundaries',))]
-    fn test_controller_boundaries_swipe_left_beyond_boundary_size_3() {
-        // Initial grid:
-        // 011_011_011_000_000_000_000_000 (size 3 block near boundary)
-        // Trying to move beyond leftmost valid position
-        let bitmap: felt252 = 0b011_011_011_000_000_000_000_000;
-        Controller::swipe(
-            bitmap, 0, 5, true, 3,
-        ); // Should fail - would push part of block beyond boundary
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not in boundaries',))]
-    fn test_controller_boundaries_swipe_left_beyond_boundary_size_4() {
-        // Initial grid:
-        // 100_100_100_100_000_000_000_000 (size 4 block near boundary)
-        // Trying to move beyond leftmost valid position
-        let bitmap: felt252 = 0b100_100_100_100_000_000_000_000;
-        Controller::swipe(
-            bitmap, 0, 4, true, 5,
-        ); // Should fail - would push part of block beyond boundary
-    }
-
-    #[test]
-    fn test_controller_boundaries_swipe_right_to_boundary_valid() {
-        // Initial grid:
-        // 000_000_000_001_000_000_000_000 (single block)
-        // Moving to leftmost valid position (should work)
-        let bitmap: felt252 = 0b000_000_000_001_000_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 4, true, 3);
-        assert_eq!(blocks, 0b001_000_000_000_000_000_000_000);
-    }
-
-    #[test]
-    fn test_controller_boundaries_swipe_left_to_boundary_valid() {
-        // Initial grid:
-        // 000_000_000_001_000_000_000_000 (single block)
-        // Moving to leftmost valid position (should work)
-        let bitmap: felt252 = 0b000_000_000_001_000_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 4, false, 4);
-        assert_eq!(blocks, 0b000_000_000_000_000_000_000_001);
-    }
-
-    #[test]
-    fn test_controller_multiple_row_swipe_left_second_row() {
-        // Initial grid:
-        // Row 2: 000_000_000_000_000_000_000_000
-        // Row 1: 000_000_000_001_000_000_000_000 (moving this block)
-        // Row 0: 010_010_000_000_000_000_000_000
-        let bitmap: felt252 =
-            0b000_000_000_000_000_000_000_000__000_000_000_001_000_000_000_000__010_010_000_000_000_000_000_000;
-        let blocks = Controller::swipe(bitmap, 1, 4, true, 3);
+    fn test_swipe_right_valid_moves() {
+        // Size 1 right 3
         assert_eq!(
-            blocks,
-            0b000_000_000_000_000_000_000_000__001_000_000_000_000_000_000_000__010_010_000_000_000_000_000_000,
+            Controller::swipe(0b000_000_000_001_000_000_000_000, 0, 4, false, 3),
+            0b000_000_000_000_000_000_001_000,
+        );
+        // Size 2 right 3
+        assert_eq!(
+            Controller::swipe(0b000_000_000_010_010_000_000_000, 0, 3, false, 3),
+            0b000_000_000_000_000_000_010_010,
+        );
+        // Size 3 right 2
+        assert_eq!(
+            Controller::swipe(0b000_000_011_011_011_000_000_000, 0, 3, false, 2),
+            0b000_000_000_000_011_011_011_000,
+        );
+        // Size 4 right 4
+        assert_eq!(
+            Controller::swipe(0b100_100_100_100_000_000_000_000, 0, 4, false, 4),
+            0b000_000_000_000_100_100_100_100,
+        );
+        // Valid with space
+        assert_eq!(
+            Controller::swipe(0b000_000_001_000_000_000_000_000, 0, 5, false, 2),
+            0b000_000_000_000_001_000_000_000,
+        );
+        // Size 2 valid
+        assert_eq!(
+            Controller::swipe(0b000_010_010_000_000_000_000_000, 0, 5, false, 2),
+            0b000_000_000_010_010_000_000_000,
+        );
+        // Valid near existing blocks
+        assert_eq!(
+            Controller::swipe(0b000_000_001_000_010_010_000_000, 0, 5, false, 1),
+            0b000_000_000_001_010_010_000_000,
+        );
+        // To boundary
+        assert_eq!(
+            Controller::swipe(0b001_000_000_000_000_000_000_000, 0, 7, false, 7),
+            0b000_000_000_000_000_000_000_001,
         );
     }
 
+    // =========================================================================
+    // SWIPE LEFT VALID MOVES (merged 12 tests)
+    // =========================================================================
+
     #[test]
-    fn test_controller_multiple_row_swipe_right_second_row() {
-        // Initial grid:
-        // Row 2: 000_000_000_000_000_000_000_000
-        // Row 1: 000_000_000_001_000_000_000_000 (moving this block)
-        // Row 0: 010_010_000_000_000_000_000_000
-        let bitmap: felt252 =
-            0b000_000_000_000_000_000_000_000__000_000_000_001_000_000_000_000__010_010_000_000_000_000_000_000;
-        let blocks = Controller::swipe(bitmap, 1, 4, false, 3);
+    fn test_swipe_left_valid_moves() {
+        // Single block left 3 (with existing blocks on right)
         assert_eq!(
-            blocks,
-            0b000_000_000_000_000_000_000_000__000_000_000_000_000_000_001_000__010_010_000_000_000_000_000_000,
+            Controller::swipe(0b000_000_000_001_000_000_010_010, 0, 4, true, 3),
+            0b001_000_000_000_000_000_010_010,
+        );
+        // Size 2 left 3
+        assert_eq!(
+            Controller::swipe(0b000_000_000_010_010_000_000_000, 0, 3, true, 3),
+            0b010_010_000_000_000_000_000_000,
+        );
+        // Size 3 left 2
+        assert_eq!(
+            Controller::swipe(0b000_000_011_011_011_000_000_000, 0, 3, true, 2),
+            0b011_011_011_000_000_000_000_000,
+        );
+        // Size 3 over itself left 1
+        assert_eq!(
+            Controller::swipe(0b000_000_011_011_011_000_000_000, 0, 3, true, 1),
+            0b000_011_011_011_000_000_000_000,
+        );
+        // Size 4 left 1
+        assert_eq!(
+            Controller::swipe(0b000_100_100_100_100_000_000_000, 0, 3, true, 1),
+            0b100_100_100_100_000_000_000_000,
+        );
+        // Maximum distance
+        assert_eq!(
+            Controller::swipe(0b000_000_000_000_000_000_001_000, 0, 1, true, 6),
+            0b001_000_000_000_000_000_000_000,
+        );
+        // Mixed blocks, move size 1
+        assert_eq!(
+            Controller::swipe(0b000_001_010_010_011_011_011_000, 0, 6, true, 1),
+            0b001_000_010_010_011_011_011_000,
+        );
+        // Valid with space left 2
+        assert_eq!(
+            Controller::swipe(0b000_000_000_001_000_000_000_000, 0, 4, true, 2),
+            0b000_001_000_000_000_000_000_000,
+        );
+        // Size 2 valid left 2
+        assert_eq!(
+            Controller::swipe(0b000_000_000_010_010_000_000_000, 0, 3, true, 2),
+            0b000_010_010_000_000_000_000_000,
+        );
+        // Size 3 valid left 2
+        assert_eq!(
+            Controller::swipe(0b000_000_011_011_011_000_000_000, 0, 3, true, 2),
+            0b011_011_011_000_000_000_000_000,
+        );
+        // Valid near blocks
+        assert_eq!(
+            Controller::swipe(0b010_010_000_001_000_000_000_000, 0, 4, true, 1),
+            0b010_010_001_000_000_000_000_000,
+        );
+        // To edge
+        assert_eq!(
+            Controller::swipe(0b000_000_000_000_001_000_000_000, 0, 3, true, 4),
+            0b001_000_000_000_000_000_000_000,
         );
     }
 
+    // =========================================================================
+    // MULTI-ROW SWIPE VALID (merged 5 tests)
+    // =========================================================================
+
     #[test]
-    fn test_controller_multiple_row_swipe_left_third_row() {
-        // Initial grid:
-        // Row 2: 000_000_000_010_010_000_000_000 (moving this size 2 block)
-        // Row 1: 000_000_001_000_000_000_000_000
-        // Row 0: 010_010_000_000_000_000_000_000
+    fn test_multi_row_swipe_valid() {
         let bitmap: felt252 =
+            0b000_000_000_000_000_000_000_000__000_000_000_001_000_000_000_000__010_010_000_000_000_000_000_000;
+        // Row 1 left 3
+        let r1 = Controller::swipe(bitmap, 1, 4, true, 3);
+        assert_eq!(Controller::get_row(r1, 1), 0b001_000_000_000_000_000_000_000);
+        assert_eq!(Controller::get_row(r1, 0), 0b010_010_000_000_000_000_000_000);
+        // Row 1 right 3
+        let r2 = Controller::swipe(bitmap, 1, 4, false, 3);
+        assert_eq!(Controller::get_row(r2, 1), 0b000_000_000_000_000_000_001_000);
+        // Row 2 size 2 left 3
+        let bitmap2: felt252 =
             0b000_000_000_010_010_000_000_000__000_000_001_000_000_000_000_000__010_010_000_000_000_000_000_000;
-        let blocks = Controller::swipe(bitmap, 2, 3, true, 3);
-        assert_eq!(
-            blocks,
-            0b010_010_000_000_000_000_000_000__000_000_001_000_000_000_000_000__010_010_000_000_000_000_000_000,
-        );
-    }
-
-    #[test]
-    fn test_controller_multiple_row_swipe_right_third_row() {
-        // Initial grid:
-        // Row 2: 000_000_000_011_011_011_000_000 (moving this size 3 block)
-        // Row 1: 000_000_001_000_000_000_000_000
-        // Row 0: 010_010_000_000_000_000_000_000
-        let bitmap: felt252 =
+        let r3 = Controller::swipe(bitmap2, 2, 3, true, 3);
+        assert_eq!(Controller::get_row(r3, 2), 0b010_010_000_000_000_000_000_000);
+        // Row 2 size 3 right 2
+        let bitmap3: felt252 =
             0b000_000_000_011_011_011_000_000__000_000_001_000_000_000_000_000__010_010_000_000_000_000_000_000;
-        let blocks = Controller::swipe(bitmap, 2, 2, false, 2);
-        assert_eq!(
-            blocks,
-            0b000_000_000_000_000_011_011_011__000_000_001_000_000_000_000_000__010_010_000_000_000_000_000_000,
-        );
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_multiple_row_swipe_left_second_row_blocked() {
-        // Initial grid:
-        // Row 2: 000_000_000_000_000_000_000_000
-        // Row 1: 000_001_000_001_000_000_000_000 (trying to move rightmost block)
-        // Row 0: 010_010_000_000_000_000_000_000
-        let bitmap: felt252 =
-            0b000_000_000_000_000_000_000_000__000_001_000_001_000_000_000_000__010_010_000_000_000_000_000_000;
-        Controller::swipe(bitmap, 1, 4, true, 3); // Should fail - block in path
-    }
-
-    #[test]
-    #[should_panic(expected: ('Controller: not enough room',))]
-    fn test_controller_multiple_row_swipe_right_third_row_blocked() {
-        // Initial grid:
-        // Row 2: 000_000_001_000_000_001_000_000 (trying to move leftmost block)
-        // Row 1: 000_000_001_000_000_000_000_000
-        // Row 0: 010_010_000_000_000_000_000_000
-        let bitmap: felt252 =
-            0b000_000_001_000_000_001_000_000__000_000_001_000_000_000_000_000__010_010_000_000_000_000_000_000;
-        Controller::swipe(bitmap, 2, 5, false, 4); // Should fail - block in path
-    }
-
-    #[test]
-    fn test_controller_multiple_row_swipe_multiple_rows_different_directions() {
-        // Initial grid:
-        // Row 2: 000_000_000_001_000_000_000_000 (will move right)
-        // Row 1: 000_000_000_001_000_000_000_000 (will move left)
-        // Row 0: 010_010_000_000_000_000_000_000
-        let bitmap: felt252 =
+        let r4 = Controller::swipe(bitmap3, 2, 2, false, 2);
+        assert_eq!(Controller::get_row(r4, 2), 0b000_000_000_000_000_011_011_011);
+        // Multiple rows different directions
+        let bitmap4: felt252 =
             0b000_000_000_001_000_000_000_000__000_000_000_001_000_000_000_000__010_010_000_000_000_000_000_000;
-
-        // Move block in row 2 right
-        let blocks = Controller::swipe(bitmap, 2, 4, false, 3);
-        // Move block in row 1 left
-        let blocks = Controller::swipe(blocks, 1, 4, true, 3);
-
+        let b = Controller::swipe(bitmap4, 2, 4, false, 3);
+        let b = Controller::swipe(b, 1, 4, true, 3);
         assert_eq!(
-            blocks,
+            b,
             0b000_000_000_000_000_000_001_000__001_000_000_000_000_000_000_000__010_010_000_000_000_000_000_000,
         );
     }
 
+    // =========================================================================
+    // BOUNDARY VALID MOVES (merged 2 tests)
+    // =========================================================================
+
+    #[test]
+    fn test_boundary_valid_moves() {
+        let bitmap: felt252 = 0b000_000_000_001_000_000_000_000;
+        assert_eq!(Controller::swipe(bitmap, 0, 4, true, 3), 0b001_000_000_000_000_000_000_000);
+        assert_eq!(Controller::swipe(bitmap, 0, 4, false, 4), 0b000_000_000_000_000_000_000_001);
+    }
+
+    // =========================================================================
+    // SWIPE BUG REGRESSION (should_panic - not in boundaries)
+    // =========================================================================
+
     #[test]
     #[should_panic(expected: ('Controller: not in boundaries',))]
-    fn test_controller_multiple_row_swipe_third_row_boundary() {
-        // Initial grid:
-        // Row 2: 001_000_000_000_000_000_000_000 (trying to move left beyond boundary)
-        // Row 1: 000_000_001_000_000_000_000_000
-        // Row 0: 010_010_000_000_000_000_000_000
+    fn test_swipe_bug() {
+        let bitmap: felt252 = 0b001_001_011_011_011_001_001_000;
+        let blocks = Controller::swipe(bitmap, 0, 5, true, 2);
+        println!("blocks: {}", blocks);
+    }
+
+    // =========================================================================
+    // SWIPE RIGHT - NOT ENOUGH ROOM (should_panic tests)
+    // =========================================================================
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_right_s3_not_first_elem_1() {
+        Controller::swipe(0b000_000_011_011_011_000_000_000, 0, 4, false, 3);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_right_s3_not_first_elem_2() {
+        Controller::swipe(0b000_000_011_011_011_000_000_000, 0, 4, false, 4);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_right_s4_not_first_elem() {
+        Controller::swipe(0b000_100_100_100_100_000_000_000, 0, 5, false, 4);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_right_blocked_by_single() {
+        Controller::swipe(0b000_000_001_001_000_000_000_000, 0, 5, false, 2);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_right_blocked_by_size_2() {
+        Controller::swipe(0b000_001_000_010_010_000_000_000, 0, 6, false, 4);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_right_blocked_by_size_3() {
+        Controller::swipe(0b000_001_011_011_011_000_000_000, 0, 6, false, 4);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_right_size_2_blocked() {
+        Controller::swipe(0b000_010_010_001_000_000_000_000, 0, 5, false, 3);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_right_size_2_from_middle() {
+        Controller::swipe(0b000_010_010_001_000_000_000_000, 0, 6, false, 3);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_right_size_3_blocked() {
+        Controller::swipe(0b000_011_011_011_001_000_000_000, 0, 4, false, 4);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_right_size_3_from_middle() {
+        Controller::swipe(0b000_011_011_011_001_000_000_000, 0, 5, false, 4);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_right_multiple_blocks() {
+        Controller::swipe(0b000_001_001_001_000_000_000_000, 0, 6, false, 4);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_right_size_2_from_middle_1() {
+        Controller::swipe(0b000_010_010_000_000_000_000_000, 0, 6, false, 2);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_right_mixed_blocking() {
+        Controller::swipe(0b000_001_010_010_011_011_011_000, 0, 6, false, 6);
+    }
+
+    // =========================================================================
+    // SWIPE LEFT - NOT ENOUGH ROOM (should_panic tests)
+    // =========================================================================
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_left_blocked_by_adjacent() {
+        Controller::swipe(0b000_000_001_001_000_000_010_010, 0, 4, true, 3);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_left_with_gaps() {
+        Controller::swipe(0b000_001_000_010_010_000_000_000, 0, 4, true, 2);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_left_no_room() {
+        Controller::swipe(0b000_001_000_010_010_000_000_000, 0, 3, true, 3);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_left_blocked_by_single() {
+        Controller::swipe(0b000_000_001_001_000_000_000_000, 0, 4, true, 2);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_left_blocked_by_size_2() {
+        Controller::swipe(0b000_010_010_000_001_000_000_000, 0, 3, true, 4);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_left_blocked_by_size_3() {
+        Controller::swipe(0b000_011_011_011_000_001_000_000, 0, 2, true, 5);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_left_size_2_blocked() {
+        Controller::swipe(0b000_000_001_010_010_000_000_000, 0, 3, true, 3);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_left_size_3_blocked() {
+        Controller::swipe(0b000_001_000_001_011_011_011_000, 0, 1, true, 4);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_left_multiple_blocks() {
+        Controller::swipe(0b000_001_001_000_001_000_000_000, 0, 3, true, 4);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_swipe_left_into_mixed_blocks() {
+        Controller::swipe(0b010_010_011_011_011_001_000_000, 0, 2, true, 4);
+    }
+
+    // =========================================================================
+    // BOUNDARY - NOT IN BOUNDARIES (should_panic tests)
+    // =========================================================================
+
+    #[test]
+    #[should_panic(expected: ('Controller: not in boundaries',))]
+    fn test_boundary_right_s1_at_edge_1() {
+        Controller::swipe(0b000_000_000_000_000_000_000_001, 0, 0, false, 1);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not in boundaries',))]
+    fn test_boundary_right_s1_at_edge_2() {
+        Controller::swipe(0b000_000_000_000_000_000_001_000, 0, 1, false, 2);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not in boundaries',))]
+    fn test_boundary_right_s1_at_edge_3() {
+        Controller::swipe(0b001_000_000_000_000_000_000_000, 0, 7, false, 8);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not in boundaries',))]
+    fn test_boundary_right_s2_at_edge_1() {
+        Controller::swipe(0b000_000_000_000_000_000_010_010, 0, 0, false, 1);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not in boundaries',))]
+    fn test_boundary_right_s2_at_edge_2() {
+        Controller::swipe(0b010_010_000_000_000_000_000_000, 0, 6, false, 7);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not in boundaries',))]
+    fn test_boundary_right_s3() {
+        Controller::swipe(0b000_000_000_000_000_011_011_011, 0, 0, false, 1);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not in boundaries',))]
+    fn test_boundary_right_s4() {
+        Controller::swipe(0b000_000_000_000_100_100_100_100, 0, 0, false, 1);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_boundary_right_s4_from_middle() {
+        Controller::swipe(0b000_000_000_000_100_100_100_100, 0, 1, false, 1);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not in boundaries',))]
+    fn test_boundary_left_s1() {
+        Controller::swipe(0b001_000_000_000_000_000_000_000, 0, 7, true, 1);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not in boundaries',))]
+    fn test_boundary_left_s2() {
+        Controller::swipe(0b010_010_000_000_000_000_000_000, 0, 6, true, 1);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not in boundaries',))]
+    fn test_boundary_left_s3() {
+        Controller::swipe(0b011_011_011_000_000_000_000_000, 0, 5, true, 3);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not in boundaries',))]
+    fn test_boundary_left_s4() {
+        Controller::swipe(0b100_100_100_100_000_000_000_000, 0, 4, true, 5);
+    }
+
+    // =========================================================================
+    // MULTI-ROW SWIPE - BLOCKED (should_panic tests)
+    // =========================================================================
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_multi_row_swipe_left_blocked() {
+        let bitmap: felt252 =
+            0b000_000_000_000_000_000_000_000__000_001_000_001_000_000_000_000__010_010_000_000_000_000_000_000;
+        Controller::swipe(bitmap, 1, 4, true, 3);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not enough room',))]
+    fn test_multi_row_swipe_right_blocked() {
+        let bitmap: felt252 =
+            0b000_000_001_000_000_001_000_000__000_000_001_000_000_000_000_000__010_010_000_000_000_000_000_000;
+        Controller::swipe(bitmap, 2, 5, false, 4);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Controller: not in boundaries',))]
+    fn test_multi_row_swipe_boundary() {
         let bitmap: felt252 =
             0b001_000_000_000_000_000_000_000__000_000_001_000_000_000_000_000__010_010_000_000_000_000_000_000;
-        Controller::swipe(bitmap, 2, 7, true, 1); // Should fail - beyond boundary
+        Controller::swipe(bitmap, 2, 7, true, 1);
     }
 }

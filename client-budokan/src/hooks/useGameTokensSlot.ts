@@ -1,7 +1,6 @@
 import { useDojo } from "@/dojo/useDojo";
 import { useEffect, useState, useCallback } from "react";
 import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
-import type { GameTokenData } from "metagame-sdk";
 import { unpackRunData } from "@/dojo/game/helpers/runDataPacking";
 
 const { VITE_PUBLIC_TORII, VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
@@ -14,11 +13,22 @@ const padAddress = (address: string): string => {
 };
 
 type UseGameTokensSlotResult = {
-  games: GameTokenData[];
+  games: SlotGameTokenData[];
   loading: boolean;
   metadataLoading: boolean;
   refetch: () => void;
 };
+
+export interface SlotGameTokenData {
+  token_id: bigint;
+  score: number;
+  game_over: boolean;
+  metadata: string;
+  gameMetadata: {
+    name: string;
+  };
+  run_data?: bigint;
+}
 
 // GraphQL query for ERC721 token balances
 const TOKEN_BALANCES_QUERY = `
@@ -86,7 +96,7 @@ export const useGameTokensSlot = ({
     },
   } = useDojo();
 
-  const [games, setGames] = useState<GameTokenData[]>([]);
+  const [games, setGames] = useState<SlotGameTokenData[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -154,23 +164,22 @@ export const useGameTokensSlot = ({
           });
 
         // Get owned token IDs
-        const ownedTokenIds = new Set(
+        const ownedTokenIds = new Set<bigint>(
           erc721Tokens.map((token) => {
-            // tokenId is hex string like "0x0000...0001"
-            return Number(BigInt(token.tokenId));
+            return BigInt(token.tokenId);
           })
         );
 
         // Query all Game entities from RECS
         const gameEntities = runQuery([Has(Game)]);
 
-        const gameList: GameTokenData[] = [];
-        const seenIds = new Set<number>();
+        const gameList: SlotGameTokenData[] = [];
+        const seenIds = new Set<bigint>();
 
         for (const entity of gameEntities) {
           const gameData = getComponentValue(Game, entity);
 
-          if (!gameData || gameData.game_id === 0) continue;
+          if (!gameData || gameData.game_id === 0n) continue;
 
           // Only include games owned by the user
           if (!ownedTokenIds.has(gameData.game_id)) {
@@ -183,7 +192,7 @@ export const useGameTokensSlot = ({
 
           // Find the token metadata from Torii response
           const tokenMeta = erc721Tokens.find(
-            (t) => Number(BigInt(t.tokenId)) === gameData.game_id
+            (t) => BigInt(t.tokenId) === gameData.game_id
           );
 
           // Parse metadata from token for name/description only
@@ -199,7 +208,7 @@ export const useGameTokensSlot = ({
           const runDataPacked = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
           const runData = unpackRunData(runDataPacked);
           const level = runData.currentLevel;
-          const totalCubes = runData.totalCubes;
+          const totalCubes = 0;
           const totalScore = runData.totalScore;
 
           // Always use RECS-computed values for game stats
@@ -222,13 +231,16 @@ export const useGameTokensSlot = ({
             gameMetadata: { 
               name: tokenMeta?.metadataName || `Game #${gameData.game_id}` 
             },
-          } as GameTokenData);
+            run_data: runDataPacked,
+          });
 
           if (gameList.length >= limit) break;
         }
 
         // Sort by token_id descending (newest first)
-        gameList.sort((a, b) => b.token_id - a.token_id);
+        gameList.sort((a, b) =>
+          a.token_id === b.token_id ? 0 : a.token_id > b.token_id ? -1 : 1,
+        );
 
         setGames(gameList);
       } catch (error) {

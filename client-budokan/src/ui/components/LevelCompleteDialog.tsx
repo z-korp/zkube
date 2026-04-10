@@ -1,25 +1,22 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
-import { Button } from "../elements/button";
-import { Check, Trophy } from "lucide-react";
 import type { GameLevelData } from "@/hooks/useGameLevel";
+import type { ThemeColors } from "@/config/themes";
 import { useMusicPlayer } from "@/contexts/hooks";
-import CubeIcon from "@/ui/components/CubeIcon";
-import { BOSS_INTERVAL } from "@/dojo/game/constants";
-import { isBossLevel as checkBossLevel } from "@/dojo/game/helpers/runDataPacking";
+import { getZoneGuardian, getGuardianPortrait, getGuardianStarText } from "@/config/bossCharacters";
+import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 
 interface LevelCompleteDialogProps {
   isOpen: boolean;
   onClose: () => void;
   level: number;
   levelMoves: number;
-  prevTotalCubes: number;
-  totalCubes: number;
   prevTotalScore: number;
   totalScore: number;
   gameLevel: GameLevelData | null;
+  zoneId?: number;
+  colors?: ThemeColors;
+  isIncomplete?: boolean;
   draftWillOpen?: boolean;
 }
 
@@ -28,301 +25,183 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   onClose,
   level,
   levelMoves,
-  prevTotalCubes,
-  totalCubes,
   prevTotalScore,
   totalScore,
   gameLevel,
+  zoneId = 1,
+  colors,
+  isIncomplete = false,
   draftWillOpen = false,
 }) => {
   const [animationPhase, setAnimationPhase] = useState(0);
   const { playSfx } = useMusicPlayer();
+  const guardian = getZoneGuardian(zoneId);
+  const isBossLevel = level === 10;
 
   useEffect(() => {
-    if (isOpen) {
-      setAnimationPhase(0);
-      const timer1 = setTimeout(() => {
-        setAnimationPhase(1);
-        playSfx("coin");
-      }, 200);
-      const timer2 = setTimeout(() => {
-        setAnimationPhase(2);
-        playSfx("star");
-      }, 800);
-      const timer3 = setTimeout(() => setAnimationPhase(3), 1200);
-      return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
-        clearTimeout(timer3);
-      };
-    }
-  }, [isOpen, playSfx]);
+    if (!isOpen) return;
+    setAnimationPhase(0);
 
-  const pointsRequired = gameLevel?.pointsRequired ?? 0;
+    if (isIncomplete) {
+      setTimeout(() => setAnimationPhase(3), 300);
+      return;
+    }
+
+    const timer1 = setTimeout(() => { setAnimationPhase(1); playSfx("star"); }, 180);
+    const timer2 = setTimeout(() => { setAnimationPhase(2); playSfx("coin"); }, 700);
+    const timer3 = setTimeout(() => setAnimationPhase(3), 1100);
+
+    return () => { clearTimeout(timer1); clearTimeout(timer2); clearTimeout(timer3); };
+  }, [isOpen, playSfx, isIncomplete]);
+
   const maxMoves = gameLevel?.maxMoves ?? 0;
-  const cube3Threshold = gameLevel?.cube3Threshold ?? 0;
-  const cube2Threshold = gameLevel?.cube2Threshold ?? 0;
+  const star3UsedCap = gameLevel?.star3Threshold ?? 0;
+  const star2UsedCap = gameLevel?.star2Threshold ?? 0;
+  const pointsRequired = gameLevel?.pointsRequired ?? 0;
+  const levelFinalScore = Math.max(0, totalScore - prevTotalScore);
+  const movesUsed = levelMoves;
 
-  const constraints = useMemo<
-    Array<{ type: ConstraintType; value: number; count: number }>
-  >(() => {
-    const result: Array<{
-      type: ConstraintType;
-      value: number;
-      count: number;
-    }> = [];
-    if (gameLevel) {
-      if (gameLevel.constraintType !== ConstraintType.None) {
-        result.push({
-          type: gameLevel.constraintType,
-          value: gameLevel.constraintValue,
-          count: gameLevel.constraintCount,
-        });
-      }
-      if (gameLevel.constraint2Type !== ConstraintType.None) {
-        result.push({
-          type: gameLevel.constraint2Type,
-          value: gameLevel.constraint2Value,
-          count: gameLevel.constraint2Count,
-        });
-      }
-      if (gameLevel.constraint3Type !== ConstraintType.None) {
-        result.push({
-          type: gameLevel.constraint3Type,
-          value: gameLevel.constraint3Value,
-          count: gameLevel.constraint3Count,
-        });
-      }
-    }
-    return result;
-  }, [
-    gameLevel?.constraintType,
-    gameLevel?.constraintValue,
-    gameLevel?.constraintCount,
-    gameLevel?.constraint2Type,
-    gameLevel?.constraint2Value,
-    gameLevel?.constraint2Count,
-    gameLevel?.constraint3Type,
-    gameLevel?.constraint3Value,
-    gameLevel?.constraint3Count,
-  ]);
+  const starsEarned = useMemo(() => {
+    if (isIncomplete) return 0;
+    if (movesUsed <= star3UsedCap) return 3;
+    if (movesUsed <= star2UsedCap) return 2;
+    return 1;
+  }, [movesUsed, star3UsedCap, star2UsedCap, isIncomplete]);
 
-  const levelFinalScore = totalScore - prevTotalScore;
+  const guardianLine = isIncomplete
+    ? guardian.incomplete
+    : isBossLevel
+      ? guardian.respectLine
+      : getGuardianStarText(guardian, starsEarned);
 
-  const getCubesFromMoves = useCallback(
-    (moves: number): number => {
-      if (moves <= cube3Threshold) return 5;
-      if (moves <= cube2Threshold) return 3;
-      return 1;
-    },
-    [cube3Threshold, cube2Threshold],
-  );
-  const baseCubesEarned = getCubesFromMoves(levelMoves);
+  const title = isIncomplete
+    ? "Level Incomplete"
+    : isBossLevel
+      ? "Trial Passed!"
+      : `Level ${level} Complete!`;
 
-  const totalLevelCubes = totalCubes - prevTotalCubes;
+  const titleColor = isIncomplete ? "text-red-400" : isBossLevel ? "text-yellow-300" : "text-green-400";
 
-  // Boss level bonus (levels 10, 20, 30, 40, 50)
-  const isBossLevel = checkBossLevel(level);
-  const bossTier = Math.floor(level / BOSS_INTERVAL);
-  const bossBonus = isBossLevel ? 10 * bossTier * bossTier : 0;
-
-  const extraRewardCubes = Math.max(0, totalLevelCubes - baseCubesEarned - bossBonus);
-
-  const isDraftLevel = draftWillOpen;
+  if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent
-        aria-describedby={undefined}
-        className="sm:max-w-[400px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-6 py-8 font-['Fredericka_the_Great']"
+    <>
+      <motion.div
+        className="absolute inset-0 z-40 flex flex-col bg-black/70"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={animationPhase >= 3 ? onClose : undefined}
       >
-        <DialogTitle className="text-3xl text-center mb-4 text-green-400">
-          Level {level} Complete!
-        </DialogTitle>
-
-        {/* Cubes Display with staggered animation */}
-        <div className="flex justify-center gap-2 mb-4">
-          {[1, 2, 3, 4, 5].map((cube, index) => (
-            <motion.div
-              key={cube}
-              initial={{ scale: 0, rotate: -180 }}
-              animate={
-                animationPhase >= 1
-                  ? {
-                      scale: cube <= baseCubesEarned ? 1.1 : 1,
-                      rotate: 0,
-                    }
-                  : { scale: 0, rotate: -180 }
-              }
-              transition={{
-                delay: index * 0.15,
-                type: "spring",
-                stiffness: 200,
-                damping: 15,
+        {/* Full-height guardian portrait */}
+        <div className="relative flex flex-1 min-h-0 items-end justify-center overflow-hidden">
+          <motion.div
+            className="relative h-[60%] max-h-[360px]"
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 20 }}
+          >
+            <img
+              src={getGuardianPortrait(zoneId)}
+              alt={guardian.name}
+              className="h-full w-auto object-contain"
+              style={{
+                maskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 70%, transparent 95%), linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)",
+                WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 70%, transparent 95%), linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)",
+                maskComposite: "intersect",
+                WebkitMaskComposite: "source-in",
               }}
-            >
-              <span
-                className={`text-4xl ${
-                  cube <= baseCubesEarned ? "opacity-100" : "opacity-30"
-                }`}
-              >
-                <CubeIcon size="xl" />
-              </span>
-            </motion.div>
-          ))}
+              draggable={false}
+            />
+          </motion.div>
         </div>
 
-        {/* Cubes Earned Breakdown */}
+        {/* Dialog panel */}
         <motion.div
-          className="mb-5 bg-gradient-to-r from-yellow-900/20 to-amber-900/20 rounded-lg p-3 border border-yellow-500/30"
-          initial={{ opacity: 0, y: 10 }}
-          animate={
-            animationPhase >= 1 ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }
-          }
-          transition={{ duration: 0.3, delay: 0.4 }}
+          className="shrink-0"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 25 }}
+          onClick={(e) => e.stopPropagation()}
         >
-          <div className="text-xs text-yellow-400/80 mb-2 font-medium">
-            Cubes Earned
-          </div>
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-slate-300">Level clear</span>
-              <span className="text-yellow-400 font-semibold">
-                +{baseCubesEarned}
-              </span>
-            </div>
-            {extraRewardCubes > 0 && (
-              <div className="flex justify-between">
-                <span className="text-slate-300">Skill/World bonus</span>
-                <span className="text-yellow-400 font-semibold">
-                  +{extraRewardCubes}
-                </span>
-              </div>
-            )}
-            {isBossLevel && bossBonus > 0 && (
-              <div className="flex justify-between">
-                <span className="text-slate-300">Boss Level {level} bonus</span>
-                <span className="text-yellow-400 font-semibold">
-                  +{bossBonus}
-                </span>
-              </div>
-            )}
-            {totalLevelCubes > baseCubesEarned && (
-              <div className="flex justify-between pt-1 border-t border-yellow-500/20">
-                <span className="text-slate-200 font-medium">Total</span>
-                <span className="text-yellow-400 font-bold">
-                  +{totalLevelCubes} <CubeIcon size="sm" className="w-4 h-4 inline-block" />
-                </span>
-              </div>
-            )}
-          </div>
-        </motion.div>
+          <div
+            className="mx-2 mb-3 rounded-2xl border-2 px-4 pb-4 pt-3"
+            style={{
+              background: colors
+                ? `linear-gradient(180deg, ${colors.backgroundGradientStart ?? "#0a1628"}F5, ${colors.background ?? "#050a12"}FA)`
+                : "linear-gradient(180deg, rgba(15,23,42,0.95), rgba(10,15,30,0.98))",
+              borderColor: isIncomplete ? "rgba(248,113,113,0.3)" : isBossLevel ? "rgba(250,204,21,0.3)" : "rgba(74,222,128,0.3)",
+              boxShadow: "0 -4px 32px rgba(0,0,0,0.5)",
+            }}
+          >
+            {/* Title */}
+            <p className={`font-display text-xl font-black ${titleColor}`}>{title}</p>
 
-        {/* Stats Summary with animation */}
-        <motion.div
-          className="space-y-2 mb-5"
-          initial={{ opacity: 0, y: 20 }}
-          animate={
-            animationPhase >= 2 ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
-          }
-          transition={{ duration: 0.4 }}
-        >
-          {/* Score */}
-          <div className="flex justify-between items-center bg-slate-800/50 px-3 py-2 rounded-lg">
-            <span className="text-slate-300 text-sm">Score</span>
-            <span className="text-green-400 font-semibold text-sm flex items-center gap-2">
-              <Check size={16} className="text-green-400" />
-              {levelFinalScore} / {pointsRequired}
-            </span>
-          </div>
+            {/* Guardian quote */}
+            <p className="mt-1 font-sans text-[14px] leading-relaxed text-white/85">
+              "{guardianLine}"
+            </p>
 
-          {/* Moves */}
-          <div className="flex justify-between items-center bg-slate-800/50 px-3 py-2 rounded-lg">
-            <span className="text-slate-300 text-sm">Moves</span>
-            <span className="text-white font-semibold text-sm">
-              {levelMoves}
-              <span className="text-slate-400"> / {maxMoves}</span>
-            </span>
-          </div>
-
-          {constraints.map((c, i) => (
-            <motion.div
-              key={`constraint-${i}`}
-              className="flex justify-between items-center bg-gradient-to-r from-green-900/30 to-emerald-900/30 px-3 py-2 rounded-lg border border-green-500/30"
-              initial={{ scale: 1 }}
-              animate={
-                animationPhase >= 2
-                  ? {
-                      scale: [1, 1.02, 1],
-                      boxShadow: [
-                        "0 0 0 rgba(34, 197, 94, 0)",
-                        "0 0 15px rgba(34, 197, 94, 0.3)",
-                        "0 0 0 rgba(34, 197, 94, 0)",
-                      ],
-                    }
-                  : {}
-              }
-              transition={{ duration: 0.6, delay: 0.3 + i * 0.15 }}
-            >
-              <span className="text-slate-300 text-sm flex items-center gap-2">
-                <Trophy size={16} className="text-green-400" />
-                {Constraint.fromContractValues(
-                  c.type,
-                  c.value,
-                  c.count,
-                ).getDescription()}
-              </span>
-              <motion.span
-                className="flex items-center gap-1 text-green-400 text-sm"
-                initial={{ scale: 0 }}
-                animate={animationPhase >= 2 ? { scale: 1 } : { scale: 0 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 15,
-                  delay: 0.5 + i * 0.15,
-                }}
+            {/* Stars + stats — only for complete */}
+            {!isIncomplete && (
+              <motion.div
+                className="mt-3 space-y-2"
+                initial={{ opacity: 0, y: 10 }}
+                animate={animationPhase >= 1 ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                transition={{ duration: 0.3 }}
               >
-                <Check size={16} />
-              </motion.span>
+                {/* Stars */}
+                <div className="flex justify-center gap-2">
+                  {[1, 2, 3].map((star, i) => {
+                    const earned = star <= starsEarned;
+                    return (
+                      <motion.span
+                        key={star}
+                        className={`text-2xl ${earned ? "text-yellow-300 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]" : "text-white/20"}`}
+                        initial={{ scale: 0, rotate: -90 }}
+                        animate={animationPhase >= 1 ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -90 }}
+                        transition={{ delay: i * 0.12, type: "spring", stiffness: 250, damping: 16 }}
+                      >
+                        ★
+                      </motion.span>
+                    );
+                  })}
+                </div>
+
+                {/* Score + moves */}
+                <motion.div
+                  className="flex gap-2"
+                  initial={{ opacity: 0 }}
+                  animate={animationPhase >= 2 ? { opacity: 1 } : { opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="flex-1 rounded-xl bg-white/[0.05] px-3 py-2 text-center">
+                    <p className="font-sans text-sm font-bold text-emerald-300">+{levelFinalScore}</p>
+                    <p className="font-sans text-[9px] text-white/40">Score</p>
+                  </div>
+                  <div className="flex-1 rounded-xl bg-white/[0.05] px-3 py-2 text-center">
+                    <p className="font-sans text-sm font-bold text-white">{levelMoves}/{maxMoves}</p>
+                    <p className="font-sans text-[9px] text-white/40">Moves</p>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+
+            {/* Button */}
+            <motion.div
+              className="mt-3"
+              initial={{ opacity: 0 }}
+              animate={animationPhase >= 3 ? { opacity: 1 } : { opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ArcadeButton onClick={onClose}>
+                {isIncomplete ? "Back to Map" : draftWillOpen ? "Continue to Draft" : "Continue"}
+              </ArcadeButton>
             </motion.div>
-          ))}
+          </div>
         </motion.div>
-
-        {isDraftLevel && (
-          <motion.div
-            className="mb-4 text-center"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={
-              animationPhase >= 3
-                ? { opacity: 1, scale: 1 }
-                : { opacity: 0, scale: 0.9 }
-            }
-            transition={{ duration: 0.4 }}
-          >
-            <span className="text-purple-400 text-sm font-medium">
-              🧩 Draft opens next — choose your run direction!
-            </span>
-          </motion.div>
-        )}
-
-        {/* Continue Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={
-            animationPhase >= 3 ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }
-          }
-          transition={{ duration: 0.3, delay: 0.2 }}
-        >
-          <Button
-            onClick={onClose}
-            className="w-full py-3 text-lg font-semibold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
-          >
-            {isDraftLevel ? "Continue to Draft" : "Continue"}
-          </Button>
-        </motion.div>
-      </DialogContent>
-    </Dialog>
+      </motion.div>
+    </>
   );
 };
 

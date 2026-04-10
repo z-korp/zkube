@@ -18,9 +18,9 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ["Bangers", "sans-serif"],
+        sans: ["Outfit", "sans-serif"],
         display: ["Fredericka the Great", "sans"],
-        body: ["Fredericka the Great", "sans"],
+        body: ["Outfit", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

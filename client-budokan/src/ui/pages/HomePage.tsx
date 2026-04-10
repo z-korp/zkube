@@ -1,24 +1,28 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { motion } from "motion/react";
-import { useAccount } from "@starknet-react/core";
-import ControllerConnector from "@cartridge/connector/controller";
+import { motion, type Variants } from "motion/react";
+
 import { useDojo } from "@/dojo/useDojo";
-import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
-import { loadThemeTemplate } from "@/config/themes";
-import { useCubeBalance } from "@/hooks/useCubeBalance";
+import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
+import { usePlayerBestRun } from "@/hooks/usePlayerBestRun";
+import { usePlayerMeta } from "@/hooks/usePlayerMeta";
+import { useZStarBalance } from "@/hooks/useZStarBalance";
+import { useZoneProgress } from "@/hooks/useZoneProgress";
+import { useActiveStoryAttempt } from "@/hooks/useActiveStoryAttempt";
+import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
+import { usePlayerEntry } from "@/hooks/usePlayerEntry";
+import { ZONE_NAMES, getLevelFromXp, getTitleForLevel, type ZoneProgressData } from "@/config/profileData";
+import { ZONE_GUARDIANS, getGuardianPortrait } from "@/config/bossCharacters";
 import { useNavigationStore } from "@/stores/navigationStore";
-import { useQuests } from "@/contexts/quests";
 import { showToast } from "@/utils/toast";
-import ImageAssets from "@/ui/theme/ImageAssets";
-import TopBar from "@/ui/navigation/TopBar";
-import NavButton from "@/ui/components/shared/NavButton";
 import Connect from "@/ui/components/Connect";
-import useViewport from "@/hooks/useViewport";
+import ModePill from "@/ui/components/shared/ModePill";
+import ArcadeButton from "@/ui/components/shared/ArcadeButton";
+import UnlockModal from "@/ui/components/profile/UnlockModal";
 
 const normalizeAddress = (address: string | undefined): string | undefined => {
   if (!address) return undefined;
@@ -27,32 +31,232 @@ const normalizeAddress = (address: string | undefined): string | undefined => {
   return `0x${hex}`;
 };
 
-const HomePage: React.FC = () => {
-  useViewport();
+const getThemeId = (zoneId: number): ThemeId => {
+  const normalized = Math.min(10, Math.max(1, zoneId));
+  return `theme-${normalized}` as ThemeId;
+};
 
+const useDailyCountdown = (endTime: number | undefined) => {
+  const [remaining, setRemaining] = useState(() =>
+    endTime ? Math.max(0, endTime - Math.floor(Date.now() / 1000)) : 0,
+  );
+
+  useEffect(() => {
+    if (!endTime) return;
+    const tick = () => setRemaining(Math.max(0, endTime - Math.floor(Date.now() / 1000)));
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [endTime]);
+
+  if (!endTime || remaining <= 0) return null;
+  const h = Math.floor(remaining / 3600);
+  const m = Math.floor((remaining % 3600) / 60);
+  return `${h}h ${m}m remaining`;
+};
+
+const containerVariants: Variants = {
+  hidden: { opacity: 1 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 1, y: 0 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+};
+
+// Block cell size — total grid is 8 cells wide
+const CELLS = 8;
+
+// Generate a random line that sums to 8 cells
+function generateLine(): number[] {
+  const blocks: number[] = [];
+  let remaining = CELLS;
+  while (remaining > 0) {
+    const maxSize = Math.min(4, remaining);
+    const size = Math.floor(Math.random() * maxSize) + 1;
+    blocks.push(size);
+    remaining -= size;
+  }
+  return blocks;
+}
+
+
+const CtaGuardian: React.FC = () => {
+  const guardianIds = Object.keys(ZONE_GUARDIANS).map(Number);
+  const randomIdx = Math.floor(Date.now() / 60000) % guardianIds.length;
+  const gZoneId = guardianIds[randomIdx];
+  const g = ZONE_GUARDIANS[gZoneId];
+  const gThemeId = `theme-${gZoneId}` as ThemeId;
+  const gImages = getThemeImages(gThemeId);
+  const gColors = getThemeColors(gThemeId);
+
+  const blockSrcs: Record<number, string> = {
+    1: gImages.block1, 2: gImages.block2, 3: gImages.block3, 4: gImages.block4,
+  };
+
+  // Generate lines of blocks — each line sums to 8 cells
+  const fallingLines = useMemo(() => {
+    const lineCount = 6;
+    const lineDuration = 5;
+    const lineSpacing = 2.2; // spaced so fastest block clears before slowest of next arrives
+    return Array.from({ length: lineCount }).map((_, lineIdx) => {
+      const sizes = generateLine();
+      let cellOffset = 0;
+      // Speed tiers — shuffled per line, bounded range so lines don't collide
+      const speedPool = [0.85, 0.95, 1.0, 1.1, 1.2, 1.3, 1.15, 1.05];
+      const blocks = sizes.map((size, bi) => {
+        const x = cellOffset;
+        cellOffset += size;
+        return { size, cellX: x, speed: speedPool[(bi + lineIdx * 3) % speedPool.length] };
+      });
+      const totalCycle = lineCount * lineSpacing;
+      return {
+        blocks,
+        delay: lineIdx * lineSpacing,
+        duration: lineDuration,
+        totalCycle,
+      };
+    });
+  }, [gZoneId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <motion.div
+      variants={itemVariants}
+      className="relative mx-auto mt-2 flex max-w-[360px] flex-col items-center gap-4"
+    >
+      {/* Guardian portrait in a circle */}
+      <motion.div
+        className="relative h-36 w-36 overflow-hidden rounded-full"
+        style={{
+          border: `3px solid ${gColors.accent}44`,
+          boxShadow: `0 0 30px ${gColors.accent}22`,
+        }}
+        initial={{ opacity: 0, scale: 0.85 }}
+        animate={{
+          opacity: 1,
+          scale: [1, 1.03, 1],
+        }}
+        transition={{
+          opacity: { delay: 0.2, duration: 0.5 },
+          scale: { delay: 0.5, duration: 4, repeat: Infinity, ease: "easeInOut" },
+        }}
+      >
+        <img
+          src={getGuardianPortrait(gZoneId)}
+          alt={g.name}
+          className="h-full w-full object-cover"
+          draggable={false}
+        />
+      </motion.div>
+
+      {/* Catchphrase */}
+      <p className="text-center font-sans text-[14px] italic text-white/50">
+        "{g.greeting}"
+      </p>
+
+      {/* Falling lines — full rows that break apart with gravity */}
+      <div
+        className="relative w-full flex-1 min-h-[140px] overflow-hidden"
+        style={{
+          maskImage: "linear-gradient(to bottom, black 0%, black 55%, transparent 100%)",
+          WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 55%, transparent 100%)",
+        }}
+      >
+        {fallingLines.map((line, li) =>
+          line.blocks.map((b, bi) => {
+            const cellPct = 100 / CELLS;
+            return (
+              <motion.img
+                key={`${li}-${bi}`}
+                src={blockSrcs[b.size]}
+                alt=""
+                className="absolute top-0"
+                style={{
+                  left: `${b.cellX * cellPct}%`,
+                  width: `${b.size * cellPct}%`,
+                  aspectRatio: `${b.size} / 1`,
+                }}
+                animate={{
+                  y: [-20, 280],
+                  opacity: [0, 0.85, 0.8, 0.7],
+                }}
+                transition={{
+                  delay: line.delay,
+                  duration: line.duration / b.speed,
+                  repeat: Infinity,
+                  // All blocks in a line must restart together:
+                  // total = duration + repeatDelay = totalCycle (constant per line)
+                  repeatDelay: line.totalCycle - line.duration / b.speed,
+                  ease: "easeIn",
+                }}
+                draggable={false}
+              />
+            );
+          }),
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+const HomePage: React.FC = () => {
   const { account } = useAccountCustom();
   const {
     setup: {
-      systemCalls: { freeMint, create },
+      systemCalls: { freeMint, create, startRun },
     },
   } = useDojo();
-  const { connector } = useAccount();
   const { username } = useControllerUsername();
-  const { themeTemplate, setThemeTemplate } = useTheme();
+  const { themeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
-  const { cubeBalance } = useCubeBalance();
   const navigate = useNavigationStore((s) => s.navigate);
-  const { questFamilies } = useQuests();
-  const imgAssets = ImageAssets(themeTemplate);
+  const mapZoneId = useNavigationStore((s) => s.mapZoneId);
+  const setMapZoneId = useNavigationStore((s) => s.setMapZoneId);
+  const selectedMode = useNavigationStore((s) => s.selectedMode);
+  const setSelectedMode = useNavigationStore((s) => s.setSelectedMode);
   const [isStartingGame, setIsStartingGame] = useState(false);
+  const [unlockZone, setUnlockZone] = useState<ZoneProgressData | null>(null);
+  const { playerMeta } = usePlayerMeta(account?.address);
+  const playerLevel = getLevelFromXp(playerMeta?.lifetimeXp ?? 0);
+  const playerTitle = getTitleForLevel(playerLevel);
+  const { balance: zStarBalance } = useZStarBalance(account?.address);
+  const { zones: rawZones, totalStars } = useZoneProgress(account?.address, zStarBalance);
+  const zones = useMemo(() =>
+    [...rawZones].sort((a, b) => {
+      if (a.unlocked !== b.unlocked) return a.unlocked ? -1 : 1;
+      return a.zoneId - b.zoneId; // stable tiebreaker
+    }),
+    [rawZones],
+  );
+  const activeZone = useMemo(() => {
+    const idx = zones.findIndex((z) => z.zoneId === mapZoneId);
+    return idx >= 0 ? idx : 0;
+  }, [zones, mapZoneId]);
+  const setActiveZone = useCallback((idx: number) => {
+    const z = zones[idx];
+    if (z) setMapZoneId(z.zoneId);
+  }, [zones, setMapZoneId]);
+  const { challenge, isLoading: challengeLoading } = useCurrentChallenge();
+  const { entry: dailyEntry, isRegistered: hasPlayedDaily } = usePlayerEntry(
+    challenge?.challenge_id,
+    account?.address,
+  );
+  const dailyCountdown = useDailyCountdown(challenge?.end_time);
+  const dailyZoneName = challenge?.zone_id ? (ZONE_NAMES[challenge.zone_id] ?? null) : null;
 
   useEffect(() => {
-    setThemeTemplate(loadThemeTemplate(), false);
     setMusicPlaylist(["main", "level"]);
-  }, [setMusicPlaylist, setThemeTemplate]);
+  }, [setMusicPlaylist]);
 
   const shouldFetchMyGames = Boolean(account?.address);
   const normalizedOwner = normalizeAddress(account?.address);
+  const activeStoryRun = useActiveStoryAttempt();
 
   const { games: ownedGames } = useGameTokensSlot({
     owner: shouldFetchMyGames ? normalizedOwner : undefined,
@@ -64,126 +268,394 @@ const HomePage: React.FC = () => {
     return ownedGames.filter((g) => !g.game_over);
   }, [ownedGames]);
 
-  const claimableQuestCount = useMemo(
-    () => questFamilies.filter((f) => f.claimableTier !== null).length,
-    [questFamilies],
+  const { bestRuns } = usePlayerBestRun(account?.address);
+
+  const activeStoryAttemptId = activeStoryRun?.gameId ?? null;
+  const activeEndlessGameId = activeGames[0]?.token_id ?? null;
+  const endlessZoneOneUnlocked = Boolean(zones.find((zoneData) => zoneData.zoneId === 1)?.bossCleared);
+
+  const isZoneSelectable = useCallback(
+    (zoneData: (typeof zones)[number] | undefined) => {
+      if (!zoneData) return false;
+      if (selectedMode === 0) return zoneData.unlocked;
+      return zoneData.unlocked && zoneData.zoneId === 1 && endlessZoneOneUnlocked;
+    },
+    [endlessZoneOneUnlocked, selectedMode],
   );
 
-  const handleProfile = useCallback(() => {
+  // Only reset zone selection when MODE changes — not on data updates
+  const [lastMode, setLastMode] = useState(selectedMode);
+  useEffect(() => {
+    if (selectedMode === lastMode) return;
+    setLastMode(selectedMode);
+    if (!zones.length) return;
+    const currentSelectable = isZoneSelectable(zones[activeZone]);
+    if (currentSelectable) return;
+    const firstSelectableIndex = zones.findIndex((zoneData) => isZoneSelectable(zoneData));
+    if (firstSelectableIndex >= 0) setActiveZone(firstSelectableIndex);
+  }, [selectedMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const zone = zones[activeZone] ?? zones[0];
+  const colors = getThemeColors(themeTemplate);
+
+  const handleStartGame = useCallback(
+    async (settingsId: number) => {
+      if (!account || isStartingGame) return;
+
+      const selectedZone = zones.find((zoneData) => zoneData.settingsId === settingsId);
+      if (!selectedZone) {
+        showToast({ message: "Zone data is still loading.", type: "error" });
+        return;
+      }
+
+      if (!selectedZone.unlocked) {
+        showToast({ message: "This zone is locked.", type: "error" });
+        return;
+      }
+
+        setIsStartingGame(true);
+        try {
+          if (selectedMode === 1) {
+            if (selectedZone.zoneId !== 1) {
+              showToast({
+                message: "Only Endless Zone 1 is enabled in the MVP.",
+                type: "error",
+              });
+              return;
+            }
+
+            if (!selectedZone.bossCleared) {
+              showToast({
+                message: "Clear Zone 1 Guardian to unlock Endless.",
+                type: "error",
+              });
+              return;
+            }
+
+            // Endless settings are odd IDs (zone1 -> 1, zone2 -> 3, ...)
+            const endlessSettingsId = selectedZone.zoneId * 2 - 1;
+            const mintResult = await freeMint({ account, name: username ?? "", settingsId: endlessSettingsId });
+            const gameId = mintResult.game_id;
+            if (gameId === 0n) throw new Error("Failed to extract game_id from mint");
+            await create({ account, token_id: gameId, run_type: selectedMode });
+            showToast({ message: "Game started!", type: "success" });
+            navigate("mutator", gameId);
+            return;
+          }
+
+          // Story mode: resume existing active story game instead of failing on start_story_attempt.
+          if (activeStoryAttemptId) {
+            showToast({ message: "Resuming active story run.", type: "success" });
+            setMapZoneId(selectedZone.zoneId);
+            navigate("map", activeStoryAttemptId);
+            return;
+          }
+
+          const result = await startRun({ account, zone_id: selectedZone.zoneId });
+          const gameId = result.game_id;
+          if (gameId === 0n) throw new Error("Failed to start story run");
+          showToast({ message: "Story run started.", type: "success" });
+          navigate("play", gameId);
+        } catch (error) {
+        console.error("Error starting game:", error);
+        showToast({
+          message: "Failed to start game.",
+          type: "error",
+        });
+      } finally {
+        setIsStartingGame(false);
+      }
+    },
+    [
+      account,
+      create,
+      freeMint,
+      startRun,
+      isStartingGame,
+      navigate,
+      setMapZoneId,
+      selectedMode,
+      zones,
+      username,
+      activeStoryAttemptId,
+    ],
+  );
+
+  const hasActiveStoryRun = activeStoryAttemptId !== null;
+  const hasActiveEndlessRun = activeEndlessGameId !== null;
+  const selectedZonePlayable = isZoneSelectable(zone);
+
+  const handlePrimaryAction = useCallback(() => {
     if (!account) return;
-    const controllerConnector = connector as ControllerConnector;
-    if (controllerConnector?.controller?.openProfile) {
-      controllerConnector.controller.openProfile();
+
+    // Daily mode
+    if (selectedMode === 2) {
+      navigate("daily");
+      return;
     }
-  }, [account, connector]);
 
-  const handleTrophies = useCallback(() => {
-    if (!account) return;
-    const controllerConnector = connector as ControllerConnector;
-    if (controllerConnector?.controller?.openProfile) {
-      controllerConnector.controller.openProfile("trophies");
+    if (!zone) return;
+
+    // Story mode — resume goes straight to game, new run goes to map
+    if (selectedMode === 0) {
+      setMapZoneId(zone.zoneId);
+      if (activeStoryAttemptId !== null) {
+        navigate("play", activeStoryAttemptId);
+      } else {
+        navigate("map");
+      }
+      return;
     }
-  }, [account, connector]);
 
-  const handleStartGame = useCallback(async () => {
-    if (!account || isStartingGame) return;
-
-    setIsStartingGame(true);
-    try {
-      const mintResult = await freeMint({
-        account,
-        name: username ?? "",
-        settingsId: DEFAULT_SETTINGS_ID,
-      });
-
-      const gameId = mintResult.game_id;
-      if (!gameId) throw new Error("Failed to extract game_id from mint");
-
-      await create({
-        account,
-        token_id: gameId,
-      });
-
-      showToast({
-        message: `Game #${gameId} started!`,
-        type: "success",
-      });
-
-      navigate("map", gameId);
-    } catch (error) {
-      console.error("Error starting game:", error);
-      showToast({
-        message: "Failed to start game. Check My Games if a token was minted.",
-        type: "error",
-      });
-    } finally {
-      setIsStartingGame(false);
+    // Endless mode
+    if (selectedMode === 1 && activeEndlessGameId !== null) {
+      navigate("play", activeEndlessGameId);
+      return;
     }
-  }, [account, create, freeMint, isStartingGame, navigate, username]);
+
+    handleStartGame(zone.settingsId);
+  }, [
+    account,
+    activeEndlessGameId,
+    activeStoryAttemptId,
+    handleStartGame,
+    navigate,
+    setMapZoneId,
+    selectedMode,
+    zone,
+  ]);
 
   return (
-    <div className="h-screen-viewport flex flex-col">
-      <TopBar
-        cubeBalance={cubeBalance}
-        onTutorial={() => navigate("tutorial")}
-        onQuests={() => navigate("quests")}
-        onTrophies={handleTrophies}
-        onSettings={() => navigate("settings")}
-        onProfile={handleProfile}
-        username={username}
-        claimableQuestCount={claimableQuestCount}
-      />
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-10">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(5,10,18,0.12)_0%,rgba(5,10,18,0.05)_45%,rgba(5,10,18,0.56)_100%)]" />
 
-      <div className="flex-1 flex flex-col items-center justify-start px-6 gap-3 pt-4">
-        {imgAssets.logo && (
-          <motion.img
-            src={imgAssets.logo}
-            alt="zKube"
-            draggable={false}
-            className="w-48 md:w-64 lg:w-80 max-w-[340px] drop-shadow-2xl"
-            animate={{ y: [0, -4, 0] }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-        )}
-
-        <div className="flex flex-col items-center gap-3 w-full mt-2">
-          {!account ? (
-            <Connect />
-          ) : (
-            <>
-              <NavButton
-                label={isStartingGame ? "STARTING..." : "NEW GAME"}
-                variant="orange"
-                onClick={handleStartGame}
-                disabled={isStartingGame}
-              />
-
-              <NavButton
-                label="MY GAMES"
-                variant="purple"
-                onClick={() => navigate("mygames")}
-                badge={activeGames.length > 0 ? activeGames.length : undefined}
-              />
-
-              <NavButton
-                label="SKILL TREE"
-                variant="green"
-                onClick={() => navigate("skilltree")}
-              />
-
-              <NavButton
-                label="LEADERBOARD"
-                variant="blue"
-                onClick={() => navigate("leaderboard")}
-              />
-            </>
-          )}
-        </div>
+      <div className="relative z-10 mb-1 text-center">
+        <motion.img
+          animate={{ y: [0, -3, 0] }}
+          transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+          src={getThemeImages(themeTemplate).logo}
+          alt="zKube"
+          className="mx-auto h-32 md:h-44 drop-shadow-[0_0_28px_rgba(255,255,255,0.42)]"
+          draggable={false}
+        />
       </div>
+
+      <div className="relative z-10 flex flex-1 min-h-0 flex-col px-4">
+        <motion.div
+          key="home-container"
+          variants={containerVariants}
+          initial={false}
+          animate="show"
+          className="flex-1 space-y-3 overflow-y-auto pb-3"
+        >
+          {account ? (
+            <>
+              <motion.div variants={itemVariants} className="flex items-center justify-between rounded-2xl border border-white/[0.16] bg-white/[0.08] px-3 py-1.5 backdrop-blur-xl">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-sans text-sm font-black"
+                    style={{
+                      background: `linear-gradient(145deg, ${colors.accent}, ${colors.accent2})`,
+                      color: "#0a1628",
+                    }}
+                  >
+                    {playerLevel}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate font-sans text-[15px] font-bold text-white">{username || "Player"}</p>
+                    <p className="font-sans text-[11px] font-semibold text-white/75">{playerTitle}</p>
+                  </div>
+                </div>
+                <span className="rounded-full border px-2.5 py-1 font-sans text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: colors.accent, borderColor: `${colors.accent}66`, backgroundColor: `${colors.accent}22` }}>
+                  Connected
+                </span>
+              </motion.div>
+
+              <motion.div variants={itemVariants} className="my-1 flex items-center gap-2">
+                <div className="flex-1 border-t border-white/[0.06]" />
+                <span className="font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-white/30">Choose Your Mode</span>
+                <div className="flex-1 border-t border-white/[0.06]" />
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
+              </motion.div>
+
+              <motion.div variants={itemVariants} className="space-y-2">
+                {selectedMode === 2 ? (
+                  <div className="relative overflow-hidden rounded-2xl border border-white/[0.16]">
+                    {challenge?.zone_id ? (
+                      <img
+                        src={getThemeImages(getThemeId(challenge.zone_id)).background}
+                        alt=""
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${colors.accent}33, ${colors.accent2}22)` }} />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" />
+                    <div className="relative z-10 px-4 py-4">
+                      <p className="font-sans text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: colors.accent }}>
+                        Today's Challenge
+                      </p>
+                      <p className="mt-0.5 font-display text-xl font-black text-white">
+                        {dailyZoneName ?? "Daily Challenge"}
+                      </p>
+                      <p className="mt-1 font-sans text-xs font-semibold text-white/70">
+                        {challengeLoading
+                          ? "Loading..."
+                          : !challenge
+                            ? "Be the first to play today!"
+                            : hasPlayedDaily && dailyEntry
+                              ? `Your best: ${dailyEntry.best_score?.toLocaleString() ?? 0}${dailyEntry.rank > 0 ? ` · Rank #${dailyEntry.rank}` : ""}${dailyCountdown ? ` · ${dailyCountdown}` : ""}`
+                              : `${dailyCountdown ?? "New daily available"} · ${challenge.total_entries ?? 0} player${(challenge.total_entries ?? 0) !== 1 ? "s" : ""}`}
+                      </p>
+                    </div>
+                  </div>
+                ) : zones.length === 0 ? (
+                  <div className="rounded-2xl border border-white/[0.14] bg-white/[0.12] p-4 text-center font-sans text-sm font-semibold text-white/80 backdrop-blur-xl">
+                    Loading zones...
+                  </div>
+                ) : (
+                  <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 hide-scrollbar">
+                    {zones.map((z, idx) => {
+                      const isEndlessMode = selectedMode === 1;
+                      const endlessSettingsId = z.zoneId * 2 - 1;
+                      const endlessBestScore = bestRuns.get(`${endlessSettingsId}-1`)?.bestScore ?? 0;
+                      const isSelectable = isEndlessMode
+                        ? z.unlocked && z.zoneId === 1 && endlessZoneOneUnlocked
+                        : z.unlocked;
+                      const isSelected = idx === activeZone && isSelectable;
+                      const cardAccent = isEndlessMode ? "#FFB86B" : colors.accent;
+
+                      let statusText = `${z.stars}/${z.maxStars} ★`;
+                      if (isEndlessMode) {
+                        if (!z.unlocked) statusText = "Unlock Story";
+                        else if (!z.bossCleared) statusText = "Clear Guardian";
+                        else statusText = `Best ${endlessBestScore.toLocaleString()}`;
+                      } else if (!z.unlocked && !z.isFree) {
+                        statusText = (z.starCost ?? 0) > 0
+                          ? `${z.starCost} ★ to unlock`
+                          : "Locked";
+                      }
+
+                      return (
+                        <motion.button
+                          whileTap={{ scale: 0.98 }}
+                          key={z.settingsId}
+                          type="button"
+                          onClick={() => {
+                            if (isSelectable) {
+                              setActiveZone(idx);
+                            } else if (!z.unlocked && !z.isFree && selectedMode === 0) {
+                              setUnlockZone(z);
+                            }
+                          }}
+                          className="relative flex h-[clamp(8rem,22vw,11rem)] w-[clamp(6.5rem,17vw,9rem)] shrink-0 snap-center flex-col items-start justify-end overflow-hidden rounded-2xl p-2 text-left"
+                          style={{
+                            border: isSelected ? `2px solid ${cardAccent}` : "1px solid rgba(255,255,255,0.18)",
+                            opacity: isSelectable ? 1 : 0.58,
+                            boxShadow: isSelected ? `0 0 16px ${cardAccent}66, 0 0 4px ${cardAccent}44` : "0 10px 18px -8px rgba(0,0,0,0.6)",
+                          }}
+                        >
+                          <img
+                            src={getThemeImages(getThemeId(z.zoneId)).themeIcon}
+                            alt=""
+                            className="absolute inset-0 h-full w-full object-cover"
+                          />
+                          {isEndlessMode ? <div className="absolute inset-0 bg-gradient-to-t from-[#2f1300]/90 via-[#341700]/45 to-transparent" /> : null}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                          <div className="relative z-10 w-full">
+                            <span
+                              className="mb-1 inline-flex rounded-full px-2 py-0.5 font-sans text-[9px] font-extrabold uppercase tracking-[0.12em]"
+                              style={{
+                                color: isEndlessMode ? "#241100" : "#0a1628",
+                                backgroundColor: isEndlessMode ? "#FFB86B" : colors.accent,
+                              }}
+                            >
+                              {isEndlessMode ? "Endless" : "Story"}
+                            </span>
+                            <p className="font-sans text-base font-extrabold leading-tight text-white drop-shadow-md">{z.name}</p>
+                            <div className="mt-1 flex items-center justify-between">
+                              <p className="font-sans text-[11px] font-bold" style={{ color: isEndlessMode ? "#FFCF9D" : "#FACC15" }}>
+                                {statusText}
+                              </p>
+                              {!isSelectable && <span className="text-sm">🔒</span>}
+                            </div>
+                            {!isEndlessMode && z.unlocked && z.maxStars > 0 && (
+                              <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-white/10">
+                                <div
+                                  className="h-full rounded-full transition-all duration-300"
+                                  style={{ width: `${(z.stars / z.maxStars) * 100}%`, backgroundColor: colors.accent }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                )}
+              </motion.div>
+
+              <motion.div variants={itemVariants} className="my-1 flex items-center gap-2">
+                <div className="flex-1 border-t border-white/[0.06]" />
+                <span className="font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-white/30">Tournament</span>
+                <div className="flex-1 border-t border-white/[0.06]" />
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <div className="rounded-2xl border border-white/[0.10] bg-white/[0.04] px-4 py-3 text-center backdrop-blur-xl">
+                  <p className="font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-white/30">Coming Soon</p>
+                </div>
+              </motion.div>
+            </>
+          ) : (
+            <CtaGuardian />
+          )}
+        </motion.div>
+      </div>
+
+      <div className="relative z-20 mt-auto flex flex-col gap-2.5 px-4 pb-3">
+        {!account ? (
+          <Connect ctaLabel="PLAY NOW" />
+        ) : (
+          <>
+            <ArcadeButton disabled={isStartingGame || (selectedMode === 2 ? challengeLoading : !selectedZonePlayable)} onClick={handlePrimaryAction}>
+              {isStartingGame
+                ? "Starting..."
+                : selectedMode === 2
+                  ? "Go to Daily"
+                  : selectedMode === 0
+                    ? hasActiveStoryRun
+                      ? "Resume Story"
+                      : "Play Story"
+                    : hasActiveEndlessRun
+                      ? "Resume Endless"
+                      : "Play Endless"}
+            </ArcadeButton>
+
+            {selectedMode === 1 && hasActiveEndlessRun ? (
+              <button
+                type="button"
+                onClick={() => zone && handleStartGame(zone.settingsId)}
+                disabled={isStartingGame || !selectedZonePlayable}
+                className="w-full rounded-2xl border border-white/[0.16] bg-white/[0.08] px-4 py-2.5 font-sans text-xs font-extrabold uppercase tracking-[0.1em] text-white/90 backdrop-blur-xl disabled:cursor-not-allowed disabled:opacity-55"
+              >
+                Start New Endless
+              </button>
+            ) : null}
+
+            {selectedMode === 1 && zones.length > 0 && !selectedZonePlayable && endlessZoneOneUnlocked ? (
+              <p className="text-center font-sans text-[11px] font-semibold text-white/75">
+                Only Endless Zone 1 is playable for now.
+              </p>
+            ) : null}
+          </>
+        )}
+      </div>
+
+      {unlockZone && <UnlockModal colors={colors} zone={unlockZone} onClose={() => setUnlockZone(null)} />}
     </div>
   );
 };

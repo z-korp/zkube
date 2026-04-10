@@ -5,7 +5,7 @@
  * The tutorial teaches players core game mechanics through 11 interactive and info steps.
  */
 
-import { BonusType } from "@/dojo/game/types/bonus";
+import { BonusType } from "@/dojo/game/types/bonusTypes";
 
 // Step types
 export type TutorialStepType = "interactive" | "bonus" | "info";
@@ -41,7 +41,7 @@ export interface InteractiveStep extends TutorialStepBase {
   targetBlock: TutorialTarget | null;
   successCondition: string;
   constraint?: {
-    type: "ComboLines" | "NoBonusUsed";
+    type: "ComboLines";
     value: number;
     count: number;
   };
@@ -329,7 +329,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 4,
     title: "Combo",
     type: "bonus",
-    bonusType: BonusType.Combo,
+    bonusType: BonusType.Hammer,
     description: "The Combo bonus targets a block to boost your next move.",
     mobileDescription: "Tap Combo, then a block",
     targetBlock: { x: 6, y: 9, type: "block" },
@@ -339,7 +339,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 5,
     title: "Harvest",
     type: "bonus",
-    bonusType: BonusType.Harvest,
+    bonusType: BonusType.Totem,
     description: "The Harvest bonus removes all blocks of a chosen size.",
     mobileDescription: "Tap Harvest, then a block size",
     targetBlock: { x: 0, y: 8, type: "row" },
@@ -349,7 +349,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 6,
     title: "Score",
     type: "bonus",
-    bonusType: BonusType.Score,
+    bonusType: BonusType.Wave,
     description: "The Score bonus grants instant extra score.",
     mobileDescription: "Tap Score to gain points",
     targetBlock: { x: 0, y: 9, type: "block" },
@@ -409,17 +409,17 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     ],
     footer: "Higher level bonuses have stronger effects!",
   },
-  // Step 11: Boss Levels & Complete (Info)
+  // Step 11: Guardian Trials & Complete (Info)
   {
     id: 11,
-    title: "Boss Levels",
+    title: "Guardian Trials",
     type: "info",
     infoType: "boss",
-    description: "Every 10 levels is a boss level with extra challenges and rewards!",
-    mobileDescription: "Boss = big rewards",
+    description: "Every 10 levels is a guardian trial with extra challenges and rewards!",
+    mobileDescription: "Guardian = big rewards",
     items: [
-      { level: "10, 20, 30, 40, 50", desc: "Boss levels with dual constraints" },
-      { reward: "Free Level-Up!", desc: "Upgrade any bonus after defeating a boss" },
+      { level: "10, 20, 30, 40, 50", desc: "Guardian trials with dual constraints" },
+      { reward: "Free Level-Up!", desc: "Upgrade any bonus after clearing a guardian" },
     ],
     footer: "Reach level 50 to achieve victory! Good luck!",
     isComplete: true,

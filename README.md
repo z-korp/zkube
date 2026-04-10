@@ -8,20 +8,11 @@ A fully on-chain puzzle roguelike built with [Dojo](https://dojoengine.org/) on 
 
 ## Overview
 
-zKube challenges players to manipulate blocks on an 8x10 grid to form solid horizontal lines. Progress through 50 levels, earn CUBE tokens, unlock bonuses, and complete daily quests. Every action is verified on-chain with VRF-powered randomness.
+zKube challenges players to manipulate blocks on an 8x10 grid to form solid horizontal lines. Progress through 10 themed zones, earn zStar tokens, unlock bonuses, and complete daily quests. Every action is verified on-chain with VRF-powered randomness.
 
 <p align="center">
   <img src="assets/overview.png" height="256">
 </p>
-
-## Key Features
-
-- **50-Level Campaign** - Progressive difficulty from VeryEasy to Master
-- **5 Bonus Types** - Combo, Score, Harvest, Wave, Supply (each with 3 upgrade levels)
-- **CUBE Economy** - Earn tokens through gameplay, spend on permanent upgrades
- **Daily Quests** - 13 quests with 92 CUBE rewards per day
-- **28 Achievements** - Track lifetime progress across multiple categories
-- **Boss Levels** - Special challenges every 10 levels with bonus rewards
 
 ## Gameplay
 
@@ -51,22 +42,12 @@ scarb build                    # Build all packages
 cd contracts && scarb test     # Run tests
 ```
 
-See [CLAUDE.md](./CLAUDE.md) for detailed development documentation.
-
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [CLAUDE.md](./CLAUDE.md) | Project architecture and development guide |
-| [docs/GAME_DESIGN.md](./docs/GAME_DESIGN.md) | Complete game design document |
-| [docs/DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md) | Network deployment guide |
-| [contracts/CLAUDE.md](./contracts/CLAUDE.md) | Smart contract documentation |
-| [client-budokan/CLAUDE.md](./client-budokan/CLAUDE.md) | Frontend documentation |
+See [CLAUDE.md](./CLAUDE.md) for developer/agent reference and [docs/](./docs/) for game design documents.
 
 ## Technology Stack
 
-- **Contracts**: Cairo 2.13.1 / Dojo 1.8.0
- **Frontend**: React 19 / TypeScript / Vite
+- **Contracts**: Cairo / Dojo
+- **Frontend**: React 19 / TypeScript / Vite
 - **Blockchain**: Starknet
 - **Wallet**: Cartridge Controller
 

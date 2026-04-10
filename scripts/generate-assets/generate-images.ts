@@ -18,6 +18,7 @@ import {
   buildWhiteIconPrompt,
   buildSkillIconPrompt,
   buildArchetypeIconPrompt,
+  buildGuardianPortraitPrompt,
 } from "./lib/prompts";
 import sharp from "sharp";
 import { CONCURRENCY, IMAGE_MODEL, COMMON_ROOT, ASSETS_ROOT, formatError, loadPLimitFactory, relativePath } from "./lib/env";
@@ -358,6 +359,22 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       outputPath: path.join(themeRoot, "theme-icon.png"),
       prompt: buildThemeIconPrompt(theme),
       ...getTargetDimensions("theme-icon.png", { width: 256, height: 256 }),
+    });
+  }
+
+  if (shouldIncludeCategory("guardian", filter) && theme.guardian?.portraitPrompt) {
+    const outputDir = path.join(ASSETS_ROOT, themeId, "boss");
+    fs.mkdirSync(outputDir, { recursive: true });
+
+    jobs.push({
+      scope: "per-theme",
+      category: "guardian",
+      themeId,
+      filename: "portrait.png",
+      outputPath: path.join(outputDir, "portrait.png"),
+      prompt: buildGuardianPortraitPrompt(theme),
+      width: 512,
+      height: 512,
     });
   }
 

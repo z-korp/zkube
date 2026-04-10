@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Account } from "starknet";
 import { useDojo } from "@/dojo/useDojo";
 import BlockContainer from "./Block";
@@ -19,9 +19,7 @@ import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "motion/react";
-import { BonusType } from "@/dojo/game/types/bonus";
-import ConfettiExplosion from "./ConfettiExplosion";
-import type { ConfettiExplosionRef } from "./ConfettiExplosion";
+import { BonusType } from "@/dojo/game/types/bonusTypes";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { getThemeColors, type ThemeId } from "@/config/themes";
@@ -30,11 +28,12 @@ import { useMoveStore } from "@/stores/moveTxStore";
 import { calculateFallDistance } from "@/utils/gridPhysics";
 import useTransitionBlocks from "@/hooks/useTransitionBlocks";
 import { showToast } from "@/utils/toast";
+import { GridFrameSvg } from "@/ui/components/chrome";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
 interface GridProps {
-  gameId: number;
+  gameId: bigint;
   initialData: Block[];
   nextLineData: Block[];
   setNextLineHasBeenConsumed: React.Dispatch<React.SetStateAction<boolean>>;
@@ -46,7 +45,6 @@ interface GridProps {
   account: Account | null;
   isTxProcessing: boolean;
   setIsTxProcessing: React.Dispatch<React.SetStateAction<boolean>>;
-  activeBonusLevel: number;
   levelTransitionPending: boolean;
   onCascadeComplete?: () => void;
 }
@@ -64,7 +62,6 @@ const Grid: React.FC<GridProps> = ({
   account,
   isTxProcessing,
   setIsTxProcessing,
-  activeBonusLevel,
   levelTransitionPending,
   onCascadeComplete,
 }) => {
@@ -78,7 +75,6 @@ const Grid: React.FC<GridProps> = ({
 
   // Grid Position will be used to trigger particle in the right spot
   const gridRef = useRef<HTMLDivElement | null>(null);
-  const explosionRef = useRef<ConfettiExplosionRef>(null);
   const draggingRef = useRef<Block | null>(null);
   const dragStartXRef = useRef(0);
   const initialXRef = useRef(0);
@@ -113,7 +109,7 @@ const Grid: React.FC<GridProps> = ({
 
   const queue = useMoveStore((state) => state.queue);
   const isQueueProcessing = useMoveStore((state) => state.isQueueProcessing);
-  const { shouldBounce, animateText, resetAnimateText, setAnimateText, animatedPoints, setAnimatedPoints, animatedCubes, setAnimatedCubes } =
+  const { shouldBounce, animateText, resetAnimateText, setAnimateText } =
     useGridAnimations(lineExplodedCount);
   const {
     transitioningBlocks,
@@ -121,9 +117,14 @@ const Grid: React.FC<GridProps> = ({
     handleTransitionBlockEnd,
   } = useTransitionBlocks();
 
-  const queueForGame = queue.filter((item) => item.gameId === gameId);
-  const pendingQueueCount = queueForGame.length;
-  const nextQueuedMove = queueForGame.find((item) => item.status === "queued");
+  const queueForGame = useMemo(
+    () => queue.filter((item) => item.gameId === gameId),
+    [queue, gameId],
+  );
+  const nextQueuedMove = useMemo(
+    () => queueForGame.find((item) => item.status === "queued"),
+    [queueForGame],
+  );
 
   // ==================== Constants ====================
   const borderSize = 2;
@@ -182,11 +183,6 @@ const Grid: React.FC<GridProps> = ({
     }
   }, []);
 
-  const handleTriggerLocalExplosion = (x: number, y: number) => {
-    if (explosionRef.current) {
-      explosionRef.current.triggerLocalExplosion({ x, y });
-    }
-  };
 
   // =================== DRAG & DROP ===================
 
@@ -219,7 +215,6 @@ const Grid: React.FC<GridProps> = ({
         boundedX,
         dragging.y,
         dragging.width,
-        blocks,
         dragging.id
       )
     ) {
@@ -232,81 +227,63 @@ const Grid: React.FC<GridProps> = ({
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent, block: Block) => {
-    e.preventDefault();
-    if (gameState !== GameState.WAITING || isTxProcessing) {
+  // Keep mutable state in refs for stable callbacks
+  const blocksRef = useRef(blocks);
+  blocksRef.current = blocks;
+  const gridPositionRef = useRef(gridPosition);
+  gridPositionRef.current = gridPosition;
+  const bonusRef = useRef(bonus);
+  bonusRef.current = bonus;
+  const isTxProcessingRef = useRef(isTxProcessing);
+  isTxProcessingRef.current = isTxProcessing;
+
+  const handleTouchStart = useCallback((e: React.TouchEvent, block: Block) => {
+    if (gameStateRef.current !== GameState.WAITING || isTxProcessingRef.current) {
       return;
     }
 
     const touch = e.touches[0];
     handleDragStart(touch.clientX, block);
-  };
+  }, []);
 
-  const handleMouseDown = (e: React.MouseEvent, block: Block) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent, block: Block) => {
     e.preventDefault();
-    if (gameState !== GameState.WAITING || isTxProcessing) {
+    if (gameStateRef.current !== GameState.WAITING || isTxProcessingRef.current) {
       return;
     }
 
-    // NON-GRID bonuses: Combo, Score — send tx directly, no block changes
-    // (Supply is handled directly from PlayScreen with a confirmation dialog)
-    if (bonus === BonusType.Combo) {
-      setIsTxProcessing(true);
-      setAnimateText(`+${activeBonusLevel + 1} combo`);
-      selectBlock(block);
-      return;
-    } else if (bonus === BonusType.Score) {
-      setIsTxProcessing(true);
-      setAnimatedPoints((activeBonusLevel + 1) * 10);
-      selectBlock(block);
-      return;
-    }
-
-    // GRID bonuses: Harvest, Wave — modify blocks, then gravity state machine
-    if (bonus === BonusType.Harvest) {
+    const currentBonus = bonusRef.current;
+    const currentBlocks = blocksRef.current;
+    const currentGridPosition = gridPositionRef.current;
+    // GRID bonuses: Hammer, Totem, Wave — modify blocks, then gravity state machine
+    if (currentBonus === BonusType.Hammer) {
+      // Hammer: destroy single block at target position
       setBlockBonus(block);
-      getBlocksSameWidth(block, blocks).forEach((b) => {
-        if (gridPosition === null) return;
-        handleTriggerLocalExplosion(
-          gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
-          gridPosition.top + b.y * gridSize
-        );
-      });
-      setBlocks(removeBlocksSameWidth(block, blocks));
-    } else if (bonus === BonusType.Wave) {
+      setBlocks(currentBlocks.filter((b) => !(b.x === block.x && b.y === block.y)));
+    } else if (currentBonus === BonusType.Totem) {
       setBlockBonus(block);
-      const rowCount = activeBonusLevel + 1;
-      const rows: number[] = [];
-      for (let i = 0; i < rowCount; i++) {
-        const r = block.y + i;
-        if (r < gridHeight) rows.push(r);
-      }
-      getBlocksInRows(rows, blocks).forEach((b) => {
-        if (gridPosition === null) return;
-        handleTriggerLocalExplosion(
-          gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
-          gridPosition.top + b.y * gridSize
-        );
-      });
-      setBlocks(removeBlocksInRows(rows, blocks));
+      setBlocks(removeBlocksSameWidth(block, currentBlocks));
+    } else if (currentBonus === BonusType.Wave) {
+      setBlockBonus(block);
+      const rows: number[] = [block.y];
+      setBlocks(removeBlocksInRows(rows, currentBlocks));
     }
 
     // Grid bonuses enter gravity state machine
-    if (bonus === BonusType.Harvest || bonus === BonusType.Wave) {
+    if (currentBonus === BonusType.Hammer || currentBonus === BonusType.Totem || currentBonus === BonusType.Wave) {
       setIsTxProcessing(true);
       setIsMoving(true);
       setGameState(GameState.GRAVITY_BONUS);
       return;
     }
     handleDragStart(e.clientX, block);
-  };
+  }, [gridSize, gridHeight]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     handleDragMove(e.clientX, MoveType.MOUSE);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    e.preventDefault();
     const touch = e.touches[0];
     handleDragMove(touch.clientX, MoveType.TOUCH);
   };
@@ -475,27 +452,35 @@ const Grid: React.FC<GridProps> = ({
 
   // =================== GAME LOGIC ===================
 
+  const blocksByRow = useMemo(() => {
+    const map = new Map<number, Block[]>();
+    for (const block of blocks) {
+      const existing = map.get(block.y);
+      if (existing) existing.push(block);
+      else map.set(block.y, [block]);
+    }
+    return map;
+  }, [blocks]);
+
   const isBlocked = (
     initialX: number,
     newX: number,
     y: number,
     width: number,
-    blocks: Block[],
     blockId: number
   ) => {
-    const rowBlocks = blocks.filter(
-      (block) => block.y === y && block.id !== blockId
-    );
+    const rowBlocks = blocksByRow.get(y);
+    if (!rowBlocks) return false;
 
     if (newX > initialX) {
       for (const block of rowBlocks) {
-        if (block.x >= initialX + width && block.x < newX + width) {
+        if (block.id !== blockId && block.x >= initialX + width && block.x < newX + width) {
           return true;
         }
       }
     } else {
       for (const block of rowBlocks) {
-        if (block.x + block.width > newX && block.x <= initialX) {
+        if (block.id !== blockId && block.x + block.width > newX && block.x <= initialX) {
           return true;
         }
       }
@@ -506,6 +491,7 @@ const Grid: React.FC<GridProps> = ({
 
   const applyGravity = () => {
     setBlocks((prevBlocks) => {
+      let anyChanged = false;
       const newBlocks = prevBlocks.map((block) => {
         const fallDistance = calculateFallDistance(
           block,
@@ -513,20 +499,14 @@ const Grid: React.FC<GridProps> = ({
           gridHeight
         );
         if (fallDistance > 0) {
+          anyChanged = true;
           return { ...block, y: block.y + 1 };
         }
         return block;
       });
 
-      const newBlockMap = new Map(newBlocks.map((b) => [b.id, b]));
-      const blocksChanged = !prevBlocks.every((block) => {
-        const newBlock = newBlockMap.get(block.id);
-        return newBlock && block.x === newBlock.x && block.y === newBlock.y;
-      });
-
-      setIsMoving(blocksChanged);
-
-      return newBlocks;
+      setIsMoving(anyChanged);
+      return anyChanged ? newBlocks : prevBlocks;
     });
   };
 
@@ -547,20 +527,6 @@ const Grid: React.FC<GridProps> = ({
       setLineExplodedCount(lineExplodedCount + completeRows.length);
 
       setExplodingRows(new Set(completeRows));
-
-      if (gridPosition !== null) {
-        completeRows.forEach((rowIndex) => {
-          const blocksSameRow = getBlocksSameRow(rowIndex, blocks);
-          blocksSameRow.forEach((block) => {
-            handleTriggerLocalExplosion(
-              gridPosition.left +
-                block.x * gridSize +
-                (block.width * gridSize) / 2,
-              gridPosition.top + block.y * gridSize
-            );
-          });
-        });
-      }
 
       setTimeout(() => {
         setExplodingRows(new Set());
@@ -664,16 +630,9 @@ const Grid: React.FC<GridProps> = ({
       case GameState.UPDATE_AFTER_BONUS:
       case GameState.UPDATE_AFTER_MOVE:
         {
-          // Calculate points for animation display
-          const pointsEarned =
-            (lineExplodedCount * (lineExplodedCount + 1)) / 2;
-          // If we have a combo, we display a message with points and cubes
+          // Show combo text on multi-line clears
           if (lineExplodedCount > 1) {
             setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
-            setAnimatedPoints(pointsEarned);
-            // Cube bonuses match contract: 4→+1, 5→+3, 6→+5, 7→+10, 8→+25, 9+→+50
-            const cubesFromCombo = lineExplodedCount >= 9 ? 50 : lineExplodedCount >= 8 ? 25 : lineExplodedCount >= 7 ? 10 : lineExplodedCount >= 6 ? 5 : lineExplodedCount >= 5 ? 3 : lineExplodedCount >= 4 ? 1 : 0;
-            setAnimatedCubes(cubesFromCombo);
           }
 
           // All local cascading done — signal cascade complete
@@ -720,30 +679,33 @@ const Grid: React.FC<GridProps> = ({
 
   return (
     <>
-      <ConfettiExplosion
-        ref={explosionRef}
-        colorSet={themeColors.particles.explosion}
-      />
       <motion.div
         animate={shouldBounce ? { scale: [1, 1.1, 1, 1.1, 1] } : {}}
         transition={{ duration: 0.2, ease: "easeInOut" }}
       >
         <div
-          className={`grid-background ${
+          className={`grid-background relative ${
             isTxProcessing ? " cursor-wait animated-border" : "static-border"
           }`}
           id="grid"
           ref={gridRef}
         >
+          {!isTxProcessing && (
+            <GridFrameSvg
+              gridWidth={gridWidth * gridSize + borderSize}
+              gridHeight={gridHeight * gridSize + borderSize}
+            />
+          )}
           <div
-            className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${
+            className={`relative p-r-[1px] p-b-[1px] touch-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${
               isPlayerInDanger ? " animated-box-player-danger" : ""
             }`}
             style={{
               height: `${gridHeight * gridSize + borderSize}px`,
               width: `${gridWidth * gridSize + borderSize}px`,
+              touchAction: "none",
               backgroundImage:
-                `linear-gradient(var(--theme-grid-lines, #1E293B) 2px, transparent 2px), linear-gradient(to right, var(--theme-grid-lines, #1E293B) 2px, transparent 2px)`,
+                `linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(to right, rgba(255,255,255,0.07) 1px, transparent 1px)`,
               backgroundSize: `${gridSize}px ${gridSize}px, ${gridSize}px ${gridSize}px`,
             }}
             onMouseMove={handleMouseMove}
@@ -761,14 +723,12 @@ const Grid: React.FC<GridProps> = ({
                 isExploding={explodingRows.has(block.y)}
                 handleMouseDown={handleMouseDown}
                 handleTouchStart={handleTouchStart}
-                onTransitionBlockStart={() =>
-                  handleTransitionBlockStart(block.id)
-                }
-                onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
+                onTransitionBlockStart={handleTransitionBlockStart}
+                onTransitionBlockEnd={handleTransitionBlockEnd}
               />
             ))}
             <div className="flex items-center justify-center font-sans z-20 pointer-events-none">
-              <AnimatedText textEnum={animateText} pointsEarned={animatedPoints} cubesEarned={animatedCubes} reset={resetAnimateText} />
+              <AnimatedText textEnum={animateText} reset={resetAnimateText} />
             </div>
           </div>
         </div>

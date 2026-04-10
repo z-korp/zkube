@@ -391,3 +391,12 @@ export function buildSkillIconPrompt(description: string): string {
 export function buildArchetypeIconPrompt(description: string, accentColor: string): string {
   return `${description}. Bold emblem icon on a dark background (#0A0A14). Drawn with ${accentColor} as the dominant accent color and white (#FFFFFF) highlights. Stylized 2D vector game art with bold black outlines and flat cel-shading. Thick strokes, centered composition, instantly readable at small sizes. Ornate and elaborate — this is a class emblem. Sharp square corners — no rounded edges, no circular framing. No text, no logos, no clutter. 512x512 pixels.`;
 }
+
+/* ------------------------------------------------------------------ */
+/*  Guardian portrait prompt                                          */
+/* ------------------------------------------------------------------ */
+
+export function buildGuardianPortraitPrompt(theme: ThemeDefinition): string {
+  if (!theme.guardian) return "";
+  return theme.guardian.portraitPrompt;
+}

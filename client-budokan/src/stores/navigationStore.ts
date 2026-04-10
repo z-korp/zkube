@@ -1,35 +1,20 @@
 import { create } from "zustand";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 
-export type PageId =
-  | "home"
-  | "map"
-  | "play"
-  | "quests"
-  | "leaderboard"
-  | "settings"
-  | "mygames"
-  | "tutorial"
-  | "draft"
-  | "skilltree";
+export type TabId = "home" | "rewards" | "profile" | "ranks" | "settings";
+export type OverlayId = "play" | "daily" | "boss" | "mutator" | "map";
+export type PageId = TabId | OverlayId;
+
+export const FULLSCREEN_PAGES: ReadonlySet<PageId> = new Set(["play", "boss", "mutator", "map"]);
+const NAV_TRANSITION_LOCK_MS = 300;
 
 export interface PendingLevelCompletion {
   level: number;
   levelMoves: number;
-  prevTotalCubes: number;
-  totalCubes: number;
   prevTotalScore: number;
   totalScore: number;
   gameLevel: GameLevelData | null;
-}
-
-export type DraftEventType = "post_level_1" | "post_boss" | "zone_micro";
-
-export interface PendingDraftEvent {
-  type: DraftEventType;
-  triggerLevel: number;
-  zone: number;
-  eventId: string;
+  isIncomplete?: boolean;
 }
 
 interface NavigationState {
@@ -37,27 +22,37 @@ interface NavigationState {
   previousPage: PageId | null;
   isTransitioning: boolean;
   transitionDirection: "forward" | "back" | null;
-  gameId: number | null;
+  gameId: bigint | null;
+  mapZoneId: number;
+  isDailyMap: boolean;
+  selectedMode: number;
+  profileAddress: string | null;
   pendingPreviewLevel: number | null;
   pendingLevelCompletion: PendingLevelCompletion | null;
-  pendingDraftEvent: PendingDraftEvent | null;
-  navigate: (page: PageId, gameId?: number) => void;
+  navigate: (page: PageId, gameId?: bigint) => void;
   goBack: () => void;
-  setGameId: (id: number | null) => void;
+  setGameId: (id: bigint | null) => void;
+  setMapZoneId: (zoneId: number) => void;
+  setIsDailyMap: (isDaily: boolean) => void;
+  setSelectedMode: (mode: number) => void;
+  setProfileAddress: (address: string | null) => void;
   setPendingPreviewLevel: (level: number | null) => void;
   setPendingLevelCompletion: (data: PendingLevelCompletion | null) => void;
-  setPendingDraftEvent: (data: PendingDraftEvent | null) => void;
 }
 
 const getBackTarget = (page: PageId): PageId => {
   switch (page) {
     case "play":
       return "map";
-    case "draft":
+    case "daily":
+      return "home";
+    case "boss":
       return "map";
     case "map":
       return "home";
-    case "skilltree":
+    case "mutator":
+      return "rewards";
+    case "settings":
       return "home";
     default:
       return "home";
@@ -70,9 +65,12 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
   isTransitioning: false,
   transitionDirection: null,
   gameId: null,
+  mapZoneId: 1,
+  isDailyMap: false,
+  selectedMode: 0,
+  profileAddress: null,
   pendingPreviewLevel: null,
   pendingLevelCompletion: null,
-  pendingDraftEvent: null,
 
   navigate: (page, gameId) => {
     const { currentPage, isTransitioning } = get();
@@ -88,7 +86,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
 
     setTimeout(() => {
       set({ isTransitioning: false, transitionDirection: null });
-    }, 150);
+    }, NAV_TRANSITION_LOCK_MS);
   },
 
   goBack: () => {
@@ -105,11 +103,14 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
 
     setTimeout(() => {
       set({ isTransitioning: false, transitionDirection: null });
-    }, 150);
+    }, NAV_TRANSITION_LOCK_MS);
   },
 
   setGameId: (id) => set({ gameId: id }),
+  setMapZoneId: (zoneId) => set({ mapZoneId: zoneId }),
+  setIsDailyMap: (isDaily) => set({ isDailyMap: isDaily }),
+  setSelectedMode: (mode) => set({ selectedMode: mode }),
+  setProfileAddress: (address) => set({ profileAddress: address }),
   setPendingPreviewLevel: (level) => set({ pendingPreviewLevel: level }),
   setPendingLevelCompletion: (data) => set({ pendingLevelCompletion: data }),
-  setPendingDraftEvent: (data) => set({ pendingDraftEvent: data }),
 }));

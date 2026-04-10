@@ -10,6 +10,18 @@ pub struct GameSettingsMetadata {
     pub description: ByteArray,
     pub created_by: ContractAddress,
     pub created_at: u64,
+    /// Theme ID mapping to frontend visual assets (1-10)
+    pub theme_id: u8,
+    /// True = no purchase required to play this map
+    pub is_free: bool,
+    /// Admin can disable/hide this map
+    pub enabled: bool,
+    /// Price in payment_token units (0 for free maps)
+    pub price: u128,
+    /// ERC20 token address for payment (zero for free maps)
+    pub payment_token: ContractAddress,
+    /// zStar amount required for star-based unlock (0 = disabled)
+    pub star_cost: u128,
 }
 
 /// Extended GameSettings with all configurable game parameters
@@ -29,13 +41,7 @@ pub struct GameSettings {
     pub max_moves: u16, // Moves at level cap (default: 60)
     pub base_ratio_x100: u16, // Points/move ratio at level 1 * 100 (default: 80 = 0.80)
     pub max_ratio_x100: u16, // Points/move ratio at level cap * 100 (default: 180 = 1.80)
-    // === Cube Thresholds ===
-    pub cube_3_percent: u8, // 3 cubes if moves <= X% of max (default: 40)
-    pub cube_2_percent: u8, // 2 cubes if moves <= X% of max (default: 70)
-    // === Consumable Costs ===
-    pub combo_cost: u8, // Cost in cubes (default: 5)
-    pub score_cost: u8, // Cost in cubes (default: 5)
-    pub harvest_cost: u8, // Cost in cubes (default: 5)
+    // === Difficulty Progression (non-linear tier thresholds) ===
     // === Difficulty Progression (non-linear tier thresholds) ===
     // Each threshold is the level at which that difficulty tier begins
     // Tier 0 (VeryEasy) is always level 1
@@ -63,12 +69,6 @@ pub struct GameSettings {
     //   Bits 48-51: veryeasy_min_times (4 bits)
     //   Bits 52-55: master_min_times
     pub constraint_lines_budgets: u64,
-    // constraint_chances (u32): dual_chance(2x8bits) + secondary_no_bonus(2x8bits) = 32 bits
-    //   Bits 0-7:   veryeasy_dual_chance (8 bits, 0-100)
-    //   Bits 8-15:  master_dual_chance
-    //   Bits 16-23: veryeasy_secondary_no_bonus_chance
-    //   Bits 24-31: master_secondary_no_bonus_chance
-    pub constraint_chances: u32,
     // === Block Distribution (scales from VeryEasy to Master, tiers 0-7) ===
     // Weights for each block size (interpolated by difficulty tier)
     // Weights are relative - they get normalized to sum to 100%
@@ -92,7 +92,26 @@ pub struct GameSettings {
     pub early_level_threshold: u8, // End of "early" levels (default: 5)
     pub mid_level_threshold: u8, // End of "mid" levels (default: 25)
     // === Level Cap ===
-    pub level_cap: u8 // Max level for scaling (default: 50)
+    pub level_cap: u8, // Max level for scaling (default: 50)
+    // === Endless Mode Settings ===
+    // Packed score thresholds for 8 difficulty tiers (8 × u16 = 128 bits)
+    // Tier 0 threshold is always 0 (VeryEasy). Tiers 1-7 packed here.
+    // Format: tier1 | tier2<<16 | tier3<<32 | tier4<<48 | tier5<<64 | tier6<<80 | tier7<<96
+    pub endless_difficulty_thresholds: felt252,
+    // Packed score multipliers for 8 tiers (8 × u8, stored as ×100, e.g. 150 = 1.5×)
+    // Format: tier0 | tier1<<8 | tier2<<16 | ... | tier7<<56
+    pub endless_score_multipliers: u64,
+    // === Zone & Mutator Assignment ===
+    /// Zone this settings belongs to (1-10). Used for endless gating (boss_cleared check).
+    /// 0 = no zone gating (e.g., custom settings without zone restriction).
+    pub zone_id: u8,
+    /// Fixed active mutator for this zone (bonus profile). 0 = no bonuses (endless mode).
+    pub active_mutator_id: u8,
+    /// Fixed passive mutator for this zone (stat modifiers). 0 = neutral.
+    pub passive_mutator_id: u8,
+    // === Boss Settings ===
+    /// Fixed boss identity for this map (1-10, 0 = no boss/endless mode)
+    pub boss_id: u8,
 }
 
 /// Default values for GameSettings
@@ -103,14 +122,7 @@ pub mod GameSettingsDefaults {
     pub const BASE_RATIO_X100: u16 = 80; // 0.80
     pub const MAX_RATIO_X100: u16 = 180; // 1.80
 
-    // Cube Thresholds
-    pub const CUBE_3_PERCENT: u8 = 40;
-    pub const CUBE_2_PERCENT: u8 = 70;
-
-    // Consumable Costs
-    pub const COMBO_COST: u8 = 5;
-    pub const SCORE_COST: u8 = 5;
-    pub const HARVEST_COST: u8 = 5;
+    // Difficulty Progression (non-linear tier thresholds)
 
     // Difficulty Progression (non-linear tier thresholds)
     // VeryEasy: 1-3, Easy: 4-7, Medium: 8-11, MediumHard: 12-17
@@ -127,19 +139,10 @@ pub mod GameSettingsDefaults {
     pub const CONSTRAINTS_ENABLED: u8 = 1; // Enabled
     pub const CONSTRAINT_START_LEVEL: u8 = 3; // Constraints start at level 3
 
-    // Constraint Distribution (VeryEasy to Master scaling) - Individual defaults
-    // constraint_lines_budgets legacy layout is preserved, but line/times fields are deprecated
-    // and no longer enforced by generation.
-    // Weighted budget system (budget min is derived from budget max)
+    // Constraint Distribution (VeryEasy to Master scaling)
+    // Budget system: budget_min derived from budget_max (70% floor)
     pub const VERYEASY_BUDGET_MAX: u8 = 0; // No regular constraints at VeryEasy
     pub const MASTER_BUDGET_MAX: u8 = 80; // Wider ceiling for endgame variety
-    // Constraint count range (DEPRECATED — constraint counts are now hardcoded per tier in
-    // level.cairo)
-    // These fields kept for packed model layout compatibility but are no longer read.
-    pub const VERYEASY_DUAL_CHANCE: u8 = 0;
-    pub const MASTER_DUAL_CHANCE: u8 = 0;
-    pub const VERYEASY_SECONDARY_NO_BONUS_CHANCE: u8 = 0;
-    pub const MASTER_SECONDARY_NO_BONUS_CHANCE: u8 = 0;
 
     // Pre-packed default values for constraint fields
     // constraint_lines_budgets packing: lines(4x4) + budgets(4x8) + times(2x4) = 56 bits
@@ -160,16 +163,6 @@ pub mod GameSettingsDefaults {
         // Times (4 bits each) - deprecated, set to zero
         packed = packed | ((0_u64 & 0xF) * 0x1000000000000); // bits 48-51
         packed = packed | ((0_u64 & 0xF) * 0x10000000000000); // bits 52-55
-        packed
-    }
-
-    // constraint_chances packing: dual_chance(2x8) + secondary_no_bonus(2x8) = 32 bits
-    pub fn DEFAULT_CONSTRAINT_CHANCES() -> u32 {
-        let mut packed: u32 = 0;
-        packed = packed | VERYEASY_DUAL_CHANCE.into(); // bits 0-7
-        packed = packed | (MASTER_DUAL_CHANCE.into() * 0x100); // bits 8-15
-        packed = packed | (VERYEASY_SECONDARY_NO_BONUS_CHANCE.into() * 0x10000); // bits 16-23
-        packed = packed | (MASTER_SECONDARY_NO_BONUS_CHANCE.into() * 0x1000000); // bits 24-31
         packed
     }
 
@@ -197,6 +190,25 @@ pub mod GameSettingsDefaults {
 
     // Level Cap
     pub const LEVEL_CAP: u8 = 50; // Max level for scaling
+
+    // Endless Mode Defaults
+    // Thresholds stored as felt252 — will be unpacked by helper functions
+    // Default thresholds: [0, 15, 40, 80, 150, 280, 500, 900]
+    // Tier 0 (VeryEasy) = 0 is implicit, only tiers 1-7 stored
+    pub const ENDLESS_DIFFICULTY_THRESHOLDS: felt252 =
+        0; // Unpacked via helper; 0 = use hardcoded defaults
+    // Multipliers stored as u64 — 8 × u8, value/10 = multiplier
+    // Default: [10, 12, 14, 17, 20, 25, 33, 40] → [1.0×, 1.2×, 1.4×, 1.7×, 2.0×, 2.5×,
+    // 3.3×, 4.0×]
+    pub const ENDLESS_SCORE_MULTIPLIERS: u64 = 0;
+
+    // Zone & Mutator Assignment Defaults
+    pub const ZONE_ID: u8 = 0; // No zone gating
+    pub const ACTIVE_MUTATOR_ID: u8 = 0; // No active mutator (no bonuses)
+    pub const PASSIVE_MUTATOR_ID: u8 = 0; // No passive mutator (neutral stats)
+
+    // Boss Settings
+    pub const BOSS_ID: u8 = 0; // Default: no boss (endless mode)
 }
 
 #[generate_trait]
@@ -224,13 +236,7 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             max_moves: GameSettingsDefaults::MAX_MOVES,
             base_ratio_x100: GameSettingsDefaults::BASE_RATIO_X100,
             max_ratio_x100: GameSettingsDefaults::MAX_RATIO_X100,
-            // Cube Thresholds
-            cube_3_percent: GameSettingsDefaults::CUBE_3_PERCENT,
-            cube_2_percent: GameSettingsDefaults::CUBE_2_PERCENT,
-            // Consumable Costs
-            combo_cost: GameSettingsDefaults::COMBO_COST,
-            score_cost: GameSettingsDefaults::SCORE_COST,
-            harvest_cost: GameSettingsDefaults::HARVEST_COST,
+            // Difficulty Progression (non-linear tier thresholds)
             // Difficulty Progression (non-linear tier thresholds)
             tier_1_threshold: GameSettingsDefaults::TIER_1_THRESHOLD,
             tier_2_threshold: GameSettingsDefaults::TIER_2_THRESHOLD,
@@ -244,7 +250,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             constraint_start_level: GameSettingsDefaults::CONSTRAINT_START_LEVEL,
             // Constraint Distribution (packed)
             constraint_lines_budgets: GameSettingsDefaults::DEFAULT_CONSTRAINT_LINES_BUDGETS(),
-            constraint_chances: GameSettingsDefaults::DEFAULT_CONSTRAINT_CHANCES(),
             // Block Distribution
             veryeasy_size1_weight: GameSettingsDefaults::VERYEASY_SIZE1_WEIGHT,
             veryeasy_size2_weight: GameSettingsDefaults::VERYEASY_SIZE2_WEIGHT,
@@ -265,6 +270,15 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             mid_level_threshold: GameSettingsDefaults::MID_LEVEL_THRESHOLD,
             // Level Cap
             level_cap: GameSettingsDefaults::LEVEL_CAP,
+            // Endless Mode Settings
+            endless_difficulty_thresholds: 0, // 0 = use hardcoded defaults
+            endless_score_multipliers: 0, // 0 = use hardcoded defaults
+            // Zone & Mutator Assignment
+            zone_id: GameSettingsDefaults::ZONE_ID,
+            active_mutator_id: GameSettingsDefaults::ACTIVE_MUTATOR_ID,
+            passive_mutator_id: GameSettingsDefaults::PASSIVE_MUTATOR_ID,
+            // Boss Settings
+            boss_id: GameSettingsDefaults::BOSS_ID,
         }
     }
 
@@ -328,15 +342,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         }
     }
 
-    /// Get consumable cost by type (0=Combo, 1=Score, 2=Harvest)
-    fn get_consumable_cost(self: GameSettings, consumable_type: u8) -> u8 {
-        match consumable_type {
-            0 => self.combo_cost,
-            1 => self.score_cost,
-            2 => self.harvest_cost,
-            _ => 0,
-        }
-    }
 
     /// Unpack constraint_lines_budgets field
     /// Returns (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
@@ -368,27 +373,8 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         )
     }
 
-    /// Unpack constraint_chances field
-    /// Returns (veryeasy_dual_chance, master_dual_chance, veryeasy_secondary_no_bonus,
-    /// master_secondary_no_bonus)
-    fn unpack_chances(self: GameSettings) -> (u8, u8, u8, u8) {
-        let packed = self.constraint_chances;
-        let veryeasy_dual_chance: u8 = (packed & 0xFF).try_into().unwrap();
-        let master_dual_chance: u8 = ((packed / 0x100) & 0xFF).try_into().unwrap();
-        let veryeasy_secondary_no_bonus: u8 = ((packed / 0x10000) & 0xFF).try_into().unwrap();
-        let master_secondary_no_bonus: u8 = ((packed / 0x1000000) & 0xFF).try_into().unwrap();
-        (
-            veryeasy_dual_chance,
-            master_dual_chance,
-            veryeasy_secondary_no_bonus,
-            master_secondary_no_bonus,
-        )
-    }
-
     /// Get constraint parameters interpolated for a given difficulty
     /// Returns (min_lines, max_lines, budget_min, budget_max, min_times)
-    /// Note: dual_chance and secondary_no_bonus_chance were removed in the deterministic
-    /// constraint count system. Constraint counts are now hardcoded per tier in level.cairo.
     fn get_constraint_params_for_difficulty(
         self: GameSettings, difficulty: Difficulty,
     ) -> (u8, u8, u8, u8, u8) {
@@ -511,11 +497,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             return false;
         }
 
-        // Cube thresholds: 3-star should be harder than 2-star (lower %)
-        if self.cube_3_percent > self.cube_2_percent {
-            return false;
-        }
-
         // Level thresholds: early < mid < cap
         if self.early_level_threshold >= self.mid_level_threshold {
             return false;
@@ -571,6 +552,11 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             return false;
         }
 
+        // Boss ID must be 0-10 (0 = no boss, 1-10 = boss identities)
+        if self.boss_id > 10 {
+            return false;
+        }
+
         true
     }
 
@@ -609,11 +595,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         assert!(self.base_moves <= self.max_moves, "base_moves must be <= max_moves");
         assert!(self.base_ratio_x100 <= self.max_ratio_x100, "base_ratio must be <= max_ratio");
 
-        // Cube thresholds
-        assert!(
-            self.cube_3_percent <= self.cube_2_percent, "cube_3_percent must be <= cube_2_percent",
-        );
-
         // Level thresholds
         assert!(
             self.early_level_threshold < self.mid_level_threshold,
@@ -649,6 +630,9 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             + self.master_size4_weight.into()
             + self.master_size5_weight.into();
         assert!(master_total > 0, "master block weights must have at least one non-zero");
+
+        // Boss ID validation
+        assert!(self.boss_id <= 10, "boss_id must be 0-10 (0=no boss, 1-10=boss identities)");
     }
 
     /// Linear interpolation helper
@@ -675,7 +659,7 @@ pub impl GameSettingsImpl of GameSettingsTrait {
 #[cfg(test)]
 mod tests {
     use zkube::types::difficulty::Difficulty;
-    use super::{GameSettings, GameSettingsDefaults, GameSettingsTrait};
+    use super::GameSettingsTrait;
 
     #[test]
     fn test_new_with_defaults() {
@@ -687,13 +671,7 @@ mod tests {
         assert!(settings.max_moves == 60, "Max moves should be 60");
         assert!(settings.base_ratio_x100 == 80, "Base ratio should be 80");
         assert!(settings.max_ratio_x100 == 180, "Max ratio should be 180");
-        // Cube Thresholds
-        assert!(settings.cube_3_percent == 40, "Cube 3 percent should be 40");
-        assert!(settings.cube_2_percent == 70, "Cube 2 percent should be 70");
-        // Consumable Costs
-        assert!(settings.combo_cost == 5, "Combo cost should be 5");
-        assert!(settings.score_cost == 5, "Score cost should be 5");
-        assert!(settings.harvest_cost == 5, "Harvest cost should be 5");
+        // Difficulty Progression (non-linear tier thresholds)
         // Difficulty Progression (non-linear tier thresholds)
         assert!(settings.tier_1_threshold == 4, "Tier 1 (Easy) should start at level 4");
         assert!(settings.tier_2_threshold == 8, "Tier 2 (Medium) should start at level 8");
@@ -714,17 +692,12 @@ mod tests {
         assert!(settings.mid_level_threshold == 25, "Mid threshold should be 25");
         // Level Cap
         assert!(settings.level_cap == 50, "Level cap should be 50");
+        // Zone & Mutator Assignment
+        assert!(settings.zone_id == 0, "Zone ID should be 0");
+        assert!(settings.active_mutator_id == 0, "Active mutator should be 0");
+        assert!(settings.passive_mutator_id == 0, "Passive mutator should be 0");
     }
 
-    #[test]
-    fn test_get_consumable_cost() {
-        let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-
-        assert!(settings.get_consumable_cost(0) == 5, "Combo should cost 5");
-        assert!(settings.get_consumable_cost(1) == 5, "Score should cost 5");
-        assert!(settings.get_consumable_cost(2) == 5, "Harvest should cost 5");
-        assert!(settings.get_consumable_cost(3) == 0, "Invalid consumable type should return 0");
-    }
 
     #[test]
     fn test_exists() {
@@ -1033,16 +1006,6 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_dual_chance_bounds() {
-        let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-
-        // Verify dual chances are within bounds
-        let (veryeasy_dual_chance, master_dual_chance, _, _) = settings.unpack_chances();
-        assert!(veryeasy_dual_chance <= 100, "VeryEasy dual chance should be <= 100");
-        assert!(master_dual_chance <= 100, "Master dual chance should be <= 100");
-    }
-
-    #[test]
     fn test_validate_level_scaling() {
         let mut settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
 
@@ -1050,16 +1013,6 @@ mod tests {
         settings.base_moves = 100;
         settings.max_moves = 50;
         assert!(!settings.validate(), "Should be invalid when base_moves > max_moves");
-    }
-
-    #[test]
-    fn test_validate_cube_thresholds() {
-        let mut settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-
-        // Invalid: 3-star threshold > 2-star (should be harder to get 3 stars)
-        settings.cube_3_percent = 80;
-        settings.cube_2_percent = 50;
-        assert!(!settings.validate(), "Should be invalid when cube_3_percent > cube_2_percent");
     }
 
     #[test]

@@ -26,12 +26,12 @@ const NextLine = ({
   return (
     <div>
       <div
-        className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)]`}
+        className={`relative p-r-[1px] p-b-[1px] touch-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)]`}
         style={{
           height: `${gridHeight * gridSize + borderSize}px`,
           width: `${gridWidth * gridSize + borderSize}px`,
           backgroundImage:
-            `linear-gradient(var(--theme-grid-lines, #1E293B) 2px, transparent 2px), linear-gradient(to right, var(--theme-grid-lines, #1E293B) 2px, transparent 2px)`,
+            `linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(to right, rgba(255,255,255,0.07) 1px, transparent 1px)`,
           backgroundSize: `${gridSize}px ${gridSize}px, ${gridSize}px ${gridSize}px`,
         }}
       >

@@ -1,26 +1,19 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
-import { Account } from "starknet";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useGame } from "@/hooks/useGame";
 import { useGrid } from "@/hooks/useGrid";
 import { useGameLevel, type GameLevelData } from "@/hooks/useGameLevel";
-import { useDraft } from "@/hooks/useDraft";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import useViewport from "@/hooks/useViewport";
 import { useDojo } from "@/dojo/useDojo";
-import { isBonusSkill, isWorldEventSkill, isBossLevel as checkBossLevel } from "@/dojo/game/helpers/runDataPacking";
-import {
-  Bonus,
-  BonusType,
-  bonusTypeFromContractValue,
-  bonusTypeToContractValue,
-} from "@/dojo/game/types/bonus";
-import { getSkillName, getSkillTier, SKILLS, getArchetypeForSkill } from "@/dojo/game/types/skillData";
+import { isBossLevel as checkBossLevel } from "@/dojo/game/helpers/runDataPacking";
+import { BonusType } from "@/dojo/game/types/bonusTypes";
 import { useNavigationStore } from "@/stores/navigationStore";
-import ImageAssets, { getSkillTierIconPath } from "@/ui/theme/ImageAssets";
+import ImageAssets from "@/ui/theme/ImageAssets";
 import GameHud from "@/ui/components/hud/GameHud";
 import GameActionBar from "@/ui/components/actionbar/GameActionBar";
+import { buildTriggerDescription } from "@/ui/components/actionbar/GameActionBar";
+import type { BonusSlot } from "@/ui/components/actionbar/GameActionBar";
 import GameBoard from "@/ui/components/GameBoard";
 import GameOverDialog from "@/ui/components/GameOverDialog";
 import VictoryDialog from "@/ui/components/VictoryDialog";
@@ -32,17 +25,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/elements/dialog";
-import { Button } from "@/ui/elements/button";
 import { generateLevelConfig } from "@/dojo/game/types/level";
-import { deriveZoneThemes, getZone } from "@/hooks/useMapData";
-
+import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
+import { DifficultyType } from "@/dojo/game/types/difficulty";
+import { getBonusType } from "@/config/mutatorConfig";
+import { useMutatorDef } from "@/hooks/useMutatorDef";
+import { useSettings } from "@/hooks/useSettings";
 
 const PlayScreen: React.FC = () => {
-  useViewport();
-
   const {
     setup: {
-      systemCalls: { surrender, startNextLevel, applyBonus },
+      systemCalls: { surrender },
     },
   } = useDojo();
   const { account } = useAccountCustom();
@@ -52,28 +45,61 @@ const PlayScreen: React.FC = () => {
   const setPendingLevelCompletion = useNavigationStore(
     (s) => s.setPendingLevelCompletion,
   );
-  const { themeTemplate, setThemeTemplate } = useTheme();
+  const { themeTemplate } = useTheme();
   const { setMusicContext, setMusicPlaylist, playSfx } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
 
   const { game, seed } = useGame({
-    gameId: gameId ?? 0,
+    gameId: gameId ?? 0n,
     shouldLog: false,
   });
-  const grid = useGrid({ gameId: game?.id ?? 0, shouldLog: true });
+  const grid = useGrid({ gameId: game?.id ?? 0n, shouldLog: true });
   const gameLevel = useGameLevel({ gameId: game?.id });
-  const draftState = useDraft({ gameId: gameId ?? undefined });
+
+  const resolveCompletionGameLevel = useCallback(
+    (levelNumber: number): GameLevelData => {
+      if (gameLevel && gameLevel.level === levelNumber) {
+        return gameLevel;
+      }
+
+      const fallback = generateLevelConfig(seed, levelNumber);
+      const difficultyIndex = Math.max(
+        0,
+        Object.values(DifficultyType).indexOf(fallback.difficulty.value as DifficultyType),
+      );
+
+      return {
+        gameId: game?.id ?? 0n,
+        level: levelNumber,
+        pointsRequired: fallback.pointsRequired,
+        maxMoves: fallback.maxMoves,
+        difficulty: difficultyIndex,
+        constraintType: fallback.constraint.constraintType,
+        constraintValue: fallback.constraint.value,
+        constraintCount: fallback.constraint.requiredCount,
+        constraint2Type: fallback.constraint2.constraintType,
+        constraint2Value: fallback.constraint2.value,
+        constraint2Count: fallback.constraint2.requiredCount,
+        mutatorId: 0,
+        star3Threshold: fallback.star3Threshold,
+        star2Threshold: fallback.star2Threshold,
+      };
+    },
+    [game?.id, gameLevel, seed],
+  );
+
+  const effectiveGameLevel = useMemo(() => {
+    if (!game) return null;
+    return resolveCompletionGameLevel(game.level);
+  }, [game, resolveCompletionGameLevel]);
+
+  const targetScore = effectiveGameLevel?.pointsRequired ?? 0;
+  const maxMoves = effectiveGameLevel?.maxMoves ?? 0;
 
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isGameLoading, setIsGameLoading] = useState(true);
-  const [activeBonus, setActiveBonus] = useState<BonusType>(BonusType.None);
-  const [bonusDescription, setBonusDescription] = useState("");
-  const [isSupplyConfirmOpen, setIsSupplyConfirmOpen] = useState(false);
-  const [isSupplyProcessing, setIsSupplyProcessing] = useState(false);
-  // Tracks whether the Grid cascade animation has finished for the current move.
-  // Level-complete detection is gated on this to prevent checking against a mid-cascade grid.
   const [cascadeComplete, setCascadeComplete] = useState(false);
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
   const prevGameStateRef = useRef<{
@@ -81,19 +107,21 @@ const PlayScreen: React.FC = () => {
     levelScore: number;
     levelMoves: number;
     constraintProgress: number;
-    bonusUsedThisLevel: boolean;
-    totalCubes: number;
     totalScore: number;
     gameLevel: GameLevelData | null;
   } | null>(null);
   const levelStartTotalScoreRef = useRef<number>(0);
   const prevBossLevelRef = useRef<number | null>(null);
 
+  const [activeBonus, setActiveBonus] = useState<BonusType>(BonusType.None);
+
   useEffect(() => {
     const level = game?.level ?? 1;
     const isBossLevel = checkBossLevel(level);
     const wasBossLevel =
-      prevBossLevelRef.current != null ? checkBossLevel(prevBossLevelRef.current) : false;
+      prevBossLevelRef.current != null
+        ? checkBossLevel(prevBossLevelRef.current)
+        : false;
 
     if (isBossLevel && prevBossLevelRef.current !== level) {
       playSfx("boss-intro");
@@ -107,18 +135,6 @@ const PlayScreen: React.FC = () => {
 
     prevBossLevelRef.current = level;
   }, [game?.level, playSfx, setMusicContext, setMusicPlaylist]);
-
-  // GameSeed.seed is now stable (never overwritten). level_seed holds per-level VRF.
-
-  useEffect(() => {
-    if (seed === 0n || !game) return;
-    const zoneThemes = deriveZoneThemes(seed);
-    const zone = getZone(game.level);
-    const zoneTheme = zoneThemes[zone - 1];
-    if (zoneTheme) {
-      setThemeTemplate(zoneTheme);
-    }
-  }, [seed, game?.level, setThemeTemplate]);
 
   useEffect(() => {
     setIsGameLoading(true);
@@ -135,22 +151,40 @@ const PlayScreen: React.FC = () => {
     else setIsConnectDialogOpen(false);
   }, [account]);
 
-  // Redirect to draft page if a draft is active (e.g. zone 1 entry draft at game creation).
-  // Skip if the level-complete dialog is showing — navigation happens from the dialog's onClose.
-  useEffect(() => {
-    if (!game || !account || game.over) return;
-    if (!draftState?.active) return;
-    if (gameId === null || gameId === undefined) return;
-    navNavigate("draft", gameId);
-  }, [draftState?.active, game, account, gameId, navNavigate]);
-
-
   useEffect(() => {
     if (prevGameOverRef.current !== undefined) {
       if (!prevGameOverRef.current && game?.over) {
-        if (game.runCompleted) {
+        const pending = useNavigationStore.getState().pendingLevelCompletion;
+        if (game.zoneCleared) {
           playSfx("victory");
           setIsVictoryOpen(true);
+        } else if (game.mode === 0 || game.mode === undefined) {
+          if (!pending) {
+            // Check if the level was actually completed (score + constraints)
+            const maxMoves = effectiveGameLevel?.maxMoves ?? 0;
+            const scoreMet = targetScore > 0 && game.levelScore >= targetScore && game.levelMoves < maxMoves;
+            const c1 = Constraint.fromContractValues(
+              effectiveGameLevel?.constraintType ?? ConstraintType.None,
+              effectiveGameLevel?.constraintValue ?? 0,
+              effectiveGameLevel?.constraintCount ?? 0,
+            );
+            const c2 = Constraint.fromContractValues(
+              effectiveGameLevel?.constraint2Type ?? ConstraintType.None,
+              effectiveGameLevel?.constraint2Value ?? 0,
+              effectiveGameLevel?.constraint2Count ?? 0,
+            );
+            const constraintsMet = c1.isSatisfied(game.constraintProgress, false) && c2.isSatisfied(game.constraint2Progress, false);
+            const levelCompleted = scoreMet && constraintsMet;
+            setPendingLevelCompletion({
+              level: game.level,
+              levelMoves: game.levelMoves,
+              prevTotalScore: levelStartTotalScoreRef.current,
+              totalScore: game.totalScore,
+              gameLevel: resolveCompletionGameLevel(game.level),
+              isIncomplete: !levelCompleted,
+            });
+            navNavigate("map");
+          }
         } else {
           playSfx("over");
           setIsGameOverOpen(true);
@@ -158,14 +192,12 @@ const PlayScreen: React.FC = () => {
       }
     }
     prevGameOverRef.current = game?.over;
-  }, [game?.over, game?.runCompleted, playSfx]);
+  }, [game, navNavigate, playSfx, resolveCompletionGameLevel, setPendingLevelCompletion, targetScore, effectiveGameLevel]);
 
-  // Cascade-complete callback from Grid → GameBoard
   const handleCascadeComplete = useCallback(() => {
     setCascadeComplete(true);
   }, []);
 
-  // Reset cascadeComplete whenever the grid changes (new move started or chain synced)
   useEffect(() => {
     setCascadeComplete(false);
   }, [grid]);
@@ -179,14 +211,9 @@ const PlayScreen: React.FC = () => {
       levelStartTotalScoreRef.current = game.totalScore - game.levelScore;
     }
 
-    // Gate on cascadeComplete: don't detect level transition until the cascade
-    // animation has fully finished. If level changed but cascade isn't done yet,
-    // skip this run entirely (don't update prevState) so we re-detect on next run.
-    if (prevState && currentLevel > prevState.level && !game.over) {
-      if (!cascadeComplete) {
-        // Cascade still running — preserve old prevState so we re-detect later
-        return;
-      }
+    if (prevState && currentLevel > prevState.level) {
+      if (!cascadeComplete) return;
+      // Level advanced — this is a completion even if game.over is also true
       if (checkBossLevel(prevState.level)) {
         playSfx("boss-defeat");
       } else {
@@ -195,25 +222,11 @@ const PlayScreen: React.FC = () => {
       setPendingLevelCompletion({
         level: prevState.level,
         levelMoves: prevState.levelMoves,
-        prevTotalCubes: prevState.totalCubes,
-        totalCubes: game.totalCubes,
         prevTotalScore: levelStartTotalScoreRef.current,
         totalScore: game.totalScore,
-        gameLevel: prevState.gameLevel,
+        gameLevel: resolveCompletionGameLevel(prevState.level),
       });
       levelStartTotalScoreRef.current = game.totalScore;
-
-      // Fire startNextLevel in background so the next level grid is ready
-      // by the time the player navigates from the map.
-      if (account) {
-        startNextLevel({
-          account,
-          game_id: game.id,
-          current_level: game.level,
-        }).catch((error: unknown) => {
-          console.error("Background startNextLevel failed:", error);
-        });
-      }
       navNavigate("map");
     }
 
@@ -222,8 +235,6 @@ const PlayScreen: React.FC = () => {
       levelScore: game.levelScore,
       levelMoves: game.levelMoves,
       constraintProgress: game.constraintProgress,
-      bonusUsedThisLevel: game.bonusUsedThisLevel,
-      totalCubes: game.totalCubes,
       totalScore: game.totalScore,
       gameLevel,
     };
@@ -232,13 +243,15 @@ const PlayScreen: React.FC = () => {
     game?.levelScore,
     game?.levelMoves,
     game?.constraintProgress,
-    game?.bonusUsedThisLevel,
     game?.over,
-    game?.totalCubes,
     game?.totalScore,
     game,
     playSfx,
     cascadeComplete,
+    gameLevel,
+    navNavigate,
+    setPendingLevelCompletion,
+    resolveCompletionGameLevel,
   ]);
 
   const handleSurrender = useCallback(async () => {
@@ -251,209 +264,118 @@ const PlayScreen: React.FC = () => {
     }
   }, [account, game, playSfx, surrender]);
 
-  const levelConfig = useMemo(() => {
-    if (!game) return null;
-    return generateLevelConfig(seed, game.level);
-  }, [seed, game?.level, game]);
-
-  const targetScore =
-    gameLevel?.pointsRequired ?? levelConfig?.pointsRequired ?? 0;
-  const maxMoves = gameLevel?.maxMoves ?? levelConfig?.maxMoves ?? 0;
-
   const isGridLoading =
-    !!game && !game.isOver() && (!grid || grid.length === 0 || game.levelTransitionPending);
+    !!game && !game.isOver() && (!grid || grid.length === 0);
 
   const isGameOn = game && !game.over;
 
-  const getBonusDescription = useCallback((type: BonusType): string => {
-    switch (type) {
-      case BonusType.Harvest:
-        return "Select a block size to harvest";
-      case BonusType.Score:
-        return "Apply instant score bonus";
-      case BonusType.Combo:
-        return "Apply combo bonus";
-      case BonusType.Wave:
-        return "Select rows to clear";
-      case BonusType.Supply:
-        return "Add a new line for free";
-      default:
-        return "";
+  const bonusType = game?.bonusType ?? 0;
+  const bonusCharges = game?.bonusCharges ?? 0;
+  const gameBonusSlot = game?.bonusSlot ?? 0;
+
+  // run_data stores the passive mutator; the active mutator (bonus source) comes from GameSettings
+  const zoneId = game?.zoneId ?? 1;
+  const settingsId = Math.max(0, (zoneId - 1) * 2);
+  const { settings: zoneSettings } = useSettings(settingsId);
+  const bonusMutatorId = zoneSettings.activeMutatorId;
+
+  const { data: mutatorDef } = useMutatorDef(bonusMutatorId);
+
+  const bonusSlots = useMemo((): BonusSlot[] => {
+    if (!mutatorDef) {
+      // Fallback: show just the active bonus if no mutator data
+      if (bonusType <= 0) return [];
+      const info = getBonusType(bonusType);
+      return [{
+        type: bonusType as BonusType,
+        charges: bonusCharges,
+        isActive: true,
+        icon: info.icon,
+        name: info.name,
+        description: info.description,
+        triggerDescription: "",
+        startingCharges: 0,
+        onClick: () => {
+          if (bonusCharges <= 0) return;
+          setActiveBonus((prev) => (prev === (bonusType as BonusType) ? BonusType.None : bonusType as BonusType));
+        },
+      }];
     }
-  }, []);
 
-  const getBonusTooltip = useCallback(
-    (type: BonusType, level: number = 0): string => {
-      return new Bonus(type).getEffect(level);
-    },
-    [],
-  );
+    const slotDefs = [
+      { type: mutatorDef.bonus1Type, triggerType: mutatorDef.bonus1TriggerType, threshold: mutatorDef.bonus1TriggerThreshold, starting: mutatorDef.bonus1StartingCharges },
+      { type: mutatorDef.bonus2Type, triggerType: mutatorDef.bonus2TriggerType, threshold: mutatorDef.bonus2TriggerThreshold, starting: mutatorDef.bonus2StartingCharges },
+      { type: mutatorDef.bonus3Type, triggerType: mutatorDef.bonus3TriggerType, threshold: mutatorDef.bonus3TriggerThreshold, starting: mutatorDef.bonus3StartingCharges },
+    ];
 
-  const getBonusIcon = useCallback(
-    (type: BonusType, level: number = 0): string => {
-      const skillName = (() => {
-        switch (type) {
-          case BonusType.Combo: return "combo";
-          case BonusType.Score: return "score";
-          case BonusType.Harvest: return "harvest";
-          case BonusType.Wave: return "wave";
-          case BonusType.Supply: return "supply";
-          default: return "";
-        }
-      })();
-      if (!skillName) return "";
-      const tier = getSkillTier(level);
-      return getSkillTierIconPath(skillName, tier);
-    },
-    [],
-  );
+    // Only show the rolled bonus slot
+    const rolledDef = slotDefs[gameBonusSlot];
+    if (!rolledDef || rolledDef.type === 0) {
+      // Fallback: no valid slot found, show from game data
+      if (bonusType <= 0) return [];
+      const info = getBonusType(bonusType);
+      return [{
+        type: bonusType as BonusType,
+        charges: bonusCharges,
+        isActive: true,
+        icon: info.icon,
+        name: info.name,
+        description: info.description,
+        triggerDescription: "",
+        startingCharges: 0,
+        onClick: () => {
+          if (bonusCharges <= 0) return;
+          setActiveBonus((prev) => (prev === (bonusType as BonusType) ? BonusType.None : bonusType as BonusType));
+        },
+      }];
+    }
 
-  const handleBonusSelect = useCallback(
-    (type: BonusType) => {
-      const skillId = bonusTypeToContractValue(type);
-      const slot = game?.runData.slots.find((entry) => entry.skillId === skillId);
-      const count = slot?.charges ?? 0;
-      if (count === 0) return;
+    const info = getBonusType(rolledDef.type);
+    const mapped = rolledDef.type as BonusType;
+    return [{
+      type: mapped,
+      charges: bonusCharges,
+      isActive: true,
+      icon: info.icon,
+      name: info.name,
+      description: info.description,
+      triggerDescription: buildTriggerDescription(rolledDef.triggerType, rolledDef.threshold, rolledDef.starting),
+      startingCharges: rolledDef.starting,
+      onClick: () => {
+        if (bonusCharges <= 0) return;
+        setActiveBonus((prev) => (prev === mapped ? BonusType.None : mapped));
+      },
+    }];
+  }, [mutatorDef, bonusType, bonusCharges, gameBonusSlot]);
 
-      // Supply fires directly with confirmation — no grid interaction needed
-      if (type === BonusType.Supply) {
-        playSfx("click");
-        setIsSupplyConfirmOpen(true);
-        return;
-      }
-
-      if (activeBonus === type) {
-        playSfx("click");
-        playSfx("unequip");
-        setActiveBonus(BonusType.None);
-        setBonusDescription("");
-      } else {
-        playSfx("click");
-        playSfx("equip");
-        setActiveBonus(type);
-        setBonusDescription(`${getSkillName(skillId)}: ${getBonusDescription(type)}`);
-      }
-    },
-    [activeBonus, game?.runData.slots, getBonusDescription, playSfx],
-  );
-
-  const selectedBonusSlots = useMemo(() => {
-    if (!game) return [];
-
-    return game.runData.slots
-      .map((slot, index) => ({ ...slot, index }))
-      .filter((slot) => isBonusSkill(slot.skillId) && slot.skillId > 0)
-      .map((slot) => {
-        const type = bonusTypeFromContractValue(slot.skillId);
-        return {
-          slot: slot.index,
-          type,
-          level: slot.level,
-          count: slot.charges,
-          bagSize: slot.charges,
-          icon: getBonusIcon(type, slot.level),
-          tooltip: `${getSkillName(slot.skillId)} - ${getBonusTooltip(type, slot.level)}`,
-        };
-      });
-  }, [
-    game,
-    game?.runData.slots,
-    getBonusIcon,
-    getBonusTooltip,
-  ]);
-
-  const passiveSlots = useMemo(() => {
-    if (!game) return [];
-    return game.runData.slots
-      .filter((slot) => isWorldEventSkill(slot.skillId) && slot.skillId > 0)
-      .map((slot) => {
-        const skill = SKILLS[slot.skillId];
-        const archetype = getArchetypeForSkill(slot.skillId);
-        const skillName = skill?.name?.toLowerCase() ?? '';
-        const tier = getSkillTier(slot.level);
-        return {
-          type: BonusType.None,
-          level: slot.level,
-          count: 0,
-          bagSize: 0,
-          icon: getSkillTierIconPath(skillName, tier),
-          tooltip: `${getSkillName(slot.skillId)} (Passive) - ${skill?.description ?? ''}`,
-          isPassive: true as const,
-          archetypeColor: archetype?.color ?? '#8b5cf6',
-        };
-      });
-  }, [game?.runData.slots]);
-
-  const activeBonusLevel = useMemo(() => {
-    const slot = selectedBonusSlots.find((s) => s.type === activeBonus);
-    return slot?.level ?? 0;
-  }, [selectedBonusSlots, activeBonus]);
+  const bonusInfo = getBonusType(bonusType);
+  const bonusDescription =
+    activeBonus !== BonusType.None && bonusCharges > 0
+      ? `TAP A BLOCK TO USE ${bonusInfo.name.toUpperCase()}`
+      : "";
 
   useEffect(() => {
     setActiveBonus(BonusType.None);
-    setBonusDescription("");
-  }, [grid]);
-
-  const supplyBonusLevel = useMemo(() => {
-    const slot = selectedBonusSlots.find((s) => s.type === BonusType.Supply);
-    return slot?.level ?? 0;
-  }, [selectedBonusSlots]);
-
-  const handleSupplyConfirm = useCallback(async () => {
-    if (!account || !game) return;
-    setIsSupplyProcessing(true);
-    setIsSupplyConfirmOpen(false);
-    try {
-      await applyBonus({
-        account: account as Account,
-        game_id: game.id,
-        bonus: new Bonus(BonusType.Supply).into(),
-        row_index: 0,
-        block_index: 0,
-      });
-      playSfx("bonus-activate");
-    } finally {
-      setIsSupplyProcessing(false);
-    }
-  }, [account, applyBonus, game, playSfx]);
+  }, [game?.id, game?.bonusCharges, game?.bonusType]);
 
   return (
-    <div className="h-screen-viewport flex flex-col">
+    <div
+      className="flex h-full min-h-0 flex-col"
+      style={{
+        backgroundImage: `var(--theme-grid-bg-image, none)`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundColor: `var(--theme-grid-bg, #10172A)`,
+      }}
+    >
       <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Connect Wallet</DialogTitle>
-            <DialogDescription>Connect your wallet to play.</DialogDescription>
+            <DialogTitle>Connect Account</DialogTitle>
+            <DialogDescription>Connect your account to play.</DialogDescription>
           </DialogHeader>
           <div className="flex justify-center pt-4">
             <Connect />
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isSupplyConfirmOpen} onOpenChange={setIsSupplyConfirmOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Use Supply?</DialogTitle>
-            <DialogDescription>
-              Add {supplyBonusLevel + 1} line{supplyBonusLevel > 0 ? "s" : ""} to the grid (no move cost).
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => setIsSupplyConfirmOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="flex-1"
-              disabled={isSupplyProcessing}
-              onClick={handleSupplyConfirm}
-            >
-              {isSupplyProcessing ? "Applying..." : "Confirm"}
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -480,24 +402,25 @@ const PlayScreen: React.FC = () => {
         />
       )}
 
-
       {game && !isGameLoading && !isGridLoading && (
         <GameHud
           level={game.level}
           levelScore={game.isOver() ? 0 : game.levelScore}
           targetScore={targetScore}
-          movesRemaining={maxMoves - game.levelMoves}
-          totalCubes={game.cubesAvailable}
+          movesRemaining={game?.mode === 1 ? game.levelMoves : maxMoves - game.levelMoves}
           combo={game.isOver() ? 0 : game.combo}
           constraintProgress={game.constraintProgress}
           constraint2Progress={game.constraint2Progress}
-          constraint3Progress={game.runData.constraint3Progress}
-          bonusUsedThisLevel={game.bonusUsedThisLevel}
-          gameLevel={gameLevel}
-          maxMoves={maxMoves}
+          bonusUsedThisLevel={false}
+          gameLevel={effectiveGameLevel}
+          activeMutatorId={game.activeMutatorId}
+          mode={game?.mode ?? 0}
+          totalScore={game?.totalScore ?? 0}
+          currentDifficulty={game?.currentDifficulty ?? 0}
+          zoneId={game?.zoneId ?? 1}
+          onBack={goBack}
         />
       )}
-
 
       <div className="flex-1 flex flex-col items-center justify-end min-h-0 px-2 py-1 overflow-hidden">
         {(isGameLoading || isGridLoading) && (
@@ -513,8 +436,24 @@ const PlayScreen: React.FC = () => {
           </div>
         )}
 
+        {!isGameLoading && !game && (
+          <div className="mx-auto mt-8 w-full max-w-[340px] rounded-2xl border border-white/20 bg-black/35 px-5 py-6 text-center backdrop-blur-xl">
+            <p className="font-sans text-lg font-bold text-white">Unable to load this run</p>
+            <p className="mt-2 font-sans text-sm text-white/75">
+              The game state was not found yet. Try going back to Home and resuming story again.
+            </p>
+            <button
+              type="button"
+              onClick={() => navNavigate("home")}
+              className="mt-5 w-full rounded-xl border border-white/20 bg-white/10 py-2 font-sans text-sm font-semibold text-white/90"
+            >
+              Back to Home
+            </button>
+          </div>
+        )}
+
         {game && isGameOn && !isGridLoading && !isGameLoading && (
-          <div className="flex w-full flex-col items-center min-h-0">
+          <div className={`flex h-full w-full flex-col items-center min-h-0 ${checkBossLevel(game.level) ? "boss-grid" : ""}`}>
             <GameBoard
               initialGrid={grid}
               nextLine={game.isOver() ? [] : game.next_row}
@@ -522,14 +461,13 @@ const PlayScreen: React.FC = () => {
               game={game}
               activeBonus={activeBonus}
               bonusDescription={bonusDescription}
-              activeBonusLevel={activeBonusLevel}
               onCascadeComplete={handleCascadeComplete}
             />
           </div>
         )}
 
         {game && game.over && !isGridLoading && !isGameLoading && (
-          <div className="flex w-full flex-col items-center min-h-0 opacity-50 pointer-events-none">
+          <div className="flex h-full w-full flex-col items-center min-h-0 opacity-50 pointer-events-none">
             <GameBoard
               initialGrid={grid}
               nextLine={[]}
@@ -537,7 +475,6 @@ const PlayScreen: React.FC = () => {
               game={game}
               activeBonus={activeBonus}
               bonusDescription={bonusDescription}
-              activeBonusLevel={activeBonusLevel}
               onCascadeComplete={handleCascadeComplete}
             />
           </div>
@@ -546,26 +483,14 @@ const PlayScreen: React.FC = () => {
 
       {game && !game.over && !isGameLoading && !isGridLoading && (
         <GameActionBar
-          bonusSlots={[
-            ...selectedBonusSlots.map((slot) => ({
-              type: slot.type,
-              count: slot.count,
-              level: slot.level,
-              bagSize: slot.bagSize,
-              icon: slot.icon,
-              tooltip: slot.tooltip,
-              onClick: () => handleBonusSelect(slot.type),
-            })),
-            ...passiveSlots.map((slot) => ({
-              ...slot,
-              onClick: () => {},
-            })),
-          ]}
+          bonusSlots={bonusSlots}
           activeBonus={activeBonus}
           bonusDescription={bonusDescription}
           onSurrender={handleSurrender}
-          onMap={goBack}
           isGameOver={game.over}
+          mode={game?.mode ?? 0}
+          zoneId={game?.zoneId ?? 1}
+          activeMutatorId={game?.activeMutatorId ?? 0}
         />
       )}
     </div>

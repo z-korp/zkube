@@ -1,7 +1,7 @@
 import type { ISourceOptions, Container } from "@tsparticles/engine";
 import { tsParticles } from "@tsparticles/engine";
 import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { loadFull } from "tsparticles";
+import { loadSlim } from "@tsparticles/slim";
 
 interface ConfettiExplosionProps {
   colorSet: string[];
@@ -21,7 +21,6 @@ const ConfettiExplosion = forwardRef<
   ConfettiExplosionProps
 >(({ colorSet }, ref) => {
   const particleContainerRef = useRef<Container | null>(null);
-  const mousePosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const configs: ISourceOptions = {
     particles: {
@@ -94,7 +93,7 @@ const ConfettiExplosion = forwardRef<
   };
 
   const loadParticles = async (options: ISourceOptions) => {
-    await loadFull(tsParticles);
+    await loadSlim(tsParticles);
     const container = await tsParticles.load({
       id: "tsparticles",
       options,
@@ -104,41 +103,13 @@ const ConfettiExplosion = forwardRef<
 
   useEffect(() => {
     loadParticles(configs);
-
-    const handleMouseMove = (event: MouseEvent) => {
-      mousePosition.current.x = event.clientX;
-      mousePosition.current.y = event.clientY;
-    };
-
-    // Écoute l'événement mousemove
-    window.addEventListener("mousemove", handleMouseMove);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  /*const handleClick = () => {
-    if (particleContainerRef.current) {
-      const x =
-        mousePosition.current.x *
-        particleContainerRef.current.retina.pixelRatio;
-      const y =
-        mousePosition.current.y *
-        particleContainerRef.current.retina.pixelRatio;
-
-      for (let i = 0; i < 100; i++) {
-        particleContainerRef.current.particles.addParticle({ x, y });
-      }
-    }
-  };*/
 
   const triggerLocalExplosion = (position: { x: number; y: number }) => {
     if (particleContainerRef.current) {
       const pR = particleContainerRef.current.retina.pixelRatio;
-      for (let i = 0; i < 50; i++) {
+      for (let i = 0; i < 25; i++) {
         particleContainerRef.current.particles.addParticle({
           x: position.x * pR,
           y: position.y * pR,
@@ -154,7 +125,7 @@ const ConfettiExplosion = forwardRef<
   }) => {
     if (particleContainerRef.current) {
       const pR = particleContainerRef.current.retina.pixelRatio;
-      for (let i = 0; i < 300; i++) {
+      for (let i = 0; i < 150; i++) {
         particleContainerRef.current.particles.addParticle({
           x:
             Math.random() * position.range * pR +

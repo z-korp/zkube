@@ -6,6 +6,7 @@ pub impl BonusImpl of BonusTrait {
     #[inline(always)]
     fn apply(blocks: felt252, row_index: u8, index: u8) -> felt252 {
         // [Compute] Mask of the row
+        let _ = index;
         let base_mask = constants::ROW_SIZE - 1;
         let exp = row_index * constants::ROW_BIT_COUNT;
         let shift: u256 = fast_power(2, exp.into());

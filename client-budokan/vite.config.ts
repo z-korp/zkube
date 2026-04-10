@@ -11,6 +11,28 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), wasm(), topLevelAwait(), mkcert()],
   build: {
     target: "ES2022",
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-starknet": [
+            "starknet",
+            "@starknet-react/core",
+            "@starknet-react/chains",
+          ],
+          "vendor-dojo": [
+            "@dojoengine/core",
+            "@dojoengine/react",
+            "@dojoengine/recs",
+            "@dojoengine/sdk",
+            "@dojoengine/state",
+            "@dojoengine/torii-client",
+            "@dojoengine/utils",
+          ],
+          "vendor-ui": ["motion"],
+          "vendor-particles": ["@tsparticles/engine", "@tsparticles/slim"],
+        },
+      },
+    },
   },
   resolve: {
     alias: {

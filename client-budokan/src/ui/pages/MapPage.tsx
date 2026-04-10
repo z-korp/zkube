@@ -1,52 +1,42 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronLeft } from "lucide-react";
 import { motion } from "motion/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { getZoneGuardian, getGuardianPortrait } from "@/config/bossCharacters";
 import { useGame } from "@/hooks/useGame";
 import { useGameLevel } from "@/hooks/useGameLevel";
-import { useDraft } from "@/hooks/useDraft";
-import useAccountCustom from "@/hooks/useAccountCustom";
-import { useDojo } from "@/dojo/useDojo";
+import { useMutatorDef } from "@/hooks/useMutatorDef";
 import {
   NODES_PER_ZONE,
-  TOTAL_ZONES,
+  getZoneTheme,
   useMapData,
   type MapNodeData,
   type NodeState,
 } from "@/hooks/useMapData";
 import { useMapLayout } from "@/hooks/useMapLayout";
-import { showToast } from "@/utils/toast";
 import {
+  getThemeColors,
   getMapPathTheme,
   getThemeImages,
   isValidThemeId,
-  THEME_META,
   type ThemeId,
 } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
-import {
-  getDraftEventForCompletedLevel,
-  getDraftEventForZoneNode,
-  getStoredDraftPick,
-  isDraftEventCompleted,
-} from "@/utils/draftEvents";
-import PageTopBar from "@/ui/navigation/PageTopBar";
+import useAccountCustom from "@/hooks/useAccountCustom";
+import { useDojo } from "@/dojo/useDojo";
+import { useActiveStoryAttempt } from "@/hooks/useActiveStoryAttempt";
+import { useActiveDailyAttempt } from "@/hooks/useActiveDailyAttempt";
+import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
+import { useZoneProgress } from "@/hooks/useZoneProgress";
+import { useSettings } from "@/hooks/useSettings";
+import { ZONE_NAMES } from "@/config/profileData";
 import LevelPreview from "@/ui/components/map/LevelPreview";
 import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
 import ZoneBackground from "@/ui/components/map/ZoneBackground";
-import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
-import { Button } from "@/ui/elements/button";
-import { getSkillById, getArchetypeForSkill, getSkillTier } from "@/dojo/game/types/skillData";
-import { getSkillEffectDescription } from "@/dojo/game/types/skillEffects";
-import { getSkillTierIconPath } from "@/ui/theme/ImageAssets";
-import { getSlotBySkillId } from "@/dojo/game/helpers/runDataPacking";
+import GuardianGreeting from "@/ui/components/map/GuardianGreeting";
+import { showToast } from "@/utils/toast";
 
-/* ------------------------------------------------------------------ */
-/*  Constants                                                          */
-/* ------------------------------------------------------------------ */
-
-const SWIPE_THRESHOLD = 50;
 const VB_W = 60;
 const VB_H = 100;
 
@@ -59,25 +49,8 @@ const STATE_COLORS: Record<
   current: { fill: "#0f2743", border: "#3b82f6", alpha: 1, text: "#bfdbfe" },
   available: { fill: "#1e293b", border: "#f97316", alpha: 1, text: "#fed7aa" },
   visited: { fill: "#1e3a2f", border: "#4ade80", alpha: 0.85, text: "#bbf7d0" },
+  playing: { fill: "#7c2d12", border: "#fb923c", alpha: 1, text: "#ffedd5" },
 };
-
-const DRAFT_KIND_LABELS: Record<string, string> = {
-  new_powerup: "New Powerup",
-  upgrade_powerup: "Upgrade",
-  zone_modifier: "Zone Modifier",
-  risk_contract: "Risk Contract",
-  relic: "Relic",
-};
-
-const DRAFT_POOL_LABELS: Record<string, string> = {
-  powerup: "Powerup Pool",
-  upgrade: "Upgrade Pool",
-  world: "World Pool",
-};
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
 
 const canOpenPreview = (node: MapNodeData): boolean => node.state !== "locked";
 
@@ -93,7 +66,7 @@ const getPathType = (
   }
   if (
     fromState === "cleared" &&
-    (toState === "current" || toState === "available")
+    (toState === "current" || toState === "available" || toState === "playing")
   ) {
     return "active";
   }
@@ -101,26 +74,25 @@ const getPathType = (
 };
 
 const getLabel = (node: MapNodeData): string => {
-  if (node.type === "draft") {
-    return node.state === "visited" ? "\u2713" : "DRAFT";
+  if (node.state === "playing") {
+    return "▶";
   }
   if (node.type === "boss") {
-    return node.state === "cleared" ? "\u2713" : "\u2605";
+    return node.state === "cleared" ? "✓" : "★";
   }
   if (node.state === "cleared") {
-    return "\u2713";
+    return "✓";
   }
   return String(node.contractLevel ?? "");
 };
-
-/* ------------------------------------------------------------------ */
-/*  Component                                                          */
-/* ------------------------------------------------------------------ */
 
 const MapPage: React.FC = () => {
   const navigate = useNavigationStore((state) => state.navigate);
   const goBack = useNavigationStore((state) => state.goBack);
   const gameId = useNavigationStore((state) => state.gameId);
+  const mapZoneId = useNavigationStore((state) => state.mapZoneId);
+  const isDailyMap = useNavigationStore((state) => state.isDailyMap);
+  const setIsDailyMap = useNavigationStore((state) => state.setIsDailyMap);
   const pendingPreviewLevel = useNavigationStore(
     (state) => state.pendingPreviewLevel,
   );
@@ -133,633 +105,638 @@ const MapPage: React.FC = () => {
   const setPendingLevelCompletion = useNavigationStore(
     (state) => state.setPendingLevelCompletion,
   );
-  const pendingDraftEvent = useNavigationStore(
-    (state) => state.pendingDraftEvent,
-  );
-  const setPendingDraftEvent = useNavigationStore(
-    (state) => state.setPendingDraftEvent,
-  );
   const { setThemeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
   const { account } = useAccountCustom();
   const {
     setup: {
-      systemCalls: { startNextLevel },
+      systemCalls: { replayLevel },
     },
   } = useDojo();
+  const activeStoryRun = useActiveStoryAttempt();
+  const activeDailyRun = useActiveDailyAttempt();
+  const { challenge: dailyChallenge } = useCurrentChallenge();
 
   const { game, seed } = useGame({
     gameId: gameId ?? undefined,
     shouldLog: false,
   });
-  const draftState = useDraft({ gameId: gameId ?? undefined });
   const gameLevel = useGameLevel({ gameId: game?.id });
+  const { zones } = useZoneProgress(account?.address, 0);
 
-  // GameSeed.seed is now stable (never overwritten). level_seed holds per-level VRF.
+  const zoneState = useMemo(
+    () => {
+      if (isDailyMap && game) {
+        // For daily map, derive zone state from the active daily game
+        const currentLevel = game.level ?? 1;
+        const stars: number[] = [];
+        for (let i = 1; i <= 10; i++) {
+          stars.push(game.getLevelStars(i));
+        }
+        return {
+          zoneId: mapZoneId,
+          unlocked: true,
+          highestCleared: game.over ? currentLevel : Math.max(currentLevel - 1, 0),
+          levelStars: stars,
+        };
+      }
+      const z = zones.find((zone) => zone.zoneId === mapZoneId);
+      if (!z) return undefined;
+      return {
+        zoneId: z.zoneId,
+        unlocked: z.unlocked,
+        highestCleared: z.highestCleared ?? 0,
+        levelStars: z.levelStars ?? [],
+      };
+    },
+    [zones, mapZoneId, isDailyMap, game],
+  );
 
-  const currentLevel = game?.level ?? 1;
-  const mapData = useMapData({ seed, currentLevel, draftState });
-  const zoneLayouts = useMapLayout({
+  const activeNode = useMemo(() => {
+    if (isDailyMap && activeDailyRun && game && !game.over) {
+      return { zoneId: mapZoneId, level: game.level ?? 1 };
+    }
+    if (activeStoryRun) {
+      return { zoneId: activeStoryRun.zoneId, level: activeStoryRun.level };
+    }
+    return null;
+  }, [isDailyMap, activeDailyRun, game, mapZoneId, activeStoryRun]);
+
+  const settingsId = (mapZoneId - 1) * 2;
+  const { settings: zoneSettings, isLoading: settingsLoading } = useSettings(settingsId);
+  const passiveMutatorId = zoneSettings?.passiveMutatorId ?? 0;
+  const { data: passiveMutator } = useMutatorDef(passiveMutatorId);
+  const starModifier = passiveMutator?.starThresholdModifier ?? 128;
+
+  const mapData = useMapData({
     seed,
-    totalZones: TOTAL_ZONES,
+    zoneId: mapZoneId,
+    zoneState,
+    activeStoryNode: activeNode,
+    settings: settingsLoading ? undefined : zoneSettings,
+    starThresholdModifier: starModifier,
+  });
+
+  // Per-zone seed: story zones get a fixed seed from zoneId, daily gets day-based seed
+  const layoutSeed = useMemo(() => {
+    if (isDailyMap) {
+      const dayId = Math.floor(Date.now() / 86400000);
+      return BigInt(dayId) * 7919n + BigInt(mapZoneId);
+    }
+    return BigInt(mapZoneId) * 48271n + 12347n;
+  }, [isDailyMap, mapZoneId]);
+
+  const zoneLayouts = useMapLayout({
+    seed: layoutSeed,
+    totalZones: 1,
     nodesPerZone: NODES_PER_ZONE,
   });
 
-  const [activeZone, setActiveZone] = useState(
-    Math.max(0, mapData.currentZone - 1),
-  );
   const [selectedNode, setSelectedNode] = useState<MapNodeData | null>(null);
-  const [resolvedDraftModal, setResolvedDraftModal] = useState<{
-    title: string;
-    description: string;
-    kind: string;
-    pool: string;
-    zone: number;
-    skillId: number;
-  } | null>(null);
-  const pointerStartX = useRef<number | null>(null);
-  const pointerId = useRef<number | null>(null);
+  const [showGreeting, setShowGreeting] = useState(false);
 
-  useEffect(() => {
-    setActiveZone(Math.max(0, mapData.currentZone - 1));
-  }, [mapData.currentZone]);
+  const guardian = getZoneGuardian(mapZoneId);
 
   useEffect(() => {
     setMusicPlaylist(["main", "level"]);
   }, [setMusicPlaylist]);
 
+  const zoneThemeId = getZoneTheme(mapZoneId);
   useEffect(() => {
-    if (gameId === null) return;
-    if (!pendingDraftEvent) return;
-
-    if (isDraftEventCompleted(draftState, pendingDraftEvent)) {
-      setPendingDraftEvent(null);
-      return;
-    }
-
-    navigate("draft", gameId);
-  }, [draftState, gameId, navigate, pendingDraftEvent, setPendingDraftEvent]);
-
-  // Only switch theme/music when the player's current zone changes (zone cleared),
-  // NOT when swiping between zones on the map.
-  useEffect(() => {
-    const currentZoneIdx = Math.max(0, mapData.currentZone - 1);
-    const themeRaw = mapData.zoneThemes[currentZoneIdx] ?? "theme-1";
-    const themeId: ThemeId = isValidThemeId(themeRaw) ? themeRaw : "theme-1";
-    setThemeTemplate(themeId);
-  }, [mapData.currentZone, mapData.zoneThemes, setThemeTemplate]);
+    setThemeTemplate(zoneThemeId);
+  }, [zoneThemeId, setThemeTemplate]);
 
   useEffect(() => {
     if (pendingPreviewLevel == null) return;
     const node = mapData.nodes.find(
-      (n) => n.contractLevel === pendingPreviewLevel && canOpenPreview(n),
+      (n) =>
+        n.contractLevel === pendingPreviewLevel &&
+        canOpenPreview(n),
     );
-    if (node) {
-      setActiveZone(node.zone - 1);
-    }
+    if (node) setSelectedNode(node);
     setPendingPreviewLevel(null);
-  }, [pendingPreviewLevel, mapData.nodes, setPendingPreviewLevel]);
+  }, [
+    mapData.nodes,
+    pendingPreviewLevel,
+    setPendingPreviewLevel,
+  ]);
 
-  /* Split nodes into per-zone arrays */
-  const zoneNodes = useMemo(
-    () =>
-      Array.from({ length: TOTAL_ZONES }, (_, zoneIdx) => {
-        const start = zoneIdx * NODES_PER_ZONE;
-        return mapData.nodes.slice(start, start + NODES_PER_ZONE);
-      }),
-    [mapData.nodes],
+  const storyZoneProgress = useMemo(
+    () => zones.find((z) => z.zoneId === mapZoneId),
+    [zones, mapZoneId],
   );
 
-  const completionDraftEvent = useMemo(() => {
-    if (!pendingLevelCompletion) return null;
-    return getDraftEventForCompletedLevel(seed, pendingLevelCompletion.level);
-  }, [pendingLevelCompletion, seed]);
+  // For daily, use game-derived zoneState; for story, use zone progress from chain
+  const zoneProgressData = isDailyMap && zoneState
+    ? { ...storyZoneProgress, ...zoneState, stars: zoneState.levelStars.reduce((a: number, b: number) => a + b, 0) }
+    : storyZoneProgress;
 
+  const handlePlay = async () => {
+    if (!account || !selectedNode || selectedNode.contractLevel == null) return;
 
-  /* ---- Swipe handlers (Pointer Events for reliable mobile) ---- */
-
-  const isSwiping = useRef(false);
-
-  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    pointerStartX.current = event.clientX;
-    pointerId.current = event.pointerId;
-    isSwiping.current = false;
-  };
-
-  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (pointerStartX.current === null || isSwiping.current) return;
-    const delta = Math.abs(event.clientX - pointerStartX.current);
-    if (delta > 10) {
-      isSwiping.current = true;
-      (event.currentTarget as HTMLDivElement).setPointerCapture(
-        event.pointerId,
-      );
+    // Daily mode: navigate to play with the active daily game
+    if (isDailyMap) {
+      if (activeDailyRun && game && !game.over) {
+        setSelectedNode(null);
+        navigate("play", activeDailyRun.gameId);
+      } else {
+        showToast({ message: "Start a new daily attempt to play.", type: "error" });
+      }
+      return;
     }
-  };
 
-  const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (pointerStartX.current === null) return;
-    const deltaX = event.clientX - pointerStartX.current;
-    pointerStartX.current = null;
-    pointerId.current = null;
+    if (activeStoryRun && activeStoryRun.gameId !== 0n) {
+      const isPlayingNode =
+        selectedNode.zone === activeStoryRun.zoneId &&
+        selectedNode.contractLevel === activeStoryRun.level;
 
-    if (!isSwiping.current) return;
-    isSwiping.current = false;
+      if (isPlayingNode) {
+        setSelectedNode(null);
+        navigate("play", activeStoryRun.gameId);
+        return;
+      }
 
-    if (Math.abs(deltaX) < SWIPE_THRESHOLD) return;
-
-    if (deltaX < 0) {
-      setActiveZone((prev) => Math.min(prev + 1, TOTAL_ZONES - 1));
-    } else {
-      setActiveZone((prev) => Math.max(prev - 1, 0));
+      // Allow replay of cleared levels even with an active run
+      if (selectedNode.state !== "cleared" && selectedNode.state !== "visited") {
+        showToast({
+          message: `Run in progress on Zone ${activeStoryRun.zoneId}, Level ${activeStoryRun.level}.`,
+          type: "error",
+        });
+        return;
+      }
     }
-  };
 
-  const onPointerCancel = () => {
-    pointerStartX.current = null;
-    pointerId.current = null;
-    isSwiping.current = false;
-  };
-
-  const handlePlay = () => {
-    if (gameId === null) return;
-
-    // Fire startNextLevel if the chain is waiting for it (level transition pending).
-    // Navigate immediately — PlayScreen shows "Loading grid" until the tx completes.
-    if (game?.levelTransitionPending && account) {
-      startNextLevel({
+    try {
+      const result = await replayLevel({
         account,
-        game_id: game.id,
-        current_level: game.level,
-      }).catch((error: unknown) => {
-        console.error("Failed to start next level:", error);
+        zone_id: selectedNode.zone,
+        level: selectedNode.contractLevel,
       });
+      if (result.game_id !== 0n) {
+        setSelectedNode(null);
+        navigate("play", result.game_id);
+      }
+    } catch (error) {
+      console.error("Failed to start story level:", error);
     }
-
-    navigate("play", gameId);
   };
 
-  const activeThemeRaw = mapData.zoneThemes[activeZone] ?? "theme-1";
-  const activeThemeId: ThemeId = isValidThemeId(activeThemeRaw) ? activeThemeRaw : "theme-1";
-  const zoneName = THEME_META[activeThemeId].name;
+  const themeId: ThemeId = isValidThemeId(zoneThemeId) ? zoneThemeId : "theme-1";
+  const colors = getThemeColors(themeId);
+  const themeImages = getThemeImages(themeId);
+  const pathTheme = getMapPathTheme(themeId);
+  const layout = zoneLayouts[0];
+  const nodes = mapData.nodes;
+  const zoneName = isDailyMap ? "Daily" : (ZONE_NAMES[mapZoneId] ?? `Zone ${mapZoneId}`);
+  const zoneStars = useMemo(() => {
+    if (isDailyMap && game) {
+      let total = 0;
+      for (let i = 1; i <= 10; i++) total += game.getLevelStars(i);
+      return total;
+    }
+    return zoneProgressData?.stars ?? 0;
+  }, [isDailyMap, game, zoneProgressData]);
+
+  // For first visit detection, use story zone progress (not daily/game-derived state)
+  const storyZoneStars = zoneProgressData?.stars ?? 0;
+  const storyHighestCleared = zoneProgressData?.highestCleared ?? 0;
+  const isFirstVisit = !isDailyMap && zoneProgressData !== undefined && storyZoneStars === 0 && storyHighestCleared === 0;
+  const [greetingAutoShown, setGreetingAutoShown] = useState(false);
+  const [dataStabilized, setDataStabilized] = useState(false);
+
+  // Stabilize as soon as Torii responds (zoneProgressData defined), or after 1500ms ceiling.
+  useEffect(() => {
+    setDataStabilized(false);
+    const timer = setTimeout(() => setDataStabilized(true), 1500);
+    return () => clearTimeout(timer);
+  }, [mapZoneId]);
+
+  useEffect(() => {
+    if (zoneProgressData !== undefined) setDataStabilized(true);
+  }, [zoneProgressData]);
+
+  // Auto-show guardian greeting only after data stabilizes
+  useEffect(() => {
+    if (!dataStabilized || greetingAutoShown || isDailyMap) return;
+    if (zoneProgressData === undefined || !zoneProgressData.unlocked) return;
+    if (storyZoneStars === 0 && storyHighestCleared === 0) {
+      setShowGreeting(true);
+      setGreetingAutoShown(true);
+    }
+  }, [dataStabilized, zoneProgressData, storyZoneStars, storyHighestCleared, greetingAutoShown, isDailyMap, mapZoneId]);
 
   return (
-    <div className="h-screen-viewport flex flex-col">
-      <PageTopBar
-        title="WORLD MAP"
-        subtitle={`Zone ${activeZone + 1} - ${zoneName}`}
-        onBack={goBack}
-        rightSlot={null}
-      />
+    <div className="relative flex h-full flex-col">
+      <ZoneBackground zone={mapZoneId} themeId={themeId} />
 
-      {/* ---- Map viewport ---- */}
-      <div
-        className="relative min-h-0 flex-1 overflow-hidden"
-        style={{ touchAction: "pan-y" }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerCancel}
+      {/* Floating overlay: back + zone name + stars + info */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-[clamp(12px,3vw,20px)] pt-[clamp(12px,3vw,20px)] pb-1 pointer-events-none"
       >
-        <motion.div
-          className="flex h-full"
-          style={{ width: `${TOTAL_ZONES * 100}%` }}
-          animate={{ x: `${-activeZone * 100}vw` }}
-          transition={{ type: "spring", stiffness: 280, damping: 32 }}
-        >
-          {zoneNodes.map((nodes, zoneIdx) => {
-            const zone = zoneIdx + 1;
-            const themeRaw = mapData.zoneThemes[zoneIdx] ?? "theme-1";
-            const themeId: ThemeId = isValidThemeId(themeRaw)
-              ? themeRaw
-              : "theme-1";
-            const themeImages = getThemeImages(themeId);
-            const layout = zoneLayouts[zoneIdx];
-            const pathTheme = getMapPathTheme(themeId);
-
-            return (
-              <div
-                key={zone}
-                className="relative h-full flex-shrink-0"
-                style={{ width: "100vw" }}
-              >
-                <ZoneBackground zone={zone} themeId={themeId} />
-                <div className="relative mx-auto h-full w-auto max-w-full aspect-[9/16]">
-                  <svg
-                    viewBox={`0 0 ${VB_W} ${VB_H}`}
-                    preserveAspectRatio="xMidYMid meet"
-                    className="absolute inset-0 h-full w-full"
-                  >
-                    {layout?.edges.map((edge) => {
-                      const fromPt = layout.points[edge.from];
-                      const toPt = layout.points[edge.to];
-                      if (!fromPt || !toPt) return null;
-
-                      const fromX = fromPt.x * VB_W;
-                      const fromY = fromPt.y * VB_H;
-                      const toX = toPt.x * VB_W;
-                      const toY = toPt.y * VB_H;
-                      const midY = (fromY + toY) / 2;
-                      const d = `M ${fromX} ${fromY} C ${fromX} ${midY}, ${toX} ${midY}, ${toX} ${toY}`;
-
-                      const fromNode = nodes[edge.from];
-                      const toNode = nodes[edge.to];
-                      if (!fromNode || !toNode) return null;
-
-                      const pathType = getPathType(
-                        fromNode.state,
-                        toNode.state,
-                      );
-
-                      const stroke =
-                        pathType === "cleared"
-                          ? pathTheme.clearedColor
-                          : pathType === "active"
-                            ? pathTheme.activeColor
-                            : pathTheme.lockedColor;
-                      const sw =
-                        pathType === "locked"
-                          ? pathTheme.lockedStrokeWidth
-                          : pathTheme.strokeWidth;
-                      const opacity = pathType === "locked" ? 0.5 : 0.85;
-                      const dash =
-                        pathType === "locked"
-                          ? pathTheme.lockedDash
-                          : pathTheme.pathStyle === "dashed"
-                            ? "8 4"
-                            : pathTheme.pathStyle === "dotted"
-                              ? "2 3"
-                              : undefined;
-
-                      return (
-                        <g key={`main-${zoneIdx}-${edge.from}-${edge.to}`}>
-                          {pathTheme.pathStyle === "double" && (
-                            <path
-                              d={d}
-                              fill="none"
-                              stroke={stroke}
-                              strokeWidth={sw + 1.6}
-                              strokeLinecap="round"
-                              opacity={opacity * 0.35}
-                            />
-                          )}
-                          <path
-                            d={d}
-                            fill="none"
-                            stroke={stroke}
-                            strokeWidth={sw}
-                            strokeLinecap="round"
-                            opacity={opacity}
-                            strokeDasharray={dash}
-                          />
-                        </g>
-                      );
-                    })}
-
-                    {nodes.map((node) => {
-
-                      const pt = layout?.points[node.nodeInZone];
-                      if (!pt) return null;
-
-                      const cx = pt.x * VB_W;
-                      const cy = pt.y * VB_H;
-                      const colors = STATE_COLORS[node.state];
-                      const isInteractive = node.state !== "locked";
-                      const label = getLabel(node);
-
-                      const isCleared =
-                        node.state === "cleared" || node.state === "visited";
-                      const nodeImg =
-                        node.type === "boss"
-                          ? themeImages.mapNodeBoss
-                          : node.type === "draft"
-                            ? themeImages.mapNodeDraft
-                            : isCleared
-                              ? themeImages.mapNodeCompleted
-                              : themeImages.mapNodeLevel;
-                      const r =
-                        node.type === "boss"
-                          ? 7.5
-                          : node.type === "draft"
-                            ? 5.5
-                            : 5;
-
-                      return (
-                        <g
-                          key={`node-${zoneIdx}-${node.nodeInZone}`}
-                          onClick={() => {
-                            if (!isInteractive) {
-                              return;
-                            }
-
-                            if (node.type === "draft") {
-                              if (gameId === null) {
-                                showToast({
-                                  message: "No active run found.",
-                                  type: "error",
-                                });
-                                return;
-                              }
-
-                              const event = getDraftEventForZoneNode(
-                                seed,
-                                node.zone,
-                                currentLevel,
-                                draftState,
-                                node.draftPhase ?? "entry",
-                              );
-
-                              if (!event) {
-                                showToast({
-                                  message:
-                                    "No unlocked draft in this zone yet.",
-                                  type: "error",
-                                });
-                                return;
-                              }
-
-                              if (
-                                isDraftEventCompleted(draftState, event)
-                              ) {
-                                const pick = getStoredDraftPick(draftState, event);
-
-                                if (!pick) {
-                                  showToast({
-                                    message:
-                                      "Draft completed, but no saved choice found.",
-                                    type: "error",
-                                  });
-                                  return;
-                                }
-
-                                setResolvedDraftModal({
-                                  title: pick.title,
-                                  description: pick.description,
-                                  kind: pick.kind,
-                                  pool: pick.pool,
-                                  zone: event.zone,
-                                  skillId: pick.skillId,
-                                });
-                                return;
-                              }
-
-                              setPendingDraftEvent(event);
-                              navigate("draft", gameId);
-                              return;
-                            }
-
-                            if (canOpenPreview(node)) {
-                              setSelectedNode(node);
-                            }
-                          }}
-                          style={{
-                            cursor: isInteractive ? "pointer" : "default",
-                            transformOrigin: `${cx}px ${cy}px`,
-                            ...(node.state === "current"
-                              ? {
-                                  animation:
-                                    "map-node-pulse 2s ease-in-out infinite",
-                                }
-                              : {}),
-                          }}
-                          opacity={colors.alpha}
-                        >
-                          <clipPath
-                            id={`node-clip-${zoneIdx}-${node.nodeInZone}`}
-                          >
-                            <circle cx={cx} cy={cy} r={r} />
-                          </clipPath>
-                          <image
-                            href={nodeImg}
-                            x={cx - r}
-                            y={cy - r}
-                            width={r * 2}
-                            height={r * 2}
-                            preserveAspectRatio="xMidYMid slice"
-                            clipPath={`url(#node-clip-${zoneIdx}-${node.nodeInZone})`}
-                          />
-                          <circle
-                            cx={cx}
-                            cy={cy}
-                            r={r}
-                            fill="none"
-                            stroke={colors.border}
-                            strokeWidth={node.type === "boss" ? 0.6 : 0.4}
-                          />
-
-                          {node.type !== "draft" && (
-                            <>
-                              <circle
-                                cx={cx + r * 0.7}
-                                cy={cy + r * 0.7}
-                                r={2}
-                                fill="rgba(0,0,0,0.75)"
-                                stroke={colors.border}
-                                strokeWidth={0.3}
-                              />
-                              <text
-                                x={cx + r * 0.7}
-                                y={cy + r * 0.7 + 0.1}
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                fill="#ffffff"
-                                fontSize={2.2}
-                                fontWeight="bold"
-                                fontFamily="Bangers"
-                              >
-                                {label}
-                              </text>
-                            </>
-                          )}
-                        </g>
-                      );
-                    })}
-                  </svg>
-                </div>
-              </div>
-            );
-          })}
-        </motion.div>
-
-        {/* ---- Zone navigation arrows ---- */}
-        {activeZone > 0 && (
+        {/* Left: back + zone name */}
+        <div className="flex items-center gap-[clamp(6px,1.5vw,12px)] pointer-events-auto">
           <button
-            type="button"
-            className="absolute left-2 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/25 bg-black/40 p-2 text-white transition-colors hover:bg-black/60"
-            onClick={() => setActiveZone((prev) => Math.max(prev - 1, 0))}
+            onClick={() => { if (isDailyMap) setIsDailyMap(false); goBack(); }}
+            className="flex h-[clamp(32px,7vw,44px)] w-[clamp(32px,7vw,44px)] items-center justify-center rounded-full border border-white/20 bg-black/30 backdrop-blur-md shrink-0"
+            style={{ color: colors.accent }}
           >
-            <ChevronLeft size={22} />
+            <ChevronLeft className="w-[50%] h-[50%]" />
           </button>
-        )}
-
-        {activeZone < TOTAL_ZONES - 1 && (
-          <button
-            type="button"
-            className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/25 bg-black/40 p-2 text-white transition-colors hover:bg-black/60"
-            onClick={() =>
-              setActiveZone((prev) => Math.min(prev + 1, TOTAL_ZONES - 1))
-            }
-          >
-            <ChevronRight size={22} />
-          </button>
-        )}
-
-        {/* ---- Zone dots ---- */}
-        <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
-          {Array.from({ length: TOTAL_ZONES }, (_, idx) => (
-            <button
-              key={`zone-dot-${idx}`}
-              type="button"
-              onClick={() => setActiveZone(idx)}
-              className={`h-2.5 w-2.5 rounded-full transition-all ${
-                idx === activeZone ? "scale-125 bg-white" : "bg-white/45"
-              }`}
-              aria-label={`Go to zone ${idx + 1}`}
-            />
-          ))}
+          <span className="font-display text-[clamp(18px,4.5vw,28px)] font-black text-white drop-shadow-md">
+            {zoneName}
+          </span>
         </div>
 
-        {/* ---- Level preview modal ---- */}
+        {/* Right: stars */}
+        <div className="flex items-center gap-[clamp(4px,1vw,8px)] pointer-events-none">
+          <span className="font-display text-[clamp(14px,3.5vw,22px)] font-black drop-shadow-md" style={{ color: zoneProgressData?.perfectionClaimed ? "#ec4899" : colors.accent }}>
+            {zoneStars}/30 ★
+          </span>
+          {zoneStars >= 30 && !zoneProgressData?.perfectionClaimed && (
+            <span className="flex h-[clamp(18px,4vw,26px)] w-[clamp(18px,4vw,26px)] items-center justify-center rounded-full bg-pink-500/30 text-[clamp(9px,2vw,14px)] drop-shadow-md">🎁</span>
+          )}
+          {zoneProgressData?.perfectionClaimed && (
+            <span className="flex h-[clamp(18px,4vw,26px)] w-[clamp(18px,4vw,26px)] items-center justify-center rounded-full bg-pink-500/20 text-[clamp(9px,2vw,14px)] drop-shadow-md">💎</span>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Map SVG */}
+      <div className="relative flex-1 min-h-0 overflow-hidden">
+        <div className="relative mx-auto h-full w-full max-w-[540px]">
+          <svg
+            viewBox={`0 0 ${VB_W} ${VB_H}`}
+            preserveAspectRatio="xMidYMid meet"
+            className="absolute inset-0 h-full w-full transition-opacity duration-300"
+            style={{ opacity: (showGreeting || selectedNode) ? 0.3 : 1 }}
+          >
+            {/* Paths */}
+            {layout?.edges.map((edge) => {
+              const fromPt = layout.points[edge.from];
+              const toPt = layout.points[edge.to];
+              if (!fromPt || !toPt) return null;
+
+              const fromX = fromPt.x * VB_W;
+              const fromY = fromPt.y * VB_H;
+              const toX = toPt.x * VB_W;
+              const toY = toPt.y * VB_H;
+              const midY = (fromY + toY) / 2;
+              const d = `M ${fromX} ${fromY} C ${fromX} ${midY}, ${toX} ${midY}, ${toX} ${toY}`;
+
+              const fromNode = nodes[edge.from];
+              const toNode = nodes[edge.to];
+              if (!fromNode || !toNode) return null;
+
+              const pathType = getPathType(fromNode.state, toNode.state);
+
+              const stroke =
+                pathType === "cleared"
+                  ? pathTheme.clearedColor
+                  : pathType === "active"
+                    ? pathTheme.activeColor
+                    : pathTheme.lockedColor;
+              const sw =
+                pathType === "locked"
+                  ? pathTheme.lockedStrokeWidth
+                  : pathTheme.strokeWidth;
+              const opacity = pathType === "locked" ? 0.5 : 0.85;
+              const dash =
+                pathType === "locked"
+                  ? pathTheme.lockedDash
+                  : pathTheme.pathStyle === "dashed"
+                    ? "8 4"
+                    : pathTheme.pathStyle === "dotted"
+                      ? "2 3"
+                      : undefined;
+
+              return (
+                <g key={`path-${edge.from}-${edge.to}`}>
+                  {pathTheme.pathStyle === "double" && (
+                    <motion.path
+                      d={d}
+                      fill="none"
+                      stroke={stroke}
+                      strokeWidth={sw + 1.6}
+                      strokeLinecap="round"
+                      initial={!dash ? { pathLength: 0 } : undefined}
+                      animate={!dash ? { pathLength: 1 } : undefined}
+                      transition={{
+                        delay: 0.3 + edge.from * 0.05,
+                        duration: 0.5,
+                        ease: "easeInOut",
+                      }}
+                      opacity={opacity * 0.35}
+                    />
+                  )}
+                  <motion.path
+                    d={d}
+                    fill="none"
+                    stroke={stroke}
+                    strokeWidth={sw}
+                    strokeLinecap="round"
+                    initial={!dash ? { pathLength: 0 } : undefined}
+                    animate={!dash ? { pathLength: 1 } : undefined}
+                    transition={{
+                      delay: 0.3 + edge.from * 0.05,
+                      duration: 0.5,
+                      ease: "easeInOut",
+                    }}
+                    opacity={opacity}
+                    strokeDasharray={dash}
+                  />
+                </g>
+              );
+            })}
+
+            {/* Guardian node — bottom-right, aligned with level 1, loads first */}
+            {(() => {
+              const level1Pt = layout?.points[0];
+              const guardianX = 0.82 * VB_W;
+              const guardianY = level1Pt ? level1Pt.y * VB_H : 0.92 * VB_H;
+              const gr = 5;
+              const badgeR = 2;
+              const badgeX = guardianX + gr * 0.7;
+              const badgeY = guardianY + gr * 0.7;
+              return (
+                <motion.g
+                  onClick={() => setShowGreeting(true)}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: [1, 1.04, 1], opacity: 1 }}
+                  transition={{ scale: { duration: 3, repeat: Infinity, ease: "easeInOut" }, opacity: { delay: 0.1, duration: 0.3 } }}
+                  style={{ cursor: "pointer", transformOrigin: `${guardianX}px ${guardianY}px` }}
+                >
+                  <clipPath id="guardian-clip">
+                    <circle cx={guardianX} cy={guardianY} r={gr} />
+                  </clipPath>
+                  <image
+                    href={getGuardianPortrait(mapZoneId)}
+                    x={guardianX - gr}
+                    y={guardianY - gr}
+                    width={gr * 2}
+                    height={gr * 2}
+                    preserveAspectRatio="xMidYMid slice"
+                    clipPath="url(#guardian-clip)"
+                  />
+                  <circle cx={guardianX} cy={guardianY} r={gr} fill="none" stroke={colors.accent} strokeWidth={0.6} />
+                  <circle cx={badgeX} cy={badgeY} r={badgeR} fill={colors.accent} />
+                  <text x={badgeX} y={badgeY + 0.2} textAnchor="middle" dominantBaseline="central" fill="#0a1628" fontSize={2.4} fontWeight="bold" fontFamily="Outfit, sans-serif">?</text>
+                  <text x={guardianX} y={guardianY + gr + 2.5} textAnchor="middle" dominantBaseline="central" fill={colors.accent} fontSize={2} fontWeight="bold" fontFamily="Outfit, sans-serif">{guardian.name}</text>
+                </motion.g>
+              );
+            })()}
+
+            {/* Level nodes */}
+            {nodes.map((node) => {
+              const pt = layout?.points[node.nodeInZone];
+              if (!pt) return null;
+
+              const cx = pt.x * VB_W;
+              const cy = pt.y * VB_H;
+              const stateColors = STATE_COLORS[node.state];
+              const isPlayingNode =
+                activeStoryRun !== null &&
+                node.zone === activeStoryRun.zoneId &&
+                node.contractLevel === activeStoryRun.level;
+              const blockedByActiveRun =
+                activeStoryRun !== null && !isPlayingNode;
+              const isInteractive =
+                node.state !== "locked" && !blockedByActiveRun;
+              const label = getLabel(node);
+
+              const isCleared =
+                node.state === "cleared" || node.state === "visited";
+              const nodeImg =
+                node.type === "boss"
+                  ? themeImages.mapNodeBoss
+                  : isCleared
+                    ? themeImages.mapNodeCompleted
+                    : themeImages.mapNodeLevel;
+              const r = node.type === "boss" ? 7.5 : 5;
+
+              return (
+                <motion.g
+                  key={`node-${node.nodeInZone}`}
+                  onClick={() => {
+                    if (activeStoryRun && !isPlayingNode) {
+                      showToast({
+                        message: `Run in progress on Zone ${activeStoryRun.zoneId}, Level ${activeStoryRun.level}.`,
+                        type: "error",
+                      });
+                      return;
+                    }
+
+                    if (activeStoryRun && isPlayingNode) {
+                      navigate("play", activeStoryRun.gameId);
+                      return;
+                    }
+
+                    if (!isInteractive) return;
+                    if (canOpenPreview(node)) {
+                      setSelectedNode(node);
+                    }
+                  }}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: stateColors.alpha }}
+                  transition={{
+                    delay: node.nodeInZone * 0.06,
+                    type: "spring",
+                    stiffness: 260,
+                    damping: 20,
+                  }}
+                  style={{
+                    cursor: isInteractive ? "pointer" : "default",
+                    transformOrigin: `${cx}px ${cy}px`,
+                  }}
+                >
+                  <clipPath id={`node-clip-${node.nodeInZone}`}>
+                    <circle cx={cx} cy={cy} r={r} />
+                  </clipPath>
+                  <image
+                    href={nodeImg}
+                    x={cx - r}
+                    y={cy - r}
+                    width={r * 2}
+                    height={r * 2}
+                    preserveAspectRatio="xMidYMid slice"
+                    clipPath={`url(#node-clip-${node.nodeInZone})`}
+                  />
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={r}
+                    fill="none"
+                    stroke={node.state === "playing" ? colors.accent : stateColors.border}
+                    strokeWidth={
+                      node.state === "playing"
+                        ? 1.5
+                        : node.type === "boss"
+                          ? 0.6
+                          : 0.4
+                    }
+                  />
+
+                  {node.state === "playing" && (
+                    <>
+                      <motion.circle
+                        cx={cx}
+                        cy={cy}
+                        r={r + 2.5}
+                        fill={colors.accent}
+                        initial={{ opacity: 0.1 }}
+                        animate={{ opacity: [0.1, 0.3, 0.1] }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      />
+                      <motion.circle
+                        cx={cx}
+                        cy={cy}
+                        r={r + 1.8}
+                        fill="none"
+                        stroke={colors.accent}
+                        strokeWidth={1}
+                        initial={{ opacity: 0.9, scale: 1 }}
+                        animate={{ opacity: 0.25, scale: 1.35 }}
+                        transition={{
+                          duration: 1.2,
+                          repeat: Infinity,
+                          ease: "easeOut",
+                        }}
+                      />
+                    </>
+                  )}
+
+                  <>
+                    <circle
+                      cx={cx + r * 0.7}
+                      cy={cy + r * 0.7}
+                      r={2}
+                      fill="rgba(0,0,0,0.75)"
+                      stroke={stateColors.border}
+                      strokeWidth={0.3}
+                    />
+                    <text
+                      x={cx + r * 0.7}
+                      y={cy + r * 0.7 + 0.1}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fill="#ffffff"
+                      fontSize={2.2}
+                      fontWeight="bold"
+                      fontFamily="Outfit, sans-serif"
+                    >
+                      {label}
+                    </text>
+                  </>
+
+                  {node.type === "classic" &&
+                    node.state !== "locked" &&
+                    node.contractLevel !== null && (
+                      <g>
+                        {[0, 1, 2].map((i) => {
+                          const stars = zoneProgressData?.levelStars?.[node.contractLevel! - 1] ?? 0;
+                          const filled = stars > i;
+                          const starX = cx - 2.5 + i * 2.5;
+                          const starY = cy + r + 2.5;
+                          return (
+                            <motion.text
+                              key={i}
+                              initial={{ opacity: 0, scale: 0 }}
+                              animate={{
+                                opacity: 1,
+                                scale: 1,
+                                fill: filled ? "#FACC15" : "rgba(255,255,255,0.3)",
+                              }}
+                              transition={{
+                                delay: node.nodeInZone * 0.06 + 0.3 + i * 0.1,
+                                type: "spring",
+                                stiffness: 300,
+                                damping: 20,
+                              }}
+                              style={{ transformOrigin: `${starX}px ${starY}px` }}
+                              x={starX}
+                              y={starY}
+                              fontSize={2}
+                              textAnchor="middle"
+                            >
+                              ★
+                            </motion.text>
+                          );
+                        })}
+                      </g>
+                    )}
+
+                </motion.g>
+              );
+            })}
+
+
+          </svg>
+        </div>
+
         {selectedNode && !pendingLevelCompletion && (
           <LevelPreview
             node={selectedNode}
             game={game ?? null}
             gameLevel={gameLevel}
             gameId={gameId}
+            zoneId={mapZoneId}
+            colors={colors}
+            settings={settingsLoading ? undefined : zoneSettings}
+            hasSeed={seed !== 0n}
+            levelStars={zoneProgressData?.levelStars ?? []}
             onPlay={handlePlay}
             onClose={() => setSelectedNode(null)}
           />
         )}
 
-        {/* ---- Level complete overlay ---- */}
         {pendingLevelCompletion && (
           <LevelCompleteDialog
             isOpen={true}
             onClose={() => {
               const completedLevel = pendingLevelCompletion.level;
-
+              const wasIncomplete = pendingLevelCompletion.isIncomplete;
               setPendingLevelCompletion(null);
-
-              if (completionDraftEvent) {
-                setPendingDraftEvent(completionDraftEvent);
-                navigate("draft", gameId ?? undefined);
-              } else {
+              if (!wasIncomplete && completedLevel < 10) {
                 setPendingPreviewLevel(completedLevel + 1);
               }
             }}
             level={pendingLevelCompletion.level}
             levelMoves={pendingLevelCompletion.levelMoves}
-            prevTotalCubes={pendingLevelCompletion.prevTotalCubes}
-            totalCubes={pendingLevelCompletion.totalCubes}
             prevTotalScore={pendingLevelCompletion.prevTotalScore}
             totalScore={pendingLevelCompletion.totalScore}
             gameLevel={pendingLevelCompletion.gameLevel}
-            draftWillOpen={completionDraftEvent !== null}
+            zoneId={mapZoneId}
+            colors={colors}
+            isIncomplete={pendingLevelCompletion.isIncomplete}
+            draftWillOpen={false}
           />
         )}
 
+        {showGreeting && (
+          <GuardianGreeting
+            colors={colors}
+            guardian={guardian}
+            mode={isDailyMap ? "daily" : "story"}
+            activeMutatorId={isDailyMap && dailyChallenge ? dailyChallenge.active_mutator_id : mapZoneId * 2 - 1}
+            passiveMutatorId={isDailyMap && dailyChallenge ? dailyChallenge.passive_mutator_id : mapZoneId * 2}
+            isFirstVisit={isFirstVisit}
+            onClose={() => setShowGreeting(false)}
+          />
+        )}
 
-        <Dialog
-          open={resolvedDraftModal !== null}
-          onOpenChange={(open) => {
-            if (!open) {
-              setResolvedDraftModal(null);
-            }
-          }}
-        >
-          <DialogContent className="sm:max-w-[400px] w-[90%] rounded-2xl border border-white/10 bg-slate-900/90 px-6 py-6">
-            <DialogTitle className="text-2xl text-center mb-4 text-emerald-300">
-              Draft Done
-            </DialogTitle>
-
-            {resolvedDraftModal && (() => {
-              const skill = getSkillById(resolvedDraftModal.skillId);
-              const archetype = getArchetypeForSkill(resolvedDraftModal.skillId);
-              const slot = game ? getSlotBySkillId(game.runData, resolvedDraftModal.skillId) : undefined;
-              const rawLevel = slot?.level ?? 0;
-              const displayLevel = rawLevel + 1;
-              const tier = getSkillTier(rawLevel);
-              const effectDesc = getSkillEffectDescription(resolvedDraftModal.skillId, rawLevel);
-              const accentColor = archetype?.color ?? "#22c55e";
-              const isPassive = skill ? skill.category === "world" : false;
-              const charges = slot?.charges ?? 0;
-
-              return (
-                <div className="flex flex-col items-center gap-4">
-                  {/* Circular skill icon — matches GameActionBar style */}
-                  {skill && (
-                    <div className="relative">
-                      <div
-                        className="relative w-20 h-20 rounded-full overflow-visible flex items-center justify-center"
-                        style={
-                          isPassive
-                            ? { boxShadow: `0 0 18px ${accentColor}50, 0 0 40px ${accentColor}20` }
-                            : undefined
-                        }
-                      >
-                        <img
-                          src={getSkillTierIconPath(skill.name, tier)}
-                          alt={skill.name}
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                        {/* Ring border */}
-                        <div
-                          className="absolute inset-0 rounded-full border-[3px]"
-                          style={{ borderColor: accentColor }}
-                        />
-                      </div>
-
-                      {/* Level badge — bottom left */}
-                      <span
-                        className="absolute -bottom-1 -left-1 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold text-white z-10"
-                        style={{ backgroundColor: isPassive ? accentColor : undefined }}
-                      >
-                        {isPassive ? (
-                          <span>{displayLevel}</span>
-                        ) : (
-                          <span className="bg-indigo-500 rounded-full w-full h-full flex items-center justify-center">{displayLevel}</span>
-                        )}
-                      </span>
-
-                      {/* Charges badge — top right, bonus only */}
-                      {!isPassive && (
-                        <span
-                          className={`absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold z-10 ${
-                            charges > 0 ? "bg-yellow-500 text-white" : "bg-slate-600 text-slate-400"
-                          }`}
-                        >
-                          {charges}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Skill name + archetype */}
-                  <div className="text-center">
-                    <h3 className="font-['Fredericka_the_Great'] text-xl text-white">
-                      Skill Drafted: {skill?.name ?? "Unknown"}
-                    </h3>
-                    {archetype && (
-                      <p className="text-xs mt-1" style={{ color: accentColor }}>
-                        {archetype.name} Archetype
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Effect description */}
-                  <div className="w-full rounded-lg bg-slate-800/60 px-3 py-2.5">
-                    <p className="text-[11px] uppercase tracking-wider text-slate-500 mb-1">Effect</p>
-                    <p className="text-sm text-slate-200">{effectDesc}</p>
-                  </div>
-                </div>
-              );
-            })()}
-
-            <div className="mt-2 flex justify-center">
-              <Button onClick={() => setResolvedDraftModal(null)}>Close</Button>
+        {nodes.length === 0 && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+            <div className="rounded-2xl border border-white/20 bg-black/45 px-4 py-3 font-sans text-sm font-semibold text-white/80 backdrop-blur-md">
+              Loading map...
             </div>
-          </DialogContent>
-        </Dialog>
+          </div>
+        )}
       </div>
     </div>
   );

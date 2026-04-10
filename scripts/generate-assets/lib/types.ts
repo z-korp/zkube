@@ -7,6 +7,7 @@ export const PER_THEME_ASSETS = [
   "logo",
   "grid",
   "theme-icon",
+  "guardian",
 ] as const;
 
 export const GLOBAL_ASSETS = ["buttons", "shared-icons", "catalog-icons", "bonus-icons", "skill-icons", "archetype-icons", "constraint-icons", "ui-chrome", "panels", "particles"] as const;
@@ -46,6 +47,11 @@ export interface ThemeDefinition {
   music?: {
     menu: string;
     gameplay: string;
+  };
+  guardian?: {
+    name: string;
+    title: string;
+    portraitPrompt: string;
   };
 }
 

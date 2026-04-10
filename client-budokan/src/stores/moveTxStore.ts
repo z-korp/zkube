@@ -4,7 +4,7 @@ export type QueuedMoveStatus = "queued" | "submitting";
 
 export interface QueuedMove {
   id: string;
-  gameId: number;
+  gameId: bigint;
   rowIndex: number;
   startIndex: number;
   finalIndex: number;
@@ -23,7 +23,7 @@ interface MoveState {
   markConfirmed: (id: string) => void;
   setQueueProcessing: (value: boolean) => void;
   markFailed: (id: string, error: string) => void;
-  clearQueueForGame: (gameId: number) => void;
+  clearQueueForGame: (gameId: bigint) => void;
   clearFailure: () => void;
 }
 

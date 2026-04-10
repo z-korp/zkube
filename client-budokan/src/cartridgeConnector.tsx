@@ -13,64 +13,6 @@ import manifestSepolia from "../../contracts/manifest_sepolia.json";
 import manifestMainnet from "../../contracts/manifest_mainnet.json";
 
 const log = createLogger("cartridgeConnector");
-const CONTROLLER_SESSION_VERSION = "4";
-
-function clearControllerStorage() {
-  localStorage.removeItem("sessionSigner");
-  localStorage.removeItem("session");
-  localStorage.removeItem("sessionPolicies");
-  localStorage.removeItem("lastUsedConnector");
-
-  for (let i = localStorage.length - 1; i >= 0; i--) {
-    const key = localStorage.key(i);
-    if (key?.startsWith("@cartridge/")) {
-      localStorage.removeItem(key);
-    }
-  }
-
-  if (typeof indexedDB !== "undefined") {
-    indexedDB.databases?.().then((dbs) => {
-      for (const db of dbs) {
-        if (db.name) {
-          indexedDB.deleteDatabase(db.name);
-          log.info("Deleted IndexedDB:", db.name);
-        }
-      }
-    }).catch(() => {
-      for (const name of ["@cartridge", "controller", "keyval-store"]) {
-        try { indexedDB.deleteDatabase(name); } catch { /* noop */ }
-      }
-    });
-  }
-}
-
-function migrateControllerSessions() {
-  try {
-    const storedVersion = localStorage.getItem("controllerSessionVersion");
-    const storedDeployType = localStorage.getItem("controllerDeployType");
-    const currentDeployType = VITE_PUBLIC_DEPLOY_TYPE || "mainnet";
-
-    const versionChanged = storedVersion !== CONTROLLER_SESSION_VERSION;
-    const deployTypeChanged = storedDeployType !== currentDeployType;
-
-    if (!versionChanged && !deployTypeChanged) return;
-
-    log.info("Clearing Controller sessions", {
-      reason: deployTypeChanged ? `deploy type changed: ${storedDeployType} → ${currentDeployType}` : `version: ${storedVersion} → ${CONTROLLER_SESSION_VERSION}`,
-    });
-
-    clearControllerStorage();
-
-    localStorage.setItem("controllerSessionVersion", CONTROLLER_SESSION_VERSION);
-    localStorage.setItem("controllerDeployType", currentDeployType);
-  } catch (e) {
-    log.warn("Session migration skipped", e);
-  }
-}
-
-if (typeof window !== "undefined") {
-  migrateControllerSessions();
-}
 
 const {
   VITE_PUBLIC_DEPLOY_TYPE,
@@ -119,7 +61,7 @@ const INTERNAL_SYSTEMS = ["config_system", "grid_system"];
 
 const ADDITIONAL_ENTRYPOINTS: Record<string, string[]> = {
   game_system: ["mint_game"],
-  level_system: ["start_next_level"],
+  config_system: ["add_custom_game_settings", "purchase_zone_access", "unlock_zone_with_stars"],
 };
 
 const buildPoliciesFromManifest = (

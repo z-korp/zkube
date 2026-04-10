@@ -4,7 +4,7 @@ version = 1
 [[package]]
 name = "achievement"
 version = "0.0.0"
-source = "git+https://github.com/cartridge-gg/arcade?rev=1c66ba7#1c66ba724c3e9fbec9f70a14a086c4daf460621b"
+source = "git+https://github.com/cartridge-gg/arcade.git?branch=main#9da344a040073182ed65c67863d43ee30aebc718"
 dependencies = [
  "dojo",
  "graffiti",
@@ -12,8 +12,8 @@ dependencies = [
 
 [[package]]
 name = "alexandria_bytes"
-version = "0.7.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.7.0#06e3019612cfcbbdb66cbd849840451ede7ee6aa"
+version = "0.9.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.9.0#2b04d3ff2a302b40d092ad68b2920f28792582eb"
 dependencies = [
  "alexandria_data_structures",
  "alexandria_math",
@@ -21,13 +21,13 @@ dependencies = [
 
 [[package]]
 name = "alexandria_data_structures"
-version = "0.7.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.7.0#06e3019612cfcbbdb66cbd849840451ede7ee6aa"
+version = "0.9.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.9.0#2b04d3ff2a302b40d092ad68b2920f28792582eb"
 
 [[package]]
 name = "alexandria_encoding"
-version = "0.7.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.7.0#06e3019612cfcbbdb66cbd849840451ede7ee6aa"
+version = "0.9.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.9.0#2b04d3ff2a302b40d092ad68b2920f28792582eb"
 dependencies = [
  "alexandria_bytes",
  "alexandria_data_structures",
@@ -37,13 +37,13 @@ dependencies = [
 
 [[package]]
 name = "alexandria_math"
-version = "0.7.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.7.0#06e3019612cfcbbdb66cbd849840451ede7ee6aa"
+version = "0.9.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.9.0#2b04d3ff2a302b40d092ad68b2920f28792582eb"
 
 [[package]]
 name = "alexandria_numeric"
-version = "0.7.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.7.0#06e3019612cfcbbdb66cbd849840451ede7ee6aa"
+version = "0.9.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.9.0#2b04d3ff2a302b40d092ad68b2920f28792582eb"
 dependencies = [
  "alexandria_math",
  "alexandria_searching",
@@ -51,8 +51,8 @@ dependencies = [
 
 [[package]]
 name = "alexandria_searching"
-version = "0.7.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.7.0#06e3019612cfcbbdb66cbd849840451ede7ee6aa"
+version = "0.9.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.9.0#2b04d3ff2a302b40d092ad68b2920f28792582eb"
 dependencies = [
  "alexandria_data_structures",
 ]
@@ -82,80 +82,88 @@ dependencies = [
 ]
 
 [[package]]
+name = "ekubo"
+version = "0.1.0"
+source = "git+https://github.com/EkuboProtocol/starknet-contracts.git?tag=v4.0.1#3db234ee0c4a9e1709677f6180186d37a356a14e"
+
+[[package]]
+name = "game_components_embeddable_game_standard"
+version = "1.1.3"
+source = "git+https://github.com/Provable-Games/game-components.git?branch=main#090bf820b2d7b9c1c1b415cfc56947e81d72c250"
+dependencies = [
+ "game_components_interfaces",
+ "game_components_metagame",
+ "game_components_utilities",
+ "openzeppelin_access",
+ "openzeppelin_interfaces",
+ "openzeppelin_introspection",
+ "openzeppelin_token",
+]
+
+[[package]]
+name = "game_components_interfaces"
+version = "1.1.3"
+source = "git+https://github.com/Provable-Games/game-components.git?branch=main#090bf820b2d7b9c1c1b415cfc56947e81d72c250"
+dependencies = [
+ "ekubo",
+ "metagame_extensions_interfaces",
+]
+
+[[package]]
 name = "game_components_metagame"
-version = "1.5.1"
-source = "git+https://github.com/Provable-Games/game-components?tag=v2.13.1#960c84aae59239763a2a2a339e0c649b0527f07d"
+version = "1.1.3"
+source = "git+https://github.com/Provable-Games/game-components.git?branch=main#090bf820b2d7b9c1c1b415cfc56947e81d72c250"
 dependencies = [
- "game_components_minigame",
- "game_components_token",
- "game_components_utils",
+ "game_components_embeddable_game_standard",
+ "game_components_interfaces",
+ "game_components_utilities",
+ "metagame_extensions_interfaces",
  "openzeppelin_interfaces",
  "openzeppelin_introspection",
- "openzeppelin_token",
 ]
 
 [[package]]
-name = "game_components_minigame"
-version = "1.5.1"
-source = "git+https://github.com/Provable-Games/game-components?tag=v2.13.1#960c84aae59239763a2a2a339e0c649b0527f07d"
+name = "game_components_test_common"
+version = "1.1.3"
+source = "git+https://github.com/Provable-Games/game-components.git?branch=main#090bf820b2d7b9c1c1b415cfc56947e81d72c250"
 dependencies = [
+ "game_components_embeddable_game_standard",
+ "game_components_interfaces",
  "game_components_metagame",
- "game_components_token",
- "game_components_utils",
+ "game_components_utilities",
+ "metagame_extensions_interfaces",
+ "openzeppelin_access",
  "openzeppelin_interfaces",
  "openzeppelin_introspection",
  "openzeppelin_token",
+ "snforge_std",
 ]
 
 [[package]]
-name = "game_components_test_starknet"
-version = "1.5.1"
-source = "git+https://github.com/Provable-Games/game-components?tag=v2.13.1#960c84aae59239763a2a2a339e0c649b0527f07d"
-dependencies = [
- "game_components_metagame",
- "game_components_minigame",
- "game_components_token",
- "game_components_utils",
- "openzeppelin_interfaces",
- "openzeppelin_introspection",
- "openzeppelin_token",
-]
-
-[[package]]
-name = "game_components_token"
-version = "1.5.1"
-source = "git+https://github.com/Provable-Games/game-components?tag=v2.13.1#960c84aae59239763a2a2a339e0c649b0527f07d"
-dependencies = [
- "game_components_metagame",
- "game_components_minigame",
- "game_components_test_starknet",
- "game_components_utils",
- "openzeppelin_interfaces",
- "openzeppelin_introspection",
- "openzeppelin_token",
-]
-
-[[package]]
-name = "game_components_utils"
-version = "1.5.1"
-source = "git+https://github.com/Provable-Games/game-components?tag=v2.13.1#960c84aae59239763a2a2a339e0c649b0527f07d"
+name = "game_components_utilities"
+version = "1.1.3"
+source = "git+https://github.com/Provable-Games/game-components.git?branch=main#090bf820b2d7b9c1c1b415cfc56947e81d72c250"
 dependencies = [
  "alexandria_encoding",
- "game_components_metagame",
- "game_components_minigame",
- "game_components_token",
+ "game_components_embeddable_game_standard",
+ "game_components_interfaces",
  "graffiti",
 ]
 
 [[package]]
 name = "graffiti"
 version = "0.1.0"
-source = "git+https://github.com/ponderingdemocritus/graffiti?rev=bc569531791dbc71c6cd8d9bc154c34eedad31fe#bc569531791dbc71c6cd8d9bc154c34eedad31fe"
+source = "git+https://github.com/z-korp/graffiti#e0608cf9790c00e0e8b0eb99a63a55ef588785ce"
+
+[[package]]
+name = "metagame_extensions_interfaces"
+version = "0.1.2"
+source = "git+https://github.com/Provable-Games/metagame_extensions.git?tag=v0.1.2#296a62059593be6d91ca14e81b591211e4342b87"
 
 [[package]]
 name = "openzeppelin_access"
-version = "3.0.0-alpha.3"
-source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v3.0.0-alpha.3#ba2228ec4070c9a7ac08d2833ebcf6bcf7ff70ac"
+version = "3.0.0"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v3.0.0#ddd3338e787a3fbf4a92b366640a57ee364390cb"
 dependencies = [
  "openzeppelin_interfaces",
  "openzeppelin_introspection",
@@ -163,21 +171,21 @@ dependencies = [
 
 [[package]]
 name = "openzeppelin_interfaces"
-version = "2.1.0-alpha.0"
-source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v3.0.0-alpha.3#ba2228ec4070c9a7ac08d2833ebcf6bcf7ff70ac"
+version = "2.1.0"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v3.0.0#ddd3338e787a3fbf4a92b366640a57ee364390cb"
 
 [[package]]
 name = "openzeppelin_introspection"
-version = "3.0.0-alpha.3"
-source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v3.0.0-alpha.3#ba2228ec4070c9a7ac08d2833ebcf6bcf7ff70ac"
+version = "3.0.0"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v3.0.0#ddd3338e787a3fbf4a92b366640a57ee364390cb"
 dependencies = [
  "openzeppelin_interfaces",
 ]
 
 [[package]]
 name = "openzeppelin_token"
-version = "3.0.0-alpha.3"
-source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v3.0.0-alpha.3#ba2228ec4070c9a7ac08d2833ebcf6bcf7ff70ac"
+version = "3.0.0"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v3.0.0#ddd3338e787a3fbf4a92b366640a57ee364390cb"
 dependencies = [
  "openzeppelin_access",
  "openzeppelin_interfaces",
@@ -187,8 +195,8 @@ dependencies = [
 
 [[package]]
 name = "openzeppelin_utils"
-version = "2.1.0-alpha.0"
-source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v3.0.0-alpha.3#ba2228ec4070c9a7ac08d2833ebcf6bcf7ff70ac"
+version = "2.1.0"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v3.0.0#ddd3338e787a3fbf4a92b366640a57ee364390cb"
 dependencies = [
  "openzeppelin_interfaces",
 ]
@@ -201,10 +209,23 @@ source = "git+https://github.com/dojoengine/origami?tag=v1.7.0#1ddafcb8c33fe9697
 [[package]]
 name = "quest"
 version = "0.0.0"
-source = "git+https://github.com/cartridge-gg/arcade?rev=1c66ba7#1c66ba724c3e9fbec9f70a14a086c4daf460621b"
+source = "git+https://github.com/cartridge-gg/arcade.git?branch=main#9da344a040073182ed65c67863d43ee30aebc718"
 dependencies = [
  "dojo",
  "graffiti",
+]
+
+[[package]]
+name = "snforge_scarb_plugin"
+version = "0.58.1"
+source = "git+https://github.com/foundry-rs/starknet-foundry?tag=v0.58.1#5892ff56f01f18c76f3ebfd2af00c8088211c1d5"
+
+[[package]]
+name = "snforge_std"
+version = "0.58.1"
+source = "git+https://github.com/foundry-rs/starknet-foundry?tag=v0.58.1#5892ff56f01f18c76f3ebfd2af00c8088211c1d5"
+dependencies = [
+ "snforge_scarb_plugin",
 ]
 
 [[package]]
@@ -216,12 +237,13 @@ dependencies = [
  "alexandria_math",
  "dojo",
  "dojo_cairo_test",
- "game_components_metagame",
- "game_components_minigame",
- "game_components_token",
- "game_components_utils",
+ "game_components_embeddable_game_standard",
+ "game_components_interfaces",
+ "game_components_test_common",
+ "game_components_utilities",
  "graffiti",
  "openzeppelin_access",
+ "openzeppelin_interfaces",
  "openzeppelin_introspection",
  "openzeppelin_token",
  "origami_random",

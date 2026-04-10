@@ -3,7 +3,6 @@ import { Packer } from "../helpers/packer";
 import {
   unpackRunData,
   type RunData,
-  type SkillSlot,
 } from "../helpers/runDataPacking";
 import {
   BLOCK_BIT_COUNT,
@@ -22,7 +21,7 @@ export interface Row {
 }
 
 export class Game {
-  public id: number;
+  public id: bigint;
   public blocks: number[][];
   public blocksRaw: bigint;
   public rows: Row[];
@@ -33,10 +32,9 @@ export class Game {
   public started_at: number;
   public levelStarsRaw: bigint;
 
-  // Level system data (unpacked from run_data)
   public runData: RunData;
+  public runDataRaw: bigint;
 
-  // Convenience accessors for level data
   public get level(): number {
     return this.runData.currentLevel;
   }
@@ -52,71 +50,76 @@ export class Game {
   public get constraint2Progress(): number {
     return this.runData.constraint2Progress;
   }
-  public get bonusUsedThisLevel(): boolean {
-    return this.runData.bonusUsedThisLevel;
-  }
-  public get totalCubes(): number {
-    return this.runData.totalCubes;
-  }
   public get maxComboRun(): number {
     return this.runData.maxComboRun;
   }
   public get totalScore(): number {
     return this.runData.totalScore;
   }
-  public get freeMoves(): number {
-    return this.runData.freeMoves;
+
+  public get zoneId(): number {
+    return this.runData.zoneId;
   }
-  public get activeSlotCount(): number {
-    return this.runData.activeSlotCount;
+  public get currentDifficulty(): number {
+    return this.runData.currentDifficulty;
   }
-  public get slots(): [SkillSlot, SkillSlot, SkillSlot] {
-    return this.runData.slots;
+  public get endlessDepth(): number {
+    return this.runData.currentDifficulty;
   }
-  // Victory state
-  public get runCompleted(): boolean {
-    return this.runData.runCompleted;
+  public get zoneCleared(): boolean {
+    return this.runData.zoneCleared;
   }
-  public get cubesAvailable(): number {
-    return this.runData.totalCubes;
+  public get activeMutatorId(): number {
+    return this.runData.activeMutatorId;
   }
-  public get levelTransitionPending(): boolean {
-    return this.runData.levelTransitionPending;
+  public get mutatorMask(): number {
+    return this.runData.activeMutatorId;
+  }
+  public get bonusType(): number {
+    return this.runData.bonusType;
+  }
+  public get bonusCharges(): number {
+    return this.runData.bonusCharges;
+  }
+  public get bonusSlot(): number {
+    return this.runData.bonusSlot;
+  }
+  public get mode(): number {
+    return this.runData.mode;
   }
 
-  // Legacy compatibility - score now means levelScore
+  public get levelTransitionPending(): boolean {
+    return !this.over && this.blocksRaw === 0n;
+  }
+
+  // Legacy compatibility
   public get score(): number {
     return this.runData.levelScore;
   }
-  // Legacy compatibility - moves now means levelMoves
   public get moves(): number {
     return this.runData.levelMoves;
   }
 
   constructor(game: ComponentValue) {
-    this.id = game.game_id;
+    this.id = BigInt(game.game_id ?? 0);
     this.over = game.over ? true : false;
     this.started_at = game.started_at || 0;
     
-    // Unpack next_row
     this.next_row = Packer.sized_unpack(
       BigInt(game.next_row),
       BigInt(BLOCK_BIT_COUNT),
       DEFAULT_GRID_WIDTH
     );
 
-    // Per-level stats (stored directly in contract)
     this.combo = game.combo_counter || 0;
     this.max_combo = game.max_combo || 0;
 
-    // Unpack run_data (contains all level system data)
     const runDataBigInt = game.run_data ? BigInt(game.run_data) : BigInt(0);
+    this.runDataRaw = runDataBigInt;
     this.runData = unpackRunData(runDataBigInt);
 
-    // Level stars: 2 bits per level × 50 levels
     this.levelStarsRaw = game.level_stars ? BigInt(game.level_stars) : 0n;
 
-    // Destructure blocks and colors bitmaps into Rows and Blocks
     this.blocksRaw = game.blocks;
     this.blocks = Packer.sized_unpack(
       BigInt(game.blocks),
@@ -145,18 +148,6 @@ export class Game {
 
   public isOver(): boolean {
     return this.over;
-  }
-
-  // Helper methods for level system
-  public getTotalBonuses(): number {
-    return this.runData.slots.reduce((total, slot) => {
-      if (slot.skillId < 1 || slot.skillId > 5) return total;
-      return total + slot.charges;
-    }, 0);
-  }
-
-  public hasBonuses(): boolean {
-    return this.getTotalBonuses() > 0;
   }
 
   public getLevelStars(level: number): number {

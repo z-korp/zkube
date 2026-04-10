@@ -1,48 +1,64 @@
-import { useState } from "react";
 import { motion } from "motion/react";
 import {
   Check,
   Copy,
   Palette,
+  ChevronLeft,
   UserRound,
 } from "lucide-react";
-import { useDisconnect } from "@starknet-react/core";
-import { THEME_IDS, THEME_META } from "@/config/themes";
+import { THEME_IDS, THEME_META, getThemeColors, type ThemeId } from "@/config/themes";
 import { useMusicPlayer } from "@/contexts/hooks";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import { useNavigationStore } from "@/stores/navigationStore";
+import PageHeader from "@/ui/components/shared/PageHeader";
+import ImageAssets from "@/ui/theme/ImageAssets";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { useNavigationStore } from "@/stores/navigationStore";
-import GameButton from "@/ui/components/shared/GameButton";
-import { useTheme } from "@/ui/elements/theme-provider/hooks";
-import PageTopBar from "@/ui/navigation/PageTopBar";
-import ImageAssets from "@/ui/theme/ImageAssets";
-
-const truncateAddress = (address: string): string => {
-  if (address.length <= 14) return address;
-  return `${address.slice(0, 8)}...${address.slice(-6)}`;
-};
+import { useZoneProgress } from "@/hooks/useZoneProgress";
+import { useZStarBalance } from "@/hooks/useZStarBalance";
+import { ZONE_THEMES } from "@/hooks/useMapData";
+import { useAccount, useDisconnect } from "@starknet-react/core";
+import Connect from "@/ui/components/Connect";
+import ControllerConnector from "@cartridge/connector/controller";
+import { useMemo, useState } from "react";
 
 const toPercent = (value: number): number => Math.round(value * 100);
 
 const SettingsPage: React.FC = () => {
-  const goBack = useNavigationStore((state) => state.goBack);
-  const { account } = useAccountCustom();
-  const { username } = useControllerUsername();
-  const { disconnect } = useDisconnect();
   const { themeTemplate, setThemeTemplate } = useTheme();
+  const colors = getThemeColors(themeTemplate);
+  const goBack = useNavigationStore((s) => s.goBack);
+  const { username } = useControllerUsername();
+  const { account } = useAccountCustom();
+  const { connector } = useAccount();
+  const { disconnect } = useDisconnect();
+  const [copied, setCopied] = useState(false);
+  const { balance: zStarBalance } = useZStarBalance(account?.address);
+  const { zones } = useZoneProgress(account?.address, zStarBalance);
+
+  const unlockedThemes = useMemo(() => {
+    const themeSet = new Set<ThemeId>();
+    for (const zone of zones) {
+      if (zone.unlocked) {
+        const themeId = ZONE_THEMES[zone.zoneId - 1];
+        if (themeId) themeSet.add(themeId);
+      }
+    }
+    // Fallback: always include at least theme-1
+    if (themeSet.size === 0) themeSet.add("theme-1");
+    return THEME_IDS.filter((id) => themeSet.has(id));
+  }, [zones]);
   const { musicVolume, effectsVolume, setMusicVolume, setEffectsVolume } =
     useMusicPlayer();
 
-  const [copied, setCopied] = useState(false);
-
-  const accountAddress = account?.address;
-  const resolvedUsername = username ?? "Controller User";
+  const truncatedAddress = account?.address
+    ? `${account.address.slice(0, 8)}...${account.address.slice(-6)}`
+    : "Not connected";
 
   const handleCopyAddress = async () => {
-    if (!accountAddress) return;
-
+    if (!account?.address) return;
     try {
-      await navigator.clipboard.writeText(accountAddress);
+      await navigator.clipboard.writeText(account.address);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1400);
     } catch {
@@ -51,26 +67,42 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="h-screen-viewport flex flex-col overflow-hidden">
-      <PageTopBar title="SETTINGS" onBack={goBack} />
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden pb-[100px] pt-12">
+      <PageHeader
+        title="Settings"
+        leftSlot={
+          <button
+            onClick={goBack}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] shadow-lg backdrop-blur-md transition-all hover:bg-white/[0.08] active:scale-95"
+            aria-label="Go Back"
+          >
+            <ChevronLeft size={20} className="text-white/80" />
+          </button>
+        }
+      />
 
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4">
-        <div className="max-w-[760px] mx-auto flex flex-col gap-4 pb-20">
+      <div className="mx-4 mt-2 mb-4 flex-1 min-h-0 overflow-y-auto hide-scrollbar">
+        <div className="max-w-[760px] mx-auto flex flex-col gap-4">
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.22 }}
-            className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
+            className="backdrop-blur-xl bg-white/[0.04] border border-white/[0.08] rounded-2xl shadow-lg shadow-black/20 p-4"
           >
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg">🎵</span>
-              <h2 className="font-['Fredericka_the_Great'] text-lg text-white tracking-wide">
+              <h2 className="font-display text-lg tracking-wide" style={{ color: colors.text }}>
                 AUDIO
               </h2>
             </div>
 
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 24 }}
+                className="flex items-center gap-3"
+              >
                 <span className="text-base shrink-0">🎵</span>
                 <input
                   type="range"
@@ -81,14 +113,20 @@ const SettingsPage: React.FC = () => {
                   onChange={(event) =>
                     setMusicVolume(Number(event.target.value) / 100)
                   }
-                  className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-slate-600 accent-cyan-400"
+                  className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-white/10"
+                  style={{ accentColor: colors.accent }}
                 />
-                <span className="font-['Fredericka_the_Great'] text-cyan-200 text-lg tracking-wider w-8 text-right">
+                <span className="font-display text-lg tracking-wider w-8 text-right" style={{ color: colors.accent }}>
                   {toPercent(musicVolume)}
                 </span>
-              </div>
+              </motion.div>
 
-              <div className="flex items-center gap-3">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 24 }}
+                className="flex items-center gap-3"
+              >
                 <span className="text-base shrink-0">🔔</span>
                 <input
                   type="range"
@@ -99,12 +137,13 @@ const SettingsPage: React.FC = () => {
                   onChange={(event) =>
                     setEffectsVolume(Number(event.target.value) / 100)
                   }
-                  className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-slate-600 accent-emerald-400"
+                  className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-white/10"
+                  style={{ accentColor: colors.accent2 }}
                 />
-                <span className="font-['Fredericka_the_Great'] text-emerald-200 text-lg tracking-wider w-8 text-right">
+                <span className="font-display text-lg tracking-wider w-8 text-right" style={{ color: colors.accent2 }}>
                   {toPercent(effectsVolume)}
                 </span>
-              </div>
+              </motion.div>
             </div>
           </motion.section>
 
@@ -112,22 +151,25 @@ const SettingsPage: React.FC = () => {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.04 }}
-            className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
+            className="backdrop-blur-xl bg-white/[0.04] border border-white/[0.08] rounded-2xl shadow-lg shadow-black/20 p-4"
           >
             <div className="flex items-center gap-2 mb-3">
-              <Palette size={18} className="text-amber-300" />
-              <h2 className="font-['Fredericka_the_Great'] text-lg text-white tracking-wide">
+              <Palette size={18} style={{ color: colors.accent }} />
+              <h2 className="font-display text-lg tracking-wide" style={{ color: colors.text }}>
                 THEME
               </h2>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {THEME_IDS.map((themeId) => {
+              <div className="flex flex-wrap gap-2">
+              {unlockedThemes.map((themeId, index) => {
                 const themeAssets = ImageAssets(themeId);
                 const isSelected = themeTemplate === themeId;
 
                 return (
                   <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 + index * 0.03, type: "spring", stiffness: 300, damping: 24 }}
                     key={themeId}
                     type="button"
                     whileTap={{ scale: 0.93 }}
@@ -135,9 +177,12 @@ const SettingsPage: React.FC = () => {
                     title={THEME_META[themeId].name}
                     className={`relative rounded-xl border overflow-hidden transition-colors w-14 h-14 flex items-center justify-center ${
                       isSelected
-                        ? "border-yellow-300 bg-yellow-500/15"
-                        : "border-slate-600/70 bg-slate-900/40 hover:border-slate-400"
+                        ? "bg-white/10"
+                        : "border-white/[0.08] bg-white/[0.02] hover:border-white/[0.15]"
                     }`}
+                    style={{
+                      borderColor: isSelected ? colors.accent : undefined,
+                    }}
                   >
                     <img
                       src={themeAssets.themeIcon}
@@ -148,7 +193,8 @@ const SettingsPage: React.FC = () => {
                     {isSelected && (
                       <Check
                         size={14}
-                        className="absolute bottom-1 right-1 text-yellow-200 drop-shadow-md"
+                        className="absolute bottom-1 right-1 drop-shadow-md"
+                        style={{ color: colors.accent }}
                       />
                     )}
                   </motion.button>
@@ -158,36 +204,45 @@ const SettingsPage: React.FC = () => {
           </motion.section>
 
           <motion.section
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.08 }}
-            className="bg-slate-900/90 rounded-xl p-4 border border-white/10"
+            className="rounded-2xl border border-white/[0.12] bg-white/[0.08] p-4 backdrop-blur-xl"
           >
-            <div className="flex items-center gap-2 mb-3">
-              <UserRound size={18} className="text-indigo-300" />
-              <h2 className="font-['Fredericka_the_Great'] text-lg text-white tracking-wide">
-                ACCOUNT
-              </h2>
-            </div>
+            <h3 className="mb-3 flex items-center gap-2 font-sans text-base font-bold text-white">
+              <UserRound size={16} style={{ color: colors.accent }} />
+              Account
+            </h3>
 
-            {accountAddress ? (
+            {account ? (
               <div className="space-y-3">
-                <div className="rounded-lg border border-slate-700/50 bg-slate-900/50 p-3">
-                  <p className="text-xs text-slate-400 mb-1">Username</p>
-                  <p className="text-white text-sm">{resolvedUsername}</p>
+                <div className="rounded-xl border border-white/[0.1] bg-white/[0.05] px-3 py-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.1em] text-white/55">Username</p>
+                      <p className="font-sans text-base font-semibold text-white">{username ?? "Controller User"}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const cc = connector as ControllerConnector;
+                        cc?.controller?.openProfile?.();
+                      }}
+                      className="inline-flex items-center gap-1 rounded-lg border border-white/[0.15] bg-white/[0.08] px-2.5 py-1.5 font-sans text-xs font-semibold text-white/80"
+                    >
+                      Controller
+                    </button>
+                  </div>
                 </div>
 
-                <div className="rounded-lg border border-slate-700/50 bg-slate-900/50 p-3">
-                  <p className="text-xs text-slate-400 mb-1">Wallet Address</p>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-white text-sm truncate">
-                      {truncateAddress(accountAddress)}
-                    </p>
+                <div className="rounded-xl border border-white/[0.1] bg-white/[0.05] px-3 py-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.1em] text-white/55">Wallet Address</p>
+                      <p className="font-sans text-sm font-semibold text-white/90">{truncatedAddress}</p>
+                    </div>
                     <button
-                      type="button"
                       onClick={handleCopyAddress}
-                      className="inline-flex items-center gap-1 text-xs text-slate-200 hover:text-white"
-                      title={copied ? "Copied" : "Copy address"}
+                      className="inline-flex items-center gap-1 rounded-lg border border-white/[0.15] bg-white/[0.08] px-2.5 py-1.5 font-sans text-xs font-semibold text-white/80"
                     >
                       {copied ? <Check size={14} /> : <Copy size={14} />}
                       {copied ? "Copied" : "Copy"}
@@ -195,20 +250,17 @@ const SettingsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <GameButton
-                  label="DISCONNECT"
-                  variant="danger"
+                <button
                   onClick={() => disconnect()}
-                />
+                  className="w-full rounded-xl border border-red-400/35 bg-red-500/15 py-2.5 font-sans text-sm font-bold text-red-300 transition-colors hover:bg-red-500/25"
+                >
+                  Disconnect
+                </button>
               </div>
             ) : (
-              <div className="rounded-lg border border-slate-700/50 bg-slate-900/50 p-4 text-sm text-slate-300">
-                Connect a wallet to manage your account settings.
-              </div>
+              <Connect />
             )}
           </motion.section>
-
-
         </div>
       </div>
     </div>

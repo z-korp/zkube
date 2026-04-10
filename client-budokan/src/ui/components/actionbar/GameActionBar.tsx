@@ -1,6 +1,7 @@
+import { useMemo } from "react";
 import { motion } from "motion/react";
-import { Map, Flag, Settings, Volume2, VolumeX } from "lucide-react";
-import { BonusType } from "@/dojo/game/types/bonus";
+import { Flag, Settings, Volume2, VolumeX } from "lucide-react";
+import { BonusType } from "@/dojo/game/types/bonusTypes";
 import {
   Tooltip,
   TooltipContent,
@@ -15,29 +16,62 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/ui/elements/dialog";
+
 import { Slider } from "@/ui/elements/slider";
 import { Button } from "@/ui/elements/button";
 import { useMusicPlayer } from "@/contexts/hooks";
+import { ActionBarSvg, ACTION_BAR, circleToPercent } from "@/ui/components/chrome";
+import { getZoneGuardian, getGuardianPortrait } from "@/config/bossCharacters";
+import { getMutatorDef } from "@/config/mutatorConfig";
+import { useMutatorDef } from "@/hooks/useMutatorDef";
 
-interface BonusSlot {
+
+export interface BonusSlot {
   type: BonusType;
-  count: number;
-  level: number;
-  bagSize: number;
+  charges: number;
+  isActive: boolean; // This is the slot the game rolled
   icon: string;
-  tooltip: string;
+  name: string;
+  description: string;
+  triggerDescription: string; // e.g. "Chain 4 combos"
+  startingCharges: number;
   onClick: () => void;
-  isPassive?: boolean;
-  archetypeColor?: string;
 }
 
 interface GameActionBarProps {
   bonusSlots: BonusSlot[];
-  activeBonus: BonusType;
+  activeBonus: BonusType; // Currently selected for use (toggled by player)
   bonusDescription: string;
   onSurrender: () => void;
-  onMap: () => void;
   isGameOver: boolean;
+  mode?: number; // 0=story, 1=endless
+  zoneId?: number;
+  activeMutatorId?: number;
+}
+
+const TRIGGER_TYPE_LABELS: Record<number, string> = {
+  1: "combo",
+  2: "lines cleared",
+  3: "points scored",
+};
+
+export function buildTriggerDescription(
+  triggerType: number,
+  triggerThreshold: number,
+  startingCharges: number,
+): string {
+  if (triggerType === 0 || triggerThreshold === 0) return "";
+  const label = TRIGGER_TYPE_LABELS[triggerType] ?? "threshold";
+  const parts: string[] = [];
+  if (triggerType === 1) {
+    parts.push(`Every ${triggerThreshold} ${label}`);
+  } else {
+    parts.push(`Every ${triggerThreshold} ${label}`);
+  }
+  if (startingCharges > 0) {
+    parts.push(`Start with ${startingCharges}`);
+  }
+  return parts.join(" · ");
 }
 
 const GameActionBar: React.FC<GameActionBarProps> = ({
@@ -45,8 +79,10 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
   activeBonus,
   bonusDescription,
   onSurrender,
-  onMap,
   isGameOver,
+  mode = 0,
+  zoneId = 1,
+  activeMutatorId = 0,
 }) => {
   const {
     musicVolume,
@@ -58,105 +94,37 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
     stopTheme,
   } = useMusicPlayer();
 
+  const isEndless = mode === 1;
+  const guardian = useMemo(() => getZoneGuardian(zoneId), [zoneId]);
+  const portraitSrc = useMemo(() => getGuardianPortrait(zoneId), [zoneId]);
+  const { data: onChainMutator } = useMutatorDef(activeMutatorId);
+  const mutator = getMutatorDef(activeMutatorId);
+
   if (isGameOver) return null;
 
   return (
-    <div className="w-full px-2 pb-2 shrink-0">
+    <div className="w-full shrink-0">
       {activeBonus !== BonusType.None && bonusDescription && (
-        <div className="mb-1 text-center text-xs font-semibold uppercase tracking-wide text-yellow-300">
+        <div className="mb-1 text-center font-sans text-xs font-semibold uppercase tracking-wide text-yellow-300">
           {bonusDescription}
         </div>
       )}
-      <div className="max-w-[500px] mx-auto w-full flex items-center justify-center gap-[clamp(4px,1.5vw,10px)] bg-slate-900/90 backdrop-blur-sm border border-slate-500/50 rounded-lg px-[clamp(8px,2vw,14px)] py-[clamp(8px,2vw,14px)]">
-        <motion.button
-          onClick={onMap}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className="w-[clamp(38px,10vw,48px)] h-[clamp(38px,10vw,48px)] rounded-full flex items-center justify-center bg-slate-700/30 hover:bg-slate-600/40 text-slate-400 hover:text-slate-300 transition-colors shrink-0"
-        >
-          <Map className="w-[clamp(18px,4.5vw,22px)] h-[clamp(18px,4.5vw,22px)]" />
-        </motion.button>
+      {/* Action bar with SVG chrome — respect aspect ratio, centered */}
+      <div className="relative mx-auto max-w-full">
+        <ActionBarSvg />
 
-        <div className="w-px h-[clamp(30px,7vw,38px)] bg-slate-700" />
-
-        {bonusSlots.map((slot, idx) => {
-          const isPassive = slot.isPassive ?? false;
-          const isActive = !isPassive && activeBonus === slot.type;
-          const isDisabled = !isPassive && slot.count === 0;
-          const arcColor = slot.archetypeColor ?? '#8b5cf6';
-
-          return (
-            <TooltipProvider key={`${slot.type}-${idx}`} delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <motion.button
-                    onClick={isPassive ? undefined : slot.onClick}
-                    disabled={isPassive || isDisabled}
-                    whileHover={isPassive || isDisabled ? undefined : { scale: 1.1 }}
-                    whileTap={isPassive || isDisabled ? undefined : { scale: 0.9 }}
-                    className={`relative w-[clamp(48px,13vw,64px)] h-[clamp(48px,13vw,64px)] rounded-full overflow-visible flex items-center justify-center transition-all ${
-                      isPassive
-                        ? 'cursor-default opacity-90'
-                        : isActive
-                          ? 'ring-2 ring-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.3)]'
-                          : isDisabled
-                            ? 'opacity-40 cursor-not-allowed'
-                            : 'hover:ring-1 hover:ring-slate-500 cursor-pointer'
-                    }`}
-                    style={isPassive ? { boxShadow: `0 0 10px ${arcColor}30` } : undefined}
-                  >
-                    <img
-                      src={slot.icon}
-                      alt={slot.type}
-                      className={`w-full h-full rounded-full object-cover ${
-                        isDisabled && !isPassive ? 'grayscale opacity-60' : ''
-                      }`}
-                    />
-                    <span
-                      className="absolute -bottom-0.5 -left-0.5 text-[clamp(9px,2.2vw,12px)] font-bold rounded-full w-[clamp(20px,5vw,24px)] h-[clamp(20px,5vw,24px)] flex items-center justify-center text-white z-10"
-                      style={{ backgroundColor: isPassive ? arcColor : undefined }}
-                    >
-                      {isPassive ? (
-                        <span className="text-[clamp(7px,1.8vw,9px)]">{slot.level}</span>
-                      ) : (
-                        <span className="bg-indigo-500 rounded-full w-full h-full flex items-center justify-center">{slot.level + 1}</span>
-                      )}
-                    </span>
-                    {!isPassive && (
-                      <span
-                        className={`absolute -top-0.5 -right-0.5 text-[clamp(8px,2vw,11px)] font-bold rounded-full min-w-[clamp(20px,5vw,24px)] h-[clamp(20px,5vw,24px)] flex items-center justify-center px-0.5 ${
-                          isDisabled
-                            ? 'bg-slate-600 text-slate-400'
-                            : 'bg-yellow-500 text-white'
-                        }`}
-                      >
-                        {slot.count}/{slot.bagSize}
-                      </span>
-                    )}
-                  </motion.button>
-                </TooltipTrigger>
-                <TooltipContent
-                  side="top"
-                  className="bg-slate-900 border border-slate-500 text-white px-3 py-1.5 shadow-lg"
-                >
-                  <span className="text-xs font-medium">{slot.tooltip}</span>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          );
-        })}
-
-        <div className="w-px h-[clamp(30px,7vw,38px)] bg-slate-700" />
-
-
+        {/* Overlay div for interactive elements */}
+        <div className="absolute inset-0">
+        {/* Surrender — left socket */}
         <Dialog>
           <DialogTrigger asChild>
             <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="w-[clamp(38px,10vw,48px)] h-[clamp(38px,10vw,48px)] rounded-full flex items-center justify-center bg-red-900/30 hover:bg-red-800/40 text-red-400 hover:text-red-300 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.92 }}
+              className="absolute rounded-full flex items-center justify-center text-red-400 hover:text-red-300 transition-colors"
+              style={circleToPercent(ACTION_BAR.sockets.surrender, ACTION_BAR.viewBox)}
             >
-              <Flag className="w-[clamp(18px,4.5vw,22px)] h-[clamp(18px,4.5vw,22px)]" />
+              <Flag className="w-[40%] h-[40%] drop-shadow-md" />
             </motion.button>
           </DialogTrigger>
           <DialogContent className="max-w-sm">
@@ -175,11 +143,104 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
           </DialogContent>
         </Dialog>
 
+        {/* Center socket — bonus (story) or guardian (endless) */}
+        <div
+          className="absolute flex items-center justify-center"
+          style={circleToPercent(ACTION_BAR.sockets.bonus, ACTION_BAR.viewBox)}
+        >
+          {isEndless ? (
+            /* ─── Endless: guardian portrait + rules tooltip ─── */
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="w-full h-full rounded-full overflow-hidden cursor-pointer">
+                    <img
+                      src={portraitSrc}
+                      alt={guardian.name}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg max-w-[220px]">
+                  <div className="flex flex-col gap-1">
+                    <span className="font-sans text-xs font-bold">{guardian.name} · {guardian.title}</span>
+                    <span className="font-sans text-[11px] text-slate-300">{guardian.encouragement}</span>
+                    {activeMutatorId > 0 && (
+                      <span className="font-sans text-[10px] text-yellow-400/90 mt-0.5">
+                        {mutator.icon} {mutator.name}: {mutator.description}
+                      </span>
+                    )}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            /* ─── Story: bonus button — disabled at 0 but icon stays vivid ─── */
+            bonusSlots.map((slot, idx) => {
+              const isSelected = activeBonus === slot.type;
+              const hasCharges = slot.charges > 0;
+
+              return (
+                <TooltipProvider key={`${slot.type}-${idx}`} delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <motion.button
+                        onClick={hasCharges ? slot.onClick : undefined}
+                        disabled={!hasCharges}
+                        whileHover={{ scale: 1.08 }}
+                        whileTap={hasCharges ? { scale: 0.92 } : undefined}
+                        className={`relative w-full h-full overflow-visible flex items-center justify-center cursor-pointer transition-all ${
+                          isSelected
+                            ? "drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]"
+                            : ""
+                        }`}
+                      >
+                        <img
+                          src={slot.icon}
+                          alt={slot.name}
+                          className="w-[60%] h-[60%] object-contain"
+                        />
+                        <span
+                          className={`absolute -bottom-1 -right-1 font-sans text-[clamp(8px,2vw,14px)] font-bold rounded-full min-w-[clamp(16px,4vw,26px)] h-[clamp(16px,4vw,26px)] flex items-center justify-center px-0.5 shadow-[0_0_4px_rgba(0,0,0,0.5)] z-10 ${
+                            hasCharges
+                              ? "bg-yellow-500 border border-yellow-400/50 text-white"
+                              : "bg-slate-700 border border-slate-500 text-slate-400"
+                          }`}
+                        >
+                          {slot.charges}
+                        </span>
+                      </motion.button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="top"
+                      className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg max-w-[220px]"
+                    >
+                      <div className="flex flex-col gap-1">
+                        <span className="font-sans text-xs font-bold">{slot.name}</span>
+                        <span className="font-sans text-[11px] text-slate-300">{slot.description}</span>
+                        {slot.triggerDescription && (
+                          <span className="font-sans text-[10px] text-yellow-400/90 mt-0.5">{slot.triggerDescription}</span>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              );
+            })
+          )}
+        </div>
+
+        {/* Settings — right socket */}
         <Dialog>
           <DialogTrigger asChild>
-            <button className="w-[clamp(38px,10vw,48px)] h-[clamp(38px,10vw,48px)] rounded-full flex items-center justify-center bg-slate-700/30 hover:bg-slate-600/40 text-slate-400 hover:text-slate-300 transition-all hover:scale-110 active:scale-90">
-              <Settings className="w-[clamp(18px,4.5vw,22px)] h-[clamp(18px,4.5vw,22px)]" />
-            </button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.92 }}
+              className="absolute rounded-full flex items-center justify-center text-slate-400 hover:text-slate-200 transition-colors"
+              style={circleToPercent(ACTION_BAR.sockets.settings, ACTION_BAR.viewBox)}
+            >
+              <Settings className="w-[40%] h-[40%] drop-shadow-md" />
+            </motion.button>
           </DialogTrigger>
           <DialogContent className="max-w-sm">
             <DialogHeader>
@@ -226,6 +287,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
     </div>
   );

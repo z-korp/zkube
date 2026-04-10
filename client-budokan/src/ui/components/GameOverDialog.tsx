@@ -38,8 +38,8 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
   // Contextual subtitle based on performance
   const subtitle = useMemo(() => {
     if (isNewBestLevel && game.level > 1) return "New personal best!";
-    if ((PRE_BOSS_LEVELS as readonly number[]).includes(game.level)) return "So close to the boss...";
-    if (BOSS_LEVELS.includes(game.level as typeof BOSS_LEVELS[number]) && game.level < LEVEL_CAP) return "Fell to the boss...";
+    if ((PRE_BOSS_LEVELS as readonly number[]).includes(game.level)) return "So close to the guardian...";
+    if (BOSS_LEVELS.includes(game.level as typeof BOSS_LEVELS[number]) && game.level < LEVEL_CAP) return "Fell to the guardian...";
     if (game.level >= 40) return "Legendary run!";
     if (game.level >= 25) return "Incredible run!";
     if (game.level >= 10) return "Nice run!";
@@ -72,7 +72,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
     } else if (level >= 25) {
       opener = `Level ${level} down on @zkube_game!`;
     } else if (BOSS_LEVELS.includes(level as typeof BOSS_LEVELS[number])) {
-      opener = `Just beat the Level ${level} boss on @zkube_game!`;
+      opener = `Just beat the Level ${level} guardian on @zkube_game!`;
     } else if ((PRE_BOSS_LEVELS as readonly number[]).includes(level)) {
       opener = `So close! Reached Level ${level} on @zkube_game`;
     } else if (level >= 10) {

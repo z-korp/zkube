@@ -1,5 +1,5 @@
 //! Shared scoring and combo logic.
-//! Consolidates duplicate scoring code from GameTrait::make_move() and apply_bonus().
+//! Consolidates duplicate scoring code for move resolution.
 
 use zkube::helpers::packing::RunData;
 
@@ -53,10 +53,10 @@ pub fn update_combo_tracking(
     }
 }
 
-/// Process lines cleared after a move or bonus application.
+/// Process lines cleared after a move.
 /// This is the main entry point that combines:
 /// - Combo tracking (combo_counter, max_combo, max_combo_run)
-/// - No global combo-cube rewards (handled by charge system and explicit skill effects)
+/// - No external reward side-effects (pure run_data/combo mutation)
 pub fn process_lines_cleared(
     ref run_data: RunData, ref combo_counter: u8, ref max_combo: u8, lines_cleared: u8,
 ) {
@@ -75,7 +75,7 @@ pub fn apply_combo_scoring(ref run_data: RunData, combo_counter: u8, lines_clear
 }
 
 /// Update score after points earned from line clearing.
-/// Handles both level_score (u8, max 255) and total_score (u16, max 65535).
+/// Handles both level_score (u8, max 255) and total_score (u32).
 #[inline(always)]
 pub fn update_score(ref run_data: RunData, points: u16) {
     // Update level score (cap at 255 for u8)
@@ -86,11 +86,13 @@ pub fn update_score(ref run_data: RunData, points: u16) {
         new_score.try_into().unwrap()
     };
 
-    // Accumulate total score (cap at 65535 for u16)
-    let new_total: u32 = run_data.total_score.into() + points.into();
-    run_data.total_score = if new_total > 65535 {
-        65535
-    } else {
-        new_total.try_into().unwrap()
-    };
+    // Accumulate total score (cap at max u32)
+    let new_total: u64 = run_data.total_score.into() + points.into();
+    run_data
+        .total_score =
+            if new_total > 0xFFFFFFFF {
+                0xFFFFFFFF
+            } else {
+                new_total.try_into().unwrap()
+            };
 }

@@ -1,253 +1,232 @@
-/// Quest index - enumerates all quests and their properties
-
-// External imports
-pub use quest::types::metadata::{QuestMetadata, QuestMetadataTrait};
-pub use quest::types::reward::QuestReward;
-pub use quest::types::task::Task as QuestTask;
+use quest::types::metadata::{QuestMetadata, QuestMetadataTrait};
+use quest::types::reward::{QuestReward, RewardTrait};
+use quest::types::task::{Task, TaskTrait};
 use starknet::ContractAddress;
+use zkube::elements::tasks::index::Task as ZTask;
+use zkube::elements::tasks::interface::TaskTrait as ZTaskTrait;
 
-// Internal imports
-use crate::elements::quests;
-pub use crate::elements::quests::interface::QuestTrait;
-pub use crate::elements::tasks::index::{Task, TaskTrait};
+pub const QUEST_LINE_SWEEPER: felt252 = 'QUEST_LINE_SWEEPER';
+pub const QUEST_COMBO_CHAIN: felt252 = 'QUEST_COMBO_CHAIN';
+pub const QUEST_COMBO_STREAK: felt252 = 'QUEST_COMBO_STREAK';
+pub const QUEST_BIG_COMBO: felt252 = 'QUEST_BIG_COMBO';
+pub const QUEST_BONUS_USER: felt252 = 'QUEST_BONUS_USER';
+pub const QUEST_DAILY_PLAYER: felt252 = 'QUEST_DAILY_PLAYER';
+pub const QUEST_STREAK_HUNTER: felt252 = 'QUEST_STREAK_HUNTER';
+pub const QUEST_ZONE_RUNNER: felt252 = 'QUEST_ZONE_RUNNER';
+pub const QUEST_PERFECT_MOVE: felt252 = 'QUEST_PERFECT_MOVE';
+pub const QUEST_DAILY_FINISHER: felt252 = 'QUEST_DAILY_FINISHER';
+pub const QUEST_WEEKLY_GRINDER: felt252 = 'QUEST_WEEKLY_GRINDER';
+pub const QUEST_WEEKLY_EXPLORER: felt252 = 'QUEST_WEEKLY_EXPLORER';
 
-// Constants
+const DAY: u64 = 86400;
+const THREE_DAYS: u64 = 259200;
+const WEEK: u64 = 604800;
+/// Monday-aligned offset (Unix epoch was Thursday; +4 days = Monday)
+const MONDAY_OFFSET: u64 = 345600;
 
-pub const QUEST_COUNT: u8 = 13;
-pub const ONE_DAY: u64 = 24 * 60 * 60; // 86400 seconds
-
-// Quest rewards (in CUBE tokens)
-pub const REWARD_PLAYER_ONE: u8 = 3;
-pub const REWARD_PLAYER_TWO: u8 = 5;
-pub const REWARD_PLAYER_THREE: u8 = 10;
-pub const REWARD_CLEARER_ONE: u8 = 3;
-pub const REWARD_CLEARER_TWO: u8 = 5;
-pub const REWARD_CLEARER_THREE: u8 = 10;
-pub const REWARD_COMBO_ONE: u8 = 3;
-pub const REWARD_COMBO_TWO: u8 = 5;
-pub const REWARD_COMBO_THREE: u8 = 10;
-pub const REWARD_COMBO_STREAK_ONE: u8 = 3;
-pub const REWARD_COMBO_STREAK_TWO: u8 = 5;
-pub const REWARD_COMBO_STREAK_THREE: u8 = 10;
-pub const REWARD_FINISHER: u8 = 20;
-
-/// Icon URL for quest rewards display
-pub fn ICON() -> ByteArray {
-    "https://zkube.gg/assets/cube-icon.png"
-}
-
-// Types
-
-/// Quest type enumeration
-#[derive(Copy, Drop)]
-pub enum QuestType {
-    None,
-    DailyPlayerOne,
-    DailyPlayerTwo,
-    DailyPlayerThree,
-    DailyClearerOne,
-    DailyClearerTwo,
-    DailyClearerThree,
-    DailyComboOne,
-    DailyComboTwo,
-    DailyComboThree,
-    DailyComboStreakOne,
-    DailyComboStreakTwo,
-    DailyComboStreakThree,
-    DailyFinisher,
-}
-
-/// Quest properties structure
-#[derive(Clone, Drop, Serde)]
-pub struct QuestProps {
+#[derive(Drop)]
+pub struct QuestDefinitionProps {
     pub id: felt252,
     pub start: u64,
     pub end: u64,
     pub duration: u64,
     pub interval: u64,
-    pub tasks: Array<QuestTask>,
-    pub conditions: Array<felt252>,
+    pub tasks: Span<Task>,
+    pub conditions: Span<felt252>,
     pub metadata: QuestMetadata,
 }
 
-// Implementations
-
 #[generate_trait]
-pub impl QuestImpl of IQuest {
-    /// Get the unique identifier for this quest type
-    fn identifier(self: QuestType) -> felt252 {
-        match self {
-            QuestType::DailyPlayerOne => quests::player::DailyPlayerOne::identifier(),
-            QuestType::DailyPlayerTwo => quests::player::DailyPlayerTwo::identifier(),
-            QuestType::DailyPlayerThree => quests::player::DailyPlayerThree::identifier(),
-            QuestType::DailyClearerOne => quests::clearer::DailyClearerOne::identifier(),
-            QuestType::DailyClearerTwo => quests::clearer::DailyClearerTwo::identifier(),
-            QuestType::DailyClearerThree => quests::clearer::DailyClearerThree::identifier(),
-            QuestType::DailyComboOne => quests::combo::DailyComboOne::identifier(),
-            QuestType::DailyComboTwo => quests::combo::DailyComboTwo::identifier(),
-            QuestType::DailyComboThree => quests::combo::DailyComboThree::identifier(),
-            QuestType::DailyComboStreakOne => quests::combo_streak::DailyComboStreakOne::identifier(),
-            QuestType::DailyComboStreakTwo => quests::combo_streak::DailyComboStreakTwo::identifier(),
-            QuestType::DailyComboStreakThree => quests::combo_streak::DailyComboStreakThree::identifier(),
-            QuestType::DailyFinisher => quests::finisher::DailyFinisher::identifier(),
-            QuestType::None => 0,
-        }
+pub impl QuestDefsImpl of QuestDefsTrait {
+    fn all(registry: ContractAddress) -> Array<QuestDefinitionProps> {
+        array![
+            Self::line_sweeper(registry), Self::bonus_user(registry), Self::streak_hunter(registry),
+            Self::combo_streak(registry), Self::daily_player(registry),
+            Self::perfect_move(registry), Self::big_combo(registry), Self::zone_runner(registry),
+            Self::combo_chain(registry), Self::daily_finisher(registry),
+            Self::weekly_grinder(registry), Self::weekly_explorer(registry),
+        ]
     }
 
-    /// Get the quest properties for this quest type
-    fn props(self: QuestType, registry: ContractAddress) -> QuestProps {
-        match self {
-            QuestType::DailyPlayerOne => quests::player::DailyPlayerOne::props(registry),
-            QuestType::DailyPlayerTwo => quests::player::DailyPlayerTwo::props(registry),
-            QuestType::DailyPlayerThree => quests::player::DailyPlayerThree::props(registry),
-            QuestType::DailyClearerOne => quests::clearer::DailyClearerOne::props(registry),
-            QuestType::DailyClearerTwo => quests::clearer::DailyClearerTwo::props(registry),
-            QuestType::DailyClearerThree => quests::clearer::DailyClearerThree::props(registry),
-            QuestType::DailyComboOne => quests::combo::DailyComboOne::props(registry),
-            QuestType::DailyComboTwo => quests::combo::DailyComboTwo::props(registry),
-            QuestType::DailyComboThree => quests::combo::DailyComboThree::props(registry),
-            QuestType::DailyComboStreakOne => quests::combo_streak::DailyComboStreakOne::props(
-                registry,
-            ),
-            QuestType::DailyComboStreakTwo => quests::combo_streak::DailyComboStreakTwo::props(
-                registry,
-            ),
-            QuestType::DailyComboStreakThree => quests::combo_streak::DailyComboStreakThree::props(
-                registry,
-            ),
-            QuestType::DailyFinisher => quests::finisher::DailyFinisher::props(registry),
-            _ => Default::default(),
-        }
+    // ── Group 1 daily (start=0, duration=DAY, interval=THREE_DAYS) ──
+
+    fn line_sweeper(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_LINE_SWEEPER,
+            0,
+            DAY,
+            THREE_DAYS,
+            array![task(ZTask::LineClear, 20)].span(),
+            array![].span(),
+            metadata(registry, "Line Sweeper", "Clear 20 lines", 1),
+        )
     }
 
-    /// Get the reward amount and optional achievement task for this quest
-    fn reward(self: QuestType) -> (u8, Task) {
-        match self {
-            QuestType::DailyPlayerOne => (REWARD_PLAYER_ONE, Task::None),
-            QuestType::DailyPlayerTwo => (REWARD_PLAYER_TWO, Task::None),
-            QuestType::DailyPlayerThree => (REWARD_PLAYER_THREE, Task::None),
-            QuestType::DailyClearerOne => (REWARD_CLEARER_ONE, Task::None),
-            QuestType::DailyClearerTwo => (REWARD_CLEARER_TWO, Task::None),
-            QuestType::DailyClearerThree => (REWARD_CLEARER_THREE, Task::None),
-            QuestType::DailyComboOne => (REWARD_COMBO_ONE, Task::None),
-            QuestType::DailyComboTwo => (REWARD_COMBO_TWO, Task::None),
-            QuestType::DailyComboThree => (REWARD_COMBO_THREE, Task::None),
-            QuestType::DailyComboStreakOne => (REWARD_COMBO_STREAK_ONE, Task::None),
-            QuestType::DailyComboStreakTwo => (REWARD_COMBO_STREAK_TWO, Task::None),
-            QuestType::DailyComboStreakThree => (REWARD_COMBO_STREAK_THREE, Task::None),
-            // DailyFinisher also unlocks the DailyMaster achievement
-            QuestType::DailyFinisher => (REWARD_FINISHER, Task::DailyMaster),
-            _ => (0, Task::None),
-        }
+    fn bonus_user(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_BONUS_USER,
+            0,
+            DAY,
+            THREE_DAYS,
+            array![task(ZTask::BonusUsed, 3)].span(),
+            array![].span(),
+            metadata(registry, "Bonus User", "Use 3 bonuses", 1),
+        )
     }
 
-    /// Check if this quest is a daily quest (resets every day)
-    fn is_daily(self: QuestType) -> bool {
-        match self {
-            QuestType::None => false,
-            _ => true,
-        }
+    fn streak_hunter(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_STREAK_HUNTER,
+            0,
+            DAY,
+            THREE_DAYS,
+            array![task(ZTask::HighCombo, 1)].span(),
+            array![].span(),
+            metadata(registry, "Streak Hunter", "Reach a 10+ combo streak", 1),
+        )
+    }
+
+    // ── Group 2 daily (start=DAY, duration=DAY, interval=THREE_DAYS) ──
+
+    fn combo_streak(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_COMBO_STREAK,
+            DAY,
+            DAY,
+            THREE_DAYS,
+            array![task(ZTask::Combo3, 2)].span(),
+            array![].span(),
+            metadata(registry, "Combo Streak", "Hit 3+ combo twice", 1),
+        )
+    }
+
+    fn daily_player(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_DAILY_PLAYER,
+            DAY,
+            DAY,
+            THREE_DAYS,
+            array![task(ZTask::DailyPlay, 1)].span(),
+            array![].span(),
+            metadata(registry, "Daily Player", "Play a daily challenge", 1),
+        )
+    }
+
+    fn perfect_move(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_PERFECT_MOVE,
+            DAY,
+            DAY,
+            THREE_DAYS,
+            array![task(ZTask::PerfectLevel, 1)].span(),
+            array![].span(),
+            metadata(registry, "Perfect Move", "3-star a level", 1),
+        )
+    }
+
+    // ── Group 3 daily (start=DAY*2, duration=DAY, interval=THREE_DAYS) ──
+
+    fn big_combo(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_BIG_COMBO,
+            DAY * 2,
+            DAY,
+            THREE_DAYS,
+            array![task(ZTask::Combo4, 1)].span(),
+            array![].span(),
+            metadata(registry, "Big Combo", "Hit a 4+ combo", 1),
+        )
+    }
+
+    fn zone_runner(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_ZONE_RUNNER,
+            DAY * 2,
+            DAY,
+            THREE_DAYS,
+            array![task(ZTask::GameStart, 2)].span(),
+            array![].span(),
+            metadata(registry, "Zone Runner", "Start 2 games", 1),
+        )
+    }
+
+    fn combo_chain(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_COMBO_CHAIN,
+            DAY * 2,
+            DAY,
+            THREE_DAYS,
+            array![task(ZTask::Combo2, 5)].span(),
+            array![].span(),
+            metadata(registry, "Combo Chain", "Hit 2+ combo 5 times", 1),
+        )
+    }
+
+    // ── Daily meta (start=0, duration=DAY, interval=DAY) ──
+
+    fn daily_finisher(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_DAILY_FINISHER,
+            0,
+            DAY,
+            DAY,
+            array![task(ZTask::DailyQuestDone, 3)].span(),
+            array![].span(),
+            metadata(registry, "Daily Finisher", "Complete 3 daily quests", 2),
+        )
+    }
+
+    // ── Weekly (start=MONDAY_OFFSET, duration=WEEK, interval=WEEK) ──
+
+    fn weekly_grinder(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_WEEKLY_GRINDER,
+            MONDAY_OFFSET,
+            WEEK,
+            WEEK,
+            array![task(ZTask::LineClear, 150)].span(),
+            array![].span(),
+            metadata(registry, "Weekly Grinder", "Clear 150 lines this week", 5),
+        )
+    }
+
+    fn weekly_explorer(registry: ContractAddress) -> QuestDefinitionProps {
+        make_quest(
+            QUEST_WEEKLY_EXPLORER,
+            MONDAY_OFFSET,
+            WEEK,
+            WEEK,
+            array![task(ZTask::DailyPlay, 3)].span(),
+            array![].span(),
+            metadata(registry, "Weekly Explorer", "Play daily challenge 3 times", 5),
+        )
     }
 }
 
-// Into<QuestType, u8>
-impl IntoQuestU8 of core::traits::Into<QuestType, u8> {
-    fn into(self: QuestType) -> u8 {
-        match self {
-            QuestType::None => 0,
-            QuestType::DailyPlayerOne => 1,
-            QuestType::DailyPlayerTwo => 2,
-            QuestType::DailyPlayerThree => 3,
-            QuestType::DailyClearerOne => 4,
-            QuestType::DailyClearerTwo => 5,
-            QuestType::DailyClearerThree => 6,
-            QuestType::DailyComboOne => 7,
-            QuestType::DailyComboTwo => 8,
-            QuestType::DailyComboThree => 9,
-            QuestType::DailyComboStreakOne => 10,
-            QuestType::DailyComboStreakTwo => 11,
-            QuestType::DailyComboStreakThree => 12,
-            QuestType::DailyFinisher => 13,
-        }
-    }
+fn task(task: ZTask, total: u128) -> Task {
+    let count: u32 = total.try_into().unwrap();
+    TaskTrait::new(task.identifier(), total, task.description(count))
 }
 
-// Into<u8, QuestType>
-impl IntoU8Quest of core::traits::Into<u8, QuestType> {
-    fn into(self: u8) -> QuestType {
-        match self {
-            0 => QuestType::None,
-            1 => QuestType::DailyPlayerOne,
-            2 => QuestType::DailyPlayerTwo,
-            3 => QuestType::DailyPlayerThree,
-            4 => QuestType::DailyClearerOne,
-            5 => QuestType::DailyClearerTwo,
-            6 => QuestType::DailyClearerThree,
-            7 => QuestType::DailyComboOne,
-            8 => QuestType::DailyComboTwo,
-            9 => QuestType::DailyComboThree,
-            10 => QuestType::DailyComboStreakOne,
-            11 => QuestType::DailyComboStreakTwo,
-            12 => QuestType::DailyComboStreakThree,
-            13 => QuestType::DailyFinisher,
-            _ => QuestType::None,
-        }
-    }
+fn make_quest(
+    id: felt252,
+    start: u64,
+    duration: u64,
+    interval: u64,
+    tasks: Span<Task>,
+    conditions: Span<felt252>,
+    metadata: QuestMetadata,
+) -> QuestDefinitionProps {
+    QuestDefinitionProps { id, start, end: 0, duration, interval, tasks, conditions, metadata }
 }
 
-// Into<felt252, QuestType>
-impl IntoFelt252Quest of core::traits::Into<felt252, QuestType> {
-    fn into(self: felt252) -> QuestType {
-        if self == quests::player::DailyPlayerOne::identifier() {
-            return QuestType::DailyPlayerOne;
-        } else if self == quests::player::DailyPlayerTwo::identifier() {
-            return QuestType::DailyPlayerTwo;
-        } else if self == quests::player::DailyPlayerThree::identifier() {
-            return QuestType::DailyPlayerThree;
-        } else if self == quests::clearer::DailyClearerOne::identifier() {
-            return QuestType::DailyClearerOne;
-        } else if self == quests::clearer::DailyClearerTwo::identifier() {
-            return QuestType::DailyClearerTwo;
-        } else if self == quests::clearer::DailyClearerThree::identifier() {
-            return QuestType::DailyClearerThree;
-        } else if self == quests::combo::DailyComboOne::identifier() {
-            return QuestType::DailyComboOne;
-        } else if self == quests::combo::DailyComboTwo::identifier() {
-            return QuestType::DailyComboTwo;
-        } else if self == quests::combo::DailyComboThree::identifier() {
-            return QuestType::DailyComboThree;
-        } else if self == quests::combo_streak::DailyComboStreakOne::identifier() {
-            return QuestType::DailyComboStreakOne;
-        } else if self == quests::combo_streak::DailyComboStreakTwo::identifier() {
-            return QuestType::DailyComboStreakTwo;
-        } else if self == quests::combo_streak::DailyComboStreakThree::identifier() {
-            return QuestType::DailyComboStreakThree;
-        } else if self == quests::finisher::DailyFinisher::identifier() {
-            return QuestType::DailyFinisher;
-        } else {
-            return QuestType::None;
-        }
-    }
-}
+fn metadata(
+    registry: ContractAddress, name: ByteArray, description: ByteArray, reward_stars: u8,
+) -> QuestMetadata {
+    let rewards: Span<QuestReward> = array![
+        RewardTrait::new("Stars", format!("{} star reward", reward_stars), "fa-star"),
+    ]
+        .span();
 
-// Default implementation for QuestProps
-pub impl QuestPropsDefault of core::traits::Default<QuestProps> {
-    fn default() -> QuestProps {
-        QuestProps {
-            id: 0,
-            start: 0,
-            end: 0,
-            duration: 0,
-            interval: 0,
-            tasks: array![],
-            conditions: array![],
-            metadata: QuestMetadataTrait::new(
-                name: "",
-                description: "",
-                icon: "",
-                registry: 0.try_into().unwrap(),
-                rewards: array![].span(),
-            ),
-        }
-    }
+    QuestMetadataTrait::new(name, description, "fa-list-check", registry, rewards)
 }

@@ -12,7 +12,8 @@ import { createLogger } from "@/utils/logger";
 export type SetupResult = Awaited<ReturnType<typeof setup>>;
 
 const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
-const namespace = VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_2_0";
+const namespace = VITE_PUBLIC_NAMESPACE || "zkube_v2_1_1";
+const arcadeNamespace = "zkube_v2_1_1";
 const log = createLogger("dojo/setup");
 
 export async function setup({ ...config }: Config) {
@@ -41,16 +42,55 @@ export async function setup({ ...config }: Config) {
     `${namespace}-Game`,
     `${namespace}-GameSeed`,
     `${namespace}-GameLevel`,
-    `${namespace}-DraftState`,
-    `${namespace}-PlayerSkillTree`,
+    `${namespace}-GameSettings`,
+    `${namespace}-PlayerMeta`,
+    `${namespace}-PlayerBestRun`,
+    `${namespace}-GameSettingsMetadata`,
+    `${namespace}-ZoneEntitlement`,
+    `${namespace}-DailyChallenge`,
+    `${namespace}-DailyEntry`,
+    `${namespace}-DailyAttempt`,
+    `${namespace}-ActiveDailyAttempt`,
+    `${namespace}-GameChallenge`,
+    `${namespace}-StoryZoneProgress`,
+    `${namespace}-StoryAttempt`,
+    `${namespace}-ActiveStoryAttempt`,
+    `${namespace}-MutatorDef`,
+    `${namespace}-CosmeticDef`,
+    `${namespace}-CosmeticUnlock`,
+    `${namespace}-WeeklyEndless`,
+    `${namespace}-WeeklyEndlessEntry`,
+    `${arcadeNamespace}-QuestAdvancement`,
+    `${arcadeNamespace}-QuestCompletion`,
+    `${arcadeNamespace}-AchievementAdvancement`,
+    `${arcadeNamespace}-AchievementCompletion`,
   ] as `${string}-${string}`[];
   const modelsToWatch = [
     `${namespace}-Game`,
     `${namespace}-GameSeed`,
     `${namespace}-GameLevel`,
-    `${namespace}-DraftState`,
+    `${namespace}-GameSettings`,
+    `${namespace}-PlayerMeta`,
+    `${namespace}-PlayerBestRun`,
     `${namespace}-GameSettingsMetadata`,
-    `${namespace}-PlayerSkillTree`,
+    `${namespace}-ZoneEntitlement`,
+    `${namespace}-DailyChallenge`,
+    `${namespace}-DailyEntry`,
+    `${namespace}-DailyAttempt`,
+    `${namespace}-ActiveDailyAttempt`,
+    `${namespace}-GameChallenge`,
+    `${namespace}-StoryZoneProgress`,
+    `${namespace}-StoryAttempt`,
+    `${namespace}-ActiveStoryAttempt`,
+    `${namespace}-MutatorDef`,
+    `${namespace}-CosmeticDef`,
+    `${namespace}-CosmeticUnlock`,
+    `${namespace}-WeeklyEndless`,
+    `${namespace}-WeeklyEndlessEntry`,
+    `${arcadeNamespace}-QuestAdvancement`,
+    `${arcadeNamespace}-QuestCompletion`,
+    `${arcadeNamespace}-AchievementAdvancement`,
+    `${arcadeNamespace}-AchievementCompletion`,
   ];
 
   log.info("Starting entity sync", {

@@ -31,6 +31,11 @@
     "music": {
       "menu": "A warm Polynesian lo-fi instrumental with soft ukulele fingerpicking over gentle log drum rhythms and ocean wave ambience. Nose flute melody floats through warm island breeze. Around 90 BPM, rhythmic and inviting.",
       "gameplay": "A lively Polynesian instrumental with rhythmic ukulele strumming and warm log drum grooves. Nose flute melody and conch shell accents float over a steady island pulse. Around 115 BPM, sunny and groovy."
+    },
+    "guardian": {
+      "name": "Mako",
+      "title": "Spirit of the Tides",
+      "portraitPrompt": "A majestic ancient sea turtle spirit, stylized cel-shaded game art with bold black outlines. The turtle is massive with glowing blue tribal patterns on its shell, wise ancient eyes, ocean waves flowing around it. Ethereal translucent fins trailing blue light. Dark background fading to pure black at edges. Vibrant colors with #A9D8FF highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-2": {
@@ -65,6 +70,11 @@
     "music": {
       "menu": "An elegant Egyptian instrumental with a soft oud melody and gentle darbuka hand drum pattern. Arabic maqam Hijaz scale. Around 85 BPM, regal and serene.",
       "gameplay": "A groovy Egyptian fusion instrumental with steady darbuka and riq tambourine rhythm over warm bass oud riffs. Arabic maqam Hijaz scale. 112 BPM, smooth and monumental."
+    },
+    "guardian": {
+      "name": "Sobek",
+      "title": "The Nile Guardian",
+      "portraitPrompt": "A Nile crocodile spirit god resting in still dark water, only its head and upper back visible above the surface, stylized cel-shaded game art with bold black outlines. Ancient and patient, the crocodile has weathered dark green scales with one single small golden marking on its forehead. Two piercing amber eyes glow just above the waterline, watching. Dark ripples spread outward from its snout. A faint golden aura surrounds its head. Moody and atmospheric, the creature is half-hidden in shadow. Dark background, near black. Warm #D4AF37 gold accents only on the eyes. 512x512 pixels, fully opaque."
     }
   },
   "theme-3": {
@@ -99,6 +109,11 @@
     "music": {
       "menu": "A haunting Norse ambient instrumental with deep bowed string drone and sparse nyckelharpa melody. Distant war horn echoes through frozen valleys. Around 80 BPM, vast and mythic.",
       "gameplay": "A steady Norse folk instrumental with rhythmic bodhrán drum and warm nyckelharpa melody over a deep bowed string drone. Distant horn accents. 115 BPM, vast and focused."
+    },
+    "guardian": {
+      "name": "Fenris",
+      "title": "The Frost Wolf",
+      "portraitPrompt": "A massive frost wolf spirit standing alert, stylized cel-shaded game art with bold black outlines. Giant wolf with thick silver-white fur, glowing icy blue eyes, frost crystals forming along its mane and paws, Nordic runes glowing faintly on its body. The wolf stands proud and watchful, ears forward. Dark background fading to pure black at edges. Vibrant colors with cool blue and silver highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-4": {
@@ -133,6 +148,11 @@
     "music": {
       "menu": "An elegant Ancient Greek instrumental with gentle lyre arpeggios and soft aulos flute melody over a light frame drum rhythm. Mediterranean breeze ambience. Around 85 BPM, contemplative and noble.",
       "gameplay": "A lively Mediterranean instrumental with steady frame drum and tambourine over bright lyre arpeggios and warm aulos melody. 112 BPM, spirited and flowing."
+    },
+    "guardian": {
+      "name": "Noctua",
+      "title": "The Marble Owl",
+      "portraitPrompt": "A wise owl spirit carved from living marble, stylized cel-shaded game art with bold black outlines. Great horned owl with marble-white feathers veined with gold, piercing intelligent eyes, laurel leaves woven into its plumage. Perched on a Greek column fragment. Dark background fading to pure black at edges. Vibrant colors with #4A90D9 blue highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-5": {
@@ -167,6 +187,11 @@
     "music": {
       "menu": "A refined Japanese instrumental with gentle koto plucking and soft shakuhachi bamboo flute melody over wind chime accents. Around 80 BPM, meditative and disciplined.",
       "gameplay": "A focused Japanese instrumental with steady taiko pulse and flowing shinobue flute melody. Gentle shamisen patterns weave through the rhythm. 115 BPM, refined and purposeful."
+    },
+    "guardian": {
+      "name": "Kitsune",
+      "title": "The Spirit Fox",
+      "portraitPrompt": "A mystical nine-tailed fox spirit, stylized cel-shaded game art with bold black outlines. Elegant white fox with multiple translucent tails flowing behind it, each tail tipped with soft red flame. Piercing intelligent red eyes. Cherry blossom petals drift around it. The fox sits alert and watchful, ethereal and graceful. Atmospheric mist at its feet. Dark background fading to black at edges. Deep red and white highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-6": {
@@ -201,6 +226,11 @@
     "music": {
       "menu": "A mystical Chinese instrumental with gentle guzheng zither arpeggios and soft dizi bamboo flute melody floating over a resonant gong drone. Around 85 BPM, flowing and imperial.",
       "gameplay": "A flowing Chinese instrumental with warm erhu melody and steady drum rhythms. Gentle pipa lute runs over soft guzheng arpeggios. 115 BPM, mystical and focused."
+    },
+    "guardian": {
+      "name": "Long",
+      "title": "The Jade Dragon",
+      "portraitPrompt": "An ancient jade dragon spirit coiling through mist, stylized cel-shaded game art with bold black outlines. Sinuous Chinese dragon with translucent jade-green scales that glow from within, long flowing whiskers, wise ancient eyes. The dragon's body partially dissolves into green ethereal mist. Clouds and jade particles swirl around it. Atmospheric and mystical. Dark background fading to black at edges. #4CAF50 green glow with gold accents. 512x512 pixels, fully opaque."
     }
   },
   "theme-7": {
@@ -235,6 +265,11 @@
     "music": {
       "menu": "An elegant Persian instrumental with soft santur hammered dulcimer arpeggios and gentle ney flute melody. Zarb hand drum keeps a subtle pulse. Around 85 BPM, regal and luminous.",
       "gameplay": "A groovy Persian fusion instrumental with steady tombak drum patterns and bright tar lute melody. Santur cascades over a relaxed daf frame drum groove. 112 BPM, symmetrical and flowing."
+    },
+    "guardian": {
+      "name": "Lamassu",
+      "title": "The Gate Guardian",
+      "portraitPrompt": "A massive winged lion spirit from ancient Persia, stylized cel-shaded game art with bold black outlines. The lamassu has the powerful body of a lion with enormous feathered wings spread behind it, intricate blue and gold geometric patterns carved into its mane and wings like living tilework. Wise ancient eyes glow with blue light. The creature sits regally, facing forward with calm authority. Faint geometric tile fragments float in the air around it. Dark background fading to black at edges. #4169E1 blue and gold highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-8": {
@@ -269,6 +304,11 @@
     "music": {
       "menu": "An atmospheric Mesoamerican instrumental with a wooden pan flute melody over gentle rain stick textures and soft clay drum rhythm. Jungle bird calls in the distance. Around 85 BPM, mysterious and ancient.",
       "gameplay": "A rhythmic Mesoamerican instrumental with steady wooden slit drum grooves and gentle seed shaker textures over a warm clay ocarina melody. 115 BPM, mysterious and earthy."
+    },
+    "guardian": {
+      "name": "Balam",
+      "title": "The Jungle Jaguar",
+      "portraitPrompt": "A massive shadow jaguar spirit emerging from jungle darkness, stylized cel-shaded game art with bold black outlines. Black jaguar with jade-green spots that glow like embers, three piercing green eyes arranged in a triangle on its face. The jaguar stalks forward, body partially dissolving into dark smoke at the edges. Mayan glyphs float faintly in the air around it. Atmospheric jungle mist. Dark background fading to black at edges. Green and jade highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-9": {
@@ -303,6 +343,11 @@
     "music": {
       "menu": "A warm Central African instrumental with soft thumb piano (likembe) melody over gentle wooden slit drum rhythm. Distant forest ambience with bird calls. Around 80 BPM, ancestral and meditative.",
       "gameplay": "A groovy Central African instrumental with steady wooden slit drum patterns and bright thumb piano melody over gentle shaker and bell accents. 112 BPM, ceremonial and warm."
+    },
+    "guardian": {
+      "name": "Mamba",
+      "title": "The Shadow Mamba",
+      "portraitPrompt": "A colossal black mamba snake spirit coiled and alert, stylized cel-shaded game art with bold black outlines. The snake is massive with sleek dark scales that shimmer with teal bioluminescent patterns. Hood slightly flared, mouth open revealing dark interior, piercing teal eyes. Rhythmic teal energy pulses along its body like a heartbeat. Atmospheric dark mist around its coils. Dark background fading to black at edges. #40C8B8 teal highlights. 512x512 pixels, fully opaque."
     }
   },
   "theme-10": {
@@ -337,6 +382,11 @@
     "music": {
       "menu": "A majestic Andean instrumental with gentle charango melody and soft pan flute harmonies over a steady bombo drum pulse. Mountain wind ambience. Around 85 BPM, monumental and serene.",
       "gameplay": "A lively Andean instrumental with steady charango strumming and warm quena flute melody over a grounded bombo drum pulse. 115 BPM, precise and mountainous."
+    },
+    "guardian": {
+      "name": "Kuntur",
+      "title": "The Sun Condor",
+      "portraitPrompt": "A massive Andean condor spirit soaring against a dark sky, stylized cel-shaded game art with bold black outlines. The condor is enormous with dark feathers edged in molten gold, wings spread wide and slightly angled as if banking in flight. A golden sun disc glows behind its head like a halo. Golden light particles trail from its wingtips. The bird fills the frame with power and presence. Dark background fading to black at edges. #DAA520 warm gold highlights. 512x512 pixels, fully opaque."
     }
   }
 }
