@@ -61,18 +61,18 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   }, [isOpen, playSfx, isIncomplete]);
 
   const maxMoves = gameLevel?.maxMoves ?? 0;
-  const threeStarThreshold = gameLevel?.cube3Threshold ?? 0;
-  const twoStarThreshold = gameLevel?.cube2Threshold ?? 0;
+  const cube3UsedCap = gameLevel?.cube3Threshold ?? 0;
+  const cube2UsedCap = gameLevel?.cube2Threshold ?? 0;
   const pointsRequired = gameLevel?.pointsRequired ?? 0;
   const levelFinalScore = Math.max(0, totalScore - prevTotalScore);
-  const movesRemaining = Math.max(maxMoves - levelMoves, 0);
+  const movesUsed = levelMoves;
 
   const starsEarned = useMemo(() => {
     if (isIncomplete) return 0;
-    if (movesRemaining >= threeStarThreshold) return 3;
-    if (movesRemaining >= twoStarThreshold) return 2;
+    if (movesUsed <= cube3UsedCap) return 3;
+    if (movesUsed <= cube2UsedCap) return 2;
     return 1;
-  }, [movesRemaining, threeStarThreshold, twoStarThreshold, isIncomplete]);
+  }, [movesUsed, cube3UsedCap, cube2UsedCap, isIncomplete]);
 
   const guardianLine = isIncomplete
     ? guardian.incomplete
