@@ -85,9 +85,9 @@ const HudBarSvg: React.FC<HudBarSvgProps> = ({ starsEarned = 0 }) => {
 
       {/* ─── Stars — filled based on starsEarned ─── */}
       {[0, 1, 2].map((i) => {
-        const starCx = s.stars.x + s.stars.width / 2 - 26 + i * 26;
+        const starCx = s.stars.x + s.stars.width / 2 - 28 + i * 28;
         const starCy = s.stars.y + s.stars.height / 2;
-        const sr = 7;
+        const sr = 9;
         const earned = starsEarned > i;
         return (
           <polygon

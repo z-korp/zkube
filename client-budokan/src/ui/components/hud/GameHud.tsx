@@ -41,13 +41,12 @@ interface GameHudProps {
 
 const DESKTOP_BREAKPOINT = 640;
 
-/** Ring size based on effective container width (not raw viewport) */
+/** Ring size based on effective container width */
 const getRingSize = () => {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  // Match PageNavigator container: full width on mobile, min(90vw,55vh,680) on desktop
   const containerW = vw >= 768 ? Math.min(vw * 0.9, vh * 0.55, 680) : vw;
-  return Math.round(Math.min(72, Math.max(36, containerW * 0.1)));
+  return Math.round(Math.min(80, Math.max(44, containerW * 0.13)));
 };
 
 const TIER_DISPLAY = [
@@ -443,7 +442,7 @@ const GameHud: React.FC<GameHudProps> = ({
                     className="absolute inset-0 w-full h-full rounded-full object-cover overflow-hidden"
                   />
                   {/* Level badge — bottom-right, outside portrait circle */}
-                  <div className={`absolute -bottom-2 -right-2 rounded-full min-w-[clamp(18px,5vw,32px)] h-[clamp(18px,5vw,32px)] flex items-center justify-center px-0.5 font-sans text-[clamp(9px,2.2vw,16px)] font-bold z-10 shadow-[0_0_4px_rgba(0,0,0,0.5)] ${
+                  <div className={`absolute -bottom-2 -right-2 rounded-full min-w-[clamp(20px,6vw,32px)] h-[clamp(20px,6vw,32px)] flex items-center justify-center px-0.5 font-sans text-[clamp(10px,3vw,16px)] font-bold z-10 shadow-[0_0_4px_rgba(0,0,0,0.5)] ${
                     isBoss ? "bg-red-600 border border-red-400/50 text-white" : "bg-slate-800 border border-yellow-500/70 text-yellow-300"
                   }`}>
                     {level}
@@ -459,7 +458,7 @@ const GameHud: React.FC<GameHudProps> = ({
           {/* Score bar — text centered inside */}
           <div className="absolute" style={scorePos}>
             <div className="relative w-full h-full flex items-center">
-              <div className="w-full h-[clamp(6px,1.8vw,16px)] overflow-hidden rounded-full bg-black/50">
+              <div className="w-full h-[clamp(8px,2.5vw,16px)] overflow-hidden rounded-full bg-black/50">
                 <motion.div
                   className={`h-full rounded-full ${isBoss ? "" : "bg-gradient-to-r from-cyan-600 to-cyan-400"}`}
                   style={isBoss ? { background: "linear-gradient(90deg, #ef4444, #22c55e)" } : undefined}
@@ -469,7 +468,7 @@ const GameHud: React.FC<GameHudProps> = ({
                 />
               </div>
               {/* Centered score text inside the bar */}
-              <span className={`absolute inset-0 flex items-center justify-center font-sans text-[clamp(6px,1.5vw,14px)] font-bold tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${
+              <span className={`absolute inset-0 flex items-center justify-center font-sans text-[clamp(8px,2.2vw,14px)] font-bold tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${
                 isBoss ? "text-red-200" : "text-white"
               }`}>
                 {animatedScore}/{targetScore}
@@ -486,7 +485,7 @@ const GameHud: React.FC<GameHudProps> = ({
               key={combo}
               animate={combo > 0 ? { scale: [1, 1.3, 1] } : {}}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className={`flex items-center gap-[2px] rounded-full px-[clamp(4px,1.2vw,10px)] h-full font-sans text-[clamp(9px,2.2vw,16px)] font-bold tabular-nums ${
+              className={`flex items-center gap-[2px] rounded-full px-[clamp(6px,1.8vw,10px)] h-full font-sans text-[clamp(10px,3vw,16px)] font-bold tabular-nums ${
                 combo >= 3
                   ? "bg-gradient-to-r from-orange-600 to-yellow-500 text-white shadow-[0_0_12px_rgba(250,204,21,0.5)]"
                   : combo > 0
@@ -494,7 +493,7 @@ const GameHud: React.FC<GameHudProps> = ({
                     : "bg-slate-800/60 text-slate-500"
               }`}
             >
-              <span className="text-[clamp(8px,1.8vw,15px)] leading-none">🔥</span>
+              <span className="text-[clamp(10px,2.8vw,15px)] leading-none">🔥</span>
               <span>{combo > 0 ? `${combo}x` : "–"}</span>
             </motion.div>
           </div>
@@ -504,8 +503,8 @@ const GameHud: React.FC<GameHudProps> = ({
             className="absolute flex flex-col items-center justify-center"
             style={movesPos}
           >
-            <span className="font-sans text-[clamp(6px,1.5vw,12px)] font-semibold uppercase tracking-wider leading-none text-slate-400">MOVES</span>
-            <span className={`font-sans text-[clamp(16px,4vw,32px)] font-bold leading-none tabular-nums`} style={{ color: movesBarColor }}>
+            <span className="font-sans text-[clamp(7px,2vw,12px)] font-semibold uppercase tracking-wider leading-none text-slate-400">MOVES</span>
+            <span className={`font-sans text-[clamp(18px,5.5vw,32px)] font-bold leading-none tabular-nums`} style={{ color: movesBarColor }}>
               {movesRemaining}
             </span>
           </div>
