@@ -115,10 +115,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         // Generate constraints: use boss identity system for boss levels, otherwise normal
         // generation Respect constraints_enabled setting for both boss and regular levels
         let (constraint, constraint_2) = if !settings.are_constraints_enabled() {
-            (
-                LevelConstraintTrait::none(),
-                LevelConstraintTrait::none(),
-            )
+            (LevelConstraintTrait::none(), LevelConstraintTrait::none())
         } else if BossLevel::is_boss_level(level) {
             // Boss level uses the boss identity system with budget_max
             let boss_id = settings.boss_id;
@@ -290,18 +287,12 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     ) -> (LevelConstraint, LevelConstraint) {
         // Check if constraints are enabled
         if !settings.are_constraints_enabled() {
-            return (
-                LevelConstraintTrait::none(),
-                LevelConstraintTrait::none(),
-            );
+            return (LevelConstraintTrait::none(), LevelConstraintTrait::none());
         }
 
         // No constraint before the start level (levels 1-2 have no constraints)
         if level < settings.constraint_start_level {
-            return (
-                LevelConstraintTrait::none(),
-                LevelConstraintTrait::none(),
-            );
+            return (LevelConstraintTrait::none(), LevelConstraintTrait::none());
         }
 
         let seed_u256: u256 = level_seed.into();
@@ -317,10 +308,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
 
         // If tier has 0 constraints, return none
         if count_max == 0 {
-            return (
-                LevelConstraintTrait::none(),
-                LevelConstraintTrait::none(),
-            );
+            return (LevelConstraintTrait::none(), LevelConstraintTrait::none());
         }
 
         // Roll constraint count in [count_min, count_max]
