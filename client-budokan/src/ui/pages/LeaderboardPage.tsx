@@ -169,7 +169,7 @@ const LeaderboardPage: React.FC = () => {
         </div>
 
         {activeTab === "endless" && (
-          <div className="mx-4 mt-2 flex gap-1.5 overflow-x-auto hide-scrollbar pb-1">
+          <div className="mx-4 mt-2 flex justify-center gap-1.5 overflow-x-auto hide-scrollbar pb-1">
             {ZONES.map((zone) => (
               <button
                 key={zone.id}

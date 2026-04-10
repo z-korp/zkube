@@ -177,7 +177,7 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
         </div>
       </motion.section>
 
-      <div className="flex gap-1.5 overflow-x-auto hide-scrollbar pb-1">
+      <div className="flex justify-center gap-1.5 overflow-x-auto hide-scrollbar pb-1">
         {unlockedZones.map((zone) => (
           <button
             key={zone.id}
