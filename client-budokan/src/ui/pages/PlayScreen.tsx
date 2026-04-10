@@ -101,7 +101,12 @@ const PlayScreen: React.FC = () => {
 
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
-  const [showEndlessGreeting, setShowEndlessGreeting] = useState(true);
+  const showEndlessGreeting = useNavigationStore((s) => s.showEndlessGreeting);
+
+  const endlessZoneId = game?.zoneId ?? 1;
+  const endlessGuardian = useMemo(() => getZoneGuardian(endlessZoneId), [endlessZoneId]);
+  const endlessThemeId = `theme-${Math.min(10, Math.max(1, endlessZoneId))}` as ThemeId;
+  const endlessColors = useMemo(() => getThemeColors(endlessThemeId), [endlessThemeId]);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isGameLoading, setIsGameLoading] = useState(true);
   const [cascadeComplete, setCascadeComplete] = useState(false);
@@ -407,21 +412,15 @@ const PlayScreen: React.FC = () => {
       )}
 
       {/* Endless greeting overlay */}
-      {game && game.mode === 1 && showEndlessGreeting && (() => {
-        const zoneId = game.zoneId ?? 1;
-        const guardian = getZoneGuardian(zoneId);
-        const themeId = `theme-${Math.min(10, Math.max(1, zoneId))}` as ThemeId;
-        const zoneColors = getThemeColors(themeId);
-        return (
-          <GuardianGreeting
-            colors={zoneColors}
-            guardian={guardian}
-            mode="endless"
-            activeMutatorId={game.activeMutatorId}
-            onClose={() => setShowEndlessGreeting(false)}
-          />
-        );
-      })()}
+      {game && game.mode === 1 && showEndlessGreeting && (
+        <GuardianGreeting
+          colors={endlessColors}
+          guardian={endlessGuardian}
+          mode="endless"
+          activeMutatorId={game.activeMutatorId}
+          onClose={() => useNavigationStore.setState({ showEndlessGreeting: false })}
+        />
+      )}
 
       {game && !isGameLoading && !isGridLoading && (
         <GameHud

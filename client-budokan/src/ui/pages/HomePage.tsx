@@ -339,6 +339,7 @@ const HomePage: React.FC = () => {
             if (gameId === 0n) throw new Error("Failed to extract game_id from mint");
             await create({ account, token_id: gameId, run_type: selectedMode });
             showToast({ message: "Game started!", type: "success" });
+            useNavigationStore.setState({ showEndlessGreeting: true });
             navigate("play", gameId);
             return;
           }
@@ -635,16 +636,6 @@ const HomePage: React.FC = () => {
                       : "Play Endless"}
             </ArcadeButton>
 
-            {selectedMode === 1 && hasActiveEndlessRun ? (
-              <button
-                type="button"
-                onClick={() => zone && handleStartGame(zone.settingsId)}
-                disabled={isStartingGame || !selectedZonePlayable}
-                className="w-full rounded-2xl border border-white/[0.16] bg-white/[0.08] px-4 py-2.5 font-sans text-xs font-extrabold uppercase tracking-[0.1em] text-white/90 backdrop-blur-xl disabled:cursor-not-allowed disabled:opacity-55"
-              >
-                Start New Endless
-              </button>
-            ) : null}
 
             {selectedMode === 1 && zones.length > 0 && !selectedZonePlayable && endlessZoneOneUnlocked ? (
               <p className="text-center font-sans text-[11px] font-semibold text-white/75">

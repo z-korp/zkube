@@ -2,10 +2,10 @@ import { create } from "zustand";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 
 export type TabId = "home" | "rewards" | "profile" | "ranks" | "settings";
-export type OverlayId = "play" | "daily" | "boss" | "mutator" | "map";
+export type OverlayId = "play" | "daily" | "boss" | "map";
 export type PageId = TabId | OverlayId;
 
-export const FULLSCREEN_PAGES: ReadonlySet<PageId> = new Set(["play", "boss", "mutator", "map"]);
+export const FULLSCREEN_PAGES: ReadonlySet<PageId> = new Set(["play", "boss", "map"]);
 const NAV_TRANSITION_LOCK_MS = 300;
 
 export interface PendingLevelCompletion {
@@ -30,6 +30,7 @@ interface NavigationState {
   pendingPreviewLevel: number | null;
   pendingLevelCompletion: PendingLevelCompletion | null;
   greetedZones: Set<number>;
+  showEndlessGreeting: boolean;
   navigate: (page: PageId, gameId?: bigint) => void;
   goBack: () => void;
   setGameId: (id: bigint | null) => void;
@@ -52,8 +53,6 @@ const getBackTarget = (page: PageId): PageId => {
       return "map";
     case "map":
       return "home";
-    case "mutator":
-      return "rewards";
     case "settings":
       return "home";
     default:
@@ -74,6 +73,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
   pendingPreviewLevel: null,
   pendingLevelCompletion: null,
   greetedZones: new Set(),
+  showEndlessGreeting: false,
 
   navigate: (page, gameId) => {
     const { currentPage, isTransitioning } = get();
