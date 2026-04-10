@@ -256,12 +256,12 @@ const GameHud: React.FC<GameHudProps> = ({
   // ─── Tooltip content for the guardian avatar ───
   const avatarTooltipContent = (
     <div className="flex flex-col gap-1.5 max-w-[200px]">
-      <div className="font-sans text-xs font-bold">{guardian.name} — {guardian.title}</div>
+      <div className="font-sans text-xs font-bold">{guardian.name} · {guardian.title}</div>
       {isBoss ? (
-        <div className="font-sans text-[11px] text-red-400">Boss Trial — {guardian.trialIntro}</div>
+        <div className="font-sans text-[11px] text-red-400">{guardian.trialIntro}</div>
       ) : (
         <div className="font-sans text-[11px] text-slate-300">
-          Lv.{level} — {guardian.encouragement}
+          Lv.{level} · {guardian.encouragement}
         </div>
       )}
       {activeMutatorId > 0 && (
@@ -386,7 +386,6 @@ const GameHud: React.FC<GameHudProps> = ({
   const themeId = `theme-${Math.min(10, Math.max(1, zoneId))}` as ThemeId;
   const leftSocketSrc = isBoss ? portraitSrc : getThemeImages(themeId).themeIcon;
 
-  // Tooltip: mutator info for regular levels only
   const regularTooltip = !isBoss && activeMutatorId > 0 ? (
     <div className="flex flex-col gap-1 max-w-[200px]">
       <div className="font-sans text-xs font-bold">{mutator.icon} {mutator.name}</div>
@@ -394,9 +393,9 @@ const GameHud: React.FC<GameHudProps> = ({
     </div>
   ) : (
     <div className="flex flex-col gap-1 max-w-[200px]">
-      <div className="font-sans text-xs font-bold">{guardian.name} — {guardian.title}</div>
-      <div className="font-sans text-[11px] text-slate-300">
-        Lv.{level} — {guardian.encouragement}
+      <div className="font-sans text-xs font-bold">{guardian.name} · {guardian.title}</div>
+      <div className={`font-sans text-[11px] ${isBoss ? "text-red-400" : "text-slate-300"}`}>
+        {isBoss ? guardian.trialIntro : `Lv.${level} · ${guardian.encouragement}`}
       </div>
     </div>
   );

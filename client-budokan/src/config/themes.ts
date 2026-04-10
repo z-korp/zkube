@@ -24,9 +24,9 @@ export interface ThemeMeta {
 
 export const THEME_META: Record<ThemeId, ThemeMeta> = {
   "theme-1": {
-    name: "Polynesian",
+    name: "Tiki",
     description:
-      "Moonlit Polynesian coast in deep cobalt tones, silver surf, and quiet lunar haze with restrained tiki presence",
+      "Moonlit coast in deep cobalt tones, silver surf, and quiet lunar haze with tiki presence",
   },
   "theme-2": {
     name: "Ancient Egypt",

@@ -25,7 +25,7 @@ export const ZONE_EMOJIS: Record<number, string> = {
 };
 
 export const ZONE_NAMES: Record<number, string> = {
-  1: "Polynesian",
+  1: "Tiki",
   2: "Egypt",
   3: "Norse",
   4: "Greece",

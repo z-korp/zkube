@@ -163,7 +163,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                 </TooltipTrigger>
                 <TooltipContent side="top" className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg max-w-[220px]">
                   <div className="flex flex-col gap-1">
-                    <span className="font-sans text-xs font-bold">{guardian.name} — {guardian.title}</span>
+                    <span className="font-sans text-xs font-bold">{guardian.name} · {guardian.title}</span>
                     <span className="font-sans text-[11px] text-slate-300">{guardian.encouragement}</span>
                     {activeMutatorId > 0 && (
                       <span className="font-sans text-[10px] text-yellow-400/90 mt-0.5">
