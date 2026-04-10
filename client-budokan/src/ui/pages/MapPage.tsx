@@ -207,10 +207,15 @@ const MapPage: React.FC = () => {
     setPendingPreviewLevel,
   ]);
 
-  const zoneProgressData = useMemo(
+  const storyZoneProgress = useMemo(
     () => zones.find((z) => z.zoneId === mapZoneId),
     [zones, mapZoneId],
   );
+
+  // For daily, use game-derived zoneState; for story, use zone progress from chain
+  const zoneProgressData = isDailyMap && zoneState
+    ? { ...storyZoneProgress, ...zoneState, stars: zoneState.levelStars.reduce((a: number, b: number) => a + b, 0) }
+    : storyZoneProgress;
 
   const handlePlay = async () => {
     if (!account || !selectedNode || selectedNode.contractLevel == null) return;
