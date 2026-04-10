@@ -396,11 +396,11 @@ const HomePage: React.FC = () => {
 
     if (!zone) return;
 
-    // Story mode — always go to map
+    // Story mode — resume goes straight to game, new run goes to map
     if (selectedMode === 0) {
       setMapZoneId(zone.zoneId);
       if (activeStoryAttemptId !== null) {
-        navigate("map", activeStoryAttemptId);
+        navigate("play", activeStoryAttemptId);
       } else {
         navigate("map");
       }
