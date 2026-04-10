@@ -29,6 +29,7 @@ interface NavigationState {
   profileAddress: string | null;
   pendingPreviewLevel: number | null;
   pendingLevelCompletion: PendingLevelCompletion | null;
+  greetedZones: Set<number>;
   navigate: (page: PageId, gameId?: bigint) => void;
   goBack: () => void;
   setGameId: (id: bigint | null) => void;
@@ -38,6 +39,7 @@ interface NavigationState {
   setProfileAddress: (address: string | null) => void;
   setPendingPreviewLevel: (level: number | null) => void;
   setPendingLevelCompletion: (data: PendingLevelCompletion | null) => void;
+  markZoneGreeted: (zoneId: number) => void;
 }
 
 const getBackTarget = (page: PageId): PageId => {
@@ -71,6 +73,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
   profileAddress: null,
   pendingPreviewLevel: null,
   pendingLevelCompletion: null,
+  greetedZones: new Set(),
 
   navigate: (page, gameId) => {
     const { currentPage, isTransitioning } = get();
@@ -113,4 +116,9 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
   setProfileAddress: (address) => set({ profileAddress: address }),
   setPendingPreviewLevel: (level) => set({ pendingPreviewLevel: level }),
   setPendingLevelCompletion: (data) => set({ pendingLevelCompletion: data }),
+  markZoneGreeted: (zoneId) => set((state) => {
+    const next = new Set(state.greetedZones);
+    next.add(zoneId);
+    return { greetedZones: next };
+  }),
 }));

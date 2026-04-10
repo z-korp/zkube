@@ -344,8 +344,10 @@ const MapPage: React.FC = () => {
   // For first visit detection, use story zone progress (not daily/game-derived state)
   const storyZoneStars = zoneProgressData?.stars ?? 0;
   const storyHighestCleared = zoneProgressData?.highestCleared ?? 0;
+  const greetedZones = useNavigationStore((state) => state.greetedZones);
+  const markZoneGreeted = useNavigationStore((state) => state.markZoneGreeted);
   const isFirstVisit = !isDailyMap && zoneProgressData !== undefined && storyZoneStars === 0 && storyHighestCleared === 0;
-  const [greetingAutoShown, setGreetingAutoShown] = useState(false);
+  const alreadyGreeted = greetedZones.has(mapZoneId);
   const [dataStabilized, setDataStabilized] = useState(false);
 
   // Stabilize as soon as Torii responds (zoneProgressData defined), or after 1500ms ceiling.
@@ -359,15 +361,15 @@ const MapPage: React.FC = () => {
     if (zoneProgressData !== undefined) setDataStabilized(true);
   }, [zoneProgressData]);
 
-  // Auto-show guardian greeting only after data stabilizes
+  // Auto-show guardian greeting only on first visit to a zone (session-stable via store)
   useEffect(() => {
-    if (!dataStabilized || greetingAutoShown || isDailyMap) return;
+    if (!dataStabilized || alreadyGreeted || isDailyMap) return;
     if (zoneProgressData === undefined || !zoneProgressData.unlocked) return;
     if (storyZoneStars === 0 && storyHighestCleared === 0) {
       setShowGreeting(true);
-      setGreetingAutoShown(true);
+      markZoneGreeted(mapZoneId);
     }
-  }, [dataStabilized, zoneProgressData, storyZoneStars, storyHighestCleared, greetingAutoShown, isDailyMap, mapZoneId]);
+  }, [dataStabilized, zoneProgressData, storyZoneStars, storyHighestCleared, alreadyGreeted, isDailyMap, mapZoneId, markZoneGreeted]);
 
   return (
     <div className="relative flex h-full flex-col">
