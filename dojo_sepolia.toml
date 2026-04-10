@@ -34,7 +34,7 @@ account_address = "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01f
 [init_call_args]
 "zkube_v2_1_1-game_system" = [
     "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7", # creator
-    "0x036017E69D21D6D8c13E266EaBB73ef1f1D02722D86BDcAbe5f168f8e549d3cD", # Denshokan
+    "0x0004e6e5bbf18424dfb825f1dbb65e10473b4603a1ec7b9ab02c143d877114f9", # Denshokan (shared MinigameToken on Sepolia)
     "0x0", "0x0", # renderer_address: Option::None
     "0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f", # vrf_address (Cartridge VRF Sepolia)
 ]

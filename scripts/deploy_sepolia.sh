@@ -11,6 +11,9 @@ CLIENT_ENV="./client-budokan/.env.sepolia"
 TARGET_DIR="./target/sepolia"
 DEFAULT_SEPOLIA_TORII_URL="https://api.cartridge.gg/x/zkube-v2-sepolia/torii"
 
+# Shared Denshokan (MinigameToken) on Sepolia — no need to deploy our own
+DENSHOKAN_ADDRESS="0x0004e6e5bbf18424dfb825f1dbb65e10473b4603a1ec7b9ab02c143d877114f9"
+
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
@@ -57,8 +60,9 @@ if [ ! -f "$DOJO_CONFIG" ]; then
 fi
 
 echo "============================================"
-echo "zkube Deployment to Sepolia"
+echo "zkube Deployment to Sepolia (simplified)"
 echo "Namespace: $NAMESPACE"
+echo "Using shared Denshokan: $DENSHOKAN_ADDRESS"
 echo "============================================"
 
 print_info "Step 1: Building contracts..."
@@ -70,37 +74,7 @@ get_credentials
 print_info "Using RPC: $RPC_URL"
 print_info "Account: $ACCOUNT_ADDRESS"
 
-print_info "Step 2: Declaring contract classes..."
-
-print_info "  Declaring MinigameRegistryContract..."
-REGISTRY_OUTPUT=$(sozo declare -P $PROFILE \
-    --account-address "$ACCOUNT_ADDRESS" \
-    --private-key "$PRIVATE_KEY" \
-    --rpc-url "$RPC_URL" \
-    "${TARGET_DIR}/zkube_MinigameRegistryContract.contract_class.json" 2>&1) || true
-REGISTRY_CLASS=$(extract_class_hash "$REGISTRY_OUTPUT")
-if [ -z "$REGISTRY_CLASS" ]; then
-    print_error "Failed to get MinigameRegistryContract class hash"
-    echo "$REGISTRY_OUTPUT"
-    exit 1
-fi
-print_info "  MinigameRegistryContract class: $REGISTRY_CLASS"
-
-print_info "  Declaring FullTokenContract..."
-TOKEN_OUTPUT=$(sozo declare -P $PROFILE \
-    --account-address "$ACCOUNT_ADDRESS" \
-    --private-key "$PRIVATE_KEY" \
-    --rpc-url "$RPC_URL" \
-    "${TARGET_DIR}/zkube_FullTokenContract.contract_class.json" 2>&1) || true
-TOKEN_CLASS=$(extract_class_hash "$TOKEN_OUTPUT")
-if [ -z "$TOKEN_CLASS" ]; then
-    print_error "Failed to get FullTokenContract class hash"
-    echo "$TOKEN_OUTPUT"
-    exit 1
-fi
-print_info "  FullTokenContract class: $TOKEN_CLASS"
-
-print_info "  Declaring ZStarToken..."
+print_info "Step 2: Declaring ZStarToken..."
 ZSTAR_OUTPUT=$(sozo declare -P $PROFILE \
     --account-address "$ACCOUNT_ADDRESS" \
     --private-key "$PRIVATE_KEY" \
@@ -114,56 +88,10 @@ if [ -z "$ZSTAR_CLASS" ]; then
 fi
 print_info "  ZStarToken class: $ZSTAR_CLASS"
 
-print_info "  Waiting for declares to confirm (45s)..."
+print_info "  Waiting for declare to confirm (45s)..."
 sleep 45
 
-print_info "Step 3: Deploying MinigameRegistryContract..."
-REGISTRY_DEPLOY_OUTPUT=$(sozo deploy -P $PROFILE \
-    --account-address "$ACCOUNT_ADDRESS" \
-    --private-key "$PRIVATE_KEY" \
-    --rpc-url "$RPC_URL" \
-    "$REGISTRY_CLASS" \
-    --constructor-calldata \
-        str:'zKube Registry' \
-        str:'ZKUBEREG' \
-        str:'' \
-        1 \
-    2>&1) || true
-REGISTRY_ADDRESS=$(extract_address "$REGISTRY_DEPLOY_OUTPUT")
-if [ -z "$REGISTRY_ADDRESS" ]; then
-    print_error "Failed to get MinigameRegistryContract address"
-    echo "$REGISTRY_DEPLOY_OUTPUT"
-    exit 1
-fi
-print_info "  MinigameRegistryContract deployed at: $REGISTRY_ADDRESS"
-sleep 10
-
-print_info "Step 4: Deploying FullTokenContract..."
-# Constructor: name, symbol, base_uri, royalty_receiver, royalty_fraction, game_registry (Option::Some), event_relayer (Option::None)
-TOKEN_DEPLOY_OUTPUT=$(sozo deploy -P $PROFILE \
-    --account-address "$ACCOUNT_ADDRESS" \
-    --private-key "$PRIVATE_KEY" \
-    --rpc-url "$RPC_URL" \
-    "$TOKEN_CLASS" \
-    --constructor-calldata \
-        str:'zKube' \
-        str:'ZK' \
-        str:'' \
-        "$ACCOUNT_ADDRESS" \
-        "$ACCOUNT_ADDRESS" \
-        500 \
-        0 "$REGISTRY_ADDRESS" \
-    2>&1) || true
-TOKEN_ADDRESS=$(extract_address "$TOKEN_DEPLOY_OUTPUT")
-if [ -z "$TOKEN_ADDRESS" ]; then
-    print_error "Failed to get FullTokenContract address"
-    echo "$TOKEN_DEPLOY_OUTPUT"
-    exit 1
-fi
-print_info "  FullTokenContract deployed at: $TOKEN_ADDRESS"
-sleep 10
-
-print_info "Step 5: Deploying ZStarToken..."
+print_info "Step 3: Deploying ZStarToken..."
 ZSTAR_DEPLOY_OUTPUT=$(sozo deploy -P $PROFILE \
     --account-address "$ACCOUNT_ADDRESS" \
     --private-key "$PRIVATE_KEY" \
@@ -179,14 +107,13 @@ if [ -z "$ZSTAR_ADDRESS" ]; then
 fi
 print_info "  ZStarToken deployed at: $ZSTAR_ADDRESS"
 
-print_info "  Waiting for contracts to be indexed (60s)..."
+print_info "  Waiting for contract to be indexed (60s)..."
 sleep 60
 
-print_info "Step 6: Updating dojo configuration..."
+print_info "Step 4: Updating dojo configuration..."
 if [ -f "$DOJO_CONFIG" ]; then
-    sed -i "s|\"0x[0-9a-fA-F]*\", # Denshokan|\"$TOKEN_ADDRESS\", # Denshokan|" "$DOJO_CONFIG"
     sed -i "s|\"0x[0-9a-fA-F]*\", # cube_token_address|\"$ZSTAR_ADDRESS\", # cube_token_address|" "$DOJO_CONFIG"
-    print_info "  Updated $DOJO_CONFIG with denshokan + zstar addresses"
+    print_info "  Updated $DOJO_CONFIG with zstar address"
 fi
 
 # Remove world_address so sozo deploys a fresh world
@@ -195,7 +122,7 @@ if grep -q '^world_address' "$DOJO_CONFIG"; then
     sed -i '/^world_address/d' "$DOJO_CONFIG"
 fi
 
-print_info "Step 7: Running sozo migrate..."
+print_info "Step 5: Running sozo migrate..."
 MAX_ATTEMPTS=6
 ATTEMPT=1
 MIGRATE_SUCCESS=false
@@ -233,7 +160,7 @@ if [ -z "$WORLD_ADDRESS" ]; then
 fi
 print_info "  World deployed at: $WORLD_ADDRESS"
 
-print_info "Step 8: Updating world address..."
+print_info "Step 6: Updating world address..."
 if [ -f "$DOJO_CONFIG" ]; then
     if grep -q "^world_address" "$DOJO_CONFIG"; then
         sed -i "s|world_address = \"0x[0-9a-fA-F]*\"|world_address = \"$WORLD_ADDRESS\"|" "$DOJO_CONFIG"
@@ -242,7 +169,7 @@ if [ -f "$DOJO_CONFIG" ]; then
     fi
 fi
 
-print_info "Step 9: Extracting system addresses..."
+print_info "Step 7: Extracting system addresses..."
 GAME_SYSTEM=""
 CONFIG_SYSTEM=""
 LEVEL_SYSTEM=""
@@ -258,7 +185,7 @@ if [ -f "$MANIFEST_FILE" ]; then
     DAILY_CHALLENGE_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-daily_challenge_system\") | .address" 2>/dev/null)
 fi
 
-print_info "Step 10: Granting ZStar roles..."
+print_info "Step 8: Granting ZStar roles..."
 MINTER_ROLE_FELT="0x4d494e5445525f524f4c45"
 BURNER_ROLE_FELT="0x4255524e45525f524f4c45"
 
@@ -297,7 +224,7 @@ grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "progress_system" "$PROGRESS_
 grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "config_system" "$CONFIG_SYSTEM"
 grant_zstar_role "BURNER_ROLE" "$BURNER_ROLE_FELT" "config_system" "$CONFIG_SYSTEM"
 
-print_info "Step 11: Updating torii configuration..."
+print_info "Step 9: Updating torii configuration..."
 cat > "$TORII_CONFIG" << EOF
 world_address = "$WORLD_ADDRESS"
 rpc = "$RPC_URL"
@@ -307,7 +234,7 @@ pending = true
 transactions = true
 namespaces = ["$NAMESPACE"]
 contracts = [
-  "erc721:$TOKEN_ADDRESS",
+  "erc721:$DENSHOKAN_ADDRESS",
   "erc20:$ZSTAR_ADDRESS",
 ]
 
@@ -316,14 +243,14 @@ raw = true
 EOF
 print_info "  Updated $TORII_CONFIG"
 
-print_info "Step 12: Copying manifest..."
+print_info "Step 10: Copying manifest..."
 CONTRACTS_MANIFEST="${CONTRACTS_DIR}/manifest_sepolia.json"
 if [ -f "$MANIFEST_FILE" ]; then
     cp "$MANIFEST_FILE" "$CONTRACTS_MANIFEST"
     print_info "  Copied manifest to $CONTRACTS_MANIFEST"
 fi
 
-print_info "Step 13: Updating client configuration..."
+print_info "Step 11: Updating client configuration..."
 TORII_URL="${SEPOLIA_TORII_URL:-$DEFAULT_SEPOLIA_TORII_URL}"
 
 cat > "$CLIENT_ENV" << EOF
@@ -336,7 +263,7 @@ VITE_PUBLIC_MASTER_PRIVATE_KEY=$PRIVATE_KEY
 VITE_PUBLIC_ACCOUNT_CLASS_HASH=0x05400e90f7e0ae78bd02c77cd75527280470e2fe19c54970dd79dc37a9d3645c
 VITE_PUBLIC_FEE_TOKEN_ADDRESS=0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
 VITE_PUBLIC_WORLD_ADDRESS=$WORLD_ADDRESS
-VITE_PUBLIC_GAME_TOKEN_ADDRESS=$TOKEN_ADDRESS
+VITE_PUBLIC_GAME_TOKEN_ADDRESS=$DENSHOKAN_ADDRESS
 VITE_PUBLIC_ZSTAR_TOKEN_ADDRESS=$ZSTAR_ADDRESS
 EOF
 print_info "  Updated $CLIENT_ENV"
@@ -349,8 +276,7 @@ echo ""
 echo "Deployed Addresses:"
 echo "-------------------"
 echo "World:                    $WORLD_ADDRESS"
-echo "FullTokenContract:        $TOKEN_ADDRESS"
-echo "MinigameRegistryContract: $REGISTRY_ADDRESS"
+echo "Denshokan (shared):       $DENSHOKAN_ADDRESS"
 echo "ZStarToken:               $ZSTAR_ADDRESS"
 echo "game_system:              $GAME_SYSTEM"
 echo "level_system:             $LEVEL_SYSTEM"
