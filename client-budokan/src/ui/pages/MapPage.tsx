@@ -309,45 +309,44 @@ const MapPage: React.FC = () => {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-3 pt-3 pb-1 pointer-events-none"
+        className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-[clamp(12px,3vw,20px)] pt-[clamp(12px,3vw,20px)] pb-1 pointer-events-none"
       >
-        <div className="flex items-center gap-2 pointer-events-auto">
+        {/* Left: back + zone name */}
+        <div className="flex items-center gap-[clamp(6px,1.5vw,12px)] pointer-events-auto">
           <button
             onClick={() => { if (isDailyMap) setIsDailyMap(false); goBack(); }}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/30 backdrop-blur-md"
+            className="flex h-[clamp(32px,7vw,44px)] w-[clamp(32px,7vw,44px)] items-center justify-center rounded-full border border-white/20 bg-black/30 backdrop-blur-md shrink-0"
             style={{ color: colors.accent }}
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft className="w-[50%] h-[50%]" />
           </button>
-        </div>
-
-        <div className="flex items-center gap-2 pointer-events-auto">
           {isDailyMap && (
-            <span className="rounded-full border px-2 py-0.5 font-sans text-[10px] font-bold uppercase backdrop-blur-md" style={{ borderColor: `${colors.accent}55`, backgroundColor: "rgba(0,0,0,0.3)", color: colors.accent }}>
+            <span className="rounded-full border px-2 py-0.5 font-sans text-[clamp(9px,2vw,13px)] font-bold uppercase backdrop-blur-md" style={{ borderColor: `${colors.accent}55`, backgroundColor: "rgba(0,0,0,0.3)", color: colors.accent }}>
               Daily
             </span>
           )}
-          <span className="font-display text-xl font-black text-white drop-shadow-md">
+          <span className="font-display text-[clamp(18px,4.5vw,28px)] font-black text-white drop-shadow-md">
             {zoneName}
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 pointer-events-none">
-          <span className="font-display text-base font-black drop-shadow-md" style={{ color: zoneProgressData?.perfectionClaimed ? "#ec4899" : colors.accent }}>
+        {/* Right: stars */}
+        <div className="flex items-center gap-[clamp(4px,1vw,8px)] pointer-events-none">
+          <span className="font-display text-[clamp(14px,3.5vw,22px)] font-black drop-shadow-md" style={{ color: zoneProgressData?.perfectionClaimed ? "#ec4899" : colors.accent }}>
             {zoneStars}/30 ★
           </span>
           {zoneStars >= 30 && !zoneProgressData?.perfectionClaimed && (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-pink-500/30 text-[10px] drop-shadow-md">🎁</span>
+            <span className="flex h-[clamp(18px,4vw,26px)] w-[clamp(18px,4vw,26px)] items-center justify-center rounded-full bg-pink-500/30 text-[clamp(9px,2vw,14px)] drop-shadow-md">🎁</span>
           )}
           {zoneProgressData?.perfectionClaimed && (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-pink-500/20 text-[10px] drop-shadow-md">💎</span>
+            <span className="flex h-[clamp(18px,4vw,26px)] w-[clamp(18px,4vw,26px)] items-center justify-center rounded-full bg-pink-500/20 text-[clamp(9px,2vw,14px)] drop-shadow-md">💎</span>
           )}
         </div>
       </motion.div>
 
       {/* Map SVG */}
       <div className="relative flex-1 min-h-0 overflow-hidden">
-        <div className="relative mx-auto h-full w-full max-w-[430px]">
+        <div className="relative mx-auto h-full w-full max-w-[540px]">
           <svg
             viewBox={`0 0 ${VB_W} ${VB_H}`}
             preserveAspectRatio="xMidYMid meet"

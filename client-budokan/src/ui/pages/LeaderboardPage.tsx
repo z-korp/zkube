@@ -203,7 +203,7 @@ const LeaderboardPage: React.FC = () => {
             key={`${activeTab}-${selectedZone}`}
             initial="hidden"
             animate="visible"
-            className="mx-auto max-w-[500px] space-y-2"
+            className="mx-auto max-w-[640px] space-y-2"
           >
             {rankRows.map((entry, index) => {
               const reward = activeTab === "endless"

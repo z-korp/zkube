@@ -65,7 +65,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       const cellByWidth = Math.floor(safeWidth / COLS);
       const cellByHeight = Math.floor(safeHeight / (ROWS + NEXT_LINE_ROWS));
       const cellSize = Math.min(cellByWidth, cellByHeight);
-      setGridSize(Math.max(28, Math.min(cellSize, 56)));
+      setGridSize(Math.max(28, Math.min(cellSize, 72)));
     });
 
     observer.observe(el);
@@ -123,7 +123,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     <>
         <div
           ref={containerRef}
-          className={`relative flex h-full min-h-0 w-full max-w-[500px] flex-col p-2 md:p-3 ${
+          className={`relative flex h-full min-h-0 w-full flex-col p-2 md:p-3 ${
             isTxProcessing && "cursor-wait"
           }`}
         >

@@ -27,7 +27,7 @@ const BottomNav = () => {
   ];
 
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex h-16 w-[92%] max-w-[420px] items-center justify-around rounded-full border border-white/[0.12] bg-black/60 px-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex h-16 w-[92%] max-w-[560px] items-center justify-around rounded-full border border-white/[0.12] bg-black/60 px-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
       {tabs.map((tab) => {
         const isActive = currentPage === tab.id;
         const Icon = tab.icon;

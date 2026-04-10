@@ -184,7 +184,7 @@ const DailyChallengePage: React.FC = () => {
       </div>
 
       <div className="relative z-10 mx-4 mt-4 flex flex-1 min-h-0 flex-col overflow-y-auto hide-scrollbar pb-3">
-        <div className="mx-auto flex w-full max-w-[500px] flex-col gap-4">
+        <div className="mx-auto flex w-full max-w-[640px] flex-col gap-4">
           {challengeLoading && (
             <div className="flex flex-1 items-center justify-center py-16">
               <Loader2 size={28} className="animate-spin" style={{ color: colors.accent }} />
