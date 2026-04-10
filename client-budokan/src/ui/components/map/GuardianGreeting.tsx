@@ -4,19 +4,6 @@ import type { ZoneGuardian } from "@/config/bossCharacters";
 import { getGuardianPortrait } from "@/config/bossCharacters";
 import { getMutatorDef } from "@/config/mutatorConfig";
 
-/** Split text at first period: headline in accent, rest in default color */
-function headlineAccent(text: string, accent: string): React.ReactNode {
-  const dotIdx = text.indexOf(".");
-  if (dotIdx === -1) return <span style={{ color: accent }} className="font-semibold">{text}</span>;
-  const headline = text.slice(0, dotIdx + 1);
-  const rest = text.slice(dotIdx + 1);
-  return (
-    <>
-      <span style={{ color: accent }} className="font-semibold">{headline}</span>
-      {rest && <span>{rest}</span>}
-    </>
-  );
-}
 
 interface GuardianGreetingProps {
   colors: ThemeColors;
@@ -107,31 +94,25 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
             </div>
           </div>
 
-          {/* Greeting */}
-          <p className="font-sans text-sm leading-relaxed text-white">
-            "{greeting}"
-          </p>
+          {/* Greeting — same style as LevelPreview quote */}
+          <p className="mt-1 font-sans text-[14px] italic text-white/60">"{greeting}"</p>
 
-          {/* Hint: daily builds from actual mutators, story uses zone hint */}
-          {mode === "daily" && (activeMutator || passiveMutator) ? (
+          {/* Mutators — shown for both story and daily */}
+          {(activeMutator || passiveMutator) && (
             <div className="mt-2 flex flex-col gap-1.5">
               {activeMutator && (
-                <p className="font-sans text-sm leading-relaxed text-white">
-                  {activeMutator.icon} <span className="font-semibold" style={{ color: colors.accent }}>{activeMutator.name}.</span>{" "}
+                <p className="font-sans text-[14px] leading-relaxed text-white">
+                  {activeMutator.icon} <span className="font-semibold" style={{ color: colors.accent }}>{activeMutator.name}</span>{" "}
                   {activeMutator.description}
                 </p>
               )}
               {passiveMutator && (
-                <p className="font-sans text-sm leading-relaxed text-white">
-                  {passiveMutator.icon} <span className="font-semibold" style={{ color: colors.accent }}>{passiveMutator.name}.</span>{" "}
+                <p className="font-sans text-[14px] leading-relaxed text-white">
+                  {passiveMutator.icon} <span className="font-semibold" style={{ color: colors.accent }}>{passiveMutator.name}</span>{" "}
                   {passiveMutator.description}
                 </p>
               )}
             </div>
-          ) : (
-            <p className="mt-2 font-sans text-sm leading-relaxed text-white">
-              {headlineAccent(guardian.zoneHint, colors.accent)}
-            </p>
           )}
 
           {/* Perfection hint on first visit */}
