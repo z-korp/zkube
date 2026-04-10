@@ -8,15 +8,15 @@
 export const HUD_BAR = {
   viewBox: { width: 500, height: 164 },
   sockets: {
-    guardian: { cx: 72, cy: 72, r: 30 },
-    level: { cx: 128, cy: 72, r: 16 },
-    stars: { x: 190, y: 10, width: 120, height: 28 },
-    scoreBar: { x: 155, y: 50, width: 220, height: 20 },
-    combo: { x: 155, y: 78, width: 100, height: 22 },
-    moves: { cx: 432, cy: 72, r: 32 },
-    // Constraints — positioned below the score channel, between level and moves
-    constraint1: { cx: 300, cy: 108, r: 18 },
-    constraint2: { cx: 350, cy: 108, r: 18 },
+    guardian: { cx: 72, cy: 62, r: 30 },
+    // Level badge overlaid on guardian — no separate socket
+    stars: { x: 190, y: 8, width: 120, height: 26 },
+    scoreBar: { x: 130, y: 44, width: 260, height: 22 },
+    combo: { cx: 250, cy: 88, r: 16 },
+    moves: { cx: 432, cy: 62, r: 32 },
+    // Constraints — below combo, centered
+    constraint1: { cx: 222, cy: 130, r: 18 },
+    constraint2: { cx: 278, cy: 130, r: 18 },
   },
 } as const;
 

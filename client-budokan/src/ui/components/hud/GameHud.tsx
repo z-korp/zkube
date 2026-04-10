@@ -358,9 +358,8 @@ const GameHud: React.FC<GameHudProps> = ({
 
   // ─── STORY MODE HUD ───
   const guardianPos = circleToPercent(HUD_BAR.sockets.guardian, HUD_BAR.viewBox);
-  const levelPos = circleToPercent(HUD_BAR.sockets.level, HUD_BAR.viewBox);
   const scorePos = rectToPercent(HUD_BAR.sockets.scoreBar, HUD_BAR.viewBox);
-  const comboPos = rectToPercent(HUD_BAR.sockets.combo, HUD_BAR.viewBox);
+  const comboPos = circleToPercent(HUD_BAR.sockets.combo, HUD_BAR.viewBox);
   const movesPos = circleToPercent(HUD_BAR.sockets.moves, HUD_BAR.viewBox);
   const c1Pos = circleToPercent(HUD_BAR.sockets.constraint1, HUD_BAR.viewBox);
   const c2Pos = circleToPercent(HUD_BAR.sockets.constraint2, HUD_BAR.viewBox);
@@ -369,14 +368,26 @@ const GameHud: React.FC<GameHudProps> = ({
   const themeId = `theme-${Math.min(10, Math.max(1, zoneId))}` as ThemeId;
   const leftSocketSrc = isBoss ? portraitSrc : getThemeImages(themeId).themeIcon;
 
+  // Tooltip: mutator info for regular levels only
+  const regularTooltip = !isBoss && activeMutatorId > 0 ? (
+    <div className="flex flex-col gap-1 max-w-[200px]">
+      <div className="font-sans text-xs font-bold">{mutator.icon} {mutator.name}</div>
+      <div className="font-sans text-[11px] text-slate-300">{mutator.description}</div>
+    </div>
+  ) : (
+    <div className="flex flex-col gap-1 max-w-[200px]">
+      <div className="font-sans text-xs font-bold">{guardian.name} — {guardian.title}</div>
+      <div className="font-sans text-[11px] text-slate-300">
+        Lv.{level} — {guardian.encouragement}
+      </div>
+    </div>
+  );
+
   return (
     <div className="w-full shrink-0">
-      {/* ─── Main HUD bar (constraints integrated) ─── */}
       <div className="relative z-10 mx-auto w-full max-w-[500px]">
-        {/* SVG chrome — stars filled in SVG, constraint sockets rendered in SVG */}
         <HudBarSvg starsEarned={starsEarned} constraintCount={constraints.length} />
 
-        {/* Overlay div for interactive elements */}
         <div className="absolute inset-0">
           {/* Back button */}
           {onBack && (
@@ -389,7 +400,7 @@ const GameHud: React.FC<GameHudProps> = ({
             </button>
           )}
 
-          {/* Left socket — theme icon (regular) or guardian portrait (boss) */}
+          {/* Portrait + level badge */}
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -410,75 +421,61 @@ const GameHud: React.FC<GameHudProps> = ({
                     alt={isBoss ? guardian.name : "Zone"}
                     className="absolute inset-0 w-full h-full rounded-full object-cover"
                   />
+                  {/* Level badge */}
+                  <div className={`absolute -bottom-0.5 -right-0.5 rounded-full min-w-[clamp(14px,3.5vw,20px)] h-[clamp(14px,3.5vw,20px)] flex items-center justify-center px-0.5 font-sans text-[clamp(7px,1.8vw,11px)] font-bold z-10 ${
+                    isBoss ? "bg-red-600 text-white" : "bg-slate-800 border border-yellow-500/60 text-yellow-300"
+                  }`}>
+                    {level}
+                  </div>
                 </motion.div>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg">
-                {avatarTooltipContent}
+                {regularTooltip}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
-          {/* Level number — just the number */}
+          {/* Score bar — text centered inside */}
+          <div className="absolute" style={scorePos}>
+            <div className="relative w-full h-full flex items-center">
+              <div className="w-full h-[clamp(6px,1.8vw,12px)] overflow-hidden rounded-full bg-black/50">
+                <motion.div
+                  className={`h-full rounded-full ${isBoss ? "" : "bg-gradient-to-r from-cyan-600 to-cyan-400"}`}
+                  style={isBoss ? { background: "linear-gradient(90deg, #ef4444, #22c55e)" } : undefined}
+                  initial={false}
+                  animate={{ width: `${scoreProgress * 100}%` }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                />
+              </div>
+              {/* Centered score text inside the bar */}
+              <span className={`absolute inset-0 flex items-center justify-center font-sans text-[clamp(6px,1.5vw,10px)] font-bold tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${
+                isBoss ? "text-red-200" : "text-white"
+              }`}>
+                {animatedScore}/{targetScore}
+              </span>
+            </div>
+          </div>
+
+          {/* Combo streak — own circular element */}
           <div
             className="absolute flex items-center justify-center"
-            style={levelPos}
-          >
-            <span className={`font-sans text-[clamp(12px,3vw,18px)] font-bold leading-none tabular-nums ${isBoss ? "text-red-300" : "text-yellow-300"}`}>
-              {level}
-            </span>
-          </div>
-
-          {/* Score bar — center recessed channel */}
-          <div
-            className="absolute flex items-center gap-[1.5%]"
-            style={scorePos}
-          >
-            <div className="flex-1 h-[clamp(6px,1.8vw,10px)] overflow-hidden rounded-full bg-black/50">
-              <motion.div
-                className={`h-full rounded-full ${isBoss ? "" : "bg-gradient-to-r from-cyan-600 to-cyan-400"}`}
-                style={isBoss ? { background: "linear-gradient(90deg, #ef4444, #22c55e)" } : undefined}
-                initial={false}
-                animate={{ width: `${scoreProgress * 100}%` }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              />
-            </div>
-            <span className={`font-sans text-[clamp(7px,1.8vw,11px)] font-bold tabular-nums shrink-0 ${
-              isBoss ? "text-red-300" : "text-cyan-300"
-            }`}>
-              {animatedScore}<span className="text-slate-500">/{targetScore}</span>
-            </span>
-          </div>
-
-          {/* Combo streak counter */}
-          <div
-            className="absolute flex items-center gap-1"
             style={comboPos}
           >
             <motion.div
               key={combo}
               animate={combo > 0 ? { scale: [1, 1.4, 1] } : {}}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className={`flex items-center gap-0.5 rounded-full px-1.5 py-0.5 ${
-                combo >= 3
-                  ? "bg-yellow-500/20 border border-yellow-500/40"
-                  : combo > 0
-                    ? "bg-white/5 border border-white/10"
-                    : ""
-              }`}
+              className="flex items-center justify-center"
             >
-              <span className="text-[clamp(7px,1.8vw,10px)]">🔥</span>
-              <span className={`font-sans text-[clamp(8px,2vw,12px)] font-bold tabular-nums ${
+              <span className={`font-sans text-[clamp(8px,2vw,13px)] font-bold tabular-nums ${
                 combo >= 3 ? "text-yellow-400" : comboTextColor
               }`}>
-                {combo}x
+                {combo > 0 ? `${combo}x` : "–"}
               </span>
             </motion.div>
-            {activeMutatorId > 0 && (
-              <span className="text-[clamp(6px,1.4vw,9px)] text-white/30 truncate">{mutator.icon} {mutator.name}</span>
-            )}
           </div>
 
-          {/* Moves counter — right gear socket */}
+          {/* Moves counter */}
           <div
             className="absolute flex flex-col items-center justify-center"
             style={movesPos}
@@ -489,7 +486,7 @@ const GameHud: React.FC<GameHudProps> = ({
             </span>
           </div>
 
-          {/* Constraints — inside the HUD bar */}
+          {/* Constraints — below combo, centered */}
           {constraints.length > 0 && (
             <TooltipProvider delayDuration={200}>
               {constraints.map((c, i) => {
