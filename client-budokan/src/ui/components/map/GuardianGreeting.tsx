@@ -108,7 +108,7 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
           </div>
 
           {/* Greeting */}
-          <p className="font-sans text-sm leading-relaxed text-white italic">
+          <p className="font-sans text-sm leading-relaxed text-white">
             "{greeting}"
           </p>
 
