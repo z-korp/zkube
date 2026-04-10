@@ -26,7 +26,7 @@ import {
   DialogTitle,
 } from "@/ui/elements/dialog";
 import { generateLevelConfig } from "@/dojo/game/types/level";
-import { ConstraintType } from "@/dojo/game/types/constraint";
+import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
 import { DifficultyType } from "@/dojo/game/types/difficulty";
 import { getBonusType } from "@/config/mutatorConfig";
 import { useMutatorDef } from "@/hooks/useMutatorDef";
@@ -163,9 +163,21 @@ const PlayScreen: React.FC = () => {
           setIsVictoryOpen(true);
         } else if (game.mode === 0 || game.mode === undefined) {
           if (!pending) {
-            // Check if the level was actually completed (score met, moves remaining)
+            // Check if the level was actually completed (score + constraints)
             const maxMoves = effectiveGameLevel?.maxMoves ?? 0;
-            const levelCompleted = targetScore > 0 && game.levelScore >= targetScore && game.levelMoves < maxMoves;
+            const scoreMet = targetScore > 0 && game.levelScore >= targetScore && game.levelMoves < maxMoves;
+            const c1 = Constraint.fromContractValues(
+              effectiveGameLevel?.constraintType ?? ConstraintType.None,
+              effectiveGameLevel?.constraintValue ?? 0,
+              effectiveGameLevel?.constraintCount ?? 0,
+            );
+            const c2 = Constraint.fromContractValues(
+              effectiveGameLevel?.constraint2Type ?? ConstraintType.None,
+              effectiveGameLevel?.constraint2Value ?? 0,
+              effectiveGameLevel?.constraint2Count ?? 0,
+            );
+            const constraintsMet = c1.isSatisfied(game.constraintProgress, false) && c2.isSatisfied(game.constraint2Progress, false);
+            const levelCompleted = scoreMet && constraintsMet;
             setPendingLevelCompletion({
               level: game.level,
               levelMoves: game.levelMoves,

@@ -195,12 +195,15 @@ const GameHud: React.FC<GameHudProps> = ({
   const animatedScore = useLerpNumber(levelScore, { duration: 300, integer: true }) ?? 0;
   const animatedTotalScore = useLerpNumber(totalScore, { duration: 300, integer: true }) ?? 0;
 
-  const cube3Threshold = gameLevel?.cube3Threshold ?? 0;
-  const cube2Threshold = gameLevel?.cube2Threshold ?? 0;
+  // Contract thresholds are moves-USED caps; convert to moves-REMAINING floors
+  const maxMoves = gameLevel?.maxMoves ?? 0;
+  const cube3UsedCap = gameLevel?.cube3Threshold ?? 0;   // moves used <= this → 3 stars
+  const cube2UsedCap = gameLevel?.cube2Threshold ?? 0;   // moves used <= this → 2 stars
+  const movesUsed = maxMoves - movesRemaining;
 
   const scoreProgress = targetScore > 0 ? Math.min(1, animatedScore / targetScore) : 0;
 
-  const starsEarned = movesRemaining >= cube3Threshold ? 3 : movesRemaining >= cube2Threshold ? 2 : 1;
+  const starsEarned = movesUsed <= cube3UsedCap ? 3 : movesUsed <= cube2UsedCap ? 2 : 1;
   const movesBarColor = starsEarned === 3 ? "#22c55e" : starsEarned === 2 ? "#eab308" : "#ef4444";
 
   const tierIndex = Math.max(0, Math.min(currentDifficulty - 2, ENDLESS_TIERS.length - 1));
