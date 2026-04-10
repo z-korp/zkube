@@ -3,11 +3,14 @@ import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft } from "lucide-react";
 
 import { getThemeColors, type ThemeId } from "@/config/themes";
+import { getZoneTheme } from "@/hooks/useMapData";
 import { getBonusType, getMutatorDef } from "@/config/mutatorConfig";
 import { getZoneGuardian } from "@/config/bossCharacters";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { useGame } from "@/hooks/useGame";
+import GuardianGreeting from "@/ui/components/map/GuardianGreeting";
+import ZoneBackground from "@/ui/components/map/ZoneBackground";
 
 const ROLL_DURATION_MS = 1500;
 const ROLL_FRAME_MS = 110;
@@ -78,6 +81,26 @@ const MutatorRevealPage: React.FC = () => {
   }, [bonusTypeId, isSettled, mutator.effects.length]);
 
   const displayIcon = isRolling ? rollingIcon : mutator.icon;
+
+  // Endless mode: show guardian greeting overlay instead of rolling animation
+  if (game?.mode === 1) {
+    const zoneThemeId = getZoneTheme(mapZoneId || 1);
+    const zoneColors = getThemeColors(zoneThemeId);
+    return (
+      <div className="relative h-full">
+        <ZoneBackground zone={mapZoneId || 1} themeId={zoneThemeId} />
+        <GuardianGreeting
+          colors={zoneColors}
+          guardian={guardian}
+          mode="endless"
+          activeMutatorId={mutatorId}
+          onClose={() => {
+            if (gameId !== null) navigate("play", gameId);
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <motion.div

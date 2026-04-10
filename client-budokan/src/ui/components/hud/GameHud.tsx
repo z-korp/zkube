@@ -255,9 +255,24 @@ const GameHud: React.FC<GameHudProps> = ({
   );
 
   if (isEndless) {
+    // Reuse story SVG chrome layout with endless-specific content
+    const endlessGuardianTooltip = (
+      <div className="flex flex-col gap-1.5 max-w-[200px]">
+        <div className="font-sans text-xs font-bold">{guardian.name} · {guardian.title}</div>
+        <div className="font-sans text-[11px] text-slate-300">{guardian.encouragement}</div>
+        {activeMutatorId > 0 && (
+          <div className="font-sans text-[10px] text-yellow-400/90">
+            {mutator.icon} {mutator.name}: {mutator.description}
+          </div>
+        )}
+      </div>
+    );
+
     return (
-      <div className="w-full shrink-0 px-2 pt-2">
-        <div className="relative mx-auto w-full max-w-full px-3 py-2.5">
+      <div className="w-full shrink-0 px-[clamp(0px,1vw,8px)] pt-[clamp(0px,0.5vh,6px)]">
+        <div className="relative z-10 mx-auto w-full max-w-full">
+          <HudBarSvg starsEarned={0} />
+
           <AnimatePresence>
             {showDifficultyUp && (
               <motion.div
@@ -265,7 +280,7 @@ const GameHud: React.FC<GameHudProps> = ({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -20, scale: 0.8 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="absolute inset-x-0 -top-10 z-50 flex justify-center"
+                className="absolute inset-x-0 -top-8 z-50 flex justify-center"
               >
                 <div
                   className="rounded-full px-4 py-1.5 font-display text-sm font-bold text-white shadow-lg"
@@ -277,70 +292,111 @@ const GameHud: React.FC<GameHudProps> = ({
             )}
           </AnimatePresence>
 
-          <div className="space-y-2.5">
-            {/* Top row: back + avatar + tier + moves */}
-            <div className="flex items-center gap-2">
-              {onBack && (
-                <button onClick={onBack} className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors shrink-0">
-                  <ArrowLeft className="h-4 w-4" />
-                </button>
-              )}
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="relative w-10 h-10 shrink-0">
-                      <img src={portraitSrc} alt={guardian.name} className="w-full h-full rounded-full object-cover border-2 border-white/20" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg">
-                    {avatarTooltipContent}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+          <div className="absolute inset-0">
+            {/* Back button */}
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="absolute z-10 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 text-slate-300 hover:text-white transition-colors"
+                style={{
+                  top: `${((HUD_BAR.sockets.guardian.cy - HUD_BAR.sockets.guardian.r) / HUD_BAR.viewBox.height) * 100}%`,
+                  left: "0%",
+                  width: "6%",
+                  aspectRatio: "1",
+                }}
+              >
+                <ArrowLeft className="w-[50%] h-[50%]" />
+              </button>
+            )}
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <div
-                    className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5"
-                    style={{ borderColor: `${currentTier.color}80`, backgroundColor: `${currentTier.color}22` }}
-                  >
-                    <span className="text-xs leading-none">{currentTier.emoji}</span>
-                    <span className="font-display text-[10px] text-white">{currentTier.name}</span>
-                    <span className="font-display text-[10px]" style={{ color: currentTier.color }}>{currentTier.multiplier}</span>
-                  </div>
-                  <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-1.5 py-0.5">
-                    <span className="text-[10px]">🔥</span>
-                    <motion.span
-                      key={combo}
-                      animate={{ scale: [1, 1.3, 1] }}
-                      transition={{ duration: 0.2, ease: "easeOut" }}
-                      className={`font-sans text-xs font-semibold tabular-nums ${comboTextColor}`}
-                    >
-                      {combo}x
-                    </motion.span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="text-right shrink-0">
-                <div className="font-display text-[9px] uppercase tracking-wide text-slate-400">Moves</div>
-                <div className="font-sans text-lg font-bold leading-none tabular-nums text-emerald-300">{movesRemaining}</div>
+            {/* Difficulty badge (replaces guardian portrait) */}
+            <div
+              className="absolute rounded-full flex flex-col items-center justify-center"
+              style={{
+                ...guardianPos,
+                background: `linear-gradient(135deg, ${currentTier.color}40, ${currentTier.color}15)`,
+                border: `2px solid ${currentTier.color}80`,
+                boxShadow: `0 0 12px ${currentTier.color}30`,
+              }}
+            >
+              <span className="text-[clamp(14px,4vw,22px)] leading-none">{currentTier.emoji}</span>
+              <span className="font-display text-[clamp(6px,1.8vw,9px)] font-bold text-white leading-tight text-center px-0.5">{currentTier.name}</span>
+              {/* Level badge — infinity */}
+              <div className="absolute -bottom-2 -right-2 rounded-full min-w-[clamp(20px,6vw,32px)] h-[clamp(20px,6vw,32px)] flex items-center justify-center px-0.5 font-sans text-[clamp(10px,3vw,16px)] font-bold z-10 shadow-[0_0_4px_rgba(0,0,0,0.5)] bg-slate-800 border border-white/30 text-white">
+                ∞
               </div>
             </div>
 
-            {/* Score */}
-            <div className="flex items-center gap-2">
-              <span className="font-sans text-sm font-semibold tabular-nums text-cyan-300">{animatedTotalScore}</span>
-              <div className="flex-1 h-2 overflow-hidden rounded-full bg-slate-700/80">
-                <div
-                  className="h-full rounded-full transition-all duration-300 ease-out"
-                  style={{ width: `${endlessTierProgress * 100}%`, backgroundColor: currentTier.color }}
-                />
+            {/* Score bar — total score toward next tier */}
+            <div className="absolute" style={scorePos}>
+              <div className="relative w-full h-full flex items-center">
+                <div className="w-full h-[clamp(8px,2.5vw,16px)] overflow-hidden rounded-full bg-black/50">
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{ backgroundColor: currentTier.color }}
+                    initial={false}
+                    animate={{ width: `${endlessTierProgress * 100}%` }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                  />
+                </div>
+                <span className="absolute inset-0 flex items-center justify-center font-sans text-[clamp(8px,2.2vw,14px)] font-bold tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] text-white">
+                  {animatedTotalScore}{nextTier ? `/${nextTier.threshold}` : " MAX"}
+                </span>
               </div>
-              <span className="font-sans text-[10px] tabular-nums text-slate-400 shrink-0">
-                {nextTier ? nextTier.threshold : "MAX"}
+            </div>
+
+            {/* Combo streak */}
+            <div className="absolute flex items-center justify-center" style={comboPos}>
+              <motion.div
+                key={combo}
+                animate={combo > 0 ? { scale: [1, 1.3, 1] } : {}}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className={`flex items-center gap-[2px] rounded-full px-[clamp(6px,1.8vw,10px)] h-full font-sans text-[clamp(10px,3vw,16px)] font-bold tabular-nums ${
+                  combo >= 3
+                    ? "bg-gradient-to-r from-orange-600 to-yellow-500 text-white shadow-[0_0_12px_rgba(250,204,21,0.5)]"
+                    : combo > 0
+                      ? "bg-gradient-to-r from-orange-800/80 to-red-700/80 text-orange-200"
+                      : "bg-slate-800/60 text-slate-500"
+                }`}
+              >
+                <span className="text-[clamp(10px,2.8vw,15px)] leading-none">🔥</span>
+                <span>{combo > 0 ? `${combo}x` : "–"}</span>
+              </motion.div>
+            </div>
+
+            {/* Multiplier (replaces moves) */}
+            <div className="absolute flex flex-col items-center justify-center" style={movesPos}>
+              <span className="font-sans text-[clamp(7px,2vw,12px)] font-semibold uppercase tracking-wider leading-none text-slate-400">MULTI</span>
+              <span className="font-sans text-[clamp(18px,5.5vw,32px)] font-bold leading-none tabular-nums" style={{ color: currentTier.color }}>
+                {currentTier.multiplier}
               </span>
             </div>
+
+            {/* Guardian portrait (replaces constraints/bonus area) */}
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className="absolute flex items-center justify-center"
+                    style={{
+                      left: `${(HUD_BAR.sockets.constraint1.cx / HUD_BAR.viewBox.width) * 100}%`,
+                      top: `${(HUD_BAR.sockets.constraint1.cy / HUD_BAR.viewBox.height) * 100}%`,
+                      transform: "translate(-50%, -50%)",
+                    }}
+                  >
+                    <img
+                      src={portraitSrc}
+                      alt={guardian.name}
+                      className="rounded-full object-cover border-2 border-white/20"
+                      style={{ width: ringSize, height: ringSize }}
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg">
+                  {endlessGuardianTooltip}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </div>
