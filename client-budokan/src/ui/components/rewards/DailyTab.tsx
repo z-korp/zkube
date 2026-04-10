@@ -96,7 +96,7 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
   const myReward = myEntry ? computeDailyReward(myEntry.rank, entries.length) : 0;
 
   const tierEntries = useMemo(() =>
-    entries.map((e) => ({ rank: e.rank, score: e.value, name: e.playerName ?? e.player.slice(0, 8) })),
+    entries.map((e) => ({ rank: e.rank, score: e.totalStars, name: e.playerName ?? e.player.slice(0, 8) })),
     [entries],
   );
 
@@ -197,7 +197,7 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
                 #{myEntry.rank}
               </span>
               <div>
-                <p className="font-sans text-sm font-bold text-white">Score: {myEntry.value.toLocaleString()}</p>
+                <p className="font-sans text-sm font-bold text-white">{myEntry.totalStars}/30 ★ · {myEntry.highestCleared}/10 levels</p>
               </div>
             </div>
             {(isSettled && myEntry.rank <= entries.length) ? (
@@ -244,11 +244,12 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
           <TierContext
             colors={colors}
             myRank={myEntry.rank}
-            myScore={myEntry.value}
+            myScore={myEntry.totalStars}
             myName={myEntry.playerName ?? "You"}
             totalEntries={entries.length}
             tiers={REWARD_TIERS}
             entries={tierEntries}
+            scoreLabel="★"
           />
         </motion.section>
       )}
