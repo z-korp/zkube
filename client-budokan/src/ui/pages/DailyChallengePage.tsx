@@ -22,10 +22,10 @@ const TROPHY_IMAGES: Record<number, string> = {
   3: "/assets/common/trophies/bronze.png",
 };
 
-const parseCompositeValue = (value: number): { stars: number; score: number } => {
+const parseCompositeValue = (value: number): { stars: number; cleared: number } => {
   const stars = Math.floor(value / 0x100000000);
-  const score = value % 0x100000000;
-  return { stars, score };
+  const cleared = value % 0x100000000;
+  return { stars, cleared };
 };
 
 /** Compute today's daily zone from day_id — mirrors contract logic */
@@ -329,7 +329,7 @@ const DailyChallengePage: React.FC = () => {
                           </span>
                           <span className="flex items-center gap-1.5 font-sans text-xs font-bold tabular-nums" style={{ color: zoneColors.accent }}>
                             <span className="text-yellow-300">{"★".repeat(parseCompositeValue(le.value).stars)}</span>
-                            <span>{parseCompositeValue(le.value).score.toLocaleString()}</span>
+                            <span>{parseCompositeValue(le.value).cleared}/10</span>
                           </span>
                         </div>
                       );
@@ -347,8 +347,9 @@ const DailyChallengePage: React.FC = () => {
                             </span>
                             {playerRank.playerName} (You)
                           </span>
-                          <span className="font-sans text-xs font-bold tabular-nums" style={{ color: zoneColors.accent }}>
-                            {playerRank.value.toLocaleString()}
+                          <span className="flex items-center gap-1.5 font-sans text-xs font-bold tabular-nums" style={{ color: zoneColors.accent }}>
+                            <span className="text-yellow-300">{"★".repeat(parseCompositeValue(playerRank.value).stars)}</span>
+                            <span>{parseCompositeValue(playerRank.value).cleared}/10</span>
                           </span>
                         </div>
                       </>

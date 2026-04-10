@@ -32,12 +32,13 @@ export function useDailyLeaderboard(challengeId: number | undefined) {
     for (const entity of allEntities) {
       const data = getComponentValue(DailyEntry, entity);
       if (!data || data.challenge_id !== challengeId) continue;
-      if (!data.best_score && !data.best_stars) continue; // no score yet
+      if (!data.total_stars && !data.highest_cleared) continue; // no progress yet
 
-      // Compute composite ranking value: (stars << 32) | score
-      const stars = Number(data.best_stars ?? 0);
-      const score = Number(data.best_score ?? 0);
-      const value = stars * 0x100000000 + score;
+      // Composite ranking: (total_stars << 32) | highest_cleared
+      // Mirrors contract: total_stars DESC, last_star_time ASC (time tiebreak not available client-side)
+      const stars = Number(data.total_stars ?? 0);
+      const cleared = Number(data.highest_cleared ?? 0);
+      const value = stars * 0x100000000 + cleared;
 
       entries.push({
         rank: 0, // will be assigned after sort
