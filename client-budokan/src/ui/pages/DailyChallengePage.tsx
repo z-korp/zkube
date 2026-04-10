@@ -203,7 +203,7 @@ const DailyChallengePage: React.FC = () => {
               <p className="font-display text-xl font-black text-white">{guardian.name}</p>
               <p className="font-sans text-[11px] font-semibold" style={{ color: zoneColors.accent }}>{guardian.title}</p>
               <p className="mt-2 font-sans text-sm text-white/60">
-                No challenge yet — be the first to play today!
+                No challenge yet. Be the first to play today!
               </p>
             </div>
           )}

@@ -311,7 +311,7 @@ const LeaderboardPage: React.FC = () => {
             {!myRank && normalizedAccount && rankRows.length > 0 && (
               <div className="mt-2 rounded-2xl border border-white/[0.10] bg-white/[0.04] px-4 py-3 text-center">
                 <p className="font-sans text-xs font-semibold text-white/50">
-                  You're not ranked yet — finish a run to appear here
+                  You're not ranked yet. Finish a run to appear here!
                 </p>
               </div>
             )}
