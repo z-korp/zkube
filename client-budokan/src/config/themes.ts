@@ -44,19 +44,19 @@ export const THEME_META: Record<ThemeId, ThemeMeta> = {
       "White marble temples overlooking the Aegean Sea with elegant Greek-key borders and clean architecture",
   },
   "theme-5": {
-    name: "Feudal Japan",
-    description:
-      "Black lacquer dojo with red trim, brushstroke calligraphy, and cherry blossom petals",
-  },
-  "theme-6": {
     name: "Ancient China",
     description:
       "Imperial jade palace with dragon-scale overlays, golden calligraphy, and mystical mist",
   },
-  "theme-7": {
+  "theme-6": {
     name: "Ancient Persia",
     description:
       "Regal Persian palace with blue geometric tile mosaics, golden relief carvings, and luminous symmetry",
+  },
+  "theme-7": {
+    name: "Feudal Japan",
+    description:
+      "Black lacquer dojo with red trim, brushstroke calligraphy, and cherry blossom petals",
   },
   "theme-8": {
     name: "Mayan",
@@ -595,9 +595,9 @@ export const THEME_COLORS: Record<ThemeId, ThemeColors> = {
   "theme-2": ANCIENT_EGYPT_COLORS,
   "theme-3": NORSE_COLORS,
   "theme-4": ANCIENT_GREECE_COLORS,
-  "theme-5": FEUDAL_JAPAN_COLORS,
-  "theme-6": ANCIENT_CHINA_COLORS,
-  "theme-7": ANCIENT_PERSIA_COLORS,
+  "theme-5": ANCIENT_CHINA_COLORS,
+  "theme-6": ANCIENT_PERSIA_COLORS,
+  "theme-7": FEUDAL_JAPAN_COLORS,
   "theme-8": MAYAN_COLORS,
   "theme-9": PUEBLO_COLORS,
   "theme-10": INCA_COLORS,

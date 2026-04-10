@@ -57,10 +57,9 @@ const LEVELS_PER_ZONE = 10;
 
 // Must match contract config.cairo theme_id assignments per zone:
 // Zone 1=theme-1, 2=theme-2, 3=theme-3, 4=theme-4, 5=theme-6,
-// 6=theme-7, 7=theme-5, 8=theme-8, 9=theme-9, 10=theme-10
 export const ZONE_THEMES: ThemeId[] = [
-  "theme-1", "theme-2", "theme-3", "theme-4", "theme-6",
-  "theme-7", "theme-5", "theme-8", "theme-9", "theme-10",
+  "theme-1", "theme-2", "theme-3", "theme-4", "theme-5",
+  "theme-6", "theme-7", "theme-8", "theme-9", "theme-10",
 ];
 
 export function getZoneTheme(zoneId: number): ThemeId {

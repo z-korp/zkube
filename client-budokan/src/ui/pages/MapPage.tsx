@@ -266,7 +266,7 @@ const MapPage: React.FC = () => {
   const pathTheme = getMapPathTheme(themeId);
   const layout = zoneLayouts[0];
   const nodes = mapData.nodes;
-  const zoneName = isDailyMap ? `Daily · ${ZONE_NAMES[mapZoneId] ?? `Zone ${mapZoneId}`}` : (ZONE_NAMES[mapZoneId] ?? `Zone ${mapZoneId}`);
+  const zoneName = isDailyMap ? "Daily" : (ZONE_NAMES[mapZoneId] ?? `Zone ${mapZoneId}`);
   const zoneStars = useMemo(() => {
     if (isDailyMap && game) {
       let total = 0;
@@ -320,11 +320,6 @@ const MapPage: React.FC = () => {
           >
             <ChevronLeft className="w-[50%] h-[50%]" />
           </button>
-          {isDailyMap && (
-            <span className="rounded-full border px-2 py-0.5 font-sans text-[clamp(9px,2vw,13px)] font-bold uppercase backdrop-blur-md" style={{ borderColor: `${colors.accent}55`, backgroundColor: "rgba(0,0,0,0.3)", color: colors.accent }}>
-              Daily
-            </span>
-          )}
           <span className="font-display text-[clamp(18px,4.5vw,28px)] font-black text-white drop-shadow-md">
             {zoneName}
           </span>
