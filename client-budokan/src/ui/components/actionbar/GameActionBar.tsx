@@ -175,7 +175,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
               </Tooltip>
             </TooltipProvider>
           ) : (
-            /* ─── Story: bonus button (always clickable) ─── */
+            /* ─── Story: bonus button — disabled at 0 but icon stays vivid ─── */
             bonusSlots.map((slot, idx) => {
               const isSelected = activeBonus === slot.type;
               const hasCharges = slot.charges > 0;
@@ -185,9 +185,10 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <motion.button
-                        onClick={slot.onClick}
+                        onClick={hasCharges ? slot.onClick : undefined}
+                        disabled={!hasCharges}
                         whileHover={{ scale: 1.08 }}
-                        whileTap={{ scale: 0.92 }}
+                        whileTap={hasCharges ? { scale: 0.92 } : undefined}
                         className={`relative w-full h-full overflow-visible flex items-center justify-center cursor-pointer transition-all ${
                           isSelected
                             ? "drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]"
@@ -197,9 +198,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                         <img
                           src={slot.icon}
                           alt={slot.name}
-                          className={`w-[60%] h-[60%] object-contain ${
-                            !hasCharges ? "grayscale opacity-50" : ""
-                          }`}
+                          className="w-[60%] h-[60%] object-contain"
                         />
                         <span
                           className={`absolute -bottom-1 -right-1 font-sans text-[clamp(8px,2vw,11px)] font-bold rounded-full min-w-[clamp(16px,4vw,20px)] h-[clamp(16px,4vw,20px)] flex items-center justify-center px-0.5 z-10 ${

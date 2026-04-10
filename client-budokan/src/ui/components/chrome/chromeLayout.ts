@@ -8,12 +8,15 @@
 export const HUD_BAR = {
   viewBox: { width: 500, height: 164 },
   sockets: {
-    guardian: { cx: 72, cy: 82, r: 30 },
-    level: { cx: 128, cy: 82, r: 16 },
-    stars: { x: 190, y: 15, width: 120, height: 30 },
-    scoreBar: { x: 155, y: 60, width: 220, height: 22 },
-    combo: { x: 155, y: 95, width: 220, height: 24 },
-    moves: { cx: 432, cy: 82, r: 32 },
+    guardian: { cx: 72, cy: 72, r: 30 },
+    level: { cx: 128, cy: 72, r: 16 },
+    stars: { x: 190, y: 10, width: 120, height: 28 },
+    scoreBar: { x: 155, y: 50, width: 220, height: 20 },
+    combo: { x: 155, y: 78, width: 100, height: 22 },
+    moves: { cx: 432, cy: 72, r: 32 },
+    // Constraints — positioned below the score channel, between level and moves
+    constraint1: { cx: 300, cy: 108, r: 18 },
+    constraint2: { cx: 350, cy: 108, r: 18 },
   },
 } as const;
 

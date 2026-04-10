@@ -5,8 +5,9 @@ import ProgressRing from "@/ui/components/shared/ProgressRing";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
-import { getCommonAssetPath } from "@/config/themes";
-import { HudBarSvg, ConstraintBarSvg, HUD_BAR, CONSTRAINT_BAR, circleToPercent, rectToPercent } from "@/ui/components/chrome";
+import { getCommonAssetPath, getThemeImages } from "@/config/themes";
+import type { ThemeId } from "@/config/themes";
+import { HudBarSvg, HUD_BAR, circleToPercent, rectToPercent } from "@/ui/components/chrome";
 import { getMutatorDef } from "@/config/mutatorConfig";
 import { useSettings } from "@/hooks/useSettings";
 import { useMutatorDef } from "@/hooks/useMutatorDef";
@@ -190,14 +191,8 @@ const GameHud: React.FC<GameHudProps> = ({
 
   const cube3Threshold = gameLevel?.cube3Threshold ?? 0;
   const cube2Threshold = gameLevel?.cube2Threshold ?? 0;
-  const maxMoves = gameLevel?.maxMoves ?? 1;
 
   const scoreProgress = targetScore > 0 ? Math.min(1, animatedScore / targetScore) : 0;
-
-  // Star thresholds as percentage of maxMoves bar
-  const cube3Pct = maxMoves > 0 ? (cube3Threshold / maxMoves) * 100 : 0;
-  const cube2Pct = maxMoves > 0 ? (cube2Threshold / maxMoves) * 100 : 0;
-  const movesPct = maxMoves > 0 ? Math.min(1, movesRemaining / maxMoves) * 100 : 0;
 
   const starsEarned = movesRemaining >= cube3Threshold ? 3 : movesRemaining >= cube2Threshold ? 2 : 1;
   const movesBarColor = starsEarned === 3 ? "#22c55e" : starsEarned === 2 ? "#eab308" : "#ef4444";
@@ -247,7 +242,6 @@ const GameHud: React.FC<GameHudProps> = ({
     gameLevel?.constraint3Type, gameLevel?.constraint3Value, gameLevel?.constraint3Count, constraint3Progress,
   ]);
 
-  const hasConstraints = constraints.length > 0;
   const comboTextColor = combo > 0 ? "text-white" : "text-slate-500";
 
   // ─── Tooltip content for the guardian avatar ───
@@ -363,26 +357,28 @@ const GameHud: React.FC<GameHudProps> = ({
   }
 
   // ─── STORY MODE HUD ───
-  // Positions derived from chromeLayout.ts constants
   const guardianPos = circleToPercent(HUD_BAR.sockets.guardian, HUD_BAR.viewBox);
   const levelPos = circleToPercent(HUD_BAR.sockets.level, HUD_BAR.viewBox);
-  const starsPos = rectToPercent(HUD_BAR.sockets.stars, HUD_BAR.viewBox);
   const scorePos = rectToPercent(HUD_BAR.sockets.scoreBar, HUD_BAR.viewBox);
   const comboPos = rectToPercent(HUD_BAR.sockets.combo, HUD_BAR.viewBox);
   const movesPos = circleToPercent(HUD_BAR.sockets.moves, HUD_BAR.viewBox);
-  const cRing1Pos = circleToPercent(CONSTRAINT_BAR.sockets.ring1, CONSTRAINT_BAR.viewBox);
-  const cRing2Pos = circleToPercent(CONSTRAINT_BAR.sockets.ring2, CONSTRAINT_BAR.viewBox);
+  const c1Pos = circleToPercent(HUD_BAR.sockets.constraint1, HUD_BAR.viewBox);
+  const c2Pos = circleToPercent(HUD_BAR.sockets.constraint2, HUD_BAR.viewBox);
+
+  // Theme image for regular levels, guardian portrait for boss only
+  const themeId = `theme-${Math.min(10, Math.max(1, zoneId))}` as ThemeId;
+  const leftSocketSrc = isBoss ? portraitSrc : getThemeImages(themeId).themeIcon;
 
   return (
     <div className="w-full shrink-0">
-      {/* ─── Main HUD bar ─── */}
+      {/* ─── Main HUD bar (constraints integrated) ─── */}
       <div className="relative z-10 mx-auto w-full max-w-[500px]">
-        {/* SVG chrome — drives sizing */}
-        <HudBarSvg />
+        {/* SVG chrome — stars filled in SVG, constraint sockets rendered in SVG */}
+        <HudBarSvg starsEarned={starsEarned} constraintCount={constraints.length} />
 
         {/* Overlay div for interactive elements */}
         <div className="absolute inset-0">
-          {/* Back button — top-left, outside the frame */}
+          {/* Back button */}
           {onBack && (
             <button
               onClick={onBack}
@@ -393,7 +389,7 @@ const GameHud: React.FC<GameHudProps> = ({
             </button>
           )}
 
-          {/* Guardian portrait — left shield socket */}
+          {/* Left socket — theme icon (regular) or guardian portrait (boss) */}
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -410,8 +406,8 @@ const GameHud: React.FC<GameHudProps> = ({
                   transition={isBoss ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : {}}
                 >
                   <img
-                    src={portraitSrc}
-                    alt={guardian.name}
+                    src={leftSocketSrc}
+                    alt={isBoss ? guardian.name : "Zone"}
                     className="absolute inset-0 w-full h-full rounded-full object-cover"
                   />
                 </motion.div>
@@ -422,36 +418,14 @@ const GameHud: React.FC<GameHudProps> = ({
             </Tooltip>
           </TooltipProvider>
 
-          {/* Level number — small socket */}
+          {/* Level number — just the number */}
           <div
-            className="absolute flex flex-col items-center justify-center"
+            className="absolute flex items-center justify-center"
             style={levelPos}
           >
-            <span className={`font-display text-[clamp(6px,1.5vw,9px)] leading-none ${isBoss ? "text-red-400" : "text-slate-400"}`}>
-              {isBoss ? "BOSS" : "Lv"}
-            </span>
-            <span className={`font-sans text-[clamp(12px,3vw,20px)] font-bold leading-none tabular-nums ${isBoss ? "text-red-300" : "text-yellow-300"}`}>
+            <span className={`font-sans text-[clamp(12px,3vw,18px)] font-bold leading-none tabular-nums ${isBoss ? "text-red-300" : "text-yellow-300"}`}>
               {level}
             </span>
-          </div>
-
-          {/* Stars — top center */}
-          <div
-            className="absolute flex items-center justify-center gap-[3%]"
-            style={starsPos}
-          >
-            {[1, 2, 3].map((star) => (
-              <span
-                key={star}
-                className={`text-[clamp(12px,3vw,18px)] transition-colors ${
-                  starsEarned >= star
-                    ? "text-yellow-400 drop-shadow-[0_0_6px_rgba(250,204,21,0.7)]"
-                    : "text-white/15"
-                }`}
-              >
-                ★
-              </span>
-            ))}
           </div>
 
           {/* Score bar — center recessed channel */}
@@ -475,24 +449,32 @@ const GameHud: React.FC<GameHudProps> = ({
             </span>
           </div>
 
-          {/* Combo + mutator — below score bar */}
+          {/* Combo streak counter */}
           <div
-            className="absolute flex items-center justify-center gap-[1.5%]"
+            className="absolute flex items-center gap-1"
             style={comboPos}
           >
-            <div className="inline-flex items-center gap-0.5">
+            <motion.div
+              key={combo}
+              animate={combo > 0 ? { scale: [1, 1.4, 1] } : {}}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className={`flex items-center gap-0.5 rounded-full px-1.5 py-0.5 ${
+                combo >= 3
+                  ? "bg-yellow-500/20 border border-yellow-500/40"
+                  : combo > 0
+                    ? "bg-white/5 border border-white/10"
+                    : ""
+              }`}
+            >
               <span className="text-[clamp(7px,1.8vw,10px)]">🔥</span>
-              <motion.span
-                key={combo}
-                animate={{ scale: [1, 1.3, 1] }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className={`font-sans text-[clamp(8px,2vw,12px)] font-semibold tabular-nums ${comboTextColor}`}
-              >
+              <span className={`font-sans text-[clamp(8px,2vw,12px)] font-bold tabular-nums ${
+                combo >= 3 ? "text-yellow-400" : comboTextColor
+              }`}>
                 {combo}x
-              </motion.span>
-            </div>
+              </span>
+            </motion.div>
             {activeMutatorId > 0 && (
-              <span className="text-[clamp(7px,1.8vw,10px)] text-white/40">{mutator.icon} {mutator.name}</span>
+              <span className="text-[clamp(6px,1.4vw,9px)] text-white/30 truncate">{mutator.icon} {mutator.name}</span>
             )}
           </div>
 
@@ -506,18 +488,12 @@ const GameHud: React.FC<GameHudProps> = ({
               {movesRemaining}
             </span>
           </div>
-        </div>
-      </div>
 
-      {/* ─── Constraint bar — tucked behind the HUD bar bottom ─── */}
-      {hasConstraints && (
-        <div className="relative z-0 mx-auto w-full max-w-[200px] -mt-[3%]">
-          <ConstraintBarSvg />
-          {/* Constraint rings positioned over the two sockets */}
-          <div className="absolute inset-0">
+          {/* Constraints — inside the HUD bar */}
+          {constraints.length > 0 && (
             <TooltipProvider delayDuration={200}>
               {constraints.map((c, i) => {
-                const pos = i === 0 ? cRing1Pos : cRing2Pos;
+                const pos = i === 0 ? c1Pos : c2Pos;
                 const description = Constraint.fromContractValues(c.type, c.value, c.count).getDescription();
                 return (
                   <Tooltip key={`constraint-${i}`}>
@@ -540,9 +516,9 @@ const GameHud: React.FC<GameHudProps> = ({
                 );
               })}
             </TooltipProvider>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

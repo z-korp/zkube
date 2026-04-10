@@ -2,7 +2,14 @@ import { HUD_BAR } from "./chromeLayout";
 
 const { viewBox: vb, sockets: s } = HUD_BAR;
 
-const HudBarSvg: React.FC = () => (
+interface HudBarSvgProps {
+  /** Number of stars earned (0-3) — fills the engraved stars */
+  starsEarned?: number;
+  /** Number of constraint sockets to render (0, 1, or 2) */
+  constraintCount?: number;
+}
+
+const HudBarSvg: React.FC<HudBarSvgProps> = ({ starsEarned = 0, constraintCount = 0 }) => (
   <svg
     viewBox={`0 0 ${vb.width} ${vb.height}`}
     className="w-full h-auto block"
@@ -64,14 +71,19 @@ const HudBarSvg: React.FC = () => (
         <stop offset="50%" stopColor="#8B7355" stopOpacity="0.3" />
         <stop offset="100%" stopColor="#C9A96E" stopOpacity="0.6" />
       </linearGradient>
+
+      {/* Star glow filter */}
+      <filter id="hud-star-glow" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="#FACC15" floodOpacity="0.7" />
+      </filter>
     </defs>
 
     {/* ─── Main panel body ─── */}
     <rect
       x="36"
-      y="16"
+      y="8"
       width={vb.width - 72}
-      height={vb.height - 32}
+      height={vb.height - 16}
       rx="14"
       ry="14"
       fill="url(#hud-panel)"
@@ -82,12 +94,12 @@ const HudBarSvg: React.FC = () => (
 
     {/* ─── Left wing (behind guardian) ─── */}
     <path
-      d={`M ${s.guardian.cx + s.guardian.r - 4} ${vb.height * 0.25}
-          L 38 ${vb.height * 0.25}
-          Q 28 ${vb.height * 0.25} 28 ${vb.height * 0.35}
-          L 28 ${vb.height * 0.65}
-          Q 28 ${vb.height * 0.75} 38 ${vb.height * 0.75}
-          L ${s.guardian.cx + s.guardian.r - 4} ${vb.height * 0.75}`}
+      d={`M ${s.guardian.cx + s.guardian.r - 4} ${vb.height * 0.2}
+          L 38 ${vb.height * 0.2}
+          Q 28 ${vb.height * 0.2} 28 ${vb.height * 0.3}
+          L 28 ${vb.height * 0.7}
+          Q 28 ${vb.height * 0.8} 38 ${vb.height * 0.8}
+          L ${s.guardian.cx + s.guardian.r - 4} ${vb.height * 0.8}`}
       fill="url(#hud-panel)"
       stroke="url(#hud-border)"
       strokeWidth="1.5"
@@ -95,12 +107,12 @@ const HudBarSvg: React.FC = () => (
 
     {/* ─── Right wing (behind moves) ─── */}
     <path
-      d={`M ${s.moves.cx - s.moves.r + 4} ${vb.height * 0.25}
-          L ${vb.width - 38} ${vb.height * 0.25}
-          Q ${vb.width - 28} ${vb.height * 0.25} ${vb.width - 28} ${vb.height * 0.35}
-          L ${vb.width - 28} ${vb.height * 0.65}
-          Q ${vb.width - 28} ${vb.height * 0.75} ${vb.width - 38} ${vb.height * 0.75}
-          L ${s.moves.cx - s.moves.r + 4} ${vb.height * 0.75}`}
+      d={`M ${s.moves.cx - s.moves.r + 4} ${vb.height * 0.2}
+          L ${vb.width - 38} ${vb.height * 0.2}
+          Q ${vb.width - 28} ${vb.height * 0.2} ${vb.width - 28} ${vb.height * 0.3}
+          L ${vb.width - 28} ${vb.height * 0.7}
+          Q ${vb.width - 28} ${vb.height * 0.8} ${vb.width - 38} ${vb.height * 0.8}
+          L ${s.moves.cx - s.moves.r + 4} ${vb.height * 0.8}`}
       fill="url(#hud-panel)"
       stroke="url(#hud-border)"
       strokeWidth="1.5"
@@ -114,19 +126,21 @@ const HudBarSvg: React.FC = () => (
     <circle cx={s.level.cx} cy={s.level.cy} r={s.level.r + 2} fill="none" stroke="url(#hud-ring)" strokeWidth="2" />
     <circle cx={s.level.cx} cy={s.level.cy} r={s.level.r} fill="url(#hud-recess)" filter="url(#hud-inner-shadow)" />
 
-    {/* ─── Stars area — 3 engraved stars ─── */}
+    {/* ─── Stars — engraved, filled based on starsEarned ─── */}
     {[0, 1, 2].map((i) => {
-      const starCx = s.stars.x + s.stars.width / 2 - 30 + i * 30;
+      const starCx = s.stars.x + s.stars.width / 2 - 28 + i * 28;
       const starCy = s.stars.y + s.stars.height / 2;
       const sr = 8;
+      const earned = starsEarned > i;
       return (
         <polygon
           key={i}
           points={starPoints(starCx, starCy, sr, sr * 0.4)}
-          fill="#0a0e1a"
-          stroke="#3a3520"
-          strokeWidth="0.8"
-          opacity="0.5"
+          fill={earned ? "#FACC15" : "#0a0e1a"}
+          stroke={earned ? "#FACC15" : "#3a3520"}
+          strokeWidth={earned ? "0.5" : "0.8"}
+          opacity={earned ? 1 : 0.5}
+          filter={earned ? "url(#hud-star-glow)" : undefined}
         />
       );
     })}
@@ -170,7 +184,21 @@ const HudBarSvg: React.FC = () => (
       );
     })}
 
-    {/* ─── Thin decorative line across center ─── */}
+    {/* ─── Constraint sockets (0, 1, or 2) ─── */}
+    {constraintCount >= 1 && (
+      <>
+        <circle cx={s.constraint1.cx} cy={s.constraint1.cy} r={s.constraint1.r + 2} fill="none" stroke="url(#hud-ring)" strokeWidth="2" />
+        <circle cx={s.constraint1.cx} cy={s.constraint1.cy} r={s.constraint1.r} fill="url(#hud-recess)" filter="url(#hud-inner-shadow)" />
+      </>
+    )}
+    {constraintCount >= 2 && (
+      <>
+        <circle cx={s.constraint2.cx} cy={s.constraint2.cy} r={s.constraint2.r + 2} fill="none" stroke="url(#hud-ring)" strokeWidth="2" />
+        <circle cx={s.constraint2.cx} cy={s.constraint2.cy} r={s.constraint2.r} fill="url(#hud-recess)" filter="url(#hud-inner-shadow)" />
+      </>
+    )}
+
+    {/* ─── Thin decorative line ─── */}
     <line
       x1={s.level.cx + s.level.r + 8}
       y1={s.scoreBar.y - 2}
