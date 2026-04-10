@@ -29,13 +29,24 @@ const rowVariants: any = {
 // Contract uses 0-based rank for percentile: (rank * 100) / total
 function computeWeeklyReward(rank1Based: number, total: number): number {
   if (total === 0) return 0;
-  const rank = rank1Based - 1; // contract uses 0-based index
+  const rank = rank1Based - 1;
   const pct = (rank * 100) / total;
   if (pct < 2) return 30;
   if (pct < 5) return 20;
   if (pct < 10) return 15;
   if (pct < 25) return 10;
   if (pct < 50) return 3;
+  return 0;
+}
+
+function computeDailyReward(rank1Based: number, total: number): number {
+  if (total === 0) return 0;
+  const pct = ((rank1Based - 1) * 100) / total;
+  if (pct < 2) return 10;
+  if (pct < 5) return 7;
+  if (pct < 10) return 5;
+  if (pct < 25) return 3;
+  if (pct < 50) return 1;
   return 0;
 }
 
@@ -208,7 +219,9 @@ const LeaderboardPage: React.FC = () => {
             {rankRows.map((entry, index) => {
               const reward = activeTab === "endless"
                 ? computeWeeklyReward(entry.rank, totalParticipants)
-                : 0;
+                : activeTab === "daily"
+                  ? computeDailyReward(entry.rank, dailyEntries.length)
+                  : 0;
 
               return (
                 <motion.div
@@ -294,8 +307,10 @@ const LeaderboardPage: React.FC = () => {
                     <div className="font-sans text-[16px] font-extrabold tracking-wide" style={{ color: colors.text }}>
                       {myRank.score.toLocaleString()}{activeTab === "player" ? " XP" : activeTab === "daily" ? " ★" : ""}
                     </div>
-                    {activeTab === "endless" && (() => {
-                      const reward = computeWeeklyReward(myRank.rank, myRank.total);
+                    {(activeTab === "endless" || activeTab === "daily") && (() => {
+                      const reward = activeTab === "endless"
+                        ? computeWeeklyReward(myRank.rank, myRank.total)
+                        : computeDailyReward(myRank.rank, myRank.total);
                       return reward > 0 ? (
                         <div className="shrink-0 rounded-full bg-yellow-500/20 px-1.5 py-0.5 text-[10px] font-bold text-yellow-300">
                           +{reward} ★

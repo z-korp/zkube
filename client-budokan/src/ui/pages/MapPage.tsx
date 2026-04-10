@@ -772,6 +772,7 @@ const MapPage: React.FC = () => {
             activeMutatorId={isDailyMap && dailyChallenge ? dailyChallenge.active_mutator_id : mapZoneId * 2 - 1}
             passiveMutatorId={isDailyMap && dailyChallenge ? dailyChallenge.passive_mutator_id : mapZoneId * 2}
             isFirstVisit={isFirstVisit}
+            bossCleared={storyZoneProgress?.bossCleared ?? false}
             onClose={() => setShowGreeting(false)}
           />
         )}

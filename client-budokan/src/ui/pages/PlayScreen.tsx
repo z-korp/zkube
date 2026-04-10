@@ -445,7 +445,7 @@ const PlayScreen: React.FC = () => {
           totalScore={game?.totalScore ?? 0}
           currentDifficulty={game?.currentDifficulty ?? 0}
           zoneId={game?.zoneId ?? 1}
-          onBack={goBack}
+          onBack={game?.mode === 1 ? () => navNavigate("home") : goBack}
         />
       )}
 

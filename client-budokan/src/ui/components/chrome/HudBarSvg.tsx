@@ -4,9 +4,10 @@ const { viewBox: vb, panel: p, sockets: s } = HUD_BAR;
 
 interface HudBarSvgProps {
   starsEarned?: number;
+  endless?: boolean;
 }
 
-const HudBarSvg: React.FC<HudBarSvgProps> = ({ starsEarned = 0 }) => {
+const HudBarSvg: React.FC<HudBarSvgProps> = ({ starsEarned = 0, endless = false }) => {
   return (
     <svg
       viewBox={`0 0 ${vb.width} ${vb.height}`}
@@ -83,24 +84,40 @@ const HudBarSvg: React.FC<HudBarSvgProps> = ({ starsEarned = 0 }) => {
       <circle cx={s.guardian.cx} cy={s.guardian.cy} r={s.guardian.r + 3} fill="none" stroke="url(#hud-ring)" strokeWidth="3" />
       <circle cx={s.guardian.cx} cy={s.guardian.cy} r={s.guardian.r} fill="url(#hud-recess)" filter="url(#hud-inner-shadow)" />
 
-      {/* ─── Stars — filled based on starsEarned ─── */}
-      {[0, 1, 2].map((i) => {
-        const starCx = s.stars.x + s.stars.width / 2 - 28 + i * 28;
-        const starCy = s.stars.y + s.stars.height / 2;
-        const sr = 9;
-        const earned = starsEarned > i;
-        return (
-          <polygon
-            key={i}
-            points={starPoints(starCx, starCy, sr, sr * 0.4)}
-            fill={earned ? "#FACC15" : "#0a0e1a"}
-            stroke={earned ? "#FACC15" : "#3a3520"}
-            strokeWidth={earned ? "0.5" : "0.8"}
-            opacity={earned ? 1 : 0.5}
-            filter={earned ? "url(#hud-star-glow)" : undefined}
-          />
-        );
-      })}
+      {/* ─── Stars or Infinity ─── */}
+      {endless ? (
+        <text
+          x={s.stars.x + s.stars.width / 2}
+          y={s.stars.y + s.stars.height / 2 + 1}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fill="#FACC15"
+          fontSize="22"
+          fontWeight="bold"
+          fontFamily="serif"
+          filter="url(#hud-star-glow)"
+        >
+          ∞
+        </text>
+      ) : (
+        [0, 1, 2].map((i) => {
+          const starCx = s.stars.x + s.stars.width / 2 - 28 + i * 28;
+          const starCy = s.stars.y + s.stars.height / 2;
+          const sr = 9;
+          const earned = starsEarned > i;
+          return (
+            <polygon
+              key={i}
+              points={starPoints(starCx, starCy, sr, sr * 0.4)}
+              fill={earned ? "#FACC15" : "#0a0e1a"}
+              stroke={earned ? "#FACC15" : "#3a3520"}
+              strokeWidth={earned ? "0.5" : "0.8"}
+              opacity={earned ? 1 : 0.5}
+              filter={earned ? "url(#hud-star-glow)" : undefined}
+            />
+          );
+        })
+      )}
 
       {/* ─── Score channel ─── */}
       <rect

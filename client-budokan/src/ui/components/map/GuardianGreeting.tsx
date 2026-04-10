@@ -12,6 +12,7 @@ interface GuardianGreetingProps {
   activeMutatorId?: number;
   passiveMutatorId?: number;
   isFirstVisit?: boolean;
+  bossCleared?: boolean;
   onClose: () => void;
 }
 
@@ -22,6 +23,7 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
   activeMutatorId,
   passiveMutatorId,
   isFirstVisit = false,
+  bossCleared = false,
   onClose,
 }) => {
   const portraitSrc = getGuardianPortrait(guardian.zoneId);
@@ -119,6 +121,13 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
           {isFirstVisit && mode !== "endless" && (
             <p className="mt-2 font-sans text-[12px] text-pink-300/70">
               💎 Earn 3 stars on all 10 levels for +20★ perfection bonus
+            </p>
+          )}
+
+          {/* Endless unlock after boss clear */}
+          {bossCleared && mode === "story" && (
+            <p className="mt-2 font-sans text-[12px] text-white/70">
+              ⚔️ <span className="font-bold" style={{ color: colors.accent }}>Endless</span> mode is now unlocked!
             </p>
           )}
 

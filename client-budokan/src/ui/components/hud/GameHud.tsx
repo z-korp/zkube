@@ -162,7 +162,7 @@ const GameHud: React.FC<GameHudProps> = ({
   const isEndless = mode === 1;
   const isBoss = isBossLevel(level);
 
-  const settingsId = Math.max(0, (zoneId - 1) * 2);
+  const settingsId = isEndless ? zoneId * 2 - 1 : (zoneId - 1) * 2;
   const { settings } = useSettings(settingsId);
   const ENDLESS_TIERS = useMemo(
     () => buildEndlessTiers(settings.endlessDifficultyThresholds, settings.endlessScoreMultipliers),
@@ -254,24 +254,17 @@ const GameHud: React.FC<GameHudProps> = ({
     </div>
   );
 
-  if (isEndless) {
-    // Reuse story SVG chrome layout with endless-specific content
-    const endlessGuardianTooltip = (
-      <div className="flex flex-col gap-1.5 max-w-[200px]">
-        <div className="font-sans text-xs font-bold">{guardian.name} · {guardian.title}</div>
-        <div className="font-sans text-[11px] text-slate-300">{guardian.encouragement}</div>
-        {activeMutatorId > 0 && (
-          <div className="font-sans text-[10px] text-yellow-400/90">
-            {mutator.icon} {mutator.name}: {mutator.description}
-          </div>
-        )}
-      </div>
-    );
+  // ─── Shared socket positions (used by both endless and story) ───
+  const guardianPos = circleToPercent(HUD_BAR.sockets.guardian, HUD_BAR.viewBox);
+  const scorePos = rectToPercent(HUD_BAR.sockets.scoreBar, HUD_BAR.viewBox);
+  const comboPos = rectToPercent(HUD_BAR.sockets.combo, HUD_BAR.viewBox);
+  const movesPos = circleToPercent(HUD_BAR.sockets.moves, HUD_BAR.viewBox);
 
+  if (isEndless) {
     return (
       <div className="w-full shrink-0 px-[clamp(0px,1vw,8px)] pt-[clamp(0px,0.5vh,6px)]">
         <div className="relative z-10 mx-auto w-full max-w-full">
-          <HudBarSvg starsEarned={0} />
+          <HudBarSvg endless />
 
           <AnimatePresence>
             {showDifficultyUp && (
@@ -321,10 +314,6 @@ const GameHud: React.FC<GameHudProps> = ({
             >
               <span className="text-[clamp(14px,4vw,22px)] leading-none">{currentTier.emoji}</span>
               <span className="font-display text-[clamp(6px,1.8vw,9px)] font-bold text-white leading-tight text-center px-0.5">{currentTier.name}</span>
-              {/* Level badge — infinity */}
-              <div className="absolute -bottom-2 -right-2 rounded-full min-w-[clamp(20px,6vw,32px)] h-[clamp(20px,6vw,32px)] flex items-center justify-center px-0.5 font-sans text-[clamp(10px,3vw,16px)] font-bold z-10 shadow-[0_0_4px_rgba(0,0,0,0.5)] bg-slate-800 border border-white/30 text-white">
-                ∞
-              </div>
             </div>
 
             {/* Score bar — total score toward next tier */}
@@ -366,37 +355,12 @@ const GameHud: React.FC<GameHudProps> = ({
 
             {/* Multiplier (replaces moves) */}
             <div className="absolute flex flex-col items-center justify-center" style={movesPos}>
-              <span className="font-sans text-[clamp(7px,2vw,12px)] font-semibold uppercase tracking-wider leading-none text-slate-400">MULTI</span>
-              <span className="font-sans text-[clamp(18px,5.5vw,32px)] font-bold leading-none tabular-nums" style={{ color: currentTier.color }}>
+              <span className="font-sans text-[clamp(6px,1.6vw,10px)] font-semibold uppercase tracking-wider leading-none text-slate-400">MULTI</span>
+              <span className="font-sans text-[clamp(13px,4vw,22px)] font-bold leading-none tabular-nums" style={{ color: currentTier.color }}>
                 {currentTier.multiplier}
               </span>
             </div>
 
-            {/* Guardian portrait (replaces constraints/bonus area) */}
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div
-                    className="absolute flex items-center justify-center"
-                    style={{
-                      left: `${(HUD_BAR.sockets.constraint1.cx / HUD_BAR.viewBox.width) * 100}%`,
-                      top: `${(HUD_BAR.sockets.constraint1.cy / HUD_BAR.viewBox.height) * 100}%`,
-                      transform: "translate(-50%, -50%)",
-                    }}
-                  >
-                    <img
-                      src={portraitSrc}
-                      alt={guardian.name}
-                      className="rounded-full object-cover border-2 border-white/20"
-                      style={{ width: ringSize, height: ringSize }}
-                    />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg">
-                  {endlessGuardianTooltip}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </div>
         </div>
       </div>
@@ -404,10 +368,6 @@ const GameHud: React.FC<GameHudProps> = ({
   }
 
   // ─── STORY MODE HUD ───
-  const guardianPos = circleToPercent(HUD_BAR.sockets.guardian, HUD_BAR.viewBox);
-  const scorePos = rectToPercent(HUD_BAR.sockets.scoreBar, HUD_BAR.viewBox);
-  const comboPos = rectToPercent(HUD_BAR.sockets.combo, HUD_BAR.viewBox);
-  const movesPos = circleToPercent(HUD_BAR.sockets.moves, HUD_BAR.viewBox);
   // Constraints use center-point positioning so ProgressRing can size itself freely
   const c1Pos = {
     left: `${(HUD_BAR.sockets.constraint1.cx / HUD_BAR.viewBox.width) * 100}%`,

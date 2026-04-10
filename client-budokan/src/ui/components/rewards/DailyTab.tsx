@@ -3,6 +3,8 @@ import { motion } from "motion/react";
 import { Loader2 } from "lucide-react";
 
 import type { ThemeColors } from "@/config/themes";
+import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
+import { getZoneGuardian, getGuardianPortrait } from "@/config/bossCharacters";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
@@ -84,13 +86,22 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
   const hasEnded = challenge ? now >= challenge.end_time : false;
   const isSettled = challenge?.settled ?? false;
 
+  const zoneId = challenge?.zone_id ?? 1;
   const zoneName = challenge?.zone_id ? (ZONE_NAMES[challenge.zone_id] ?? `Zone ${challenge.zone_id}`) : null;
   const activeMutator = challenge?.active_mutator_id ? getMutatorDef(challenge.active_mutator_id) : null;
   const passiveMutator = challenge?.passive_mutator_id ? getMutatorDef(challenge.passive_mutator_id) : null;
+  const zoneThemeId = `theme-${Math.min(10, Math.max(1, zoneId))}` as ThemeId;
+  const zoneColors = getThemeColors(zoneThemeId);
+  const zoneImages = getThemeImages(zoneThemeId);
+  const guardian = getZoneGuardian(zoneId);
 
   const myEntry = useMemo(() => {
     if (!normalizedAccount || !entries.length) return null;
-    return entries.find((e) => e.player.toLowerCase() === normalizedAccount) ?? null;
+    console.log("[DailyTab] normalizedAccount:", normalizedAccount);
+    console.log("[DailyTab] entries:", entries.map(e => ({ rank: e.rank, player: e.player, stars: e.totalStars })));
+    const found = entries.find((e) => e.player.toLowerCase() === normalizedAccount) ?? null;
+    console.log("[DailyTab] myEntry found:", found);
+    return found;
   }, [entries, normalizedAccount]);
 
   const myReward = myEntry ? computeDailyReward(myEntry.rank, entries.length) : 0;
@@ -138,50 +149,45 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
 
   return (
     <motion.div variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } }} initial="hidden" animate="show" className="flex flex-col gap-3">
-      <motion.section
-        variants={itemVariants}
-        className="rounded-2xl border px-4 py-3.5 backdrop-blur-xl"
-        style={{ background: "rgba(255,255,255,0.11)", borderColor: "rgba(255,255,255,0.18)" }}
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-sans text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: colors.textMuted }}>
-              Today's Challenge
+      {/* Guardian hero card — matches DailyChallengePage */}
+      <motion.section variants={itemVariants} className="relative overflow-hidden rounded-2xl border border-white/[0.12]">
+        <img src={zoneImages.background} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
+        <div className="relative z-10 flex items-end gap-3 p-4">
+          <img
+            src={getGuardianPortrait(zoneId)}
+            alt={guardian.name}
+            className="h-16 w-16 shrink-0 rounded-xl object-cover"
+            style={{ border: `2px solid ${zoneColors.accent}44`, boxShadow: `0 0 16px ${zoneColors.accent}22` }}
+            draggable={false}
+          />
+          <div className="min-w-0 flex-1">
+            <p className="font-sans text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: zoneColors.accent }}>
+              {new Date(challenge.start_time * 1000).toLocaleDateString(navigator.language, { weekday: "long", month: "short", day: "numeric" })}
             </p>
-            <div className="mt-1 flex flex-wrap items-center gap-1.5">
-              {zoneName && (
-                <span className="rounded-full bg-white/10 px-2 py-0.5 font-sans text-[11px] font-semibold text-white/80">
-                  {zoneName}
+            <p className="font-display text-lg font-black text-white">{zoneName}</p>
+            <div className="mt-1 flex items-center justify-between">
+              <p className="font-sans text-[11px] font-semibold text-white/50">
+                {challenge.total_entries} player{challenge.total_entries !== 1 ? "s" : ""}
+              </p>
+              {hasEnded ? (
+                <span className="rounded-full border px-2 py-0.5 font-sans text-[10px] font-bold text-red-400" style={{ borderColor: "rgba(248,113,113,0.3)", backgroundColor: "rgba(248,113,113,0.1)" }}>
+                  ENDED
                 </span>
-              )}
-              {activeMutator && (
-                <span className="rounded-full bg-orange-500/15 px-2 py-0.5 font-sans text-[11px] font-semibold text-orange-300">
-                  {activeMutator.icon} {activeMutator.name}
-                </span>
-              )}
-              {passiveMutator && (
-                <span className="rounded-full bg-purple-500/15 px-2 py-0.5 font-sans text-[11px] font-semibold text-purple-300">
-                  {passiveMutator.icon} {passiveMutator.name}
-                </span>
+              ) : (
+                <Countdown endTime={challenge.end_time} colors={zoneColors} />
               )}
             </div>
-          </div>
-          <div className="text-right">
-            {hasEnded ? (
-              <span className="font-sans text-sm font-bold text-red-400">ENDED</span>
-            ) : (
-              <Countdown endTime={challenge.end_time} colors={colors} />
-            )}
-            <p className="font-sans text-[10px]" style={{ color: colors.textMuted }}>
-              {challenge.total_entries} player{challenge.total_entries !== 1 ? "s" : ""}
-            </p>
           </div>
         </div>
       </motion.section>
 
+
       {myEntry && (
         <motion.section
-          variants={itemVariants}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 24 }}
           className="rounded-2xl border px-4 py-3 backdrop-blur-xl"
           style={{
             background: `${colors.accent}15`,
@@ -214,7 +220,7 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
       )}
 
       {hasEnded && !isSettled && entries.length > 0 && (
-        <motion.section variants={itemVariants}>
+        <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleSettle}
@@ -234,13 +240,13 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
       )}
 
       {isSettled && (
-        <motion.section variants={itemVariants} className="rounded-2xl border border-green-500/30 bg-green-500/10 px-4 py-2.5">
+        <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-green-500/30 bg-green-500/10 px-4 py-2.5">
           <p className="text-center font-sans text-sm font-bold text-green-300">Settled — rewards distributed</p>
         </motion.section>
       )}
 
       {myEntry && (
-        <motion.section variants={itemVariants}>
+        <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
           <TierContext
             colors={colors}
             myRank={myEntry.rank}
@@ -253,6 +259,26 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
           />
         </motion.section>
       )}
+
+      {/* Reward tiers — always visible */}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-2xl border px-4 py-3 backdrop-blur-xl"
+        style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.12)" }}
+      >
+        <p className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: colors.textMuted }}>
+          Reward Tiers
+        </p>
+        <div className="flex flex-col gap-1">
+          {REWARD_TIERS.map((tier) => (
+            <div key={tier.pct} className="flex items-center justify-between py-1" style={{ borderTop: tier.pct > 1 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+              <span className="font-sans text-[12px] font-semibold text-white/70">{tier.label}</span>
+              <span className="font-sans text-[12px] font-bold text-yellow-300">+{tier.reward}★</span>
+            </div>
+          ))}
+        </div>
+      </motion.section>
     </motion.div>
   );
 };

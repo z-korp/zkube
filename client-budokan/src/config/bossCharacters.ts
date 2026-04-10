@@ -205,6 +205,7 @@ export function getZoneGuardian(zoneId: number): ZoneGuardian {
  * Falls back to emoji if the asset doesn't exist yet.
  */
 export function getGuardianPortrait(zoneId: number): string {
-  return `/assets/theme-${zoneId}/boss/portrait.png`;
+  const clamped = Math.min(10, Math.max(1, zoneId || 1));
+  return `/assets/theme-${clamped}/boss/portrait.png`;
 }
 

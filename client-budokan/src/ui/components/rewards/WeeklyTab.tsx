@@ -15,6 +15,7 @@ import { ZONE_NAMES } from "@/config/profileData";
 import TierContext from "@/ui/components/rewards/TierContext";
 
 const SECONDS_PER_WEEK = 604800;
+const MONDAY_OFFSET = 345600; // Unix epoch was Thursday; +4 days = Monday
 
 const normalizeEntityId = (entityId: string): Entity => {
   if (!entityId.startsWith("0x")) return entityId as Entity;
@@ -23,11 +24,11 @@ const normalizeEntityId = (entityId: string): Entity => {
 };
 
 function currentWeekId(): number {
-  return Math.floor(Date.now() / 1000 / SECONDS_PER_WEEK);
+  return Math.floor((Date.now() / 1000 - MONDAY_OFFSET) / SECONDS_PER_WEEK);
 }
 
 function weekEndTimestamp(weekId: number): number {
-  return (weekId + 1) * SECONDS_PER_WEEK;
+  return (weekId + 1) * SECONDS_PER_WEEK + MONDAY_OFFSET;
 }
 
 function computeWeeklyReward(rank1Based: number, total: number): number {
@@ -108,9 +109,12 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
   const normalizedAccount = account?.address?.toLowerCase();
   const myRank = useMemo(() => {
     if (!normalizedAccount) return null;
+    console.log("[WeeklyTab] normalizedAccount:", normalizedAccount);
+    console.log("[WeeklyTab] games:", games.map(g => ({ addr: g.player_address, score: g.score })));
     const idx = games.findIndex(
       (g) => g.player_address?.toLowerCase() === normalizedAccount,
     );
+    console.log("[WeeklyTab] myRank idx:", idx);
     return idx >= 0 ? idx + 1 : null;
   }, [games, normalizedAccount]);
 
@@ -196,7 +200,9 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
 
       {myRank && (
         <motion.section
-          variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 24 }}
           className="rounded-2xl border px-4 py-3 backdrop-blur-xl"
           style={{ background: `${colors.accent}15`, borderColor: `${colors.accent}40` }}
         >
@@ -223,8 +229,8 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
         </motion.section>
       )}
 
-      {!isPrevWeekSettled && games.length > 0 && (
-        <motion.section variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}>
+      {weeklyMeta && !isPrevWeekSettled && games.length > 0 && (
+        <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleSettle}
@@ -245,7 +251,8 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
 
       {isPrevWeekSettled && (
         <motion.section
-          variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
           className="rounded-2xl border border-green-500/30 bg-green-500/10 px-4 py-2.5"
         >
           <p className="text-center font-sans text-sm font-bold text-green-300">
@@ -255,7 +262,7 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
       )}
 
       {myRank && (
-        <motion.section variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}>
+        <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
           <TierContext
             colors={colors}
             myRank={myRank}
@@ -267,6 +274,25 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
           />
         </motion.section>
       )}
+      {/* Reward tiers — always visible */}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-2xl border px-4 py-3 backdrop-blur-xl"
+        style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.12)" }}
+      >
+        <p className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: colors.textMuted }}>
+          Reward Tiers
+        </p>
+        <div className="flex flex-col gap-1">
+          {REWARD_TIERS.map((tier) => (
+            <div key={tier.pct} className="flex items-center justify-between py-1" style={{ borderTop: tier.pct > 2 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+              <span className="font-sans text-[12px] font-semibold text-white/70">{tier.label}</span>
+              <span className="font-sans text-[12px] font-bold text-yellow-300">+{tier.reward}★</span>
+            </div>
+          ))}
+        </div>
+      </motion.section>
     </motion.div>
   );
 };

@@ -172,7 +172,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   passiveMutatorId: 0,
   bossId: 1,
   endlessDifficultyThresholds: [0, 15, 40, 80, 150, 280, 500, 900],
-  endlessScoreMultipliers: [10, 12, 14, 17, 20, 25, 33, 40],
+  endlessScoreMultipliers: [10, 15, 20, 30, 40, 60, 80, 100],
   star3Percent: 40,
   star2Percent: 70,
 };
