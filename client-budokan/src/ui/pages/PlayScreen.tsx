@@ -28,9 +28,12 @@ import {
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
 import { DifficultyType } from "@/dojo/game/types/difficulty";
-import { getBonusType } from "@/config/mutatorConfig";
+import { getBonusType, getMutatorDef } from "@/config/mutatorConfig";
 import { useMutatorDef } from "@/hooks/useMutatorDef";
 import { useSettings } from "@/hooks/useSettings";
+import { getZoneGuardian } from "@/config/bossCharacters";
+import { getThemeColors, type ThemeId } from "@/config/themes";
+import GuardianGreeting from "@/ui/components/map/GuardianGreeting";
 
 const PlayScreen: React.FC = () => {
   const {
@@ -98,6 +101,7 @@ const PlayScreen: React.FC = () => {
 
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
+  const [showEndlessGreeting, setShowEndlessGreeting] = useState(true);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isGameLoading, setIsGameLoading] = useState(true);
   const [cascadeComplete, setCascadeComplete] = useState(false);
@@ -401,6 +405,23 @@ const PlayScreen: React.FC = () => {
           game={game}
         />
       )}
+
+      {/* Endless greeting overlay */}
+      {game && game.mode === 1 && showEndlessGreeting && (() => {
+        const zoneId = game.zoneId ?? 1;
+        const guardian = getZoneGuardian(zoneId);
+        const themeId = `theme-${Math.min(10, Math.max(1, zoneId))}` as ThemeId;
+        const zoneColors = getThemeColors(themeId);
+        return (
+          <GuardianGreeting
+            colors={zoneColors}
+            guardian={guardian}
+            mode="endless"
+            activeMutatorId={game.activeMutatorId}
+            onClose={() => setShowEndlessGreeting(false)}
+          />
+        );
+      })()}
 
       {game && !isGameLoading && !isGridLoading && (
         <GameHud

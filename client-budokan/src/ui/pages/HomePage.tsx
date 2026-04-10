@@ -339,7 +339,7 @@ const HomePage: React.FC = () => {
             if (gameId === 0n) throw new Error("Failed to extract game_id from mint");
             await create({ account, token_id: gameId, run_type: selectedMode });
             showToast({ message: "Game started!", type: "success" });
-            navigate("mutator", gameId);
+            navigate("play", gameId);
             return;
           }
 

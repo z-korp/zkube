@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft } from "lucide-react";
 
 import { getThemeColors, type ThemeId } from "@/config/themes";
-import { getZoneTheme } from "@/hooks/useMapData";
 import { getBonusType, getMutatorDef } from "@/config/mutatorConfig";
 import { getZoneGuardian } from "@/config/bossCharacters";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
@@ -84,7 +83,7 @@ const MutatorRevealPage: React.FC = () => {
 
   // Endless mode: show guardian greeting overlay instead of rolling animation
   if (game?.mode === 1) {
-    const zoneThemeId = getZoneTheme(mapZoneId || 1);
+    const zoneThemeId = `theme-${Math.min(10, Math.max(1, mapZoneId || 1))}` as ThemeId;
     const zoneColors = getThemeColors(zoneThemeId);
     return (
       <div className="relative h-full">
