@@ -54,15 +54,19 @@ function clamp(value: number, min: number, max: number): number {
 /*  Layout constants                                                   */
 /* ------------------------------------------------------------------ */
 
-/** Y range for nodes: top of zone = 0.08, bottom = 0.92 */
 const Y_TOP = 0.08;
 const Y_BOTTOM = 0.92;
 
-/** 3-lane X positions — wide spread for visual variety */
-const LANES = [0.2, 0.5, 0.8] as const;
+/** X bounds for node placement */
+const X_MIN = 0.15;
+const X_MAX = 0.85;
+const X_CENTER = 0.5;
 
-/** Maximum jitter applied to X */
-const X_JITTER = 0.10;
+/** Minimum horizontal distance between consecutive nodes */
+const MIN_X_SHIFT = 0.15;
+
+/** Maximum Y jitter (fraction of yStep) */
+const Y_JITTER = 0.25;
 
 /* ------------------------------------------------------------------ */
 /*  Build zone layout                                                  */
@@ -76,50 +80,67 @@ function buildZoneLayout(
   const points: MapLayoutPoint[] = [];
   const edges: MapLayoutEdge[] = [];
   const lastNode = nodesPerZone - 1;
-
-  // Evenly space nodes vertically with guaranteed monotonic ascent
   const yStep = (Y_BOTTOM - Y_TOP) / Math.max(lastNode, 1);
 
-  let lane = 1;
+  let prevX = X_CENTER;
 
   for (let i = 0; i < nodesPerZone; i++) {
-    // Y: strict even spacing, bottom to top (node 0 = bottom, last = top)
-    const y = Y_BOTTOM - i * yStep;
-
     const isFirst = i === 0;
     const isLast = i === lastNode;
 
+    // Y: even spacing with jitter on interior nodes
+    let y = Y_BOTTOM - i * yStep;
+    if (!isFirst && !isLast) {
+      const yJit = (hashToUnit(seed, zoneIndex, i, 300) - 0.5) * yStep * Y_JITTER;
+      y = clamp(y + yJit, Y_TOP, Y_BOTTOM);
+    }
+
+    // X: first and last always centered
     if (isFirst || isLast) {
-      points.push({ x: 0.5, y });
-      lane = 1;
+      points.push({ x: X_CENTER, y });
+      prevX = X_CENTER;
       continue;
     }
 
-    // Pre-boss node: force to an outer lane (opposite of previous) so it
-    // doesn't tangle with the large centered boss above it.
+    // Pre-boss: offset from center, away from previous
     if (i === lastNode - 1) {
-      lane = lane === 0 ? 2 : 0; // flip to opposite outer lane
-      const xJitter = (hashToUnit(seed, zoneIndex, i, 202) - 0.5) * X_JITTER;
-      const rawX = LANES[lane] + xJitter;
-      points.push({ x: clamp(rawX, 0.14, 0.86), y });
+      const dir = prevX < X_CENTER ? 1 : -1;
+      const offset = 0.15 + hashToUnit(seed, zoneIndex, i, 301) * 0.15;
+      const x = clamp(X_CENTER + dir * offset, X_MIN, X_MAX);
+      points.push({ x, y });
+      prevX = x;
       continue;
     }
 
-    // Force lane change: NEVER same lane as previous node.
-    const moveRoll = hashToUnit(seed, zoneIndex, i, 201);
+    // Interior nodes: continuous X with guaranteed shift from previous
+    const roll = hashToUnit(seed, zoneIndex, i, 201);
 
-    if (lane === 1) {
-      lane = moveRoll < 0.5 ? 0 : 2;
-    } else if (lane === 0) {
-      lane = moveRoll < 0.5 ? 1 : 2;
+    // Node right after start (level 2): keep left of 0.65 to avoid guardian portrait at bottom-right
+    const xCeiling = i === 1 ? 0.65 : X_MAX;
+
+    // Decide direction: biased away from edges, always shift from prevX
+    let targetX: number;
+    const rightBound = xCeiling;
+    if (prevX < 0.35) {
+      // Near left edge: bias rightward
+      targetX = prevX + MIN_X_SHIFT + roll * (rightBound - prevX - MIN_X_SHIFT);
+    } else if (prevX > rightBound - 0.2) {
+      // Near right bound: bias leftward
+      targetX = prevX - MIN_X_SHIFT - roll * (prevX - MIN_X_SHIFT - X_MIN);
     } else {
-      lane = moveRoll < 0.5 ? 1 : 0;
+      // Middle: go either direction
+      if (roll < 0.5) {
+        const shift = MIN_X_SHIFT + (roll * 2) * (prevX - X_MIN - MIN_X_SHIFT);
+        targetX = prevX - shift;
+      } else {
+        const shift = MIN_X_SHIFT + ((roll - 0.5) * 2) * (rightBound - prevX - MIN_X_SHIFT);
+        targetX = prevX + shift;
+      }
     }
 
-    const xJitter = (hashToUnit(seed, zoneIndex, i, 202) - 0.5) * X_JITTER;
-    const x = clamp(LANES[lane] + xJitter, 0.14, 0.86);
-
+    const x = clamp(targetX, X_MIN, xCeiling);
     points.push({ x, y });
+    prevX = x;
   }
 
   // Linear chain edges
