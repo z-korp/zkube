@@ -507,7 +507,7 @@ const HomePage: React.FC = () => {
                           : !challenge
                             ? "Be the first to play today!"
                             : hasPlayedDaily && dailyEntry
-                              ? `Your best: ${dailyEntry.best_score?.toLocaleString() ?? 0}${dailyEntry.rank > 0 ? ` · Rank #${dailyEntry.rank}` : ""}${dailyCountdown ? ` · ${dailyCountdown}` : ""}`
+                              ? `${dailyEntry.total_stars ?? 0}/30 ★ · ${dailyEntry.highest_cleared ?? 0}/10 levels${dailyEntry.rank > 0 ? ` · #${dailyEntry.rank}` : ""}${dailyCountdown ? ` · ${dailyCountdown}` : ""}`
                               : `${dailyCountdown ?? "New daily available"} · ${challenge.total_entries ?? 0} player${(challenge.total_entries ?? 0) !== 1 ? "s" : ""}`}
                       </p>
                     </div>
