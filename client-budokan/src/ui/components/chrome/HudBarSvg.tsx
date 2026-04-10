@@ -1,20 +1,12 @@
 import { HUD_BAR } from "./chromeLayout";
 
-const { viewBox: vb, sockets: s } = HUD_BAR;
+const { viewBox: vb, panel: p, sockets: s } = HUD_BAR;
 
 interface HudBarSvgProps {
   starsEarned?: number;
-  constraintCount?: number;
 }
 
-const HudBarSvg: React.FC<HudBarSvgProps> = ({ starsEarned = 0, constraintCount = 0 }) => {
-  // Panel body bounds
-  const px = 36;
-  const py = 8;
-  const pw = vb.width - 72;
-  const ph = vb.height - 16;
-  const pr = 14; // corner radius
-
+const HudBarSvg: React.FC<HudBarSvgProps> = ({ starsEarned = 0 }) => {
   return (
     <svg
       viewBox={`0 0 ${vb.width} ${vb.height}`}
@@ -76,39 +68,18 @@ const HudBarSvg: React.FC<HudBarSvgProps> = ({ starsEarned = 0, constraintCount 
         </filter>
       </defs>
 
-      {/* ─── Main panel body ─── */}
+      {/* ─── Main panel body (compact — portrait & moves overlap edges) ─── */}
       <rect
-        x={px} y={py} width={pw} height={ph}
-        rx={pr} ry={pr}
+        x={p.x} y={p.y} width={p.width} height={p.height}
+        rx={p.rx} ry={p.rx}
         fill="url(#hud-panel)"
         stroke="url(#hud-border)"
         strokeWidth="1.5"
         filter="url(#hud-glow)"
       />
 
-      {/* ─── Left wing — closed rounded rect ─── */}
-      <rect
-        x="22" y={py}
-        width={s.guardian.cx + s.guardian.r - 16}
-        height={ph}
-        rx={pr} ry={pr}
-        fill="url(#hud-panel)"
-        stroke="url(#hud-border)"
-        strokeWidth="1.5"
-      />
-
-      {/* ─── Right wing — closed rounded rect ─── */}
-      <rect
-        x={s.moves.cx - s.moves.r - 6} y={py}
-        width={vb.width - (s.moves.cx - s.moves.r - 6) - 22}
-        height={ph}
-        rx={pr} ry={pr}
-        fill="url(#hud-panel)"
-        stroke="url(#hud-border)"
-        strokeWidth="1.5"
-      />
-
-      {/* ─── Guardian socket ─── */}
+      {/* ─── Guardian socket — mask covers panel border behind it ─── */}
+      <circle cx={s.guardian.cx} cy={s.guardian.cy} r={s.guardian.r + 5} fill="#0f1219" />
       <circle cx={s.guardian.cx} cy={s.guardian.cy} r={s.guardian.r + 3} fill="none" stroke="url(#hud-ring)" strokeWidth="3" />
       <circle cx={s.guardian.cx} cy={s.guardian.cy} r={s.guardian.r} fill="url(#hud-recess)" filter="url(#hud-inner-shadow)" />
 
@@ -135,58 +106,21 @@ const HudBarSvg: React.FC<HudBarSvgProps> = ({ starsEarned = 0, constraintCount 
       <rect
         x={s.scoreBar.x} y={s.scoreBar.y}
         width={s.scoreBar.width} height={s.scoreBar.height}
-        rx="6"
+        rx="5"
         fill="url(#hud-channel)"
         stroke="#1a1e2e"
         strokeWidth="1"
       />
 
-      {/* ─── Combo socket ─── */}
-      <circle cx={s.combo.cx} cy={s.combo.cy} r={s.combo.r + 2} fill="none" stroke="url(#hud-ring)" strokeWidth="1.5" />
-      <circle cx={s.combo.cx} cy={s.combo.cy} r={s.combo.r} fill="url(#hud-recess)" filter="url(#hud-inner-shadow)" />
+      {/* Combo rendered as fire badge in HTML overlay — no SVG socket needed */}
 
-      {/* ─── Moves socket (no gear teeth) ─── */}
+      {/* ─── Moves socket — mask covers panel border behind it ─── */}
+      <circle cx={s.moves.cx} cy={s.moves.cy} r={s.moves.r + 5} fill="#0f1219" />
       <circle cx={s.moves.cx} cy={s.moves.cy} r={s.moves.r + 3} fill="none" stroke="url(#hud-ring)" strokeWidth="3" />
       <circle cx={s.moves.cx} cy={s.moves.cy} r={s.moves.r} fill="url(#hud-recess)" filter="url(#hud-inner-shadow)" />
 
-      {/* ─── Constraint sockets (0, 1, or 2) ─── */}
-      {constraintCount >= 1 && (
-        <>
-          <circle cx={s.constraint1.cx} cy={s.constraint1.cy} r={s.constraint1.r + 2} fill="none" stroke="url(#hud-ring)" strokeWidth="2" />
-          <circle cx={s.constraint1.cx} cy={s.constraint1.cy} r={s.constraint1.r} fill="url(#hud-recess)" filter="url(#hud-inner-shadow)" />
-        </>
-      )}
-      {constraintCount >= 2 && (
-        <>
-          <circle cx={s.constraint2.cx} cy={s.constraint2.cy} r={s.constraint2.r + 2} fill="none" stroke="url(#hud-ring)" strokeWidth="2" />
-          <circle cx={s.constraint2.cx} cy={s.constraint2.cy} r={s.constraint2.r} fill="url(#hud-recess)" filter="url(#hud-inner-shadow)" />
-        </>
-      )}
-      {/* Bridge between constraints */}
-      {constraintCount >= 2 && (
-        <rect
-          x={s.constraint1.cx + s.constraint1.r - 2}
-          y={s.constraint1.cy - 5}
-          width={s.constraint2.cx - s.constraint1.cx - s.constraint1.r - s.constraint2.r + 4}
-          height="10"
-          rx="3"
-          fill="#0c1018"
-          stroke="#6B5B3E"
-          strokeWidth="0.5"
-          opacity="0.4"
-        />
-      )}
+      {/* Constraints rendered by ProgressRing in the HTML overlay — no SVG sockets needed */}
 
-      {/* ─── Thin decorative line ─── */}
-      <line
-        x1={s.guardian.cx + s.guardian.r + 10}
-        y1={s.scoreBar.y - 2}
-        x2={s.moves.cx - s.moves.r - 10}
-        y2={s.scoreBar.y - 2}
-        stroke="#C9A96E"
-        strokeWidth="0.5"
-        opacity="0.2"
-      />
     </svg>
   );
 };

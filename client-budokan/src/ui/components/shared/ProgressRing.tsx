@@ -6,6 +6,7 @@ interface ProgressRingProps {
   color: RingColor;
   icon: React.ReactNode;
   badgeTopLeft?: string;
+  badgeBottomLeft?: string;
   badgeBottomRight?: string;
 }
 
@@ -24,9 +25,10 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   color,
   icon,
   badgeTopLeft,
+  badgeBottomLeft,
   badgeBottomRight,
 }) => {
-  const strokeWidth = Math.max(2, size * 0.08);
+  const strokeWidth = Math.max(3, size * 0.14);
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const clampedProgress = Math.min(1, Math.max(0, progress));
@@ -35,7 +37,8 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   const innerDiameter = size - strokeWidth * 2;
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+    <div className="relative inline-flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
+      {/* Track + progress arc */}
       <svg width={size} height={size} className="absolute inset-0 -rotate-90">
         <circle
           cx={center}
@@ -54,26 +57,34 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
+          strokeLinecap="butt"
           className="transition-[stroke-dashoffset] duration-500 ease-out"
         />
       </svg>
 
+      {/* Icon */}
       <div
-        className="relative z-10 flex items-center justify-center rounded-full overflow-hidden"
-        style={{ width: innerDiameter, height: innerDiameter }}
+        className="absolute z-10 flex items-center justify-center rounded-full overflow-hidden"
+        style={{ width: innerDiameter, height: innerDiameter, left: strokeWidth, top: strokeWidth }}
       >
         {icon}
       </div>
 
+
       {badgeTopLeft && (
-        <span className="absolute -top-1.5 -left-1.5 bg-slate-800 border border-slate-500 text-white text-[8px] font-bold font-['Fredericka_the_Great'] min-w-[16px] h-[14px] flex items-center justify-center rounded-full px-1 leading-none z-20">
+        <span className="absolute -top-0.5 -left-0.5 bg-slate-800 border border-slate-500 text-white font-sans text-[clamp(7px,1.8vw,10px)] font-bold min-w-[clamp(14px,3.5vw,18px)] h-[clamp(14px,3.5vw,18px)] flex items-center justify-center rounded-full px-0.5 leading-none shadow-[0_0_4px_rgba(0,0,0,0.5)] z-20">
           {badgeTopLeft}
         </span>
       )}
 
+      {badgeBottomLeft && (
+        <span className="absolute -bottom-0.5 -left-0.5 bg-slate-800 border border-slate-500 text-white font-sans text-[clamp(7px,1.8vw,10px)] font-bold min-w-[clamp(14px,3.5vw,18px)] h-[clamp(14px,3.5vw,18px)] flex items-center justify-center rounded-full px-0.5 leading-none shadow-[0_0_4px_rgba(0,0,0,0.5)] z-20">
+          {badgeBottomLeft}
+        </span>
+      )}
+
       {badgeBottomRight && (
-        <span className="absolute -bottom-1.5 -right-1.5 bg-slate-800 border border-slate-500 text-white text-[8px] font-bold font-['Fredericka_the_Great'] min-w-[16px] h-[14px] flex items-center justify-center rounded-full px-1 leading-none z-20">
+        <span className="absolute -bottom-0.5 -right-0.5 bg-slate-800 border border-slate-500 text-white font-sans text-[clamp(7px,1.8vw,10px)] font-bold min-w-[clamp(14px,3.5vw,18px)] h-[clamp(14px,3.5vw,18px)] flex items-center justify-center rounded-full px-0.5 leading-none shadow-[0_0_4px_rgba(0,0,0,0.5)] z-20">
           {badgeBottomRight}
         </span>
       )}

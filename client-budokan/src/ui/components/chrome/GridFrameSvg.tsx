@@ -43,12 +43,12 @@ const GridFrameSvg: React.FC<GridFrameSvgProps> = ({ gridWidth, gridHeight }) =>
         </filter>
       </defs>
 
-      {/* ─── Outer border ─── */}
+      {/* ─── Outer border (inset by half stroke so full stroke is visible) ─── */}
       <rect
-        x="0"
-        y="0"
-        width={totalW}
-        height={totalH}
+        x={BW / 2}
+        y={BW / 2}
+        width={totalW - BW}
+        height={totalH - BW}
         rx={CR}
         ry={CR}
         fill="none"
@@ -59,26 +59,16 @@ const GridFrameSvg: React.FC<GridFrameSvgProps> = ({ gridWidth, gridHeight }) =>
 
       {/* ─── Inner border highlight ─── */}
       <rect
-        x={BW}
-        y={BW}
-        width={totalW - BW * 2}
-        height={totalH - BW * 2}
-        rx={CR - 2}
-        ry={CR - 2}
+        x={BW + 1}
+        y={BW + 1}
+        width={totalW - BW * 2 - 2}
+        height={totalH - BW * 2 - 2}
+        rx={Math.max(0, CR - 2)}
+        ry={Math.max(0, CR - 2)}
         fill="none"
         stroke="url(#gf-inner)"
         strokeWidth="1"
       />
-
-      {/* ─── Corner ornaments ─── */}
-      {/* Top-left */}
-      <circle cx={CR + 2} cy={CR + 2} r="3" fill="#C9A96E" opacity="0.25" />
-      {/* Top-right */}
-      <circle cx={totalW - CR - 2} cy={CR + 2} r="3" fill="#C9A96E" opacity="0.25" />
-      {/* Bottom-left */}
-      <circle cx={CR + 2} cy={totalH - CR - 2} r="3" fill="#C9A96E" opacity="0.25" />
-      {/* Bottom-right */}
-      <circle cx={totalW - CR - 2} cy={totalH - CR - 2} r="3" fill="#C9A96E" opacity="0.25" />
     </svg>
   );
 };

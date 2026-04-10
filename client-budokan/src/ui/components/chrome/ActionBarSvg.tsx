@@ -67,16 +67,6 @@ const ActionBarSvg: React.FC = () => (
       filter="url(#ab-glow)"
     />
 
-    {/* ─── Decorative corner accents ─── */}
-    {/* Top-left */}
-    <path d="M 30 14 L 44 14 L 44 16 L 32 16 L 32 28 L 30 28 Z" fill="#C9A96E" opacity="0.3" />
-    {/* Top-right */}
-    <path d={`M ${vb.width - 30} 14 L ${vb.width - 44} 14 L ${vb.width - 44} 16 L ${vb.width - 32} 16 L ${vb.width - 32} 28 L ${vb.width - 30} 28 Z`} fill="#C9A96E" opacity="0.3" />
-    {/* Bottom-left */}
-    <path d={`M 30 ${vb.height - 14} L 44 ${vb.height - 14} L 44 ${vb.height - 16} L 32 ${vb.height - 16} L 32 ${vb.height - 28} L 30 ${vb.height - 28} Z`} fill="#C9A96E" opacity="0.3" />
-    {/* Bottom-right */}
-    <path d={`M ${vb.width - 30} ${vb.height - 14} L ${vb.width - 44} ${vb.height - 14} L ${vb.width - 44} ${vb.height - 16} L ${vb.width - 32} ${vb.height - 16} L ${vb.width - 32} ${vb.height - 28} L ${vb.width - 30} ${vb.height - 28} Z`} fill="#C9A96E" opacity="0.3" />
-
     {/* ─── Surrender socket (left) ─── */}
     <circle cx={s.surrender.cx} cy={s.surrender.cy} r={s.surrender.r + 3} fill="none" stroke="url(#ab-ring)" strokeWidth="2.5" />
     <circle cx={s.surrender.cx} cy={s.surrender.cy} r={s.surrender.r} fill="url(#ab-recess)" filter="url(#ab-inner-shadow)" />

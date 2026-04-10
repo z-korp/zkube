@@ -25,9 +25,9 @@
   --gradY: 50%; /* Gradient Y position for radial animation */
 }
 
-/* Grid border — SVG frame handles decoration, CSS provides padding */
+/* Grid border — SVG frame handles decoration, CSS provides spacing */
 .grid-background.static-border {
-  border: 3px solid rgba(139, 115, 85, 0.25);
+  border: 3px solid transparent;
   border-radius: 8px;
   padding: 6px;
 }

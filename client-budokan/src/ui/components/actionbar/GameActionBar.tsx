@@ -201,10 +201,10 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                           className="w-[60%] h-[60%] object-contain"
                         />
                         <span
-                          className={`absolute -bottom-1 -right-1 font-sans text-[clamp(8px,2vw,11px)] font-bold rounded-full min-w-[clamp(16px,4vw,20px)] h-[clamp(16px,4vw,20px)] flex items-center justify-center px-0.5 z-10 ${
+                          className={`absolute -bottom-1 -right-1 font-sans text-[clamp(8px,2vw,11px)] font-bold rounded-full min-w-[clamp(16px,4vw,20px)] h-[clamp(16px,4vw,20px)] flex items-center justify-center px-0.5 shadow-[0_0_4px_rgba(0,0,0,0.5)] z-10 ${
                             hasCharges
-                              ? "bg-yellow-500 text-white"
-                              : "bg-slate-600 text-slate-400"
+                              ? "bg-yellow-500 border border-yellow-400/50 text-white"
+                              : "bg-slate-700 border border-slate-500 text-slate-400"
                           }`}
                         >
                           {slot.charges}

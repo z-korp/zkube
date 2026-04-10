@@ -359,7 +359,7 @@ const GameHud: React.FC<GameHudProps> = ({
   // ─── STORY MODE HUD ───
   const guardianPos = circleToPercent(HUD_BAR.sockets.guardian, HUD_BAR.viewBox);
   const scorePos = rectToPercent(HUD_BAR.sockets.scoreBar, HUD_BAR.viewBox);
-  const comboPos = circleToPercent(HUD_BAR.sockets.combo, HUD_BAR.viewBox);
+  const comboPos = rectToPercent(HUD_BAR.sockets.combo, HUD_BAR.viewBox);
   const movesPos = circleToPercent(HUD_BAR.sockets.moves, HUD_BAR.viewBox);
   const c1Pos = circleToPercent(HUD_BAR.sockets.constraint1, HUD_BAR.viewBox);
   const c2Pos = circleToPercent(HUD_BAR.sockets.constraint2, HUD_BAR.viewBox);
@@ -386,7 +386,7 @@ const GameHud: React.FC<GameHudProps> = ({
   return (
     <div className="w-full shrink-0">
       <div className="relative z-10 mx-auto w-full max-w-[500px]">
-        <HudBarSvg starsEarned={starsEarned} constraintCount={constraints.length} />
+        <HudBarSvg starsEarned={starsEarned} />
 
         <div className="absolute inset-0">
           {/* Back button */}
@@ -394,7 +394,12 @@ const GameHud: React.FC<GameHudProps> = ({
             <button
               onClick={onBack}
               className="absolute z-10 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 text-slate-300 hover:text-white transition-colors"
-              style={{ top: "2%", left: "0%", width: "6%", aspectRatio: "1" }}
+              style={{
+                top: `${((HUD_BAR.sockets.guardian.cy - HUD_BAR.sockets.guardian.r) / HUD_BAR.viewBox.height) * 100}%`,
+                left: "0%",
+                width: "6%",
+                aspectRatio: "1",
+              }}
             >
               <ArrowLeft className="w-[50%] h-[50%]" />
             </button>
@@ -405,7 +410,7 @@ const GameHud: React.FC<GameHudProps> = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <motion.div
-                  className="absolute rounded-full overflow-hidden"
+                  className="absolute rounded-full"
                   style={guardianPos}
                   animate={isBoss ? {
                     boxShadow: [
@@ -419,11 +424,11 @@ const GameHud: React.FC<GameHudProps> = ({
                   <img
                     src={leftSocketSrc}
                     alt={isBoss ? guardian.name : "Zone"}
-                    className="absolute inset-0 w-full h-full rounded-full object-cover"
+                    className="absolute inset-0 w-full h-full rounded-full object-cover overflow-hidden"
                   />
-                  {/* Level badge */}
-                  <div className={`absolute -bottom-0.5 -right-0.5 rounded-full min-w-[clamp(14px,3.5vw,20px)] h-[clamp(14px,3.5vw,20px)] flex items-center justify-center px-0.5 font-sans text-[clamp(7px,1.8vw,11px)] font-bold z-10 ${
-                    isBoss ? "bg-red-600 text-white" : "bg-slate-800 border border-yellow-500/60 text-yellow-300"
+                  {/* Level badge — bottom-right, outside portrait circle */}
+                  <div className={`absolute -bottom-2 -right-2 rounded-full min-w-[clamp(18px,5vw,26px)] h-[clamp(18px,5vw,26px)] flex items-center justify-center px-0.5 font-sans text-[clamp(9px,2.2vw,13px)] font-bold z-10 shadow-[0_0_4px_rgba(0,0,0,0.5)] ${
+                    isBoss ? "bg-red-600 border border-red-400/50 text-white" : "bg-slate-800 border border-yellow-500/70 text-yellow-300"
                   }`}>
                     {level}
                   </div>
@@ -456,22 +461,25 @@ const GameHud: React.FC<GameHudProps> = ({
             </div>
           </div>
 
-          {/* Combo streak — own circular element */}
+          {/* Combo streak — fire badge */}
           <div
             className="absolute flex items-center justify-center"
             style={comboPos}
           >
             <motion.div
               key={combo}
-              animate={combo > 0 ? { scale: [1, 1.4, 1] } : {}}
+              animate={combo > 0 ? { scale: [1, 1.3, 1] } : {}}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="flex items-center justify-center"
+              className={`flex items-center gap-[2px] rounded-full px-[clamp(4px,1.2vw,8px)] h-full font-sans text-[clamp(9px,2.2vw,13px)] font-bold tabular-nums ${
+                combo >= 3
+                  ? "bg-gradient-to-r from-orange-600 to-yellow-500 text-white shadow-[0_0_12px_rgba(250,204,21,0.5)]"
+                  : combo > 0
+                    ? "bg-gradient-to-r from-orange-800/80 to-red-700/80 text-orange-200"
+                    : "bg-slate-800/60 text-slate-500"
+              }`}
             >
-              <span className={`font-sans text-[clamp(8px,2vw,13px)] font-bold tabular-nums ${
-                combo >= 3 ? "text-yellow-400" : comboTextColor
-              }`}>
-                {combo > 0 ? `${combo}x` : "–"}
-              </span>
+              <span className="text-[clamp(8px,1.8vw,12px)] leading-none">🔥</span>
+              <span>{combo > 0 ? `${combo}x` : "–"}</span>
             </motion.div>
           </div>
 
@@ -480,7 +488,7 @@ const GameHud: React.FC<GameHudProps> = ({
             className="absolute flex flex-col items-center justify-center"
             style={movesPos}
           >
-            <span className="font-display text-[clamp(6px,1.5vw,9px)] leading-none text-slate-400">MOVES</span>
+            <span className="font-sans text-[clamp(6px,1.5vw,9px)] font-semibold uppercase tracking-wider leading-none text-slate-400">MOVES</span>
             <span className={`font-sans text-[clamp(16px,4vw,26px)] font-bold leading-none tabular-nums`} style={{ color: movesBarColor }}>
               {movesRemaining}
             </span>
@@ -501,7 +509,7 @@ const GameHud: React.FC<GameHudProps> = ({
                           size={ringSize}
                           color={getConstraintColor(c.type, c.progress, c.count, bonusUsedThisLevel)}
                           icon={getConstraintIcon(c.type)}
-                          badgeTopLeft={getValueBadge(c.type, c.value)}
+                          badgeBottomLeft={getValueBadge(c.type, c.value)}
                           badgeBottomRight={getProgressBadge(c.type, c.progress, c.count)}
                         />
                       </div>

@@ -30,6 +30,7 @@ import { useMoveStore } from "@/stores/moveTxStore";
 import { calculateFallDistance } from "@/utils/gridPhysics";
 import useTransitionBlocks from "@/hooks/useTransitionBlocks";
 import { showToast } from "@/utils/toast";
+import { GridFrameSvg } from "@/ui/components/chrome";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -737,12 +738,18 @@ const Grid: React.FC<GridProps> = ({
         transition={{ duration: 0.2, ease: "easeInOut" }}
       >
         <div
-          className={`grid-background ${
+          className={`grid-background relative ${
             isTxProcessing ? " cursor-wait animated-border" : "static-border"
           }`}
           id="grid"
           ref={gridRef}
         >
+          {!isTxProcessing && (
+            <GridFrameSvg
+              gridWidth={gridWidth * gridSize + borderSize}
+              gridHeight={gridHeight * gridSize + borderSize}
+            />
+          )}
           <div
             className={`relative p-r-[1px] p-b-[1px] touch-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${
               isPlayerInDanger ? " animated-box-player-danger" : ""

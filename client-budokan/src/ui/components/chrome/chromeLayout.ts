@@ -6,17 +6,18 @@
 
 // ─── HUD Bar ───
 export const HUD_BAR = {
-  viewBox: { width: 500, height: 164 },
+  viewBox: { width: 500, height: 152 },
+  /** Central panel rect — portrait & moves overlap its left/right edges */
+  panel: { x: 76, y: 16, width: 348, height: 88, rx: 12 },
   sockets: {
-    guardian: { cx: 72, cy: 62, r: 30 },
-    // Level badge overlaid on guardian — no separate socket
-    stars: { x: 190, y: 8, width: 120, height: 26 },
-    scoreBar: { x: 130, y: 44, width: 260, height: 22 },
-    combo: { cx: 250, cy: 88, r: 16 },
-    moves: { cx: 432, cy: 62, r: 32 },
-    // Constraints — below combo, centered
-    constraint1: { cx: 222, cy: 130, r: 18 },
-    constraint2: { cx: 278, cy: 130, r: 18 },
+    guardian: { cx: 76, cy: 60, r: 32 },
+    stars: { x: 186, y: 22, width: 128, height: 22 },
+    scoreBar: { x: 144, y: 48, width: 212, height: 20 },
+    combo: { x: 218, y: 74, width: 64, height: 24 },
+    moves: { cx: 424, cy: 60, r: 34 },
+    // Constraints: left-of-center and right-of-center, below panel
+    constraint1: { cx: 160, cy: 110, r: 18 },
+    constraint2: { cx: 340, cy: 110, r: 18 },
   },
 } as const;
 
@@ -41,12 +42,12 @@ export const CONSTRAINT_BAR = {
 
 // ─── Grid Frame ───
 export const GRID_FRAME = {
-  /** Padding around the grid content in viewBox units */
-  padding: 12,
+  /** Padding around the grid content in viewBox units (matches CSS padding+border) */
+  padding: 9,
   /** Border thickness */
-  borderWidth: 6,
+  borderWidth: 2,
   /** Corner radius */
-  cornerRadius: 10,
+  cornerRadius: 8,
 } as const;
 
 // ─── Helpers ───
