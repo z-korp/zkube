@@ -1,8 +1,9 @@
+import { useMemo } from "react";
 import { motion } from "motion/react";
 
 import type { ThemeColors } from "@/config/themes";
 import ProgressBar from "@/ui/components/shared/ProgressBar";
-import { ACHIEVEMENT_CATEGORIES, useAchievements } from "@/hooks/useAchievements";
+import { ACHIEVEMENT_CATEGORIES, useAchievements, type AchievementStatus } from "@/hooks/useAchievements";
 
 const containerVariants: any = {
   hidden: { opacity: 0 },
@@ -21,6 +22,8 @@ interface AchievementsTabProps {
   colors: ThemeColors;
 }
 
+const TIER_LABELS = ["I", "II", "III", "IV"] as const;
+
 const RARITY_BY_TIER = {
   1: "Common",
   2: "Rare",
@@ -38,7 +41,7 @@ const RARITY_COLORS = {
 const AchievementsTab: React.FC<AchievementsTabProps> = ({ colors }) => {
   const { achievements } = useAchievements();
 
-  const totalUnlocked = achievements.filter((achievement) => achievement.completed).length;
+  const totalUnlocked = achievements.filter((a) => a.completed).length;
   const total = achievements.length;
   const completionRatio = total <= 0 ? 0 : totalUnlocked / total;
   const completionPercent = Math.round(completionRatio * 100);
@@ -47,8 +50,22 @@ const AchievementsTab: React.FC<AchievementsTabProps> = ({ colors }) => {
   const circumference = 2 * Math.PI * radius;
   const strokeOffset = circumference * (1 - completionRatio);
 
+  // Group achievements by category, sorted by tier
+  const grouped = useMemo(() => {
+    return ACHIEVEMENT_CATEGORIES.map((category) => {
+      const tiers = achievements
+        .filter((a) => a.category === category)
+        .sort((a, b) => a.tier - b.tier);
+      // Current tier = first non-completed, or last if all done
+      const currentIdx = tiers.findIndex((a) => !a.completed);
+      const activeTier = currentIdx >= 0 ? currentIdx : tiers.length - 1;
+      return { category, tiers, activeTier };
+    });
+  }, [achievements]);
+
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-3.5 pb-2">
+      {/* Summary ring */}
       <motion.section
         variants={itemVariants}
         className="rounded-2xl border px-4 py-3.5 backdrop-blur-xl"
@@ -88,34 +105,15 @@ const AchievementsTab: React.FC<AchievementsTabProps> = ({ colors }) => {
             <p className="mt-1 font-sans text-[20px] font-extrabold leading-tight" style={{ color: colors.text }}>
               {totalUnlocked}/{total} unlocked
             </p>
-            <p className="mt-0.5 font-sans text-[12px] font-semibold" style={{ color: colors.textMuted }}>
-              Finish categories to level up your player title faster.
-            </p>
           </div>
-        </div>
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          {(Object.keys(RARITY_COLORS) as Array<keyof typeof RARITY_COLORS>).map((rarity) => {
-            const count = achievements.filter(
-              (achievement) => achievement.completed && RARITY_BY_TIER[achievement.tier] === rarity,
-            ).length;
-
-            return (
-              <span
-                key={rarity}
-                className="rounded-full border px-2 py-1 font-sans text-[10px] font-extrabold uppercase tracking-[0.08em]"
-                style={{ color: RARITY_COLORS[rarity], borderColor: `${RARITY_COLORS[rarity]}66`, background: `${RARITY_COLORS[rarity]}1A` }}
-              >
-                {rarity} {count}
-              </span>
-            );
-          })}
         </div>
       </motion.section>
 
-      {ACHIEVEMENT_CATEGORIES.map((category) => {
-        const categoryAchievements = achievements.filter((achievement) => achievement.category === category);
-        const unlocked = categoryAchievements.filter((achievement) => achievement.completed).length;
+      {/* Category rows */}
+      {grouped.map(({ category, tiers, activeTier }) => {
+        const active = tiers[activeTier];
+        if (!active) return null;
+        const allDone = tiers.every((t) => t.completed);
 
         return (
           <motion.section
@@ -124,89 +122,65 @@ const AchievementsTab: React.FC<AchievementsTabProps> = ({ colors }) => {
             className="rounded-2xl border p-3 backdrop-blur-xl"
             style={{ background: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.15)" }}
           >
-            <div className="mb-2.5 flex items-center justify-between">
-              <p className="font-sans text-[12px] font-extrabold uppercase tracking-[0.12em]" style={{ color: colors.text }}>
+            {/* Header: icon + name + tier pills */}
+            <div className="flex items-center gap-2.5">
+              <span className="text-lg">{active.icon}</span>
+              <p className="font-sans text-[13px] font-extrabold" style={{ color: colors.text }}>
                 {category}
               </p>
-              <p className="font-sans text-[11px] font-bold" style={{ color: colors.accent }}>
-                {unlocked}/{categoryAchievements.length}
-              </p>
+              <div className="ml-auto flex gap-1">
+                {tiers.map((tier, i) => {
+                  const rarity = RARITY_BY_TIER[tier.tier];
+                  const rc = RARITY_COLORS[rarity];
+                  const done = tier.completed;
+                  const isCurrent = i === activeTier && !allDone;
+                  return (
+                    <span
+                      key={tier.tier}
+                      className="flex h-[22px] min-w-[26px] items-center justify-center rounded-full px-1.5 font-sans text-[10px] font-extrabold"
+                      style={{
+                        background: done ? `${rc}30` : isCurrent ? `${rc}18` : "rgba(255,255,255,0.06)",
+                        border: `1.5px solid ${done ? rc : isCurrent ? `${rc}60` : "rgba(255,255,255,0.12)"}`,
+                        color: done ? rc : isCurrent ? `${rc}BB` : "rgba(255,255,255,0.25)",
+                      }}
+                    >
+                      {TIER_LABELS[i]}
+                    </span>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="flex flex-col gap-2.5">
-              {categoryAchievements.map((achievement) => {
-                const rarity = RARITY_BY_TIER[achievement.tier];
-                const rarityColor = RARITY_COLORS[rarity];
-                const progressValue = Math.min(achievement.progress, achievement.target);
-
-                return (
-                  <article
-                    key={achievement.id}
-                    className="rounded-2xl border px-3 py-3 backdrop-blur-xl"
-                    style={{
-                      background: achievement.completed
-                        ? `${rarityColor}1A`
-                        : "rgba(255,255,255,0.09)",
-                      borderColor: achievement.completed ? `${rarityColor}66` : "rgba(255,255,255,0.14)",
-                      boxShadow: achievement.completed ? `0 0 12px ${rarityColor}30` : "none",
-                    }}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-xl"
-                        style={{
-                          background: `${rarityColor}22`,
-                          borderColor: `${rarityColor}55`,
-                          filter: achievement.completed ? "none" : "grayscale(1)",
-                          opacity: achievement.completed ? 1 : 0.65,
-                        }}
-                      >
-                        {achievement.icon}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <div>
-                            <p className="font-sans text-[14px] font-extrabold" style={{ color: achievement.completed ? colors.text : "rgba(255,255,255,0.78)" }}>
-                              {achievement.name}
-                            </p>
-                            <p className="font-sans text-[12px] font-semibold" style={{ color: colors.textMuted }}>
-                              {achievement.description}
-                            </p>
-                          </div>
-
-                          <div className="text-right">
-                            <span
-                              className="inline-flex rounded-full border px-2 py-1 font-sans text-[10px] font-extrabold uppercase"
-                              style={{ color: rarityColor, borderColor: `${rarityColor}66`, background: `${rarityColor}1A` }}
-                            >
-                              {rarity}
-                            </span>
-                            <p className="mt-1 font-sans text-[11px] font-bold" style={{ color: colors.accent }}>
-                              +{achievement.xp} XP
-                            </p>
-                          </div>
-                        </div>
-
-                        {achievement.completed ? (
-                          <p className="mt-2 inline-flex rounded-full border border-emerald-300/40 bg-emerald-300/15 px-2 py-1 font-sans text-[10px] font-extrabold uppercase tracking-[0.08em] text-emerald-200">
-                            Unlocked
-                          </p>
-                        ) : (
-                          <div className="mt-2">
-                            <ProgressBar value={progressValue} max={achievement.target} color={rarityColor} height={6} />
-                            <div className="mt-1 flex items-center justify-between font-sans text-[11px] font-semibold" style={{ color: colors.textMuted }}>
-                              <span>{progressValue}/{achievement.target}</span>
-                              <span>Locked</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
+            {/* Active tier details */}
+            {allDone ? (
+              <div className="mt-2 flex items-center gap-1.5">
+                <span className="inline-flex rounded-full border border-emerald-300/40 bg-emerald-300/15 px-2 py-0.5 font-sans text-[10px] font-extrabold uppercase tracking-[0.08em] text-emerald-200">
+                  All tiers complete
+                </span>
+                <span className="font-sans text-[10px] font-semibold" style={{ color: colors.textMuted }}>
+                  +{tiers.reduce((s, t) => s + t.xp, 0)} XP earned
+                </span>
+              </div>
+            ) : (
+              <div className="mt-2">
+                <div className="flex items-baseline justify-between">
+                  <p className="font-sans text-[11px] font-semibold" style={{ color: colors.textMuted }}>
+                    {active.description}
+                  </p>
+                  <p className="font-sans text-[11px] font-bold tabular-nums" style={{ color: colors.textMuted }}>
+                    {Math.min(active.progress, active.target)}/{active.target}
+                  </p>
+                </div>
+                <div className="mt-1">
+                  <ProgressBar
+                    value={Math.min(active.progress, active.target)}
+                    max={active.target}
+                    color={RARITY_COLORS[RARITY_BY_TIER[active.tier]]}
+                    height={5}
+                  />
+                </div>
+              </div>
+            )}
           </motion.section>
         );
       })}
