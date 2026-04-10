@@ -427,17 +427,37 @@ mod level_system {
             // Apply offset to base 40% / 70%
             let star3_pct: u16 = if is_positive {
                 let raw = 40_u16 + mag;
-                if raw > 90 { 90 } else { raw }
+                if raw > 90 {
+                    90
+                } else {
+                    raw
+                }
             } else {
-                if mag >= 30 { 10 } else { 40_u16 - mag }
+                if mag >= 30 {
+                    10
+                } else {
+                    40_u16 - mag
+                }
             };
             let star2_pct: u16 = if is_positive {
                 let raw = 70_u16 + mag;
-                if raw > 99 { 99 } else { raw }
+                if raw > 99 {
+                    99
+                } else {
+                    raw
+                }
             } else {
-                let raw = if mag >= 70 { 0_u16 } else { 70_u16 - mag };
+                let raw = if mag >= 70 {
+                    0_u16
+                } else {
+                    70_u16 - mag
+                };
                 let floor = star3_pct + 1;
-                if raw < floor { floor } else { raw }
+                if raw < floor {
+                    floor
+                } else {
+                    raw
+                }
             };
 
             let cube_3_threshold = game_level.max_moves * star3_pct / 100;

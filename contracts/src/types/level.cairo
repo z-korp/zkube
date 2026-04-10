@@ -51,12 +51,7 @@ pub impl LevelConfigImpl of LevelConfigTrait {
     ) -> bool {
         current_moves >= self.max_moves
             && !self
-                .is_complete(
-                    current_score,
-                    constraint_progress,
-                    constraint_2_progress,
-                    bonus_used,
-                )
+                .is_complete(current_score, constraint_progress, constraint_2_progress, bonus_used)
     }
 
     /// Get remaining moves
@@ -94,7 +89,7 @@ mod tests {
             max_moves: 30,
             difficulty: Difficulty::Medium,
             constraint: LevelConstraintTrait::combo_lines(2, 1),
-            constraint_2: LevelConstraintTrait::none(), // No secondary constraint
+            constraint_2: LevelConstraintTrait::none() // No secondary constraint
         }
     }
 
@@ -108,9 +103,7 @@ mod tests {
         assert!(!config.is_complete(40, 1, 0, false), "Should not be complete with low score");
 
         // Not complete: constraint not met
-        assert!(
-            !config.is_complete(50, 0, 0, false), "Should not be complete without constraint",
-        );
+        assert!(!config.is_complete(50, 0, 0, false), "Should not be complete without constraint");
 
         // Complete: score met and constraint met
         assert!(config.is_complete(50, 1, 0, false), "Should be complete");
@@ -141,18 +134,14 @@ mod tests {
             max_moves: 35,
             difficulty: Difficulty::Hard,
             constraint: LevelConstraintTrait::combo_lines(3, 2), // Clear 3+ lines, 2 times
-            constraint_2: LevelConstraintTrait::combo_lines(2, 3), // Clear 2+ lines, 3 times
+            constraint_2: LevelConstraintTrait::combo_lines(2, 3) // Clear 2+ lines, 3 times
         };
 
         // Not complete: first constraint not met
-        assert!(
-            !config.is_complete(60, 1, 3, false), "Should not complete - constraint 1 not met",
-        );
+        assert!(!config.is_complete(60, 1, 3, false), "Should not complete - constraint 1 not met");
 
         // Not complete: second constraint not met
-        assert!(
-            !config.is_complete(60, 2, 2, false), "Should not complete - constraint 2 not met",
-        );
+        assert!(!config.is_complete(60, 2, 2, false), "Should not complete - constraint 2 not met");
 
         // Complete: both constraints met
         assert!(config.is_complete(60, 2, 3, false), "Should complete with both constraints");

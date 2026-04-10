@@ -185,22 +185,16 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
     fn needs_break_blocks_tracking(self: LevelConstraint) -> bool {
         self.constraint_type == ConstraintType::BreakBlocks
     }
-
 }
 
 /// Check if ANY of the given constraints require BreakBlocks tracking
-pub fn any_needs_break_blocks(
-    c1: LevelConstraint, c2: LevelConstraint,
-) -> bool {
-    c1.needs_break_blocks_tracking()
-        || c2.needs_break_blocks_tracking()
+pub fn any_needs_break_blocks(c1: LevelConstraint, c2: LevelConstraint) -> bool {
+    c1.needs_break_blocks_tracking() || c2.needs_break_blocks_tracking()
 }
 
 /// Get the target block size for BreakBlocks from up to 3 constraints.
 /// Returns 0 if no BreakBlocks constraint is active.
-pub fn get_break_blocks_target_size(
-    c1: LevelConstraint, c2: LevelConstraint,
-) -> u8 {
+pub fn get_break_blocks_target_size(c1: LevelConstraint, c2: LevelConstraint) -> u8 {
     if c1.needs_break_blocks_tracking() {
         c1.value
     } else if c2.needs_break_blocks_tracking() {
@@ -433,5 +427,4 @@ mod tests {
         assert!(ctx.grid_is_empty == false, "Should be false");
         assert!(ctx.blocks_destroyed_of_target_size == 0, "Should be 0");
     }
-
 }
