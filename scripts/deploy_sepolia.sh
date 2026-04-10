@@ -224,7 +224,51 @@ grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "progress_system" "$PROGRESS_
 grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "config_system" "$CONFIG_SYSTEM"
 grant_zstar_role "BURNER_ROLE" "$BURNER_ROLE_FELT" "config_system" "$CONFIG_SYSTEM"
 
-print_info "Step 9: Updating torii configuration..."
+#-----------------
+# Step 9: Set zone pricing for easy testing (star_cost=10, price=5 STRK for all paid zones)
+#-----------------
+print_info "Step 9: Setting zone pricing (star_cost=10, price=5 STRK for all paid zones)..."
+
+SEPOLIA_STRK="0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
+
+set_zone_pricing() {
+    local settings_id="$1"
+    local zone_name="$2"
+
+    if [ -z "$CONFIG_SYSTEM" ] || [ "$CONFIG_SYSTEM" = "null" ]; then
+        print_warn "  Skipping zone pricing (config_system address not found)"
+        return
+    fi
+
+    # set_zone_pricing(settings_id, is_free=false, price=5 STRK, payment_token=STRK, star_cost=10)
+    local OUTPUT=$(sozo execute -P $PROFILE \
+        --account-address "$ACCOUNT_ADDRESS" \
+        --private-key "$PRIVATE_KEY" \
+        --rpc-url "$RPC_URL" \
+        "$CONFIG_SYSTEM" \
+        set_zone_pricing "$settings_id" 0 5000000000000000000 "$SEPOLIA_STRK" 10 2>&1) || true
+
+    if echo "$OUTPUT" | grep -q "Transaction hash"; then
+        print_info "  Set $zone_name (settings_id=$settings_id) → 5 STRK + star_cost=10"
+    else
+        print_warn "  Failed to set pricing for $zone_name"
+        echo "$OUTPUT"
+    fi
+    sleep 5
+}
+
+# Zone 1 (settings_id=0) is already free — skip
+set_zone_pricing 2  "Zone 2 (Egypt)"
+set_zone_pricing 4  "Zone 3 (Norse)"
+set_zone_pricing 6  "Zone 4 (Greece)"
+set_zone_pricing 8  "Zone 5 (China)"
+set_zone_pricing 10 "Zone 6 (Persia)"
+set_zone_pricing 12 "Zone 7 (Japan)"
+set_zone_pricing 14 "Zone 8 (Mayan)"
+set_zone_pricing 16 "Zone 9 (Tribal)"
+set_zone_pricing 18 "Zone 10 (Inca)"
+
+print_info "Step 10: Updating torii configuration..."
 cat > "$TORII_CONFIG" << EOF
 world_address = "$WORLD_ADDRESS"
 rpc = "$RPC_URL"
@@ -243,14 +287,14 @@ raw = true
 EOF
 print_info "  Updated $TORII_CONFIG"
 
-print_info "Step 10: Copying manifest..."
+print_info "Step 11: Copying manifest..."
 CONTRACTS_MANIFEST="${CONTRACTS_DIR}/manifest_sepolia.json"
 if [ -f "$MANIFEST_FILE" ]; then
     cp "$MANIFEST_FILE" "$CONTRACTS_MANIFEST"
     print_info "  Copied manifest to $CONTRACTS_MANIFEST"
 fi
 
-print_info "Step 11: Updating client configuration..."
+print_info "Step 12: Updating client configuration..."
 TORII_URL="${SEPOLIA_TORII_URL:-$DEFAULT_SEPOLIA_TORII_URL}"
 
 cat > "$CLIENT_ENV" << EOF

@@ -74,7 +74,7 @@ pub trait IConfigSystem<T> {
     fn get_zstar_address(self: @T) -> ContractAddress;
     /// Admin: set map pricing
     fn set_zone_pricing(
-        ref self: T, settings_id: u32, is_free: bool, price: u128, payment_token: ContractAddress,
+        ref self: T, settings_id: u32, is_free: bool, price: u128, payment_token: ContractAddress, star_cost: u128,
     );
     /// Admin: set map enabled/disabled
     fn set_zone_enabled(ref self: T, settings_id: u32, enabled: bool);
@@ -2065,6 +2065,7 @@ mod config_system {
             is_free: bool,
             price: u128,
             payment_token: ContractAddress,
+            star_cost: u128,
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             InternalImpl::assert_owner_or_admin(@self, @world, settings_id);
@@ -2072,6 +2073,7 @@ mod config_system {
             metadata.is_free = is_free;
             metadata.price = price;
             metadata.payment_token = payment_token;
+            metadata.star_cost = star_cost;
             world.write_model(@metadata);
         }
 
