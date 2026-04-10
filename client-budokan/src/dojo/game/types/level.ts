@@ -103,8 +103,8 @@ export interface GameSettings {
   endlessDifficultyThresholds: number[];
   endlessScoreMultipliers: number[];
   // Legacy compat (kept for client-side star threshold calc)
-  cube3Percent: number;
-  cube2Percent: number;
+  star3Percent: number;
+  star2Percent: number;
 }
 
 /**
@@ -173,8 +173,8 @@ export const DEFAULT_SETTINGS: GameSettings = {
   allowedMutators: 1,
   endlessDifficultyThresholds: [0, 15, 40, 80, 150, 280, 500, 900],
   endlessScoreMultipliers: [10, 12, 14, 17, 20, 25, 33, 40],
-  cube3Percent: 40,
-  cube2Percent: 70,
+  star3Percent: 40,
+  star2Percent: 70,
 };
 
 export interface LevelConfig {
@@ -191,9 +191,9 @@ export interface LevelConfig {
   /** Secondary constraint (can be None for single constraint levels) */
   constraint2: Constraint;
   /** Moves threshold for 3 cubes */
-  cube3Threshold: number;
+  star3Threshold: number;
   /** Moves threshold for 2 cubes */
-  cube2Threshold: number;
+  star2Threshold: number;
 }
 
 export class Level {
@@ -203,8 +203,8 @@ export class Level {
   public difficulty: Difficulty;
   public constraint: Constraint;
   public constraint2: Constraint;
-  public cube3Threshold: number;
-  public cube2Threshold: number;
+  public star3Threshold: number;
+  public star2Threshold: number;
 
   constructor(config: LevelConfig) {
     this.level = config.level;
@@ -213,15 +213,15 @@ export class Level {
     this.difficulty = config.difficulty;
     this.constraint = config.constraint;
     this.constraint2 = config.constraint2;
-    this.cube3Threshold = config.cube3Threshold;
-    this.cube2Threshold = config.cube2Threshold;
+    this.star3Threshold = config.star3Threshold;
+    this.star2Threshold = config.star2Threshold;
   }
 
   /** Calculate cubes earned based on moves used */
-  calculateCubes(movesUsed: number): number {
-    if (movesUsed <= this.cube3Threshold) {
+  calculateStars(movesUsed: number): number {
+    if (movesUsed <= this.star3Threshold) {
       return 3;
-    } else if (movesUsed <= this.cube2Threshold) {
+    } else if (movesUsed <= this.star2Threshold) {
       return 2;
     } else {
       return 1;
@@ -290,10 +290,10 @@ export class Level {
   }
 
   /** Get current potential cubes (based on current move count) */
-  potentialCubes(currentMoves: number): number {
-    if (currentMoves <= this.cube3Threshold) {
+  potentialStars(currentMoves: number): number {
+    if (currentMoves <= this.star3Threshold) {
       return 3;
-    } else if (currentMoves <= this.cube2Threshold) {
+    } else if (currentMoves <= this.star2Threshold) {
       return 2;
     } else {
       return 1;
@@ -335,8 +335,8 @@ export function generateLevelConfig(
       difficulty,
       constraint: new Constraint({ constraintType: ConstraintType.None, value: 0, requiredCount: 0 }),
       constraint2: new Constraint({ constraintType: ConstraintType.None, value: 0, requiredCount: 0 }),
-      cube3Threshold: Math.floor((settings.maxMoves * settings.cube3Percent) / 100),
-      cube2Threshold: Math.floor((settings.maxMoves * settings.cube2Percent) / 100),
+      star3Threshold: Math.floor((settings.maxMoves * settings.star3Percent) / 100),
+      star2Threshold: Math.floor((settings.maxMoves * settings.star2Percent) / 100),
     });
   }
 
@@ -367,11 +367,11 @@ export function generateLevelConfig(
   const maxMoves = applyFactor(baseMoves, varianceFactor);
 
   // Calculate cube thresholds using settings
-  const cube3Threshold = Math.floor(
-    (maxMoves * settings.cube3Percent) / 100
+  const star3Threshold = Math.floor(
+    (maxMoves * settings.star3Percent) / 100
   );
-  const cube2Threshold = Math.floor(
-    (maxMoves * settings.cube2Percent) / 100
+  const star2Threshold = Math.floor(
+    (maxMoves * settings.star2Percent) / 100
   );
 
   // Get difficulty from settings
@@ -392,8 +392,8 @@ export function generateLevelConfig(
     difficulty,
     constraint,
     constraint2,
-    cube3Threshold,
-    cube2Threshold,
+    star3Threshold,
+    star2Threshold,
   });
 }
 
@@ -1285,8 +1285,8 @@ export function parseGameSettings(raw: any): GameSettings {
     endlessScoreMultipliers: raw.endless_score_multipliers
       ? unpackEndlessMultipliers(raw.endless_score_multipliers)
       : DEFAULT_SETTINGS.endlessScoreMultipliers,
-    cube3Percent: DEFAULT_SETTINGS.cube3Percent,
-    cube2Percent: DEFAULT_SETTINGS.cube2Percent,
+    star3Percent: DEFAULT_SETTINGS.star3Percent,
+    star2Percent: DEFAULT_SETTINGS.star2Percent,
   };
 }
 
@@ -1334,10 +1334,10 @@ export function getLevelRanges(level: number, settings: GameSettings = DEFAULT_S
   const pointsMin = Math.floor(basePoints * low);
   const pointsMax = Math.ceil(basePoints * high);
 
-  const star3MovesMin = Math.floor(movesMin * settings.cube3Percent / 100);
-  const star3MovesMax = Math.floor(movesMax * settings.cube3Percent / 100);
-  const star2MovesMin = Math.floor(movesMin * settings.cube2Percent / 100);
-  const star2MovesMax = Math.floor(movesMax * settings.cube2Percent / 100);
+  const star3MovesMin = Math.floor(movesMin * settings.star3Percent / 100);
+  const star3MovesMax = Math.floor(movesMax * settings.star3Percent / 100);
+  const star2MovesMin = Math.floor(movesMin * settings.star2Percent / 100);
+  const star2MovesMax = Math.floor(movesMax * settings.star2Percent / 100);
 
   const difficulty = getDifficultyForLevel(calcLevel, settings);
 

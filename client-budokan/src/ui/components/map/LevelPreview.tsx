@@ -57,8 +57,8 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
   const showExact = !isReplayCandidate && (useContractData || (hasSeed && node.levelConfig != null));
   const exactMoves = useContractData ? gameLevel!.maxMoves : (node.levelConfig?.maxMoves ?? 0);
   const exactPoints = useContractData ? gameLevel!.pointsRequired : (node.levelConfig?.pointsRequired ?? 0);
-  const exactCube3 = useContractData ? gameLevel!.cube3Threshold : (node.levelConfig?.cube3Threshold ?? 0);
-  const exactCube2 = useContractData ? gameLevel!.cube2Threshold : (node.levelConfig?.cube2Threshold ?? 0);
+  const exactStar3 = useContractData ? gameLevel!.star3Threshold : (node.levelConfig?.star3Threshold ?? 0);
+  const exactStar2 = useContractData ? gameLevel!.star2Threshold : (node.levelConfig?.star2Threshold ?? 0);
 
   // Constraints — only from contract or seeded prediction
   const constraints: string[] = [];
@@ -89,8 +89,8 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
   const pointsText = showExact ? `${exactPoints}` : `~${fmtRange(ranges.pointsMin, ranges.pointsMax)}`;
 
   const starRows = [
-    { s: 3, min: showExact ? exactCube3 : ranges.star3MovesMin, max: showExact ? exactCube3 : ranges.star3MovesMax },
-    { s: 2, min: showExact ? exactCube2 : ranges.star2MovesMin, max: showExact ? exactCube2 : ranges.star2MovesMax },
+    { s: 3, min: showExact ? exactStar3 : ranges.star3MovesMin, max: showExact ? exactStar3 : ranges.star3MovesMax },
+    { s: 2, min: showExact ? exactStar2 : ranges.star2MovesMin, max: showExact ? exactStar2 : ranges.star2MovesMax },
     { s: 1, min: showExact ? exactMoves : ranges.star1MovesMin, max: showExact ? exactMoves : ranges.star1MovesMax },
   ];
 

@@ -84,8 +84,8 @@ const PlayScreen: React.FC = () => {
         constraint3Value: 0,
         constraint3Count: 0,
         mutatorId: 0,
-        cube3Threshold: fallback.cube3Threshold,
-        cube2Threshold: fallback.cube2Threshold,
+        star3Threshold: fallback.star3Threshold,
+        star2Threshold: fallback.star2Threshold,
       };
     },
     [game?.id, gameLevel, seed],

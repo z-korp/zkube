@@ -14,8 +14,8 @@ const normalizeEntityId = (entityId: string): Entity => {
 };
 
 /** Default star threshold percentages (matches contract defaults) */
-const CUBE_3_PERCENT = 40;
-const CUBE_2_PERCENT = 70;
+const STAR_3_PERCENT = 40;
+const STAR_2_PERCENT = 70;
 
 export interface GameLevelData {
   gameId: bigint;
@@ -35,8 +35,8 @@ export interface GameLevelData {
   constraint3Count: number;
   mutatorId: number;
   // Derived client-side from maxMoves
-  cube3Threshold: number;
-  cube2Threshold: number;
+  star3Threshold: number;
+  star2Threshold: number;
 }
 
 /**
@@ -105,8 +105,8 @@ export const useGameLevel = ({
       constraint3Value: component.constraint3_value,
       constraint3Count: component.constraint3_count,
       mutatorId: component.mutator_id ?? 0,
-      cube3Threshold: Math.floor((maxMoves * CUBE_3_PERCENT) / 100),
-      cube2Threshold: Math.floor((maxMoves * CUBE_2_PERCENT) / 100),
+      star3Threshold: Math.floor((maxMoves * STAR_3_PERCENT) / 100),
+      star2Threshold: Math.floor((maxMoves * STAR_2_PERCENT) / 100),
     };
 
     return data;

@@ -1,10 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import type { ThemeColors } from "@/config/themes";
 import { useMusicPlayer } from "@/contexts/hooks";
-import ConfettiExplosion from "@/ui/components/ConfettiExplosion";
-import type { ConfettiExplosionRef } from "@/ui/components/ConfettiExplosion";
 import { getZoneGuardian, getGuardianPortrait, getGuardianStarText } from "@/config/bossCharacters";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 
@@ -37,7 +35,6 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
 }) => {
   const [animationPhase, setAnimationPhase] = useState(0);
   const { playSfx } = useMusicPlayer();
-  const confettiRef = useRef<ConfettiExplosionRef>(null);
   const guardian = getZoneGuardian(zoneId);
   const isBossLevel = level === 10;
 
@@ -52,27 +49,24 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
 
     const timer1 = setTimeout(() => { setAnimationPhase(1); playSfx("star"); }, 180);
     const timer2 = setTimeout(() => { setAnimationPhase(2); playSfx("coin"); }, 700);
-    const timer3 = setTimeout(() => {
-      setAnimationPhase(3);
-      confettiRef.current?.triggerLineExplosion({ x: window.innerWidth / 2, y: window.innerHeight / 2, range: 400 });
-    }, 1100);
+    const timer3 = setTimeout(() => setAnimationPhase(3), 1100);
 
     return () => { clearTimeout(timer1); clearTimeout(timer2); clearTimeout(timer3); };
   }, [isOpen, playSfx, isIncomplete]);
 
   const maxMoves = gameLevel?.maxMoves ?? 0;
-  const cube3UsedCap = gameLevel?.cube3Threshold ?? 0;
-  const cube2UsedCap = gameLevel?.cube2Threshold ?? 0;
+  const star3UsedCap = gameLevel?.star3Threshold ?? 0;
+  const star2UsedCap = gameLevel?.star2Threshold ?? 0;
   const pointsRequired = gameLevel?.pointsRequired ?? 0;
   const levelFinalScore = Math.max(0, totalScore - prevTotalScore);
   const movesUsed = levelMoves;
 
   const starsEarned = useMemo(() => {
     if (isIncomplete) return 0;
-    if (movesUsed <= cube3UsedCap) return 3;
-    if (movesUsed <= cube2UsedCap) return 2;
+    if (movesUsed <= star3UsedCap) return 3;
+    if (movesUsed <= star2UsedCap) return 2;
     return 1;
-  }, [movesUsed, cube3UsedCap, cube2UsedCap, isIncomplete]);
+  }, [movesUsed, star3UsedCap, star2UsedCap, isIncomplete]);
 
   const guardianLine = isIncomplete
     ? guardian.incomplete
@@ -92,8 +86,6 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
 
   return (
     <>
-      <ConfettiExplosion ref={confettiRef} colorSet={["#4ade80", "#22c55e", "#facc15", "#38bdf8"]} />
-
       <motion.div
         className="absolute inset-0 z-40 flex flex-col bg-black/70"
         initial={{ opacity: 0 }}

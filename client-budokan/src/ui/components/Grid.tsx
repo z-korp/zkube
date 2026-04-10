@@ -20,8 +20,6 @@ import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "motion/react";
 import { BonusType } from "@/dojo/game/types/bonusTypes";
-import ConfettiExplosion from "./ConfettiExplosion";
-import type { ConfettiExplosionRef } from "./ConfettiExplosion";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { getThemeColors, type ThemeId } from "@/config/themes";
@@ -77,7 +75,6 @@ const Grid: React.FC<GridProps> = ({
 
   // Grid Position will be used to trigger particle in the right spot
   const gridRef = useRef<HTMLDivElement | null>(null);
-  const explosionRef = useRef<ConfettiExplosionRef>(null);
   const draggingRef = useRef<Block | null>(null);
   const dragStartXRef = useRef(0);
   const initialXRef = useRef(0);
@@ -112,7 +109,7 @@ const Grid: React.FC<GridProps> = ({
 
   const queue = useMoveStore((state) => state.queue);
   const isQueueProcessing = useMoveStore((state) => state.isQueueProcessing);
-  const { shouldBounce, animateText, resetAnimateText, setAnimateText, animatedPoints, setAnimatedPoints, animatedCubes, setAnimatedCubes } =
+  const { shouldBounce, animateText, resetAnimateText, setAnimateText } =
     useGridAnimations(lineExplodedCount);
   const {
     transitioningBlocks,
@@ -186,11 +183,6 @@ const Grid: React.FC<GridProps> = ({
     }
   }, []);
 
-  const handleTriggerLocalExplosion = (x: number, y: number) => {
-    if (explosionRef.current) {
-      explosionRef.current.triggerLocalExplosion({ x, y });
-    }
-  };
 
   // =================== DRAG & DROP ===================
 
@@ -267,34 +259,13 @@ const Grid: React.FC<GridProps> = ({
     if (currentBonus === BonusType.Hammer) {
       // Hammer: destroy single block at target position
       setBlockBonus(block);
-      if (currentGridPosition !== null) {
-        handleTriggerLocalExplosion(
-          currentGridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
-          currentGridPosition.top + block.y * gridSize
-        );
-      }
       setBlocks(currentBlocks.filter((b) => !(b.x === block.x && b.y === block.y)));
     } else if (currentBonus === BonusType.Totem) {
       setBlockBonus(block);
-      getBlocksSameWidth(block, currentBlocks).forEach((b) => {
-        if (currentGridPosition === null) return;
-        handleTriggerLocalExplosion(
-          currentGridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
-          currentGridPosition.top + b.y * gridSize
-        );
-      });
       setBlocks(removeBlocksSameWidth(block, currentBlocks));
     } else if (currentBonus === BonusType.Wave) {
       setBlockBonus(block);
-      // Wave clears exactly 1 row (matches contract behavior)
       const rows: number[] = [block.y];
-      getBlocksInRows(rows, currentBlocks).forEach((b) => {
-        if (currentGridPosition === null) return;
-        handleTriggerLocalExplosion(
-          currentGridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
-          currentGridPosition.top + b.y * gridSize
-        );
-      });
       setBlocks(removeBlocksInRows(rows, currentBlocks));
     }
 
@@ -557,20 +528,6 @@ const Grid: React.FC<GridProps> = ({
 
       setExplodingRows(new Set(completeRows));
 
-      if (gridPosition !== null) {
-        completeRows.forEach((rowIndex) => {
-          const blocksSameRow = getBlocksSameRow(rowIndex, blocks);
-          blocksSameRow.forEach((block) => {
-            handleTriggerLocalExplosion(
-              gridPosition.left +
-                block.x * gridSize +
-                (block.width * gridSize) / 2,
-              gridPosition.top + block.y * gridSize
-            );
-          });
-        });
-      }
-
       setTimeout(() => {
         setExplodingRows(new Set());
         setBlocks(updatedBlocks);
@@ -673,16 +630,9 @@ const Grid: React.FC<GridProps> = ({
       case GameState.UPDATE_AFTER_BONUS:
       case GameState.UPDATE_AFTER_MOVE:
         {
-          // Calculate points for animation display
-          const pointsEarned =
-            (lineExplodedCount * (lineExplodedCount + 1)) / 2;
-          // If we have a combo, we display a message with points and cubes
+          // Show combo text on multi-line clears
           if (lineExplodedCount > 1) {
             setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
-            setAnimatedPoints(pointsEarned);
-            // Cube bonuses match contract: 4→+1, 5→+3, 6→+5, 7→+10, 8→+25, 9+→+50
-            const cubesFromCombo = lineExplodedCount >= 9 ? 50 : lineExplodedCount >= 8 ? 25 : lineExplodedCount >= 7 ? 10 : lineExplodedCount >= 6 ? 5 : lineExplodedCount >= 5 ? 3 : lineExplodedCount >= 4 ? 1 : 0;
-            setAnimatedCubes(cubesFromCombo);
           }
 
           // All local cascading done — signal cascade complete
@@ -729,10 +679,6 @@ const Grid: React.FC<GridProps> = ({
 
   return (
     <>
-      <ConfettiExplosion
-        ref={explosionRef}
-        colorSet={themeColors.particles.explosion}
-      />
       <motion.div
         animate={shouldBounce ? { scale: [1, 1.1, 1, 1.1, 1] } : {}}
         transition={{ duration: 0.2, ease: "easeInOut" }}
@@ -782,7 +728,7 @@ const Grid: React.FC<GridProps> = ({
               />
             ))}
             <div className="flex items-center justify-center font-sans z-20 pointer-events-none">
-              <AnimatedText textEnum={animateText} pointsEarned={animatedPoints} cubesEarned={animatedCubes} reset={resetAnimateText} />
+              <AnimatedText textEnum={animateText} reset={resetAnimateText} />
             </div>
           </div>
         </div>
