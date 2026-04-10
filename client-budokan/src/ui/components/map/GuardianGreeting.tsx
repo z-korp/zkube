@@ -28,8 +28,10 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
   const passiveMutator = passiveMutatorId && passiveMutatorId > 0 ? getMutatorDef(passiveMutatorId) : null;
 
   const greeting = mode === "endless"
-    ? "The arena awaits. Here, there is no end — only how far you can push."
-    : guardian.greeting;
+    ? "The arena awaits. No end, only how far you can push."
+    : mode === "daily"
+      ? guardian.dailyGreeting
+      : guardian.greeting;
 
   return (
     <motion.div
@@ -96,10 +98,25 @@ const GuardianGreeting: React.FC<GuardianGreetingProps> = ({
             {greeting}
           </p>
 
-          {/* Zone hint */}
-          <p className="mt-2 font-sans text-[13px] leading-relaxed text-white/60">
-            {guardian.zoneHint}
-          </p>
+          {/* Hint: daily builds from actual mutators, story uses zone hint */}
+          {mode === "daily" && (activeMutator || passiveMutator) ? (
+            <div className="mt-2 flex flex-col gap-1">
+              {activeMutator && (
+                <p className="font-sans text-[13px] leading-relaxed text-white/60">
+                  {activeMutator.icon} <span className="font-semibold text-white/80">{activeMutator.name}:</span> {activeMutator.description}
+                </p>
+              )}
+              {passiveMutator && (
+                <p className="font-sans text-[13px] leading-relaxed text-white/60">
+                  {passiveMutator.icon} <span className="font-semibold text-white/80">{passiveMutator.name}:</span> {passiveMutator.description}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="mt-2 font-sans text-[13px] leading-relaxed text-white/60">
+              {guardian.zoneHint}
+            </p>
+          )}
 
           {/* Perfection hint on first visit */}
           {isFirstVisit && mode !== "endless" && (

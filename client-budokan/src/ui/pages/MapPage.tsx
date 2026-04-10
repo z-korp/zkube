@@ -26,6 +26,7 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { useDojo } from "@/dojo/useDojo";
 import { useActiveStoryAttempt } from "@/hooks/useActiveStoryAttempt";
 import { useActiveDailyAttempt } from "@/hooks/useActiveDailyAttempt";
+import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
 import { useSettings } from "@/hooks/useSettings";
 import { ZONE_NAMES } from "@/config/profileData";
@@ -113,6 +114,7 @@ const MapPage: React.FC = () => {
   } = useDojo();
   const activeStoryRun = useActiveStoryAttempt();
   const activeDailyRun = useActiveDailyAttempt();
+  const { challenge: dailyChallenge } = useCurrentChallenge();
 
   const { game, seed } = useGame({
     gameId: gameId ?? undefined,
@@ -698,8 +700,8 @@ const MapPage: React.FC = () => {
             colors={colors}
             guardian={guardian}
             mode={isDailyMap ? "daily" : "story"}
-            activeMutatorId={mapZoneId * 2 - 1}
-            passiveMutatorId={mapZoneId * 2}
+            activeMutatorId={isDailyMap && dailyChallenge ? dailyChallenge.active_mutator_id : mapZoneId * 2 - 1}
+            passiveMutatorId={isDailyMap && dailyChallenge ? dailyChallenge.passive_mutator_id : mapZoneId * 2}
             isFirstVisit={isFirstVisit}
             onClose={() => setShowGreeting(false)}
           />
