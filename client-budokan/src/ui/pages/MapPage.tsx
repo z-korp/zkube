@@ -172,8 +172,17 @@ const MapPage: React.FC = () => {
     settings: settingsLoading ? undefined : zoneSettings,
   });
 
+  // Per-zone seed: story zones get a fixed seed from zoneId, daily gets day-based seed
+  const layoutSeed = useMemo(() => {
+    if (isDailyMap) {
+      const dayId = Math.floor(Date.now() / 86400000);
+      return BigInt(dayId) * 7919n + BigInt(mapZoneId);
+    }
+    return BigInt(mapZoneId) * 48271n + 12347n;
+  }, [isDailyMap, mapZoneId]);
+
   const zoneLayouts = useMapLayout({
-    seed,
+    seed: layoutSeed,
     totalZones: 1,
     nodesPerZone: NODES_PER_ZONE,
   });
