@@ -7,7 +7,10 @@ import { useGetUsernames, normalizeAddress } from "./useGetUsernames";
 export interface DailyLeaderboardEntry {
   rank: number;
   player: string;
-  value: number;
+  /** BigInt composite for settlement ordering: (stars << 48) | (MAX_48 - time) */
+  sortKey: bigint;
+  totalStars: number;
+  highestCleared: number;
   playerName?: string;
 }
 
@@ -28,26 +31,32 @@ export function useDailyLeaderboard(challengeId: number | undefined) {
   const rawEntries = useMemo(() => {
     if (challengeId === undefined) return [];
 
+    const MAX_48 = (1n << 48n) - 1n;
     const entries: DailyLeaderboardEntry[] = [];
     for (const entity of allEntities) {
       const data = getComponentValue(DailyEntry, entity);
       if (!data || data.challenge_id !== challengeId) continue;
-      if (!data.best_score && !data.best_stars) continue; // no score yet
+      if (!data.total_stars && !data.highest_cleared) continue; // no progress yet
 
-      // Compute composite ranking value: (stars << 32) | score
-      const stars = Number(data.best_stars ?? 0);
-      const score = Number(data.best_score ?? 0);
-      const value = stars * 0x100000000 + score;
+      const stars = Number(data.total_stars ?? 0);
+      const cleared = Number(data.highest_cleared ?? 0);
+      const lastStarTime = BigInt(data.last_star_time ?? 0);
+
+      // Match contract ranking: (total_stars << 48) | (MAX_48 - (last_star_time & MAX_48))
+      // Higher = better (more stars, earlier time)
+      const sortKey = (BigInt(stars) << 48n) | (MAX_48 - (lastStarTime & MAX_48));
 
       entries.push({
-        rank: 0, // will be assigned after sort
+        rank: 0,
         player: `0x${BigInt(data.player).toString(16)}`,
-        value,
+        sortKey,
+        totalStars: stars,
+        highestCleared: cleared,
       });
     }
 
-    // Sort descending by value (higher is better)
-    entries.sort((a, b) => b.value - a.value);
+    // Sort descending by sortKey (higher is better)
+    entries.sort((a, b) => (b.sortKey > a.sortKey ? 1 : b.sortKey < a.sortKey ? -1 : 0));
 
     // Assign ranks
     entries.forEach((entry, i) => {

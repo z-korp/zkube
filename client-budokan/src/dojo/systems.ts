@@ -371,6 +371,34 @@ export function systems({ client }: { client: IWorld }) {
     return { game_id: gameId };
   };
 
+  const replayDailyLevel = async ({
+    account,
+    level,
+  }: SystemTypes.ReplayDailyLevel): Promise<{ game_id: bigint }> => {
+    if (!client.daily_challenge) {
+      throw new Error("Daily challenge system not available");
+    }
+    const { events } = await handleTransaction(
+      account,
+      () => client.daily_challenge!.replay_daily_level({ account, level }),
+      "Daily level replay started.",
+    );
+    const dailyAddress = normalizeHex(client.daily_challenge.address);
+    let gameId = 0n;
+    for (const event of events) {
+      const keys: unknown[] = event?.keys ?? [];
+      const data: unknown[] = event?.data ?? [];
+      const fromDaily = keys.some((key) => normalizeHex(String(key)) === dailyAddress);
+      if (!fromDaily || data.length < 3) continue;
+      const candidate = parseBigIntSafe(String(data[data.length - 1]));
+      if (candidate > 0n) {
+        gameId = candidate;
+        break;
+      }
+    }
+    return { game_id: gameId };
+  };
+
   const settleChallenge = async ({
     account,
     ...props
@@ -422,6 +450,7 @@ export function systems({ client }: { client: IWorld }) {
     purchaseMap,
     unlockWithStars,
     startDailyGame,
+    replayDailyLevel,
     settleChallenge,
     settleWeeklyEndless,
     questClaim,

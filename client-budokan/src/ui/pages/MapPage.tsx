@@ -28,6 +28,7 @@ import { useDojo } from "@/dojo/useDojo";
 import { useActiveStoryAttempt } from "@/hooks/useActiveStoryAttempt";
 import { useActiveDailyAttempt } from "@/hooks/useActiveDailyAttempt";
 import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
+import { usePlayerEntry } from "@/hooks/usePlayerEntry";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
 import { useSettings } from "@/hooks/useSettings";
 import { ZONE_NAMES } from "@/config/profileData";
@@ -110,7 +111,7 @@ const MapPage: React.FC = () => {
   const { account } = useAccountCustom();
   const {
     setup: {
-      systemCalls: { replayLevel },
+      systemCalls: { replayLevel, startDailyGame, replayDailyLevel },
     },
   } = useDojo();
   const activeStoryRun = useActiveStoryAttempt();
@@ -123,21 +124,34 @@ const MapPage: React.FC = () => {
   });
   const gameLevel = useGameLevel({ gameId: game?.id });
   const { zones } = useZoneProgress(account?.address, 0);
+  const { entry: dailyEntry } = usePlayerEntry(
+    dailyChallenge?.challenge_id,
+    account?.address,
+  );
 
   const zoneState = useMemo(
     () => {
-      if (isDailyMap && game) {
-        // For daily map, derive zone state from the active daily game
-        const currentLevel = game.level ?? 1;
-        const stars: number[] = [];
-        for (let i = 1; i <= 10; i++) {
-          stars.push(game.getLevelStars(i));
+      if (isDailyMap) {
+        // Use DailyEntry as source of truth for daily progress
+        if (dailyEntry && dailyEntry.joined_at > 0) {
+          const packedStars = Number(dailyEntry.level_stars ?? 0);
+          const stars: number[] = [];
+          for (let i = 0; i < 10; i++) {
+            stars.push((packedStars >> (i * 2)) & 0x3);
+          }
+          return {
+            zoneId: mapZoneId,
+            unlocked: true,
+            highestCleared: Number(dailyEntry.highest_cleared ?? 0),
+            levelStars: stars,
+          };
         }
+        // Fallback: no entry yet, show empty unlocked zone
         return {
           zoneId: mapZoneId,
           unlocked: true,
-          highestCleared: game.over ? currentLevel : Math.max(currentLevel - 1, 0),
-          levelStars: stars,
+          highestCleared: 0,
+          levelStars: Array(10).fill(0),
         };
       }
       const z = zones.find((zone) => zone.zoneId === mapZoneId);
@@ -149,12 +163,12 @@ const MapPage: React.FC = () => {
         levelStars: z.levelStars ?? [],
       };
     },
-    [zones, mapZoneId, isDailyMap, game],
+    [zones, mapZoneId, isDailyMap, dailyEntry],
   );
 
   const activeNode = useMemo(() => {
     if (isDailyMap && activeDailyRun && game && !game.over) {
-      return { zoneId: mapZoneId, level: game.level ?? 1 };
+      return { zoneId: mapZoneId, level: activeDailyRun.level };
     }
     if (activeStoryRun) {
       return { zoneId: activeStoryRun.zoneId, level: activeStoryRun.level };
@@ -231,16 +245,46 @@ const MapPage: React.FC = () => {
     ? { ...storyZoneProgress, ...zoneState, stars: zoneState.levelStars.reduce((a: number, b: number) => a + b, 0) }
     : storyZoneProgress;
 
+  const [dailyStarting, setDailyStarting] = useState(false);
+
   const handlePlay = async () => {
     if (!account || !selectedNode || selectedNode.contractLevel == null) return;
 
-    // Daily mode: navigate to play with the active daily game
+    // Daily mode: start/resume daily games
     if (isDailyMap) {
-      if (activeDailyRun && game && !game.over) {
+      // If there's an active non-over daily game for this level, resume it
+      if (activeDailyRun && game && !game.over && activeDailyRun.level === selectedNode.contractLevel) {
         setSelectedNode(null);
         navigate("play", activeDailyRun.gameId);
-      } else {
-        showToast({ message: "Start a new daily attempt to play.", type: "error" });
+        return;
+      }
+
+      // Can't start a new level while one is in progress
+      if (activeDailyRun && game && !game.over) {
+        showToast({ message: `Daily level ${activeDailyRun.level} is still in progress.`, type: "error" });
+        return;
+      }
+
+      if (dailyStarting) return;
+      setDailyStarting(true);
+      try {
+        let result: { game_id: bigint };
+        if (selectedNode.state === "cleared" || selectedNode.state === "visited") {
+          // Replay a previously cleared level
+          result = await replayDailyLevel({ account, level: selectedNode.contractLevel });
+        } else {
+          // Start next level (contract auto-advances to highest_cleared + 1)
+          result = await startDailyGame({ account });
+        }
+        if (result.game_id !== 0n) {
+          setSelectedNode(null);
+          await new Promise((r) => setTimeout(r, 1500));
+          navigate("play", result.game_id);
+        }
+      } catch (error) {
+        console.error("Failed to start daily level:", error);
+      } finally {
+        setDailyStarting(false);
       }
       return;
     }

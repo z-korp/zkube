@@ -333,11 +333,11 @@ export function defineContractComponents(world: World) {
         {
           challenge_id: RecsType.Number,
           player: RecsType.BigInt,
-          attempts: RecsType.Number,
-          best_score: RecsType.Number,
-          best_level: RecsType.Number,
-          best_stars: RecsType.Number,
-          best_game_id: RecsType.BigInt,
+          level_stars: RecsType.Number,
+          total_stars: RecsType.Number,
+          highest_cleared: RecsType.Number,
+          last_star_time: RecsType.BigInt,
+          joined_at: RecsType.BigInt,
           rank: RecsType.Number,
           star_reward: RecsType.BigInt,
         },
@@ -348,11 +348,11 @@ export function defineContractComponents(world: World) {
             types: [
               "u32",               // challenge_id
               "ContractAddress",   // player
-              "u32",               // attempts
-              "u32",               // best_score
-              "u8",                // best_level
-              "u8",                // best_stars
-              "felt252",           // best_game_id
+              "u32",               // level_stars (2-bit packed)
+              "u8",                // total_stars
+              "u8",                // highest_cleared
+              "u64",               // last_star_time
+              "u64",               // joined_at
               "u32",               // rank
               "u64",               // star_reward
             ],
@@ -369,6 +369,8 @@ export function defineContractComponents(world: World) {
           player: RecsType.BigInt,
           zone_id: RecsType.Number,
           challenge_id: RecsType.Number,
+          level: RecsType.Number,
+          is_replay: RecsType.Boolean,
         },
         {
           metadata: {
@@ -379,6 +381,8 @@ export function defineContractComponents(world: World) {
               "ContractAddress",   // player
               "u8",                // zone_id
               "u32",               // challenge_id
+              "u8",                // level
+              "bool",              // is_replay
             ],
             customTypes: [],
           },
@@ -392,6 +396,8 @@ export function defineContractComponents(world: World) {
           player: RecsType.BigInt,
           game_id: RecsType.BigInt,
           challenge_id: RecsType.Number,
+          level: RecsType.Number,
+          is_replay: RecsType.Boolean,
         },
         {
           metadata: {
@@ -401,6 +407,8 @@ export function defineContractComponents(world: World) {
               "ContractAddress",   // player (key)
               "felt252",           // game_id
               "u32",               // challenge_id
+              "u8",                // level
+              "bool",              // is_replay
             ],
             customTypes: [],
           },

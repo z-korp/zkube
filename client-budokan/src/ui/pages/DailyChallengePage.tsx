@@ -22,12 +22,6 @@ const TROPHY_IMAGES: Record<number, string> = {
   3: "/assets/common/trophies/bronze.png",
 };
 
-const parseCompositeValue = (value: number): { stars: number; score: number } => {
-  const stars = Math.floor(value / 0x100000000);
-  const score = value % 0x100000000;
-  return { stars, score };
-};
-
 /** Compute today's daily zone from day_id — mirrors contract logic */
 const computeDailyZoneId = (dayId: number): number => {
   const DAILY_CHALLENGE_FELT = BigInt(
@@ -270,13 +264,13 @@ const DailyChallengePage: React.FC = () => {
                   <p className="font-sans text-[10px] font-bold uppercase tracking-[0.12em] text-white/50">Your Result</p>
                   <div className="mt-1 flex items-baseline justify-between">
                     <p className="font-sans text-lg font-bold" style={{ color: zoneColors.accent }}>
-                      {entry.best_score?.toLocaleString() ?? 0}
-                      <span className="ml-1.5 text-xs text-white/50">pts</span>
+                      {entry.highest_cleared ?? 0}/{10}
+                      <span className="ml-1.5 text-xs text-white/50">levels</span>
                     </p>
                     <div className="flex items-center gap-3">
-                      {entry.best_stars > 0 && (
+                      {(entry.total_stars ?? 0) > 0 && (
                         <span className="font-sans text-xs font-semibold text-yellow-300">
-                          {"★".repeat(entry.best_stars)}
+                          {entry.total_stars}/30 ★
                         </span>
                       )}
                       <span className="rounded-full border px-2 py-0.5 font-sans text-xs font-bold" style={{ borderColor: `${zoneColors.accent}55`, color: zoneColors.accent }}>
@@ -284,9 +278,6 @@ const DailyChallengePage: React.FC = () => {
                       </span>
                     </div>
                   </div>
-                  {entry.attempts > 1 && (
-                    <p className="mt-0.5 font-sans text-[10px] text-white/40">{entry.attempts} attempts</p>
-                  )}
                   {starReward > 0n && (
                     <p className="mt-1 font-sans text-xs font-semibold text-yellow-300">
                       Star Reward: {starReward.toString()}★
@@ -331,8 +322,8 @@ const DailyChallengePage: React.FC = () => {
                             </span>
                           </span>
                           <span className="flex items-center gap-1.5 font-sans text-xs font-bold tabular-nums" style={{ color: zoneColors.accent }}>
-                            <span className="text-yellow-300">{"★".repeat(parseCompositeValue(le.value).stars)}</span>
-                            <span>{parseCompositeValue(le.value).score.toLocaleString()}</span>
+                            <span className="text-yellow-300">{le.totalStars}★</span>
+                            <span>{le.highestCleared}/10</span>
                           </span>
                         </div>
                       );
@@ -350,8 +341,9 @@ const DailyChallengePage: React.FC = () => {
                             </span>
                             {playerRank.playerName} (You)
                           </span>
-                          <span className="font-sans text-xs font-bold tabular-nums" style={{ color: zoneColors.accent }}>
-                            {playerRank.value.toLocaleString()}
+                          <span className="flex items-center gap-1.5 font-sans text-xs font-bold tabular-nums" style={{ color: zoneColors.accent }}>
+                            <span className="text-yellow-300">{playerRank.totalStars}★</span>
+                            <span>{playerRank.highestCleared}/10</span>
                           </span>
                         </div>
                       </>
