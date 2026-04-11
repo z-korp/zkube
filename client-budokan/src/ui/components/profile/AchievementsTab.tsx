@@ -20,6 +20,7 @@ const itemVariants: any = {
 
 interface AchievementsTabProps {
   colors: ThemeColors;
+  playerAddress?: string;
 }
 
 const TIER_LABELS = ["I", "II", "III", "IV"] as const;
@@ -38,8 +39,8 @@ const RARITY_COLORS = {
   Legendary: "#FFD86E",
 } as const;
 
-const AchievementsTab: React.FC<AchievementsTabProps> = ({ colors }) => {
-  const { achievements } = useAchievements();
+const AchievementsTab: React.FC<AchievementsTabProps> = ({ colors, playerAddress }) => {
+  const { achievements } = useAchievements(playerAddress);
 
   const totalUnlocked = achievements.filter((a) => a.completed).length;
   const total = achievements.length;

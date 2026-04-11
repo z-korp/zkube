@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { getThemeColors } from "@/config/themes";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
+import { useGetUsernames, normalizeAddress } from "@/hooks/useGetUsernames";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useZStarBalance } from "@/hooks/useZStarBalance";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
@@ -75,7 +76,13 @@ const ProfilePage: React.FC = () => {
   const { balance: lordsBalance } = useTokenBalance(LORDS_TOKEN, viewingAddress);
 
   // Resolve username for viewed profile
-  const username = isOwnProfile ? connectedUsername : undefined;
+  const viewedAddresses = useMemo(() => viewingAddress && !isOwnProfile ? [viewingAddress] : [], [viewingAddress, isOwnProfile]);
+  const { usernames: resolvedUsernames } = useGetUsernames(viewedAddresses);
+  const username = isOwnProfile
+    ? connectedUsername
+    : viewingAddress
+      ? resolvedUsernames?.get(normalizeAddress(viewingAddress)) ?? undefined
+      : undefined;
 
   const xp = playerMeta?.lifetimeXp ?? 0;
   const level = getLevelFromXp(xp);
@@ -91,11 +98,15 @@ const ProfilePage: React.FC = () => {
   const strkPriceUsd = 0.5;
   const lordsPriceUsd = 0.03;
 
+  // Only display USDC; STRK/LORDS tracked for portfolio total
   const walletBalances = useMemo<WalletBalance[]>(() => [
-    { label: "STRK", symbol: "STRK", amount: strkAmount.toFixed(2), usdcValue: strkAmount * strkPriceUsd, icon: "⚡" },
     { label: "USDC", symbol: "USDC", amount: usdcAmount.toFixed(2), usdcValue: usdcAmount, icon: "💵" },
-    { label: "LORDS", symbol: "LORDS", amount: lordsAmount.toFixed(2), usdcValue: lordsAmount * lordsPriceUsd, icon: "🏰" },
-  ], [strkAmount, strkPriceUsd, usdcAmount, lordsAmount, lordsPriceUsd]);
+  ], [usdcAmount]);
+
+  const totalPortfolioValue = useMemo(
+    () => strkAmount * strkPriceUsd + usdcAmount + lordsAmount * lordsPriceUsd,
+    [strkAmount, strkPriceUsd, usdcAmount, lordsAmount, lordsPriceUsd],
+  );
 
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
   const [unlockZone, setUnlockZone] = useState<ZoneProgressData | null>(null);
@@ -227,8 +238,9 @@ const ProfilePage: React.FC = () => {
               combo4Count={playerStats.combo4Count}
               totalBosses={playerStats.totalBosses}
               walletBalances={walletBalances}
+              totalPortfolioValue={totalPortfolioValue}
+              isOwnProfile={isOwnProfile}
               onFundAccount={() => {
-                // TODO: integrate Cartridge funding flow or bridge
                 window.open("https://starkgate.starknet.io", "_blank");
               }}
             />
@@ -243,7 +255,7 @@ const ProfilePage: React.FC = () => {
             />
           )}
 
-          {tab === "Achievements" && <AchievementsTab colors={colors} />}
+          {tab === "Achievements" && <AchievementsTab colors={colors} playerAddress={viewingAddress} />}
           </motion.div>
 
         </motion.div>

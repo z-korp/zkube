@@ -16,8 +16,9 @@ interface UseAchievementsResult {
   isLoading: boolean;
 }
 
-export const useAchievements = (): UseAchievementsResult => {
-  const { address } = useAccount();
+export const useAchievements = (playerAddress?: string): UseAchievementsResult => {
+  const { address: connectedAddress } = useAccount();
+  const resolvedAddress = playerAddress ?? connectedAddress;
   const {
     setup: {
       contractComponents: { AchievementAdvancement, AchievementCompletion },
@@ -25,13 +26,13 @@ export const useAchievements = (): UseAchievementsResult => {
   } = useDojo();
 
   const ownerBigInt = useMemo(() => {
-    if (!address) return null;
+    if (!resolvedAddress) return null;
     try {
-      return BigInt(address);
+      return BigInt(resolvedAddress);
     } catch {
       return null;
     }
-  }, [address]);
+  }, [resolvedAddress]);
 
   const advancementEntityIds = useEntityQuery([Has(AchievementAdvancement)]);
   const completionEntityIds = useEntityQuery([Has(AchievementCompletion)]);
