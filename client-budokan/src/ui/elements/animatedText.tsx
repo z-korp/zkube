@@ -13,17 +13,26 @@ const AnimatedText: React.FC<AnimatedTextProps> = ({ textEnum, reset }) => {
   return (
     <motion.div
       key={textEnum}
+      initial={{ scale: 0, rotate: -20, opacity: 0 }}
       animate={{
-        scale: [1, 2, 2, 1, 1, 2, 2, 0, 0, 0, 0],
-        rotate: [0, 0, 270, 270, 0, 0, 0, 0, 0, 0, 0],
+        scale: [0, 1.4, 1.1, 1.1, 1.2, 0],
+        rotate: [-20, 8, -3, 0, 5, 15],
+        opacity: [0, 1, 1, 1, 1, 0],
       }}
       transition={{
-        ease: "easeInOut",
-        duration: 3,
+        duration: 4.2,
+        times: [0, 0.08, 0.16, 0.78, 0.9, 1],
+        ease: [0.22, 1.2, 0.36, 1], // custom spring-like bezier
       }}
       onAnimationComplete={reset}
     >
-      <span className="text-4xl text-shine p-4 font-display font-black">{textEnum}</span>
+      <motion.span
+        className="inline-block text-5xl text-shine p-4 font-display font-black"
+        animate={{ y: [0, -6, 0, -3, 0] }}
+        transition={{ duration: 4.2, times: [0, 0.1, 0.3, 0.5, 0.75], ease: "easeInOut" }}
+      >
+        {textEnum}
+      </motion.span>
     </motion.div>
   );
 };
