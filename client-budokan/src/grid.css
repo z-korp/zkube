@@ -101,17 +101,16 @@
 
 /* ─── Combo text shine ─── */
 .text-shine {
-  background: linear-gradient(
-    to right,
-    hsl(240, 30%, 54%) 0,
-    hsl(0, 0%, 100%) 10%,
-    hsl(240, 30%, 54%) 20%
-  );
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  -webkit-text-stroke: 1.5px white;
-  animation: shine 4s infinite linear;
+  color: white;
+  text-shadow:
+    -2px -2px 0 #000,
+     2px -2px 0 #000,
+    -2px  2px 0 #000,
+     2px  2px 0 #000,
+     0   -2px 0 #000,
+     0    2px 0 #000,
+    -2px  0   0 #000,
+     2px  0   0 #000;
   pointer-events: none;
 }
 
