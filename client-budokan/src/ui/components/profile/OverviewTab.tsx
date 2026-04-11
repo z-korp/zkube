@@ -30,6 +30,8 @@ interface OverviewTabProps {
   combo4Count: number;
   totalBosses: number;
   walletBalances: WalletBalance[];
+  totalPortfolioValue?: number;
+  isOwnProfile?: boolean;
   onFundAccount: () => void;
 }
 
@@ -40,6 +42,8 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   combo4Count,
   totalBosses,
   walletBalances,
+  totalPortfolioValue,
+  isOwnProfile = true,
   onFundAccount,
 }) => {
   const stats = [
@@ -49,7 +53,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     { label: "Guardians", value: totalBosses > 0 ? totalBosses.toLocaleString() : "--" },
   ];
 
-  const totalUsdcValue = walletBalances.reduce((sum, b) => sum + b.usdcValue, 0);
+  const totalUsdcValue = totalPortfolioValue ?? walletBalances.reduce((sum, b) => sum + b.usdcValue, 0);
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-4 pb-2">
@@ -83,16 +87,18 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           ))}
         </div>
 
-        <motion.button
-          variants={itemVariants}
-          type="button"
-          onClick={onFundAccount}
-          className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 font-sans text-[12px] font-bold uppercase tracking-[0.08em] transition-colors hover:bg-white/[0.06]"
-          style={{ borderColor: `${colors.accent}55`, color: colors.accent }}
-        >
-          <Wallet size={14} />
-          Fund Account
-        </motion.button>
+        {isOwnProfile && (
+          <motion.button
+            variants={itemVariants}
+            type="button"
+            onClick={onFundAccount}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 font-sans text-[12px] font-bold uppercase tracking-[0.08em] transition-colors hover:bg-white/[0.06]"
+            style={{ borderColor: `${colors.accent}55`, color: colors.accent }}
+          >
+            <Wallet size={14} />
+            Fund Account
+          </motion.button>
+        )}
       </section>
 
       <section>
