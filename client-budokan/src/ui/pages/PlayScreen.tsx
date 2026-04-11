@@ -154,7 +154,7 @@ const PlayScreen: React.FC = () => {
 
   useEffect(() => {
     setIsGameLoading(true);
-    const timer = setTimeout(() => setIsGameLoading(false), 5000);
+    const timer = setTimeout(() => setIsGameLoading(false), 15000);
     return () => clearTimeout(timer);
   }, [gameId]);
 
