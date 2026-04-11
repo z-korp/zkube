@@ -27,23 +27,9 @@ export function usePreviousChallenge() {
   const challenge = useMemo(() => {
     let best: any = null;
 
-    console.log("[usePreviousChallenge] entities:", allEntities.length, "todayDayId:", todayDayId, "now:", now);
-
     for (const entity of allEntities) {
       const data = getComponentValue(DailyChallenge, entity);
       if (!data) continue;
-
-      console.log("[usePreviousChallenge] challenge:", {
-        challenge_id: data.challenge_id,
-        challenge_id_type: typeof data.challenge_id,
-        start_time: data.start_time,
-        end_time: data.end_time,
-        settled: data.settled,
-        skipToday: data.challenge_id === todayDayId,
-        skipNotEnded: data.end_time > now,
-        todayDayId,
-        todayDayId_type: typeof todayDayId,
-      });
 
       // Skip today's challenge
       if (data.challenge_id === todayDayId) continue;
@@ -57,7 +43,6 @@ export function usePreviousChallenge() {
       }
     }
 
-    console.log("[usePreviousChallenge] result:", best ? { id: best.challenge_id, settled: best.settled } : null);
     return best ?? null;
   }, [allEntities, DailyChallenge, now, todayDayId]);
 

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { Loader2 } from "lucide-react";
 
@@ -133,15 +133,6 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
   const prevSettledReward = prevPlayerEntry ? Number(prevPlayerEntry.star_reward ?? 0) : 0;
   const prevShowPanel = prevChallenge && prevPlayerEntry;
 
-  console.log("[DailyTab] prev panel debug:", {
-    prevChallenge: prevChallenge ? { id: prevChallenge.challenge_id, settled: prevChallenge.settled, zone: prevChallenge.zone_id } : null,
-    prevEntries: prevEntries.length,
-    prevPlayerEntry: prevPlayerEntry ? { stars: prevPlayerEntry.total_stars, rank: prevPlayerEntry.rank, reward: prevPlayerEntry.star_reward } : null,
-    prevMyRank,
-    prevShowPanel: !!prevShowPanel,
-    account: account?.address,
-  });
-
   const handleSettle = useCallback(async () => {
     if (!account || !challenge || settling) return;
     setSettling(true);
@@ -154,10 +145,14 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
       });
     } catch (error) {
       console.error("Failed to settle challenge:", error);
-    } finally {
       setSettling(false);
     }
   }, [account, challenge, entries, settling, systemCalls]);
+
+  // Clear settle spinner once RECS confirms settled
+  useEffect(() => {
+    if (settling && isSettled) setSettling(false);
+  }, [settling, isSettled]);
 
   const handleSettlePrev = useCallback(async () => {
     if (!account || !prevChallenge || settlingPrev) return;
@@ -171,10 +166,14 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
       });
     } catch (error) {
       console.error("Failed to settle previous challenge:", error);
-    } finally {
       setSettlingPrev(false);
     }
   }, [account, prevChallenge, prevEntries, settlingPrev, systemCalls]);
+
+  // Clear prev settle spinner once RECS confirms settled
+  useEffect(() => {
+    if (settlingPrev && prevIsSettled) setSettlingPrev(false);
+  }, [settlingPrev, prevIsSettled]);
 
   if (challengeLoading) {
     return (

@@ -8,6 +8,7 @@ interface ArcadeButtonProps {
   onClick?: () => void;
   disabled?: boolean;
   className?: string;
+  accentOverride?: string;
 }
 
 const ArcadeButton: React.FC<ArcadeButtonProps> = ({
@@ -15,9 +16,11 @@ const ArcadeButton: React.FC<ArcadeButtonProps> = ({
   onClick,
   disabled = false,
   className = "",
+  accentOverride,
 }) => {
   const { themeTemplate } = useTheme();
-  const colors = getThemeColors(themeTemplate);
+  const themeColors = getThemeColors(themeTemplate);
+  const accent = accentOverride ?? themeColors.accent;
 
   return (
     <motion.button
@@ -28,9 +31,9 @@ const ArcadeButton: React.FC<ArcadeButtonProps> = ({
       className={`relative w-full overflow-hidden rounded-2xl border px-4 py-4 text-center font-sans text-[18px] font-extrabold uppercase tracking-[0.1em] disabled:cursor-not-allowed disabled:opacity-55 ${className}`}
       style={{
         color: "#0a1628",
-        background: `linear-gradient(180deg, ${colors.accent} 0%, ${colors.accent} 76%, ${colors.accent}D9 100%)`,
-        borderColor: `${colors.accent}66`,
-        boxShadow: `0 10px 0 ${colors.accent}55, 0 12px 28px -12px ${colors.accent}CC, inset 0 2px 0 rgba(255,255,255,0.45)`,
+        background: `linear-gradient(180deg, ${accent} 0%, ${accent} 76%, ${accent}D9 100%)`,
+        borderColor: `${accent}66`,
+        boxShadow: `0 10px 0 ${accent}55, 0 12px 28px -12px ${accent}CC, inset 0 2px 0 rgba(255,255,255,0.45)`,
       }}
     >
       <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.25),transparent)] opacity-60" />

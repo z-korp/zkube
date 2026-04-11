@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { Loader2 } from "lucide-react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
@@ -137,10 +137,14 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
       });
     } catch (error) {
       console.error("Failed to settle weekly:", error);
-    } finally {
       setSettling(false);
     }
   }, [account, settling, games, prevWeekId, endlessSettingsId, systemCalls]);
+
+  // Clear settle spinner once RECS confirms settled
+  useEffect(() => {
+    if (settling && isPrevWeekSettled) setSettling(false);
+  }, [settling, isPrevWeekSettled]);
 
   const days = Math.floor(sec / 86400);
   const hours = Math.floor((sec % 86400) / 3600);

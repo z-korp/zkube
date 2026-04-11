@@ -1,5 +1,6 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
+import { Loader2 } from "lucide-react";
 
 import type { ThemeColors } from "@/config/themes";
 import ProgressBar from "@/ui/components/shared/ProgressBar";
@@ -48,14 +49,22 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors }) => {
           quest_id: quest.id,
           interval_id: quest.intervalId,
         });
+        // Don't clear claimingId — keep spinning until RECS syncs quest.claimed = true
       } catch (error) {
         console.error("Failed to claim quest:", error);
-      } finally {
         setClaimingId(null);
       }
     },
     [account, claimingId, systemCalls],
   );
+
+  // Clear spinner once RECS confirms the quest is claimed
+  useEffect(() => {
+    if (claimingId === null) return;
+    const allQuests = [...daily, ...weekly, ...finisher];
+    const quest = allQuests.find((q) => q.id === claimingId);
+    if (quest?.claimed) setClaimingId(null);
+  }, [daily, weekly, finisher, claimingId]);
 
   const getQuestColor = (quest: QuestStatus): string => {
     if (quest.type === "weekly") return "#B89BFF";
@@ -237,7 +246,7 @@ const QuestCard: React.FC<QuestCardProps> = ({ colors, quest, color, onClaim, cl
                   boxShadow: `0 0 12px ${colors.accent}55`,
                 }}
               >
-                {isClaiming ? "Claiming" : `Claim +${quest.reward}★`}
+                {isClaiming ? <span className="flex items-center gap-1.5"><Loader2 className="h-3 w-3 animate-spin" /> Claiming</span> : `Claim +${quest.reward}★`}
               </motion.button>
             ) : (
               <span className="font-sans text-[12px] font-extrabold" style={{ color }}>

@@ -60,7 +60,7 @@ const PlayScreen: React.FC = () => {
   const setPendingLevelCompletion = useNavigationStore(
     (s) => s.setPendingLevelCompletion,
   );
-  const { themeTemplate } = useTheme();
+  const { themeTemplate, setThemeTemplate } = useTheme();
   const { setMusicContext, setMusicPlaylist, playSfx } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
 
@@ -292,6 +292,15 @@ const PlayScreen: React.FC = () => {
   // run_data stores the passive mutator; the active mutator (bonus source) comes from GameSettings
   const zoneId = game?.zoneId ?? 1;
   const settingsId = Math.max(0, (zoneId - 1) * 2);
+
+  // Sync theme to the game's zone so blocks/background match
+  useEffect(() => {
+    if (!game) return;
+    const gameThemeId = `theme-${Math.min(10, Math.max(1, game.zoneId))}` as import("@/config/themes").ThemeId;
+    if (gameThemeId !== themeTemplate) {
+      setThemeTemplate(gameThemeId);
+    }
+  }, [game?.zoneId]);
   const { settings: zoneSettings } = useSettings(settingsId);
   const bonusMutatorId = zoneSettings.activeMutatorId;
 

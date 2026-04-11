@@ -48,10 +48,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [gridSize, setGridSize] = useState(40);
 
   const [isTxProcessing, setIsTxProcessing] = useState(false);
-
-  // State that will allow us to hide or display the next line
   const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
-
 
   useEffect(() => {
     const el = containerRef.current;
@@ -69,7 +66,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
     });
 
     observer.observe(el);
-
     return () => observer.disconnect();
   }, [COLS, ROWS, NEXT_LINE_ROWS, HORIZONTAL_PADDING, VERTICAL_CHROME]);
 
@@ -90,7 +86,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         setIsTxProcessing(false);
       }
     },
-    [account, applyBonus, game.id, playSfx]
+    [account, applyBonus, game.id, playSfx],
   );
 
   const selectBlock = useCallback(
@@ -101,11 +97,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
         handleBonusTx(BonusType.Totem, block.y, block.x);
       } else if (activeBonus === BonusType.Wave) {
         handleBonusTx(BonusType.Wave, block.y, block.x);
-      } else if (activeBonus === BonusType.None) {
-        // No bonus selected
       }
     },
-    [activeBonus, handleBonusTx]
+    [activeBonus, handleBonusTx],
   );
 
   const memoizedInitialData = useMemo(() => {
@@ -116,68 +110,61 @@ const GameBoard: React.FC<GameBoardProps> = ({
     return transformDataContractIntoBlock([nextLine]);
   }, [nextLine]);
 
-  if (memoizedInitialData.length === 0) return null; // otherwise sometimes
-  // the grid is not displayed in Grid because the data is not ready
+  if (memoizedInitialData.length === 0) return null;
 
   return (
-    <>
-        <div
-          ref={containerRef}
-          className={`relative flex h-full min-h-0 w-full flex-col p-2 md:p-3 ${
-            isTxProcessing && "cursor-wait"
-          }`}
-        >
-        <div
-          className={`flex min-h-0 flex-1 flex-col items-center ${
-            !isTxProcessing && "cursor-move"
-          }`}
-        >
-          <Grid
-            gameId={game.id}
-            initialData={memoizedInitialData}
-            nextLineData={memoizedNextLineData}
-            setNextLineHasBeenConsumed={setNextLineHasBeenConsumed}
+    <div
+      ref={containerRef}
+      className={`relative flex h-full min-h-0 w-full flex-col p-2 md:p-3 ${
+        isTxProcessing ? "cursor-wait" : ""
+      }`}
+    >
+      <div className={`flex min-h-0 flex-1 flex-col items-center ${!isTxProcessing ? "cursor-move" : ""}`}>
+        <Grid
+          gameId={game.id}
+          initialData={memoizedInitialData}
+          nextLineData={memoizedNextLineData}
+          setNextLineHasBeenConsumed={setNextLineHasBeenConsumed}
+          gridSize={gridSize}
+          gridHeight={ROWS}
+          gridWidth={COLS}
+          selectBlock={selectBlock}
+          bonus={activeBonus}
+          account={account}
+          isTxProcessing={isTxProcessing}
+          setIsTxProcessing={setIsTxProcessing}
+          levelTransitionPending={game.levelTransitionPending}
+          onCascadeComplete={onCascadeComplete}
+        />
+        <div className="mt-1 flex items-center justify-center gap-1 py-0.5">
+          <motion.div
+            animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <ChevronUp size={14} className="text-white/50" />
+          </motion.div>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
+            Next Row
+          </span>
+        </div>
+        <div>
+          <NextLine
+            nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
             gridSize={gridSize}
-            gridHeight={ROWS}
+            gridHeight={1}
             gridWidth={COLS}
-            selectBlock={selectBlock}
-            bonus={activeBonus}
-            account={account}
-            isTxProcessing={isTxProcessing}
-            setIsTxProcessing={setIsTxProcessing}
-            levelTransitionPending={game.levelTransitionPending}
-            onCascadeComplete={onCascadeComplete}
           />
-          <div className="mt-1 flex items-center justify-center gap-1 py-0.5">
-            <motion.div
-              animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <ChevronUp size={14} className="text-white/50" />
-            </motion.div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
-              Next Row
-            </span>
-          </div>
-          <div>
-            <NextLine
-              nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
-              gridSize={gridSize}
-              gridHeight={1}
-              gridWidth={COLS}
-            />
+        </div>
+      </div>
+
+      {activeBonus !== BonusType.None && (
+        <div className="absolute inset-x-0 top-1/2 flex justify-center pointer-events-none z-50">
+          <div className="text-yellow-500 px-3 py-1.5 rounded font-bold text-sm bg-black/70 whitespace-nowrap">
+            {bonusDescription}
           </div>
         </div>
-
-        {activeBonus !== BonusType.None && (
-          <div className="absolute inset-x-0 top-1/2 flex justify-center pointer-events-none z-50">
-            <div className="text-yellow-500 px-3 py-1.5 rounded font-bold text-sm bg-black/70 whitespace-nowrap">
-              {bonusDescription}
-            </div>
-          </div>
-        )}
-      </div>
-    </>
+      )}
+    </div>
   );
 };
 

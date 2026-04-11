@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
+import { Loader2 } from "lucide-react";
 
 import type { ThemeColors } from "@/config/themes";
 import { useDojo } from "@/dojo/useDojo";
@@ -37,14 +38,21 @@ const QuestsRewardsTab: React.FC<QuestsRewardsTabProps> = ({ colors }) => {
       setClaimingZone(zoneId);
       try {
         await systemCalls.claimPerfection({ account, zone_id: zoneId });
+        // Keep spinning until RECS syncs perfectionClaimed
       } catch (error) {
         console.error("Failed to claim perfection:", error);
-      } finally {
         setClaimingZone(null);
       }
     },
     [account, claimingZone, systemCalls],
   );
+
+  // Clear spinner once RECS confirms perfection claimed
+  useEffect(() => {
+    if (claimingZone === null) return;
+    const zone = zones.find((z) => z.zoneId === claimingZone);
+    if (zone?.perfectionClaimed) setClaimingZone(null);
+  }, [zones, claimingZone]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -79,7 +87,7 @@ const QuestsRewardsTab: React.FC<QuestsRewardsTabProps> = ({ colors }) => {
                     boxShadow: "0 0 12px rgba(255,215,0,0.4)",
                   }}
                 >
-                  {claimingZone === zone.zoneId ? "Claiming..." : "Claim +20★"}
+                  {claimingZone === zone.zoneId ? <span className="flex items-center gap-1.5"><Loader2 className="h-3 w-3 animate-spin" /> Claiming</span> : "Claim +20★"}
                 </motion.button>
               </div>
             ))}

@@ -223,6 +223,7 @@ const HomePage: React.FC = () => {
   const selectedMode = useNavigationStore((s) => s.selectedMode);
   const setSelectedMode = useNavigationStore((s) => s.setSelectedMode);
   const [isStartingGame, setIsStartingGame] = useState(false);
+  const [isDailySelected, setIsDailySelected] = useState(false);
   const [unlockZone, setUnlockZone] = useState<ZoneProgressData | null>(null);
   const { playerMeta } = usePlayerMeta(account?.address);
   const playerLevel = getLevelFromXp(playerMeta?.lifetimeXp ?? 0);
@@ -243,6 +244,7 @@ const HomePage: React.FC = () => {
   const setActiveZone = useCallback((idx: number) => {
     const z = zones[idx];
     if (z) setMapZoneId(z.zoneId);
+    setIsDailySelected(false);
   }, [zones, setMapZoneId]);
   const { challenge, isLoading: challengeLoading } = useCurrentChallenge();
   const { entry: dailyEntry, isRegistered: hasPlayedDaily } = usePlayerEntry(
@@ -406,22 +408,16 @@ const HomePage: React.FC = () => {
   const selectedZonePlayable = isZoneSelectable(zone);
 
   const handlePrimaryAction = useCallback(() => {
-    if (!account) return;
-
-    // Daily mode
-    if (selectedMode === 2) {
-      navigate("daily");
-      return;
-    }
-
-    if (!zone) return;
+    if (!account || !zone) return;
 
     // Story mode — resume goes straight to game, new run goes to map
     if (selectedMode === 0) {
-      setMapZoneId(zone.zoneId);
       if (activeStoryAttemptId !== null) {
+        // Use the active run's zone, not the selected zone card
+        setMapZoneId(activeStoryRun!.zoneId);
         navigate("play", activeStoryAttemptId);
       } else {
+        setMapZoneId(zone.zoneId);
         navigate("map");
       }
       return;
@@ -438,6 +434,7 @@ const HomePage: React.FC = () => {
     account,
     activeEndlessGameId,
     activeStoryAttemptId,
+    activeStoryRun,
     handleStartGame,
     navigate,
     setMapZoneId,
@@ -498,52 +495,11 @@ const HomePage: React.FC = () => {
               </motion.div>
 
               <motion.div variants={itemVariants}>
-                <ModePill selectedMode={selectedMode} onModeChange={setSelectedMode} />
+                <ModePill selectedMode={selectedMode} onModeChange={(m) => { setSelectedMode(m); setIsDailySelected(false); }} />
               </motion.div>
 
               <motion.div variants={itemVariants} className="space-y-2">
-                {selectedMode === 2 ? (
-                  <div className="relative overflow-hidden rounded-2xl border border-white/[0.16]">
-                    {challenge?.zone_id ? (
-                      <img
-                        src={getThemeImages(getThemeId(challenge.zone_id)).background}
-                        alt=""
-                        className="absolute inset-0 h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${colors.accent}33, ${colors.accent2}22)` }} />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/70 to-black/50" />
-                    <div className="relative z-10 px-4 py-3">
-                      <p className="font-sans text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : colors.accent }}>
-                        Today's Challenge
-                      </p>
-                      <div className="mt-1 flex items-center justify-between">
-                        <div>
-                          <p className="font-sans text-sm font-bold text-white">
-                            {dailyZoneName ?? "Daily Challenge"}
-                          </p>
-                          <p className="font-sans text-[11px] text-white/60">
-                            {challengeLoading
-                              ? "Loading..."
-                              : !challenge
-                                ? "Be the first to play today!"
-                                : hasPlayedDaily && dailyMyRank
-                                  ? `#${dailyMyRank}/${dailyEntries.length}${dailyMyReward > 0 ? ` · Projected +${dailyMyReward}★` : ""}`
-                                  : `${challenge.total_entries ?? 0} player${(challenge.total_entries ?? 0) !== 1 ? "s" : ""}`}
-                          </p>
-                        </div>
-                        {dailyCountdown ? (
-                          <span className="rounded-full px-3 py-1.5 font-sans text-xs font-bold tabular-nums text-white" style={{ background: challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : colors.accent }}>
-                            {dailyCountdown}
-                          </span>
-                        ) : challenge ? (
-                          <span className="rounded-full bg-red-500 px-3 py-1.5 font-sans text-xs font-bold text-white">ENDED</span>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-                ) : zones.length === 0 ? (
+                {zones.length === 0 ? (
                   <div className="rounded-2xl border border-white/[0.14] bg-white/[0.12] p-4 text-center font-sans text-sm font-semibold text-white/80 backdrop-blur-xl">
                     Loading zones...
                   </div>
@@ -556,7 +512,7 @@ const HomePage: React.FC = () => {
                       const isSelectable = isEndlessMode
                         ? z.unlocked && z.zoneId === 1 && endlessZoneOneUnlocked
                         : z.unlocked;
-                      const isSelected = idx === activeZone && isSelectable;
+                      const isSelected = !isDailySelected && idx === activeZone && isSelectable;
                       const cardAccent = isEndlessMode ? "#FFB86B" : colors.accent;
 
                       let statusText = `${z.stars}/${z.maxStars} ★`;
@@ -636,9 +592,58 @@ const HomePage: React.FC = () => {
               </motion.div>
 
               <motion.div variants={itemVariants}>
-                <div className="rounded-2xl border border-white/[0.10] bg-white/[0.04] px-4 py-3 text-center backdrop-blur-xl">
-                  <p className="font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-white/30">Coming Soon</p>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsDailySelected((prev) => !prev)}
+                  className="relative w-full overflow-hidden rounded-2xl text-left transition-all"
+                  style={{
+                    border: isDailySelected
+                      ? `2px solid ${challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : colors.accent}`
+                      : "1px solid rgba(255,255,255,0.16)",
+                    boxShadow: isDailySelected
+                      ? `0 0 16px ${challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : colors.accent}66, 0 0 4px ${challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : colors.accent}44`
+                      : "none",
+                  }}
+                >
+                  {challenge?.zone_id ? (
+                    <img
+                      src={getThemeImages(getThemeId(challenge.zone_id)).background}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${colors.accent}33, ${colors.accent2}22)` }} />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/70 to-black/50" />
+                  <div className="relative z-10 px-4 py-3">
+                    <p className="font-sans text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : colors.accent }}>
+                      Daily Challenge
+                    </p>
+                    <div className="mt-1 flex items-center justify-between">
+                      <div>
+                        <p className="font-sans text-sm font-bold text-white">
+                          {dailyZoneName ?? "Daily Challenge"}
+                        </p>
+                        <p className="font-sans text-[11px] text-white/60">
+                          {challengeLoading
+                            ? "Loading..."
+                            : !challenge
+                              ? "Be the first to play today!"
+                              : hasPlayedDaily && dailyMyRank
+                                ? `#${dailyMyRank}/${dailyEntries.length}${dailyMyReward > 0 ? ` · Projected +${dailyMyReward}★` : ""}`
+                                : `${challenge.total_entries ?? 0} player${(challenge.total_entries ?? 0) !== 1 ? "s" : ""}`}
+                        </p>
+                      </div>
+                      {dailyCountdown ? (
+                        <span className="rounded-full px-3 py-1.5 font-sans text-xs font-bold tabular-nums text-white" style={{ background: challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : colors.accent }}>
+                          {dailyCountdown}
+                        </span>
+                      ) : challenge ? (
+                        <span className="rounded-full bg-red-500 px-3 py-1.5 font-sans text-xs font-bold text-white">ENDED</span>
+                      ) : null}
+                    </div>
+                  </div>
+                </button>
               </motion.div>
             </>
           ) : (
@@ -652,11 +657,23 @@ const HomePage: React.FC = () => {
           <Connect ctaLabel="PLAY NOW" />
         ) : (
           <>
-            <ArcadeButton disabled={isStartingGame || (selectedMode === 2 ? challengeLoading : !selectedZonePlayable)} onClick={handlePrimaryAction}>
-              {isStartingGame
-                ? "Starting..."
-                : selectedMode === 2
-                  ? "Go to Daily"
+            {isDailySelected ? (
+              <ArcadeButton
+                onClick={() => navigate("daily")}
+                accentOverride={challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : undefined}
+              >
+                Go to Daily
+              </ArcadeButton>
+            ) : (
+              <ArcadeButton disabled={isStartingGame || !selectedZonePlayable} onClick={handlePrimaryAction} accentOverride={
+                selectedMode === 1
+                  ? "#FFB86B"
+                  : selectedMode === 0 && hasActiveStoryRun && activeStoryRun
+                    ? getThemeColors(getThemeId(activeStoryRun.zoneId)).accent
+                    : zone ? getThemeColors(getThemeId(zone.zoneId)).accent : undefined
+              }>
+                {isStartingGame
+                  ? "Starting..."
                   : selectedMode === 0
                     ? hasActiveStoryRun
                       ? "Resume Story"
@@ -664,7 +681,8 @@ const HomePage: React.FC = () => {
                     : hasActiveEndlessRun
                       ? "Resume Endless"
                       : "Play Endless"}
-            </ArcadeButton>
+              </ArcadeButton>
+            )}
 
 
             {selectedMode === 1 && zones.length > 0 && !selectedZonePlayable && endlessZoneOneUnlocked ? (

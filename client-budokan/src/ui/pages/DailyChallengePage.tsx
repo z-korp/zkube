@@ -292,7 +292,7 @@ const DailyChallengePage: React.FC = () => {
       {/* Play button */}
       {account && !challengeLoading && (isActive || !challenge) && (
         <div className="relative z-20 mt-auto px-4 pb-3">
-          <ArcadeButton disabled={starting} onClick={handlePlay}>
+          <ArcadeButton disabled={starting} onClick={handlePlay} accentOverride={zoneColors.accent}>
             {starting ? "Starting..." : isActiveDailyFromToday ? "Resume Daily" : "Play Daily"}
           </ArcadeButton>
         </div>
