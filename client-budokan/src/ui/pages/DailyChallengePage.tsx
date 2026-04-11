@@ -15,6 +15,15 @@ import { ZONE_NAMES } from "@/config/profileData";
 import { getZoneGuardian, getGuardianPortrait } from "@/config/bossCharacters";
 import { motion } from "motion/react";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
+import TierContext from "@/ui/components/rewards/TierContext";
+
+const REWARD_TIERS = [
+  { pct: 1, label: "Top 1%", reward: 10 },
+  { pct: 5, label: "Top 5%", reward: 7 },
+  { pct: 10, label: "Top 10%", reward: 5 },
+  { pct: 25, label: "Top 25%", reward: 3 },
+  { pct: 50, label: "Top 50%", reward: 1 },
+];
 
 const TROPHY_IMAGES: Record<number, string> = {
   1: "/assets/common/trophies/gold.png",
@@ -37,7 +46,7 @@ const getThemeId = (zoneId: number): ThemeId => {
   return `theme-${normalized}` as ThemeId;
 };
 
-const CountdownPill: React.FC<{ endTime: number; accent: string }> = ({ endTime, accent }) => {
+const CountdownText: React.FC<{ endTime: number }> = ({ endTime }) => {
   const [sec, setSec] = useState(() =>
     Math.max(0, endTime - Math.floor(Date.now() / 1000)),
   );
@@ -52,14 +61,7 @@ const CountdownPill: React.FC<{ endTime: number; accent: string }> = ({ endTime,
   const m = Math.floor((sec % 3600) / 60).toString().padStart(2, "0");
   const s = (sec % 60).toString().padStart(2, "0");
 
-  return (
-    <div
-      className="rounded-full border px-3 py-1 font-sans text-xs font-bold tabular-nums"
-      style={{ borderColor: `${accent}55`, backgroundColor: `${accent}18`, color: accent }}
-    >
-      {sec > 0 ? `${h}:${m}:${s}` : "ENDED"}
-    </div>
-  );
+  return <>{sec > 0 ? `${h}:${m}:${s}` : "ENDED"}</>;
 };
 
 const normalizeAddress = (address: string | undefined): string | undefined => {
@@ -204,153 +206,84 @@ const DailyChallengePage: React.FC = () => {
 
           {challenge && (
             <>
-              {/* Guardian hero — portrait + zone info merged */}
-              <div className="relative overflow-hidden rounded-2xl border border-white/[0.12]">
+              {/* Guardian panel — portrait, greeting, mutators, countdown */}
+              <div
+                className="relative overflow-hidden rounded-2xl border-2"
+                style={{
+                  borderColor: `${zoneColors.accent}35`,
+                  boxShadow: `0 4px 32px rgba(0,0,0,0.3), inset 0 1px 0 ${zoneColors.accent}15`,
+                }}
+              >
                 <img src={zoneImages.background} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
-                <div className="relative z-10 flex items-end gap-3 p-4">
+                <div className="absolute inset-0 bg-black/85" />
+              <div className="relative z-10 px-4 pb-4 pt-3">
+                {/* Header — portrait + name + countdown */}
+                <div className="flex items-center gap-3">
                   <img
                     src={getGuardianPortrait(zoneId)}
                     alt={guardian.name}
-                    className="h-20 w-20 shrink-0 rounded-xl object-cover"
+                    className="h-14 w-14 shrink-0 rounded-xl object-cover"
                     style={{ border: `2px solid ${zoneColors.accent}44`, boxShadow: `0 0 16px ${zoneColors.accent}22` }}
                     draggable={false}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="font-sans text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: zoneColors.accent }}>
-                      {new Date(challenge.start_time * 1000).toLocaleDateString(navigator.language, { weekday: "long", month: "short", day: "numeric" })}
-                    </p>
-                    <p className="font-display text-xl font-black text-white">{zoneName}</p>
-                    <p className="mt-0.5 font-sans text-[12px] italic text-white/60">
-                      "{guardian.dailyGreeting}"
-                    </p>
-                    <div className="mt-1.5 flex items-center justify-between">
-                      <p className="font-sans text-[11px] font-semibold text-white/50">
-                        {challenge.total_entries} player{challenge.total_entries !== 1 ? "s" : ""}
-                      </p>
-                      {isActive && <CountdownPill endTime={challenge.end_time} accent={zoneColors.accent} />}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Zone rules — compact mutator strip */}
-              {(activeMutator?.id || passiveMutator?.id) ? (
-                <div className="flex gap-2">
-                  {activeMutator && activeMutator.id !== 0 && (
-                    <div className="flex-1 rounded-xl bg-orange-500/8 border border-orange-400/15 px-3 py-2">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm">{activeMutator.icon}</span>
-                        <span className="font-sans text-[11px] font-bold text-orange-300">{activeMutator.name}</span>
-                      </div>
-                      <p className="mt-0.5 font-sans text-[10px] text-white/50">{activeMutator.description}</p>
-                    </div>
-                  )}
-                  {passiveMutator && passiveMutator.id !== 0 && (
-                    <div className="flex-1 rounded-xl bg-purple-500/8 border border-purple-400/15 px-3 py-2">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm">{passiveMutator.icon}</span>
-                        <span className="font-sans text-[11px] font-bold text-purple-300">{passiveMutator.name}</span>
-                      </div>
-                      <p className="mt-0.5 font-sans text-[10px] text-white/50">{passiveMutator.description}</p>
-                    </div>
-                  )}
-                </div>
-              ) : null}
-
-              {/* Player result */}
-              {isRegistered && entry && (
-                <div className="rounded-xl border border-white/[0.12] bg-white/[0.06] px-4 py-3 backdrop-blur-xl">
-                  <p className="font-sans text-[10px] font-bold uppercase tracking-[0.12em] text-white/50">Your Result</p>
-                  <div className="mt-1 flex items-baseline justify-between">
-                    <p className="font-sans text-lg font-bold" style={{ color: zoneColors.accent }}>
-                      {entry.highest_cleared ?? 0}/{10}
-                      <span className="ml-1.5 text-xs text-white/50">levels</span>
-                    </p>
-                    <div className="flex items-center gap-3">
-                      {(entry.total_stars ?? 0) > 0 && (
-                        <span className="font-sans text-xs font-semibold text-yellow-300">
-                          {entry.total_stars}/30 ★
-                        </span>
-                      )}
-                      <span className="rounded-full border px-2 py-0.5 font-sans text-xs font-bold" style={{ borderColor: `${zoneColors.accent}55`, color: zoneColors.accent }}>
-                        {playerRank ? `#${playerRank.rank}` : entry.rank > 0 ? `#${entry.rank}` : "—"}
+                    <div className="flex items-center gap-2">
+                      <span className="font-display text-lg font-black text-white">{guardian.name}</span>
+                      <span className="rounded-full px-2 py-0.5 font-sans text-[9px] font-bold uppercase" style={{ color: zoneColors.accent, background: `${zoneColors.accent}18` }}>
+                        {guardian.title}
                       </span>
                     </div>
+                    <div className="mt-0.5 flex items-center gap-2">
+                      <p className="font-sans text-[11px] font-semibold text-white/50">
+                        {zoneName} · {challenge.total_entries} player{challenge.total_entries !== 1 ? "s" : ""}
+                      </p>
+                    </div>
                   </div>
-                  {starReward > 0n && (
-                    <p className="mt-1 font-sans text-xs font-semibold text-yellow-300">
-                      Star Reward: {starReward.toString()}★
-                    </p>
+                  {isActive ? (
+                    <span className="shrink-0 rounded-full px-3 py-1.5 font-sans text-xs font-bold tabular-nums text-white" style={{ background: zoneColors.accent }}>
+                      <CountdownText endTime={challenge.end_time} />
+                    </span>
+                  ) : (
+                    <span className="shrink-0 rounded-full bg-red-500 px-3 py-1.5 font-sans text-xs font-bold text-white">ENDED</span>
                   )}
                 </div>
-              )}
 
-              {/* Leaderboard */}
-              <div className="rounded-xl border border-white/[0.10] bg-white/[0.04] px-4 py-3 backdrop-blur-xl">
-                <p className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.15em] text-white/50">
-                  Leaderboard
-                </p>
-                {leaderboard.length === 0 ? (
-                  <p className="py-2 text-center font-sans text-xs text-white/40">No entries yet</p>
-                ) : (
-                  <div className="space-y-0">
-                    {leaderboard.slice(0, 10).map((le, idx) => {
-                      const isPlayer = account?.address && normalizeAddress(le.player) === normalizeAddress(account.address);
-                      return (
-                        <div
-                          key={le.rank}
-                          className="flex items-center justify-between py-1.5"
-                          style={{
-                            borderTop: idx > 0 ? "1px solid rgba(255,255,255,0.06)" : "none",
-                            backgroundColor: isPlayer ? `${zoneColors.accent}0D` : "transparent",
-                            borderRadius: isPlayer ? 8 : 0,
-                            padding: isPlayer ? "6px 8px" : undefined,
-                            margin: isPlayer ? "2px -8px" : undefined,
-                          }}
-                        >
-                          <span className="flex items-center gap-2 font-sans text-xs font-medium text-white">
-                            {TROPHY_IMAGES[le.rank] ? (
-                              <img src={TROPHY_IMAGES[le.rank]} alt="" className="h-5 w-5 drop-shadow-md" draggable={false} />
-                            ) : (
-                              <span className="flex h-5 w-5 items-center justify-center font-sans text-[10px] font-bold text-white/40">
-                                {le.rank}
-                              </span>
-                            )}
-                            <span style={{ color: isPlayer ? zoneColors.accent : undefined, fontWeight: isPlayer ? 700 : 500 }}>
-                              {le.playerName}{isPlayer ? " (You)" : ""}
-                            </span>
-                          </span>
-                          <span className="flex items-center gap-1.5 font-sans text-xs font-bold tabular-nums" style={{ color: zoneColors.accent }}>
-                            <span className="text-yellow-300">{le.totalStars ?? 0}★</span>
-                            <span>{le.highestCleared ?? 0}/10</span>
-                          </span>
-                        </div>
-                      );
-                    })}
-                    {leaderboard.length > 10 && playerRank && playerRank.rank > 10 && (
-                      <>
-                        <div className="py-1 text-center font-sans text-[10px] text-white/30">···</div>
-                        <div
-                          className="flex items-center justify-between rounded-lg py-1.5 px-2"
-                          style={{ backgroundColor: `${zoneColors.accent}0D` }}
-                        >
-                          <span className="flex items-center gap-2 font-sans text-xs font-bold" style={{ color: zoneColors.accent }}>
-                            <span className="flex h-5 w-5 items-center justify-center font-sans text-[10px] font-bold">
-                              {playerRank.rank}
-                            </span>
-                            {playerRank.playerName} (You)
-                          </span>
-                          <span className="flex items-center gap-1.5 font-sans text-xs font-bold tabular-nums" style={{ color: zoneColors.accent }}>
-                            <span className="text-yellow-300">{playerRank.totalStars ?? 0}★</span>
-                            <span>{playerRank.highestCleared ?? 0}/10</span>
-                          </span>
-                        </div>
-                      </>
+                {/* Greeting */}
+                <p className="mt-2.5 font-sans text-[14px] italic text-white/60">"{guardian.dailyGreeting}"</p>
+
+                {/* Mutators */}
+                {(activeMutator || passiveMutator) && (
+                  <div className="mt-2.5 flex flex-col gap-1.5">
+                    {activeMutator && activeMutator.id !== 0 && (
+                      <p className="font-sans text-[14px] leading-relaxed text-white">
+                        {activeMutator.icon} <span className="font-semibold" style={{ color: zoneColors.accent }}>{activeMutator.name}</span>{" "}
+                        {activeMutator.description}
+                      </p>
+                    )}
+                    {passiveMutator && passiveMutator.id !== 0 && (
+                      <p className="font-sans text-[14px] leading-relaxed text-white">
+                        {passiveMutator.icon} <span className="font-semibold" style={{ color: zoneColors.accent }}>{passiveMutator.name}</span>{" "}
+                        {passiveMutator.description}
+                      </p>
                     )}
                   </div>
                 )}
               </div>
+              </div>
+
+              {/* Your Position — same as rewards tab */}
+              {playerRank && (
+                <TierContext
+                  colors={zoneColors}
+                  myRank={playerRank.rank}
+                  myScore={playerRank.totalStars ?? 0}
+                  myName={playerRank.playerName ?? "You"}
+                  totalEntries={leaderboard.length}
+                  tiers={REWARD_TIERS}
+                  entries={leaderboard.map((e) => ({ rank: e.rank, score: e.totalStars ?? 0, name: e.playerName ?? e.player.slice(0, 8) }))}
+                  scoreLabel="★"
+                />
+              )}
             </>
           )}
         </div>

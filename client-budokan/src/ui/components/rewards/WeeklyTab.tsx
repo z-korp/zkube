@@ -274,24 +274,36 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
         </motion.section>
       )}
 
-      {/* Reward tiers — always visible */}
+      {/* Reward tiers — compact horizontal */}
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl border px-4 py-3 backdrop-blur-xl"
-        style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.12)" }}
+        className="flex flex-wrap justify-center gap-1.5"
       >
-        <p className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: colors.textMuted }}>
-          Reward Tiers
-        </p>
-        <div className="flex flex-col gap-1">
-          {REWARD_TIERS.map((tier) => (
-            <div key={tier.pct} className="flex items-center justify-between py-1" style={{ borderTop: tier.pct > 2 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
-              <span className="font-sans text-[12px] font-semibold text-white/70">{tier.label}</span>
-              <span className="font-sans text-[12px] font-bold text-yellow-300">+{tier.reward}★</span>
-            </div>
-          ))}
-        </div>
+        {REWARD_TIERS.map((tier) => {
+          const isMyTier = myRank && games.length > 0 && myReward === tier.reward;
+          return (
+            <span
+              key={tier.pct}
+              className={`rounded-full px-2.5 py-1 font-sans text-[10px] font-semibold ${
+                isMyTier
+                  ? "border border-yellow-400/60 bg-yellow-500/25 text-white"
+                  : "border border-white/10 bg-white/[0.06] text-white/50"
+              }`}
+            >
+              {tier.label} <span className={`font-bold ${isMyTier ? "text-yellow-300" : "text-yellow-300/70"}`}>+{tier.reward}★</span>
+            </span>
+          );
+        })}
+        <span
+          className={`rounded-full px-2.5 py-1 font-sans text-[10px] font-semibold ${
+            myRank && games.length > 0 && myReward === 0
+              ? "border border-white/30 bg-white/15 text-white"
+              : "border border-white/10 bg-white/[0.06] text-white/50"
+          }`}
+        >
+          No rewards
+        </span>
       </motion.section>
     </motion.div>
   );
