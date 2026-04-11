@@ -49,6 +49,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const [isTxProcessing, setIsTxProcessing] = useState(false);
   const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
+  const [nextLineOverride, setNextLineOverride] = useState<number[] | null>(null);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -107,7 +108,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
   }, [initialGrid]);
 
   const memoizedNextLineData = useMemo(() => {
-    return transformDataContractIntoBlock([nextLine]);
+    return transformDataContractIntoBlock([nextLineOverride ?? nextLine]);
+  }, [nextLine, nextLineOverride]);
+
+  // Clear override when Torii catches up (nextLine prop changes)
+  useEffect(() => {
+    setNextLineOverride(null);
   }, [nextLine]);
 
   if (memoizedInitialData.length === 0) return null;
@@ -135,6 +141,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           setIsTxProcessing={setIsTxProcessing}
           levelTransitionPending={game.levelTransitionPending}
           onCascadeComplete={onCascadeComplete}
+          onNextLineUpdate={setNextLineOverride}
         />
         <div className="mt-1 flex items-center justify-center gap-1 py-0.5">
           <motion.div

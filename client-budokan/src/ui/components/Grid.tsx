@@ -10,9 +10,8 @@ import {
   removeBlocksSameWidth,
   removeBlocksInRows,
   concatenateNewLineWithGridAndShiftGrid,
-  deepCompareBlocks,
+  transformDataContractIntoBlock,
 } from "@/utils/gridUtils";
-import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "motion/react";
@@ -22,6 +21,7 @@ import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
 import useGridAnimations from "@/hooks/useGridAnimations";
 import { useMoveStore } from "@/stores/moveTxStore";
+import { parseGameFromReceipt } from "@/dojo/rpcReader";
 import { calculateFallDistance } from "@/utils/gridPhysics";
 import useTransitionBlocks from "@/hooks/useTransitionBlocks";
 import { showToast } from "@/utils/toast";
@@ -43,6 +43,7 @@ interface GridProps {
   setIsTxProcessing: React.Dispatch<React.SetStateAction<boolean>>;
   levelTransitionPending: boolean;
   onCascadeComplete?: () => void;
+  onNextLineUpdate?: (nextRow: number[]) => void;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -60,6 +61,7 @@ const Grid: React.FC<GridProps> = ({
   setIsTxProcessing,
   levelTransitionPending,
   onCascadeComplete,
+  onNextLineUpdate,
 }) => {
   const {
     setup: {
@@ -91,7 +93,6 @@ const Grid: React.FC<GridProps> = ({
   const [blocks, setBlocks] = useState<Block[]>(initialData);
   const [nextLine, setNextLine] = useState<Block[]>(nextLineData);
   const [saveGridStateblocks, setSaveGridStateblocks] = useState<Block[]>(initialData);
-  const [applyData, setApplyData] = useState(false);
   const [isMoving, setIsMoving] = useState(true);
   const [currentMove, setcurrentMove] = useState<{
     rowIndex: number;
@@ -151,26 +152,41 @@ const Grid: React.FC<GridProps> = ({
     gameStateRef.current = gameState;
   }, [gameState]);
 
-  // =================== Chain sync ===================
-  useEffect(() => {
-    if (!applyData) return;
-    if (levelTransitionPending) return;
+  // =================== Receipt-based sync (replaces Torii for moves/bonuses) ===================
+  const pendingReceiptRef = useRef<{ blocks: number[][]; nextRow: number[]; over: boolean } | null>(null);
 
-    const same = deepCompareBlocks(saveGridStateblocks, initialData);
-    if (same) return;
-
-    setBlocks(initialData);
-    setSaveGridStateblocks(initialData);
-    setNextLine(nextLineData);
-    setNextLineHasBeenConsumed(false);
+  const applyReceipt = (parsed: { blocks: number[][]; nextRow: number[]; over: boolean }) => {
+    const newBlocks = transformDataContractIntoBlock(parsed.blocks);
+    const newNextLine = transformDataContractIntoBlock([parsed.nextRow]);
+    // Update refs immediately (for pointer handler, before React re-renders)
+    gameStateRef.current = GameState.WAITING;
+    isTxProcessingRef.current = false;
+    // Schedule React state updates
+    setBlocks(newBlocks);
+    setSaveGridStateblocks(newBlocks);
+    setNextLine(newNextLine);
     setIsTxProcessing(false);
-    setApplyData(false);
+    setGameState(GameState.WAITING);
+    // Update the preview in GameBoard with the receipt's next line
+    onNextLineUpdate?.(parsed.nextRow);
+    setNextLineHasBeenConsumed(false);
+    pendingReceiptRef.current = null;
+  };
 
-    if (gameStateRef.current === GameState.CASCADE_COMPLETE) {
-      gameStateRef.current = GameState.WAITING;
-      setGameState(GameState.WAITING);
+  const receiptSyncRef = useRef<(events: any[]) => void>(() => {});
+  receiptSyncRef.current = (events: any[]) => {
+    const parsed = parseGameFromReceipt(events, gameId);
+    if (!parsed) {
+      return;
     }
-  }, [applyData, initialData, nextLineData, saveGridStateblocks, setIsTxProcessing, setNextLineHasBeenConsumed, levelTransitionPending]);
+    // If cascade is done, apply now. Otherwise store for CASCADE_COMPLETE.
+    const state = gameStateRef.current;
+    if (state === GameState.CASCADE_COMPLETE || state === GameState.WAITING) {
+      applyReceipt(parsed);
+    } else {
+      pendingReceiptRef.current = parsed;
+    }
+  };
 
   // Recompute danger level whenever blocks change (covers initial load + chain sync + gravity)
   useEffect(() => {
@@ -360,7 +376,7 @@ const Grid: React.FC<GridProps> = ({
       store.markSubmitting(nextQueuedMove.id);
 
       try {
-        await move({
+        const { events } = await move({
           account: account as Account,
           game_id: gameId,
           row_index: nextQueuedMove.rowIndex,
@@ -368,6 +384,8 @@ const Grid: React.FC<GridProps> = ({
           final_index: nextQueuedMove.finalIndex,
         });
         store.markConfirmed(nextQueuedMove.id);
+        // Apply game state from TX receipt events (microtask to escape effect lifecycle)
+        queueMicrotask(() => receiptSyncRef.current(events));
       } catch (error) {
         if (cancelled) return;
         const message = error instanceof Error ? error.message : "Move transaction failed.";
@@ -385,7 +403,6 @@ const Grid: React.FC<GridProps> = ({
         setBlockBonus(null);
         gameStateRef.current = GameState.WAITING;
         setGameState(GameState.WAITING);
-        setApplyData(false);
         setIsTxProcessing(false);
 
         showToast({ type: "error", message: "Move sync failed. Grid rolled back to chain state." });
@@ -535,7 +552,6 @@ const Grid: React.FC<GridProps> = ({
           if (lineExplodedCount > 1) {
             setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
           }
-          setApplyData(true);
           setLineExplodedCount(0);
           const hasCritical = blocks.some((block) => block.y === 0);
           const hasWarning = blocks.some((block) => block.y === 1);
@@ -549,12 +565,23 @@ const Grid: React.FC<GridProps> = ({
             setGameState(GameState.CASCADE_COMPLETE);
             onCascadeComplete?.();
           } else if (gameState === GameState.UPDATE_AFTER_MOVE) {
-            setIsTxProcessing(true);
             setcurrentMove(null);
-            gameStateRef.current = GameState.CASCADE_COMPLETE;
-            setGameState(GameState.CASCADE_COMPLETE);
-            onCascadeComplete?.();
+            // Check if receipt already arrived while cascade was playing
+            if (pendingReceiptRef.current) {
+              applyReceipt(pendingReceiptRef.current);
+              onCascadeComplete?.();
+            } else {
+              setIsTxProcessing(true);
+              gameStateRef.current = GameState.CASCADE_COMPLETE;
+              setGameState(GameState.CASCADE_COMPLETE);
+              onCascadeComplete?.();
+            }
           }
+        }
+        break;
+      case GameState.CASCADE_COMPLETE:
+        if (pendingReceiptRef.current) {
+          applyReceipt(pendingReceiptRef.current);
         }
         break;
       default:

@@ -269,18 +269,19 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
-  const move = async ({ account, ...props }: SystemTypes.Move) => {
+  const move = async ({ account, ...props }: SystemTypes.Move): Promise<{ events: any[] }> => {
     log.debug("move", { account: account.address, ...props });
     const setMoveComplete = useMoveStore.getState().setMoveComplete;
     setMoveComplete(false);
 
     try {
-      await handleTransaction(
+      const result = await handleTransaction(
         account,
         () => client.game.move({ account, ...props }),
         "Move has been done.",
       );
       setMoveComplete(true);
+      return { events: result.events ?? [] };
     } catch (error) {
       setMoveComplete(true);
       throw error;
