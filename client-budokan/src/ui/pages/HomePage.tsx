@@ -418,10 +418,12 @@ const HomePage: React.FC = () => {
 
     // Story mode — resume goes straight to game, new run goes to map
     if (selectedMode === 0) {
-      setMapZoneId(zone.zoneId);
       if (activeStoryAttemptId !== null) {
+        // Use the active run's zone, not the selected zone card
+        setMapZoneId(activeStoryRun!.zoneId);
         navigate("play", activeStoryAttemptId);
       } else {
+        setMapZoneId(zone.zoneId);
         navigate("map");
       }
       return;
@@ -438,6 +440,7 @@ const HomePage: React.FC = () => {
     account,
     activeEndlessGameId,
     activeStoryAttemptId,
+    activeStoryRun,
     handleStartGame,
     navigate,
     setMapZoneId,

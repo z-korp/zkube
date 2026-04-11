@@ -1,91 +1,18 @@
-@property --angle {
-  syntax: "<angle>";
-  initial-value: 90deg;
-  inherits: true;
+/* ─── SVG Loading Border Animation (rotating sweep) ─── */
+.svg-loading-border {
+  animation: svgLoadingDash 2.5s linear infinite;
+  stroke-dashoffset: 0;
 }
 
-@property --gradX {
-  syntax: "<percentage>";
-  initial-value: 50%;
-  inherits: true;
+@keyframes svgLoadingDash {
+  to {
+    stroke-dashoffset: calc(-1 * var(--perimeter) * 1px);
+  }
 }
 
-@property --gradY {
-  syntax: "<percentage>";
-  initial-value: 0%;
-  inherits: true;
-}
-
-:root {
-  --border-base-color: #030712; /* Static and base color */
-  --border-animation-color: rgba(100, 149, 237, 0.8); /* Animation color */
-  --d: 2500ms; /* Animation duration */
-  --angle: 90deg; /* Starting angle for conic gradient */
-  --gradX: 100%; /* Gradient X position for radial animation */
-  --gradY: 50%; /* Gradient Y position for radial animation */
-}
-
-/* Grid border — SVG frame handles decoration, CSS provides spacing */
-.grid-background.static-border {
-  border: 3px solid transparent;
-  border-radius: 8px;
-  padding: 6px;
-}
-
-.grid-background.animated-border {
-  position: relative;
-  border: 3px solid;
-  border-radius: 8px;
-  padding: 6px;
-
-  /* Animated Border using conic-gradient */
-  border-image: conic-gradient(
-      from var(--angle),
-      rgba(139, 115, 85, 0.25),
-      var(--border-animation-color) 0.1turn,
-      var(--border-animation-color) 0.15turn,
-      rgba(139, 115, 85, 0.25) 0.25turn
-    )
-    30;
-
-  animation: borderRotate var(--d) linear infinite forwards;
-}
-
-.grid-block {
-  position: absolute;
-  background-color: transparent;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.block-1 {
-  background-image: var(--theme-block-1-image, url("/assets/block-1.png"));
-  background-size: cover;
-}
-
-.block-2 {
-  background-image: var(--theme-block-2-image, url("/assets/block-2.png"));
-  background-size: cover;
-}
-
-.block-3 {
-  background-image: var(--theme-block-3-image, url("/assets/block-3.png"));
-  background-size: cover;
-}
-
-.block-4 {
-  background-image: var(--theme-block-4-image, url("/assets/block-4.png"));
-  background-size: cover;
-}
-
-.block-exploding {
-  animation: blockExplode 250ms ease-out forwards;
-  pointer-events: none;
-  z-index: 50 !important;
-}
-
-@keyframes blockExplode {
+/* ─── SVG Block Explosion ─── */
+/* Applied to inner <g> wrapping the <image>, not the positioned outer <g> */
+@keyframes svgBlockExplode {
   0% {
     transform: scale(1);
     opacity: 1;
@@ -102,71 +29,50 @@
   }
 }
 
-@keyframes borderRotate {
-  100% {
-    --angle: 420deg;
-  }
+.svg-block-exploding {
+  animation: svgBlockExplode 250ms ease-out forwards;
+  pointer-events: none;
 }
 
-@keyframes borderRadial {
-  20% {
-    --gradX: 100%;
-    --gradY: 50%;
-  }
-  40% {
-    --gradX: 100%;
-    --gradY: 100%;
-  }
-  60% {
-    --gradX: 50%;
-    --gradY: 100%;
-  }
-  80% {
-    --gradX: 0%;
-    --gradY: 50%;
-  }
-  100% {
-    --gradX: 50%;
-    --gradY: 0%;
-  }
+/* ─── SVG Danger: Warning (orange, row 1) ─── */
+@keyframes svgWarningBorderPulse {
+  0%, 100% { stroke-opacity: 0.1; }
+  50% { stroke-opacity: 0.5; }
+}
+@keyframes svgWarningFillPulse {
+  0%, 100% { fill-opacity: 0; }
+  50% { fill-opacity: 0.04; }
 }
 
-@keyframes fadeInOutDanger {
-  0% {
-    box-shadow:
-      inset 0.5em 0.5em transparent,
-      inset -0.5em -0.5em transparent;
-  }
-  50% {
-    box-shadow:
-      inset 0.5em 0.5em 1em var(--theme-danger-zone, rgb(209, 18, 28)),
-      inset -0.5em -0.5em 1em var(--theme-danger-zone, rgb(209, 18, 28));
-  }
-  100% {
-    box-shadow:
-      inset 0.5em 0.5em transparent,
-      inset -0.5em -0.5em transparent;
-  }
+.svg-danger-border-warning {
+  animation: svgWarningBorderPulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+.svg-danger-fill-warning {
+  animation: svgWarningFillPulse 2s ease-in-out infinite;
+  pointer-events: none;
 }
 
-/* Existing animations and styles */
-.animated-box-player-danger {
-  position: relative;
+/* ─── SVG Danger: Critical (red, row 0) ─── */
+@keyframes svgCriticalBorderPulse {
+  0%, 100% { stroke-opacity: 0.2; }
+  50% { stroke-opacity: 0.9; }
+}
+@keyframes svgCriticalFillPulse {
+  0%, 100% { fill-opacity: 0; }
+  50% { fill-opacity: 0.1; }
 }
 
-.animated-box-player-danger::before {
-  content: "";
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  right: 0px;
-  bottom: 0px;
-  z-index: 999;
-  animation: fadeInOutDanger 2s infinite;
-  pointer-events: none; /* To not interfere with user interactions */
+.svg-danger-border-critical {
+  animation: svgCriticalBorderPulse 1.2s ease-in-out infinite;
+  pointer-events: none;
+}
+.svg-danger-fill-critical {
+  animation: svgCriticalFillPulse 1.2s ease-in-out infinite;
+  pointer-events: none;
 }
 
-/* Boss fight: red vignette overlay on the grid */
+/* ─── Boss fight vignette (stays on the parent HTML container) ─── */
 .boss-grid {
   position: relative;
 }
@@ -187,12 +93,13 @@
   50% { opacity: 1; }
 }
 
-/* Boss HUD bar: subtle animated red border glow at bottom */
+/* Boss HUD bar */
 .boss-hud-bar {
   border-bottom: 2px solid rgba(239, 68, 68, 0.4);
   box-shadow: 0 2px 12px rgba(239, 68, 68, 0.2);
 }
 
+/* ─── Combo text shine ─── */
 .text-shine {
   background: linear-gradient(
     to right,
@@ -205,15 +112,10 @@
   -webkit-text-fill-color: transparent;
   -webkit-text-stroke: 1.5px white;
   animation: shine 4s infinite linear;
-
   pointer-events: none;
 }
 
 @keyframes shine {
-  0% {
-    background-position: 0px;
-  }
-  100% {
-    background-position: 600px;
-  }
+  0% { background-position: 0px; }
+  100% { background-position: 600px; }
 }
