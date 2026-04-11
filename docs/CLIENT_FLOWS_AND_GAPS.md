@@ -1,6 +1,6 @@
 # zkube Client Flows & Gap Analysis
 
-Last updated: 2026-04-08 — audited against slot deployment (`zkube_v2_1_0`)
+Last updated: 2026-04-11 — audited against slot deployment (`zkube_v2_1_1`)
 
 ---
 
@@ -37,7 +37,7 @@ Last updated: 2026-04-08 — audited against slot deployment (`zkube_v2_1_0`)
 **Status:** Working.
 
 **Gaps:**
-- No "zone clear" reward display (contract mints 100 zStar on first clear — user never sees this)
+- No "zone perfection" reward display (contract mints 20 zStar on `claim_zone_perfection` — user never sees this)
 - No zone perfection claim UI (contract has `claim_zone_perfection` for 30-star bonus — no button exists)
 - Stars earned from level completion (delta minting) not shown to user
 - No indication of zStar earned during or after gameplay

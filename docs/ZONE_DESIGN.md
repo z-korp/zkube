@@ -367,64 +367,7 @@ Methodical endless — no combo mult, no line bonus. Precision grinding. Compres
 
 ---
 
-## Zone 5 — Feudal Japan
-
-**Theme**: Lethal efficiency — discipline, economy of motion, mastery through restraint. Every move counts.
-
-### GameSettings
-| Field | Value | Diff from Z1 |
-|-------|-------|-------------|
-| base_moves | 12 | -4 — tightest budget so far |
-| max_moves | 38 | -10 — no wasted motion |
-| base_ratio_x100 | 55 | -9 — easier scoring per move (blade hits hard) |
-| max_ratio_x100 | 125 | -19 — each move delivers |
-| tier_1_threshold | 3 | Easy starts L3 |
-| tier_2_threshold | 5 | Medium starts L5 |
-| tier_3_threshold | 7 | MediumHard starts L7 |
-| tier_4_threshold | 9 | Hard starts L9 |
-| tier_5_threshold | 11 | VeryHard — never reached |
-| tier_6_threshold | 11 | Expert — never reached |
-| tier_7_threshold | 11 | Master — never reached |
-| constraint_start_level | 3 | |
-| level_cap | 10 | |
-| boss_id | 5 | Harvester (BreakBlocks + ComboStreak) |
-| endless_difficulty_thresholds | packed [0, 10, 25, 50, 100, 180, 320, 550] | Most compressed — fast escalation |
-| endless_score_multipliers | packed [10, 15, 25, 35, 50, 70, 90, 110] | Strong rewards (up to 11x) |
-| block weights | defaults | |
-| variance | 5/5/5 | |
-
-**Difficulty per level**: VE(1-2), E(3-4), M(5-6), MH(7-8), **H(9-10/boss)**
-
-Faster ramp, reaches Hard at boss. Fewer moves than any zone — efficiency is everything.
-
-### Active Mutator — "Iai Strike" (2 slots)
-| Slot | Bonus | Trigger | Threshold | Start Charges | Earns at... |
-|------|-------|---------|-----------|---------------|-------------|
-| 1 | Hammer | combo | 3 | 0 | combo 3, 6, 9... |
-| 2 | Hammer | lines | 5 | 0 | lines 5, 10, 15... |
-| 3 | None | — | 0 | 0 | — |
-
-Hammer guaranteed. Low thresholds (few moves = can't afford high thresholds). No starting charges — the samurai draws when ready.
-
-### Passive Mutator — "Bushido"
-| Field | Value | Effect |
-|-------|-------|--------|
-| moves_modifier | 128 | Neutral |
-| ratio_modifier | 128 | Neutral |
-| difficulty_offset | 128 | Neutral |
-| combo_score_mult_x100 | 130 | 1.3x combo — flow state rewarded |
-| star_threshold_modifier | 128 | Neutral |
-| endless_ramp_mult_x100 | 100 | Neutral |
-| line_clear_bonus | 0 | — |
-| perfect_clear_bonus | 5 | Small reward for clean finish |
-| starting_rows | 4 | Default |
-
-### Endless
-Tight, fast-paced. Most compressed ramp (Master at 550). Escalates fast — fits lethal efficiency. High multipliers (11x) reward surviving the pressure.
-
----
-
-## Zone 6 — Ancient China
+## Zone 5 — Ancient China
 
 **Theme**: Dragon's Wrath — overwhelming force, mass clearing, the dragon incinerates the board.
 
@@ -483,7 +426,7 @@ Dense start (5 rows) + line_clear_bonus 3 + Wave = high-volume clearing machine.
 
 ---
 
-## Zone 7 — Ancient Persia
+## Zone 6 — Ancient Persia
 
 **Theme**: Mosaic mastery — intricate patterns, geometry, symmetry. Steady, consistent excellence.
 
@@ -539,6 +482,63 @@ Contrast with Norse: Norse earns Totem through combos (aggressive). Persia earns
 
 ### Endless
 Totem + 1.2x combo + line bonus 1. Moderate scoring pace. Steady escalation (Master at 780, 11x). Not as compressed as Japan, not as generous as China.
+
+---
+
+## Zone 7 — Feudal Japan
+
+**Theme**: Lethal efficiency — discipline, economy of motion, mastery through restraint. Every move counts.
+
+### GameSettings
+| Field | Value | Diff from Z1 |
+|-------|-------|-------------|
+| base_moves | 12 | -4 — tightest budget so far |
+| max_moves | 38 | -10 — no wasted motion |
+| base_ratio_x100 | 55 | -9 — easier scoring per move (blade hits hard) |
+| max_ratio_x100 | 125 | -19 — each move delivers |
+| tier_1_threshold | 3 | Easy starts L3 |
+| tier_2_threshold | 5 | Medium starts L5 |
+| tier_3_threshold | 7 | MediumHard starts L7 |
+| tier_4_threshold | 9 | Hard starts L9 |
+| tier_5_threshold | 11 | VeryHard — never reached |
+| tier_6_threshold | 11 | Expert — never reached |
+| tier_7_threshold | 11 | Master — never reached |
+| constraint_start_level | 3 | |
+| level_cap | 10 | |
+| boss_id | 5 | Harvester (BreakBlocks + ComboStreak) |
+| endless_difficulty_thresholds | packed [0, 10, 25, 50, 100, 180, 320, 550] | Most compressed — fast escalation |
+| endless_score_multipliers | packed [10, 15, 25, 35, 50, 70, 90, 110] | Strong rewards (up to 11x) |
+| block weights | defaults | |
+| variance | 5/5/5 | |
+
+**Difficulty per level**: VE(1-2), E(3-4), M(5-6), MH(7-8), **H(9-10/boss)**
+
+Faster ramp, reaches Hard at boss. Fewer moves than any zone — efficiency is everything.
+
+### Active Mutator — "Iai Strike" (2 slots)
+| Slot | Bonus | Trigger | Threshold | Start Charges | Earns at... |
+|------|-------|---------|-----------|---------------|-------------|
+| 1 | Hammer | combo | 3 | 0 | combo 3, 6, 9... |
+| 2 | Hammer | lines | 5 | 0 | lines 5, 10, 15... |
+| 3 | None | — | 0 | 0 | — |
+
+Hammer guaranteed. Low thresholds (few moves = can't afford high thresholds). No starting charges — the samurai draws when ready.
+
+### Passive Mutator — "Bushido"
+| Field | Value | Effect |
+|-------|-------|--------|
+| moves_modifier | 128 | Neutral |
+| ratio_modifier | 128 | Neutral |
+| difficulty_offset | 128 | Neutral |
+| combo_score_mult_x100 | 130 | 1.3x combo — flow state rewarded |
+| star_threshold_modifier | 128 | Neutral |
+| endless_ramp_mult_x100 | 100 | Neutral |
+| line_clear_bonus | 0 | — |
+| perfect_clear_bonus | 5 | Small reward for clean finish |
+| starting_rows | 4 | Default |
+
+### Endless
+Tight, fast-paced. Most compressed ramp (Master at 550). Escalates fast — fits lethal efficiency. High multipliers (11x) reward surviving the pressure.
 
 ---
 
