@@ -49,7 +49,13 @@ const RewardsPage: React.FC = () => {
         </motion.div>
         <div className="mx-6 mt-2 flex rounded-full border border-white/[0.16] bg-white/[0.1] p-1 shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)] backdrop-blur-xl">
           {TABS.map((tab) => {
-            const badgeCount = tab === "Quests" ? claimableCounts.total : 0;
+            const badgeCount = tab === "Quests"
+              ? claimableCounts.daily + claimableCounts.weekly
+              : tab === "Daily"
+                ? claimableCounts.unsettledDaily
+                : tab === "Weekly"
+                  ? claimableCounts.unsettledWeeklyZones.size
+                  : 0;
             return (
               <button
                 key={tab}

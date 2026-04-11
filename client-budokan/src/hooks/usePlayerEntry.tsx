@@ -34,6 +34,13 @@ export function usePlayerEntry(
     entryKey as Entity | undefined,
   );
 
+  console.log("[usePlayerEntry]", {
+    challengeId,
+    playerAddress,
+    entryKey,
+    rawEntry: rawEntry ? { stars: rawEntry.total_stars, rank: rawEntry.rank } : null,
+  });
+
   return {
     entry: rawEntry ?? null,
     isRegistered: rawEntry !== undefined && rawEntry !== null,

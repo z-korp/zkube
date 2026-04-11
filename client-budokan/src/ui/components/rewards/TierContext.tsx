@@ -101,7 +101,7 @@ const TierContext: React.FC<TierContextProps> = ({
           <div className="flex items-center gap-1.5">
             <span className="font-sans text-[12px] font-black" style={{ color: colors.accent }}>{myScore.toLocaleString()}{scoreLabel}</span>
             {currentTierIdx >= 0 && (
-              <span className="font-sans text-[10px] font-bold text-yellow-300">+{tiers[currentTierIdx].reward}★</span>
+              <span className="rounded-full bg-yellow-500/20 px-2 py-0.5 font-sans text-[10px] font-bold text-yellow-300">Projected +{tiers[currentTierIdx].reward}★</span>
             )}
           </div>
         </div>

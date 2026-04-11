@@ -11,6 +11,7 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
 import { useZStarBalance } from "@/hooks/useZStarBalance";
+import { useUnsettledRewards } from "@/hooks/useUnsettledRewards";
 import { ZONE_NAMES } from "@/config/profileData";
 import TierContext from "@/ui/components/rewards/TierContext";
 
@@ -71,6 +72,7 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
   } = useDojo();
   const { balance: zStarBalance } = useZStarBalance(account?.address);
   const { zones: zoneProgress } = useZoneProgress(account?.address, zStarBalance);
+  const { unsettledWeeklyZones } = useUnsettledRewards();
 
   const unlockedZones = useMemo(
     () => ZONES.filter((zone) => zoneProgress.some((z) => z.zoneId === zone.id && z.unlocked)),
@@ -97,7 +99,7 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
     return () => clearInterval(id);
   });
 
-  // Check settlement status for previous week
+  // Check settlement status for previous week (per selected zone)
   const settlementKey = prevWeekId * 1000 + endlessSettingsId;
   const settlementEntityKey = useMemo(() => {
     const rawKey = getEntityIdFromKeys([BigInt(settlementKey)]);
@@ -109,12 +111,9 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
   const normalizedAccount = account?.address?.toLowerCase();
   const myRank = useMemo(() => {
     if (!normalizedAccount) return null;
-    console.log("[WeeklyTab] normalizedAccount:", normalizedAccount);
-    console.log("[WeeklyTab] games:", games.map(g => ({ addr: g.player_address, score: g.score })));
     const idx = games.findIndex(
       (g) => g.player_address?.toLowerCase() === normalizedAccount,
     );
-    console.log("[WeeklyTab] myRank idx:", idx);
     return idx >= 0 ? idx + 1 : null;
   }, [games, normalizedAccount]);
 
@@ -154,6 +153,7 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
       animate="show"
       className="flex flex-col gap-3"
     >
+      {/* Header with countdown */}
       <motion.section
         variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}
         className="rounded-2xl border px-4 py-3.5 backdrop-blur-xl"
@@ -177,12 +177,13 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
         </div>
       </motion.section>
 
+      {/* Zone selector */}
       <div className="flex justify-center gap-1.5 overflow-x-auto hide-scrollbar pb-1">
         {unlockedZones.map((zone) => (
           <button
             key={zone.id}
             onClick={() => setSelectedZone(zone.id)}
-            className={`shrink-0 rounded-lg p-0.5 transition-all ${
+            className={`relative shrink-0 rounded-lg p-0.5 transition-all ${
               selectedZone === zone.id
                 ? "border-2 border-white/60 shadow-[0_0_8px_rgba(255,255,255,0.2)]"
                 : "border-2 border-transparent hover:border-white/20"
@@ -194,70 +195,68 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
               className="h-7 w-7 rounded-lg object-cover"
               draggable={false}
             />
+            {unsettledWeeklyZones.has(zone.id) && (
+              <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 shadow-sm" />
+            )}
           </button>
         ))}
       </div>
 
-      {myRank && (
+      {/* ── Last week claim panel (below zone selector) ── */}
+      {games.length > 0 && (
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 24 }}
           className="rounded-2xl border px-4 py-3 backdrop-blur-xl"
-          style={{ background: `${colors.accent}15`, borderColor: `${colors.accent}40` }}
+          style={{
+            background: isPrevWeekSettled ? "rgba(34,197,94,0.08)" : "rgba(234,179,8,0.08)",
+            borderColor: isPrevWeekSettled ? "rgba(34,197,94,0.3)" : "rgba(234,179,8,0.3)",
+          }}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="font-sans text-2xl font-black" style={{ color: colors.accent }}>
-                #{myRank}
-              </span>
-              <div>
-                <p className="font-sans text-sm font-bold text-white">
-                  {games[myRank - 1]?.score.toLocaleString()} pts
-                </p>
-                <p className="font-sans text-[11px] text-white/50">
-                  {games.length} participant{games.length !== 1 ? "s" : ""}
-                </p>
-              </div>
-            </div>
-            {myReward > 0 && (
-              <div className="rounded-full bg-yellow-500/20 px-2.5 py-1 font-sans text-[11px] font-bold text-yellow-300">
-                Projected +{myReward}★
-              </div>
-            )}
-          </div>
-        </motion.section>
-      )}
-
-      {weeklyMeta && !isPrevWeekSettled && games.length > 0 && (
-        <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={handleSettle}
-            disabled={settling || !account}
-            className="w-full rounded-2xl border border-purple-500/40 bg-purple-500/15 px-4 py-3.5 font-sans text-sm font-extrabold uppercase tracking-wide text-purple-300 disabled:opacity-50"
-            style={{ boxShadow: "0 0 20px rgba(147,51,234,0.15)" }}
-          >
-            {settling ? (
-              <span className="flex items-center justify-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" /> Settling...
-              </span>
-            ) : (
-              `Settle Last Week — ${ZONE_NAMES[selectedZone]}`
-            )}
-          </motion.button>
-        </motion.section>
-      )}
-
-      {isPrevWeekSettled && (
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-green-500/30 bg-green-500/10 px-4 py-2.5"
-        >
-          <p className="text-center font-sans text-sm font-bold text-green-300">
-            Last week settled — rewards distributed
+          <p className="font-sans text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: colors.textMuted }}>
+            Last Week — {ZONE_NAMES[selectedZone]}
           </p>
+          <div className="mt-1.5 flex items-center justify-between">
+            <div>
+              {myRank ? (
+                <p className="font-sans text-sm font-bold text-white">
+                  #{myRank} · {games[myRank - 1]?.score.toLocaleString()} pts
+                </p>
+              ) : (
+                <p className="font-sans text-sm font-bold text-white/50">
+                  Not ranked
+                </p>
+              )}
+            </div>
+
+            {isPrevWeekSettled ? (
+              myReward > 0 ? (
+                <div className="rounded-full bg-green-500/25 px-3 py-1.5 font-sans text-xs font-bold text-green-300">
+                  Earned +{myReward}★
+                </div>
+              ) : (
+                <div className="rounded-full bg-white/10 px-3 py-1.5 font-sans text-xs font-bold text-white/40">
+                  Settled
+                </div>
+              )
+            ) : weeklyMeta || games.length > 0 ? (
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSettle}
+                disabled={settling || !account}
+                className="rounded-full border border-purple-500/50 bg-purple-500/20 px-3 py-1.5 font-sans text-xs font-bold text-purple-300 disabled:opacity-50"
+                style={{ boxShadow: "0 0 12px rgba(147,51,234,0.15)" }}
+              >
+                {settling ? (
+                  <span className="flex items-center gap-1.5">
+                    <Loader2 className="h-3 w-3 animate-spin" /> Settling...
+                  </span>
+                ) : (
+                  `Settle${myReward > 0 ? ` +${myReward}★` : ""}`
+                )}
+              </motion.button>
+            ) : null}
+          </div>
         </motion.section>
       )}
 
@@ -274,6 +273,7 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
           />
         </motion.section>
       )}
+
       {/* Reward tiers — always visible */}
       <motion.section
         initial={{ opacity: 0, y: 12 }}

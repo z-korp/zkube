@@ -15,6 +15,7 @@ import { useZoneProgress } from "@/hooks/useZoneProgress";
 import { useActiveStoryAttempt } from "@/hooks/useActiveStoryAttempt";
 import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
 import { usePlayerEntry } from "@/hooks/usePlayerEntry";
+import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
 import { ZONE_NAMES, getLevelFromXp, getTitleForLevel, type ZoneProgressData } from "@/config/profileData";
 import { ZONE_GUARDIANS, getGuardianPortrait } from "@/config/bossCharacters";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -52,7 +53,8 @@ const useDailyCountdown = (endTime: number | undefined) => {
   if (!endTime || remaining <= 0) return null;
   const h = Math.floor(remaining / 3600);
   const m = Math.floor((remaining % 3600) / 60);
-  return `${h}h ${m}m remaining`;
+  const s = remaining % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 };
 
 const containerVariants: Variants = {
@@ -247,8 +249,25 @@ const HomePage: React.FC = () => {
     challenge?.challenge_id,
     account?.address,
   );
+  const { entries: dailyEntries } = useDailyLeaderboard(challenge?.challenge_id);
   const dailyCountdown = useDailyCountdown(challenge?.end_time);
   const dailyZoneName = challenge?.zone_id ? (ZONE_NAMES[challenge.zone_id] ?? null) : null;
+  const dailyMyRank = useMemo(() => {
+    if (!account?.address || !dailyEntries.length) return null;
+    const norm = account.address.toLowerCase();
+    const found = dailyEntries.find((e) => e.player.toLowerCase() === norm);
+    return found?.rank ?? null;
+  }, [dailyEntries, account?.address]);
+  const dailyMyReward = useMemo(() => {
+    if (!dailyMyRank || !dailyEntries.length) return 0;
+    const pct = ((dailyMyRank - 1) * 100) / dailyEntries.length;
+    if (pct < 2) return 10;
+    if (pct < 5) return 7;
+    if (pct < 10) return 5;
+    if (pct < 25) return 3;
+    if (pct < 50) return 1;
+    return 0;
+  }, [dailyMyRank, dailyEntries.length]);
 
   useEffect(() => {
     setMusicPlaylist(["main", "level"]);
@@ -494,23 +513,34 @@ const HomePage: React.FC = () => {
                     ) : (
                       <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${colors.accent}33, ${colors.accent2}22)` }} />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" />
-                    <div className="relative z-10 px-4 py-4">
-                      <p className="font-sans text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: colors.accent }}>
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/70 to-black/50" />
+                    <div className="relative z-10 px-4 py-3">
+                      <p className="font-sans text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : colors.accent }}>
                         Today's Challenge
                       </p>
-                      <p className="mt-0.5 font-display text-xl font-black text-white">
-                        {dailyZoneName ?? "Daily Challenge"}
-                      </p>
-                      <p className="mt-1 font-sans text-xs font-semibold text-white/70">
-                        {challengeLoading
-                          ? "Loading..."
-                          : !challenge
-                            ? "Be the first to play today!"
-                            : hasPlayedDaily && dailyEntry
-                              ? `${dailyEntry.total_stars ?? 0}/30 ★ · ${dailyEntry.highest_cleared ?? 0}/10 levels${dailyEntry.rank > 0 ? ` · #${dailyEntry.rank}` : ""}${dailyCountdown ? ` · ${dailyCountdown}` : ""}`
-                              : `${dailyCountdown ?? "New daily available"} · ${challenge.total_entries ?? 0} player${(challenge.total_entries ?? 0) !== 1 ? "s" : ""}`}
-                      </p>
+                      <div className="mt-1 flex items-center justify-between">
+                        <div>
+                          <p className="font-sans text-sm font-bold text-white">
+                            {dailyZoneName ?? "Daily Challenge"}
+                          </p>
+                          <p className="font-sans text-[11px] text-white/60">
+                            {challengeLoading
+                              ? "Loading..."
+                              : !challenge
+                                ? "Be the first to play today!"
+                                : hasPlayedDaily && dailyMyRank
+                                  ? `#${dailyMyRank}/${dailyEntries.length}${dailyMyReward > 0 ? ` · Projected +${dailyMyReward}★` : ""}`
+                                  : `${challenge.total_entries ?? 0} player${(challenge.total_entries ?? 0) !== 1 ? "s" : ""}`}
+                          </p>
+                        </div>
+                        {dailyCountdown ? (
+                          <span className="rounded-full px-3 py-1.5 font-sans text-xs font-bold tabular-nums text-white" style={{ background: challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : colors.accent }}>
+                            {dailyCountdown}
+                          </span>
+                        ) : challenge ? (
+                          <span className="rounded-full bg-red-500 px-3 py-1.5 font-sans text-xs font-bold text-white">ENDED</span>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 ) : zones.length === 0 ? (
