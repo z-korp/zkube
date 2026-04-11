@@ -284,15 +284,21 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
 
                 {hasEnded ? (
                   isSettled ? (
-                    <div className="rounded-full bg-green-500 px-3 py-1.5 font-sans text-xs font-bold text-white">
-                      Settled
-                    </div>
+                    myReward > 0 ? (
+                      <div className="rounded-full bg-green-500 px-3 py-1.5 font-sans text-xs font-bold text-white">
+                        Earned +{myReward}★
+                      </div>
+                    ) : (
+                      <div className="rounded-full bg-white/60 px-3 py-1.5 font-sans text-xs font-bold text-black">
+                        No rewards
+                      </div>
+                    )
                   ) : entries.length > 0 ? (
                     <motion.button
                       whileTap={{ scale: 0.95 }}
                       onClick={handleSettle}
                       disabled={settling || !account}
-                      className="rounded-full border border-yellow-500/60 bg-yellow-500/40 px-3 py-1.5 font-sans text-xs font-bold text-yellow-300 disabled:opacity-50"
+                      className="rounded-full bg-yellow-500 px-3 py-1.5 font-sans text-xs font-bold text-black disabled:opacity-50"
                       style={{ boxShadow: "0 0 12px rgba(234,179,8,0.25)" }}
                     >
                       {settling ? (

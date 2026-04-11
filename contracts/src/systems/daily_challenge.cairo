@@ -490,7 +490,7 @@ mod daily_challenge_system {
             if total_participants == 0 {
                 return 0;
             }
-            let percentile_x100: u32 = (rank * 100) / total_participants;
+            let percentile_x100: u32 = ((rank - 1) * 100) / total_participants;
             if percentile_x100 < 2 {
                 30
             } else if percentile_x100 < 5 {
@@ -510,7 +510,7 @@ mod daily_challenge_system {
             if total_participants == 0 {
                 return 0;
             }
-            let percentile_x100: u32 = (rank * 100) / total_participants;
+            let percentile_x100: u32 = ((rank - 1) * 100) / total_participants;
             if percentile_x100 < 2 {
                 10 // top 1%
             } else if percentile_x100 < 5 {
