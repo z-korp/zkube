@@ -18,5 +18,3 @@ export const getSkillById = (id: number): SkillDef | undefined => SKILLS[id];
 export const getSkillName = (id: number): string => getSkillById(id)?.name ?? "Unknown";
 
 export const getSkillTier = (level: number): number => Math.max(1, Math.min(3, level + 1));
-
-export const getArchetypeForSkill = (_id: number): { name: string; color: string } | null => null;

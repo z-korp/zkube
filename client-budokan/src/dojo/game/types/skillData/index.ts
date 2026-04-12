@@ -3,5 +3,4 @@ export {
   getSkillById,
   getSkillName,
   getSkillTier,
-  getArchetypeForSkill,
 } from "../skills";

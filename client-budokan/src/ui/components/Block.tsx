@@ -38,7 +38,8 @@ const BlockContainer: React.FC<BlockProps> = ({
   const isGravity =
     state === GameState.GRAVITY ||
     state === GameState.GRAVITY2 ||
-    state === GameState.GRAVITY_BONUS;
+    state === GameState.GRAVITY_BONUS ||
+    state === GameState.ADD_LINE_SHIFT;
 
   useEffect(() => {
     const element = ref.current;

@@ -2,14 +2,8 @@ import { useDojo } from "@/dojo/useDojo";
 import { useMemo, useEffect, useState } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
-import type { Entity } from "@dojoengine/recs";
 import useDeepMemo from "./useDeepMemo";
-
-const normalizeEntityId = (entityId: string): Entity => {
-  if (!entityId.startsWith("0x")) return entityId as Entity;
-  const hex = entityId.slice(2).replace(/^0+/, "") || "0";
-  return `0x${hex}` as Entity;
-};
+import { normalizeEntityId } from "@/utils/entityId";
 
 export const useGame = ({
   gameId,

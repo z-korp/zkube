@@ -361,15 +361,16 @@ const MapPage: React.FC = () => {
     if (zoneProgressData !== undefined) setDataStabilized(true);
   }, [zoneProgressData]);
 
-  // Auto-show guardian greeting only on first visit to a zone (session-stable via store)
+  // Auto-show guardian greeting only on first visit to a zone (session-stable via store).
+  // Never show after level completion — pendingLevelCompletion means we just came from PlayScreen.
   useEffect(() => {
-    if (!dataStabilized || alreadyGreeted || isDailyMap) return;
+    if (!dataStabilized || alreadyGreeted || isDailyMap || pendingLevelCompletion) return;
     if (zoneProgressData === undefined || !zoneProgressData.unlocked) return;
     if (storyZoneStars === 0 && storyHighestCleared === 0) {
       setShowGreeting(true);
       markZoneGreeted(mapZoneId);
     }
-  }, [dataStabilized, zoneProgressData, storyZoneStars, storyHighestCleared, alreadyGreeted, isDailyMap, mapZoneId, markZoneGreeted]);
+  }, [dataStabilized, zoneProgressData, storyZoneStars, storyHighestCleared, alreadyGreeted, isDailyMap, mapZoneId, markZoneGreeted, pendingLevelCompletion]);
 
   return (
     <div className="relative flex h-full flex-col">
@@ -543,11 +544,12 @@ const MapPage: React.FC = () => {
               const cy = pt.y * VB_H;
               const stateColors = STATE_COLORS[node.state];
               const isPlayingNode =
+                !isDailyMap &&
                 activeStoryRun !== null &&
                 node.zone === activeStoryRun.zoneId &&
                 node.contractLevel === activeStoryRun.level;
               const blockedByActiveRun =
-                activeStoryRun !== null && !isPlayingNode;
+                !isDailyMap && activeStoryRun !== null && !isPlayingNode;
               const isInteractive =
                 node.state !== "locked" && !blockedByActiveRun;
               const label = getLabel(node);
@@ -566,7 +568,7 @@ const MapPage: React.FC = () => {
                 <motion.g
                   key={`node-${node.nodeInZone}`}
                   onClick={() => {
-                    if (activeStoryRun && !isPlayingNode) {
+                    if (!isDailyMap && activeStoryRun && !isPlayingNode) {
                       showToast({
                         message: `Run in progress on Zone ${activeStoryRun.zoneId}, Level ${activeStoryRun.level}.`,
                         type: "error",
@@ -574,7 +576,7 @@ const MapPage: React.FC = () => {
                       return;
                     }
 
-                    if (activeStoryRun && isPlayingNode) {
+                    if (!isDailyMap && activeStoryRun && isPlayingNode) {
                       navigate("play", activeStoryRun.gameId);
                       return;
                     }

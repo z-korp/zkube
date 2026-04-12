@@ -14,6 +14,7 @@ import { getMutatorDef } from "@/config/mutatorConfig";
 import { ZONE_NAMES } from "@/config/profileData";
 import { getZoneGuardian, getGuardianPortrait } from "@/config/bossCharacters";
 import { motion } from "motion/react";
+import { normalizeAddress } from "@/hooks/useGetUsernames";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 import TierContext from "@/ui/components/rewards/TierContext";
 
@@ -62,13 +63,6 @@ const CountdownText: React.FC<{ endTime: number }> = ({ endTime }) => {
   const s = (sec % 60).toString().padStart(2, "0");
 
   return <>{sec > 0 ? `${h}:${m}:${s}` : "ENDED"}</>;
-};
-
-const normalizeAddress = (address: string | undefined): string | undefined => {
-  if (!address) return undefined;
-  if (!address.startsWith("0x")) return address;
-  const hex = address.slice(2).replace(/^0+/, "") || "0";
-  return `0x${hex}`;
 };
 
 const DailyChallengePage: React.FC = () => {

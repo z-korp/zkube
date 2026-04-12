@@ -6,13 +6,10 @@ import { GameState } from "@/enums/gameEnums";
 import type { Block } from "@/types/types";
 import {
   removeCompleteRows,
-  isGridFull,
   removeBlocksSameWidth,
   removeBlocksInRows,
-  concatenateNewLineWithGridAndShiftGrid,
-  deepCompareBlocks,
+  transformDataContractIntoBlock,
 } from "@/utils/gridUtils";
-import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "motion/react";
@@ -22,6 +19,9 @@ import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
 import useGridAnimations from "@/hooks/useGridAnimations";
 import { useMoveStore } from "@/stores/moveTxStore";
+import { useReceiptGameStore } from "@/stores/receiptGameStore";
+import { parseGameFromReceipt, type ReceiptGameData } from "@/dojo/rpcReader";
+import type { Game } from "@/dojo/game/models/game";
 import { calculateFallDistance } from "@/utils/gridPhysics";
 import useTransitionBlocks from "@/hooks/useTransitionBlocks";
 import { showToast } from "@/utils/toast";
@@ -36,13 +36,13 @@ interface GridProps {
   gridSize: number;
   gridWidth: number;
   gridHeight: number;
-  selectBlock: (block: Block) => void;
   bonus: BonusType;
   account: Account | null;
   isTxProcessing: boolean;
   setIsTxProcessing: React.Dispatch<React.SetStateAction<boolean>>;
   levelTransitionPending: boolean;
   onCascadeComplete?: () => void;
+  onNextLineUpdate?: (nextRow: number[]) => void;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -53,17 +53,17 @@ const Grid: React.FC<GridProps> = ({
   gridHeight,
   gridWidth,
   gridSize,
-  selectBlock,
   bonus,
   account,
   isTxProcessing,
   setIsTxProcessing,
   levelTransitionPending,
   onCascadeComplete,
+  onNextLineUpdate,
 }) => {
   const {
     setup: {
-      systemCalls: { move },
+      systemCalls: { move, applyBonus },
     },
   } = useDojo();
 
@@ -91,7 +91,6 @@ const Grid: React.FC<GridProps> = ({
   const [blocks, setBlocks] = useState<Block[]>(initialData);
   const [nextLine, setNextLine] = useState<Block[]>(nextLineData);
   const [saveGridStateblocks, setSaveGridStateblocks] = useState<Block[]>(initialData);
-  const [applyData, setApplyData] = useState(false);
   const [isMoving, setIsMoving] = useState(true);
   const [currentMove, setcurrentMove] = useState<{
     rowIndex: number;
@@ -104,7 +103,7 @@ const Grid: React.FC<GridProps> = ({
   const [lineExplodedCount, setLineExplodedCount] = useState(0);
   const [blockBonus, setBlockBonus] = useState<Block | null>(null);
   const [explodingRows, setExplodingRows] = useState<Set<number>>(new Set());
-  const { playExplode, playSwipe } = useMusicPlayer();
+  const { playExplode, playSwipe, playSfx } = useMusicPlayer();
 
   // ==================== Custom Hooks ====================
   const queue = useMoveStore((state) => state.queue);
@@ -151,26 +150,48 @@ const Grid: React.FC<GridProps> = ({
     gameStateRef.current = gameState;
   }, [gameState]);
 
-  // =================== Chain sync ===================
-  useEffect(() => {
-    if (!applyData) return;
-    if (levelTransitionPending) return;
+  // =================== Receipt-based sync (replaces Torii for moves/bonuses) ===================
+  const pendingReceiptRef = useRef<ReceiptGameData | null>(null);
 
-    const same = deepCompareBlocks(saveGridStateblocks, initialData);
-    if (same) return;
-
-    setBlocks(initialData);
-    setSaveGridStateblocks(initialData);
-    setNextLine(nextLineData);
+  const applyReceipt = (parsed: { blocks: number[][]; nextRow: number[]; over: boolean; game: Game }) => {
+    const newNextLine = transformDataContractIntoBlock([parsed.nextRow]);
+    // Update refs immediately (for pointer handler, before React re-renders)
+    gameStateRef.current = GameState.WAITING;
+    // Save receipt blocks for error rollback — DON'T replace visible blocks.
+    // The local cascade already computed correct positions; replacing would
+    // destroy block IDs and kill CSS transitions (max-update-depth + animation cut).
+    setSaveGridStateblocks(transformDataContractIntoBlock(parsed.blocks));
+    setNextLine(newNextLine);
+    setGameState(GameState.WAITING);
+    // Update the preview in GameBoard with the receipt's next line
+    onNextLineUpdate?.(parsed.nextRow);
     setNextLineHasBeenConsumed(false);
-    setIsTxProcessing(false);
-    setApplyData(false);
-
-    if (gameStateRef.current === GameState.CASCADE_COMPLETE) {
-      gameStateRef.current = GameState.WAITING;
-      setGameState(GameState.WAITING);
+    // Push full Game to store so HUD updates instantly
+    useReceiptGameStore.getState().setGame(parsed.game);
+    pendingReceiptRef.current = null;
+    // If game over, keep the spinner going — Torii still needs to sync before
+    // we navigate to map. Otherwise unlock the grid for the next move.
+    if (!parsed.over) {
+      isTxProcessingRef.current = false;
+      setIsTxProcessing(false);
     }
-  }, [applyData, initialData, nextLineData, saveGridStateblocks, setIsTxProcessing, setNextLineHasBeenConsumed, levelTransitionPending]);
+  };
+
+  const receiptSyncRef = useRef<(events: any[]) => void>(() => {});
+  receiptSyncRef.current = (events: any[]) => {
+    const parsed = parseGameFromReceipt(events, gameId);
+    if (!parsed) {
+      return;
+    }
+    // Always store as pending — let the state machine apply it at the right time
+    // (UPDATE_AFTER_MOVE or CASCADE_COMPLETE) so cascade animation plays fully.
+    const state = gameStateRef.current;
+    if (state === GameState.CASCADE_COMPLETE) {
+      applyReceipt(parsed);
+    } else {
+      pendingReceiptRef.current = parsed;
+    }
+  };
 
   // Recompute danger level whenever blocks change (covers initial load + chain sync + gravity)
   useEffect(() => {
@@ -331,6 +352,25 @@ const Grid: React.FC<GridProps> = ({
     endDragRef.current = onDragEnd;
   }, [onDragEnd]);
 
+  // =================== TX HELPERS ===================
+
+  const rollbackGrid = useCallback((message: string) => {
+    setBlocks(saveGridStateblocks);
+    setNextLine(nextLineData);
+    setLineExplodedCount(0);
+    setcurrentMove(null);
+    resetDragRefs();
+    setIsMoving(false);
+    setExplodingRows(new Set());
+    setBlockBonus(null);
+    gameStateRef.current = GameState.WAITING;
+    setGameState(GameState.WAITING);
+    setIsTxProcessing(false);
+    isTxProcessingRef.current = false;
+    useReceiptGameStore.getState().setGame(null);
+    showToast({ type: "error", message });
+  }, [saveGridStateblocks, nextLineData, resetDragRefs, setIsTxProcessing]);
+
   // =================== MOVE TX ===================
 
   const sendMoveTX = useCallback(
@@ -360,7 +400,7 @@ const Grid: React.FC<GridProps> = ({
       store.markSubmitting(nextQueuedMove.id);
 
       try {
-        await move({
+        const { events } = await move({
           account: account as Account,
           game_id: gameId,
           row_index: nextQueuedMove.rowIndex,
@@ -368,27 +408,14 @@ const Grid: React.FC<GridProps> = ({
           final_index: nextQueuedMove.finalIndex,
         });
         store.markConfirmed(nextQueuedMove.id);
+        // Apply game state from TX receipt events (microtask to escape effect lifecycle)
+        queueMicrotask(() => receiptSyncRef.current(events));
       } catch (error) {
         if (cancelled) return;
         const message = error instanceof Error ? error.message : "Move transaction failed.";
         store.markFailed(nextQueuedMove.id, message);
         store.clearQueueForGame(gameId);
-
-        setBlocks(initialData);
-        setSaveGridStateblocks(initialData);
-        setNextLine(nextLineData);
-        setLineExplodedCount(0);
-        setcurrentMove(null);
-        resetDragRefs();
-        setIsMoving(false);
-        setExplodingRows(new Set());
-        setBlockBonus(null);
-        gameStateRef.current = GameState.WAITING;
-        setGameState(GameState.WAITING);
-        setApplyData(false);
-        setIsTxProcessing(false);
-
-        showToast({ type: "error", message: "Move sync failed. Grid rolled back to chain state." });
+        rollbackGrid("Move sync failed. Grid rolled back.");
       } finally {
         store.setQueueProcessing(false);
       }
@@ -405,33 +432,28 @@ const Grid: React.FC<GridProps> = ({
     }
   }, [currentMove]);
 
+  // =================== BONUS TX ===================
+
+  const fireBonusTx = useCallback(
+    async (block: Block) => {
+      if (!account) return;
+      try {
+        const { events } = await applyBonus({
+          account: account as Account,
+          game_id: gameId,
+          row_index: gridHeight - 1 - block.y,
+          block_index: block.x,
+        });
+        playSfx("bonus-activate");
+        queueMicrotask(() => receiptSyncRef.current(events));
+      } catch (error) {
+        rollbackGrid("Bonus failed. Grid rolled back.");
+      }
+    },
+    [account, applyBonus, gameId, gridHeight, playSfx, saveGridStateblocks, nextLineData, setIsTxProcessing],
+  );
+
   // =================== GAME LOGIC ===================
-
-  const blocksByRow = useMemo(() => {
-    const map = new Map<number, Block[]>();
-    for (const block of blocks) {
-      const existing = map.get(block.y);
-      if (existing) existing.push(block);
-      else map.set(block.y, [block]);
-    }
-    return map;
-  }, [blocks]);
-
-  const isBlocked = (initialX: number, newX: number, y: number, width: number, blockId: number) => {
-    const rowBlocks = blocksByRow.get(y);
-    if (!rowBlocks) return false;
-
-    if (newX > initialX) {
-      for (const block of rowBlocks) {
-        if (block.id !== blockId && block.x >= initialX + width && block.x < newX + width) return true;
-      }
-    } else {
-      for (const block of rowBlocks) {
-        if (block.id !== blockId && block.x + block.width > newX && block.x <= initialX) return true;
-      }
-    }
-    return false;
-  };
 
   const applyGravity = () => {
     setBlocks((prevBlocks) => {
@@ -507,15 +529,32 @@ const Grid: React.FC<GridProps> = ({
             setGameState(GameState.WAITING);
             break;
           }
-          const updatedBlocks = concatenateNewLineWithGridAndShiftGrid(blocks, nextLine, gridHeight);
-          setNextLineHasBeenConsumed(true);
-          if (isGridFull(updatedBlocks)) {
+          // Grid full after shift? (any block at y=0 would go to y=-1)
+          if (blocks.some(b => b.y === 0)) {
             setGameState(GameState.UPDATE_AFTER_MOVE);
             break;
           }
-          setBlocks(updatedBlocks);
-          setIsMoving(true);
-          setGameState(GameState.GRAVITY2);
+          // Phase 1: Place next-line blocks off-screen (y=gridHeight, clipped by SVG)
+          setBlocks(prev => [
+            ...prev,
+            ...nextLine.map(b => ({ ...b, y: gridHeight })),
+          ]);
+          setNextLineHasBeenConsumed(true);
+          setGameState(GameState.ADD_LINE_SHIFT);
+        }
+        break;
+
+      case GameState.ADD_LINE_SHIFT:
+        {
+          const needsShift = blocks.some(b => b.y >= gridHeight);
+          if (needsShift) {
+            // Phase 2: Shift ALL blocks up by 1 — CSS transitions animate the push.
+            // Go straight to GRAVITY2 so gravity applies concurrently with the
+            // shift animation (blocks settle while sliding up).
+            setBlocks(prev => prev.map(b => ({ ...b, y: b.y - 1 })));
+            setIsMoving(true);
+            setGameState(GameState.GRAVITY2);
+          }
         }
         break;
 
@@ -535,26 +574,33 @@ const Grid: React.FC<GridProps> = ({
           if (lineExplodedCount > 1) {
             setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
           }
-          setApplyData(true);
           setLineExplodedCount(0);
-          const hasCritical = blocks.some((block) => block.y === 0);
-          const hasWarning = blocks.some((block) => block.y === 1);
-          setDangerLevel(hasCritical ? 2 : hasWarning ? 1 : 0);
 
           if (gameState === GameState.UPDATE_AFTER_BONUS) {
-            selectBlock(blockBonus as Block);
+            fireBonusTx(blockBonus as Block);
             setBlockBonus(null);
             setIsTxProcessing(true);
             gameStateRef.current = GameState.CASCADE_COMPLETE;
             setGameState(GameState.CASCADE_COMPLETE);
             onCascadeComplete?.();
           } else if (gameState === GameState.UPDATE_AFTER_MOVE) {
-            setIsTxProcessing(true);
             setcurrentMove(null);
-            gameStateRef.current = GameState.CASCADE_COMPLETE;
-            setGameState(GameState.CASCADE_COMPLETE);
-            onCascadeComplete?.();
+            // Check if receipt already arrived while cascade was playing
+            if (pendingReceiptRef.current) {
+              applyReceipt(pendingReceiptRef.current);
+              onCascadeComplete?.();
+            } else {
+              setIsTxProcessing(true);
+              gameStateRef.current = GameState.CASCADE_COMPLETE;
+              setGameState(GameState.CASCADE_COMPLETE);
+              onCascadeComplete?.();
+            }
           }
+        }
+        break;
+      case GameState.CASCADE_COMPLETE:
+        if (pendingReceiptRef.current) {
+          applyReceipt(pendingReceiptRef.current);
         }
         break;
       default:
@@ -600,6 +646,10 @@ const Grid: React.FC<GridProps> = ({
           <filter id="gf-shadow" x="-5%" y="-5%" width="110%" height="110%">
             <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000" floodOpacity="0.4" />
           </filter>
+          {/* Clip grid area so blocks sliding in/out are hidden beyond edges */}
+          <clipPath id="grid-clip">
+            <rect x={0} y={0} width={svgW} height={svgH} />
+          </clipPath>
         </defs>
 
         {/* ─── Frame border ─── */}
@@ -657,8 +707,8 @@ const Grid: React.FC<GridProps> = ({
           </>
         )}
 
-        {/* ─── Grid area (offset by frame padding) ─── */}
-        <g transform={`translate(${framePad}, ${framePad})`}>
+        {/* ─── Grid area (offset by frame padding, clipped for push animation) ─── */}
+        <g transform={`translate(${framePad}, ${framePad})`} clipPath="url(#grid-clip)">
           {/* Grid lines */}
           {Array.from({ length: gridWidth + 1 }, (_, i) => (
             <line

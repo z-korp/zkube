@@ -41,14 +41,14 @@ const Countdown: React.FC<CountdownProps> = ({ endTime, colors }) => {
     Math.max(0, endTime - Math.floor(Date.now() / 1000)),
   );
 
-  useState(() => {
+  useEffect(() => {
     const id = setInterval(() => {
       const remaining = Math.max(0, endTime - Math.floor(Date.now() / 1000));
       setSec(remaining);
       if (remaining <= 0) clearInterval(id);
     }, 1000);
     return () => clearInterval(id);
-  });
+  }, [endTime]);
 
   if (sec <= 0) return <span className="rounded-full bg-red-500 px-3 py-1.5 font-sans text-xs font-bold text-white">ENDED</span>;
 

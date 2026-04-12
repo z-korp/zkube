@@ -1,19 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Has, getComponentValue } from "@dojoengine/recs";
+import type { Entity } from "@dojoengine/recs";
 import { useEntityQuery } from "@dojoengine/react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
-import type { Entity } from "@dojoengine/recs";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { normalizeEntityId } from "@/utils/entityId";
 
 const SECONDS_PER_WEEK = 604800;
 const MONDAY_OFFSET = 345600;
-
-const normalizeEntityId = (entityId: string): Entity => {
-  if (!entityId.startsWith("0x")) return entityId as Entity;
-  const hex = entityId.slice(2).replace(/^0+/, "") || "0";
-  return `0x${hex}` as Entity;
-};
 
 /**
  * Returns a set of zone IDs (1-10) that have unsettled weekly endless

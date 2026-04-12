@@ -13,7 +13,7 @@ export const useControllerUsername = () => {
 
   const getUsername = useCallback(async () => {
     if (!connector || connector.id !== "controller") return;
-    
+
     try {
       const controllerConnector = connector as unknown as ControllerConnector;
       const name = await controllerConnector.username();
