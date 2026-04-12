@@ -58,7 +58,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [COLS, ROWS, NEXT_LINE_ROWS, HORIZONTAL_PADDING, VERTICAL_CHROME]);
+  }, []);
 
   const memoizedInitialData = useMemo(() => {
     return transformDataContractIntoBlock(initialGrid);

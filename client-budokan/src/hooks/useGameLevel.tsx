@@ -2,18 +2,10 @@ import { useDojo } from "@/dojo/useDojo";
 import { useMemo, useEffect, useState } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
-import type { Entity } from "@dojoengine/recs";
 import { ConstraintType } from "@/dojo/game/types/constraint";
 import { useMutatorDef } from "./useMutatorDef";
 import { applyStarThresholdModifier } from "@/dojo/game/types/level";
-
-// Normalize entity ID to match Torii's format (no leading zeros after 0x)
-const normalizeEntityId = (entityId: string): Entity => {
-  if (!entityId.startsWith("0x")) return entityId as Entity;
-  // Remove leading zeros after 0x, but keep at least one digit
-  const hex = entityId.slice(2).replace(/^0+/, "") || "0";
-  return `0x${hex}` as Entity;
-};
+import { normalizeEntityId } from "@/utils/entityId";
 
 export interface GameLevelData {
   gameId: bigint;

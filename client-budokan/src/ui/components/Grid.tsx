@@ -20,7 +20,8 @@ import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
 import useGridAnimations from "@/hooks/useGridAnimations";
 import { useMoveStore } from "@/stores/moveTxStore";
 import { useReceiptGameStore } from "@/stores/receiptGameStore";
-import { parseGameFromReceipt } from "@/dojo/rpcReader";
+import { parseGameFromReceipt, type ReceiptGameData } from "@/dojo/rpcReader";
+import type { Game } from "@/dojo/game/models/game";
 import { calculateFallDistance } from "@/utils/gridPhysics";
 import useTransitionBlocks from "@/hooks/useTransitionBlocks";
 import { showToast } from "@/utils/toast";
@@ -150,9 +151,9 @@ const Grid: React.FC<GridProps> = ({
   }, [gameState]);
 
   // =================== Receipt-based sync (replaces Torii for moves/bonuses) ===================
-  const pendingReceiptRef = useRef<import("@/dojo/rpcReader").ReceiptGameData | null>(null);
+  const pendingReceiptRef = useRef<ReceiptGameData | null>(null);
 
-  const applyReceipt = (parsed: { blocks: number[][]; nextRow: number[]; over: boolean; game: import("@/dojo/game/models/game").Game }) => {
+  const applyReceipt = (parsed: { blocks: number[][]; nextRow: number[]; over: boolean; game: Game }) => {
     const newNextLine = transformDataContractIntoBlock([parsed.nextRow]);
     // Update refs immediately (for pointer handler, before React re-renders)
     gameStateRef.current = GameState.WAITING;
@@ -351,6 +352,25 @@ const Grid: React.FC<GridProps> = ({
     endDragRef.current = onDragEnd;
   }, [onDragEnd]);
 
+  // =================== TX HELPERS ===================
+
+  const rollbackGrid = useCallback((message: string) => {
+    setBlocks(saveGridStateblocks);
+    setNextLine(nextLineData);
+    setLineExplodedCount(0);
+    setcurrentMove(null);
+    resetDragRefs();
+    setIsMoving(false);
+    setExplodingRows(new Set());
+    setBlockBonus(null);
+    gameStateRef.current = GameState.WAITING;
+    setGameState(GameState.WAITING);
+    setIsTxProcessing(false);
+    isTxProcessingRef.current = false;
+    useReceiptGameStore.getState().setGame(null);
+    showToast({ type: "error", message });
+  }, [saveGridStateblocks, nextLineData, resetDragRefs, setIsTxProcessing]);
+
   // =================== MOVE TX ===================
 
   const sendMoveTX = useCallback(
@@ -395,24 +415,7 @@ const Grid: React.FC<GridProps> = ({
         const message = error instanceof Error ? error.message : "Move transaction failed.";
         store.markFailed(nextQueuedMove.id, message);
         store.clearQueueForGame(gameId);
-
-        // Roll back to last known-good state (from last receipt or initial load)
-        setBlocks(saveGridStateblocks);
-        setNextLine(nextLineData);
-        setLineExplodedCount(0);
-        setcurrentMove(null);
-        resetDragRefs();
-        setIsMoving(false);
-        setExplodingRows(new Set());
-        setBlockBonus(null);
-        gameStateRef.current = GameState.WAITING;
-        setGameState(GameState.WAITING);
-        setIsTxProcessing(false);
-        isTxProcessingRef.current = false;
-        // Clear receipt game so Torii can take over as fallback
-        useReceiptGameStore.getState().setGame(null);
-
-        showToast({ type: "error", message: "Move sync failed. Grid rolled back." });
+        rollbackGrid("Move sync failed. Grid rolled back.");
       } finally {
         store.setQueueProcessing(false);
       }
@@ -444,52 +447,13 @@ const Grid: React.FC<GridProps> = ({
         playSfx("bonus-activate");
         queueMicrotask(() => receiptSyncRef.current(events));
       } catch (error) {
-        // Rollback grid to last known good state
-        setBlocks(saveGridStateblocks);
-        setNextLine(nextLineData);
-        setLineExplodedCount(0);
-        setBlockBonus(null);
-        setExplodingRows(new Set());
-        gameStateRef.current = GameState.WAITING;
-        setGameState(GameState.WAITING);
-        setIsTxProcessing(false);
-        isTxProcessingRef.current = false;
-        // Clear receipt game so Torii can take over as fallback
-        useReceiptGameStore.getState().setGame(null);
-
-        showToast({ type: "error", message: "Bonus failed. Grid rolled back." });
+        rollbackGrid("Bonus failed. Grid rolled back.");
       }
     },
     [account, applyBonus, gameId, gridHeight, playSfx, saveGridStateblocks, nextLineData, setIsTxProcessing],
   );
 
   // =================== GAME LOGIC ===================
-
-  const blocksByRow = useMemo(() => {
-    const map = new Map<number, Block[]>();
-    for (const block of blocks) {
-      const existing = map.get(block.y);
-      if (existing) existing.push(block);
-      else map.set(block.y, [block]);
-    }
-    return map;
-  }, [blocks]);
-
-  const isBlocked = (initialX: number, newX: number, y: number, width: number, blockId: number) => {
-    const rowBlocks = blocksByRow.get(y);
-    if (!rowBlocks) return false;
-
-    if (newX > initialX) {
-      for (const block of rowBlocks) {
-        if (block.id !== blockId && block.x >= initialX + width && block.x < newX + width) return true;
-      }
-    } else {
-      for (const block of rowBlocks) {
-        if (block.id !== blockId && block.x + block.width > newX && block.x <= initialX) return true;
-      }
-    }
-    return false;
-  };
 
   const applyGravity = () => {
     setBlocks((prevBlocks) => {
@@ -611,9 +575,6 @@ const Grid: React.FC<GridProps> = ({
             setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
           }
           setLineExplodedCount(0);
-          const hasCritical = blocks.some((block) => block.y === 0);
-          const hasWarning = blocks.some((block) => block.y === 1);
-          setDangerLevel(hasCritical ? 2 : hasWarning ? 1 : 0);
 
           if (gameState === GameState.UPDATE_AFTER_BONUS) {
             fireBonusTx(blockBonus as Block);

@@ -3,7 +3,6 @@ import { motion } from "motion/react";
 import { Loader2 } from "lucide-react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
-import type { Entity } from "@dojoengine/recs";
 
 import { getThemeImages, type ThemeColors, type ThemeId } from "@/config/themes";
 import { useDojo } from "@/dojo/useDojo";
@@ -14,15 +13,10 @@ import { useZStarBalance } from "@/hooks/useZStarBalance";
 import { useUnsettledRewards } from "@/hooks/useUnsettledRewards";
 import { ZONE_NAMES } from "@/config/profileData";
 import TierContext from "@/ui/components/rewards/TierContext";
+import { normalizeEntityId } from "@/utils/entityId";
 
 const SECONDS_PER_WEEK = 604800;
 const MONDAY_OFFSET = 345600; // Unix epoch was Thursday; +4 days = Monday
-
-const normalizeEntityId = (entityId: string): Entity => {
-  if (!entityId.startsWith("0x")) return entityId as Entity;
-  const hex = entityId.slice(2).replace(/^0+/, "") || "0";
-  return `0x${hex}` as Entity;
-};
 
 function currentWeekId(): number {
   return Math.floor((Date.now() / 1000 - MONDAY_OFFSET) / SECONDS_PER_WEEK);

@@ -9,6 +9,11 @@
 
 import { Game } from "@/dojo/game/models/game";
 
+export interface ContractEvent {
+  data?: string[];
+  keys?: string[];
+}
+
 export interface ReceiptGameData {
   blocks: number[][];
   nextRow: number[];
@@ -17,7 +22,7 @@ export interface ReceiptGameData {
 }
 
 export function parseGameFromReceipt(
-  events: any[],
+  events: ContractEvent[],
   gameId: bigint,
 ): ReceiptGameData | null {
   if (!events || events.length === 0) return null;

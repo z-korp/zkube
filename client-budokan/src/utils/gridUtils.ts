@@ -1,6 +1,6 @@
 import type { Block } from "@/types/types";
 
-export const transformToGridFormat = (
+const transformToGridFormat = (
   blocks: Block[],
   gridWidth: number,
   gridHeight: number
@@ -30,46 +30,10 @@ export const removeCompleteRows = (
     .filter((index) => index !== -1);
 
   const updatedBlocks = blocks.filter((block) => {
-    const isBlockOnCompleteRow = completeRows.some((rowIndex) => {
-      return block.y === rowIndex;
-    });
-    return !isBlockOnCompleteRow;
+    return !completeRows.some((rowIndex) => block.y === rowIndex);
   });
 
   return { updatedBlocks, completeRows };
-};
-
-export const concatenateNewLineWithGridAndShiftGrid = (
-  initialData: Block[],
-  nextLineData: Block[],
-  gridHeight: number
-): Block[] => {
-  const shiftedInitialData = initialData.map((block) => ({
-    ...block,
-    y: block.y - 1,
-  }));
-  const shiftedNextLineData = nextLineData.map((block) => ({
-    ...block,
-    y: gridHeight - 1,
-  }));
-  return [...shiftedInitialData, ...shiftedNextLineData];
-};
-
-export const concatenateAndShiftBlocksTutorial = (
-  initialData: Block[],
-  nextLineData: Block[],
-  gridHeight: number
-): Block[] => {
-  const shiftedInitialData = initialData.map((block) => ({
-    ...block,
-    y: block.y - 1,
-  }));
-  const shiftedNextLineData = nextLineData.map((block) => ({
-    ...block,
-    id: block.id + Date.now(),
-    y: gridHeight - 1,
-  }));
-  return [...shiftedInitialData, ...shiftedNextLineData];
 };
 
 let _blockIdCounter = 0;
@@ -98,34 +62,11 @@ export const transformDataContractIntoBlock = (grid: number[][]): Block[] => {
   });
 };
 
-export const isGridFull = (blocks: { y: number }[]): boolean => {
-  return blocks.some((block) => block.y < 0);
-};
-
 export const removeBlocksSameWidth = (
   block: Block,
   blocks: Block[]
 ): Block[] => {
   return blocks.filter((b) => b.width !== block.width);
-};
-
-export const getBlocksSameWidth = (block: Block, blocks: Block[]): Block[] => {
-  return blocks.filter((b) => b.width == block.width);
-};
-
-export const removeBlocksSameRow = (block: Block, blocks: Block[]): Block[] => {
-  return blocks.filter((b) => b.y !== block.y);
-};
-
-export const getBlocksSameRow = (
-  rowIndex: number,
-  blocks: Block[]
-): Block[] => {
-  return blocks.filter((b) => b.y == rowIndex);
-};
-
-export const removeBlockId = (block: Block, blocks: Block[]): Block[] => {
-  return blocks.filter((b) => b.id !== block.id);
 };
 
 export const removeBlocksInRows = (
@@ -135,36 +76,3 @@ export const removeBlocksInRows = (
   const rowSet = new Set(rows);
   return blocks.filter((b) => !rowSet.has(b.y));
 };
-
-export const getBlocksInRows = (
-  rows: number[],
-  blocks: Block[]
-): Block[] => {
-  const rowSet = new Set(rows);
-  return blocks.filter((b) => rowSet.has(b.y));
-};
-
-export const deepCompareBlocks = (
-  array1: { id: number; x: number; y: number; width: number }[],
-  array2: { id: number; x: number; y: number; width: number }[]
-): boolean => {
-  // Vérifie si les longueurs des deux tableaux sont différentes
-  if (array1.length !== array2.length) {
-    return false;
-  }
-
-  // Parcourt chaque objet des deux tableaux
-  for (let i = 0; i < array1.length; i++) {
-    const obj1 = array1[i];
-    const obj2 = array2[i];
-
-    // Comparaison des propriétés des objets (id, x, y, width)
-    if (obj1.x !== obj2.x || obj1.y !== obj2.y || obj1.width !== obj2.width) {
-      return false;
-    }
-  }
-
-  // Si aucune différence n'a été trouvée, les deux tableaux sont identiques
-  return true;
-};
-
