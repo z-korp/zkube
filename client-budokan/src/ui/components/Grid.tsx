@@ -156,13 +156,11 @@ const Grid: React.FC<GridProps> = ({
     const newNextLine = transformDataContractIntoBlock([parsed.nextRow]);
     // Update refs immediately (for pointer handler, before React re-renders)
     gameStateRef.current = GameState.WAITING;
-    isTxProcessingRef.current = false;
     // Save receipt blocks for error rollback — DON'T replace visible blocks.
     // The local cascade already computed correct positions; replacing would
     // destroy block IDs and kill CSS transitions (max-update-depth + animation cut).
     setSaveGridStateblocks(transformDataContractIntoBlock(parsed.blocks));
     setNextLine(newNextLine);
-    setIsTxProcessing(false);
     setGameState(GameState.WAITING);
     // Update the preview in GameBoard with the receipt's next line
     onNextLineUpdate?.(parsed.nextRow);
@@ -170,6 +168,12 @@ const Grid: React.FC<GridProps> = ({
     // Push full Game to store so HUD updates instantly
     useReceiptGameStore.getState().setGame(parsed.game);
     pendingReceiptRef.current = null;
+    // If game over, keep the spinner going — Torii still needs to sync before
+    // we navigate to map. Otherwise unlock the grid for the next move.
+    if (!parsed.over) {
+      isTxProcessingRef.current = false;
+      setIsTxProcessing(false);
+    }
   };
 
   const receiptSyncRef = useRef<(events: any[]) => void>(() => {});

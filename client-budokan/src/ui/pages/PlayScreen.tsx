@@ -182,18 +182,21 @@ const PlayScreen: React.FC = () => {
     else setIsConnectDialogOpen(false);
   }, [account]);
 
+  // Game-over detection uses toriiGame (not receipt game) so Torii has synced
+  // all progression data (StoryZoneProgress, etc.) before we navigate to map.
+  // Receipt game gives instant HUD updates; Torii gates navigation.
   useEffect(() => {
     if (prevGameOverRef.current !== undefined) {
-      if (!prevGameOverRef.current && game?.over) {
+      if (!prevGameOverRef.current && toriiGame?.over) {
         const pending = useNavigationStore.getState().pendingLevelCompletion;
-        if (game.zoneCleared) {
+        if (toriiGame.zoneCleared) {
           playSfx("victory");
           setIsVictoryOpen(true);
-        } else if (game.mode === 0 || game.mode === undefined) {
+        } else if (toriiGame.mode === 0 || toriiGame.mode === undefined) {
           if (!pending) {
             // Check if the level was actually completed (score + constraints)
             const maxMoves = effectiveGameLevel?.maxMoves ?? 0;
-            const scoreMet = targetScore > 0 && game.levelScore >= targetScore && game.levelMoves < maxMoves;
+            const scoreMet = targetScore > 0 && toriiGame.levelScore >= targetScore && toriiGame.levelMoves < maxMoves;
             const c1 = Constraint.fromContractValues(
               effectiveGameLevel?.constraintType ?? ConstraintType.None,
               effectiveGameLevel?.constraintValue ?? 0,
@@ -204,14 +207,14 @@ const PlayScreen: React.FC = () => {
               effectiveGameLevel?.constraint2Value ?? 0,
               effectiveGameLevel?.constraint2Count ?? 0,
             );
-            const constraintsMet = c1.isSatisfied(game.constraintProgress, false) && c2.isSatisfied(game.constraint2Progress, false);
+            const constraintsMet = c1.isSatisfied(toriiGame.constraintProgress, false) && c2.isSatisfied(toriiGame.constraint2Progress, false);
             const levelCompleted = scoreMet && constraintsMet;
             setPendingLevelCompletion({
-              level: game.level,
-              levelMoves: game.levelMoves,
+              level: toriiGame.level,
+              levelMoves: toriiGame.levelMoves,
               prevTotalScore: levelStartTotalScoreRef.current,
-              totalScore: game.totalScore,
-              gameLevel: resolveCompletionGameLevel(game.level),
+              totalScore: toriiGame.totalScore,
+              gameLevel: resolveCompletionGameLevel(toriiGame.level),
               isIncomplete: !levelCompleted,
             });
             navNavigate("map");
@@ -222,8 +225,8 @@ const PlayScreen: React.FC = () => {
         }
       }
     }
-    prevGameOverRef.current = game?.over;
-  }, [game, navNavigate, playSfx, resolveCompletionGameLevel, setPendingLevelCompletion, targetScore, effectiveGameLevel]);
+    prevGameOverRef.current = toriiGame?.over;
+  }, [toriiGame, navNavigate, playSfx, resolveCompletionGameLevel, setPendingLevelCompletion, targetScore, effectiveGameLevel]);
 
   const handleCascadeComplete = useCallback(() => {
     setCascadeComplete(true);
@@ -233,13 +236,14 @@ const PlayScreen: React.FC = () => {
     setCascadeComplete(false);
   }, [grid]);
 
+  // Level advancement also uses toriiGame so Torii has synced before map navigation.
   useEffect(() => {
-    if (!game) return;
+    if (!toriiGame) return;
     const prevState = prevGameStateRef.current;
-    const currentLevel = game.level;
+    const currentLevel = toriiGame.level;
 
     if (prevState === null) {
-      levelStartTotalScoreRef.current = game.totalScore - game.levelScore;
+      levelStartTotalScoreRef.current = toriiGame.totalScore - toriiGame.levelScore;
     }
 
     if (prevState && currentLevel > prevState.level) {
@@ -254,29 +258,29 @@ const PlayScreen: React.FC = () => {
         level: prevState.level,
         levelMoves: prevState.levelMoves,
         prevTotalScore: levelStartTotalScoreRef.current,
-        totalScore: game.totalScore,
+        totalScore: toriiGame.totalScore,
         gameLevel: resolveCompletionGameLevel(prevState.level),
       });
-      levelStartTotalScoreRef.current = game.totalScore;
+      levelStartTotalScoreRef.current = toriiGame.totalScore;
       navNavigate("map");
     }
 
     prevGameStateRef.current = {
-      level: game.level,
-      levelScore: game.levelScore,
-      levelMoves: game.levelMoves,
-      constraintProgress: game.constraintProgress,
-      totalScore: game.totalScore,
+      level: toriiGame.level,
+      levelScore: toriiGame.levelScore,
+      levelMoves: toriiGame.levelMoves,
+      constraintProgress: toriiGame.constraintProgress,
+      totalScore: toriiGame.totalScore,
       gameLevel,
     };
   }, [
-    game?.level,
-    game?.levelScore,
-    game?.levelMoves,
-    game?.constraintProgress,
-    game?.over,
-    game?.totalScore,
-    game,
+    toriiGame?.level,
+    toriiGame?.levelScore,
+    toriiGame?.levelMoves,
+    toriiGame?.constraintProgress,
+    toriiGame?.over,
+    toriiGame?.totalScore,
+    toriiGame,
     playSfx,
     cascadeComplete,
     gameLevel,
@@ -298,7 +302,9 @@ const PlayScreen: React.FC = () => {
   const isGridLoading =
     !!game && !game.isOver() && (!grid || grid.length === 0);
 
-  const isGameOn = game && !game.over;
+  // Use toriiGame.over for display switching — keeps grid + HUD visible
+  // while waiting for Torii to sync after receipt detects game over.
+  const isGameOn = game && !toriiGame?.over;
 
   const bonusType = game?.bonusType ?? 0;
   const bonusCharges = game?.bonusCharges ?? 0;
@@ -456,10 +462,10 @@ const PlayScreen: React.FC = () => {
       {game && !isGameLoading && !isGridLoading && (
         <GameHud
           level={game.level}
-          levelScore={game.isOver() ? 0 : game.levelScore}
+          levelScore={toriiGame?.isOver() ? 0 : game.levelScore}
           targetScore={targetScore}
           movesRemaining={game?.mode === 1 ? game.levelMoves : maxMoves - game.levelMoves}
-          combo={game.isOver() ? 0 : game.combo}
+          combo={toriiGame?.isOver() ? 0 : game.combo}
           constraintProgress={game.constraintProgress}
           constraint2Progress={game.constraint2Progress}
           bonusUsedThisLevel={false}
@@ -517,7 +523,7 @@ const PlayScreen: React.FC = () => {
           </div>
         )}
 
-        {game && game.over && !isGridLoading && !isGameLoading && (
+        {game && toriiGame?.over && !isGridLoading && !isGameLoading && (
           <div className="flex h-full w-full flex-col items-center min-h-0 opacity-50 pointer-events-none">
             <GameBoard
               initialGrid={grid}
@@ -532,13 +538,13 @@ const PlayScreen: React.FC = () => {
         )}
       </div>
 
-      {game && !game.over && !isGameLoading && !isGridLoading && (
+      {game && !toriiGame?.over && !isGameLoading && !isGridLoading && (
         <GameActionBar
           bonusSlots={bonusSlots}
           activeBonus={activeBonus}
           bonusDescription={bonusDescription}
           onSurrender={handleSurrender}
-          isGameOver={game.over}
+          isGameOver={!!toriiGame?.over}
           mode={game?.mode ?? 0}
           zoneId={game?.zoneId ?? 1}
           activeMutatorId={game?.activeMutatorId ?? 0}
