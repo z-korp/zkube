@@ -13,10 +13,6 @@ vi.mock("motion/react", () => ({
   },
 }));
 
-vi.mock("./ConfettiExplosion", () => ({
-  default: () => <div data-testid="confetti" />,
-}));
-
 vi.mock("../elements/animatedText", () => ({
   default: () => null,
 }));
