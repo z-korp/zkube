@@ -580,10 +580,10 @@ const Grid: React.FC<GridProps> = ({
         {
           const needsShift = blocks.some(b => b.y >= gridHeight);
           if (needsShift) {
-            // Phase 2: Shift ALL blocks up by 1 — CSS transitions animate the push
+            // Phase 2: Shift ALL blocks up by 1 — CSS transitions animate the push.
+            // Go straight to GRAVITY2 so gravity applies concurrently with the
+            // shift animation (blocks settle while sliding up).
             setBlocks(prev => prev.map(b => ({ ...b, y: b.y - 1 })));
-          } else if (transitioningBlocks.length === 0) {
-            // Shift animation complete → proceed to gravity
             setIsMoving(true);
             setGameState(GameState.GRAVITY2);
           }

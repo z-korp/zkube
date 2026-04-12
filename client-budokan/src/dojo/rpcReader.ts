@@ -22,6 +22,11 @@ export function parseGameFromReceipt(
 ): ReceiptGameData | null {
   if (!events || events.length === 0) return null;
 
+  // Use the LAST matching StoreSetRecord event — the contract may emit
+  // multiple writes to the Game model per TX (intermediate states).
+  // The last one is the authoritative final state (with correct over flag).
+  let result: ReceiptGameData | null = null;
+
   for (let i = 0; i < events.length; i++) {
     const data = events[i].data ?? [];
     if (data.length < 10) continue;
@@ -64,7 +69,7 @@ export function parseGameFromReceipt(
 
       if (game.level === 0 && !over) continue;
 
-      return {
+      result = {
         blocks: game.blocks,
         nextRow: game.next_row,
         over: game.isOver(),
@@ -75,5 +80,5 @@ export function parseGameFromReceipt(
     }
   }
 
-  return null;
+  return result;
 }
