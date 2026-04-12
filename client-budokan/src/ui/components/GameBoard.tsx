@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { motion } from "motion/react";
 import { ChevronUp } from "lucide-react";
 import Grid from "./Grid";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
@@ -98,12 +97,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
           onNextLineUpdate={setNextLineOverride}
         />
         <div className="mt-1 flex items-center justify-center gap-1 py-0.5">
-          <motion.div
-            animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
+          <div className="chevron-pulse">
             <ChevronUp size={14} className="text-white/50" />
-          </motion.div>
+          </div>
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
             Next Row
           </span>

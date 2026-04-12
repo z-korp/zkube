@@ -508,11 +508,9 @@ const MapPage: React.FC = () => {
               const badgeX = guardianX + gr * 0.7;
               const badgeY = guardianY + gr * 0.7;
               return (
-                <motion.g
+                <g
                   onClick={() => setShowGreeting(true)}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: [1, 1.04, 1], opacity: 1 }}
-                  transition={{ scale: { duration: 3, repeat: Infinity, ease: "easeInOut" }, opacity: { delay: 0.1, duration: 0.3 } }}
+                  className="map-guardian-pulse"
                   style={{ cursor: "pointer", transformOrigin: `${guardianX}px ${guardianY}px` }}
                 >
                   <clipPath id="guardian-clip">
@@ -531,7 +529,7 @@ const MapPage: React.FC = () => {
                   <circle cx={badgeX} cy={badgeY} r={badgeR} fill={colors.accent} />
                   <text x={badgeX} y={badgeY + 0.2} textAnchor="middle" dominantBaseline="central" fill="#0a1628" fontSize={2.4} fontWeight="bold" fontFamily="Outfit, sans-serif">?</text>
                   <text x={guardianX} y={guardianY + gr + 2.5} textAnchor="middle" dominantBaseline="central" fill={colors.accent} fontSize={2} fontWeight="bold" fontFamily="Outfit, sans-serif">{guardian.name}</text>
-                </motion.g>
+                </g>
               );
             })()}
 
@@ -628,33 +626,22 @@ const MapPage: React.FC = () => {
 
                   {node.state === "playing" && (
                     <>
-                      <motion.circle
+                      <circle
                         cx={cx}
                         cy={cy}
                         r={r + 2.5}
                         fill={colors.accent}
-                        initial={{ opacity: 0.1 }}
-                        animate={{ opacity: [0.1, 0.3, 0.1] }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        }}
+                        className="map-playing-glow"
                       />
-                      <motion.circle
+                      <circle
                         cx={cx}
                         cy={cy}
                         r={r + 1.8}
                         fill="none"
                         stroke={colors.accent}
                         strokeWidth={1}
-                        initial={{ opacity: 0.9, scale: 1 }}
-                        animate={{ opacity: 0.25, scale: 1.35 }}
-                        transition={{
-                          duration: 1.2,
-                          repeat: Infinity,
-                          ease: "easeOut",
-                        }}
+                        className="map-playing-ring"
+                        style={{ transformOrigin: `${cx}px ${cy}px` }}
                       />
                     </>
                   )}
@@ -692,28 +679,16 @@ const MapPage: React.FC = () => {
                           const starX = cx - 2.5 + i * 2.5;
                           const starY = cy + r + 2.5;
                           return (
-                            <motion.text
+                            <text
                               key={i}
-                              initial={{ opacity: 0, scale: 0 }}
-                              animate={{
-                                opacity: 1,
-                                scale: 1,
-                                fill: filled ? "#FACC15" : "rgba(255,255,255,0.3)",
-                              }}
-                              transition={{
-                                delay: node.nodeInZone * 0.06 + 0.3 + i * 0.1,
-                                type: "spring",
-                                stiffness: 300,
-                                damping: 20,
-                              }}
-                              style={{ transformOrigin: `${starX}px ${starY}px` }}
+                              fill={filled ? "#FACC15" : "rgba(255,255,255,0.3)"}
                               x={starX}
                               y={starY}
                               fontSize={2}
                               textAnchor="middle"
                             >
                               ★
-                            </motion.text>
+                            </text>
                           );
                         })}
                       </g>
