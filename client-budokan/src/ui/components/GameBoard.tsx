@@ -18,6 +18,7 @@ interface GameBoardProps {
   activeBonus: BonusType;
   bonusDescription: string;
   onCascadeComplete?: () => void;
+  forceTxProcessing?: boolean;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -28,6 +29,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   activeBonus,
   bonusDescription,
   onCascadeComplete,
+  forceTxProcessing = false,
 }) => {
   const ROWS = 10;
   const COLS = 8;
@@ -38,6 +40,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [gridSize, setGridSize] = useState(40);
 
   const [isTxProcessing, setIsTxProcessing] = useState(false);
+  const effectiveTxProcessing = isTxProcessing || forceTxProcessing;
   const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
   const [nextLineOverride, setNextLineOverride] = useState<number[] | null>(null);
 
@@ -74,10 +77,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
     <div
       ref={containerRef}
       className={`relative flex h-full min-h-0 w-full flex-col p-2 md:p-3 ${
-        isTxProcessing ? "cursor-wait" : ""
+        effectiveTxProcessing ? "cursor-wait" : ""
       }`}
     >
-      <div className={`flex min-h-0 flex-1 flex-col items-center ${!isTxProcessing ? "cursor-move" : ""}`}>
+      <div className={`flex min-h-0 flex-1 flex-col items-center ${!effectiveTxProcessing ? "cursor-move" : ""}`}>
         <Grid
           gameId={game.id}
           initialData={memoizedInitialData}
@@ -88,7 +91,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           gridWidth={COLS}
           bonus={activeBonus}
           account={account}
-          isTxProcessing={isTxProcessing}
+          isTxProcessing={effectiveTxProcessing}
           setIsTxProcessing={setIsTxProcessing}
           levelTransitionPending={game.levelTransitionPending}
           onCascadeComplete={onCascadeComplete}

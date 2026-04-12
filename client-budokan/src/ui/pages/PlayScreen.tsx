@@ -131,6 +131,7 @@ const PlayScreen: React.FC = () => {
   const showEndlessGreeting = useNavigationStore((s) => s.showEndlessGreeting);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isGameLoading, setIsGameLoading] = useState(true);
+  const [surrendering, setSurrendering] = useState(false);
   const [cascadeComplete, setCascadeComplete] = useState(false);
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
   const prevGameStateRef = useRef<{
@@ -188,6 +189,7 @@ const PlayScreen: React.FC = () => {
   useEffect(() => {
     if (prevGameOverRef.current !== undefined) {
       if (!prevGameOverRef.current && toriiGame?.over) {
+        setSurrendering(false);
         const pending = useNavigationStore.getState().pendingLevelCompletion;
         if (toriiGame.zoneCleared) {
           playSfx("victory");
@@ -293,9 +295,11 @@ const PlayScreen: React.FC = () => {
     if (!account || !game) return;
     try {
       playSfx("click");
+      setSurrendering(true);
       await surrender({ account, game_id: game.id });
     } catch (error) {
       console.error("Surrender failed:", error);
+      setSurrendering(false);
     }
   }, [account, game, playSfx, surrender]);
 
@@ -519,6 +523,7 @@ const PlayScreen: React.FC = () => {
               activeBonus={activeBonus}
               bonusDescription={bonusDescription}
               onCascadeComplete={handleCascadeComplete}
+              forceTxProcessing={surrendering}
             />
           </div>
         )}
@@ -533,6 +538,7 @@ const PlayScreen: React.FC = () => {
               activeBonus={activeBonus}
               bonusDescription={bonusDescription}
               onCascadeComplete={handleCascadeComplete}
+              forceTxProcessing={surrendering}
             />
           </div>
         )}
