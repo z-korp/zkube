@@ -544,11 +544,12 @@ const MapPage: React.FC = () => {
               const cy = pt.y * VB_H;
               const stateColors = STATE_COLORS[node.state];
               const isPlayingNode =
+                !isDailyMap &&
                 activeStoryRun !== null &&
                 node.zone === activeStoryRun.zoneId &&
                 node.contractLevel === activeStoryRun.level;
               const blockedByActiveRun =
-                activeStoryRun !== null && !isPlayingNode;
+                !isDailyMap && activeStoryRun !== null && !isPlayingNode;
               const isInteractive =
                 node.state !== "locked" && !blockedByActiveRun;
               const label = getLabel(node);
@@ -567,7 +568,7 @@ const MapPage: React.FC = () => {
                 <motion.g
                   key={`node-${node.nodeInZone}`}
                   onClick={() => {
-                    if (activeStoryRun && !isPlayingNode) {
+                    if (!isDailyMap && activeStoryRun && !isPlayingNode) {
                       showToast({
                         message: `Run in progress on Zone ${activeStoryRun.zoneId}, Level ${activeStoryRun.level}.`,
                         type: "error",
@@ -575,7 +576,7 @@ const MapPage: React.FC = () => {
                       return;
                     }
 
-                    if (activeStoryRun && isPlayingNode) {
+                    if (!isDailyMap && activeStoryRun && isPlayingNode) {
                       navigate("play", activeStoryRun.gameId);
                       return;
                     }
