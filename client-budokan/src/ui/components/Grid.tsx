@@ -6,10 +6,8 @@ import { GameState } from "@/enums/gameEnums";
 import type { Block } from "@/types/types";
 import {
   removeCompleteRows,
-  isGridFull,
   removeBlocksSameWidth,
   removeBlocksInRows,
-  concatenateNewLineWithGridAndShiftGrid,
   transformDataContractIntoBlock,
 } from "@/utils/gridUtils";
 import AnimatedText from "../elements/animatedText";
@@ -155,14 +153,14 @@ const Grid: React.FC<GridProps> = ({
   const pendingReceiptRef = useRef<import("@/dojo/rpcReader").ReceiptGameData | null>(null);
 
   const applyReceipt = (parsed: { blocks: number[][]; nextRow: number[]; over: boolean; game: import("@/dojo/game/models/game").Game }) => {
-    const newBlocks = transformDataContractIntoBlock(parsed.blocks);
     const newNextLine = transformDataContractIntoBlock([parsed.nextRow]);
     // Update refs immediately (for pointer handler, before React re-renders)
     gameStateRef.current = GameState.WAITING;
     isTxProcessingRef.current = false;
-    // Schedule React state updates
-    setBlocks(newBlocks);
-    setSaveGridStateblocks(newBlocks);
+    // Save receipt blocks for error rollback — DON'T replace visible blocks.
+    // The local cascade already computed correct positions; replacing would
+    // destroy block IDs and kill CSS transitions (max-update-depth + animation cut).
+    setSaveGridStateblocks(transformDataContractIntoBlock(parsed.blocks));
     setNextLine(newNextLine);
     setIsTxProcessing(false);
     setGameState(GameState.WAITING);
@@ -180,9 +178,10 @@ const Grid: React.FC<GridProps> = ({
     if (!parsed) {
       return;
     }
-    // If cascade is done, apply now. Otherwise store for CASCADE_COMPLETE.
+    // Always store as pending — let the state machine apply it at the right time
+    // (UPDATE_AFTER_MOVE or CASCADE_COMPLETE) so cascade animation plays fully.
     const state = gameStateRef.current;
-    if (state === GameState.CASCADE_COMPLETE || state === GameState.WAITING) {
+    if (state === GameState.CASCADE_COMPLETE) {
       applyReceipt(parsed);
     } else {
       pendingReceiptRef.current = parsed;
@@ -562,15 +561,32 @@ const Grid: React.FC<GridProps> = ({
             setGameState(GameState.WAITING);
             break;
           }
-          const updatedBlocks = concatenateNewLineWithGridAndShiftGrid(blocks, nextLine, gridHeight);
-          setNextLineHasBeenConsumed(true);
-          if (isGridFull(updatedBlocks)) {
+          // Grid full after shift? (any block at y=0 would go to y=-1)
+          if (blocks.some(b => b.y === 0)) {
             setGameState(GameState.UPDATE_AFTER_MOVE);
             break;
           }
-          setBlocks(updatedBlocks);
-          setIsMoving(true);
-          setGameState(GameState.GRAVITY2);
+          // Phase 1: Place next-line blocks off-screen (y=gridHeight, clipped by SVG)
+          setBlocks(prev => [
+            ...prev,
+            ...nextLine.map(b => ({ ...b, y: gridHeight })),
+          ]);
+          setNextLineHasBeenConsumed(true);
+          setGameState(GameState.ADD_LINE_SHIFT);
+        }
+        break;
+
+      case GameState.ADD_LINE_SHIFT:
+        {
+          const needsShift = blocks.some(b => b.y >= gridHeight);
+          if (needsShift) {
+            // Phase 2: Shift ALL blocks up by 1 — CSS transitions animate the push
+            setBlocks(prev => prev.map(b => ({ ...b, y: b.y - 1 })));
+          } else if (transitioningBlocks.length === 0) {
+            // Shift animation complete → proceed to gravity
+            setIsMoving(true);
+            setGameState(GameState.GRAVITY2);
+          }
         }
         break;
 
@@ -665,6 +681,10 @@ const Grid: React.FC<GridProps> = ({
           <filter id="gf-shadow" x="-5%" y="-5%" width="110%" height="110%">
             <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000" floodOpacity="0.4" />
           </filter>
+          {/* Clip grid area so blocks sliding in/out are hidden beyond edges */}
+          <clipPath id="grid-clip">
+            <rect x={0} y={0} width={svgW} height={svgH} />
+          </clipPath>
         </defs>
 
         {/* ─── Frame border ─── */}
@@ -722,8 +742,8 @@ const Grid: React.FC<GridProps> = ({
           </>
         )}
 
-        {/* ─── Grid area (offset by frame padding) ─── */}
-        <g transform={`translate(${framePad}, ${framePad})`}>
+        {/* ─── Grid area (offset by frame padding, clipped for push animation) ─── */}
+        <g transform={`translate(${framePad}, ${framePad})`} clipPath="url(#grid-clip)">
           {/* Grid lines */}
           {Array.from({ length: gridWidth + 1 }, (_, i) => (
             <line

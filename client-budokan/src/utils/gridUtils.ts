@@ -72,6 +72,8 @@ export const concatenateAndShiftBlocksTutorial = (
   return [...shiftedInitialData, ...shiftedNextLineData];
 };
 
+let _blockIdCounter = 0;
+
 export const transformDataContractIntoBlock = (grid: number[][]): Block[] => {
   return grid.flatMap((row, y) => {
     const blocks: Block[] = [];
@@ -80,20 +82,19 @@ export const transformDataContractIntoBlock = (grid: number[][]): Block[] => {
     while (x < row.length) {
       const currentValue = row[x];
       if (currentValue > 0) {
-        // La largeur est définie par la valeur
         blocks.push({
-          id: y * 1000 + x * 10 + currentValue,
+          id: ++_blockIdCounter,
           x,
           y,
           width: currentValue,
         });
-        x += currentValue; // Passer à la prochaine position après ce bloc
+        x += currentValue;
       } else {
-        x++; // Passer à la colonne suivante si la valeur est 0
+        x++;
       }
     }
 
-    return blocks; // Retourner les blocs trouvés dans cette ligne
+    return blocks;
   });
 };
 
