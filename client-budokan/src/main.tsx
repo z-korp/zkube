@@ -7,7 +7,6 @@ import { DojoProvider } from "./dojo/context.tsx";
 import { dojoConfig } from "../dojo.config.ts";
 import { Loading } from "@/ui/screens/Loading";
 import { MusicPlayerProvider } from "./contexts/music";
-import { SoundPlayerProvider } from "./contexts/sound";
 import { ThemeProvider } from "./ui/elements/theme-provider/index";
 import {
   StarknetConfig,
@@ -19,7 +18,6 @@ import {
 import { sepolia, mainnet, type NativeCurrency } from "@starknet-react/chains";
 import cartridgeConnector from "./cartridgeConnector";
 import { MetagameProvider } from "./contexts/MetagameProvider";
-import { QuestsProvider } from "./contexts/quests";
 import { ControllersProvider } from "./contexts/controllers";
 import { GameEventsProvider } from "./contexts/gameEvents";
 import { useControllerUsername } from "./hooks/useControllerUsername";
@@ -80,13 +78,9 @@ function AppGate({ setupResult }: { setupResult: SetupResult | null }) {
         <div style={{ display: isReady ? "contents" : "none" }}>
           <DojoProvider value={setupResult}>
             <ControllersProvider>
-              <QuestsProvider>
-                <GameEventsProvider>
-                  <SoundPlayerProvider>
-                    <App />
-                  </SoundPlayerProvider>
-                </GameEventsProvider>
-              </QuestsProvider>
+              <GameEventsProvider>
+                <App />
+              </GameEventsProvider>
             </ControllersProvider>
           </DojoProvider>
         </div>

@@ -5,7 +5,6 @@ import { Account, type TransactionReceipt, uint256, type Uint256 } from "starkne
 import {
   getUrl,
   getWalnutUrl,
-  shouldShowToast,
   notify,
   showToast,
   deriveUserFacingErrorMessage,
@@ -117,13 +116,11 @@ export function systems({ client }: { client: IWorld }) {
     const toastId = `tx-${Date.now()}`;
 
     try {
-      if (shouldShowToast()) {
-        showToast({
-          message: "Transaction in progress...",
-          type: "loading",
-          toastId,
-        });
-      }
+      showToast({
+        message: "Transaction in progress...",
+        type: "loading",
+        toastId,
+      });
 
       const { transaction_hash } = await action();
       log.debug("Transaction submitted", {
@@ -132,14 +129,12 @@ export function systems({ client }: { client: IWorld }) {
         walnutUrl: getWalnutUrl(transaction_hash),
       });
 
-      if (shouldShowToast()) {
-        showToast({
-          message: "Transaction in progress...",
-          txHash: transaction_hash,
-          type: "loading",
-          toastId,
-        });
-      }
+      showToast({
+        message: "Transaction in progress...",
+        txHash: transaction_hash,
+        type: "loading",
+        toastId,
+      });
 
       const receipt = await waitForPreConfirmedTransaction(
         account,
@@ -149,13 +144,11 @@ export function systems({ client }: { client: IWorld }) {
 
       if ((receipt as any).execution_status === "REVERTED") {
         log.error("Transaction reverted", receipt);
-        if (shouldShowToast()) {
-          showToast({
-            message: "Transaction reverted.",
-            type: "error",
-            toastId,
-          });
-        }
+        showToast({
+          message: "Transaction reverted.",
+          type: "error",
+          toastId,
+        });
         throw new Error("Transaction reverted");
       }
 
@@ -164,13 +157,11 @@ export function systems({ client }: { client: IWorld }) {
     } catch (error) {
       log.error("Error executing transaction", error);
 
-      if (shouldShowToast()) {
-        const errorMessage =
-          error instanceof Error && error.message === "Transaction reverted"
-            ? "Transaction reverted."
-            : deriveUserFacingErrorMessage(error, "Transaction failed.");
-        showToast({ message: errorMessage, type: "error", toastId });
-      }
+      const errorMessage =
+        error instanceof Error && error.message === "Transaction reverted"
+          ? "Transaction reverted."
+          : deriveUserFacingErrorMessage(error, "Transaction failed.");
+      showToast({ message: errorMessage, type: "error", toastId });
 
       throw error;
     }

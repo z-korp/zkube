@@ -84,14 +84,14 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
   const weekEnd = weekEndTimestamp(weekId);
   const [sec, setSec] = useState(() => Math.max(0, weekEnd - Math.floor(Date.now() / 1000)));
 
-  useState(() => {
+  useEffect(() => {
     const id = setInterval(() => {
       const remaining = Math.max(0, weekEnd - Math.floor(Date.now() / 1000));
       setSec(remaining);
       if (remaining <= 0) clearInterval(id);
     }, 1000);
     return () => clearInterval(id);
-  });
+  }, [weekEnd]);
 
   // Check settlement status for previous week (per selected zone)
   const settlementKey = prevWeekId * 1000 + endlessSettingsId;

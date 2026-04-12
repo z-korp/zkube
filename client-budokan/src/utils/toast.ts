@@ -7,12 +7,6 @@ export const isMdOrLarger = (): boolean => {
   return window.matchMedia("(min-width: 768px)").matches;
 };
 
-export const shouldShowToast = (): boolean => {
-  // Always show toasts on all screen sizes
-  // Mobile toasts are positioned at top-center via CSS in index.css
-  return true;
-};
-
 export const isSmallHeight = (): boolean => {
   return window.matchMedia("(max-height: 768px)").matches;
 };
@@ -70,7 +64,6 @@ export const notify = (message: string, transaction: any, toastId: string) => {
   const toastPlacement = getToastPlacement();
 
   if (transaction.execution_status !== "REVERTED") {
-    if (!shouldShowToast()) return;
     toast.success(message, {
       id: toastId,
       description: shortenHex(transaction.transaction_hash),
@@ -102,8 +95,6 @@ export const showToast = ({
   toastId = "transaction-toast",
   durationMs,
 }: ShowToastOptions) => {
-  if (!shouldShowToast()) return;
-
   const toastPlacement = getToastPlacement();
   const toastOptions = {
     id: toastId,

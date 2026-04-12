@@ -20,17 +20,11 @@ import { ZONE_NAMES, getLevelFromXp, getTitleForLevel, type ZoneProgressData } f
 import { ZONE_GUARDIANS, getGuardianPortrait } from "@/config/bossCharacters";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { showToast } from "@/utils/toast";
+import { normalizeAddress } from "@/hooks/useGetUsernames";
 import Connect from "@/ui/components/Connect";
 import ModePill from "@/ui/components/shared/ModePill";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 import UnlockModal from "@/ui/components/profile/UnlockModal";
-
-const normalizeAddress = (address: string | undefined): string | undefined => {
-  if (!address) return undefined;
-  if (!address.startsWith("0x")) return address;
-  const hex = address.slice(2).replace(/^0+/, "") || "0";
-  return `0x${hex}`;
-};
 
 const getThemeId = (zoneId: number): ThemeId => {
   const normalized = Math.min(10, Math.max(1, zoneId));
@@ -276,7 +270,7 @@ const HomePage: React.FC = () => {
   }, [setMusicPlaylist]);
 
   const shouldFetchMyGames = Boolean(account?.address);
-  const normalizedOwner = normalizeAddress(account?.address);
+  const normalizedOwner = account?.address ? normalizeAddress(account.address) : undefined;
   const activeStoryRun = useActiveStoryAttempt();
 
   const { games: ownedGames } = useGameTokensSlot({

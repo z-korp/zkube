@@ -20,14 +20,10 @@ export interface MusicPlayerContextValue {
   currentContext: MusicContext;
   isPlaying: boolean;
   playSfx: (name: SfxName) => void;
-  playStart: () => void;
-  playOver: () => void;
   playSwipe: () => void;
   playExplode: () => void;
-  playSuccess: () => void;
   playTheme: () => void;
   stopTheme: () => void;
-  setTheme: (theme: boolean) => void;
 }
 
 const DEFAULT_MUSIC_CONTEXT: MusicContext = "main";
@@ -42,14 +38,10 @@ export const MusicPlayerContext = createContext<MusicPlayerContextValue>({
   currentContext: DEFAULT_MUSIC_CONTEXT,
   isPlaying: false,
   playSfx: noop,
-  playStart: noop,
-  playOver: noop,
   playSwipe: noop,
   playExplode: noop,
-  playSuccess: noop,
   playTheme: noop,
   stopTheme: noop,
-  setTheme: noop,
 });
 
 const clampVolume = (volume: number): number => Math.min(Math.max(volume, 0), 1);
@@ -180,24 +172,8 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
     setIsPlaying(audioManager.isPlaying);
   }, []);
 
-  const setTheme = useCallback(
-    (theme: boolean) => {
-      const nextContext: MusicContext = theme ? "main" : "level";
-      setMusicContext(nextContext);
-    },
-    [setMusicContext],
-  );
-
   const playSfx = useCallback((name: SfxName) => {
     audioManager.playSfx(name);
-  }, []);
-
-  const playStart = useCallback(() => {
-    audioManager.playSfx("start");
-  }, []);
-
-  const playOver = useCallback(() => {
-    audioManager.playSfx("over");
   }, []);
 
   const playSwipe = useCallback(() => {
@@ -206,10 +182,6 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
 
   const playExplode = useCallback(() => {
     audioManager.playSfx("explode");
-  }, []);
-
-  const playSuccess = useCallback(() => {
-    audioManager.playSfx("new");
   }, []);
 
   const value = useMemo<MusicPlayerContextValue>(
@@ -223,14 +195,10 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       currentContext,
       isPlaying,
       playSfx,
-      playStart,
-      playOver,
       playSwipe,
       playExplode,
-      playSuccess,
       playTheme,
       stopTheme,
-      setTheme,
     }),
     [
       musicVolume,
@@ -242,14 +210,10 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       currentContext,
       isPlaying,
       playSfx,
-      playStart,
-      playOver,
       playSwipe,
       playExplode,
-      playSuccess,
       playTheme,
       stopTheme,
-      setTheme,
     ],
   );
 

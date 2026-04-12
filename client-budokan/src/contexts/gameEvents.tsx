@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { NAMESPACE } from "@/constants";
 import { useDojo } from "@/dojo/useDojo";
 import { getToastPlacement } from "@/utils/toast";
+import { normalizeAddress } from "@/hooks/useGetUsernames";
 import {
   ConstraintProgress,
   LevelCompleted,
@@ -19,12 +20,6 @@ import {
 interface GameEventsContextType {}
 
 const GameEventsContext = createContext<GameEventsContextType | undefined>(undefined);
-
-const normalizeAddress = (address: string): string => {
-  if (!address.startsWith("0x")) return address;
-  const hex = address.slice(2).replace(/^0+/, "") || "0";
-  return `0x${hex}`;
-};
 
 const getPlayerEventQuery = (namespace: string, playerId: string) => {
   const startGame: `${string}-${string}` = `${namespace}-${StartGame.getModelName()}`;
