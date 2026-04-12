@@ -111,7 +111,7 @@ const Grid: React.FC<GridProps> = ({
   const { shouldBounce, animateText, resetAnimateText, setAnimateText } =
     useGridAnimations(lineExplodedCount);
   const {
-    transitioningBlocks,
+    isTransitioning,
     handleTransitionBlockStart,
     handleTransitionBlockEnd,
   } = useTransitionBlocks();
@@ -334,6 +334,21 @@ const Grid: React.FC<GridProps> = ({
     onDragStart(e.clientX, block);
   }, [onDragStart, setIsTxProcessing]);
 
+  // Stable callback refs — identity never changes so Block's React.memo works.
+  const handlePointerDownRef = useRef(handlePointerDown);
+  handlePointerDownRef.current = handlePointerDown;
+  const stablePointerDown = useCallback(
+    (e: React.PointerEvent<SVGGElement>, block: Block) => handlePointerDownRef.current(e, block), [],
+  );
+
+  const handleTransitionStartRef = useRef(handleTransitionBlockStart);
+  handleTransitionStartRef.current = handleTransitionBlockStart;
+  const stableTransitionStart = useCallback((id: number) => handleTransitionStartRef.current(id), []);
+
+  const handleTransitionEndRef = useRef(handleTransitionBlockEnd);
+  handleTransitionEndRef.current = handleTransitionBlockEnd;
+  const stableTransitionEnd = useCallback((id: number) => handleTransitionEndRef.current(id), []);
+
   // Document-level listeners for move and end (works outside SVG bounds)
   useEffect(() => {
     const move = (e: PointerEvent) => onDragMoveRef.current(e.clientX);
@@ -494,28 +509,39 @@ const Grid: React.FC<GridProps> = ({
 
   // STATE MACHINE
   useEffect(() => {
-    const intervalRef = { current: null as NodeJS.Timeout | null };
-    const applyGravityWithInterval = () => {
-      intervalRef.current = setInterval(() => applyGravity(), gravitySpeed);
+    let rafId: number | null = null;
+    const applyGravityWithRAF = () => {
+      // Start from now so the first tick waits gravitySpeed ms —
+      // this gives CSS transitions time to start and fire transitionstart
+      // events before we check isTransitioning.
+      let lastTick = performance.now();
+      const step = (timestamp: number) => {
+        if (timestamp - lastTick >= gravitySpeed) {
+          lastTick = timestamp;
+          applyGravity();
+        }
+        rafId = requestAnimationFrame(step);
+      };
+      rafId = requestAnimationFrame(step);
     };
 
     switch (gameState) {
       case GameState.GRAVITY:
       case GameState.GRAVITY2:
       case GameState.GRAVITY_BONUS:
-        if (!isMoving && transitioningBlocks.length === 0) {
+        if (!isMoving && !isTransitioning) {
           switch (gameState) {
             case GameState.GRAVITY: setGameState(GameState.LINE_CLEAR); break;
             case GameState.GRAVITY2: setGameState(GameState.LINE_CLEAR2); break;
             case GameState.GRAVITY_BONUS: setGameState(GameState.LINE_CLEAR_BONUS); break;
           }
         } else {
-          applyGravityWithInterval();
+          applyGravityWithRAF();
         }
         break;
 
       case GameState.ADD_LINE:
-        if (transitioningBlocks.length > 0) break;
+        if (isTransitioning) break;
         if (!currentMove) {
           setIsMoving(false);
           setGameState(GameState.WAITING);
@@ -608,9 +634,9 @@ const Grid: React.FC<GridProps> = ({
     }
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (rafId !== null) cancelAnimationFrame(rafId);
     };
-  }, [gameState, isMoving, transitioningBlocks]);
+  }, [gameState, isMoving, isTransitioning]);
 
   // =================== RENDER ===================
 
@@ -740,9 +766,9 @@ const Grid: React.FC<GridProps> = ({
               state={gameState}
               isExploding={explodingRows.has(block.y)}
               blockImages={blockImages}
-              onPointerDown={handlePointerDown}
-              onTransitionBlockStart={handleTransitionBlockStart}
-              onTransitionBlockEnd={handleTransitionBlockEnd}
+              onPointerDown={stablePointerDown}
+              onTransitionBlockStart={stableTransitionStart}
+              onTransitionBlockEnd={stableTransitionEnd}
             />
           ))}
         </g>

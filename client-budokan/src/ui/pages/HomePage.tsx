@@ -127,20 +127,11 @@ const CtaGuardian: React.FC = () => {
       className="relative mx-auto mt-2 flex max-w-[360px] flex-col items-center gap-4"
     >
       {/* Guardian portrait in a circle */}
-      <motion.div
-        className="relative h-36 w-36 overflow-hidden rounded-full"
+      <div
+        className="relative h-36 w-36 overflow-hidden rounded-full guardian-pulse"
         style={{
           border: `3px solid ${gColors.accent}44`,
           boxShadow: `0 0 30px ${gColors.accent}22`,
-        }}
-        initial={{ opacity: 0, scale: 0.85 }}
-        animate={{
-          opacity: 1,
-          scale: [1, 1.03, 1],
-        }}
-        transition={{
-          opacity: { delay: 0.2, duration: 0.5 },
-          scale: { delay: 0.5, duration: 4, repeat: Infinity, ease: "easeInOut" },
         }}
       >
         <img
@@ -149,7 +140,7 @@ const CtaGuardian: React.FC = () => {
           className="h-full w-full object-cover"
           draggable={false}
         />
-      </motion.div>
+      </div>
 
       {/* Catchphrase */}
       <p className="text-center font-sans text-[14px] italic text-white/50">
@@ -168,7 +159,7 @@ const CtaGuardian: React.FC = () => {
           line.blocks.map((b, bi) => {
             const cellPct = 100 / CELLS;
             return (
-              <motion.img
+              <img
                 key={`${li}-${bi}`}
                 src={blockSrcs[b.size]}
                 alt=""
@@ -177,19 +168,7 @@ const CtaGuardian: React.FC = () => {
                   left: `${b.cellX * cellPct}%`,
                   width: `${b.size * cellPct}%`,
                   aspectRatio: `${b.size} / 1`,
-                }}
-                animate={{
-                  y: [-20, 280],
-                  opacity: [0, 0.85, 0.8, 0.7],
-                }}
-                transition={{
-                  delay: line.delay,
-                  duration: line.duration / b.speed,
-                  repeat: Infinity,
-                  // All blocks in a line must restart together:
-                  // total = duration + repeatDelay = totalCycle (constant per line)
-                  repeatDelay: line.totalCycle - line.duration / b.speed,
-                  ease: "easeIn",
+                  animation: `fallingBlock ${line.totalCycle}s ease-in ${line.delay}s infinite`,
                 }}
                 draggable={false}
               />
