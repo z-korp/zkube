@@ -361,15 +361,16 @@ const MapPage: React.FC = () => {
     if (zoneProgressData !== undefined) setDataStabilized(true);
   }, [zoneProgressData]);
 
-  // Auto-show guardian greeting only on first visit to a zone (session-stable via store)
+  // Auto-show guardian greeting only on first visit to a zone (session-stable via store).
+  // Never show after level completion — pendingLevelCompletion means we just came from PlayScreen.
   useEffect(() => {
-    if (!dataStabilized || alreadyGreeted || isDailyMap) return;
+    if (!dataStabilized || alreadyGreeted || isDailyMap || pendingLevelCompletion) return;
     if (zoneProgressData === undefined || !zoneProgressData.unlocked) return;
     if (storyZoneStars === 0 && storyHighestCleared === 0) {
       setShowGreeting(true);
       markZoneGreeted(mapZoneId);
     }
-  }, [dataStabilized, zoneProgressData, storyZoneStars, storyHighestCleared, alreadyGreeted, isDailyMap, mapZoneId, markZoneGreeted]);
+  }, [dataStabilized, zoneProgressData, storyZoneStars, storyHighestCleared, alreadyGreeted, isDailyMap, mapZoneId, markZoneGreeted, pendingLevelCompletion]);
 
   return (
     <div className="relative flex h-full flex-col">
