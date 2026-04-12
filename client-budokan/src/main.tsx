@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { setup } from "./dojo/setup.ts";
@@ -13,6 +13,7 @@ import {
   StarknetConfig,
   jsonRpcProvider,
   voyager,
+  useAccount,
   type Connector,
 } from "@starknet-react/core";
 import { sepolia, mainnet, type NativeCurrency } from "@starknet-react/chains";
@@ -21,6 +22,7 @@ import { MetagameProvider } from "./contexts/MetagameProvider";
 import { QuestsProvider } from "./contexts/quests";
 import { ControllersProvider } from "./contexts/controllers";
 import { GameEventsProvider } from "./contexts/gameEvents";
+import { useControllerUsername } from "./hooks/useControllerUsername";
 
 import "./index.css";
 import { type BigNumberish, shortString, PaymasterRpc } from "starknet";
@@ -44,12 +46,59 @@ const root = createRoot(
   document.getElementById("root") as HTMLElement
 );
 
+/** Gates the app on Dojo setup + Cartridge reconnect + username resolution */
+function AppGate({ setupResult }: { setupResult: SetupResult | null }) {
+  const { account, isConnected } = useAccount();
+  const { username } = useControllerUsername();
+
+  // Detect if there's a stored session that autoConnect will restore
+  const [hadStoredSession] = useState(() => {
+    try {
+      return localStorage.getItem("lastUsedConnector") !== null;
+    } catch {
+      return false;
+    }
+  });
+
+  // Fallback: don't block forever if reconnect or username fetch hangs
+  const [timedOut, setTimedOut] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setTimedOut(true), 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Wait for: dojo setup + account object (not just isConnected) + username
+  const isReady = !!setupResult
+    && (timedOut || !hadStoredSession || !!account)
+    && (timedOut || !isConnected || !!username);
+
+
+  return (
+    <>
+      {!isReady && <Loading />}
+      {setupResult && (
+        <div style={{ display: isReady ? "contents" : "none" }}>
+          <DojoProvider value={setupResult}>
+            <ControllersProvider>
+              <QuestsProvider>
+                <GameEventsProvider>
+                  <SoundPlayerProvider>
+                    <App />
+                  </SoundPlayerProvider>
+                </GameEventsProvider>
+              </QuestsProvider>
+            </ControllersProvider>
+          </DojoProvider>
+        </div>
+      )}
+    </>
+  );
+}
+
 export function Main() {
   const connectors: Connector[] = cartridgeConnector ? [cartridgeConnector] : [];
 
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
-
-  const loading = useMemo(() => !setupResult, [setupResult]);
 
   useEffect(() => {
     async function initialize() {
@@ -141,21 +190,7 @@ export function Main() {
         >
           <MusicPlayerProvider>
             <MetagameProvider>
-              {!loading && setupResult ? (
-                <DojoProvider value={setupResult}>
-                  <ControllersProvider>
-                    <QuestsProvider>
-                      <GameEventsProvider>
-                        <SoundPlayerProvider>
-                          <App />
-                        </SoundPlayerProvider>
-                      </GameEventsProvider>
-                    </QuestsProvider>
-                  </ControllersProvider>
-                </DojoProvider>
-              ) : (
-                <Loading />
-              )}
+              <AppGate setupResult={setupResult} />
             </MetagameProvider>
           </MusicPlayerProvider>
         </StarknetConfig>

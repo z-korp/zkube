@@ -368,9 +368,7 @@ mod game_system {
             )
         }
 
-        fn get_grid(
-            self: @ContractState, game_id: felt252,
-        ) -> (felt252, u32, felt252) {
+        fn get_grid(self: @ContractState, game_id: felt252) -> (felt252, u32, felt252) {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
             (game.blocks, game.next_row, game.run_data)
