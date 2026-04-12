@@ -29,7 +29,6 @@ export default defineConfig({
             "@dojoengine/utils",
           ],
           "vendor-ui": ["motion"],
-          "vendor-particles": ["@tsparticles/engine", "@tsparticles/slim"],
         },
       },
     },
