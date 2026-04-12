@@ -9,6 +9,7 @@ import { useDojo } from "@/dojo/useDojo";
 import { isBossLevel as checkBossLevel } from "@/dojo/game/helpers/runDataPacking";
 import { BonusType } from "@/dojo/game/types/bonusTypes";
 import { useNavigationStore } from "@/stores/navigationStore";
+import { useReceiptGameStore } from "@/stores/receiptGameStore";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import GameHud from "@/ui/components/hud/GameHud";
 import GameActionBar from "@/ui/components/actionbar/GameActionBar";
@@ -64,10 +65,24 @@ const PlayScreen: React.FC = () => {
   const { setMusicContext, setMusicPlaylist, playSfx } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
 
-  const { game, seed } = useGame({
+  const { game: toriiGame, seed } = useGame({
     gameId: gameId ?? 0n,
     shouldLog: false,
   });
+  // Receipt game overrides Torii for instant HUD updates after move/bonus.
+  // Receipt is authoritative — Torii never overwrites it. Only cleared on game change.
+  const receiptGame = useReceiptGameStore((s) => s.game);
+  const game = useMemo(() => {
+    if (!toriiGame) return toriiGame; // preserve null (same type as useGame returns)
+    if (receiptGame && receiptGame.id === toriiGame.id) return receiptGame;
+    return toriiGame;
+  }, [toriiGame, receiptGame]);
+
+  // Clear receipt game when switching to a different game (navigation)
+  useEffect(() => {
+    useReceiptGameStore.getState().setGame(null);
+  }, [gameId]);
+
   const grid = useGrid({ gameId: game?.id ?? 0n, shouldLog: true });
   const gameLevel = useGameLevel({ gameId: game?.id });
 

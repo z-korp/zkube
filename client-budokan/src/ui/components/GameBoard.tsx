@@ -1,15 +1,12 @@
-import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "motion/react";
 import { ChevronUp } from "lucide-react";
-import { useDojo } from "@/dojo/useDojo";
-import { Account } from "starknet";
 import Grid from "./Grid";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
-import type { Block } from "@/types/types";
 import { BonusType } from "@/dojo/game/types/bonusTypes";
 import { Game } from "@/dojo/game/models/game";
-import { useMusicPlayer } from "@/contexts/hooks";
+import { Account } from "starknet";
 
 import "../../grid.css";
 
@@ -32,13 +29,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   bonusDescription,
   onCascadeComplete,
 }) => {
-  const {
-    setup: {
-      systemCalls: { applyBonus },
-    },
-  } = useDojo();
-  const { playSfx } = useMusicPlayer();
-
   const ROWS = 10;
   const COLS = 8;
   const NEXT_LINE_ROWS = 1;
@@ -70,39 +60,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
     return () => observer.disconnect();
   }, [COLS, ROWS, NEXT_LINE_ROWS, HORIZONTAL_PADDING, VERTICAL_CHROME]);
 
-  const handleBonusTx = useCallback(
-    async (_bonusType: BonusType, rowIndex: number, colIndex: number) => {
-      if (!account) return;
-
-      setIsTxProcessing(true);
-      try {
-        await applyBonus({
-          account: account as Account,
-          game_id: game.id,
-          row_index: ROWS - rowIndex - 1,
-          block_index: colIndex,
-        });
-        playSfx("bonus-activate");
-      } finally {
-        setIsTxProcessing(false);
-      }
-    },
-    [account, applyBonus, game.id, playSfx],
-  );
-
-  const selectBlock = useCallback(
-    async (block: Block) => {
-      if (activeBonus === BonusType.Hammer) {
-        handleBonusTx(BonusType.Hammer, block.y, block.x);
-      } else if (activeBonus === BonusType.Totem) {
-        handleBonusTx(BonusType.Totem, block.y, block.x);
-      } else if (activeBonus === BonusType.Wave) {
-        handleBonusTx(BonusType.Wave, block.y, block.x);
-      }
-    },
-    [activeBonus, handleBonusTx],
-  );
-
   const memoizedInitialData = useMemo(() => {
     return transformDataContractIntoBlock(initialGrid);
   }, [initialGrid]);
@@ -110,11 +67,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const memoizedNextLineData = useMemo(() => {
     return transformDataContractIntoBlock([nextLineOverride ?? nextLine]);
   }, [nextLine, nextLineOverride]);
-
-  // Clear override when Torii catches up (nextLine prop changes)
-  useEffect(() => {
-    setNextLineOverride(null);
-  }, [nextLine]);
 
   if (memoizedInitialData.length === 0) return null;
 
@@ -134,7 +86,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
           gridSize={gridSize}
           gridHeight={ROWS}
           gridWidth={COLS}
-          selectBlock={selectBlock}
           bonus={activeBonus}
           account={account}
           isTxProcessing={isTxProcessing}

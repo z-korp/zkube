@@ -288,18 +288,19 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
-  const applyBonus = async ({ account, ...props }: SystemTypes.BonusTx) => {
+  const applyBonus = async ({ account, ...props }: SystemTypes.BonusTx): Promise<{ events: any[] }> => {
     log.debug("applyBonus", { account: account.address, ...props });
     const setMoveComplete = useMoveStore.getState().setMoveComplete;
     setMoveComplete(false);
 
     try {
-      await handleTransaction(
+      const result = await handleTransaction(
         account,
         () => client.game.bonus({ account, ...props }),
         "Bonus has been applied.",
       );
       setMoveComplete(true);
+      return { events: result.events ?? [] };
     } catch (error) {
       setMoveComplete(true);
       throw error;

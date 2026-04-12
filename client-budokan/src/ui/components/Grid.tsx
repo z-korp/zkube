@@ -21,6 +21,7 @@ import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
 import useGridAnimations from "@/hooks/useGridAnimations";
 import { useMoveStore } from "@/stores/moveTxStore";
+import { useReceiptGameStore } from "@/stores/receiptGameStore";
 import { parseGameFromReceipt } from "@/dojo/rpcReader";
 import { calculateFallDistance } from "@/utils/gridPhysics";
 import useTransitionBlocks from "@/hooks/useTransitionBlocks";
@@ -36,7 +37,6 @@ interface GridProps {
   gridSize: number;
   gridWidth: number;
   gridHeight: number;
-  selectBlock: (block: Block) => void;
   bonus: BonusType;
   account: Account | null;
   isTxProcessing: boolean;
@@ -54,7 +54,6 @@ const Grid: React.FC<GridProps> = ({
   gridHeight,
   gridWidth,
   gridSize,
-  selectBlock,
   bonus,
   account,
   isTxProcessing,
@@ -65,7 +64,7 @@ const Grid: React.FC<GridProps> = ({
 }) => {
   const {
     setup: {
-      systemCalls: { move },
+      systemCalls: { move, applyBonus },
     },
   } = useDojo();
 
@@ -105,7 +104,7 @@ const Grid: React.FC<GridProps> = ({
   const [lineExplodedCount, setLineExplodedCount] = useState(0);
   const [blockBonus, setBlockBonus] = useState<Block | null>(null);
   const [explodingRows, setExplodingRows] = useState<Set<number>>(new Set());
-  const { playExplode, playSwipe } = useMusicPlayer();
+  const { playExplode, playSwipe, playSfx } = useMusicPlayer();
 
   // ==================== Custom Hooks ====================
   const queue = useMoveStore((state) => state.queue);
@@ -153,9 +152,9 @@ const Grid: React.FC<GridProps> = ({
   }, [gameState]);
 
   // =================== Receipt-based sync (replaces Torii for moves/bonuses) ===================
-  const pendingReceiptRef = useRef<{ blocks: number[][]; nextRow: number[]; over: boolean } | null>(null);
+  const pendingReceiptRef = useRef<import("@/dojo/rpcReader").ReceiptGameData | null>(null);
 
-  const applyReceipt = (parsed: { blocks: number[][]; nextRow: number[]; over: boolean }) => {
+  const applyReceipt = (parsed: { blocks: number[][]; nextRow: number[]; over: boolean; game: import("@/dojo/game/models/game").Game }) => {
     const newBlocks = transformDataContractIntoBlock(parsed.blocks);
     const newNextLine = transformDataContractIntoBlock([parsed.nextRow]);
     // Update refs immediately (for pointer handler, before React re-renders)
@@ -170,6 +169,8 @@ const Grid: React.FC<GridProps> = ({
     // Update the preview in GameBoard with the receipt's next line
     onNextLineUpdate?.(parsed.nextRow);
     setNextLineHasBeenConsumed(false);
+    // Push full Game to store so HUD updates instantly
+    useReceiptGameStore.getState().setGame(parsed.game);
     pendingReceiptRef.current = null;
   };
 
@@ -392,8 +393,8 @@ const Grid: React.FC<GridProps> = ({
         store.markFailed(nextQueuedMove.id, message);
         store.clearQueueForGame(gameId);
 
-        setBlocks(initialData);
-        setSaveGridStateblocks(initialData);
+        // Roll back to last known-good state (from last receipt or initial load)
+        setBlocks(saveGridStateblocks);
         setNextLine(nextLineData);
         setLineExplodedCount(0);
         setcurrentMove(null);
@@ -404,8 +405,11 @@ const Grid: React.FC<GridProps> = ({
         gameStateRef.current = GameState.WAITING;
         setGameState(GameState.WAITING);
         setIsTxProcessing(false);
+        isTxProcessingRef.current = false;
+        // Clear receipt game so Torii can take over as fallback
+        useReceiptGameStore.getState().setGame(null);
 
-        showToast({ type: "error", message: "Move sync failed. Grid rolled back to chain state." });
+        showToast({ type: "error", message: "Move sync failed. Grid rolled back." });
       } finally {
         store.setQueueProcessing(false);
       }
@@ -421,6 +425,40 @@ const Grid: React.FC<GridProps> = ({
       sendMoveTX(rowIndex, startX, finalX);
     }
   }, [currentMove]);
+
+  // =================== BONUS TX ===================
+
+  const fireBonusTx = useCallback(
+    async (block: Block) => {
+      if (!account) return;
+      try {
+        const { events } = await applyBonus({
+          account: account as Account,
+          game_id: gameId,
+          row_index: gridHeight - 1 - block.y,
+          block_index: block.x,
+        });
+        playSfx("bonus-activate");
+        queueMicrotask(() => receiptSyncRef.current(events));
+      } catch (error) {
+        // Rollback grid to last known good state
+        setBlocks(saveGridStateblocks);
+        setNextLine(nextLineData);
+        setLineExplodedCount(0);
+        setBlockBonus(null);
+        setExplodingRows(new Set());
+        gameStateRef.current = GameState.WAITING;
+        setGameState(GameState.WAITING);
+        setIsTxProcessing(false);
+        isTxProcessingRef.current = false;
+        // Clear receipt game so Torii can take over as fallback
+        useReceiptGameStore.getState().setGame(null);
+
+        showToast({ type: "error", message: "Bonus failed. Grid rolled back." });
+      }
+    },
+    [account, applyBonus, gameId, gridHeight, playSfx, saveGridStateblocks, nextLineData, setIsTxProcessing],
+  );
 
   // =================== GAME LOGIC ===================
 
@@ -558,7 +596,7 @@ const Grid: React.FC<GridProps> = ({
           setDangerLevel(hasCritical ? 2 : hasWarning ? 1 : 0);
 
           if (gameState === GameState.UPDATE_AFTER_BONUS) {
-            selectBlock(blockBonus as Block);
+            fireBonusTx(blockBonus as Block);
             setBlockBonus(null);
             setIsTxProcessing(true);
             gameStateRef.current = GameState.CASCADE_COMPLETE;

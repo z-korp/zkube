@@ -9,14 +9,17 @@
 
 import { Game } from "@/dojo/game/models/game";
 
-export function parseGameFromReceipt(
-  events: any[],
-  gameId: bigint,
-): {
+export interface ReceiptGameData {
   blocks: number[][];
   nextRow: number[];
   over: boolean;
-} | null {
+  game: Game;
+}
+
+export function parseGameFromReceipt(
+  events: any[],
+  gameId: bigint,
+): ReceiptGameData | null {
   if (!events || events.length === 0) return null;
 
   for (let i = 0; i < events.length; i++) {
@@ -65,6 +68,7 @@ export function parseGameFromReceipt(
         blocks: game.blocks,
         nextRow: game.next_row,
         over: game.isOver(),
+        game,
       };
     } catch {
       continue;
