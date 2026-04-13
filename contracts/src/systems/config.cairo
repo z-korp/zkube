@@ -1238,7 +1238,7 @@ mod config_system {
         // Mutator 4 — Foundation Stone (Z2 Egypt passive)
         let mut m4 = MutatorEffectsTrait::neutral(4);
         m4.zone_id = 2;
-        m4.score_mult_x100 = 120;
+        m4.score_mult_x100 = 200;
         m4.perfect_clear_bonus = 20;
         m4.starting_rows = 5;
         world.write_model(@m4);
@@ -1246,7 +1246,6 @@ mod config_system {
         // Mutator 6 — Frozen Rage (Z3 Norse passive)
         let mut m6 = MutatorEffectsTrait::neutral(6);
         m6.zone_id = 3;
-        m6.score_mult_x100 = 110;
         m6.line_clear_bonus = 3;
         m6.starting_rows = 4;
         m6.combo_bonus_mult_x100 = 150; // combo fury
@@ -1255,7 +1254,7 @@ mod config_system {
         // Mutator 8 — Marble Discipline (Z4 Greece passive)
         let mut m8 = MutatorEffectsTrait::neutral(8);
         m8.zone_id = 4;
-        m8.score_mult_x100 = 130;
+        m8.score_mult_x100 = 250;
         m8.star_threshold_modifier = 130; // +10% (harder stars)
         m8.perfect_clear_bonus = 15;
         m8.starting_rows = 5;
@@ -1264,7 +1263,6 @@ mod config_system {
         // Mutator 10 — Imperial Scale (Z5 China passive)
         let mut m10 = MutatorEffectsTrait::neutral(10);
         m10.zone_id = 5;
-        m10.score_mult_x100 = 115;
         m10.line_clear_bonus = 4;
         m10.starting_rows = 6;
         world.write_model(@m10);
@@ -1272,18 +1270,17 @@ mod config_system {
         // Mutator 12 — Geometric Flow (Z6 Persia passive)
         let mut m12 = MutatorEffectsTrait::neutral(12);
         m12.zone_id = 6;
-        m12.score_mult_x100 = 115;
         m12.star_threshold_modifier = 129; // +5% (slightly harder stars)
         m12.line_clear_bonus = 1;
         m12.perfect_clear_bonus = 10;
         m12.starting_rows = 5;
-        m12.combo_bonus_mult_x100 = 175; // combo enabler
+        m12.combo_bonus_mult_x100 = 200; // combo enabler
         world.write_model(@m12);
 
         // Mutator 14 — Bushido (Z7 Japan passive)
         let mut m14 = MutatorEffectsTrait::neutral(14);
         m14.zone_id = 7;
-        m14.score_mult_x100 = 140;
+        m14.score_mult_x100 = 300;
         m14.star_threshold_modifier = 131; // +15% (quite hard)
         m14.perfect_clear_bonus = 10;
         m14.starting_rows = 5;
@@ -1292,7 +1289,6 @@ mod config_system {
         // Mutator 16 — Jungle Altar (Z8 Mayan passive)
         let mut m16 = MutatorEffectsTrait::neutral(16);
         m16.zone_id = 8;
-        m16.score_mult_x100 = 120;
         m16.star_threshold_modifier = 130; // +10% (harder stars)
         m16.starting_rows = 6;
         m16.combo_bonus_mult_x100 = 200; // skill-gated doubler
@@ -1301,17 +1297,16 @@ mod config_system {
         // Mutator 18 — Primal Pulse (Z9 Tribal passive)
         let mut m18 = MutatorEffectsTrait::neutral(18);
         m18.zone_id = 9;
-        m18.score_mult_x100 = 125;
         m18.star_threshold_modifier = 130; // +10% (harder stars)
         m18.line_clear_bonus = 2;
         m18.starting_rows = 6;
-        m18.combo_bonus_mult_x100 = 175; // combo cascader
+        m18.combo_bonus_mult_x100 = 200; // combo cascader
         world.write_model(@m18);
 
         // Mutator 20 — Altitude (Z10 Inca passive)
         let mut m20 = MutatorEffectsTrait::neutral(20);
         m20.zone_id = 10;
-        m20.score_mult_x100 = 160;
+        m20.score_mult_x100 = 300;
         m20.star_threshold_modifier = 132; // +20% (endgame pressure)
         m20.perfect_clear_bonus = 30;
         m20.starting_rows = 7;
