@@ -319,7 +319,7 @@ mod config_system {
         z2_endless.passive_mutator_id = 4;
         z2_endless.boss_id = 0;
         // packed [0, 20, 55, 105, 200, 370, 650, 1170]
-        z2_endless.endless_difficulty_thresholds = 92697735950297376096128832307220;
+        z2_endless.endless_difficulty_thresholds = 6075038823238688839835899154085969920;
         // packed [10, 15, 20, 35, 50, 70, 100, 130]
         z2_endless.endless_score_multipliers = 9395711903752523530;
         world.write_model(@z2_endless);
@@ -392,7 +392,7 @@ mod config_system {
         z3_endless.passive_mutator_id = 6;
         z3_endless.boss_id = 0;
         // packed [0, 15, 35, 70, 130, 240, 420, 750]
-        z3_endless.endless_difficulty_thresholds = 59421629638969746509149254123535;
+        z3_endless.endless_difficulty_thresholds = 3894255920019521307223605518239989760;
         // packed [10, 15, 20, 30, 45, 65, 90, 120]
         z3_endless.endless_score_multipliers = 8672315694489276170;
         world.write_model(@z3_endless);
@@ -465,7 +465,7 @@ mod config_system {
         z4_endless.passive_mutator_id = 8;
         z4_endless.boss_id = 0;
         // packed [0, 12, 30, 60, 120, 220, 400, 700]
-        z4_endless.endless_difficulty_thresholds = 55460197334371199640621654343692;
+        z4_endless.endless_difficulty_thresholds = 3634639492505350939647780739068198912;
         // packed [10, 15, 20, 30, 40, 60, 80, 100]
         z4_endless.endless_score_multipliers = 7228343544930635530;
         world.write_model(@z4_endless);
@@ -539,7 +539,7 @@ mod config_system {
         z5_endless.passive_mutator_id = 10;
         z5_endless.boss_id = 0;
         // packed [0, 18, 45, 90, 170, 310, 550, 950]
-        z5_endless.endless_difficulty_thresholds = 75267419303470447273895393034258;
+        z5_endless.endless_difficulty_thresholds = 4932725591472239232542008477893132288;
         // packed [10, 15, 20, 30, 45, 65, 90, 120]
         z5_endless.endless_score_multipliers = 8672315694489276170;
         world.write_model(@z5_endless);
@@ -613,7 +613,7 @@ mod config_system {
         z6_endless.passive_mutator_id = 12;
         z6_endless.boss_id = 0;
         // packed [0, 13, 35, 70, 135, 250, 440, 780]
-        z6_endless.endless_difficulty_thresholds = 61798498693098537777651045826573;
+        z6_endless.endless_difficulty_thresholds = 4050026410350905771796138939290288128;
         // packed [10, 15, 20, 30, 45, 60, 85, 110]
         z6_endless.endless_score_multipliers = 7950326881668304650;
         world.write_model(@z6_endless);
@@ -687,7 +687,7 @@ mod config_system {
         z7_endless.passive_mutator_id = 14;
         z7_endless.boss_id = 0;
         // packed [0, 10, 25, 50, 100, 180, 320, 550]
-        z7_endless.endless_difficulty_thresholds = 43575876242428104438765219020810;
+        z7_endless.endless_difficulty_thresholds = 2855788625423768252498917393747804160;
         // packed [10, 15, 25, 35, 50, 70, 90, 110]
         z7_endless.endless_score_multipliers = 7951745273227185930;
         world.write_model(@z7_endless);
@@ -760,7 +760,7 @@ mod config_system {
         z8_endless.passive_mutator_id = 16;
         z8_endless.boss_id = 0;
         // packed [0, 18, 45, 95, 180, 330, 580, 1000]
-        z8_endless.endless_difficulty_thresholds = 79228863697327190288693264711698;
+        z8_endless.endless_difficulty_thresholds = 5192342811268034742759801796145840128;
         // packed [10, 15, 25, 35, 50, 70, 100, 130]
         z8_endless.endless_score_multipliers = 9395711903752851210;
         world.write_model(@z8_endless);
@@ -833,7 +833,7 @@ mod config_system {
         z9_endless.passive_mutator_id = 18;
         z9_endless.boss_id = 0;
         // packed [0, 14, 35, 75, 140, 260, 460, 800]
-        z9_endless.endless_difficulty_thresholds = 63383086122084685670238872862734;
+        z9_endless.endless_difficulty_thresholds = 4153873932096941960084774771932135424;
         // packed [10, 15, 25, 35, 50, 70, 95, 120]
         z9_endless.endless_score_multipliers = 8673728588490018570;
         world.write_model(@z9_endless);
@@ -906,7 +906,7 @@ mod config_system {
         z10_endless.passive_mutator_id = 20;
         z10_endless.boss_id = 0;
         // packed [0, 20, 50, 110, 210, 380, 660, 1100]
-        z10_endless.endless_difficulty_thresholds = 87151776663741538866380839976980;
+        z10_endless.endless_difficulty_thresholds = 5711578835434965491147134728731361280;
         // packed [10, 20, 30, 40, 60, 80, 110, 150]
         z10_endless.endless_score_multipliers = 10839689572428682250;
         world.write_model(@z10_endless);

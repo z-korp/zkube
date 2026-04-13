@@ -84,9 +84,14 @@ pub fn create_game(
 
     let timestamp = get_block_timestamp();
 
-    // Store passive mutator in RunData for stat effects during gameplay
+    // Store passive mutator in RunData for stat effects during gameplay. The
+    // third arg is the run's zone_id (used client-side for theming, music, and
+    // renderer.cairo for SVG metadata); copy from settings so tournaments and
+    // zone-endless runs both carry their source zone rather than defaulting to 0.
     let passive_mut_id = settings.passive_mutator_id;
-    let mut game = GameTrait::new_empty(game_id, timestamp, 0, passive_mut_id, run_type_val);
+    let mut game = GameTrait::new_empty(
+        game_id, timestamp, settings.zone_id, passive_mut_id, run_type_val,
+    );
     let mut run_data = game.get_run_data();
     run_data.bonus_slot = bonus_slot;
     run_data.bonus_type = bonus_type;

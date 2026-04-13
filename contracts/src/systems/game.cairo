@@ -141,10 +141,14 @@ mod game_system {
 
     #[abi(embed_v0)]
     impl GameTokenDataImpl of IMinigameTokenData<ContractState> {
+        /// The minigame-standard score exposed to Budokan / external tournament
+        /// infra. Returns the run's cumulative `total_score` (u32), not the
+        /// per-level `level_score` — tournaments and endless leaderboards rank
+        /// on the full run, and level_score resets every level.
         fn score(self: @ContractState, token_id: felt252) -> u64 {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(token_id);
-            game.get_level_score().into()
+            game.get_total_score().into()
         }
 
         fn game_over(self: @ContractState, token_id: felt252) -> bool {
