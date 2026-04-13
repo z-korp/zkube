@@ -7,7 +7,7 @@ import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
 import { usePlayerEntry } from "@/hooks/usePlayerEntry";
 import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
 import { useActiveDailyAttempt } from "@/hooks/useActiveDailyAttempt";
-import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
+import { getThemeColors, getThemeId, getThemeImages } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { getMutatorDef } from "@/config/mutatorConfig";
@@ -40,11 +40,6 @@ const computeDailyZoneId = (dayId: number): number => {
   const seed = BigInt(hash.computePoseidonHashOnElements([BigInt(dayId), DAILY_CHALLENGE_FELT]));
   const seedU256 = seed < 0n ? seed + (1n << 256n) : seed;
   return Number((seedU256 % 10n) + 1n);
-};
-
-const getThemeId = (zoneId: number): ThemeId => {
-  const normalized = Math.min(10, Math.max(1, zoneId));
-  return `theme-${normalized}` as ThemeId;
 };
 
 const CountdownText: React.FC<{ endTime: number }> = ({ endTime }) => {

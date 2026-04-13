@@ -48,7 +48,7 @@ interface NavigationState {
   setPendingPreviewLevel: (level: number | null) => void;
   setPendingLevelCompletion: (data: PendingLevelCompletion | null) => void;
   markZoneGreeted: (zoneId: number) => void;
-  clearPendingDeepLinkStart: () => void;
+  setPendingDeepLinkStart: (value: boolean) => void;
 }
 
 const getBackTarget = (page: PageId): PageId => {
@@ -130,5 +130,5 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
     next.add(zoneId);
     return { greetedZones: next };
   }),
-  clearPendingDeepLinkStart: () => set({ pendingDeepLinkStart: false }),
+  setPendingDeepLinkStart: (value) => set({ pendingDeepLinkStart: value }),
 }));

@@ -49,9 +49,8 @@ function rpc() {
  */
 function hydrateNavigationFromUrl() {
   try {
-    const path = window.location.pathname;
-    const match = path.match(/^\/play\/(0x[0-9a-fA-F]+|\d+)\/?$/);
-    if (!match) return;
+    const match = window.location.pathname.match(/^\/play\/(0x[0-9a-fA-F]+|\d+)\/?$/);
+    if (!match?.[1]) return;
     const gameId = BigInt(match[1]);
     if (gameId === 0n) return;
     useNavigationStore.setState({
@@ -74,6 +73,7 @@ const root = createRoot(
 function AppGate({ setupResult }: { setupResult: SetupResult | null }) {
   const { account, isConnected } = useAccount();
   const { username } = useControllerUsername();
+  const isDeepLinkEntry = useNavigationStore((s) => s.pendingDeepLinkStart);
 
   // Detect if there's a stored session that autoConnect will restore
   const [hadStoredSession] = useState(() => {
@@ -91,25 +91,31 @@ function AppGate({ setupResult }: { setupResult: SetupResult | null }) {
     return () => clearTimeout(timer);
   }, []);
 
-  // Wait for: dojo setup + account object (not just isConnected) + username
+  // Wait for: dojo setup + account object (not just isConnected) + username.
+  // Deep-link entries (e.g. Budokan /play/{tokenId}) always wait for account so
+  // we don't flash the Connect popup while auto-reconnect is still in flight —
+  // Cartridge may restore a session even without `lastUsedConnector` in storage.
   const isReady = !!setupResult
-    && (timedOut || !hadStoredSession || !!account)
+    && (timedOut || (!hadStoredSession && !isDeepLinkEntry) || !!account)
     && (timedOut || !isConnected || !!username);
 
 
+  // Conditionally mount App rather than hiding it with display:none — Radix
+  // portals (e.g. PlayScreen's Connect dialog) render to document.body and
+  // leak through a hidden parent. Keep the Dojo/Controllers/GameEvents
+  // providers mounted so Torii sync and Cartridge reconnect run in parallel
+  // with the Loading screen.
   return (
     <>
       {!isReady && <Loading />}
       {setupResult && (
-        <div style={{ display: isReady ? "contents" : "none" }}>
-          <DojoProvider value={setupResult}>
-            <ControllersProvider>
-              <GameEventsProvider>
-                <App />
-              </GameEventsProvider>
-            </ControllersProvider>
-          </DojoProvider>
-        </div>
+        <DojoProvider value={setupResult}>
+          <ControllersProvider>
+            <GameEventsProvider>
+              {isReady && <App />}
+            </GameEventsProvider>
+          </ControllersProvider>
+        </DojoProvider>
       )}
     </>
   );
