@@ -2,30 +2,30 @@ use alexandria_math::BitShift;
 
 /// Bit-packing helpers for efficient storage.
 ///
-/// run_data layout (107 bits used, 145 reserved):
+/// run_data layout (115 bits used, 137 reserved):
 /// - 0-7: current_level (u8)
-/// - 8-15: level_score (u8)
-/// - 16-23: level_moves (u8)
-/// - 24-31: constraint_progress (u8)
-/// - 32-39: constraint_2_progress (u8)
-/// - 40-47: max_combo_run (u8)
-/// - 48-79: total_score (u32)
-/// - 80: zone_cleared (bool)
-/// - 81-84: current_difficulty (4 bits, 0-9 for Difficulty enum)
-/// - 85-88: zone_id (4 bits, 0-15)
-/// - 89-93: active_mutator_id (5 bits, 0-31)
-/// - 94: run_type (0=Zone, 1=Endless)
-/// - 95-96: bonus_type (0=None, 1=Hammer, 2=Totem, 3=Wave)
-/// - 97-100: bonus_charges (4 bits, 0-15)
-/// - 101-104: level_lines_cleared (4 bits, 0-15)
-/// - 105-106: bonus_slot (2 bits, 0-2)
+/// - 8-23: level_score (u16)
+/// - 24-31: level_moves (u8)
+/// - 32-39: constraint_progress (u8)
+/// - 40-47: constraint_2_progress (u8)
+/// - 48-55: max_combo_run (u8)
+/// - 56-87: total_score (u32)
+/// - 88: zone_cleared (bool)
+/// - 89-92: current_difficulty (4 bits, 0-9 for Difficulty enum)
+/// - 93-96: zone_id (4 bits, 0-15)
+/// - 97-101: active_mutator_id (5 bits, 0-31)
+/// - 102: run_type (0=Zone, 1=Endless)
+/// - 103-104: bonus_type (0=None, 1=Hammer, 2=Totem, 3=Wave)
+/// - 105-108: bonus_charges (4 bits, 0-15)
+/// - 109-112: level_lines_cleared (4 bits, 0-15)
+/// - 113-114: bonus_slot (2 bits, 0-2)
 
 /// Unpacked run data structure (zone-based runs + endless)
 #[derive(Copy, Drop, Serde, Debug, PartialEq)]
 pub struct RunData {
     // Level progress
     pub current_level: u8,
-    pub level_score: u8,
+    pub level_score: u16,
     pub level_moves: u8,
     pub constraint_progress: u8,
     pub constraint_2_progress: u8,
@@ -46,22 +46,23 @@ pub struct RunData {
 mod RunDataBits {
     pub const CURRENT_LEVEL_POS: u8 = 0;
     pub const LEVEL_SCORE_POS: u8 = 8;
-    pub const LEVEL_MOVES_POS: u8 = 16;
-    pub const CONSTRAINT_PROGRESS_POS: u8 = 24;
-    pub const CONSTRAINT_2_PROGRESS_POS: u8 = 32;
-    pub const MAX_COMBO_RUN_POS: u8 = 40;
-    pub const TOTAL_SCORE_POS: u8 = 48;
-    pub const ZONE_CLEARED_POS: u8 = 80;
-    pub const CURRENT_DIFFICULTY_POS: u8 = 81;
-    pub const ZONE_ID_POS: u8 = 85;
-    pub const ACTIVE_MUTATOR_ID_POS: u8 = 89;
-    pub const RUN_TYPE_POS: u8 = 94;
-    pub const BONUS_TYPE_POS: u8 = 95;
-    pub const BONUS_CHARGES_POS: u8 = 97;
-    pub const LEVEL_LINES_CLEARED_POS: u8 = 101;
-    pub const BONUS_SLOT_POS: u8 = 105;
+    pub const LEVEL_MOVES_POS: u8 = 24;
+    pub const CONSTRAINT_PROGRESS_POS: u8 = 32;
+    pub const CONSTRAINT_2_PROGRESS_POS: u8 = 40;
+    pub const MAX_COMBO_RUN_POS: u8 = 48;
+    pub const TOTAL_SCORE_POS: u8 = 56;
+    pub const ZONE_CLEARED_POS: u8 = 88;
+    pub const CURRENT_DIFFICULTY_POS: u8 = 89;
+    pub const ZONE_ID_POS: u8 = 93;
+    pub const ACTIVE_MUTATOR_ID_POS: u8 = 97;
+    pub const RUN_TYPE_POS: u8 = 102;
+    pub const BONUS_TYPE_POS: u8 = 103;
+    pub const BONUS_CHARGES_POS: u8 = 105;
+    pub const LEVEL_LINES_CLEARED_POS: u8 = 109;
+    pub const BONUS_SLOT_POS: u8 = 113;
 
     pub const U8_MASK: u256 = 0xFF;
+    pub const U16_MASK: u256 = 0xFFFF;
     pub const U32_MASK: u256 = 0xFFFFFFFF;
     pub const BOOL_MASK: u256 = 0x1;
     pub const TWO_BITS_MASK: u256 = 0x3;
@@ -104,7 +105,8 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                self.level_score.into() & RunDataBits::U8_MASK, RunDataBits::LEVEL_SCORE_POS.into(),
+                self.level_score.into() & RunDataBits::U16_MASK,
+                RunDataBits::LEVEL_SCORE_POS.into(),
             );
         packed = packed
             | BitShift::shl(
@@ -191,7 +193,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 .try_into()
                 .unwrap(),
             level_score: (BitShift::shr(data, RunDataBits::LEVEL_SCORE_POS.into())
-                & RunDataBits::U8_MASK)
+                & RunDataBits::U16_MASK)
                 .try_into()
                 .unwrap(),
             level_moves: (BitShift::shr(data, RunDataBits::LEVEL_MOVES_POS.into())

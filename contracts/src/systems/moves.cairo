@@ -250,11 +250,18 @@ mod move_system {
                         }
                     }
                 } else if trigger_type == 3 {
-                    // Score (per-level, monotonic threshold crossings).
-                    let earned = run_data.level_score / threshold;
-                    let prev_earned = run_data_before_move.level_score / threshold;
+                    // Score (per-level, monotonic threshold crossings). level_score
+                    // is u16 now; widen threshold so the division types match.
+                    let threshold_u16: u16 = threshold.into();
+                    let earned: u16 = run_data.level_score / threshold_u16;
+                    let prev_earned: u16 = run_data_before_move.level_score / threshold_u16;
                     if earned > prev_earned {
-                        let charges_to_add = earned - prev_earned;
+                        let charges_to_add_u16: u16 = earned - prev_earned;
+                        let charges_to_add: u8 = if charges_to_add_u16 > 255 {
+                            255
+                        } else {
+                            charges_to_add_u16.try_into().unwrap()
+                        };
                         let next_charges = InternalImpl::add_bonus_charges(
                             run_data.bonus_charges, charges_to_add,
                         );

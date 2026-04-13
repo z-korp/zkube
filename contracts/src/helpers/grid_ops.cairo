@@ -12,7 +12,7 @@ use zkube::constants;
 use zkube::helpers::controller::Controller;
 use zkube::helpers::level::LevelGeneratorTrait;
 use zkube::helpers::mutator::MutatorEffectsTrait;
-use zkube::helpers::scoring::{process_lines_cleared, update_score};
+use zkube::helpers::scoring::{apply_combo_scoring, process_lines_cleared, update_score};
 use zkube::models::config::GameSettings;
 use zkube::models::game::{Game, GameLevel, GameSeed, GameTrait};
 use zkube::models::mutator::MutatorDef;
@@ -142,6 +142,10 @@ pub fn execute_move_inline(
 
     // Update combos and award cube bonuses for multi-line clears
     process_lines_cleared(ref run_data, ref game.combo_counter, ref game.max_combo, lines_cleared);
+
+    // Combo bonus rides on top of base scoring. Only fires for genuine combos
+    // (lines_cleared > 1) and scales by the passive mutator's combo_bonus_mult_x100.
+    apply_combo_scoring(ref run_data, game.combo_counter, lines_cleared, mutator_def);
 
     // Compute grid height once — recompute only when grid is modified below
     let mut current_height: u8 = if new_blocks == 0 {

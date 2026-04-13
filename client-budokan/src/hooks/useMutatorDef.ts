@@ -11,12 +11,13 @@ export interface MutatorDefData {
   movesModifier: number;
   ratioModifier: number;
   difficultyOffset: number;
-  comboScoreMultX100: number;
+  scoreMultX100: number;
   starThresholdModifier: number;
   endlessRampMultX100: number;
   lineClearBonus: number;
   perfectClearBonus: number;
   startingRows: number;
+  comboBonusMultX100: number;
   // Active bonus slots
   bonus1Type: number;
   bonus1TriggerType: number;
@@ -59,12 +60,13 @@ export function useMutatorDef(mutatorId: number): {
       movesModifier: raw.moves_modifier ?? 128,
       ratioModifier: raw.ratio_modifier ?? 128,
       difficultyOffset: raw.difficulty_offset ?? 0,
-      comboScoreMultX100: raw.combo_score_mult_x100 ?? 100,
+      scoreMultX100: raw.score_mult_x100 ?? 100,
       starThresholdModifier: raw.star_threshold_modifier ?? 128,
       endlessRampMultX100: raw.endless_ramp_mult_x100 ?? 100,
       lineClearBonus: raw.line_clear_bonus ?? 0,
       perfectClearBonus: raw.perfect_clear_bonus ?? 0,
       startingRows: raw.starting_rows ?? 0,
+      comboBonusMultX100: raw.combo_bonus_mult_x100 ?? 100,
       bonus1Type: raw.bonus_1_type ?? 0,
       bonus1TriggerType: raw.bonus_1_trigger_type ?? 0,
       bonus1TriggerThreshold: raw.bonus_1_trigger_threshold ?? 0,

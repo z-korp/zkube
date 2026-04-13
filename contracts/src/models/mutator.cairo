@@ -12,6 +12,12 @@
 /// - starting_rows: 0 = default (4)
 ///
 /// Bonus field defaults: 0 = no bonus / disabled.
+///
+/// Two score multipliers:
+/// - `score_mult_x100`: flat multiplier applied to every move's earned points.
+/// - `combo_bonus_mult_x100`: multiplier applied ONLY to the per-move combo bonus
+///   (triggered when `lines_cleared > 1`). At 100 the base bonus is
+///   `combo_counter * lines_cleared` points; at 200 it's twice that.
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
 #[dojo::model]
 pub struct MutatorDef {
@@ -22,12 +28,13 @@ pub struct MutatorDef {
     pub moves_modifier: u8,
     pub ratio_modifier: u8,
     pub difficulty_offset: u8,
-    pub combo_score_mult_x100: u16,
+    pub score_mult_x100: u16,
     pub star_threshold_modifier: u8,
     pub endless_ramp_mult_x100: u16,
     pub line_clear_bonus: u8,
     pub perfect_clear_bonus: u8,
     pub starting_rows: u8,
+    pub combo_bonus_mult_x100: u16,
     // === Bonus Slot Fields (active mutator) ===
     // type: 0=None, 1=Hammer, 2=Totem, 3=Wave
     // trigger_type: 1=combo, 2=lines, 3=score
@@ -53,11 +60,12 @@ pub impl MutatorDefImpl of MutatorDefTrait {
             || *self.moves_modifier != 0
             || *self.ratio_modifier != 0
             || *self.difficulty_offset != 0
-            || *self.combo_score_mult_x100 != 0
+            || *self.score_mult_x100 != 0
             || *self.star_threshold_modifier != 0
             || *self.endless_ramp_mult_x100 != 0
             || *self.line_clear_bonus != 0
             || *self.perfect_clear_bonus != 0
             || *self.starting_rows != 0
+            || *self.combo_bonus_mult_x100 != 0
     }
 }

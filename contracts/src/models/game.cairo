@@ -137,7 +137,7 @@ pub impl GameImpl of GameTrait {
 
     /// Get level score
     #[inline(always)]
-    fn get_level_score(self: Game) -> u8 {
+    fn get_level_score(self: Game) -> u16 {
         self.get_run_data().level_score
     }
 
