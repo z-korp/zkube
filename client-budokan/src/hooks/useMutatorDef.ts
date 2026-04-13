@@ -18,19 +18,12 @@ export interface MutatorDefData {
   perfectClearBonus: number;
   startingRows: number;
   comboBonusMultX100: number;
-  // Active bonus slots
-  bonus1Type: number;
-  bonus1TriggerType: number;
-  bonus1TriggerThreshold: number;
-  bonus1StartingCharges: number;
-  bonus2Type: number;
-  bonus2TriggerType: number;
-  bonus2TriggerThreshold: number;
-  bonus2StartingCharges: number;
-  bonus3Type: number;
-  bonus3TriggerType: number;
-  bonus3TriggerThreshold: number;
-  bonus3StartingCharges: number;
+  // Active bonus: one bonus type per zone, rolled among enabled triggers
+  bonusType: number;
+  comboTriggerThreshold: number;
+  linesTriggerThreshold: number;
+  scoreTriggerThreshold: number;
+  startingCharges: number;
 }
 
 export function useMutatorDef(mutatorId: number): {
@@ -67,18 +60,11 @@ export function useMutatorDef(mutatorId: number): {
       perfectClearBonus: raw.perfect_clear_bonus ?? 0,
       startingRows: raw.starting_rows ?? 0,
       comboBonusMultX100: raw.combo_bonus_mult_x100 ?? 100,
-      bonus1Type: raw.bonus_1_type ?? 0,
-      bonus1TriggerType: raw.bonus_1_trigger_type ?? 0,
-      bonus1TriggerThreshold: raw.bonus_1_trigger_threshold ?? 0,
-      bonus1StartingCharges: raw.bonus_1_starting_charges ?? 0,
-      bonus2Type: raw.bonus_2_type ?? 0,
-      bonus2TriggerType: raw.bonus_2_trigger_type ?? 0,
-      bonus2TriggerThreshold: raw.bonus_2_trigger_threshold ?? 0,
-      bonus2StartingCharges: raw.bonus_2_starting_charges ?? 0,
-      bonus3Type: raw.bonus_3_type ?? 0,
-      bonus3TriggerType: raw.bonus_3_trigger_type ?? 0,
-      bonus3TriggerThreshold: raw.bonus_3_trigger_threshold ?? 0,
-      bonus3StartingCharges: raw.bonus_3_starting_charges ?? 0,
+      bonusType: raw.bonus_type ?? 0,
+      comboTriggerThreshold: raw.combo_trigger_threshold ?? 0,
+      linesTriggerThreshold: raw.lines_trigger_threshold ?? 0,
+      scoreTriggerThreshold: raw.score_trigger_threshold ?? 0,
+      startingCharges: raw.starting_charges ?? 0,
     };
   }, [raw, mutatorId]);
 

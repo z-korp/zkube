@@ -24,38 +24,40 @@ export const MUTATOR_DEFS: Record<number, MutatorDef> = {
     effects: [],
   },
 
-  // ── Active Mutators (odd IDs 1-19) — earn bonus powers during play ──
+  // ── Active Mutators (odd IDs 1-19) — at run start, one trigger from the
+  // enabled pool is rolled. Completing it during play earns a charge of the
+  // zone's bonus (Hammer / Totem / Wave). Listed effects describe the pool.
 
   // Zone 1 — Mako 🐢 / Tiki / Ocean
-  1: { id: 1, name: "Mako's Bounty", description: "The sea turtle shares three gifts of the tide", icon: "🐢",
-    effects: ["Chain 4 combos → destroy a block", "Reach 20 points → clear a row", "Clear 10 lines → destroy same-size blocks"] },
+  1: { id: 1, name: "Mako's Gift", description: "The sea turtle offers a rolling Wave. Any path through the tide earns a charge.", icon: "🐢",
+    effects: ["Clear 3+ lines in a move → Wave charge", "Every 10 lines cleared → Wave charge", "Every 30 points scored → Wave charge", "Start with 1 charge"] },
   // Zone 2 — Sobek 🐊 / Egypt
-  3: { id: 3, name: "Sobek's Decree", description: "The Nile Guardian grants a row-clearing wave. Earn more through mastery.", icon: "🐊",
-    effects: ["Chain 3 combos → clear a row (start with 1 free use)", "Clear 6 lines → destroy a block"] },
+  3: { id: 3, name: "Sobek's Strike", description: "The Nile crocodile snaps precise and sudden. Combos or clears earn the Hammer.", icon: "🐊",
+    effects: ["Clear 4+ lines in a move → Hammer charge", "Every 20 lines cleared → Hammer charge", "Start with 1 charge"] },
   // Zone 3 — Fenris 🐺 / Norse
-  5: { id: 5, name: "Fenris Howl", description: "The frost wolf's cry shatters the alike. Chain combos to unleash it.", icon: "🐺",
-    effects: ["Chain 3 combos → destroy same-size blocks (start with 1)", "Clear 8 lines → destroy same-size blocks"] },
+  5: { id: 5, name: "Fenris Howl", description: "The frost wolf's cry shatters the alike. Combos or scoring unleash the Totem.", icon: "🐺",
+    effects: ["Clear 4+ lines in a move → Totem charge", "Every 30 points scored → Totem charge", "Start with 1 charge"] },
   // Zone 4 — Noctua 🦉 / Greece
-  7: { id: 7, name: "Noctua's Insight", description: "The owl sees what others miss. Combos and scores yield precise strikes.", icon: "🦉",
-    effects: ["Chain 4 combos → destroy a block", "Reach 15 points → destroy a block"] },
+  7: { id: 7, name: "Noctua's Sight", description: "The owl sees the single flaw. Combos or scoring guide the Hammer home.", icon: "🦉",
+    effects: ["Clear 4+ lines in a move → Hammer charge", "Every 30 points scored → Hammer charge", "Start with 1 charge"] },
   // Zone 5 — Long 🐲 / China
-  9: { id: 9, name: "Dragon's Breath", description: "Sweeping waves of fire clear entire rows. The dragon favors the relentless.", icon: "🐲",
-    effects: ["Clear 6 lines → clear a row (start with 1)", "Reach 18 points → clear a row"] },
+  9: { id: 9, name: "Long's Breath", description: "The dragon's sweeping flame clears a row. Ride the lines or the score to earn a Wave.", icon: "🐲",
+    effects: ["Every 20 lines cleared → Wave charge", "Every 30 points scored → Wave charge", "Start with 1 charge"] },
   // Zone 6 — Lamassu 🦁 / Persia
-  11: { id: 11, name: "Lamassu's Gaze", description: "The gate guardian reveals hidden patterns. Score well to shatter the alike.", icon: "🦁",
-    effects: ["Reach 15 points → destroy same-size blocks", "Clear 7 lines → destroy same-size blocks"] },
+  11: { id: 11, name: "Lamassu's Gaze", description: "The gate guardian shatters the alike. Lines or scores fuel the Totem.", icon: "🦁",
+    effects: ["Every 20 lines cleared → Totem charge", "Every 30 points scored → Totem charge", "Start with 1 charge"] },
   // Zone 7 — Kitsune 🦊 / Japan
-  13: { id: 13, name: "Foxfire", description: "Swift strikes from the spirit fox. Quick combos and clears earn surgical blows.", icon: "🦊",
-    effects: ["Chain 3 combos → destroy a block", "Clear 5 lines → destroy a block"] },
+  13: { id: 13, name: "Kitsune's Spark", description: "The spirit fox darts and a single block vanishes. Combos or clears earn the Hammer.", icon: "🦊",
+    effects: ["Clear 4+ lines in a move → Hammer charge", "Every 20 lines cleared → Hammer charge", "Start with 1 charge"] },
   // Zone 8 — Balam 🐆 / Mayan
-  15: { id: 15, name: "Balam's Ritual", description: "The three-eyed jaguar grants all powers. Start with 2 charges of every tool.", icon: "🐆",
-    effects: ["Chain 6 combos → destroy a block (start with 2)", "Clear 12 lines → clear a row (start with 2)", "Reach 30 points → destroy same-size blocks (start with 2)"] },
+  15: { id: 15, name: "Balam's Rite", description: "The three-eyed jaguar accepts any offering and answers in Waves. 2 charges to start.", icon: "🐆",
+    effects: ["Clear 5+ lines in a move → Wave charge", "Every 30 lines cleared → Wave charge", "Every 50 points scored → Wave charge", "Start with 2 charges"] },
   // Zone 9 — Mamba 🐍 / Tribal
-  17: { id: 17, name: "Mamba's Rhythm", description: "The serpent's beat grows. Higher combos unlock increasingly deadly tools.", icon: "🐍",
-    effects: ["4-combo → destroy a block", "5-combo → destroy same-size blocks", "6-combo → clear a row"] },
+  17: { id: 17, name: "Mamba's Rhythm", description: "The serpent's drum shatters the alike. Combos or scores feed the Totem.", icon: "🐍",
+    effects: ["Clear 4+ lines in a move → Totem charge", "Every 50 points scored → Totem charge", "Start with 1 charge"] },
   // Zone 10 — Kuntur 🦅 / Inca
-  19: { id: 19, name: "Kuntur's Trial", description: "One tool. One chance. Master the condor's demanding combo.", icon: "🦅",
-    effects: ["Chain 5 combos → destroy a block"] },
+  19: { id: 19, name: "Kuntur's Trial", description: "The condor accepts only mastery. Deep combos or long grinds earn the Hammer.", icon: "🦅",
+    effects: ["Clear 5+ lines in a move → Hammer charge", "Every 30 lines cleared → Hammer charge", "Start with 1 charge"] },
 
   // ── Passive Mutators (even IDs 2-20) — change the rules of the zone ──
 

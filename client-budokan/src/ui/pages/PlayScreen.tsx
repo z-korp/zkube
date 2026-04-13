@@ -369,7 +369,7 @@ const PlayScreen: React.FC = () => {
 
   const bonusType = game?.bonusType ?? 0;
   const bonusCharges = game?.bonusCharges ?? 0;
-  const gameBonusSlot = game?.bonusSlot ?? 0;
+  const gameBonusTriggerType = game?.bonusTriggerType ?? 0;
 
   // run_data stores the passive mutator; the active mutator (bonus source) comes from GameSettings.
   // Tournaments have arbitrary settings ids — use Denshokan's TokenMetadata to resolve the real
@@ -414,15 +414,17 @@ const PlayScreen: React.FC = () => {
       }];
     }
 
-    const slotDefs = [
-      { type: mutatorDef.bonus1Type, triggerType: mutatorDef.bonus1TriggerType, threshold: mutatorDef.bonus1TriggerThreshold, starting: mutatorDef.bonus1StartingCharges },
-      { type: mutatorDef.bonus2Type, triggerType: mutatorDef.bonus2TriggerType, threshold: mutatorDef.bonus2TriggerThreshold, starting: mutatorDef.bonus2StartingCharges },
-      { type: mutatorDef.bonus3Type, triggerType: mutatorDef.bonus3TriggerType, threshold: mutatorDef.bonus3TriggerThreshold, starting: mutatorDef.bonus3StartingCharges },
-    ];
+    // Resolve the rolled trigger's threshold. trigger_type: 1=Combo, 2=Lines, 3=Score.
+    const rolledThreshold =
+      gameBonusTriggerType === 1
+        ? mutatorDef.comboTriggerThreshold
+        : gameBonusTriggerType === 2
+        ? mutatorDef.linesTriggerThreshold
+        : gameBonusTriggerType === 3
+        ? mutatorDef.scoreTriggerThreshold
+        : 0;
 
-    // Only show the rolled bonus slot
-    const rolledDef = slotDefs[gameBonusSlot];
-    if (!rolledDef || rolledDef.type === 0) {
+    if (mutatorDef.bonusType === 0 || gameBonusTriggerType === 0 || rolledThreshold === 0) {
       // Fallback: no valid slot found, show from game data
       if (bonusType <= 0) return [];
       const info = getBonusType(bonusType);
@@ -442,8 +444,8 @@ const PlayScreen: React.FC = () => {
       }];
     }
 
-    const info = getBonusType(rolledDef.type);
-    const mapped = rolledDef.type as BonusType;
+    const info = getBonusType(mutatorDef.bonusType);
+    const mapped = mutatorDef.bonusType as BonusType;
     return [{
       type: mapped,
       charges: bonusCharges,
@@ -451,14 +453,14 @@ const PlayScreen: React.FC = () => {
       icon: info.icon,
       name: info.name,
       description: info.description,
-      triggerDescription: buildTriggerDescription(rolledDef.triggerType, rolledDef.threshold, rolledDef.starting),
-      startingCharges: rolledDef.starting,
+      triggerDescription: buildTriggerDescription(gameBonusTriggerType, rolledThreshold, mutatorDef.startingCharges),
+      startingCharges: mutatorDef.startingCharges,
       onClick: () => {
         if (bonusCharges <= 0) return;
         setActiveBonus((prev) => (prev === mapped ? BonusType.None : mapped));
       },
     }];
-  }, [mutatorDef, bonusType, bonusCharges, gameBonusSlot]);
+  }, [mutatorDef, bonusType, bonusCharges, gameBonusTriggerType]);
 
   const bonusInfo = getBonusType(bonusType);
   const bonusDescription =

@@ -37,6 +37,7 @@ mod daily_challenge_system {
     use zkube::elements::tasks::interface::TaskTrait;
     use zkube::events::{LevelStarted, StartGame};
     use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
+    use zkube::helpers::game_creation::roll_bonus_trigger;
     use zkube::helpers::game_libs::{GameLibsImpl, IGridSystemDispatcherTrait};
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::mutator::MutatorEffectsTrait;
@@ -301,7 +302,7 @@ mod daily_challenge_system {
             // Read bonus config from the active mutator
             let bonus_mutator_def = Self::read_mutator_def(world, challenge.active_mutator_id);
             let seed_u256: u256 = challenge.seed.into();
-            let (bonus_slot, bonus_type, starting_charges) = Self::select_bonus_slot(
+            let (bonus_trigger_type, bonus_type, starting_charges) = roll_bonus_trigger(
                 seed_u256, @bonus_mutator_def,
             );
 
@@ -311,7 +312,7 @@ mod daily_challenge_system {
             );
             let mut run_data = game.get_run_data();
             run_data.current_level = level;
-            run_data.bonus_slot = bonus_slot;
+            run_data.bonus_trigger_type = bonus_trigger_type;
             run_data.bonus_type = bonus_type;
             run_data.bonus_charges = if starting_charges > 15 {
                 15
@@ -440,48 +441,6 @@ mod daily_challenge_system {
                 },
                 Option::None => {},
             }
-        }
-
-        /// Select a bonus slot from the active mutator's non-None bonus slots.
-        /// Returns (bonus_slot, bonus_type, starting_charges).
-        fn select_bonus_slot(seed_u256: u256, mutator_def: @MutatorDef) -> (u8, u8, u8) {
-            let mut count: u8 = 0;
-            if *mutator_def.bonus_1_type > 0 {
-                count += 1;
-            }
-            if *mutator_def.bonus_2_type > 0 {
-                count += 1;
-            }
-            if *mutator_def.bonus_3_type > 0 {
-                count += 1;
-            }
-            if count == 0 {
-                return (0, 0, 0);
-            }
-
-            let pick: u8 = (seed_u256 % count.into()).try_into().unwrap();
-            let mut found: u8 = 0;
-
-            if *mutator_def.bonus_1_type > 0 {
-                if found == pick {
-                    return (0, *mutator_def.bonus_1_type, *mutator_def.bonus_1_starting_charges);
-                }
-                found += 1;
-            }
-            if *mutator_def.bonus_2_type > 0 {
-                if found == pick {
-                    return (1, *mutator_def.bonus_2_type, *mutator_def.bonus_2_starting_charges);
-                }
-                found += 1;
-            }
-            if *mutator_def.bonus_3_type > 0 {
-                if found == pick {
-                    return (2, *mutator_def.bonus_3_type, *mutator_def.bonus_3_starting_charges);
-                }
-            }
-
-            // Fallback (should not reach)
-            (0, 0, 0)
         }
 
         fn read_mutator_def(world: WorldStorage, mutator_id: u8) -> MutatorDef {

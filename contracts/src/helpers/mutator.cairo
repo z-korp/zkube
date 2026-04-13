@@ -24,18 +24,11 @@ pub impl MutatorEffectsImpl of MutatorEffectsTrait {
             perfect_clear_bonus: 0,
             starting_rows: 0,
             combo_bonus_mult_x100: MutatorDefaults::MULTIPLIER_NEUTRAL_X100,
-            bonus_1_type: 0,
-            bonus_1_trigger_type: 0,
-            bonus_1_trigger_threshold: 0,
-            bonus_1_starting_charges: 0,
-            bonus_2_type: 0,
-            bonus_2_trigger_type: 0,
-            bonus_2_trigger_threshold: 0,
-            bonus_2_starting_charges: 0,
-            bonus_3_type: 0,
-            bonus_3_trigger_type: 0,
-            bonus_3_trigger_threshold: 0,
-            bonus_3_starting_charges: 0,
+            bonus_type: 0,
+            combo_trigger_threshold: 0,
+            lines_trigger_threshold: 0,
+            score_trigger_threshold: 0,
+            starting_charges: 0,
         }
     }
 

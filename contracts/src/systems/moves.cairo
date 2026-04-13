@@ -190,11 +190,11 @@ mod move_system {
             let mut run_data_changed = false;
             let mutator_def = mutator_def_passive;
 
-            // Track per-level lines cleared in run_data.
+            // Track per-level lines cleared in run_data (u8, cap 255).
             let next_level_lines_cleared_u16: u16 = run_data.level_lines_cleared.into()
                 + lines_cleared.into();
-            let next_level_lines_cleared = if next_level_lines_cleared_u16 > 15 {
-                15_u8
+            let next_level_lines_cleared = if next_level_lines_cleared_u16 > 255 {
+                255_u8
             } else {
                 next_level_lines_cleared_u16.try_into().unwrap()
             };
@@ -203,30 +203,29 @@ mod move_system {
                 run_data_changed = true;
             }
 
-            // Bonus charges: read trigger config from the active mutator's bonus slots.
-            let active_bonus_mut_id = settings.active_mutator_id;
-            let (trigger_type, threshold) = if active_bonus_mut_id > 0 {
-                let bonus_mutator: MutatorDef = world.read_model(active_bonus_mut_id);
-                match run_data.bonus_slot {
-                    0 => (
-                        bonus_mutator.bonus_1_trigger_type, bonus_mutator.bonus_1_trigger_threshold,
-                    ),
-                    1 => (
-                        bonus_mutator.bonus_2_trigger_type, bonus_mutator.bonus_2_trigger_threshold,
-                    ),
-                    2 => (
-                        bonus_mutator.bonus_3_trigger_type, bonus_mutator.bonus_3_trigger_threshold,
-                    ),
-                    _ => (0_u8, 0_u8),
+            // Bonus charges: trigger_type was rolled at create_run and stored in
+            // run_data.bonus_trigger_type. Look up the matching threshold on the
+            // active mutator def.
+            let trigger_type = run_data.bonus_trigger_type;
+            let threshold = if trigger_type > 0
+                && run_data.bonus_type > 0
+                && settings.active_mutator_id > 0 {
+                let bonus_mutator: MutatorDef = world.read_model(settings.active_mutator_id);
+                match trigger_type {
+                    1 => bonus_mutator.combo_trigger_threshold,
+                    2 => bonus_mutator.lines_trigger_threshold,
+                    3 => bonus_mutator.score_trigger_threshold,
+                    _ => 0,
                 }
             } else {
-                (0_u8, 0_u8)
+                0
             };
 
-            if trigger_type > 0 && threshold > 0 && run_data.bonus_type > 0 {
+            if threshold > 0 {
                 if trigger_type == 1 {
-                    // Combo streak (per-level): award one charge each exact threshold hit.
-                    if game.combo_counter > 0 && game.combo_counter % threshold == 0 {
+                    // Combo: fire once per move whose lines_cleared reaches the
+                    // threshold. "combo 3" = "clear 3+ lines in a single move".
+                    if lines_cleared >= threshold {
                         let next_charges = InternalImpl::add_bonus_charges(
                             run_data.bonus_charges, 1,
                         );

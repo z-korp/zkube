@@ -3,7 +3,7 @@ import { BOSS_INTERVAL } from "@/dojo/game/constants";
  * Bit-packing helpers for efficient storage
  * Mirrors the Cairo packing.cairo implementation
  *
- * run_data layout (115 bits used):
+ * run_data layout (119 bits used):
  * ┌─────────────────────────────────────────────────────────────────────┐
  * │ Bits    │ Field                    │ Size │ Range    │ Description  │
  * ├─────────┼──────────────────────────┼──────┼──────────┼──────────────┤
@@ -21,8 +21,8 @@ import { BOSS_INTERVAL } from "@/dojo/game/constants";
  * │ 102     │ run_type                 │ 1    │ 0-1      │ Zone/Endless │
  * │ 103-104 │ bonus_type               │ 2    │ 0-3      │ Bonus type   │
  * │ 105-108 │ bonus_charges            │ 4    │ 0-15     │ Charges left │
- * │ 109-112 │ level_lines_cleared      │ 4    │ 0-15     │ Lines cleared│
- * │ 113-114 │ bonus_slot               │ 2    │ 0-2      │ Bonus slot   │
+ * │ 109-116 │ level_lines_cleared      │ 8    │ 0-255    │ Lines cleared│
+ * │ 117-118 │ bonus_trigger_type       │ 2    │ 0-3      │ Trigger type │
  * └─────────────────────────────────────────────────────────────────────┘
  */
 
@@ -42,7 +42,7 @@ export interface RunData {
   bonusType: number;
   bonusCharges: number;
   levelLinesCleared: number;
-  bonusSlot: number;
+  bonusTriggerType: number;
 }
 
 // Bit positions (matching Cairo's RunDataBits exactly)
@@ -61,7 +61,7 @@ const RUN_TYPE_POS = 102;
 const BONUS_TYPE_POS = 103;
 const BONUS_CHARGES_POS = 105;
 const LEVEL_LINES_CLEARED_POS = 109;
-const BONUS_SLOT_POS = 113;
+const BONUS_TRIGGER_TYPE_POS = 117;
 
 const MASK_1BIT = 0x1n;
 const MASK_2BIT = 0x3n;
@@ -98,8 +98,8 @@ export function unpackRunData(packed: bigint): RunData {
     mode: extractBits(packed, RUN_TYPE_POS, MASK_1BIT),
     bonusType: extractBits(packed, BONUS_TYPE_POS, MASK_2BIT),
     bonusCharges: extractBits(packed, BONUS_CHARGES_POS, MASK_4BIT),
-    levelLinesCleared: extractBits(packed, LEVEL_LINES_CLEARED_POS, MASK_4BIT),
-    bonusSlot: extractBits(packed, BONUS_SLOT_POS, MASK_2BIT),
+    levelLinesCleared: extractBits(packed, LEVEL_LINES_CLEARED_POS, MASK_8BIT),
+    bonusTriggerType: extractBits(packed, BONUS_TRIGGER_TYPE_POS, MASK_2BIT),
   };
 }
 
@@ -123,7 +123,7 @@ export function createInitialRunData(): RunData {
     bonusType: 0,
     bonusCharges: 0,
     levelLinesCleared: 0,
-    bonusSlot: 0,
+    bonusTriggerType: 0,
   };
 }
 
