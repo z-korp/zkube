@@ -83,8 +83,6 @@ pub trait IConfigSystem<T> {
     );
     /// Admin: set map enabled/disabled
     fn set_zone_enabled(ref self: T, settings_id: u32, enabled: bool);
-    /// Admin: set map theme
-    fn set_zone_theme(ref self: T, settings_id: u32, theme_id: u8);
     fn set_star_eligible(ref self: T, settings_id: u32, eligible: bool);
     fn is_star_eligible(self: @T, settings_id: u32) -> bool;
     fn set_zstar_address(ref self: T, token: ContractAddress);
@@ -2089,14 +2087,6 @@ mod config_system {
             InternalImpl::assert_owner_or_admin(@self, @world, settings_id);
             let mut metadata: GameSettingsMetadata = world.read_model(settings_id);
             metadata.enabled = enabled;
-            world.write_model(@metadata);
-        }
-
-        fn set_zone_theme(ref self: ContractState, settings_id: u32, theme_id: u8) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-            InternalImpl::assert_owner_or_admin(@self, @world, settings_id);
-            let mut metadata: GameSettingsMetadata = world.read_model(settings_id);
-            metadata.theme_id = theme_id;
             world.write_model(@metadata);
         }
 

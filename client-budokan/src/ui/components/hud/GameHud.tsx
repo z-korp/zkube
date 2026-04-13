@@ -11,6 +11,8 @@ import { HudBarSvg, HUD_BAR, circleToPercent, rectToPercent } from "@/ui/compone
 import { getMutatorDef } from "@/config/mutatorConfig";
 import { useSettings } from "@/hooks/useSettings";
 import { useMutatorDef } from "@/hooks/useMutatorDef";
+import { useTokenSettingsId } from "@/hooks/useTokenSettingsId";
+import { useNavigationStore } from "@/stores/navigationStore";
 import { getZoneGuardian, getGuardianPortrait } from "@/config/bossCharacters";
 import { isBossLevel } from "@/dojo/game/helpers/runDataPacking";
 import {
@@ -162,7 +164,13 @@ const GameHud: React.FC<GameHudProps> = ({
   const isEndless = mode === 1;
   const isBoss = isBossLevel(level);
 
-  const settingsId = isEndless ? zoneId * 2 - 1 : (zoneId - 1) * 2;
+  // Resolve the token's real settings_id via Denshokan (tournaments don't
+  // follow the zone formula). Fall back to the formula while loading so the
+  // HUD never flashes empty tiers.
+  const gameId = useNavigationStore((s) => s.gameId);
+  const { settingsId: resolvedSettingsId } = useTokenSettingsId(gameId);
+  const formulaSettingsId = isEndless ? zoneId * 2 - 1 : (zoneId - 1) * 2;
+  const settingsId = resolvedSettingsId ?? formulaSettingsId;
   const { settings } = useSettings(settingsId);
   const ENDLESS_TIERS = useMemo(
     () => buildEndlessTiers(settings.endlessDifficultyThresholds, settings.endlessScoreMultipliers),

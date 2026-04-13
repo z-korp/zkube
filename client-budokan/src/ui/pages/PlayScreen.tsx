@@ -32,6 +32,7 @@ import { DifficultyType } from "@/dojo/game/types/difficulty";
 import { getBonusType } from "@/config/mutatorConfig";
 import { useMutatorDef } from "@/hooks/useMutatorDef";
 import { useSettings } from "@/hooks/useSettings";
+import { useTokenSettingsId } from "@/hooks/useTokenSettingsId";
 import { getThemeId } from "@/config/themes";
 import { showToast, deriveUserFacingErrorMessage } from "@/utils/toast";
 
@@ -370,9 +371,13 @@ const PlayScreen: React.FC = () => {
   const bonusCharges = game?.bonusCharges ?? 0;
   const gameBonusSlot = game?.bonusSlot ?? 0;
 
-  // run_data stores the passive mutator; the active mutator (bonus source) comes from GameSettings
+  // run_data stores the passive mutator; the active mutator (bonus source) comes from GameSettings.
+  // Tournaments have arbitrary settings ids — use Denshokan's TokenMetadata to resolve the real
+  // settings, falling back to the zone map formula while loading.
   const zoneId = game?.zoneId ?? 1;
-  const settingsId = Math.max(0, (zoneId - 1) * 2);
+  const formulaSettingsId = Math.max(0, (zoneId - 1) * 2);
+  const { settingsId: resolvedSettingsId } = useTokenSettingsId(gameId);
+  const settingsId = resolvedSettingsId ?? formulaSettingsId;
 
   // Sync theme to the game's zone so blocks/background match. Tournaments with
   // `zone_id=0` clamp to zone 1 (Tiki) inside getThemeId.

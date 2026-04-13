@@ -22,6 +22,7 @@ import { ControllersProvider } from "./contexts/controllers";
 import { GameEventsProvider } from "./contexts/gameEvents";
 import { useControllerUsername } from "./hooks/useControllerUsername";
 import { useNavigationStore } from "./stores/navigationStore";
+import { DenshokanProvider } from "@provable-games/denshokan-sdk/react";
 
 import "./index.css";
 import { type BigNumberish, shortString, PaymasterRpc } from "starknet";
@@ -31,9 +32,19 @@ import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
 // Required because @starknet-react/core v5.x throws if paymasterProvider returns null
 const slotPaymasterProvider = () => new PaymasterRpc({ nodeUrl: "http://localhost" });
 
-const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_NODE_URL, VITE_PUBLIC_SLOT } = import.meta.env;
+const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_NODE_URL, VITE_PUBLIC_SLOT, VITE_PUBLIC_DENSHOKAN_ADDRESS } = import.meta.env;
 
 const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
+
+// Denshokan SDK config — lets `useToken(tokenId)` fetch `settingsId` via REST
+// (with automatic RPC fallback). zkube's deploy plumbs the specific ERC721
+// address through VITE_PUBLIC_DENSHOKAN_ADDRESS; we pass it explicitly so
+// slot/dev deploys don't fall back to the chain-default Cartridge address.
+const denshokanConfig = {
+  chain: (VITE_PUBLIC_DEPLOY_TYPE === "mainnet" ? "mainnet" : "sepolia") as "mainnet" | "sepolia",
+  rpcUrl: VITE_PUBLIC_NODE_URL,
+  denshokanAddress: VITE_PUBLIC_DENSHOKAN_ADDRESS,
+};
 
 function rpc() {
   return {
@@ -112,7 +123,9 @@ function AppGate({ setupResult }: { setupResult: SetupResult | null }) {
         <DojoProvider value={setupResult}>
           <ControllersProvider>
             <GameEventsProvider>
-              {isReady && <App />}
+              <DenshokanProvider config={denshokanConfig}>
+                {isReady && <App />}
+              </DenshokanProvider>
             </GameEventsProvider>
           </ControllersProvider>
         </DojoProvider>
