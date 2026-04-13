@@ -27,6 +27,7 @@ world_address = "0x04315e0cdc96d922fa98b44ed1bef3f230369c5b3bbf69f7a4396c1e2f2d6
     "zkube_v2_1_1-level_system",
     "zkube_v2_1_1-config_system",
     "zkube_v2_1_1-daily_challenge_system",
+    "zkube_v2_1_1-weekly_endless_system",
     "zkube_v2_1_1-progress_system",
     "zkube_v2_1_1-renderer_systems",
     "zkube_v2_1_1-story_system",

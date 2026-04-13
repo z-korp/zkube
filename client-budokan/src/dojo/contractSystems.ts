@@ -573,6 +573,24 @@ export function setupWorld(config: Config) {
       }
     };
 
+    return {
+      address: contract.address,
+      start_daily_game,
+      replay_daily_level,
+      settle_challenge,
+    };
+  }
+
+  function weekly_endless() {
+    const contract_name = "weekly_endless_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      console.warn(`Contract ${contract_name} not found in manifest - weekly endless disabled`);
+      return null;
+    }
+
     const settle_weekly_endless = async ({ account, week_id, settings_id, ranked_players }: SettleWeeklyEndless) => {
       try {
         return await account.execute([
@@ -590,9 +608,6 @@ export function setupWorld(config: Config) {
 
     return {
       address: contract.address,
-      start_daily_game,
-      replay_daily_level,
-      settle_challenge,
       settle_weekly_endless,
     };
   }
@@ -634,6 +649,7 @@ export function setupWorld(config: Config) {
     story_system: storySystem(),
     config: configSystem(),
     daily_challenge: daily_challenge(),
+    weekly_endless: weekly_endless(),
     progress_system: progressSystem(),
   };
 }

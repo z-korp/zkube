@@ -1,6 +1,28 @@
 use starknet::ContractAddress;
 use zkube::types::difficulty::Difficulty;
 
+/// Discriminator values for `RewardTiers.kind`.
+pub mod RewardKind {
+    pub const DAILY: u8 = 1;
+    pub const WEEKLY: u8 = 2;
+}
+
+/// Admin-tunable reward magnitudes for daily / weekly settlement.
+/// Percentile bands stay hardcoded in the settle systems; only the per-band
+/// star amounts are configurable here. An all-zero row falls back to the
+/// hardcoded defaults inside the read helper.
+#[derive(Copy, Drop, Serde, IntrospectPacked)]
+#[dojo::model]
+pub struct RewardTiers {
+    #[key]
+    pub kind: u8,
+    pub tier_0: u32, // top <2%
+    pub tier_1: u32, // top <5%
+    pub tier_2: u32, // top <10%
+    pub tier_3: u32, // top <25%
+    pub tier_4: u32 // top <50%
+}
+
 #[derive(Introspect, Drop, Serde)]
 #[dojo::model]
 pub struct GameSettingsMetadata {

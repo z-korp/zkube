@@ -175,6 +175,7 @@ CONFIG_SYSTEM=""
 LEVEL_SYSTEM=""
 STORY_SYSTEM=""
 DAILY_CHALLENGE_SYSTEM=""
+WEEKLY_ENDLESS_SYSTEM=""
 PROGRESS_SYSTEM=""
 if [ -f "$MANIFEST_FILE" ]; then
     GAME_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-game_system\") | .address" 2>/dev/null)
@@ -183,6 +184,7 @@ if [ -f "$MANIFEST_FILE" ]; then
     PROGRESS_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-progress_system\") | .address" 2>/dev/null)
     STORY_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-story_system\") | .address" 2>/dev/null)
     DAILY_CHALLENGE_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-daily_challenge_system\") | .address" 2>/dev/null)
+    WEEKLY_ENDLESS_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-weekly_endless_system\") | .address" 2>/dev/null)
 fi
 
 print_info "Step 8: Granting ZStar roles..."
@@ -220,6 +222,7 @@ grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "game_system" "$GAME_SYSTEM"
 grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "level_system" "$LEVEL_SYSTEM"
 grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "story_system" "$STORY_SYSTEM"
 grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "daily_challenge_system" "$DAILY_CHALLENGE_SYSTEM"
+grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "weekly_endless_system" "$WEEKLY_ENDLESS_SYSTEM"
 grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "progress_system" "$PROGRESS_SYSTEM"
 grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "config_system" "$CONFIG_SYSTEM"
 grant_zstar_role "BURNER_ROLE" "$BURNER_ROLE_FELT" "config_system" "$CONFIG_SYSTEM"
@@ -326,6 +329,7 @@ echo "game_system:              $GAME_SYSTEM"
 echo "level_system:             $LEVEL_SYSTEM"
 echo "story_system:             $STORY_SYSTEM"
 echo "daily_challenge_system:   $DAILY_CHALLENGE_SYSTEM"
+echo "weekly_endless_system:    $WEEKLY_ENDLESS_SYSTEM"
 echo "config_system:            $CONFIG_SYSTEM"
 echo ""
 echo "Next steps:"

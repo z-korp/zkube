@@ -89,6 +89,12 @@ pub trait IConfigSystem<T> {
     fn set_treasury(ref self: T, treasury: ContractAddress);
     fn get_treasury(self: @T) -> ContractAddress;
     fn settings_exists(self: @T, settings_id: u32) -> bool;
+    /// Admin: set the per-band star reward magnitudes for daily (kind=1) or
+    /// weekly endless (kind=2) settlement. Percentile bands themselves are
+    /// fixed; only the values change. Pass all zeros to fall back to defaults.
+    fn set_reward_tiers(
+        ref self: T, kind: u8, tier_0: u32, tier_1: u32, tier_2: u32, tier_3: u32, tier_4: u32,
+    );
 }
 
 #[dojo::contract]
@@ -118,7 +124,9 @@ mod config_system {
     use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::helpers::encoding::U256BytesUsedTraitImpl;
     use zkube::helpers::mutator::MutatorEffectsTrait;
-    use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
+    use zkube::models::config::{
+        GameSettings, GameSettingsMetadata, GameSettingsTrait, RewardKind, RewardTiers,
+    };
     use zkube::models::entitlement::ZoneEntitlement;
     use zkube::models::mutator::MutatorDef;
     use zkube::types::difficulty::Difficulty;
@@ -1801,6 +1809,22 @@ mod config_system {
         fn set_star_eligible(ref self: ContractState, settings_id: u32, eligible: bool) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.star_eligible.write(settings_id, eligible);
+        }
+
+        fn set_reward_tiers(
+            ref self: ContractState,
+            kind: u8,
+            tier_0: u32,
+            tier_1: u32,
+            tier_2: u32,
+            tier_3: u32,
+            tier_4: u32,
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            assert!(kind == RewardKind::DAILY || kind == RewardKind::WEEKLY, "invalid reward kind");
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let cfg = RewardTiers { kind, tier_0, tier_1, tier_2, tier_3, tier_4 };
+            world.write_model(@cfg);
         }
 
         fn is_star_eligible(self: @ContractState, settings_id: u32) -> bool {

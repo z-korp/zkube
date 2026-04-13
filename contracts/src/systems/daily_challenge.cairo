@@ -16,11 +16,6 @@ pub trait IDailyChallengeSystem<T> {
     fn get_current_challenge(self: @T) -> u32;
     /// Get player entry for a challenge
     fn get_player_entry(self: @T, challenge_id: u32, player: ContractAddress) -> DailyEntry;
-    /// Settle weekly endless leaderboard for a specific zone's endless settings.
-    /// `ranked_players` must be sorted by all-time PB descending (verified on-chain).
-    fn settle_weekly_endless(
-        ref self: T, week_id: u32, settings_id: u32, ranked_players: Span<ContractAddress>,
-    );
 }
 
 #[dojo::contract]
@@ -36,22 +31,19 @@ mod daily_challenge_system {
     use zkube::elements::tasks::index::Task;
     use zkube::elements::tasks::interface::TaskTrait;
     use zkube::events::{LevelStarted, StartGame};
-    use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::helpers::game_creation::roll_bonus_trigger;
     use zkube::helpers::game_libs::{GameLibsImpl, IGridSystemDispatcherTrait};
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::mutator::MutatorEffectsTrait;
-    use zkube::helpers::{daily, weekly};
-    use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
+    use zkube::helpers::{daily, economy};
+    use zkube::models::config::{GameSettings, GameSettingsTrait, RewardKind, RewardTiers};
     use zkube::models::daily::{
         ActiveDailyAttempt, ActiveDailyAttemptTrait, DailyAttempt, DailyChallenge,
         DailyChallengeTrait, DailyEntry, DailyEntryTrait,
     };
     use zkube::models::game::{Game, GameLevelTrait, GameSeed, GameTrait};
     use zkube::models::mutator::MutatorDef;
-    use zkube::models::player::{PlayerBestRun, PlayerMeta, PlayerMetaTrait};
-    use zkube::models::weekly::{WeeklyEndless, current_week_id};
-    use zkube::systems::config::{IConfigSystemDispatcher, IConfigSystemDispatcherTrait};
+    use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::systems::progress::{IProgressSystemDispatcher, IProgressSystemDispatcherTrait};
 
     #[storage]
@@ -125,9 +117,11 @@ mod daily_challenge_system {
                 assert!(value <= prev_value, "Invalid ranking order");
                 prev_value = value;
 
-                let star_reward = InternalImpl::compute_star_reward(rank, total_participants);
+                let star_reward = InternalImpl::compute_star_reward(
+                    @world, rank, total_participants,
+                );
                 if star_reward > 0 {
-                    InternalImpl::mint_zstar(ref self, ref world, player, star_reward.into());
+                    economy::mint_zstar(ref world, player, star_reward.into());
 
                     // Store rank and reward in DailyEntry
                     let mut entry_mut: DailyEntry = world.read_model((challenge_id, player));
@@ -152,57 +146,6 @@ mod daily_challenge_system {
         ) -> DailyEntry {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             world.read_model((challenge_id, player))
-        }
-
-        fn settle_weekly_endless(
-            ref self: ContractState,
-            week_id: u32,
-            settings_id: u32,
-            ranked_players: Span<ContractAddress>,
-        ) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-
-            // Tournament settings are not eligible for weekly endless settlement —
-            // their rewards are distributed by Budokan at the metagame layer.
-            let metadata: GameSettingsMetadata = world.read_model(settings_id);
-            assert!(!metadata.is_tournament, "Cannot settle tournament as weekly endless");
-
-            let timestamp = get_block_timestamp();
-            let current_week = current_week_id(timestamp);
-            assert!(week_id < current_week, "Week has not ended yet");
-
-            // Use composite key (week_id * 1000 + settings_id) to track per-zone settlement
-            let settlement_key: u32 = week_id * 1000 + settings_id;
-            let mut weekly_meta: WeeklyEndless = world.read_model(settlement_key);
-            assert!(!weekly_meta.settled, "Already settled for this week + zone");
-
-            let len: u32 = ranked_players.len();
-            assert!(len <= weekly::MAX_RANKED_PLAYERS, "Too many ranked players");
-
-            // Verify descending order by all-time PB and distribute rewards
-            let mut prev_score: u32 = 0xFFFFFFFF;
-            let mut rank: u32 = 1;
-            while rank <= len {
-                let player = *ranked_players.at(rank - 1);
-                assert!(player.is_non_zero(), "Zero address in ranked list");
-
-                let best_run: PlayerBestRun = world.read_model((player, settings_id, 1_u8));
-                assert!(best_run.best_score > 0, "Player has no PB for this endless");
-                assert!(best_run.best_score <= prev_score, "Invalid ranking order");
-                prev_score = best_run.best_score;
-
-                let star_reward = InternalImpl::compute_weekly_star_reward(rank, len);
-                if star_reward > 0 {
-                    InternalImpl::mint_zstar(ref self, ref world, player, star_reward.into());
-                }
-
-                rank += 1;
-            }
-
-            weekly_meta.week_id = settlement_key;
-            weekly_meta.total_participants = len;
-            weekly_meta.settled = true;
-            world.write_model(@weekly_meta);
         }
     }
 
@@ -346,7 +289,7 @@ mod daily_challenge_system {
                 player_meta = PlayerMetaTrait::new(player);
             } else if player_meta.last_active > 0 && timestamp - player_meta.last_active > 604800 {
                 // Returning player bonus (>7 days inactive)
-                Self::mint_zstar(ref self, ref world, player, 5);
+                economy::mint_zstar(ref world, player, 5);
                 player_meta.increment_xp(50);
             }
             player_meta.increment_runs();
@@ -429,25 +372,6 @@ mod daily_challenge_system {
             assert!(caller == admin, "Caller is not admin");
         }
 
-        fn mint_zstar(
-            ref self: ContractState,
-            ref world: WorldStorage,
-            recipient: ContractAddress,
-            amount: u256,
-        ) {
-            match world.dns_address(@"config_system") {
-                Option::Some(config_address) => {
-                    let config = IConfigSystemDispatcher { contract_address: config_address };
-                    let zstar_address = config.get_zstar_address();
-                    if !zstar_address.is_zero() {
-                        let zstar = IZStarTokenDispatcher { contract_address: zstar_address };
-                        zstar.mint(recipient, amount);
-                    }
-                },
-                Option::None => {},
-            }
-        }
-
         fn read_mutator_def(world: WorldStorage, mutator_id: u8) -> MutatorDef {
             if mutator_id == 0 {
                 return MutatorEffectsTrait::neutral(0);
@@ -456,41 +380,44 @@ mod daily_challenge_system {
             MutatorEffectsTrait::normalize(mutator_id, stored)
         }
 
-        fn compute_weekly_star_reward(rank: u32, total_participants: u32) -> u64 {
-            if total_participants == 0 {
-                return 0;
-            }
-            let percentile_x100: u32 = ((rank - 1) * 100) / total_participants;
-            if percentile_x100 < 2 {
-                30
-            } else if percentile_x100 < 5 {
-                20
-            } else if percentile_x100 < 10 {
-                15
-            } else if percentile_x100 < 25 {
-                10
-            } else if percentile_x100 < 50 {
-                3
+        /// Read configurable daily reward magnitudes, falling back to the
+        /// shipped defaults `(10, 7, 5, 3, 1)` when no `RewardTiers` row has
+        /// been written yet (every field zero).
+        fn read_daily_tiers(world: @WorldStorage) -> (u64, u64, u64, u64, u64) {
+            let cfg: RewardTiers = world.read_model(RewardKind::DAILY);
+            if cfg.tier_0 == 0
+                && cfg.tier_1 == 0
+                && cfg.tier_2 == 0
+                && cfg.tier_3 == 0
+                && cfg.tier_4 == 0 {
+                (10_u64, 7, 5, 3, 1)
             } else {
-                0
+                (
+                    cfg.tier_0.into(),
+                    cfg.tier_1.into(),
+                    cfg.tier_2.into(),
+                    cfg.tier_3.into(),
+                    cfg.tier_4.into(),
+                )
             }
         }
 
-        fn compute_star_reward(rank: u32, total_participants: u32) -> u64 {
+        fn compute_star_reward(world: @WorldStorage, rank: u32, total_participants: u32) -> u64 {
             if total_participants == 0 {
                 return 0;
             }
+            let (t0, t1, t2, t3, t4) = Self::read_daily_tiers(world);
             let percentile_x100: u32 = ((rank - 1) * 100) / total_participants;
             if percentile_x100 < 2 {
-                10 // top 1%
+                t0 // top 1%
             } else if percentile_x100 < 5 {
-                7 // top 5%
+                t1 // top 5%
             } else if percentile_x100 < 10 {
-                5 // top 10%
+                t2 // top 10%
             } else if percentile_x100 < 25 {
-                3 // top 25%
+                t3 // top 25%
             } else if percentile_x100 < 50 {
-                1 // top 50%
+                t4 // top 50%
             } else {
                 0
             }
