@@ -396,10 +396,15 @@ mod daily_challenge_system {
                         .emit_progress(
                             player, Task::GameStart.identifier(), 1, challenge.settings_id,
                         );
-                    progress_dispatcher
-                        .emit_progress(
-                            player, Task::DailyPlay.identifier(), 1, challenge.settings_id,
-                        );
+                    // DailyPlay tracks distinct daily-challenges joined, NOT
+                    // levels played. Only emit on the first level of each
+                    // (player, day) pair.
+                    if is_new_player {
+                        progress_dispatcher
+                            .emit_progress(
+                                player, Task::DailyPlay.identifier(), 1, challenge.settings_id,
+                            );
+                    }
                 },
                 Option::None => {},
             }

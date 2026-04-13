@@ -173,15 +173,26 @@ mod move_system {
             if lines_cleared > 0 {
                 progress_tasks.append((Task::LineClear.identifier(), lines_cleared.into()));
             }
-            if game.combo_counter >= 2 {
+            // Per-move combo tasks: based on lines_cleared THIS move (not the
+            // cumulative combo_counter, which inflates across moves and used to
+            // make Combo3/Combo4 fire after sequential 2-line clears).
+            if lines_cleared >= 2 {
                 progress_tasks.append((Task::Combo2.identifier(), 1));
             }
-            if game.combo_counter >= 3 {
+            if lines_cleared >= 3 {
                 progress_tasks.append((Task::Combo3.identifier(), 1));
             }
-            if game.combo_counter >= 4 {
+            if lines_cleared >= 4 {
                 progress_tasks.append((Task::Combo4.identifier(), 1));
             }
+            if lines_cleared >= 5 {
+                progress_tasks.append((Task::Combo5.identifier(), 1));
+            }
+            if lines_cleared >= 6 {
+                progress_tasks.append((Task::Combo6.identifier(), 1));
+            }
+            // HighCombo stays on the cumulative streak — used by the
+            // streak_hunter daily quest. Target=1 makes repeat emits harmless.
             if game.combo_counter >= 10 {
                 progress_tasks.append((Task::HighCombo.identifier(), 1));
             }
