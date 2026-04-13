@@ -21,6 +21,8 @@ import { MetagameProvider } from "./contexts/MetagameProvider";
 import { ControllersProvider } from "./contexts/controllers";
 import { GameEventsProvider } from "./contexts/gameEvents";
 import { useControllerUsername } from "./hooks/useControllerUsername";
+import { useNavigationStore } from "./stores/navigationStore";
+import { DenshokanProvider } from "@provable-games/denshokan-sdk/react";
 
 import "./index.css";
 import { type BigNumberish, shortString, PaymasterRpc } from "starknet";
@@ -30,15 +32,49 @@ import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
 // Required because @starknet-react/core v5.x throws if paymasterProvider returns null
 const slotPaymasterProvider = () => new PaymasterRpc({ nodeUrl: "http://localhost" });
 
-const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_NODE_URL, VITE_PUBLIC_SLOT } = import.meta.env;
+const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_NODE_URL, VITE_PUBLIC_SLOT, VITE_PUBLIC_DENSHOKAN_ADDRESS } = import.meta.env;
 
 const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
+
+// Denshokan SDK config — lets `useToken(tokenId)` fetch `settingsId` via REST
+// (with automatic RPC fallback). zkube's deploy plumbs the specific ERC721
+// address through VITE_PUBLIC_DENSHOKAN_ADDRESS; we pass it explicitly so
+// slot/dev deploys don't fall back to the chain-default Cartridge address.
+const denshokanConfig = {
+  chain: (VITE_PUBLIC_DEPLOY_TYPE === "mainnet" ? "mainnet" : "sepolia") as "mainnet" | "sepolia",
+  rpcUrl: VITE_PUBLIC_NODE_URL,
+  denshokanAddress: VITE_PUBLIC_DENSHOKAN_ADDRESS,
+};
 
 function rpc() {
   return {
     nodeUrl: VITE_PUBLIC_NODE_URL,
   };
 }
+
+/**
+ * Minimal deep-link support for Budokan launches like `/play/0xabc...`.
+ * Parses the URL on startup and seeds the navigation store so PlayScreen
+ * mounts with the right gameId. No react-router — in-app navigation keeps
+ * running through Zustand (the URL bar won't update after this).
+ */
+function hydrateNavigationFromUrl() {
+  try {
+    const match = window.location.pathname.match(/^\/play\/(0x[0-9a-fA-F]+|\d+)\/?$/);
+    if (!match?.[1]) return;
+    const gameId = BigInt(match[1]);
+    if (gameId === 0n) return;
+    useNavigationStore.setState({
+      currentPage: "play",
+      gameId,
+      pendingDeepLinkStart: true,
+    });
+  } catch (err) {
+    console.warn("[main] failed to hydrate navigation from URL", err);
+  }
+}
+
+hydrateNavigationFromUrl();
 
 const root = createRoot(
   document.getElementById("root") as HTMLElement
@@ -48,6 +84,7 @@ const root = createRoot(
 function AppGate({ setupResult }: { setupResult: SetupResult | null }) {
   const { account, isConnected } = useAccount();
   const { username } = useControllerUsername();
+  const isDeepLinkEntry = useNavigationStore((s) => s.pendingDeepLinkStart);
 
   // Detect if there's a stored session that autoConnect will restore
   const [hadStoredSession] = useState(() => {
@@ -65,25 +102,33 @@ function AppGate({ setupResult }: { setupResult: SetupResult | null }) {
     return () => clearTimeout(timer);
   }, []);
 
-  // Wait for: dojo setup + account object (not just isConnected) + username
+  // Wait for: dojo setup + account object (not just isConnected) + username.
+  // Deep-link entries (e.g. Budokan /play/{tokenId}) always wait for account so
+  // we don't flash the Connect popup while auto-reconnect is still in flight —
+  // Cartridge may restore a session even without `lastUsedConnector` in storage.
   const isReady = !!setupResult
-    && (timedOut || !hadStoredSession || !!account)
+    && (timedOut || (!hadStoredSession && !isDeepLinkEntry) || !!account)
     && (timedOut || !isConnected || !!username);
 
 
+  // Conditionally mount App rather than hiding it with display:none — Radix
+  // portals (e.g. PlayScreen's Connect dialog) render to document.body and
+  // leak through a hidden parent. Keep the Dojo/Controllers/GameEvents
+  // providers mounted so Torii sync and Cartridge reconnect run in parallel
+  // with the Loading screen.
   return (
     <>
       {!isReady && <Loading />}
       {setupResult && (
-        <div style={{ display: isReady ? "contents" : "none" }}>
-          <DojoProvider value={setupResult}>
-            <ControllersProvider>
-              <GameEventsProvider>
-                <App />
-              </GameEventsProvider>
-            </ControllersProvider>
-          </DojoProvider>
-        </div>
+        <DojoProvider value={setupResult}>
+          <ControllersProvider>
+            <GameEventsProvider>
+              <DenshokanProvider config={denshokanConfig}>
+                {isReady && <App />}
+              </DenshokanProvider>
+            </GameEventsProvider>
+          </ControllersProvider>
+        </DojoProvider>
       )}
     </>
   );

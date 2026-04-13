@@ -31,6 +31,13 @@ interface NavigationState {
   pendingLevelCompletion: PendingLevelCompletion | null;
   greetedZones: Set<number>;
   showEndlessGreeting: boolean;
+  /**
+   * True when the app was opened via a /play/{tokenId} deep link and we
+   * haven't yet attempted create_run for the token. PlayScreen consumes this
+   * flag to auto-start the game on first landing (e.g. Budokan tournament
+   * launches where Denshokan minted the token before the user arrived).
+   */
+  pendingDeepLinkStart: boolean;
   navigate: (page: PageId, gameId?: bigint) => void;
   goBack: () => void;
   setGameId: (id: bigint | null) => void;
@@ -41,6 +48,7 @@ interface NavigationState {
   setPendingPreviewLevel: (level: number | null) => void;
   setPendingLevelCompletion: (data: PendingLevelCompletion | null) => void;
   markZoneGreeted: (zoneId: number) => void;
+  setPendingDeepLinkStart: (value: boolean) => void;
 }
 
 const getBackTarget = (page: PageId): PageId => {
@@ -74,6 +82,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
   pendingLevelCompletion: null,
   greetedZones: new Set(),
   showEndlessGreeting: false,
+  pendingDeepLinkStart: false,
 
   navigate: (page, gameId) => {
     const { currentPage, isTransitioning } = get();
@@ -121,4 +130,5 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
     next.add(zoneId);
     return { greetedZones: next };
   }),
+  setPendingDeepLinkStart: (value) => set({ pendingDeepLinkStart: value }),
 }));

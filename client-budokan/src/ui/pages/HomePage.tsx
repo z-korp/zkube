@@ -4,7 +4,7 @@ import { motion, type Variants } from "motion/react";
 import { useDojo } from "@/dojo/useDojo";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
-import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
+import { getThemeColors, getThemeId, getThemeImages, type ThemeId } from "@/config/themes";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
@@ -25,11 +25,6 @@ import Connect from "@/ui/components/Connect";
 import ModePill from "@/ui/components/shared/ModePill";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 import UnlockModal from "@/ui/components/profile/UnlockModal";
-
-const getThemeId = (zoneId: number): ThemeId => {
-  const normalized = Math.min(10, Math.max(1, zoneId));
-  return `theme-${normalized}` as ThemeId;
-};
 
 const useDailyCountdown = (endTime: number | undefined) => {
   const [remaining, setRemaining] = useState(() =>

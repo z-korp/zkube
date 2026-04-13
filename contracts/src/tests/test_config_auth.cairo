@@ -16,6 +16,7 @@ fn make_metadata(settings_id: u32, owner: ContractAddress) -> GameSettingsMetada
         created_at: 1000,
         theme_id: 1,
         is_free: true,
+        is_tournament: false,
         enabled: true,
         price: 0,
         payment_token: 0_felt252.try_into().unwrap(),

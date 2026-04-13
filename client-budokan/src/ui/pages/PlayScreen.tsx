@@ -32,6 +32,9 @@ import { DifficultyType } from "@/dojo/game/types/difficulty";
 import { getBonusType } from "@/config/mutatorConfig";
 import { useMutatorDef } from "@/hooks/useMutatorDef";
 import { useSettings } from "@/hooks/useSettings";
+import { useTokenSettingsId } from "@/hooks/useTokenSettingsId";
+import { getThemeId } from "@/config/themes";
+import { showToast, deriveUserFacingErrorMessage } from "@/utils/toast";
 
 const EndlessGreetingOverlay = React.lazy(() =>
   import("@/ui/components/map/GuardianGreeting").then((mod) =>
@@ -39,8 +42,7 @@ const EndlessGreetingOverlay = React.lazy(() =>
       import("@/config/themes").then((themesMod) => ({
         default: ({ zoneId, activeMutatorId, onClose }: { zoneId: number; activeMutatorId: number; onClose: () => void }) => {
           const guardian = bossMod.getZoneGuardian(zoneId);
-          const themeId = `theme-${Math.min(10, Math.max(1, zoneId))}` as import("@/config/themes").ThemeId;
-          const colors = themesMod.getThemeColors(themeId);
+          const colors = themesMod.getThemeColors(themesMod.getThemeId(zoneId));
           return <mod.default colors={colors} guardian={guardian} mode="endless" activeMutatorId={activeMutatorId} onClose={onClose} />;
         },
       }))
@@ -51,7 +53,8 @@ const EndlessGreetingOverlay = React.lazy(() =>
 const PlayScreen: React.FC = () => {
   const {
     setup: {
-      systemCalls: { surrender },
+      systemCalls: { surrender, create },
+      client: { game: gameClient },
     },
   } = useDojo();
   const { account } = useAccountCustom();
@@ -170,13 +173,67 @@ const PlayScreen: React.FC = () => {
 
   useEffect(() => {
     setIsGameLoading(true);
-    const timer = setTimeout(() => setIsGameLoading(false), 15000);
+    // 30s is the worst-case budget for a Budokan-deep-link landing where we
+    // also need create_run to confirm before Torii indexes the new Game model.
+    const timer = setTimeout(() => setIsGameLoading(false), 30000);
     return () => clearTimeout(timer);
   }, [gameId]);
 
   useEffect(() => {
     if (game && seed !== 0n) setIsGameLoading(false);
   }, [game, seed]);
+
+  // Deep-link (Budokan) entry: the user landed on /play/{tokenId} from outside
+  // the app. Denshokan has already minted the token; we now need to call
+  // create_run(token_id, 1) so the game state is initialized. If the game
+  // already exists (refresh/return visit) we just clear the flag.
+  const pendingDeepLinkStart = useNavigationStore((s) => s.pendingDeepLinkStart);
+  const deepLinkAttemptRef = useRef(false);
+
+  useEffect(() => {
+    if (!pendingDeepLinkStart) return;
+    if (!account || !gameId) return;
+    if (deepLinkAttemptRef.current) return;
+
+    const setPending = useNavigationStore.getState().setPendingDeepLinkStart;
+
+    // Fast path: if Torii has already indexed the Game model, no create_run needed.
+    if (toriiGame) {
+      deepLinkAttemptRef.current = true;
+      setPending(false);
+      return;
+    }
+
+    // Slow path: Torii may be lagging. Ask the chain directly (via game_system's
+    // get_game_data view call) whether the Game model has been initialized.
+    // This avoids the arbitrary "wait N seconds" heuristic — the chain is
+    // authoritative and the answer is immediate.
+    let cancelled = false;
+    deepLinkAttemptRef.current = true;
+    (async () => {
+      try {
+        const alreadyInitialized = await gameClient.isGameInitialized({ account, game_id: gameId });
+        if (cancelled) return;
+        if (alreadyInitialized) return;
+        await create({ account, token_id: gameId, run_type: 1 });
+        if (cancelled) return;
+        showToast({ message: "Tournament started!", type: "success" });
+      } catch (err) {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : "";
+        // "already" reverts are benign races (Torii lagged but chain had the game).
+        if (message.toLowerCase().includes("already")) return;
+        console.error("[deep-link] create_run failed", err);
+        showToast({ message: deriveUserFacingErrorMessage(err, "Failed to start game."), type: "error" });
+      } finally {
+        if (!cancelled) setPending(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pendingDeepLinkStart, account, gameId, toriiGame, create, gameClient]);
 
   useEffect(() => {
     if (!account) setIsConnectDialogOpen(true);
@@ -314,14 +371,19 @@ const PlayScreen: React.FC = () => {
   const bonusCharges = game?.bonusCharges ?? 0;
   const gameBonusSlot = game?.bonusSlot ?? 0;
 
-  // run_data stores the passive mutator; the active mutator (bonus source) comes from GameSettings
+  // run_data stores the passive mutator; the active mutator (bonus source) comes from GameSettings.
+  // Tournaments have arbitrary settings ids — use Denshokan's TokenMetadata to resolve the real
+  // settings, falling back to the zone map formula while loading.
   const zoneId = game?.zoneId ?? 1;
-  const settingsId = Math.max(0, (zoneId - 1) * 2);
+  const formulaSettingsId = Math.max(0, (zoneId - 1) * 2);
+  const { settingsId: resolvedSettingsId } = useTokenSettingsId(gameId);
+  const settingsId = resolvedSettingsId ?? formulaSettingsId;
 
-  // Sync theme to the game's zone so blocks/background match
+  // Sync theme to the game's zone so blocks/background match. Tournaments with
+  // `zone_id=0` clamp to zone 1 (Tiki) inside getThemeId.
   useEffect(() => {
     if (!game) return;
-    const gameThemeId = `theme-${Math.min(10, Math.max(1, game.zoneId))}` as import("@/config/themes").ThemeId;
+    const gameThemeId = getThemeId(game.zoneId);
     if (gameThemeId !== themeTemplate) {
       setThemeTemplate(gameThemeId);
     }
@@ -456,7 +518,7 @@ const PlayScreen: React.FC = () => {
       {game && game.mode === 1 && showEndlessGreeting && (
         <Suspense fallback={null}>
           <EndlessGreetingOverlay
-            zoneId={game.zoneId ?? 1}
+            zoneId={game.zoneId}
             activeMutatorId={game.activeMutatorId}
             onClose={() => useNavigationStore.setState({ showEndlessGreeting: false })}
           />

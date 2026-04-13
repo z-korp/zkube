@@ -59,6 +59,7 @@ export function defineContractComponents(world: World) {
           price: RecsType.BigInt,
           payment_token: RecsType.String,
           star_cost: RecsType.BigInt,
+          is_tournament: RecsType.Boolean,
         },
         {
           metadata: {
@@ -76,6 +77,7 @@ export function defineContractComponents(world: World) {
               "u128",
               "ContractAddress",
               "u128",
+              "bool",
             ],
           },
         }

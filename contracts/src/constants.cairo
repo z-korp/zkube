@@ -64,6 +64,7 @@ pub mod DEFAULT_SETTINGS {
             created_at: current_timestamp,
             theme_id: 1,
             is_free: true,
+            is_tournament: false,
             enabled: true,
             price: 0,
             payment_token: core::num::traits::Zero::zero(),

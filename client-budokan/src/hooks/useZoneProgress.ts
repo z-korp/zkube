@@ -42,7 +42,7 @@ export const useZoneProgress = (
 
     const metadataMap = new Map<
       number,
-      { starCost: bigint; price: bigint; isFree: boolean; themeId: number; enabled: boolean }
+      { starCost: bigint; price: bigint; isFree: boolean; themeId: number; enabled: boolean; isTournament: boolean }
     >();
 
     for (const entity of metadataEntityIds) {
@@ -54,6 +54,7 @@ export const useZoneProgress = (
         isFree: metadata.is_free,
         themeId: metadata.theme_id,
         enabled: metadata.enabled,
+        isTournament: metadata.is_tournament ?? false,
       });
     }
 
@@ -65,6 +66,7 @@ export const useZoneProgress = (
           isFree: zone.isFree,
           themeId: zone.themeId,
           enabled: zone.enabled,
+          isTournament: false,
         });
       }
     }
@@ -101,7 +103,7 @@ export const useZoneProgress = (
     }
 
     const zonesToShow = Array.from(metadataMap.entries())
-      .filter(([_, metadata]) => metadata.enabled)
+      .filter(([_, metadata]) => metadata.enabled && !metadata.isTournament)
       .sort(([a], [b]) => a - b)
       .filter(([settingsId, metadata]) => settingsId % 2 === 0 && metadata.themeId <= 10)
       .map(([settingsId, metadata]) => {

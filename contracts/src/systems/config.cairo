@@ -4,11 +4,6 @@ use zkube::types::difficulty::Difficulty;
 
 #[starknet::interface]
 pub trait IConfigSystem<T> {
-    /// Add new game settings with default values for a given difficulty
-    fn add_game_settings(
-        ref self: T, name: felt252, description: ByteArray, difficulty: Difficulty,
-    ) -> u32;
-
     /// Add new game settings with custom parameters
     fn add_custom_game_settings(
         ref self: T,
@@ -60,6 +55,11 @@ pub trait IConfigSystem<T> {
         passive_mutator_id: u8,
         // Boss Settings
         boss_id: u8,
+        // Endless Mode ramp (packed tiers / score multipliers; pass 0 for defaults)
+        endless_difficulty_thresholds: felt252,
+        endless_score_multipliers: u64,
+        // Tournament flag (true = Budokan-visible, bypasses zone gates)
+        is_tournament: bool,
     ) -> u32;
 
     fn get_game_settings(self: @T, settings_id: u32) -> GameSettings;
@@ -83,8 +83,6 @@ pub trait IConfigSystem<T> {
     );
     /// Admin: set map enabled/disabled
     fn set_zone_enabled(ref self: T, settings_id: u32, enabled: bool);
-    /// Admin: set map theme
-    fn set_zone_theme(ref self: T, settings_id: u32, theme_id: u8);
     fn set_star_eligible(ref self: T, settings_id: u32, eligible: bool);
     fn is_star_eligible(self: @T, settings_id: u32) -> bool;
     fn set_zstar_address(ref self: T, token: ContractAddress);
@@ -231,6 +229,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 1,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -259,6 +258,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 1,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -300,6 +300,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 2,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 2000000,
                     payment_token: payment_token_address,
@@ -316,7 +317,7 @@ mod config_system {
         z2_endless.passive_mutator_id = 4;
         z2_endless.boss_id = 0;
         // packed [0, 20, 55, 105, 200, 370, 650, 1170]
-        z2_endless.endless_difficulty_thresholds = 92697735950297376096128832307220;
+        z2_endless.endless_difficulty_thresholds = 6075038823238688839835899154085969920;
         // packed [10, 15, 20, 35, 50, 70, 100, 130]
         z2_endless.endless_score_multipliers = 9395711903752523530;
         world.write_model(@z2_endless);
@@ -330,6 +331,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 2,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -371,6 +373,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 3,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 2000000,
                     payment_token: payment_token_address,
@@ -387,7 +390,7 @@ mod config_system {
         z3_endless.passive_mutator_id = 6;
         z3_endless.boss_id = 0;
         // packed [0, 15, 35, 70, 130, 240, 420, 750]
-        z3_endless.endless_difficulty_thresholds = 59421629638969746509149254123535;
+        z3_endless.endless_difficulty_thresholds = 3894255920019521307223605518239989760;
         // packed [10, 15, 20, 30, 45, 65, 90, 120]
         z3_endless.endless_score_multipliers = 8672315694489276170;
         world.write_model(@z3_endless);
@@ -401,6 +404,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 3,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -442,6 +446,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 4,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 2000000,
                     payment_token: payment_token_address,
@@ -458,7 +463,7 @@ mod config_system {
         z4_endless.passive_mutator_id = 8;
         z4_endless.boss_id = 0;
         // packed [0, 12, 30, 60, 120, 220, 400, 700]
-        z4_endless.endless_difficulty_thresholds = 55460197334371199640621654343692;
+        z4_endless.endless_difficulty_thresholds = 3634639492505350939647780739068198912;
         // packed [10, 15, 20, 30, 40, 60, 80, 100]
         z4_endless.endless_score_multipliers = 7228343544930635530;
         world.write_model(@z4_endless);
@@ -472,6 +477,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 4,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -514,6 +520,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 6,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 5000000,
                     payment_token: payment_token_address,
@@ -530,7 +537,7 @@ mod config_system {
         z5_endless.passive_mutator_id = 10;
         z5_endless.boss_id = 0;
         // packed [0, 18, 45, 90, 170, 310, 550, 950]
-        z5_endless.endless_difficulty_thresholds = 75267419303470447273895393034258;
+        z5_endless.endless_difficulty_thresholds = 4932725591472239232542008477893132288;
         // packed [10, 15, 20, 30, 45, 65, 90, 120]
         z5_endless.endless_score_multipliers = 8672315694489276170;
         world.write_model(@z5_endless);
@@ -544,6 +551,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 6,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -586,6 +594,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 7,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 5000000,
                     payment_token: payment_token_address,
@@ -602,7 +611,7 @@ mod config_system {
         z6_endless.passive_mutator_id = 12;
         z6_endless.boss_id = 0;
         // packed [0, 13, 35, 70, 135, 250, 440, 780]
-        z6_endless.endless_difficulty_thresholds = 61798498693098537777651045826573;
+        z6_endless.endless_difficulty_thresholds = 4050026410350905771796138939290288128;
         // packed [10, 15, 20, 30, 45, 60, 85, 110]
         z6_endless.endless_score_multipliers = 7950326881668304650;
         world.write_model(@z6_endless);
@@ -616,6 +625,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 7,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -658,6 +668,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 5,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 5000000,
                     payment_token: payment_token_address,
@@ -674,7 +685,7 @@ mod config_system {
         z7_endless.passive_mutator_id = 14;
         z7_endless.boss_id = 0;
         // packed [0, 10, 25, 50, 100, 180, 320, 550]
-        z7_endless.endless_difficulty_thresholds = 43575876242428104438765219020810;
+        z7_endless.endless_difficulty_thresholds = 2855788625423768252498917393747804160;
         // packed [10, 15, 25, 35, 50, 70, 90, 110]
         z7_endless.endless_score_multipliers = 7951745273227185930;
         world.write_model(@z7_endless);
@@ -688,6 +699,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 5,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -729,6 +741,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 8,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 10000000,
                     payment_token: payment_token_address,
@@ -745,7 +758,7 @@ mod config_system {
         z8_endless.passive_mutator_id = 16;
         z8_endless.boss_id = 0;
         // packed [0, 18, 45, 95, 180, 330, 580, 1000]
-        z8_endless.endless_difficulty_thresholds = 79228863697327190288693264711698;
+        z8_endless.endless_difficulty_thresholds = 5192342811268034742759801796145840128;
         // packed [10, 15, 25, 35, 50, 70, 100, 130]
         z8_endless.endless_score_multipliers = 9395711903752851210;
         world.write_model(@z8_endless);
@@ -759,6 +772,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 8,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -800,6 +814,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 9,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 10000000,
                     payment_token: payment_token_address,
@@ -816,7 +831,7 @@ mod config_system {
         z9_endless.passive_mutator_id = 18;
         z9_endless.boss_id = 0;
         // packed [0, 14, 35, 75, 140, 260, 460, 800]
-        z9_endless.endless_difficulty_thresholds = 63383086122084685670238872862734;
+        z9_endless.endless_difficulty_thresholds = 4153873932096941960084774771932135424;
         // packed [10, 15, 25, 35, 50, 70, 95, 120]
         z9_endless.endless_score_multipliers = 8673728588490018570;
         world.write_model(@z9_endless);
@@ -830,6 +845,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 9,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -871,6 +887,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 10,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 10000000,
                     payment_token: payment_token_address,
@@ -887,7 +904,7 @@ mod config_system {
         z10_endless.passive_mutator_id = 20;
         z10_endless.boss_id = 0;
         // packed [0, 20, 50, 110, 210, 380, 660, 1100]
-        z10_endless.endless_difficulty_thresholds = 87151776663741538866380839976980;
+        z10_endless.endless_difficulty_thresholds = 5711578835434965491147134728731361280;
         // packed [10, 20, 30, 40, 60, 80, 110, 150]
         z10_endless.endless_score_multipliers = 10839689572428682250;
         world.write_model(@z10_endless);
@@ -901,6 +918,43 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 10,
                     is_free: true,
+                    is_tournament: false,
+                    enabled: true,
+                    price: 0,
+                    payment_token: Zero::zero(),
+                    star_cost: 0,
+                },
+            );
+
+        // =====================================================================
+        // Tournament Tiki (Settings 20) — default tournament, Tiki Endless clone
+        // `is_tournament=true` bypasses both the boss gate and the zone-unlock
+        // gate, so any player can mint a token against this settings and play
+        // immediately. zone_id=1 carries the theme signal (entry requirements
+        // are enforced at Budokan's metagame layer).
+        // =====================================================================
+        let mut t_tiki = GameSettingsTrait::new_with_defaults(20_u32, Difficulty::Increasing);
+        t_tiki.base_moves = 16;
+        t_tiki.max_moves = 48;
+        t_tiki.level_cap = 255;
+        t_tiki.zone_id = 1;
+        t_tiki.active_mutator_id = 0;
+        t_tiki.passive_mutator_id = 2;
+        t_tiki.boss_id = 0;
+        t_tiki.endless_difficulty_thresholds = 0; // use defaults
+        t_tiki.endless_score_multipliers = 0; // use defaults
+        world.write_model(@t_tiki);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 20_u32,
+                    name: 'Tournament Tiki',
+                    description: "Open tournament variant of Tiki Endless - no zone unlock required.",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 1,
+                    is_free: true,
+                    is_tournament: true,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -1554,10 +1608,12 @@ mod config_system {
         // =====================================================================
         // Settings counter and star eligibility
         // =====================================================================
-        // Counter = 19 so next custom settings will be 20+
-        self.settings_counter.write(19_u32);
+        // Counter = 20 (Tournament Tiki). Next custom settings will be 21+.
+        self.settings_counter.write(20_u32);
 
-        // All 20 settings (IDs 0..19) are star-eligible
+        // Zone settings (IDs 0..19) are star-eligible. Tournament Tiki (ID 20)
+        // is intentionally NOT star-eligible — its rewards come from Budokan's
+        // prize pool, so zkube play shouldn't mint stars for it.
         let mut sid: u32 = 0;
         loop {
             if sid > 19 {
@@ -1576,7 +1632,7 @@ mod config_system {
 
         if !minigame_token_address.is_zero() {
             let zone_ids: Array<u32> = array![
-                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
             ];
             let zone_descs: Array<ByteArray> = array![
                 "Polynesian map mode", "Polynesian endless mode", "Egypt map mode",
@@ -1584,14 +1640,14 @@ mod config_system {
                 "Greece endless mode", "China map mode", "China endless mode", "Persia map mode",
                 "Persia endless mode", "Japan map mode", "Japan endless mode", "Mayan map mode",
                 "Mayan endless mode", "Tribal map mode", "Tribal endless mode", "Inca map mode",
-                "Inca endless mode",
+                "Inca endless mode", "Open tournament - Tiki-themed",
             ];
             let zone_labels: Array<ByteArray> = array![
                 "Polynesian", "Polynesian Endless", "Ancient Egypt", "Egypt Endless", "Norse",
                 "Norse Endless", "Ancient Greece", "Greece Endless", "Ancient China",
                 "China Endless", "Ancient Persia", "Persia Endless", "Feudal Japan",
                 "Japan Endless", "Mayan", "Mayan Endless", "Tribal", "Tribal Endless", "Inca",
-                "Inca Endless",
+                "Inca Endless", "Tournament Tiki",
             ];
 
             let mut i: u32 = 0;
@@ -1619,10 +1675,14 @@ mod config_system {
 
     #[abi(embed_v0)]
     impl MinigameSettingsImpl of IMinigameSettings<ContractState> {
+        /// Budokan-visibility filter: only tournament-flagged, enabled settings are
+        /// reported as existing. Zone settings remain first-class in zKube's own
+        /// flows (minting, play, leaderboards) but are hidden from the MinigameSettings
+        /// registry so Budokan's tournament picker only lists open tournament settings.
         fn settings_exist(self: @ContractState, settings_id: u32) -> bool {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
-            let game_settings: GameSettings = world.read_model(settings_id);
-            game_settings.exists()
+            let metadata: GameSettingsMetadata = world.read_model(settings_id);
+            metadata.is_tournament && metadata.enabled
         }
 
         fn settings_exist_batch(self: @ContractState, settings_ids: Span<u32>) -> Array<bool> {
@@ -1683,72 +1743,6 @@ mod config_system {
 
     #[abi(embed_v0)]
     impl ConfigSystemImpl of IConfigSystem<ContractState> {
-        fn add_game_settings(
-            ref self: ContractState, name: felt252, description: ByteArray, difficulty: Difficulty,
-        ) -> u32 {
-            // Validate input
-            assert(difficulty != Difficulty::None, 'Invalid difficulty');
-
-            // Get the world dispatcher
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-
-            // Increment settings counter
-            let mut settings_id = self.settings_counter.read();
-            settings_id += 1;
-            self.settings_counter.write(settings_id);
-
-            // Create the game settings with defaults
-            let game_settings = GameSettingsTrait::new_with_defaults(settings_id, difficulty);
-
-            // Create metadata
-            let metadata = GameSettingsMetadata {
-                settings_id,
-                name,
-                description: description.clone(),
-                created_by: get_caller_address(),
-                created_at: get_block_timestamp(),
-                theme_id: 1,
-                is_free: true,
-                enabled: true,
-                price: 0,
-                payment_token: Zero::zero(),
-                star_cost: 0,
-            };
-
-            // Save to world
-            world.write_model(@game_settings);
-            world.write_model(@metadata);
-
-            // Emit event
-            self
-                .emit(
-                    GameSettingsCreated {
-                        settings_id, name, difficulty, created_by: get_caller_address(),
-                    },
-                );
-
-            let (game_systems_address, _) = world.dns(@"game_system").unwrap();
-            let minigame_dispatcher = IMinigameDispatcher {
-                contract_address: game_systems_address,
-            };
-            let minigame_token_address = minigame_dispatcher.token_address();
-
-            self
-                .settings
-                .create_settings(
-                    game_systems_address,
-                    settings_id,
-                    GameSettingDetails {
-                        name: felt_to_bytearray(name),
-                        description: description.clone(),
-                        settings: generate_settings_array(game_settings),
-                    },
-                    minigame_token_address,
-                );
-
-            settings_id
-        }
-
         fn add_custom_game_settings(
             ref self: ContractState,
             name: felt252,
@@ -1799,6 +1793,11 @@ mod config_system {
             passive_mutator_id: u8,
             // Boss Settings
             boss_id: u8,
+            // Endless Mode ramp (packed tiers / score multipliers; pass 0 for defaults)
+            endless_difficulty_thresholds: felt252,
+            endless_score_multipliers: u64,
+            // Tournament flag (true = Budokan-visible, bypasses zone gates)
+            is_tournament: bool,
         ) -> u32 {
             // Validate input
             assert(difficulty != Difficulty::None, 'Invalid difficulty');
@@ -1889,9 +1888,9 @@ mod config_system {
                 mid_level_threshold,
                 // Level Cap
                 level_cap,
-                // Endless Mode Settings (defaults)
-                endless_difficulty_thresholds: 0,
-                endless_score_multipliers: 0,
+                // Endless Mode Settings (caller may pass 0 for hardcoded defaults)
+                endless_difficulty_thresholds,
+                endless_score_multipliers,
                 // Zone Assignment
                 zone_id,
                 // Mutator Assignment
@@ -1910,6 +1909,7 @@ mod config_system {
                 created_at: get_block_timestamp(),
                 theme_id: 1,
                 is_free: true,
+                is_tournament,
                 enabled: true,
                 price: 0,
                 payment_token: Zero::zero(),
@@ -2087,14 +2087,6 @@ mod config_system {
             InternalImpl::assert_owner_or_admin(@self, @world, settings_id);
             let mut metadata: GameSettingsMetadata = world.read_model(settings_id);
             metadata.enabled = enabled;
-            world.write_model(@metadata);
-        }
-
-        fn set_zone_theme(ref self: ContractState, settings_id: u32, theme_id: u8) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-            InternalImpl::assert_owner_or_admin(@self, @world, settings_id);
-            let mut metadata: GameSettingsMetadata = world.read_model(settings_id);
-            metadata.theme_id = theme_id;
             world.write_model(@metadata);
         }
 

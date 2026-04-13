@@ -921,3 +921,11 @@ const MAP_PATH_THEMES: Record<ThemeId, MapPathTheme> = {
 export function getMapPathTheme(themeId: ThemeId): MapPathTheme {
   return MAP_PATH_THEMES[themeId] ?? MAP_PATH_THEMES["theme-1"];
 }
+
+/// Clamp a raw zone id to `[1, 10]` and return the corresponding ThemeId.
+/// Tournaments may carry `zone_id = 0`; this defaults them to theme-1 (Tiki).
+export const getThemeId = (zoneId: number): ThemeId => {
+  const normalized = Math.min(10, Math.max(1, zoneId));
+  return `theme-${normalized}` as ThemeId;
+};
+
