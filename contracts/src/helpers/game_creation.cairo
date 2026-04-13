@@ -40,22 +40,26 @@ pub fn create_game(
     let run_type_val: u8 = run_type & 0x1;
 
     let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-
-    if run_type_val == 1 {
-        // Endless gating: require boss clear for the zone this settings belongs to.
-        // zone_id=0 means no zone gating (custom settings without restriction).
-        let zone_for_endless = settings.zone_id;
-        if zone_for_endless > 0 {
-            let progress: StoryZoneProgress = world.read_model((player, zone_for_endless));
-            assert!(progress.exists() && progress.boss_cleared, "Clear story zone first");
-        }
-    }
-
-    // === MAP ACCESS GATE ===
     let metadata: GameSettingsMetadata = world.read_model(settings.settings_id);
-    if !metadata.is_free {
-        let entitlement: ZoneEntitlement = world.read_model((player, settings.settings_id));
-        assert!(entitlement.purchased_at != 0, "Zone not unlocked - unlock this zone first");
+
+    // Tournament-flagged settings bypass both gates — they are designed to be fully
+    // open (entry fees / eligibility are enforced at the Budokan layer).
+    if !metadata.is_tournament {
+        if run_type_val == 1 {
+            // Endless gating: require boss clear for the zone this settings belongs to.
+            // zone_id=0 means no zone gating (custom settings without restriction).
+            let zone_for_endless = settings.zone_id;
+            if zone_for_endless > 0 {
+                let progress: StoryZoneProgress = world.read_model((player, zone_for_endless));
+                assert!(progress.exists() && progress.boss_cleared, "Clear story zone first");
+            }
+        }
+
+        // === MAP ACCESS GATE ===
+        if !metadata.is_free {
+            let entitlement: ZoneEntitlement = world.read_model((player, settings.settings_id));
+            assert!(entitlement.purchased_at != 0, "Zone not unlocked - unlock this zone first");
+        }
     }
 
     // Generate seed via VRF or pseudo-random.

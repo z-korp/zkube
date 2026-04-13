@@ -41,7 +41,7 @@ mod daily_challenge_system {
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::mutator::MutatorEffectsTrait;
     use zkube::helpers::{daily, weekly};
-    use zkube::models::config::{GameSettings, GameSettingsTrait};
+    use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
     use zkube::models::daily::{
         ActiveDailyAttempt, ActiveDailyAttemptTrait, DailyAttempt, DailyChallenge,
         DailyChallengeTrait, DailyEntry, DailyEntryTrait,
@@ -160,6 +160,12 @@ mod daily_challenge_system {
             ranked_players: Span<ContractAddress>,
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
+
+            // Tournament settings are not eligible for weekly endless settlement —
+            // their rewards are distributed by Budokan at the metagame layer.
+            let metadata: GameSettingsMetadata = world.read_model(settings_id);
+            assert!(!metadata.is_tournament, "Cannot settle tournament as weekly endless");
+
             let timestamp = get_block_timestamp();
             let current_week = current_week_id(timestamp);
             assert!(week_id < current_week, "Week has not ended yet");

@@ -22,6 +22,10 @@ pub struct GameSettingsMetadata {
     pub payment_token: ContractAddress,
     /// zStar amount required for star-based unlock (0 = disabled)
     pub star_cost: u128,
+    /// True = this settings is a Budokan-visible tournament (bypasses zone gates,
+    /// skipped by weekly endless settlement). Appended for Dojo-model-upgrade
+    /// compatibility — existing rows read back with `false`.
+    pub is_tournament: bool,
 }
 
 /// Extended GameSettings with all configurable game parameters

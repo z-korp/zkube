@@ -34,7 +34,7 @@
   "contracts": [
     {
       "address": "0x64230aa4674172ecba94e3dd924710c86940d54dc488219d5fbeabc43f17ec2",
-      "class_hash": "0x7d99fe1ecb0f9f7f787e69e63ca12f3e04a6b5fb08924b444e16dee6e3c5ace",
+      "class_hash": "0x4174fa0fb7ee60a7a59022f59014fa107a6f80a406149125177b01cec11ce99",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
         "0x072a37e71a4cbfb8b3850b61e4ee25475e8e0a0ce7a6e61fcf9ade139d196133",
@@ -44,7 +44,6 @@
       "selector": "0x450a36f6dda8f4df759a6699e47ee49b10bf4f4159efb8d229b153a40ab464",
       "systems": [
         "dojo_init",
-        "add_game_settings",
         "add_custom_game_settings",
         "purchase_zone_access",
         "unlock_zone_with_stars",
@@ -62,7 +61,7 @@
     },
     {
       "address": "0x31137492aa96b0d56379c3b14910decf9e8c6a91d96680f13f7cb1568dc0678",
-      "class_hash": "0x4fc62653c70e3c6733ac82cdcab321961b7fa36ad083e0c10954a3dedd90e30",
+      "class_hash": "0x72e3060acfdaa51c41b0a7f227c82b0aa2bd6e12dbb6d4aedb6fec97703f2b8",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859"
       ],
@@ -79,7 +78,7 @@
     },
     {
       "address": "0x5e02a1f750b3fa0e835d454705b664ecb23166cdb49459b1c96c1e3eaf9a2f4",
-      "class_hash": "0x185496085d8f5a83b27ab62fc8448da16d3a2aabe73ae8d77876e9afef82a5f",
+      "class_hash": "0x38da279b3b1161a782e6fa96bf70f8ef7243fc1013f97460a2bd6dd71d4854d",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
         "0x0004e6e5bbf18424dfb825f1dbb65e10473b4603a1ec7b9ab02c143d877114f9",
@@ -164,7 +163,7 @@
     },
     {
       "address": "0x71b7285475e6c8aa786b82f2a057d72065b6f11ac4a019984afdcf324fdd4ab",
-      "class_hash": "0x2a8c805339a46d953f0d497d4f65a60ee0508ab516fc214ab529342b058050c",
+      "class_hash": "0x1c933ecba799f89dee6a196c13daeab71dcdbfd72958d186acbce1c6545285b",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-story_system",
       "selector": "0x5a41f5aefd500f750fc3a3633da16042691f5ec5462b5c73d5404107acb52a4",
@@ -966,9 +965,14 @@
           "name": "star_cost",
           "type": "core::integer::u128",
           "key": false
+        },
+        {
+          "name": "is_tournament",
+          "type": "core::bool",
+          "key": false
         }
       ],
-      "class_hash": "0x3eb21949c0719d9e357656a209306b839a1d814f1c0154b3ae56fc6205622ec",
+      "class_hash": "0x4cd3f1b4f8dc1d483a107b2e4be53cb63362ba152279459cfb6872ba286df61",
       "tag": "zkube_v2_1_1-GameSettingsMetadata",
       "selector": "0x4cd476c641a9f8624d04d7bd881eedf4e55b7a09661fc53e5733ebfdd62455a"
     },
@@ -6099,6 +6103,10 @@
         {
           "name": "star_cost",
           "type": "core::integer::u128"
+        },
+        {
+          "name": "is_tournament",
+          "type": "core::bool"
         }
       ]
     },
@@ -6145,6 +6153,10 @@
         {
           "name": "star_cost",
           "type": "core::integer::u128"
+        },
+        {
+          "name": "is_tournament",
+          "type": "core::bool"
         }
       ]
     },
@@ -7540,30 +7552,6 @@
       "items": [
         {
           "type": "function",
-          "name": "add_game_settings",
-          "inputs": [
-            {
-              "name": "name",
-              "type": "core::felt252"
-            },
-            {
-              "name": "description",
-              "type": "core::byte_array::ByteArray"
-            },
-            {
-              "name": "difficulty",
-              "type": "zkube::types::difficulty::Difficulty"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::integer::u32"
-            }
-          ],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
           "name": "add_custom_game_settings",
           "inputs": [
             {
@@ -7713,6 +7701,10 @@
             {
               "name": "boss_id",
               "type": "core::integer::u8"
+            },
+            {
+              "name": "is_tournament",
+              "type": "core::bool"
             }
           ],
           "outputs": [
@@ -8247,6 +8239,22 @@
           "outputs": [
             {
               "type": "(core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u16, core::bool)"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "get_grid",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "(core::felt252, core::integer::u32, core::felt252)"
             }
           ],
           "state_mutability": "view"

@@ -4,11 +4,6 @@ use zkube::types::difficulty::Difficulty;
 
 #[starknet::interface]
 pub trait IConfigSystem<T> {
-    /// Add new game settings with default values for a given difficulty
-    fn add_game_settings(
-        ref self: T, name: felt252, description: ByteArray, difficulty: Difficulty,
-    ) -> u32;
-
     /// Add new game settings with custom parameters
     fn add_custom_game_settings(
         ref self: T,
@@ -60,6 +55,8 @@ pub trait IConfigSystem<T> {
         passive_mutator_id: u8,
         // Boss Settings
         boss_id: u8,
+        // Tournament flag (true = Budokan-visible, bypasses zone gates)
+        is_tournament: bool,
     ) -> u32;
 
     fn get_game_settings(self: @T, settings_id: u32) -> GameSettings;
@@ -231,6 +228,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 1,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -259,6 +257,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 1,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -300,6 +299,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 2,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 2000000,
                     payment_token: payment_token_address,
@@ -330,6 +330,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 2,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -371,6 +372,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 3,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 2000000,
                     payment_token: payment_token_address,
@@ -401,6 +403,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 3,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -442,6 +445,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 4,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 2000000,
                     payment_token: payment_token_address,
@@ -472,6 +476,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 4,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -514,6 +519,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 6,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 5000000,
                     payment_token: payment_token_address,
@@ -544,6 +550,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 6,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -586,6 +593,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 7,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 5000000,
                     payment_token: payment_token_address,
@@ -616,6 +624,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 7,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -658,6 +667,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 5,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 5000000,
                     payment_token: payment_token_address,
@@ -688,6 +698,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 5,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -729,6 +740,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 8,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 10000000,
                     payment_token: payment_token_address,
@@ -759,6 +771,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 8,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -800,6 +813,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 9,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 10000000,
                     payment_token: payment_token_address,
@@ -830,6 +844,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 9,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -871,6 +886,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 10,
                     is_free: false,
+                    is_tournament: false,
                     enabled: true,
                     price: 10000000,
                     payment_token: payment_token_address,
@@ -901,6 +917,7 @@ mod config_system {
                     created_at: current_timestamp,
                     theme_id: 10,
                     is_free: true,
+                    is_tournament: false,
                     enabled: true,
                     price: 0,
                     payment_token: Zero::zero(),
@@ -1619,10 +1636,14 @@ mod config_system {
 
     #[abi(embed_v0)]
     impl MinigameSettingsImpl of IMinigameSettings<ContractState> {
+        /// Budokan-visibility filter: only tournament-flagged, enabled settings are
+        /// reported as existing. Zone settings remain first-class in zKube's own
+        /// flows (minting, play, leaderboards) but are hidden from the MinigameSettings
+        /// registry so Budokan's tournament picker only lists open tournament settings.
         fn settings_exist(self: @ContractState, settings_id: u32) -> bool {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
-            let game_settings: GameSettings = world.read_model(settings_id);
-            game_settings.exists()
+            let metadata: GameSettingsMetadata = world.read_model(settings_id);
+            metadata.is_tournament && metadata.enabled
         }
 
         fn settings_exist_batch(self: @ContractState, settings_ids: Span<u32>) -> Array<bool> {
@@ -1683,72 +1704,6 @@ mod config_system {
 
     #[abi(embed_v0)]
     impl ConfigSystemImpl of IConfigSystem<ContractState> {
-        fn add_game_settings(
-            ref self: ContractState, name: felt252, description: ByteArray, difficulty: Difficulty,
-        ) -> u32 {
-            // Validate input
-            assert(difficulty != Difficulty::None, 'Invalid difficulty');
-
-            // Get the world dispatcher
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-
-            // Increment settings counter
-            let mut settings_id = self.settings_counter.read();
-            settings_id += 1;
-            self.settings_counter.write(settings_id);
-
-            // Create the game settings with defaults
-            let game_settings = GameSettingsTrait::new_with_defaults(settings_id, difficulty);
-
-            // Create metadata
-            let metadata = GameSettingsMetadata {
-                settings_id,
-                name,
-                description: description.clone(),
-                created_by: get_caller_address(),
-                created_at: get_block_timestamp(),
-                theme_id: 1,
-                is_free: true,
-                enabled: true,
-                price: 0,
-                payment_token: Zero::zero(),
-                star_cost: 0,
-            };
-
-            // Save to world
-            world.write_model(@game_settings);
-            world.write_model(@metadata);
-
-            // Emit event
-            self
-                .emit(
-                    GameSettingsCreated {
-                        settings_id, name, difficulty, created_by: get_caller_address(),
-                    },
-                );
-
-            let (game_systems_address, _) = world.dns(@"game_system").unwrap();
-            let minigame_dispatcher = IMinigameDispatcher {
-                contract_address: game_systems_address,
-            };
-            let minigame_token_address = minigame_dispatcher.token_address();
-
-            self
-                .settings
-                .create_settings(
-                    game_systems_address,
-                    settings_id,
-                    GameSettingDetails {
-                        name: felt_to_bytearray(name),
-                        description: description.clone(),
-                        settings: generate_settings_array(game_settings),
-                    },
-                    minigame_token_address,
-                );
-
-            settings_id
-        }
-
         fn add_custom_game_settings(
             ref self: ContractState,
             name: felt252,
@@ -1799,6 +1754,8 @@ mod config_system {
             passive_mutator_id: u8,
             // Boss Settings
             boss_id: u8,
+            // Tournament flag (true = Budokan-visible, bypasses zone gates)
+            is_tournament: bool,
         ) -> u32 {
             // Validate input
             assert(difficulty != Difficulty::None, 'Invalid difficulty');
@@ -1910,6 +1867,7 @@ mod config_system {
                 created_at: get_block_timestamp(),
                 theme_id: 1,
                 is_free: true,
+                is_tournament,
                 enabled: true,
                 price: 0,
                 payment_token: Zero::zero(),
