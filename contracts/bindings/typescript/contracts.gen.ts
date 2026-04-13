@@ -4,20 +4,20 @@ import * as models from "./models.gen";
 
 export function setupWorld(provider: DojoProvider) {
 
-	const build_config_system_addCustomGameSettings_calldata = (name: BigNumberish, description: string, difficulty: CairoCustomEnum, baseMoves: BigNumberish, maxMoves: BigNumberish, baseRatioX100: BigNumberish, maxRatioX100: BigNumberish, tier1Threshold: BigNumberish, tier2Threshold: BigNumberish, tier3Threshold: BigNumberish, tier4Threshold: BigNumberish, tier5Threshold: BigNumberish, tier6Threshold: BigNumberish, tier7Threshold: BigNumberish, constraintsEnabled: BigNumberish, constraintStartLevel: BigNumberish, constraintLinesBudgets: BigNumberish, veryeasySize1Weight: BigNumberish, veryeasySize2Weight: BigNumberish, veryeasySize3Weight: BigNumberish, veryeasySize4Weight: BigNumberish, veryeasySize5Weight: BigNumberish, masterSize1Weight: BigNumberish, masterSize2Weight: BigNumberish, masterSize3Weight: BigNumberish, masterSize4Weight: BigNumberish, masterSize5Weight: BigNumberish, earlyVariancePercent: BigNumberish, midVariancePercent: BigNumberish, lateVariancePercent: BigNumberish, earlyLevelThreshold: BigNumberish, midLevelThreshold: BigNumberish, levelCap: BigNumberish, zoneId: BigNumberish, activeMutatorId: BigNumberish, passiveMutatorId: BigNumberish, bossId: BigNumberish, isTournament: boolean): DojoCall => {
+	const build_config_system_addCustomGameSettings_calldata = (name: BigNumberish, description: string, difficulty: CairoCustomEnum, baseMoves: BigNumberish, maxMoves: BigNumberish, baseRatioX100: BigNumberish, maxRatioX100: BigNumberish, tier1Threshold: BigNumberish, tier2Threshold: BigNumberish, tier3Threshold: BigNumberish, tier4Threshold: BigNumberish, tier5Threshold: BigNumberish, tier6Threshold: BigNumberish, tier7Threshold: BigNumberish, constraintsEnabled: BigNumberish, constraintStartLevel: BigNumberish, constraintLinesBudgets: BigNumberish, veryeasySize1Weight: BigNumberish, veryeasySize2Weight: BigNumberish, veryeasySize3Weight: BigNumberish, veryeasySize4Weight: BigNumberish, veryeasySize5Weight: BigNumberish, masterSize1Weight: BigNumberish, masterSize2Weight: BigNumberish, masterSize3Weight: BigNumberish, masterSize4Weight: BigNumberish, masterSize5Weight: BigNumberish, earlyVariancePercent: BigNumberish, midVariancePercent: BigNumberish, lateVariancePercent: BigNumberish, earlyLevelThreshold: BigNumberish, midLevelThreshold: BigNumberish, levelCap: BigNumberish, zoneId: BigNumberish, activeMutatorId: BigNumberish, passiveMutatorId: BigNumberish, bossId: BigNumberish, endlessDifficultyThresholds: BigNumberish, endlessScoreMultipliers: BigNumberish, isTournament: boolean): DojoCall => {
 		return {
 			contractName: "config_system",
 			entrypoint: "add_custom_game_settings",
-			calldata: [name, description, difficulty, baseMoves, maxMoves, baseRatioX100, maxRatioX100, tier1Threshold, tier2Threshold, tier3Threshold, tier4Threshold, tier5Threshold, tier6Threshold, tier7Threshold, constraintsEnabled, constraintStartLevel, constraintLinesBudgets, veryeasySize1Weight, veryeasySize2Weight, veryeasySize3Weight, veryeasySize4Weight, veryeasySize5Weight, masterSize1Weight, masterSize2Weight, masterSize3Weight, masterSize4Weight, masterSize5Weight, earlyVariancePercent, midVariancePercent, lateVariancePercent, earlyLevelThreshold, midLevelThreshold, levelCap, zoneId, activeMutatorId, passiveMutatorId, bossId, isTournament],
+			calldata: [name, description, difficulty, baseMoves, maxMoves, baseRatioX100, maxRatioX100, tier1Threshold, tier2Threshold, tier3Threshold, tier4Threshold, tier5Threshold, tier6Threshold, tier7Threshold, constraintsEnabled, constraintStartLevel, constraintLinesBudgets, veryeasySize1Weight, veryeasySize2Weight, veryeasySize3Weight, veryeasySize4Weight, veryeasySize5Weight, masterSize1Weight, masterSize2Weight, masterSize3Weight, masterSize4Weight, masterSize5Weight, earlyVariancePercent, midVariancePercent, lateVariancePercent, earlyLevelThreshold, midLevelThreshold, levelCap, zoneId, activeMutatorId, passiveMutatorId, bossId, endlessDifficultyThresholds, endlessScoreMultipliers, isTournament],
 		};
 	};
 
-	const config_system_addCustomGameSettings = async (snAccount: Account | AccountInterface, name: BigNumberish, description: string, difficulty: CairoCustomEnum, baseMoves: BigNumberish, maxMoves: BigNumberish, baseRatioX100: BigNumberish, maxRatioX100: BigNumberish, tier1Threshold: BigNumberish, tier2Threshold: BigNumberish, tier3Threshold: BigNumberish, tier4Threshold: BigNumberish, tier5Threshold: BigNumberish, tier6Threshold: BigNumberish, tier7Threshold: BigNumberish, constraintsEnabled: BigNumberish, constraintStartLevel: BigNumberish, constraintLinesBudgets: BigNumberish, veryeasySize1Weight: BigNumberish, veryeasySize2Weight: BigNumberish, veryeasySize3Weight: BigNumberish, veryeasySize4Weight: BigNumberish, veryeasySize5Weight: BigNumberish, masterSize1Weight: BigNumberish, masterSize2Weight: BigNumberish, masterSize3Weight: BigNumberish, masterSize4Weight: BigNumberish, masterSize5Weight: BigNumberish, earlyVariancePercent: BigNumberish, midVariancePercent: BigNumberish, lateVariancePercent: BigNumberish, earlyLevelThreshold: BigNumberish, midLevelThreshold: BigNumberish, levelCap: BigNumberish, zoneId: BigNumberish, activeMutatorId: BigNumberish, passiveMutatorId: BigNumberish, bossId: BigNumberish, isTournament: boolean) => {
+	const config_system_addCustomGameSettings = async (snAccount: Account | AccountInterface, name: BigNumberish, description: string, difficulty: CairoCustomEnum, baseMoves: BigNumberish, maxMoves: BigNumberish, baseRatioX100: BigNumberish, maxRatioX100: BigNumberish, tier1Threshold: BigNumberish, tier2Threshold: BigNumberish, tier3Threshold: BigNumberish, tier4Threshold: BigNumberish, tier5Threshold: BigNumberish, tier6Threshold: BigNumberish, tier7Threshold: BigNumberish, constraintsEnabled: BigNumberish, constraintStartLevel: BigNumberish, constraintLinesBudgets: BigNumberish, veryeasySize1Weight: BigNumberish, veryeasySize2Weight: BigNumberish, veryeasySize3Weight: BigNumberish, veryeasySize4Weight: BigNumberish, veryeasySize5Weight: BigNumberish, masterSize1Weight: BigNumberish, masterSize2Weight: BigNumberish, masterSize3Weight: BigNumberish, masterSize4Weight: BigNumberish, masterSize5Weight: BigNumberish, earlyVariancePercent: BigNumberish, midVariancePercent: BigNumberish, lateVariancePercent: BigNumberish, earlyLevelThreshold: BigNumberish, midLevelThreshold: BigNumberish, levelCap: BigNumberish, zoneId: BigNumberish, activeMutatorId: BigNumberish, passiveMutatorId: BigNumberish, bossId: BigNumberish, endlessDifficultyThresholds: BigNumberish, endlessScoreMultipliers: BigNumberish, isTournament: boolean) => {
 		try {
 			return await provider.execute(
 				snAccount,
-				build_config_system_addCustomGameSettings_calldata(name, description, difficulty, baseMoves, maxMoves, baseRatioX100, maxRatioX100, tier1Threshold, tier2Threshold, tier3Threshold, tier4Threshold, tier5Threshold, tier6Threshold, tier7Threshold, constraintsEnabled, constraintStartLevel, constraintLinesBudgets, veryeasySize1Weight, veryeasySize2Weight, veryeasySize3Weight, veryeasySize4Weight, veryeasySize5Weight, masterSize1Weight, masterSize2Weight, masterSize3Weight, masterSize4Weight, masterSize5Weight, earlyVariancePercent, midVariancePercent, lateVariancePercent, earlyLevelThreshold, midLevelThreshold, levelCap, zoneId, activeMutatorId, passiveMutatorId, bossId, isTournament),
-				"zkube_v2_1_0",
+				build_config_system_addCustomGameSettings_calldata(name, description, difficulty, baseMoves, maxMoves, baseRatioX100, maxRatioX100, tier1Threshold, tier2Threshold, tier3Threshold, tier4Threshold, tier5Threshold, tier6Threshold, tier7Threshold, constraintsEnabled, constraintStartLevel, constraintLinesBudgets, veryeasySize1Weight, veryeasySize2Weight, veryeasySize3Weight, veryeasySize4Weight, veryeasySize5Weight, masterSize1Weight, masterSize2Weight, masterSize3Weight, masterSize4Weight, masterSize5Weight, earlyVariancePercent, midVariancePercent, lateVariancePercent, earlyLevelThreshold, midLevelThreshold, levelCap, zoneId, activeMutatorId, passiveMutatorId, bossId, endlessDifficultyThresholds, endlessScoreMultipliers, isTournament),
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -35,7 +35,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const config_system_getGameSettings = async (settingsId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_config_system_getGameSettings_calldata(settingsId));
+			return await provider.call("zkube_v2_1_1", build_config_system_getGameSettings_calldata(settingsId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -52,7 +52,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const config_system_getGameSettingsMetadata = async (settingsId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_config_system_getGameSettingsMetadata_calldata(settingsId));
+			return await provider.call("zkube_v2_1_1", build_config_system_getGameSettingsMetadata_calldata(settingsId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -69,7 +69,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const config_system_getRoleAdmin = async (role: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_config_system_getRoleAdmin_calldata(role));
+			return await provider.call("zkube_v2_1_1", build_config_system_getRoleAdmin_calldata(role));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -86,7 +86,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const config_system_getTreasury = async () => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_config_system_getTreasury_calldata());
+			return await provider.call("zkube_v2_1_1", build_config_system_getTreasury_calldata());
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -103,7 +103,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const config_system_getZstarAddress = async () => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_config_system_getZstarAddress_calldata());
+			return await provider.call("zkube_v2_1_1", build_config_system_getZstarAddress_calldata());
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -123,7 +123,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_config_system_grantRole_calldata(role, account),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -141,7 +141,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const config_system_hasRole = async (role: BigNumberish, account: string) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_config_system_hasRole_calldata(role, account));
+			return await provider.call("zkube_v2_1_1", build_config_system_hasRole_calldata(role, account));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -158,7 +158,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const config_system_hasZoneAccess = async (player: string, settingsId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_config_system_hasZoneAccess_calldata(player, settingsId));
+			return await provider.call("zkube_v2_1_1", build_config_system_hasZoneAccess_calldata(player, settingsId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -175,7 +175,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const config_system_isStarEligible = async (settingsId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_config_system_isStarEligible_calldata(settingsId));
+			return await provider.call("zkube_v2_1_1", build_config_system_isStarEligible_calldata(settingsId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -195,7 +195,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_config_system_purchaseZoneAccess_calldata(settingsId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -216,7 +216,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_config_system_renounceRole_calldata(role, account),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -237,7 +237,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_config_system_revokeRole_calldata(role, account),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -258,7 +258,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_config_system_setStarEligible_calldata(settingsId, eligible),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -279,7 +279,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_config_system_setTreasury_calldata(treasury),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -300,7 +300,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_config_system_setZoneEnabled_calldata(settingsId, enabled),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -321,7 +321,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_config_system_setZonePricing_calldata(settingsId, isFree, price, paymentToken, starCost),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -342,7 +342,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_config_system_setZoneTheme_calldata(settingsId, themeId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -363,7 +363,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_config_system_setZstarAddress_calldata(token),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -381,7 +381,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const config_system_settingsCount = async () => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_config_system_settingsCount_calldata());
+			return await provider.call("zkube_v2_1_1", build_config_system_settingsCount_calldata());
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -398,7 +398,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const config_system_settingsDetails = async (settingsId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_config_system_settingsDetails_calldata(settingsId));
+			return await provider.call("zkube_v2_1_1", build_config_system_settingsDetails_calldata(settingsId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -415,7 +415,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const config_system_settingsDetailsBatch = async (settingsIds: Array<BigNumberish>) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_config_system_settingsDetailsBatch_calldata(settingsIds));
+			return await provider.call("zkube_v2_1_1", build_config_system_settingsDetailsBatch_calldata(settingsIds));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -432,7 +432,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const config_system_settingsExist = async (settingsId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_config_system_settingsExist_calldata(settingsId));
+			return await provider.call("zkube_v2_1_1", build_config_system_settingsExist_calldata(settingsId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -449,7 +449,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const config_system_settingsExistBatch = async (settingsIds: Array<BigNumberish>) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_config_system_settingsExistBatch_calldata(settingsIds));
+			return await provider.call("zkube_v2_1_1", build_config_system_settingsExistBatch_calldata(settingsIds));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -466,7 +466,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const config_system_settingsExists = async (settingsId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_config_system_settingsExists_calldata(settingsId));
+			return await provider.call("zkube_v2_1_1", build_config_system_settingsExists_calldata(settingsId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -483,7 +483,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const config_system_supportsInterface = async (interfaceId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_config_system_supportsInterface_calldata(interfaceId));
+			return await provider.call("zkube_v2_1_1", build_config_system_supportsInterface_calldata(interfaceId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -503,7 +503,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_config_system_unlockZoneWithStars_calldata(settingsId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -521,7 +521,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const daily_challenge_system_getCurrentChallenge = async () => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_daily_challenge_system_getCurrentChallenge_calldata());
+			return await provider.call("zkube_v2_1_1", build_daily_challenge_system_getCurrentChallenge_calldata());
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -538,7 +538,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const daily_challenge_system_getPlayerEntry = async (challengeId: BigNumberish, player: string) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_daily_challenge_system_getPlayerEntry_calldata(challengeId, player));
+			return await provider.call("zkube_v2_1_1", build_daily_challenge_system_getPlayerEntry_calldata(challengeId, player));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -558,7 +558,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_daily_challenge_system_replayDailyLevel_calldata(level),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -579,7 +579,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_daily_challenge_system_settleChallenge_calldata(challengeId, rankedPlayers),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -600,7 +600,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_daily_challenge_system_settleWeeklyEndless_calldata(weekId, settingsId, rankedPlayers),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -621,7 +621,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_daily_challenge_system_startDailyGame_calldata(),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -642,7 +642,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_game_system_applyBonus_calldata(gameId, rowIndex, blockIndex),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -663,7 +663,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_game_system_create_calldata(gameId, runType),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -684,7 +684,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_game_system_createRun_calldata(gameId, runType),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -702,7 +702,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const game_system_gameOver = async (tokenId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_game_system_gameOver_calldata(tokenId));
+			return await provider.call("zkube_v2_1_1", build_game_system_gameOver_calldata(tokenId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -719,7 +719,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const game_system_gameOverBatch = async (tokenIds: Array<BigNumberish>) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_game_system_gameOverBatch_calldata(tokenIds));
+			return await provider.call("zkube_v2_1_1", build_game_system_gameOverBatch_calldata(tokenIds));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -736,7 +736,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const game_system_getGameData = async (gameId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_game_system_getGameData_calldata(gameId));
+			return await provider.call("zkube_v2_1_1", build_game_system_getGameData_calldata(gameId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -753,7 +753,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const game_system_getGrid = async (gameId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_game_system_getGrid_calldata(gameId));
+			return await provider.call("zkube_v2_1_1", build_game_system_getGrid_calldata(gameId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -770,7 +770,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const game_system_getPlayerName = async (gameId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_game_system_getPlayerName_calldata(gameId));
+			return await provider.call("zkube_v2_1_1", build_game_system_getPlayerName_calldata(gameId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -787,7 +787,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const game_system_getScore = async (gameId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_game_system_getScore_calldata(gameId));
+			return await provider.call("zkube_v2_1_1", build_game_system_getScore_calldata(gameId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -804,7 +804,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const game_system_mintGame = async (playerName: CairoOption<BigNumberish>, settingsId: CairoOption<BigNumberish>, start: CairoOption<BigNumberish>, end: CairoOption<BigNumberish>, objectiveId: CairoOption<BigNumberish>, context: CairoOption<GameContextDetails>, clientUrl: CairoOption<string>, rendererAddress: CairoOption<string>, skillsAddress: CairoOption<string>, to: string, soulbound: boolean, paymaster: boolean, salt: BigNumberish, metadata: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_game_system_mintGame_calldata(playerName, settingsId, start, end, objectiveId, context, clientUrl, rendererAddress, skillsAddress, to, soulbound, paymaster, salt, metadata));
+			return await provider.call("zkube_v2_1_1", build_game_system_mintGame_calldata(playerName, settingsId, start, end, objectiveId, context, clientUrl, rendererAddress, skillsAddress, to, soulbound, paymaster, salt, metadata));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -821,7 +821,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const game_system_mintGameBatch = async (mints: Array<MintGameParams>) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_game_system_mintGameBatch_calldata(mints));
+			return await provider.call("zkube_v2_1_1", build_game_system_mintGameBatch_calldata(mints));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -838,7 +838,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const game_system_objectivesAddress = async () => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_game_system_objectivesAddress_calldata());
+			return await provider.call("zkube_v2_1_1", build_game_system_objectivesAddress_calldata());
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -855,7 +855,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const game_system_score = async (tokenId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_game_system_score_calldata(tokenId));
+			return await provider.call("zkube_v2_1_1", build_game_system_score_calldata(tokenId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -872,7 +872,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const game_system_scoreBatch = async (tokenIds: Array<BigNumberish>) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_game_system_scoreBatch_calldata(tokenIds));
+			return await provider.call("zkube_v2_1_1", build_game_system_scoreBatch_calldata(tokenIds));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -889,7 +889,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const game_system_settingsAddress = async () => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_game_system_settingsAddress_calldata());
+			return await provider.call("zkube_v2_1_1", build_game_system_settingsAddress_calldata());
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -906,7 +906,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const game_system_supportsInterface = async (interfaceId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_game_system_supportsInterface_calldata(interfaceId));
+			return await provider.call("zkube_v2_1_1", build_game_system_supportsInterface_calldata(interfaceId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -926,7 +926,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_game_system_surrender_calldata(gameId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -944,7 +944,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const game_system_tokenAddress = async () => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_game_system_tokenAddress_calldata());
+			return await provider.call("zkube_v2_1_1", build_game_system_tokenAddress_calldata());
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -964,7 +964,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_grid_system_initializeGrid_calldata(gameId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -985,7 +985,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_grid_system_insertLineIfEmpty_calldata(gameId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -1006,7 +1006,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_grid_system_resetGridForLevel_calldata(gameId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -1027,7 +1027,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_level_system_finalizeLevel_calldata(gameId, player),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -1048,7 +1048,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_level_system_initializeEndlessLevel_calldata(gameId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -1069,7 +1069,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_level_system_initializeLevel_calldata(gameId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -1090,7 +1090,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_level_system_insertLineIfEmpty_calldata(gameId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -1111,7 +1111,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_level_system_startNextLevel_calldata(gameId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -1132,7 +1132,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_move_system_move_calldata(gameId, rowIndex, startIndex, finalIndex),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -1153,7 +1153,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_progress_system_emitProgress_calldata(player, taskId, count, settingsId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -1174,7 +1174,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_progress_system_emitProgressBulk_calldata(player, tasks, settingsId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -1195,7 +1195,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_progress_system_progress_calldata(playerId, taskId, count),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -1216,7 +1216,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_progress_system_questClaim_calldata(player, questId, intervalId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -1234,7 +1234,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const progress_system_supportsInterface = async (interfaceId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_progress_system_supportsInterface_calldata(interfaceId));
+			return await provider.call("zkube_v2_1_1", build_progress_system_supportsInterface_calldata(interfaceId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -1251,7 +1251,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const renderer_systems_createMetadata = async (gameId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_renderer_systems_createMetadata_calldata(gameId));
+			return await provider.call("zkube_v2_1_1", build_renderer_systems_createMetadata_calldata(gameId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -1268,7 +1268,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const renderer_systems_gameDetails = async (tokenId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_renderer_systems_gameDetails_calldata(tokenId));
+			return await provider.call("zkube_v2_1_1", build_renderer_systems_gameDetails_calldata(tokenId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -1285,7 +1285,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const renderer_systems_gameDetailsBatch = async (tokenIds: Array<BigNumberish>) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_renderer_systems_gameDetailsBatch_calldata(tokenIds));
+			return await provider.call("zkube_v2_1_1", build_renderer_systems_gameDetailsBatch_calldata(tokenIds));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -1302,7 +1302,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const renderer_systems_gameDetailsSvg = async (tokenId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_renderer_systems_gameDetailsSvg_calldata(tokenId));
+			return await provider.call("zkube_v2_1_1", build_renderer_systems_gameDetailsSvg_calldata(tokenId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -1319,7 +1319,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const renderer_systems_generateDetails = async (gameId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_renderer_systems_generateDetails_calldata(gameId));
+			return await provider.call("zkube_v2_1_1", build_renderer_systems_generateDetails_calldata(gameId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -1336,7 +1336,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const renderer_systems_generateSvg = async (gameId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_renderer_systems_generateSvg_calldata(gameId));
+			return await provider.call("zkube_v2_1_1", build_renderer_systems_generateSvg_calldata(gameId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -1353,7 +1353,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const renderer_systems_tokenDescription = async (tokenId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_renderer_systems_tokenDescription_calldata(tokenId));
+			return await provider.call("zkube_v2_1_1", build_renderer_systems_tokenDescription_calldata(tokenId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -1370,7 +1370,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const renderer_systems_tokenDescriptionBatch = async (tokenIds: Array<BigNumberish>) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_renderer_systems_tokenDescriptionBatch_calldata(tokenIds));
+			return await provider.call("zkube_v2_1_1", build_renderer_systems_tokenDescriptionBatch_calldata(tokenIds));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -1387,7 +1387,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const renderer_systems_tokenName = async (tokenId: BigNumberish) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_renderer_systems_tokenName_calldata(tokenId));
+			return await provider.call("zkube_v2_1_1", build_renderer_systems_tokenName_calldata(tokenId));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -1404,7 +1404,7 @@ export function setupWorld(provider: DojoProvider) {
 
 	const renderer_systems_tokenNameBatch = async (tokenIds: Array<BigNumberish>) => {
 		try {
-			return await provider.call("zkube_v2_1_0", build_renderer_systems_tokenNameBatch_calldata(tokenIds));
+			return await provider.call("zkube_v2_1_1", build_renderer_systems_tokenNameBatch_calldata(tokenIds));
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -1424,7 +1424,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_story_system_claimZonePerfection_calldata(zoneId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -1445,7 +1445,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_story_system_replayStoryLevel_calldata(zoneId, level),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);
@@ -1466,7 +1466,7 @@ export function setupWorld(provider: DojoProvider) {
 			return await provider.execute(
 				snAccount,
 				build_story_system_startStoryAttempt_calldata(zoneId),
-				"zkube_v2_1_0",
+				"zkube_v2_1_1",
 			);
 		} catch (error) {
 			console.error(error);

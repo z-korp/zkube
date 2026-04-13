@@ -34,7 +34,7 @@
   "contracts": [
     {
       "address": "0x64230aa4674172ecba94e3dd924710c86940d54dc488219d5fbeabc43f17ec2",
-      "class_hash": "0x4174fa0fb7ee60a7a59022f59014fa107a6f80a406149125177b01cec11ce99",
+      "class_hash": "0x35b5ce0253928e266553d864b41b8f98777692d80b3a79be847c879364290f",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
         "0x072a37e71a4cbfb8b3850b61e4ee25475e8e0a0ce7a6e61fcf9ade139d196133",
@@ -7701,6 +7701,14 @@
             {
               "name": "boss_id",
               "type": "core::integer::u8"
+            },
+            {
+              "name": "endless_difficulty_thresholds",
+              "type": "core::felt252"
+            },
+            {
+              "name": "endless_score_multipliers",
+              "type": "core::integer::u64"
             },
             {
               "name": "is_tournament",

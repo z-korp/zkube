@@ -96,6 +96,9 @@ export interface AddCustomGameSettings extends Signer {
   active_mutator_id: number;
   passive_mutator_id: number;
   boss_id: number;
+  endless_difficulty_thresholds: BigNumberish;
+  endless_score_multipliers: BigNumberish;
+  is_tournament: boolean;
 }
 
 export interface QuestClaim extends Signer {
@@ -418,6 +421,9 @@ export function setupWorld(config: Config) {
       active_mutator_id,
       passive_mutator_id,
       boss_id,
+      endless_difficulty_thresholds,
+      endless_score_multipliers,
+      is_tournament,
     }: AddCustomGameSettings) => {
       try {
         return await account.execute([
@@ -462,6 +468,9 @@ export function setupWorld(config: Config) {
               active_mutator_id,
               passive_mutator_id,
               boss_id,
+              endless_difficulty_thresholds,
+              endless_score_multipliers,
+              is_tournament,
             ]),
           },
         ]);

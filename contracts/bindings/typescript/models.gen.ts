@@ -141,11 +141,11 @@ export interface GameSettingsMetadata {
 	created_at: BigNumberish;
 	theme_id: BigNumberish;
 	is_free: boolean;
-	is_tournament: boolean;
 	enabled: boolean;
 	price: BigNumberish;
 	payment_token: string;
 	star_cost: BigNumberish;
+	is_tournament: boolean;
 }
 
 // Type definition for `zkube::models::cosmetic::CosmeticDef` struct
@@ -761,11 +761,11 @@ export const schema: SchemaType = {
 			created_at: 0,
 			theme_id: 0,
 			is_free: false,
-			is_tournament: false,
 			enabled: false,
 			price: 0,
 			payment_token: "",
 			star_cost: 0,
+			is_tournament: false,
 		},
 		CosmeticDef: {
 			cosmetic_id: 0,

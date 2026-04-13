@@ -55,6 +55,9 @@ pub trait IConfigSystem<T> {
         passive_mutator_id: u8,
         // Boss Settings
         boss_id: u8,
+        // Endless Mode ramp (packed tiers / score multipliers; pass 0 for defaults)
+        endless_difficulty_thresholds: felt252,
+        endless_score_multipliers: u64,
         // Tournament flag (true = Budokan-visible, bypasses zone gates)
         is_tournament: bool,
     ) -> u32;
@@ -926,6 +929,42 @@ mod config_system {
             );
 
         // =====================================================================
+        // Tournament Tiki (Settings 20) — default tournament, Tiki Endless clone
+        // `is_tournament=true` bypasses both the boss gate and the zone-unlock
+        // gate, so any player can mint a token against this settings and play
+        // immediately. zone_id=1 carries the theme signal (entry requirements
+        // are enforced at Budokan's metagame layer).
+        // =====================================================================
+        let mut t_tiki = GameSettingsTrait::new_with_defaults(20_u32, Difficulty::Increasing);
+        t_tiki.base_moves = 16;
+        t_tiki.max_moves = 48;
+        t_tiki.level_cap = 255;
+        t_tiki.zone_id = 1;
+        t_tiki.active_mutator_id = 0;
+        t_tiki.passive_mutator_id = 2;
+        t_tiki.boss_id = 0;
+        t_tiki.endless_difficulty_thresholds = 0; // use defaults
+        t_tiki.endless_score_multipliers = 0; // use defaults
+        world.write_model(@t_tiki);
+        world
+            .write_model(
+                @GameSettingsMetadata {
+                    settings_id: 20_u32,
+                    name: 'Tournament Tiki',
+                    description: "Open tournament variant of Tiki Endless - no zone unlock required.",
+                    created_by: creator_address,
+                    created_at: current_timestamp,
+                    theme_id: 1,
+                    is_free: true,
+                    is_tournament: true,
+                    enabled: true,
+                    price: 0,
+                    payment_token: Zero::zero(),
+                    star_cost: 0,
+                },
+            );
+
+        // =====================================================================
         // Active Mutators (odd IDs 1-19) — bonus profiles
         // Stat fields neutral: moves_modifier=128, ratio_modifier=128,
         // difficulty_offset=128, combo_score_mult_x100=100,
@@ -1571,10 +1610,12 @@ mod config_system {
         // =====================================================================
         // Settings counter and star eligibility
         // =====================================================================
-        // Counter = 19 so next custom settings will be 20+
-        self.settings_counter.write(19_u32);
+        // Counter = 20 (Tournament Tiki). Next custom settings will be 21+.
+        self.settings_counter.write(20_u32);
 
-        // All 20 settings (IDs 0..19) are star-eligible
+        // Zone settings (IDs 0..19) are star-eligible. Tournament Tiki (ID 20)
+        // is intentionally NOT star-eligible — its rewards come from Budokan's
+        // prize pool, so zkube play shouldn't mint stars for it.
         let mut sid: u32 = 0;
         loop {
             if sid > 19 {
@@ -1593,7 +1634,7 @@ mod config_system {
 
         if !minigame_token_address.is_zero() {
             let zone_ids: Array<u32> = array![
-                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
             ];
             let zone_descs: Array<ByteArray> = array![
                 "Polynesian map mode", "Polynesian endless mode", "Egypt map mode",
@@ -1601,14 +1642,14 @@ mod config_system {
                 "Greece endless mode", "China map mode", "China endless mode", "Persia map mode",
                 "Persia endless mode", "Japan map mode", "Japan endless mode", "Mayan map mode",
                 "Mayan endless mode", "Tribal map mode", "Tribal endless mode", "Inca map mode",
-                "Inca endless mode",
+                "Inca endless mode", "Open tournament - Tiki-themed",
             ];
             let zone_labels: Array<ByteArray> = array![
                 "Polynesian", "Polynesian Endless", "Ancient Egypt", "Egypt Endless", "Norse",
                 "Norse Endless", "Ancient Greece", "Greece Endless", "Ancient China",
                 "China Endless", "Ancient Persia", "Persia Endless", "Feudal Japan",
                 "Japan Endless", "Mayan", "Mayan Endless", "Tribal", "Tribal Endless", "Inca",
-                "Inca Endless",
+                "Inca Endless", "Tournament Tiki",
             ];
 
             let mut i: u32 = 0;
@@ -1754,6 +1795,9 @@ mod config_system {
             passive_mutator_id: u8,
             // Boss Settings
             boss_id: u8,
+            // Endless Mode ramp (packed tiers / score multipliers; pass 0 for defaults)
+            endless_difficulty_thresholds: felt252,
+            endless_score_multipliers: u64,
             // Tournament flag (true = Budokan-visible, bypasses zone gates)
             is_tournament: bool,
         ) -> u32 {
@@ -1846,9 +1890,9 @@ mod config_system {
                 mid_level_threshold,
                 // Level Cap
                 level_cap,
-                // Endless Mode Settings (defaults)
-                endless_difficulty_thresholds: 0,
-                endless_score_multipliers: 0,
+                // Endless Mode Settings (caller may pass 0 for hardcoded defaults)
+                endless_difficulty_thresholds,
+                endless_score_multipliers,
                 // Zone Assignment
                 zone_id,
                 // Mutator Assignment
