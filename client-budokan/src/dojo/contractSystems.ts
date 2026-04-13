@@ -281,6 +281,34 @@ export function setupWorld(config: Config) {
       }
     };
 
+    /**
+     * Chain-direct check (not Torii) for whether a game has been initialized
+     * via create_run. Used on Budokan deep-link landings to decide if we need
+     * to fire create_run or just wait for Torii to sync. Returns true iff the
+     * Game model's current_level > 0 (set to 1 by create_run).
+     */
+    const isGameInitialized = async ({
+      account,
+      game_id,
+    }: {
+      account: Account;
+      game_id: BigNumberish;
+    }): Promise<boolean> => {
+      try {
+        const response = await account.callContract({
+          contractAddress: contract.address,
+          entrypoint: "get_game_data",
+          calldata: [game_id.toString()],
+        });
+        // Returns (current_level, level_score, level_moves, combo, max_combo, _, _, _, _, over).
+        const currentLevel = BigInt(response[0] ?? 0);
+        return currentLevel > 0n;
+      } catch (err) {
+        console.warn("isGameInitialized call failed, assuming false", err);
+        return false;
+      }
+    };
+
     const createRun = async ({ account, game_id, run_type }: CreateRun) => {
       try {
         if (isSlotMode) {
@@ -320,6 +348,7 @@ export function setupWorld(config: Config) {
       surrender,
       move,
       bonus,
+      isGameInitialized,
     };
   }
 

@@ -21,6 +21,7 @@ import { MetagameProvider } from "./contexts/MetagameProvider";
 import { ControllersProvider } from "./contexts/controllers";
 import { GameEventsProvider } from "./contexts/gameEvents";
 import { useControllerUsername } from "./hooks/useControllerUsername";
+import { useNavigationStore } from "./stores/navigationStore";
 
 import "./index.css";
 import { type BigNumberish, shortString, PaymasterRpc } from "starknet";
@@ -39,6 +40,31 @@ function rpc() {
     nodeUrl: VITE_PUBLIC_NODE_URL,
   };
 }
+
+/**
+ * Minimal deep-link support for Budokan launches like `/play/0xabc...`.
+ * Parses the URL on startup and seeds the navigation store so PlayScreen
+ * mounts with the right gameId. No react-router — in-app navigation keeps
+ * running through Zustand (the URL bar won't update after this).
+ */
+function hydrateNavigationFromUrl() {
+  try {
+    const path = window.location.pathname;
+    const match = path.match(/^\/play\/(0x[0-9a-fA-F]+|\d+)\/?$/);
+    if (!match) return;
+    const gameId = BigInt(match[1]);
+    if (gameId === 0n) return;
+    useNavigationStore.setState({
+      currentPage: "play",
+      gameId,
+      pendingDeepLinkStart: true,
+    });
+  } catch (err) {
+    console.warn("[main] failed to hydrate navigation from URL", err);
+  }
+}
+
+hydrateNavigationFromUrl();
 
 const root = createRoot(
   document.getElementById("root") as HTMLElement

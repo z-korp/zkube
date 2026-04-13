@@ -32,6 +32,20 @@ import { DifficultyType } from "@/dojo/game/types/difficulty";
 import { getBonusType } from "@/config/mutatorConfig";
 import { useMutatorDef } from "@/hooks/useMutatorDef";
 import { useSettings } from "@/hooks/useSettings";
+import { showToast } from "@/utils/toast";
+
+/**
+ * Derive the display zone id (for theming, music, greeting portraits) from the
+ * game's runtime state. Tournament settings should carry `zone_id = <original_zone>`
+ * (e.g. 1 for a Tiki-flavored tournament); the `is_tournament` flag on the
+ * metadata bypasses the boss gate, so `zone_id` is free to carry the theme
+ * signal without affecting gating. Tournament Tiki (the single sepolia seed)
+ * was created with `zone_id=0` and renders as zone 1 (Tiki) via the clamp,
+ * which is coincidentally correct.
+ */
+function deriveDisplayZoneId(game: { zoneId: number }): number {
+  return Math.min(10, Math.max(1, game.zoneId));
+}
 
 const EndlessGreetingOverlay = React.lazy(() =>
   import("@/ui/components/map/GuardianGreeting").then((mod) =>
@@ -51,7 +65,8 @@ const EndlessGreetingOverlay = React.lazy(() =>
 const PlayScreen: React.FC = () => {
   const {
     setup: {
-      systemCalls: { surrender },
+      systemCalls: { surrender, create },
+      client: { game: gameClient },
     },
   } = useDojo();
   const { account } = useAccountCustom();
@@ -170,13 +185,71 @@ const PlayScreen: React.FC = () => {
 
   useEffect(() => {
     setIsGameLoading(true);
-    const timer = setTimeout(() => setIsGameLoading(false), 15000);
+    // 30s is the worst-case budget for a Budokan-deep-link landing where we
+    // also need create_run to confirm before Torii indexes the new Game model.
+    const timer = setTimeout(() => setIsGameLoading(false), 30000);
     return () => clearTimeout(timer);
   }, [gameId]);
 
   useEffect(() => {
     if (game && seed !== 0n) setIsGameLoading(false);
   }, [game, seed]);
+
+  // Deep-link (Budokan) entry: the user landed on /play/{tokenId} from outside
+  // the app. Denshokan has already minted the token; we now need to call
+  // create_run(token_id, 1) so the game state is initialized. If the game
+  // already exists (refresh/return visit) we just clear the flag.
+  const pendingDeepLinkStart = useNavigationStore((s) => s.pendingDeepLinkStart);
+  const clearPendingDeepLinkStart = useNavigationStore((s) => s.clearPendingDeepLinkStart);
+  const deepLinkAttemptRef = useRef(false);
+
+  useEffect(() => {
+    if (!pendingDeepLinkStart) return;
+    if (!account || !gameId) return;
+    if (deepLinkAttemptRef.current) return;
+
+    // Fast path: if Torii has already indexed the Game model, no create_run needed.
+    if (toriiGame) {
+      deepLinkAttemptRef.current = true;
+      clearPendingDeepLinkStart();
+      return;
+    }
+
+    // Slow path: Torii may be lagging. Ask the chain directly (via game_system's
+    // get_game_data view call) whether the Game model has been initialized.
+    // This avoids the arbitrary "wait N seconds" heuristic — the chain is
+    // authoritative and the answer is immediate.
+    let cancelled = false;
+    deepLinkAttemptRef.current = true;
+    (async () => {
+      try {
+        const alreadyInitialized = await gameClient.isGameInitialized({ account, game_id: gameId });
+        if (cancelled) return;
+        if (alreadyInitialized) {
+          // Chain says game exists; Torii will catch up shortly. Nothing to do.
+          return;
+        }
+        await create({ account, token_id: gameId, run_type: 1 });
+        if (cancelled) return;
+        showToast({ message: "Tournament started!", type: "success" });
+      } catch (err) {
+        if (cancelled) return;
+        console.error("[deep-link] create_run failed", err);
+        const message = err instanceof Error ? err.message : "";
+        if (message.includes("Zone not unlocked") || message.includes("Clear story zone first")) {
+          showToast({ message: "This game is not available to start.", type: "error" });
+        } else if (!message.toLowerCase().includes("already")) {
+          showToast({ message: "Failed to start game.", type: "error" });
+        }
+      } finally {
+        if (!cancelled) clearPendingDeepLinkStart();
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pendingDeepLinkStart, account, gameId, toriiGame, create, gameClient, clearPendingDeepLinkStart]);
 
   useEffect(() => {
     if (!account) setIsConnectDialogOpen(true);
@@ -318,10 +391,12 @@ const PlayScreen: React.FC = () => {
   const zoneId = game?.zoneId ?? 1;
   const settingsId = Math.max(0, (zoneId - 1) * 2);
 
-  // Sync theme to the game's zone so blocks/background match
+  // Sync theme to the game's zone so blocks/background match.
+  // For tournaments with zone_id=0, deriveDisplayZoneId clamps to zone 1 (Tiki).
   useEffect(() => {
     if (!game) return;
-    const gameThemeId = `theme-${Math.min(10, Math.max(1, game.zoneId))}` as import("@/config/themes").ThemeId;
+    const displayZone = deriveDisplayZoneId(game);
+    const gameThemeId = `theme-${displayZone}` as import("@/config/themes").ThemeId;
     if (gameThemeId !== themeTemplate) {
       setThemeTemplate(gameThemeId);
     }
@@ -456,7 +531,7 @@ const PlayScreen: React.FC = () => {
       {game && game.mode === 1 && showEndlessGreeting && (
         <Suspense fallback={null}>
           <EndlessGreetingOverlay
-            zoneId={game.zoneId ?? 1}
+            zoneId={deriveDisplayZoneId(game)}
             activeMutatorId={game.activeMutatorId}
             onClose={() => useNavigationStore.setState({ showEndlessGreeting: false })}
           />
