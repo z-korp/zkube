@@ -249,7 +249,7 @@ grant_zstar_role() {
         print_warn "  Failed to grant $role_name to $system_name"
         echo "$OUTPUT"
     fi
-    sleep 5
+    sleep 10
 }
 
 grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "game_system" "$GAME_SYSTEM"
@@ -278,7 +278,7 @@ if [ -n "$CONFIG_SYSTEM" ] && [ "$CONFIG_SYSTEM" != "null" ]; then
         print_warn "  Failed to set treasury"
         echo "$OUTPUT"
     fi
-    sleep 5
+    sleep 10
 fi
 
 #-----------------
@@ -313,7 +313,7 @@ set_zone_pricing() {
         print_warn "  Failed to set pricing for $zone_name"
         echo "$OUTPUT"
     fi
-    sleep 5
+    sleep 10
 }
 
 # Zone 1 (id=0) is free — skip
@@ -357,7 +357,7 @@ disable_settings() {
         print_warn "  Failed to disable $desc"
         echo "$OUTPUT"
     fi
-    sleep 5
+    sleep 10
 }
 
 # Disable all endless settings (odd IDs 1-19)

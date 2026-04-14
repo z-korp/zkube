@@ -387,7 +387,7 @@ grant_zstar_role() {
         print_warn "  Failed to grant $role_name to $system_name"
         echo "$OUTPUT"
     fi
-    sleep 5
+    sleep 10
 }
 
 grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "game_system" "$GAME_SYSTEM"

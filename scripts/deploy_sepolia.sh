@@ -220,7 +220,7 @@ grant_zstar_role() {
         print_warn "  Failed to grant $role_name to $system_name"
         echo "$OUTPUT"
     fi
-    sleep 5
+    sleep 10
 }
 
 grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "game_system" "$GAME_SYSTEM"
@@ -262,7 +262,7 @@ set_zone_pricing() {
         print_warn "  Failed to set pricing for $zone_name"
         echo "$OUTPUT"
     fi
-    sleep 5
+    sleep 10
 }
 
 # Zone 1 (settings_id=0) is already free — skip
