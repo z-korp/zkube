@@ -15,10 +15,10 @@ github = "https://github.com/z-korp/zkube"
 default = "zkube_v2_1_1"
 
 [env]
-rpc_url = "https://api.cartridge.gg/x/starknet/mainnet/rpc/v0_8"
-account_address = "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7"
+rpc_url = "https://api.cartridge.gg/x/starknet/mainnet"
+account_address = "0x03c007412ec4b2cc60bfd2585f8276c98c39d5ac760a6bdf4a94523988cd71dd"
 # private_key via DOJO_PRIVATE_KEY env var
-# world_address set after migration
+world_address = "0x06ad0534b8db9871a16ce1982333a8ff4b9b174e20cb11031829d595ec56429b"
 
 [writers]
 "zkube_v2_1_1" = [
@@ -36,18 +36,18 @@ account_address = "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01f
 
 [init_call_args]
 "zkube_v2_1_1-game_system" = [
-    "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7", # creator
+    "0x03c007412ec4b2cc60bfd2585f8276c98c39d5ac760a6bdf4a94523988cd71dd", # creator
     "0x00263cc540dac11334470a64759e03952ee2f84a290e99ba8cbc391245cd0bf9", # denshokan (MinigameToken mainnet)
     "0x1",        # renderer_address: Option::None — fallback to DNS
     "0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f", # vrf_address (Cartridge VRF)
 ]
 "zkube_v2_1_1-config_system" = [
-    "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7", # creator
-    "0x0", # cube_token_address — updated by deploy script after ZStar deploy
+    "0x03c007412ec4b2cc60bfd2585f8276c98c39d5ac760a6bdf4a94523988cd71dd", # creator
+    "0x0178f673a83622221dcfee7890a6812a64da088a7d307551be587289b54b4d15", # cube_token_address — updated by deploy script after ZStar deploy
     "0x033068f6539f8e6e6b131e6b2b814e6c34a5224bc66947c47dab9dfee93b35fb", # payment_token_address (USDC)
 ]
 "zkube_v2_1_1-daily_challenge_system" = [
-    "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7", # admin
+    "0x03c007412ec4b2cc60bfd2585f8276c98c39d5ac760a6bdf4a94523988cd71dd", # admin
 ]
 
 [migration]

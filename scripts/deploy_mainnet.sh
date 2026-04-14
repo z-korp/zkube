@@ -49,7 +49,7 @@ extract_class_hash() {
 get_credentials() {
     RPC_URL=$(grep "rpc_url" "$DOJO_CONFIG" | head -1 | cut -d'"' -f2)
     ACCOUNT_ADDRESS=$(grep "account_address" "$DOJO_CONFIG" | head -1 | cut -d'"' -f2)
-    PRIVATE_KEY=$(grep "private_key" "$DOJO_CONFIG" | head -1 | cut -d'"' -f2)
+    PRIVATE_KEY=$(grep -v '^\s*#' "$DOJO_CONFIG" | grep "private_key" | head -1 | cut -d'"' -f2)
     if [ -z "$PRIVATE_KEY" ]; then
         PRIVATE_KEY="${DOJO_PRIVATE_KEY}"
     fi
