@@ -2,17 +2,22 @@
 set -e
 
 NAMESPACE="zkube_v2_1_1"
-PROFILE="sepolia"
+PROFILE="mainnet"
 CONTRACTS_DIR="./contracts"
-MANIFEST_FILE="./manifest_sepolia.json"
-DOJO_CONFIG="./dojo_sepolia.toml"
-TORII_CONFIG="${CONTRACTS_DIR}/torii_sepolia.toml"
-CLIENT_ENV="./client-budokan/.env.sepolia"
-TARGET_DIR="./target/sepolia"
-DEFAULT_SEPOLIA_TORII_URL="https://api.cartridge.gg/x/zkube-v2-sepolia/torii"
+MANIFEST_FILE="./manifest_mainnet.json"
+DOJO_CONFIG="./dojo_mainnet.toml"
+TORII_CONFIG="${CONTRACTS_DIR}/torii_mainnet.toml"
+CLIENT_ENV="./client-budokan/.env.mainnet"
+TARGET_DIR="./target/mainnet"
 
-# Shared Denshokan (MinigameToken) on Sepolia — no need to deploy our own
-DENSHOKAN_ADDRESS="0x0004e6e5bbf18424dfb825f1dbb65e10473b4603a1ec7b9ab02c143d877114f9"
+# Shared Denshokan (MinigameToken) on mainnet — no need to deploy our own
+DENSHOKAN_ADDRESS="0x00263cc540dac11334470a64759e03952ee2f84a290e99ba8cbc391245cd0bf9"
+
+# Treasury receives zone-purchase payments
+TREASURY_ADDRESS="0x0629627561dF41f2d1A53538446eD9EE702943EDC6927BfE2fE7D26A3C8B7C57"
+
+# USDC token on Starknet mainnet (6 decimals)
+USDC_ADDRESS="0x033068f6539f8e6e6b131e6b2b814e6c34a5224bc66947c47dab9dfee93b35fb"
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -60,10 +65,16 @@ if [ ! -f "$DOJO_CONFIG" ]; then
 fi
 
 echo "============================================"
-echo "zkube Deployment to Sepolia (simplified)"
+echo "zkube Deployment to MAINNET"
 echo "Namespace: $NAMESPACE"
-echo "Using shared Denshokan: $DENSHOKAN_ADDRESS"
+echo "Denshokan: $DENSHOKAN_ADDRESS"
+echo "Treasury:  $TREASURY_ADDRESS"
+echo "USDC:      $USDC_ADDRESS"
 echo "============================================"
+echo ""
+echo "⚠️  THIS IS MAINNET — double-check addresses before proceeding!"
+echo ""
+read -p "Press ENTER to continue or Ctrl-C to abort..."
 
 print_info "Step 1: Building contracts..."
 sozo clean -P $PROFILE
@@ -74,7 +85,9 @@ get_credentials
 print_info "Using RPC: $RPC_URL"
 print_info "Account: $ACCOUNT_ADDRESS"
 
-# Skip ZStar deploy if ZSTAR_ADDRESS is already set (e.g. from a prior deploy)
+#-----------------
+# Step 2-3: Deploy ZStarToken (skip if ZSTAR_ADDRESS already set)
+#-----------------
 if [ -n "$ZSTAR_ADDRESS" ] && [ "$ZSTAR_ADDRESS" != "0x0" ]; then
     print_info "Step 2-3: Skipping ZStarToken deploy — using existing: $ZSTAR_ADDRESS"
 else
@@ -92,8 +105,8 @@ else
     fi
     print_info "  ZStarToken class: $ZSTAR_CLASS"
 
-    print_info "  Waiting for declare to confirm (45s)..."
-    sleep 45
+    print_info "  Waiting for declare to confirm (60s)..."
+    sleep 60
 
     print_info "Step 3: Deploying ZStarToken..."
     ZSTAR_DEPLOY_OUTPUT=$(sozo deploy -P $PROFILE \
@@ -115,6 +128,9 @@ else
     sleep 60
 fi
 
+#-----------------
+# Step 4: Update dojo config with ZStar address
+#-----------------
 print_info "Step 4: Updating dojo configuration..."
 if [ -f "$DOJO_CONFIG" ]; then
     sed -i "s|\"0x[0-9a-fA-F]*\", # cube_token_address|\"$ZSTAR_ADDRESS\", # cube_token_address|" "$DOJO_CONFIG"
@@ -127,6 +143,9 @@ if grep -q '^world_address' "$DOJO_CONFIG"; then
     sed -i '/^world_address/d' "$DOJO_CONFIG"
 fi
 
+#-----------------
+# Step 5: Run sozo migrate
+#-----------------
 print_info "Step 5: Running sozo migrate..."
 MAX_ATTEMPTS=6
 ATTEMPT=1
@@ -165,6 +184,9 @@ if [ -z "$WORLD_ADDRESS" ]; then
 fi
 print_info "  World deployed at: $WORLD_ADDRESS"
 
+#-----------------
+# Step 6: Update world address
+#-----------------
 print_info "Step 6: Updating world address..."
 if [ -f "$DOJO_CONFIG" ]; then
     if grep -q "^world_address" "$DOJO_CONFIG"; then
@@ -174,6 +196,9 @@ if [ -f "$DOJO_CONFIG" ]; then
     fi
 fi
 
+#-----------------
+# Step 7: Extract system addresses
+#-----------------
 print_info "Step 7: Extracting system addresses..."
 GAME_SYSTEM=""
 CONFIG_SYSTEM=""
@@ -192,7 +217,11 @@ if [ -f "$MANIFEST_FILE" ]; then
     WEEKLY_ENDLESS_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-weekly_endless_system\") | .address" 2>/dev/null)
 fi
 
+#-----------------
+# Step 8: Grant ZStar roles
+#-----------------
 print_info "Step 8: Granting ZStar roles..."
+
 MINTER_ROLE_FELT="0x4d494e5445525f524f4c45"
 BURNER_ROLE_FELT="0x4255524e45525f524f4c45"
 
@@ -233,31 +262,53 @@ grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "config_system" "$CONFIG_SYST
 grant_zstar_role "BURNER_ROLE" "$BURNER_ROLE_FELT" "config_system" "$CONFIG_SYSTEM"
 
 #-----------------
-# Step 9: Set zone pricing for easy testing (star_cost=10, price=5 STRK for all paid zones)
+# Step 9: Set treasury
 #-----------------
-print_info "Step 9: Setting zone pricing (star_cost=10, price=5 STRK for all paid zones)..."
+print_info "Step 9: Setting treasury..."
+if [ -n "$CONFIG_SYSTEM" ] && [ "$CONFIG_SYSTEM" != "null" ]; then
+    OUTPUT=$(sozo execute -P $PROFILE \
+        --account-address "$ACCOUNT_ADDRESS" \
+        --private-key "$PRIVATE_KEY" \
+        --rpc-url "$RPC_URL" \
+        "$CONFIG_SYSTEM" \
+        set_treasury "$TREASURY_ADDRESS" 2>&1) || true
+    if echo "$OUTPUT" | grep -q "Transaction hash"; then
+        print_info "  Treasury set to $TREASURY_ADDRESS"
+    else
+        print_warn "  Failed to set treasury"
+        echo "$OUTPUT"
+    fi
+    sleep 5
+fi
 
-SEPOLIA_STRK="0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
+#-----------------
+# Step 10: Set zone pricing (USDC, 6 decimals)
+#-----------------
+print_info "Step 10: Setting zone pricing..."
 
+# 5 USDC = 5_000_000 (6 decimals), star_cost = 100
+# 10 USDC = 10_000_000 (6 decimals), star_cost = 200
 set_zone_pricing() {
     local settings_id="$1"
     local zone_name="$2"
+    local price="$3"
+    local star_cost="$4"
 
     if [ -z "$CONFIG_SYSTEM" ] || [ "$CONFIG_SYSTEM" = "null" ]; then
         print_warn "  Skipping zone pricing (config_system address not found)"
         return
     fi
 
-    # set_zone_pricing(settings_id, is_free=false, price=5 STRK, payment_token=STRK, star_cost=10)
+    # set_zone_pricing(settings_id, is_free=false, price, payment_token=USDC, star_cost)
     local OUTPUT=$(sozo execute -P $PROFILE \
         --account-address "$ACCOUNT_ADDRESS" \
         --private-key "$PRIVATE_KEY" \
         --rpc-url "$RPC_URL" \
         "$CONFIG_SYSTEM" \
-        set_zone_pricing "$settings_id" 0 5000000000000000000 "$SEPOLIA_STRK" 10 2>&1) || true
+        set_zone_pricing "$settings_id" 0 "$price" "$USDC_ADDRESS" "$star_cost" 2>&1) || true
 
     if echo "$OUTPUT" | grep -q "Transaction hash"; then
-        print_info "  Set $zone_name (settings_id=$settings_id) → 5 STRK + star_cost=10"
+        print_info "  Set $zone_name (id=$settings_id) → price=$price, star_cost=$star_cost"
     else
         print_warn "  Failed to set pricing for $zone_name"
         echo "$OUTPUT"
@@ -265,18 +316,74 @@ set_zone_pricing() {
     sleep 5
 }
 
-# Zone 1 (settings_id=0) is already free — skip
-set_zone_pricing 2  "Zone 2 (Egypt)"
-set_zone_pricing 4  "Zone 3 (Norse)"
-set_zone_pricing 6  "Zone 4 (Greece)"
-set_zone_pricing 8  "Zone 5 (China)"
-set_zone_pricing 10 "Zone 6 (Persia)"
-set_zone_pricing 12 "Zone 7 (Japan)"
-set_zone_pricing 14 "Zone 8 (Mayan)"
-set_zone_pricing 16 "Zone 9 (Tribal)"
-set_zone_pricing 18 "Zone 10 (Inca)"
+# Zone 1 (id=0) is free — skip
+# Tier 1: Zones 2-4 at 5 USDC + 100 stars
+set_zone_pricing 2  "Zone 2 (Egypt)"   5000000 100
+set_zone_pricing 4  "Zone 3 (Norse)"   5000000 100
+set_zone_pricing 6  "Zone 4 (Greece)"  5000000 100
+# Tier 2: Zones 5-7 at 10 USDC + 200 stars (disabled at launch)
+set_zone_pricing 8  "Zone 5 (China)"   10000000 200
+set_zone_pricing 10 "Zone 6 (Persia)"  10000000 200
+set_zone_pricing 12 "Zone 7 (Japan)"   10000000 200
+# Tier 3: Zones 8-10 at 10 USDC + 200 stars (disabled at launch)
+set_zone_pricing 14 "Zone 8 (Mayan)"   10000000 200
+set_zone_pricing 16 "Zone 9 (Tribal)"  10000000 200
+set_zone_pricing 18 "Zone 10 (Inca)"   10000000 200
 
-print_info "Step 10: Updating torii configuration..."
+#-----------------
+# Step 11: Disable settings not live at launch
+#-----------------
+print_info "Step 11: Disabling settings not live at launch..."
+
+disable_settings() {
+    local settings_id="$1"
+    local desc="$2"
+
+    if [ -z "$CONFIG_SYSTEM" ] || [ "$CONFIG_SYSTEM" = "null" ]; then
+        print_warn "  Skipping disable (config_system address not found)"
+        return
+    fi
+
+    local OUTPUT=$(sozo execute -P $PROFILE \
+        --account-address "$ACCOUNT_ADDRESS" \
+        --private-key "$PRIVATE_KEY" \
+        --rpc-url "$RPC_URL" \
+        "$CONFIG_SYSTEM" \
+        set_zone_enabled "$settings_id" 0 2>&1) || true
+
+    if echo "$OUTPUT" | grep -q "Transaction hash"; then
+        print_info "  Disabled $desc (id=$settings_id)"
+    else
+        print_warn "  Failed to disable $desc"
+        echo "$OUTPUT"
+    fi
+    sleep 5
+}
+
+# Disable all endless settings (odd IDs 1-19)
+disable_settings 1  "Z1 endless"
+disable_settings 3  "Z2 endless"
+disable_settings 5  "Z3 endless"
+disable_settings 7  "Z4 endless"
+disable_settings 9  "Z5 endless"
+disable_settings 11 "Z6 endless"
+disable_settings 13 "Z7 endless"
+disable_settings 15 "Z8 endless"
+disable_settings 17 "Z9 endless"
+disable_settings 19 "Z10 endless"
+
+# Disable Z5-Z10 map settings (even IDs 8-18)
+disable_settings 8  "Z5 map (China)"
+disable_settings 10 "Z6 map (Persia)"
+disable_settings 12 "Z7 map (Japan)"
+disable_settings 14 "Z8 map (Mayan)"
+disable_settings 16 "Z9 map (Tribal)"
+disable_settings 18 "Z10 map (Inca)"
+
+#-----------------
+# Step 12: Update torii config
+#-----------------
+print_info "Step 12: Updating torii configuration..."
 cat > "$TORII_CONFIG" << EOF
 world_address = "$WORLD_ADDRESS"
 rpc = "$RPC_URL"
@@ -295,25 +402,30 @@ raw = true
 EOF
 print_info "  Updated $TORII_CONFIG"
 
-print_info "Step 11: Copying manifest..."
-CONTRACTS_MANIFEST="${CONTRACTS_DIR}/manifest_sepolia.json"
+#-----------------
+# Step 13: Copy manifest
+#-----------------
+print_info "Step 13: Copying manifest..."
+CONTRACTS_MANIFEST="${CONTRACTS_DIR}/manifest_mainnet.json"
 if [ -f "$MANIFEST_FILE" ]; then
     cp "$MANIFEST_FILE" "$CONTRACTS_MANIFEST"
     print_info "  Copied manifest to $CONTRACTS_MANIFEST"
 fi
 
-print_info "Step 12: Updating client configuration..."
-TORII_URL="${SEPOLIA_TORII_URL:-$DEFAULT_SEPOLIA_TORII_URL}"
+#-----------------
+# Step 14: Update client config
+#-----------------
+print_info "Step 14: Updating client configuration..."
+TORII_URL="${MAINNET_TORII_URL:-https://api.cartridge.gg/x/zkube-mainnet/torii}"
 
 cat > "$CLIENT_ENV" << EOF
-VITE_PUBLIC_DEPLOY_TYPE=sepolia
+VITE_PUBLIC_DEPLOY_TYPE=mainnet
 VITE_PUBLIC_NAMESPACE=$NAMESPACE
 VITE_PUBLIC_NODE_URL=$RPC_URL
 VITE_PUBLIC_TORII=$TORII_URL
 VITE_PUBLIC_MASTER_ADDRESS=$ACCOUNT_ADDRESS
-VITE_PUBLIC_MASTER_PRIVATE_KEY=$PRIVATE_KEY
 VITE_PUBLIC_ACCOUNT_CLASS_HASH=0x05400e90f7e0ae78bd02c77cd75527280470e2fe19c54970dd79dc37a9d3645c
-VITE_PUBLIC_FEE_TOKEN_ADDRESS=0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
+VITE_PUBLIC_FEE_TOKEN_ADDRESS=0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
 VITE_PUBLIC_WORLD_ADDRESS=$WORLD_ADDRESS
 VITE_PUBLIC_GAME_TOKEN_ADDRESS=$DENSHOKAN_ADDRESS
 VITE_PUBLIC_ZSTAR_TOKEN_ADDRESS=$ZSTAR_ADDRESS
@@ -322,7 +434,7 @@ print_info "  Updated $CLIENT_ENV"
 
 echo ""
 echo "============================================"
-echo -e "${GREEN}DEPLOYMENT COMPLETE!${NC}"
+echo -e "${GREEN}MAINNET DEPLOYMENT COMPLETE!${NC}"
 echo "============================================"
 echo ""
 echo "Deployed Addresses:"
@@ -330,6 +442,7 @@ echo "-------------------"
 echo "World:                    $WORLD_ADDRESS"
 echo "Denshokan (shared):       $DENSHOKAN_ADDRESS"
 echo "ZStarToken:               $ZSTAR_ADDRESS"
+echo "Treasury:                 $TREASURY_ADDRESS"
 echo "game_system:              $GAME_SYSTEM"
 echo "level_system:             $LEVEL_SYSTEM"
 echo "story_system:             $STORY_SYSTEM"
@@ -337,7 +450,16 @@ echo "daily_challenge_system:   $DAILY_CHALLENGE_SYSTEM"
 echo "weekly_endless_system:    $WEEKLY_ENDLESS_SYSTEM"
 echo "config_system:            $CONFIG_SYSTEM"
 echo ""
+echo "Enabled at launch:"
+echo "  - Z1 Tiki (free)"
+echo "  - Z2 Egypt, Z3 Norse, Z4 Greece (5 USDC / 100 stars)"
+echo "  - Tournament Tiki (free, settings_id=51)"
+echo ""
+echo "Disabled (enable later via set_zone_enabled):"
+echo "  - All endless modes (1,3,5,...,19)"
+echo "  - Z5-Z10 maps (8,10,12,14,16,18)"
+echo ""
 echo "Next steps:"
 echo "  1. Start Torii: torii --config $TORII_CONFIG"
-echo "  2. Start client: cd client-budokan && pnpm sepolia"
+echo "  2. Start client: cd client-budokan && pnpm mainnet"
 echo ""
