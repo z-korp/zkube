@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x4f65844b8385dc0987dd4536d2c77b8c52073cf65a749a696be49504e7d1d33",
-    "seed": "zkube_2_2",
+    "address": "0x1efac8732d9a126b898bfd05c3104575ea6929ad2b5469eab089887691cba44",
+    "seed": "zkube_2_3",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,7 +33,7 @@
   },
   "contracts": [
     {
-      "address": "0x6f4b824317b28d27ef2669730b3c06831d4b96663e5e108a1e364348f841277",
+      "address": "0x6b75d6bcf55fd01fc68dd6131319411feb47f1ee23c6b48bc54252492b70557",
       "class_hash": "0x5c0c0944d6c43c4320ba626fc3a70e82f890e02eee0e3ce8f529a2ebc68bc6d",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
@@ -60,7 +60,7 @@
       ]
     },
     {
-      "address": "0x58f00b47e54b82172fac785ca3606fa754495f3c2ccd656ae6815498bfd463d",
+      "address": "0x3029796efb804ccc02904793d068372e7a0ec52a57e97d9c5c92512c9cf6aa4",
       "class_hash": "0x36ecd34229da2532450119e262adb8f77d320424f4779346f5a50a6fefcff0b",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859"
@@ -76,7 +76,7 @@
       ]
     },
     {
-      "address": "0xe62ce1a03220879cd0bd2e03eca38237dd77f1ead2da1b3a34b2f933fadb48",
+      "address": "0x7639297a215ce2fd925d9b47fb4a4611281cdb5c243eabe2701b985bfd106eb",
       "class_hash": "0x3e1fbef359ea7cae6351041dd94436dcb20cf6eb91240674d7551a636cdc25c",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
@@ -96,7 +96,7 @@
       ]
     },
     {
-      "address": "0x173b1f7ea895044899e735fbeac18ba33ed7b788e968dee78a013d4e872ee41",
+      "address": "0x3bc17625a052fb12bee91b62df32fa792fb25400454dda18f8aa923b2185123",
       "class_hash": "0x26cd528392663c56cf80ce01006ae765595a267f838466573372a9f7b879d39",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-grid_system",
@@ -109,7 +109,7 @@
       ]
     },
     {
-      "address": "0x4644c1b1eb668e6ce2da3a783e07f178973c044a7c7e3e38a9f27ad299f0d36",
+      "address": "0x2262a550b3adfef633b53cf4e8d6b946f10cc1da3ac673038e0eeef803c1190",
       "class_hash": "0x15a65ba7a5c8c5c5ccbcff7d47d86c5cea1c827bc9f581f5888447482769bf4",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-level_system",
@@ -124,7 +124,7 @@
       ]
     },
     {
-      "address": "0x538dad3bda822707bd1f2762ccc0b57d9c743ae7df518aaf878c8078d1a58c3",
+      "address": "0x45575a7ea45067c4dbd37cb5be1cfb37ada909099e6edc1b93cfe18cb36fc6f",
       "class_hash": "0x7fc6fc29c42dfa7d6632dec79ee4c6128771fdd084ed01d39994541e4e9f319",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-move_system",
@@ -135,7 +135,7 @@
       ]
     },
     {
-      "address": "0xa63c4735f9edc4ddb35c8e089cd2ae66eee09202b7b1b9c58918cfba7dd86a",
+      "address": "0xbe871a573b3cd65bb9b0926cd02e8439bb86dfb45f0792ad1fe466f53a8cd2",
       "class_hash": "0x6f4d82dcb010e0ec021fd630384d46798a7ba4650d1e499835fbb414263d187",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-progress_system",
@@ -150,7 +150,7 @@
       ]
     },
     {
-      "address": "0x3cb2ba3d08d259041914840eadfde611461983a0b9a752a6fe070281c227238",
+      "address": "0x530c17ffb5c19f27fb00eb9cc9bfc22d2a32df0d61c53dc6040d53c34cb75ea",
       "class_hash": "0x299a26122c7b5f9d1474b90a55b29c4de8e6367eccaa847db15562d129cfc02",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-renderer_systems",
@@ -160,7 +160,7 @@
       ]
     },
     {
-      "address": "0x7fe3efd541511a2ef70648fe767f5d250729492c2b7d7460a029845074745b",
+      "address": "0x377a9b3fcd8c9e90646dbdb861b659e854a1cf54456583996e1e782be97e4f5",
       "class_hash": "0x55c96779a70d6b5a736072d54408cfb63a7073b084b292360024ff2d7ad16c2",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-story_system",
@@ -173,7 +173,7 @@
       ]
     },
     {
-      "address": "0x2e978776ee36327801fb3fe07e6dce91eee259fd134ec4e7ace18d3f8dd04bb",
+      "address": "0x52ae9c6312d81d92cdec2deec0e89b6663b98beaaedf82e49f926dec67c4eda",
       "class_hash": "0x695ed9dad4893421ae7efeb3ee9f1286b2e6aee4494adc7edfb596ffa232cba",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-weekly_endless_system",
