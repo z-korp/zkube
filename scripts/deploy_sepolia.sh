@@ -233,11 +233,11 @@ grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "config_system" "$CONFIG_SYST
 grant_zstar_role "BURNER_ROLE" "$BURNER_ROLE_FELT" "config_system" "$CONFIG_SYSTEM"
 
 #-----------------
-# Step 9: Set zone pricing for easy testing (star_cost=10, price=5 STRK for all paid zones)
+# Step 9: Set zone pricing (USDC, 6 decimals — mirrors mainnet)
 #-----------------
-print_info "Step 9: Setting zone pricing (mirrors mainnet tiers)..."
+print_info "Step 9: Setting zone pricing (USDC, mirrors mainnet tiers)..."
 
-SEPOLIA_STRK="0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
+SEPOLIA_USDC="0x053b40a647cedfca6ca84f542a0fe36736031905a9639a7f19a3c1e66bfd5080"
 
 set_zone_pricing() {
     local settings_id="$1"
@@ -255,7 +255,7 @@ set_zone_pricing() {
         --private-key "$PRIVATE_KEY" \
         --rpc-url "$RPC_URL" \
         "$CONFIG_SYSTEM" \
-        set_zone_pricing "$settings_id" 0 "$price" "$SEPOLIA_STRK" "$star_cost" 2>&1) || true
+        set_zone_pricing "$settings_id" 0 "$price" "$SEPOLIA_USDC" "$star_cost" 2>&1) || true
 
     if echo "$OUTPUT" | grep -q "Transaction hash"; then
         print_info "  Set $zone_name (id=$settings_id) → price=$price, star_cost=$star_cost"
@@ -267,18 +267,20 @@ set_zone_pricing() {
 }
 
 # Zone 1 (settings_id=0) is free — skip
-# Tier 1: Zones 2-4 at 5 STRK + 100 stars (mirrors mainnet 5 USDC + 100 stars)
-set_zone_pricing 2  "Zone 2 (Egypt)"   5000000000000000000 100
-set_zone_pricing 4  "Zone 3 (Norse)"   5000000000000000000 100
-set_zone_pricing 6  "Zone 4 (Greece)"  5000000000000000000 100
-# Tier 2: Zones 5-7 at 10 STRK + 200 stars (mirrors mainnet 10 USDC + 200 stars)
-set_zone_pricing 8  "Zone 5 (China)"   10000000000000000000 200
-set_zone_pricing 10 "Zone 6 (Persia)"  10000000000000000000 200
-set_zone_pricing 12 "Zone 7 (Japan)"   10000000000000000000 200
-# Tier 3: Zones 8-10 at 10 STRK + 200 stars (mirrors mainnet)
-set_zone_pricing 14 "Zone 8 (Mayan)"   10000000000000000000 200
-set_zone_pricing 16 "Zone 9 (Tribal)"  10000000000000000000 200
-set_zone_pricing 18 "Zone 10 (Inca)"   10000000000000000000 200
+# 5 USDC = 5_000_000 (6 decimals), star_cost = 100
+# 10 USDC = 10_000_000 (6 decimals), star_cost = 200
+# Tier 1: Zones 2-4 at 5 USDC + 100 stars
+set_zone_pricing 2  "Zone 2 (Egypt)"   5000000 100
+set_zone_pricing 4  "Zone 3 (Norse)"   5000000 100
+set_zone_pricing 6  "Zone 4 (Greece)"  5000000 100
+# Tier 2: Zones 5-7 at 10 USDC + 200 stars
+set_zone_pricing 8  "Zone 5 (China)"   10000000 200
+set_zone_pricing 10 "Zone 6 (Persia)"  10000000 200
+set_zone_pricing 12 "Zone 7 (Japan)"   10000000 200
+# Tier 3: Zones 8-10 at 10 USDC + 200 stars
+set_zone_pricing 14 "Zone 8 (Mayan)"   10000000 200
+set_zone_pricing 16 "Zone 9 (Tribal)"  10000000 200
+set_zone_pricing 18 "Zone 10 (Inca)"   10000000 200
 
 #-----------------
 # Step 10: Disable settings not live at launch (mirrors mainnet)
