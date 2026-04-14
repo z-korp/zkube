@@ -59,6 +59,7 @@ pub mod helpers {
     pub mod config;
     pub mod controller;
     pub mod daily;
+    pub mod economy;
     pub mod encoding;
     pub mod game_creation;
     pub mod game_libs;
@@ -87,6 +88,7 @@ pub mod systems {
     pub mod progress;
     pub mod renderer;
     pub mod story;
+    pub mod weekly_endless;
 }
 
 pub mod external {

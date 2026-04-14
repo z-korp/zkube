@@ -78,8 +78,9 @@ pub fn create_game(
         MutatorEffectsTrait::neutral(0)
     };
     let seed_u256: u256 = seed.into();
-    let (bonus_slot, bonus_type, starting_charges) = select_bonus_slot(
-        seed_u256, @bonus_mutator_def,
+    let skip_score = run_type == 1; // endless: score triggers are inflated by multipliers
+    let (bonus_trigger_type, bonus_type, starting_charges) = roll_bonus_trigger(
+        seed_u256, @bonus_mutator_def, skip_score,
     );
 
     let timestamp = get_block_timestamp();
@@ -93,7 +94,7 @@ pub fn create_game(
         game_id, timestamp, settings.zone_id, passive_mut_id, run_type_val,
     );
     let mut run_data = game.get_run_data();
-    run_data.bonus_slot = bonus_slot;
+    run_data.bonus_trigger_type = bonus_trigger_type;
     run_data.bonus_type = bonus_type;
     run_data.bonus_charges = if starting_charges > 15 {
         15
@@ -156,17 +157,28 @@ pub fn create_game(
     libs.grid.initialize_grid(game_id);
 }
 
-/// Select a bonus slot from the active mutator's non-None bonus slots.
-/// Returns (bonus_slot, bonus_type, starting_charges).
-fn select_bonus_slot(seed_u256: u256, mutator_def: @MutatorDef) -> (u8, u8, u8) {
+/// Roll a trigger type (Combo/Lines/Score) uniformly among the mutator's
+/// non-zero trigger thresholds. Returns (bonus_trigger_type, bonus_type,
+/// starting_charges). When the mutator has no bonus or no enabled triggers
+/// the triple is all zeros and no bonus is granted.
+/// When `skip_score_trigger` is true the score-based trigger (type 3) is
+/// excluded from the candidate pool. Used for endless/tournament modes
+/// where score multipliers would make score triggers fire every move.
+pub fn roll_bonus_trigger(
+    seed_u256: u256, mutator_def: @MutatorDef, skip_score_trigger: bool,
+) -> (u8, u8, u8) {
+    if *mutator_def.bonus_type == 0 {
+        return (0, 0, 0);
+    }
+
     let mut count: u8 = 0;
-    if *mutator_def.bonus_1_type > 0 {
+    if *mutator_def.combo_trigger_threshold > 0 {
         count += 1;
     }
-    if *mutator_def.bonus_2_type > 0 {
+    if *mutator_def.lines_trigger_threshold > 0 {
         count += 1;
     }
-    if *mutator_def.bonus_3_type > 0 {
+    if *mutator_def.score_trigger_threshold > 0 && !skip_score_trigger {
         count += 1;
     }
     if count == 0 {
@@ -176,21 +188,21 @@ fn select_bonus_slot(seed_u256: u256, mutator_def: @MutatorDef) -> (u8, u8, u8) 
     let pick: u8 = (seed_u256 % count.into()).try_into().unwrap();
     let mut found: u8 = 0;
 
-    if *mutator_def.bonus_1_type > 0 {
+    if *mutator_def.combo_trigger_threshold > 0 {
         if found == pick {
-            return (0, *mutator_def.bonus_1_type, *mutator_def.bonus_1_starting_charges);
+            return (1, *mutator_def.bonus_type, *mutator_def.starting_charges);
         }
         found += 1;
     }
-    if *mutator_def.bonus_2_type > 0 {
+    if *mutator_def.lines_trigger_threshold > 0 {
         if found == pick {
-            return (1, *mutator_def.bonus_2_type, *mutator_def.bonus_2_starting_charges);
+            return (2, *mutator_def.bonus_type, *mutator_def.starting_charges);
         }
         found += 1;
     }
-    if *mutator_def.bonus_3_type > 0 {
+    if *mutator_def.score_trigger_threshold > 0 && !skip_score_trigger {
         if found == pick {
-            return (2, *mutator_def.bonus_3_type, *mutator_def.bonus_3_starting_charges);
+            return (3, *mutator_def.bonus_type, *mutator_def.starting_charges);
         }
     }
 

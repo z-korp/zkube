@@ -25,7 +25,7 @@ fn test_run_data_pack_unpack_roundtrip_small_values() {
         bonus_type: 0,
         bonus_charges: 0,
         level_lines_cleared: 0,
-        bonus_slot: 0,
+        bonus_trigger_type: 0,
     };
 
     assert_roundtrip(data);
@@ -35,7 +35,7 @@ fn test_run_data_pack_unpack_roundtrip_small_values() {
 fn test_run_data_pack_unpack_roundtrip_max_values() {
     let data = RunData {
         current_level: 255,
-        level_score: 255,
+        level_score: 65535,
         level_moves: 255,
         constraint_progress: 255,
         constraint_2_progress: 255,
@@ -48,8 +48,34 @@ fn test_run_data_pack_unpack_roundtrip_max_values() {
         run_type: 0,
         bonus_type: 3,
         bonus_charges: 15,
-        level_lines_cleared: 15,
-        bonus_slot: 2,
+        level_lines_cleared: 255,
+        bonus_trigger_type: 2,
+    };
+
+    assert_roundtrip(data);
+}
+
+#[test]
+fn test_run_data_level_score_supports_u16() {
+    // Widened level_score (u8 → u16) — verify mid-range and max values
+    // survive pack/unpack without clobbering neighbouring fields.
+    let data = RunData {
+        current_level: 42,
+        level_score: 12345,
+        level_moves: 77,
+        constraint_progress: 4,
+        constraint_2_progress: 5,
+        max_combo_run: 9,
+        total_score: 2_500_000,
+        zone_cleared: false,
+        current_difficulty: 3,
+        zone_id: 8,
+        active_mutator_id: 16,
+        run_type: 1,
+        bonus_type: 0,
+        bonus_charges: 0,
+        level_lines_cleared: 11,
+        bonus_trigger_type: 0,
     };
 
     assert_roundtrip(data);
@@ -76,7 +102,7 @@ fn test_run_data_total_score_supports_u32_above_u16() {
         bonus_type: 0,
         bonus_charges: 0,
         level_lines_cleared: 12,
-        bonus_slot: 1,
+        bonus_trigger_type: 1,
     };
 
     let unpacked = RunDataPackingTrait::unpack(data.pack());
@@ -153,14 +179,14 @@ fn test_run_data_bonus_fields_roundtrip() {
         bonus_type: 1,
         bonus_charges: 7,
         level_lines_cleared: 9,
-        bonus_slot: 2,
+        bonus_trigger_type: 2,
     };
 
     let unpacked = RunDataPackingTrait::unpack(data.pack());
     assert!(unpacked.bonus_type == 1, "bonus_type should roundtrip as 1");
     assert!(unpacked.bonus_charges == 7, "bonus_charges should roundtrip as 7");
     assert!(unpacked.level_lines_cleared == 9, "level_lines_cleared should roundtrip as 9");
-    assert!(unpacked.bonus_slot == 2, "bonus_slot should roundtrip as 2");
+    assert!(unpacked.bonus_trigger_type == 2, "bonus_trigger_type should roundtrip as 2");
 }
 
 #[test]

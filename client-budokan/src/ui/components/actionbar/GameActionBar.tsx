@@ -49,24 +49,20 @@ interface GameActionBarProps {
   activeMutatorId?: number;
 }
 
-const TRIGGER_TYPE_LABELS: Record<number, string> = {
-  1: "combo",
-  2: "lines cleared",
-  3: "points scored",
-};
-
 export function buildTriggerDescription(
   triggerType: number,
   triggerThreshold: number,
   startingCharges: number,
 ): string {
   if (triggerType === 0 || triggerThreshold === 0) return "";
-  const label = TRIGGER_TYPE_LABELS[triggerType] ?? "threshold";
   const parts: string[] = [];
   if (triggerType === 1) {
-    parts.push(`Every ${triggerThreshold} ${label}`);
-  } else {
-    parts.push(`Every ${triggerThreshold} ${label}`);
+    // Per-move: clear N+ lines in one move
+    parts.push(`Clear ${triggerThreshold}+ lines in a move`);
+  } else if (triggerType === 2) {
+    parts.push(`Every ${triggerThreshold} lines cleared`);
+  } else if (triggerType === 3) {
+    parts.push(`Every ${triggerThreshold} points scored`);
   }
   if (startingCharges > 0) {
     parts.push(`Start with ${startingCharges}`);

@@ -76,16 +76,6 @@ export interface AddCustomGameSettings extends Signer {
   constraints_enabled: number;
   constraint_start_level: number;
   constraint_lines_budgets: string;
-  veryeasy_size1_weight: number;
-  veryeasy_size2_weight: number;
-  veryeasy_size3_weight: number;
-  veryeasy_size4_weight: number;
-  veryeasy_size5_weight: number;
-  master_size1_weight: number;
-  master_size2_weight: number;
-  master_size3_weight: number;
-  master_size4_weight: number;
-  master_size5_weight: number;
   early_variance_percent: number;
   mid_variance_percent: number;
   late_variance_percent: number;
@@ -401,16 +391,6 @@ export function setupWorld(config: Config) {
       constraints_enabled,
       constraint_start_level,
       constraint_lines_budgets,
-      veryeasy_size1_weight,
-      veryeasy_size2_weight,
-      veryeasy_size3_weight,
-      veryeasy_size4_weight,
-      veryeasy_size5_weight,
-      master_size1_weight,
-      master_size2_weight,
-      master_size3_weight,
-      master_size4_weight,
-      master_size5_weight,
       early_variance_percent,
       mid_variance_percent,
       late_variance_percent,
@@ -448,16 +428,6 @@ export function setupWorld(config: Config) {
               constraints_enabled,
               constraint_start_level,
               constraint_lines_budgets,
-              veryeasy_size1_weight,
-              veryeasy_size2_weight,
-              veryeasy_size3_weight,
-              veryeasy_size4_weight,
-              veryeasy_size5_weight,
-              master_size1_weight,
-              master_size2_weight,
-              master_size3_weight,
-              master_size4_weight,
-              master_size5_weight,
               early_variance_percent,
               mid_variance_percent,
               late_variance_percent,
@@ -573,6 +543,24 @@ export function setupWorld(config: Config) {
       }
     };
 
+    return {
+      address: contract.address,
+      start_daily_game,
+      replay_daily_level,
+      settle_challenge,
+    };
+  }
+
+  function weekly_endless() {
+    const contract_name = "weekly_endless_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      console.warn(`Contract ${contract_name} not found in manifest - weekly endless disabled`);
+      return null;
+    }
+
     const settle_weekly_endless = async ({ account, week_id, settings_id, ranked_players }: SettleWeeklyEndless) => {
       try {
         return await account.execute([
@@ -590,9 +578,6 @@ export function setupWorld(config: Config) {
 
     return {
       address: contract.address,
-      start_daily_game,
-      replay_daily_level,
-      settle_challenge,
       settle_weekly_endless,
     };
   }
@@ -634,6 +619,7 @@ export function setupWorld(config: Config) {
     story_system: storySystem(),
     config: configSystem(),
     daily_challenge: daily_challenge(),
+    weekly_endless: weekly_endless(),
     progress_system: progressSystem(),
   };
 }

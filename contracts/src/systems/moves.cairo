@@ -173,15 +173,26 @@ mod move_system {
             if lines_cleared > 0 {
                 progress_tasks.append((Task::LineClear.identifier(), lines_cleared.into()));
             }
-            if game.combo_counter >= 2 {
+            // Per-move combo tasks: based on lines_cleared THIS move (not the
+            // cumulative combo_counter, which inflates across moves and used to
+            // make Combo3/Combo4 fire after sequential 2-line clears).
+            if lines_cleared >= 2 {
                 progress_tasks.append((Task::Combo2.identifier(), 1));
             }
-            if game.combo_counter >= 3 {
+            if lines_cleared >= 3 {
                 progress_tasks.append((Task::Combo3.identifier(), 1));
             }
-            if game.combo_counter >= 4 {
+            if lines_cleared >= 4 {
                 progress_tasks.append((Task::Combo4.identifier(), 1));
             }
+            if lines_cleared >= 5 {
+                progress_tasks.append((Task::Combo5.identifier(), 1));
+            }
+            if lines_cleared >= 6 {
+                progress_tasks.append((Task::Combo6.identifier(), 1));
+            }
+            // HighCombo stays on the cumulative streak — used by the
+            // streak_hunter daily quest. Target=1 makes repeat emits harmless.
             if game.combo_counter >= 10 {
                 progress_tasks.append((Task::HighCombo.identifier(), 1));
             }
@@ -190,11 +201,11 @@ mod move_system {
             let mut run_data_changed = false;
             let mutator_def = mutator_def_passive;
 
-            // Track per-level lines cleared in run_data.
+            // Track per-level lines cleared in run_data (u8, cap 255).
             let next_level_lines_cleared_u16: u16 = run_data.level_lines_cleared.into()
                 + lines_cleared.into();
-            let next_level_lines_cleared = if next_level_lines_cleared_u16 > 15 {
-                15_u8
+            let next_level_lines_cleared = if next_level_lines_cleared_u16 > 255 {
+                255_u8
             } else {
                 next_level_lines_cleared_u16.try_into().unwrap()
             };
@@ -203,30 +214,29 @@ mod move_system {
                 run_data_changed = true;
             }
 
-            // Bonus charges: read trigger config from the active mutator's bonus slots.
-            let active_bonus_mut_id = settings.active_mutator_id;
-            let (trigger_type, threshold) = if active_bonus_mut_id > 0 {
-                let bonus_mutator: MutatorDef = world.read_model(active_bonus_mut_id);
-                match run_data.bonus_slot {
-                    0 => (
-                        bonus_mutator.bonus_1_trigger_type, bonus_mutator.bonus_1_trigger_threshold,
-                    ),
-                    1 => (
-                        bonus_mutator.bonus_2_trigger_type, bonus_mutator.bonus_2_trigger_threshold,
-                    ),
-                    2 => (
-                        bonus_mutator.bonus_3_trigger_type, bonus_mutator.bonus_3_trigger_threshold,
-                    ),
-                    _ => (0_u8, 0_u8),
+            // Bonus charges: trigger_type was rolled at create_run and stored in
+            // run_data.bonus_trigger_type. Look up the matching threshold on the
+            // active mutator def.
+            let trigger_type = run_data.bonus_trigger_type;
+            let threshold = if trigger_type > 0
+                && run_data.bonus_type > 0
+                && settings.active_mutator_id > 0 {
+                let bonus_mutator: MutatorDef = world.read_model(settings.active_mutator_id);
+                match trigger_type {
+                    1 => bonus_mutator.combo_trigger_threshold,
+                    2 => bonus_mutator.lines_trigger_threshold,
+                    3 => bonus_mutator.score_trigger_threshold,
+                    _ => 0,
                 }
             } else {
-                (0_u8, 0_u8)
+                0
             };
 
-            if trigger_type > 0 && threshold > 0 && run_data.bonus_type > 0 {
+            if threshold > 0 {
                 if trigger_type == 1 {
-                    // Combo streak (per-level): award one charge each exact threshold hit.
-                    if game.combo_counter > 0 && game.combo_counter % threshold == 0 {
+                    // Combo: fire once per move whose lines_cleared reaches the
+                    // threshold. "combo 3" = "clear 3+ lines in a single move".
+                    if lines_cleared >= threshold {
                         let next_charges = InternalImpl::add_bonus_charges(
                             run_data.bonus_charges, 1,
                         );
@@ -250,11 +260,18 @@ mod move_system {
                         }
                     }
                 } else if trigger_type == 3 {
-                    // Score (per-level, monotonic threshold crossings).
-                    let earned = run_data.level_score / threshold;
-                    let prev_earned = run_data_before_move.level_score / threshold;
+                    // Score (per-level, monotonic threshold crossings). level_score
+                    // is u16 now; widen threshold so the division types match.
+                    let threshold_u16: u16 = threshold.into();
+                    let earned: u16 = run_data.level_score / threshold_u16;
+                    let prev_earned: u16 = run_data_before_move.level_score / threshold_u16;
                     if earned > prev_earned {
-                        let charges_to_add = earned - prev_earned;
+                        let charges_to_add_u16: u16 = earned - prev_earned;
+                        let charges_to_add: u8 = if charges_to_add_u16 > 255 {
+                            255
+                        } else {
+                            charges_to_add_u16.try_into().unwrap()
+                        };
                         let next_charges = InternalImpl::add_bonus_charges(
                             run_data.bonus_charges, charges_to_add,
                         );

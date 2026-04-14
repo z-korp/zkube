@@ -77,17 +77,7 @@ export interface GameSettings {
   masterBudgetMax: number;
   veryeasyMinTimes: number;
   masterMinTimes: number;
-  // Block Distribution (VeryEasy to Master)
-  veryeasySize1Weight: number;
-  veryeasySize2Weight: number;
-  veryeasySize3Weight: number;
-  veryeasySize4Weight: number;
-  veryeasySize5Weight: number;
-  masterSize1Weight: number;
-  masterSize2Weight: number;
-  masterSize3Weight: number;
-  masterSize4Weight: number;
-  masterSize5Weight: number;
+  // Block weights are sourced from hardcoded per-difficulty curve in contracts.
   // Variance Settings
   earlyVariancePercent: number;
   midVariancePercent: number;
@@ -147,17 +137,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   masterBudgetMax: 40,   // Allows 6x3, 5x5, 4x10 at Master
   veryeasyMinTimes: 1,   // At least 1 time
   masterMinTimes: 2,     // At least 2 times at Master
-  // Block Distribution (VeryEasy to Master)
-  veryeasySize1Weight: 20,
-  veryeasySize2Weight: 33,
-  veryeasySize3Weight: 27,
-  veryeasySize4Weight: 13,
-  veryeasySize5Weight: 7,
-  masterSize1Weight: 7,
-  masterSize2Weight: 13,
-  masterSize3Weight: 20,
-  masterSize4Weight: 27,
-  masterSize5Weight: 33,
+  // Block weights are sourced from hardcoded per-difficulty curve in contracts.
   // Variance Settings (consistent ±5% across all levels)
   earlyVariancePercent: 5,
   midVariancePercent: 5,
@@ -1185,27 +1165,7 @@ export function parseGameSettings(raw: any): GameSettings {
       raw.constraint_start_level ?? DEFAULT_SETTINGS.constraintStartLevel,
     // Unpacked constraint fields
     ...constraintLinesBudgets,
-    // Block weights
-    veryeasySize1Weight:
-      raw.veryeasy_size1_weight ?? DEFAULT_SETTINGS.veryeasySize1Weight,
-    veryeasySize2Weight:
-      raw.veryeasy_size2_weight ?? DEFAULT_SETTINGS.veryeasySize2Weight,
-    veryeasySize3Weight:
-      raw.veryeasy_size3_weight ?? DEFAULT_SETTINGS.veryeasySize3Weight,
-    veryeasySize4Weight:
-      raw.veryeasy_size4_weight ?? DEFAULT_SETTINGS.veryeasySize4Weight,
-    veryeasySize5Weight:
-      raw.veryeasy_size5_weight ?? DEFAULT_SETTINGS.veryeasySize5Weight,
-    masterSize1Weight:
-      raw.master_size1_weight ?? DEFAULT_SETTINGS.masterSize1Weight,
-    masterSize2Weight:
-      raw.master_size2_weight ?? DEFAULT_SETTINGS.masterSize2Weight,
-    masterSize3Weight:
-      raw.master_size3_weight ?? DEFAULT_SETTINGS.masterSize3Weight,
-    masterSize4Weight:
-      raw.master_size4_weight ?? DEFAULT_SETTINGS.masterSize4Weight,
-    masterSize5Weight:
-      raw.master_size5_weight ?? DEFAULT_SETTINGS.masterSize5Weight,
+    // Block weights are sourced from the hardcoded per-difficulty curve in contracts.
     // Variance
     earlyVariancePercent:
       raw.early_variance_percent ?? DEFAULT_SETTINGS.earlyVariancePercent,

@@ -18,7 +18,7 @@ pub trait IGameSystem<T> {
     /// Returns:
     /// (level, level_score, level_moves, combo, max_combo,
     ///  reserved_1, reserved_2, reserved_3, reserved_4, over)
-    fn get_game_data(self: @T, game_id: felt252) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool);
+    fn get_game_data(self: @T, game_id: felt252) -> (u8, u16, u8, u8, u8, u8, u8, u8, u16, bool);
     /// Get grid state for RPC-based fast sync
     /// Returns: (blocks, next_row, run_data)
     fn get_grid(self: @T, game_id: felt252) -> (felt252, u32, felt252);
@@ -348,12 +348,12 @@ mod game_system {
         fn get_score(self: @ContractState, game_id: felt252) -> u16 {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
-            game.get_level_score().into()
+            game.get_level_score()
         }
 
         fn get_game_data(
             self: @ContractState, game_id: felt252,
-        ) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool) {
+        ) -> (u8, u16, u8, u8, u8, u8, u8, u8, u16, bool) {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
             let run_data = game.get_run_data();

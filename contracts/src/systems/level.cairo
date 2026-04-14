@@ -418,43 +418,48 @@ mod level_system {
         fn calculate_stars_for_level(
             game_level: GameLevel, moves_used: u16, star_threshold_modifier: u8,
         ) -> u8 {
-            // star_threshold_modifier uses bias-128 encoding: 128=neutral, <128=easier, >128=harder
+            // star_threshold_modifier uses bias-128 encoding with 5% per unit.
+            //   128 = neutral (base 50% / 75%)
+            //   >128 = harder (shrinks the move window for 3-star / 2-star)
+            //   <128 = easier (widens the window)
+            // Practical range: 124..132 = -20%..+20% in 5-point steps.
             let (is_positive, magnitude) = zkube::helpers::mutator::decode_bias(
                 star_threshold_modifier,
             );
-            let mag: u16 = magnitude.into();
+            let mag_pct: u16 = magnitude.into() * 5;
 
-            // Apply offset to base 40% / 70%
+            // Base thresholds (neutral): star3 at <=50% moves used, star2 at <=75%.
+            // Positive magnitude = harder, so subtract from the base.
             let star3_pct: u16 = if is_positive {
-                let raw = 40_u16 + mag;
+                if mag_pct >= 40 {
+                    10
+                } else {
+                    50_u16 - mag_pct
+                }
+            } else {
+                let raw = 50_u16 + mag_pct;
                 if raw > 90 {
                     90
                 } else {
                     raw
                 }
-            } else {
-                if mag >= 30 {
-                    10
-                } else {
-                    40_u16 - mag
-                }
             };
             let star2_pct: u16 = if is_positive {
-                let raw = 70_u16 + mag;
-                if raw > 99 {
-                    99
-                } else {
-                    raw
-                }
-            } else {
-                let raw = if mag >= 70 {
+                let raw = if mag_pct >= 75 {
                     0_u16
                 } else {
-                    70_u16 - mag
+                    75_u16 - mag_pct
                 };
                 let floor = star3_pct + 1;
                 if raw < floor {
                     floor
+                } else {
+                    raw
+                }
+            } else {
+                let raw = 75_u16 + mag_pct;
+                if raw > 99 {
+                    99
                 } else {
                     raw
                 }

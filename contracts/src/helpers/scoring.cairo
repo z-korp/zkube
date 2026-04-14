@@ -2,6 +2,7 @@
 //! Consolidates duplicate scoring code for move resolution.
 
 use zkube::helpers::packing::RunData;
+use zkube::models::mutator::MutatorDef;
 
 /// Saturating add for u8 (caps at 255)
 #[inline(always)]
@@ -64,24 +65,43 @@ pub fn process_lines_cleared(
     update_combo_tracking(ref combo_counter, ref max_combo, ref run_data, lines_cleared);
 }
 
-/// Apply combo scoring offset: each line cleared earns bonus points equal to combo_counter.
-/// This makes the Combo bonus directly affect the next move's scoring.
+/// Award a per-move combo bonus on multi-line clears. The bonus scales with
+/// `combo_counter` (total combo-lines cleared this level) and `lines_cleared`
+/// on this move, then is amplified by the passive mutator's
+/// `combo_bonus_mult_x100`. Neutral mult (100) gives `combo_counter *
+/// lines_cleared` points; mult 200 doubles it; mult 0 is treated as neutral.
+///
+/// Only fires on genuine combos (`lines_cleared > 1`) — single-line clears
+/// are not considered combos regardless of prior history.
 #[inline(always)]
-pub fn apply_combo_scoring(ref run_data: RunData, combo_counter: u8, lines_cleared: u8) {
-    if combo_counter > 0 && lines_cleared > 0 {
-        let combo_bonus: u16 = combo_counter.into() * lines_cleared.into();
-        update_score(ref run_data, combo_bonus);
+pub fn apply_combo_scoring(
+    ref run_data: RunData, combo_counter: u8, lines_cleared: u8, mutator_def: @MutatorDef,
+) {
+    if lines_cleared <= 1 || combo_counter == 0 {
+        return;
     }
+    let base_bonus: u32 = combo_counter.into() * lines_cleared.into();
+    let mut mult_x100: u16 = *mutator_def.combo_bonus_mult_x100;
+    if mult_x100 == 0 {
+        mult_x100 = 100;
+    }
+    let scaled: u64 = base_bonus.into() * mult_x100.into() / 100_u64;
+    let clamped: u16 = if scaled > 65535_u64 {
+        65535
+    } else {
+        scaled.try_into().unwrap()
+    };
+    update_score(ref run_data, clamped);
 }
 
 /// Update score after points earned from line clearing.
-/// Handles both level_score (u8, max 255) and total_score (u32).
+/// Handles both level_score (u16, max 65535) and total_score (u32).
 #[inline(always)]
 pub fn update_score(ref run_data: RunData, points: u16) {
-    // Update level score (cap at 255 for u8)
-    let new_score: u16 = run_data.level_score.into() + points;
-    run_data.level_score = if new_score > 255 {
-        255
+    // Update level score (cap at u16 max)
+    let new_score: u32 = run_data.level_score.into() + points.into();
+    run_data.level_score = if new_score > 0xFFFF {
+        0xFFFF
     } else {
         new_score.try_into().unwrap()
     };

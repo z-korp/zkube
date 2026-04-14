@@ -11,25 +11,19 @@ export interface MutatorDefData {
   movesModifier: number;
   ratioModifier: number;
   difficultyOffset: number;
-  comboScoreMultX100: number;
+  scoreMultX100: number;
   starThresholdModifier: number;
   endlessRampMultX100: number;
   lineClearBonus: number;
   perfectClearBonus: number;
   startingRows: number;
-  // Active bonus slots
-  bonus1Type: number;
-  bonus1TriggerType: number;
-  bonus1TriggerThreshold: number;
-  bonus1StartingCharges: number;
-  bonus2Type: number;
-  bonus2TriggerType: number;
-  bonus2TriggerThreshold: number;
-  bonus2StartingCharges: number;
-  bonus3Type: number;
-  bonus3TriggerType: number;
-  bonus3TriggerThreshold: number;
-  bonus3StartingCharges: number;
+  comboBonusMultX100: number;
+  // Active bonus: one bonus type per zone, rolled among enabled triggers
+  bonusType: number;
+  comboTriggerThreshold: number;
+  linesTriggerThreshold: number;
+  scoreTriggerThreshold: number;
+  startingCharges: number;
 }
 
 export function useMutatorDef(mutatorId: number): {
@@ -59,24 +53,18 @@ export function useMutatorDef(mutatorId: number): {
       movesModifier: raw.moves_modifier ?? 128,
       ratioModifier: raw.ratio_modifier ?? 128,
       difficultyOffset: raw.difficulty_offset ?? 0,
-      comboScoreMultX100: raw.combo_score_mult_x100 ?? 100,
+      scoreMultX100: raw.score_mult_x100 ?? 100,
       starThresholdModifier: raw.star_threshold_modifier ?? 128,
       endlessRampMultX100: raw.endless_ramp_mult_x100 ?? 100,
       lineClearBonus: raw.line_clear_bonus ?? 0,
       perfectClearBonus: raw.perfect_clear_bonus ?? 0,
       startingRows: raw.starting_rows ?? 0,
-      bonus1Type: raw.bonus_1_type ?? 0,
-      bonus1TriggerType: raw.bonus_1_trigger_type ?? 0,
-      bonus1TriggerThreshold: raw.bonus_1_trigger_threshold ?? 0,
-      bonus1StartingCharges: raw.bonus_1_starting_charges ?? 0,
-      bonus2Type: raw.bonus_2_type ?? 0,
-      bonus2TriggerType: raw.bonus_2_trigger_type ?? 0,
-      bonus2TriggerThreshold: raw.bonus_2_trigger_threshold ?? 0,
-      bonus2StartingCharges: raw.bonus_2_starting_charges ?? 0,
-      bonus3Type: raw.bonus_3_type ?? 0,
-      bonus3TriggerType: raw.bonus_3_trigger_type ?? 0,
-      bonus3TriggerThreshold: raw.bonus_3_trigger_threshold ?? 0,
-      bonus3StartingCharges: raw.bonus_3_starting_charges ?? 0,
+      comboBonusMultX100: raw.combo_bonus_mult_x100 ?? 100,
+      bonusType: raw.bonus_type ?? 0,
+      comboTriggerThreshold: raw.combo_trigger_threshold ?? 0,
+      linesTriggerThreshold: raw.lines_trigger_threshold ?? 0,
+      scoreTriggerThreshold: raw.score_trigger_threshold ?? 0,
+      startingCharges: raw.starting_charges ?? 0,
     };
   }, [raw, mutatorId]);
 

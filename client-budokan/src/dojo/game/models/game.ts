@@ -81,8 +81,8 @@ export class Game {
   public get bonusCharges(): number {
     return this.runData.bonusCharges;
   }
-  public get bonusSlot(): number {
-    return this.runData.bonusSlot;
+  public get bonusTriggerType(): number {
+    return this.runData.bonusTriggerType;
   }
   public get mode(): number {
     return this.runData.mode;

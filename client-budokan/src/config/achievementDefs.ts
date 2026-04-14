@@ -28,20 +28,20 @@ export interface AchievementDef {
 }
 
 export const ACHIEVEMENT_DEFS: AchievementDef[] = [
-  { id: feltFromShortString("GRINDER_I"), shortId: "GRINDER_I", name: "Grinder I", description: "Start 10 game runs", target: 10, xp: 50, category: "Grinder", tier: 1, icon: "🎮", taskId: feltFromShortString("GAME_START") },
-  { id: feltFromShortString("GRINDER_II"), shortId: "GRINDER_II", name: "Grinder II", description: "Start 50 game runs", target: 50, xp: 150, category: "Grinder", tier: 2, icon: "🎯", taskId: feltFromShortString("GAME_START") },
-  { id: feltFromShortString("GRINDER_III"), shortId: "GRINDER_III", name: "Grinder III", description: "Start 200 game runs", target: 200, xp: 300, category: "Grinder", tier: 3, icon: "⚙️", taskId: feltFromShortString("GAME_START") },
+  { id: feltFromShortString("GRINDER_I"), shortId: "GRINDER_I", name: "Grinder I", description: "Start 20 game runs", target: 20, xp: 50, category: "Grinder", tier: 1, icon: "🎮", taskId: feltFromShortString("GAME_START") },
+  { id: feltFromShortString("GRINDER_II"), shortId: "GRINDER_II", name: "Grinder II", description: "Start 100 game runs", target: 100, xp: 150, category: "Grinder", tier: 2, icon: "🎯", taskId: feltFromShortString("GAME_START") },
+  { id: feltFromShortString("GRINDER_III"), shortId: "GRINDER_III", name: "Grinder III", description: "Start 400 game runs", target: 400, xp: 300, category: "Grinder", tier: 3, icon: "⚙️", taskId: feltFromShortString("GAME_START") },
   { id: feltFromShortString("GRINDER_IV"), shortId: "GRINDER_IV", name: "Grinder IV", description: "Start 1000 game runs", target: 1000, xp: 500, category: "Grinder", tier: 4, icon: "🧠", taskId: feltFromShortString("GAME_START") },
 
-  { id: feltFromShortString("SWEEPER_I"), shortId: "SWEEPER_I", name: "Sweeper I", description: "Clear 100 lines", target: 100, xp: 50, category: "Sweeper", tier: 1, icon: "🧹", taskId: feltFromShortString("LINE_CLEAR") },
-  { id: feltFromShortString("SWEEPER_II"), shortId: "SWEEPER_II", name: "Sweeper II", description: "Clear 500 lines", target: 500, xp: 150, category: "Sweeper", tier: 2, icon: "📏", taskId: feltFromShortString("LINE_CLEAR") },
-  { id: feltFromShortString("SWEEPER_III"), shortId: "SWEEPER_III", name: "Sweeper III", description: "Clear 2000 lines", target: 2000, xp: 300, category: "Sweeper", tier: 3, icon: "🧱", taskId: feltFromShortString("LINE_CLEAR") },
+  { id: feltFromShortString("SWEEPER_I"), shortId: "SWEEPER_I", name: "Sweeper I", description: "Clear 200 lines", target: 200, xp: 50, category: "Sweeper", tier: 1, icon: "🧹", taskId: feltFromShortString("LINE_CLEAR") },
+  { id: feltFromShortString("SWEEPER_II"), shortId: "SWEEPER_II", name: "Sweeper II", description: "Clear 1000 lines", target: 1000, xp: 150, category: "Sweeper", tier: 2, icon: "📏", taskId: feltFromShortString("LINE_CLEAR") },
+  { id: feltFromShortString("SWEEPER_III"), shortId: "SWEEPER_III", name: "Sweeper III", description: "Clear 4000 lines", target: 4000, xp: 300, category: "Sweeper", tier: 3, icon: "🧱", taskId: feltFromShortString("LINE_CLEAR") },
   { id: feltFromShortString("SWEEPER_IV"), shortId: "SWEEPER_IV", name: "Sweeper IV", description: "Clear 10000 lines", target: 10000, xp: 500, category: "Sweeper", tier: 4, icon: "🌪️", taskId: feltFromShortString("LINE_CLEAR") },
 
-  { id: feltFromShortString("COMBO_MASTER_I"), shortId: "COMBO_MASTER_I", name: "Combo Master I", description: "Hit a 3+ combo", target: 1, xp: 50, category: "Combo Master", tier: 1, icon: "🔥", taskId: feltFromShortString("COMBO_3") },
-  { id: feltFromShortString("COMBO_MASTER_II"), shortId: "COMBO_MASTER_II", name: "Combo Master II", description: "Hit a 4+ combo", target: 1, xp: 150, category: "Combo Master", tier: 2, icon: "⚡", taskId: feltFromShortString("COMBO_4") },
-  { id: feltFromShortString("COMBO_MASTER_III"), shortId: "COMBO_MASTER_III", name: "Combo Master III", description: "Hit a 10+ combo streak", target: 1, xp: 300, category: "Combo Master", tier: 3, icon: "💥", taskId: feltFromShortString("HIGH_COMBO") },
-  { id: feltFromShortString("COMBO_MASTER_IV"), shortId: "COMBO_MASTER_IV", name: "Combo Master IV", description: "Hit 10 combo streaks of 10+", target: 10, xp: 500, category: "Combo Master", tier: 4, icon: "🌋", taskId: feltFromShortString("HIGH_COMBO") },
+  { id: feltFromShortString("COMBO_MASTER_I"), shortId: "COMBO_MASTER_I", name: "Combo Master I", description: "Clear 3+ lines in a move", target: 1, xp: 50, category: "Combo Master", tier: 1, icon: "🔥", taskId: feltFromShortString("COMBO_3") },
+  { id: feltFromShortString("COMBO_MASTER_II"), shortId: "COMBO_MASTER_II", name: "Combo Master II", description: "Clear 4+ lines in a move", target: 1, xp: 150, category: "Combo Master", tier: 2, icon: "⚡", taskId: feltFromShortString("COMBO_4") },
+  { id: feltFromShortString("COMBO_MASTER_III"), shortId: "COMBO_MASTER_III", name: "Combo Master III", description: "Clear 5+ lines in a move", target: 1, xp: 300, category: "Combo Master", tier: 3, icon: "💥", taskId: feltFromShortString("COMBO_5") },
+  { id: feltFromShortString("COMBO_MASTER_IV"), shortId: "COMBO_MASTER_IV", name: "Combo Master IV", description: "Clear 6+ lines in a move", target: 1, xp: 500, category: "Combo Master", tier: 4, icon: "🌋", taskId: feltFromShortString("COMBO_6") },
 
   { id: feltFromShortString("BOSS_SLAYER_I"), shortId: "BOSS_SLAYER_I", name: "Guardian Slayer I", description: "Clear 1 guardian", target: 1, xp: 50, category: "Guardian Slayer", tier: 1, icon: "⚔️", taskId: feltFromShortString("BOSS_DEFEAT") },
   { id: feltFromShortString("BOSS_SLAYER_II"), shortId: "BOSS_SLAYER_II", name: "Guardian Slayer II", description: "Clear 5 guardians", target: 5, xp: 150, category: "Guardian Slayer", tier: 2, icon: "🛡️", taskId: feltFromShortString("BOSS_DEFEAT") },
@@ -53,8 +53,8 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
   { id: feltFromShortString("EXPLORER_III"), shortId: "EXPLORER_III", name: "Explorer III", description: "Get 30 perfect levels", target: 30, xp: 400, category: "Explorer", tier: 3, icon: "✨", taskId: feltFromShortString("PERFECT_LEVEL") },
   { id: feltFromShortString("EXPLORER_IV"), shortId: "EXPLORER_IV", name: "Explorer IV", description: "Complete 10 zones", target: 10, xp: 1000, category: "Explorer", tier: 4, icon: "🌌", taskId: feltFromShortString("ZONE_COMPLETE") },
 
-  { id: feltFromShortString("CHALLENGER_I"), shortId: "CHALLENGER_I", name: "Challenger I", description: "Play 1 daily challenge", target: 1, xp: 50, category: "Challenger", tier: 1, icon: "📅", taskId: feltFromShortString("DAILY_PLAY") },
-  { id: feltFromShortString("CHALLENGER_II"), shortId: "CHALLENGER_II", name: "Challenger II", description: "Play 10 daily challenges", target: 10, xp: 150, category: "Challenger", tier: 2, icon: "🗓️", taskId: feltFromShortString("DAILY_PLAY") },
-  { id: feltFromShortString("CHALLENGER_III"), shortId: "CHALLENGER_III", name: "Challenger III", description: "Play 50 daily challenges", target: 50, xp: 300, category: "Challenger", tier: 3, icon: "🏅", taskId: feltFromShortString("DAILY_PLAY") },
-  { id: feltFromShortString("CHALLENGER_IV"), shortId: "CHALLENGER_IV", name: "Challenger IV", description: "Play 200 daily challenges", target: 200, xp: 500, category: "Challenger", tier: 4, icon: "🏆", taskId: feltFromShortString("DAILY_PLAY") },
+  { id: feltFromShortString("CHALLENGER_I"), shortId: "CHALLENGER_I", name: "Challenger I", description: "Join 1 daily challenge", target: 1, xp: 50, category: "Challenger", tier: 1, icon: "📅", taskId: feltFromShortString("DAILY_PLAY") },
+  { id: feltFromShortString("CHALLENGER_II"), shortId: "CHALLENGER_II", name: "Challenger II", description: "Join 7 daily challenges", target: 7, xp: 150, category: "Challenger", tier: 2, icon: "🗓️", taskId: feltFromShortString("DAILY_PLAY") },
+  { id: feltFromShortString("CHALLENGER_III"), shortId: "CHALLENGER_III", name: "Challenger III", description: "Join 30 daily challenges", target: 30, xp: 300, category: "Challenger", tier: 3, icon: "🏅", taskId: feltFromShortString("DAILY_PLAY") },
+  { id: feltFromShortString("CHALLENGER_IV"), shortId: "CHALLENGER_IV", name: "Challenger IV", description: "Join 100 daily challenges", target: 100, xp: 500, category: "Challenger", tier: 4, icon: "🏆", taskId: feltFromShortString("DAILY_PLAY") },
 ];

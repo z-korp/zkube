@@ -410,12 +410,12 @@ export function systems({ client }: { client: IWorld }) {
     account,
     ...props
   }: SystemTypes.SettleWeeklyEndless) => {
-    if (!client.daily_challenge) {
-      throw new Error("Daily challenge system not available");
+    if (!client.weekly_endless) {
+      throw new Error("Weekly endless system not available");
     }
     await handleTransaction(
       account,
-      () => client.daily_challenge!.settle_weekly_endless({ account, ...props }),
+      () => client.weekly_endless!.settle_weekly_endless({ account, ...props }),
       "Weekly endless settled.",
     );
   };

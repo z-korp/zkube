@@ -28,17 +28,8 @@ pub trait IConfigSystem<T> {
         constraint_start_level: u8,
         // Constraint Distribution (packed - use pack_constraint_* helpers)
         constraint_lines_budgets: u64, // Packed: lines(4x4bits) + budgets(4x8bits) + times(2x4bits)
-        // Block Distribution (VeryEasy to Master scaling)
-        veryeasy_size1_weight: u8,
-        veryeasy_size2_weight: u8,
-        veryeasy_size3_weight: u8,
-        veryeasy_size4_weight: u8,
-        veryeasy_size5_weight: u8,
-        master_size1_weight: u8,
-        master_size2_weight: u8,
-        master_size3_weight: u8,
-        master_size4_weight: u8,
-        master_size5_weight: u8,
+        // Block weights are sourced from the hardcoded difficulty curve in
+        // models/config.cairo::get_block_weights_for_difficulty — no per-zone override.
         // Variance Settings
         early_variance_percent: u8,
         mid_variance_percent: u8,
@@ -89,6 +80,12 @@ pub trait IConfigSystem<T> {
     fn set_treasury(ref self: T, treasury: ContractAddress);
     fn get_treasury(self: @T) -> ContractAddress;
     fn settings_exists(self: @T, settings_id: u32) -> bool;
+    /// Admin: set the per-band star reward magnitudes for daily (kind=1) or
+    /// weekly endless (kind=2) settlement. Percentile bands themselves are
+    /// fixed; only the values change. Pass all zeros to fall back to defaults.
+    fn set_reward_tiers(
+        ref self: T, kind: u8, tier_0: u32, tier_1: u32, tier_2: u32, tier_3: u32, tier_4: u32,
+    );
 }
 
 #[dojo::contract]
@@ -117,7 +114,10 @@ mod config_system {
     use zkube::constants::DEFAULT_NS;
     use zkube::external::zstar_token::{IZStarTokenDispatcher, IZStarTokenDispatcherTrait};
     use zkube::helpers::encoding::U256BytesUsedTraitImpl;
-    use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
+    use zkube::helpers::mutator::MutatorEffectsTrait;
+    use zkube::models::config::{
+        GameSettings, GameSettingsMetadata, GameSettingsTrait, RewardKind, RewardTiers,
+    };
     use zkube::models::entitlement::ZoneEntitlement;
     use zkube::models::mutator::MutatorDef;
     use zkube::types::difficulty::Difficulty;
@@ -242,7 +242,7 @@ mod config_system {
         z1_endless.max_moves = 48;
         z1_endless.level_cap = 255;
         z1_endless.zone_id = 1;
-        z1_endless.active_mutator_id = 0;
+        z1_endless.active_mutator_id = 1;
         z1_endless.passive_mutator_id = 2;
         z1_endless.boss_id = 0;
         z1_endless.endless_difficulty_thresholds = 0; // use defaults
@@ -313,7 +313,7 @@ mod config_system {
         z2_endless.max_moves = 55;
         z2_endless.level_cap = 255;
         z2_endless.zone_id = 2;
-        z2_endless.active_mutator_id = 0;
+        z2_endless.active_mutator_id = 3;
         z2_endless.passive_mutator_id = 4;
         z2_endless.boss_id = 0;
         // packed [0, 20, 55, 105, 200, 370, 650, 1170]
@@ -386,7 +386,7 @@ mod config_system {
         z3_endless.max_moves = 50;
         z3_endless.level_cap = 255;
         z3_endless.zone_id = 3;
-        z3_endless.active_mutator_id = 0;
+        z3_endless.active_mutator_id = 5;
         z3_endless.passive_mutator_id = 6;
         z3_endless.boss_id = 0;
         // packed [0, 15, 35, 70, 130, 240, 420, 750]
@@ -459,7 +459,7 @@ mod config_system {
         z4_endless.max_moves = 44;
         z4_endless.level_cap = 255;
         z4_endless.zone_id = 4;
-        z4_endless.active_mutator_id = 0;
+        z4_endless.active_mutator_id = 7;
         z4_endless.passive_mutator_id = 8;
         z4_endless.boss_id = 0;
         // packed [0, 12, 30, 60, 120, 220, 400, 700]
@@ -533,7 +533,7 @@ mod config_system {
         z5_endless.max_moves = 52;
         z5_endless.level_cap = 255;
         z5_endless.zone_id = 5;
-        z5_endless.active_mutator_id = 0;
+        z5_endless.active_mutator_id = 9;
         z5_endless.passive_mutator_id = 10;
         z5_endless.boss_id = 0;
         // packed [0, 18, 45, 90, 170, 310, 550, 950]
@@ -607,7 +607,7 @@ mod config_system {
         z6_endless.max_moves = 48;
         z6_endless.level_cap = 255;
         z6_endless.zone_id = 6;
-        z6_endless.active_mutator_id = 0;
+        z6_endless.active_mutator_id = 11;
         z6_endless.passive_mutator_id = 12;
         z6_endless.boss_id = 0;
         // packed [0, 13, 35, 70, 135, 250, 440, 780]
@@ -681,7 +681,7 @@ mod config_system {
         z7_endless.max_moves = 38;
         z7_endless.level_cap = 255;
         z7_endless.zone_id = 7;
-        z7_endless.active_mutator_id = 0;
+        z7_endless.active_mutator_id = 13;
         z7_endless.passive_mutator_id = 14;
         z7_endless.boss_id = 0;
         // packed [0, 10, 25, 50, 100, 180, 320, 550]
@@ -754,7 +754,7 @@ mod config_system {
         z8_endless.max_moves = 46;
         z8_endless.level_cap = 255;
         z8_endless.zone_id = 8;
-        z8_endless.active_mutator_id = 0;
+        z8_endless.active_mutator_id = 15;
         z8_endless.passive_mutator_id = 16;
         z8_endless.boss_id = 0;
         // packed [0, 18, 45, 95, 180, 330, 580, 1000]
@@ -827,7 +827,7 @@ mod config_system {
         z9_endless.max_moves = 45;
         z9_endless.level_cap = 255;
         z9_endless.zone_id = 9;
-        z9_endless.active_mutator_id = 0;
+        z9_endless.active_mutator_id = 17;
         z9_endless.passive_mutator_id = 18;
         z9_endless.boss_id = 0;
         // packed [0, 14, 35, 75, 140, 260, 460, 800]
@@ -900,7 +900,7 @@ mod config_system {
         z10_endless.max_moves = 42;
         z10_endless.level_cap = 255;
         z10_endless.zone_id = 10;
-        z10_endless.active_mutator_id = 0;
+        z10_endless.active_mutator_id = 19;
         z10_endless.passive_mutator_id = 20;
         z10_endless.boss_id = 0;
         // packed [0, 20, 50, 110, 210, 380, 660, 1100]
@@ -927,18 +927,25 @@ mod config_system {
             );
 
         // =====================================================================
-        // Tournament Tiki (Settings 20) — default tournament, Tiki Endless clone
+        // Tournament settings (IDs 51+).
+        //
+        // ID ranges:  0-50 = official story / endless modes (room to grow),
+        //            51-100 = official tournaments,
+        //           101+    = community settings via add_custom_game_settings.
+        //
         // `is_tournament=true` bypasses both the boss gate and the zone-unlock
         // gate, so any player can mint a token against this settings and play
-        // immediately. zone_id=1 carries the theme signal (entry requirements
-        // are enforced at Budokan's metagame layer).
+        // immediately. zone_id carries the theme signal; entry requirements
+        // are enforced at Budokan's metagame layer.
         // =====================================================================
-        let mut t_tiki = GameSettingsTrait::new_with_defaults(20_u32, Difficulty::Increasing);
+
+        // Tournament Tiki (Settings 51) — Wave charges require 4+ combo.
+        let mut t_tiki = GameSettingsTrait::new_with_defaults(51_u32, Difficulty::Increasing);
         t_tiki.base_moves = 16;
         t_tiki.max_moves = 48;
         t_tiki.level_cap = 255;
         t_tiki.zone_id = 1;
-        t_tiki.active_mutator_id = 0;
+        t_tiki.active_mutator_id = 21; // Wave, combo 4+ only (see seed_mutators)
         t_tiki.passive_mutator_id = 2;
         t_tiki.boss_id = 0;
         t_tiki.endless_difficulty_thresholds = 0; // use defaults
@@ -947,9 +954,9 @@ mod config_system {
         world
             .write_model(
                 @GameSettingsMetadata {
-                    settings_id: 20_u32,
+                    settings_id: 51_u32,
                     name: 'Tournament Tiki',
-                    description: "Open tournament variant of Tiki Endless - no zone unlock required.",
+                    description: "Open tournament - Tiki-themed, Wave charges for 4+ combos.",
                     created_by: creator_address,
                     created_at: current_timestamp,
                     theme_id: 1,
@@ -965,7 +972,7 @@ mod config_system {
         // =====================================================================
         // Active Mutators (odd IDs 1-19) — bonus profiles
         // Stat fields neutral: moves_modifier=128, ratio_modifier=128,
-        // difficulty_offset=128, combo_score_mult_x100=100,
+        // difficulty_offset=128, score_mult_x100=100,
         // star_threshold_modifier=128, endless_ramp_mult_x100=100,
         // line_clear_bonus=0, perfect_clear_bonus=0, starting_rows=0
         // =====================================================================
@@ -979,27 +986,19 @@ mod config_system {
                     moves_modifier: 128,
                     ratio_modifier: 128,
                     difficulty_offset: 128,
-                    combo_score_mult_x100: 100,
+                    score_mult_x100: 100,
                     star_threshold_modifier: 128,
                     endless_ramp_mult_x100: 100,
                     line_clear_bonus: 0,
                     perfect_clear_bonus: 0,
                     starting_rows: 0,
-                    // Slot 1: Hammer, combo, threshold 4, start 0
-                    bonus_1_type: 1,
-                    bonus_1_trigger_type: 1,
-                    bonus_1_trigger_threshold: 4,
-                    bonus_1_starting_charges: 0,
-                    // Slot 2: Wave, score, threshold 20, start 0
-                    bonus_2_type: 3,
-                    bonus_2_trigger_type: 3,
-                    bonus_2_trigger_threshold: 20,
-                    bonus_2_starting_charges: 0,
-                    // Slot 3: Totem, lines, threshold 10, start 0
-                    bonus_3_type: 2,
-                    bonus_3_trigger_type: 2,
-                    bonus_3_trigger_threshold: 10,
-                    bonus_3_starting_charges: 0,
+                    combo_bonus_mult_x100: 100,
+                    // Wave bonus; roll among combo 3+ / lines 10 / score 30
+                    bonus_type: 3,
+                    combo_trigger_threshold: 3,
+                    lines_trigger_threshold: 10,
+                    score_trigger_threshold: 30,
+                    starting_charges: 1,
                 },
             );
 
@@ -1012,27 +1011,19 @@ mod config_system {
                     moves_modifier: 128,
                     ratio_modifier: 128,
                     difficulty_offset: 128,
-                    combo_score_mult_x100: 100,
+                    score_mult_x100: 100,
                     star_threshold_modifier: 128,
                     endless_ramp_mult_x100: 100,
                     line_clear_bonus: 0,
                     perfect_clear_bonus: 0,
                     starting_rows: 0,
-                    // Slot 1: Wave, combo, threshold 3, start 1
-                    bonus_1_type: 3,
-                    bonus_1_trigger_type: 1,
-                    bonus_1_trigger_threshold: 3,
-                    bonus_1_starting_charges: 1,
-                    // Slot 2: Hammer, lines, threshold 6, start 0
-                    bonus_2_type: 1,
-                    bonus_2_trigger_type: 2,
-                    bonus_2_trigger_threshold: 6,
-                    bonus_2_starting_charges: 0,
-                    // Slot 3: None
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
+                    combo_bonus_mult_x100: 100,
+                    // Hammer bonus; roll between combo 4+ / lines 20
+                    bonus_type: 1,
+                    combo_trigger_threshold: 4,
+                    lines_trigger_threshold: 20,
+                    score_trigger_threshold: 0,
+                    starting_charges: 1,
                 },
             );
 
@@ -1045,27 +1036,19 @@ mod config_system {
                     moves_modifier: 128,
                     ratio_modifier: 128,
                     difficulty_offset: 128,
-                    combo_score_mult_x100: 100,
+                    score_mult_x100: 100,
                     star_threshold_modifier: 128,
                     endless_ramp_mult_x100: 100,
                     line_clear_bonus: 0,
                     perfect_clear_bonus: 0,
                     starting_rows: 0,
-                    // Slot 1: Totem, combo, threshold 3, start 1
-                    bonus_1_type: 2,
-                    bonus_1_trigger_type: 1,
-                    bonus_1_trigger_threshold: 3,
-                    bonus_1_starting_charges: 1,
-                    // Slot 2: Totem, lines, threshold 8, start 0
-                    bonus_2_type: 2,
-                    bonus_2_trigger_type: 2,
-                    bonus_2_trigger_threshold: 8,
-                    bonus_2_starting_charges: 0,
-                    // Slot 3: None
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
+                    combo_bonus_mult_x100: 100,
+                    // Totem bonus; roll between combo 4+ / score 30
+                    bonus_type: 2,
+                    combo_trigger_threshold: 4,
+                    lines_trigger_threshold: 0,
+                    score_trigger_threshold: 30,
+                    starting_charges: 1,
                 },
             );
 
@@ -1078,27 +1061,19 @@ mod config_system {
                     moves_modifier: 128,
                     ratio_modifier: 128,
                     difficulty_offset: 128,
-                    combo_score_mult_x100: 100,
+                    score_mult_x100: 100,
                     star_threshold_modifier: 128,
                     endless_ramp_mult_x100: 100,
                     line_clear_bonus: 0,
                     perfect_clear_bonus: 0,
                     starting_rows: 0,
-                    // Slot 1: Hammer, combo, threshold 4, start 0
-                    bonus_1_type: 1,
-                    bonus_1_trigger_type: 1,
-                    bonus_1_trigger_threshold: 4,
-                    bonus_1_starting_charges: 0,
-                    // Slot 2: Hammer, score, threshold 15, start 0
-                    bonus_2_type: 1,
-                    bonus_2_trigger_type: 3,
-                    bonus_2_trigger_threshold: 15,
-                    bonus_2_starting_charges: 0,
-                    // Slot 3: None
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
+                    combo_bonus_mult_x100: 100,
+                    // Hammer bonus; roll between combo 4+ / score 30
+                    bonus_type: 1,
+                    combo_trigger_threshold: 4,
+                    lines_trigger_threshold: 0,
+                    score_trigger_threshold: 30,
+                    starting_charges: 1,
                 },
             );
 
@@ -1111,27 +1086,19 @@ mod config_system {
                     moves_modifier: 128,
                     ratio_modifier: 128,
                     difficulty_offset: 128,
-                    combo_score_mult_x100: 100,
+                    score_mult_x100: 100,
                     star_threshold_modifier: 128,
                     endless_ramp_mult_x100: 100,
                     line_clear_bonus: 0,
                     perfect_clear_bonus: 0,
                     starting_rows: 0,
-                    // Slot 1: Wave, lines, threshold 6, start 1
-                    bonus_1_type: 3,
-                    bonus_1_trigger_type: 2,
-                    bonus_1_trigger_threshold: 6,
-                    bonus_1_starting_charges: 1,
-                    // Slot 2: Wave, score, threshold 18, start 0
-                    bonus_2_type: 3,
-                    bonus_2_trigger_type: 3,
-                    bonus_2_trigger_threshold: 18,
-                    bonus_2_starting_charges: 0,
-                    // Slot 3: None
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
+                    combo_bonus_mult_x100: 100,
+                    // Wave bonus; roll between lines 20 / score 30
+                    bonus_type: 3,
+                    combo_trigger_threshold: 0,
+                    lines_trigger_threshold: 20,
+                    score_trigger_threshold: 30,
+                    starting_charges: 1,
                 },
             );
 
@@ -1144,27 +1111,19 @@ mod config_system {
                     moves_modifier: 128,
                     ratio_modifier: 128,
                     difficulty_offset: 128,
-                    combo_score_mult_x100: 100,
+                    score_mult_x100: 100,
                     star_threshold_modifier: 128,
                     endless_ramp_mult_x100: 100,
                     line_clear_bonus: 0,
                     perfect_clear_bonus: 0,
                     starting_rows: 0,
-                    // Slot 1: Totem, score, threshold 15, start 0
-                    bonus_1_type: 2,
-                    bonus_1_trigger_type: 3,
-                    bonus_1_trigger_threshold: 15,
-                    bonus_1_starting_charges: 0,
-                    // Slot 2: Totem, lines, threshold 7, start 0
-                    bonus_2_type: 2,
-                    bonus_2_trigger_type: 2,
-                    bonus_2_trigger_threshold: 7,
-                    bonus_2_starting_charges: 0,
-                    // Slot 3: None
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
+                    combo_bonus_mult_x100: 100,
+                    // Totem bonus; roll between lines 20 / score 30
+                    bonus_type: 2,
+                    combo_trigger_threshold: 0,
+                    lines_trigger_threshold: 20,
+                    score_trigger_threshold: 30,
+                    starting_charges: 1,
                 },
             );
 
@@ -1177,27 +1136,19 @@ mod config_system {
                     moves_modifier: 128,
                     ratio_modifier: 128,
                     difficulty_offset: 128,
-                    combo_score_mult_x100: 100,
+                    score_mult_x100: 100,
                     star_threshold_modifier: 128,
                     endless_ramp_mult_x100: 100,
                     line_clear_bonus: 0,
                     perfect_clear_bonus: 0,
                     starting_rows: 0,
-                    // Slot 1: Hammer, combo, threshold 3, start 0
-                    bonus_1_type: 1,
-                    bonus_1_trigger_type: 1,
-                    bonus_1_trigger_threshold: 3,
-                    bonus_1_starting_charges: 0,
-                    // Slot 2: Hammer, lines, threshold 5, start 0
-                    bonus_2_type: 1,
-                    bonus_2_trigger_type: 2,
-                    bonus_2_trigger_threshold: 5,
-                    bonus_2_starting_charges: 0,
-                    // Slot 3: None
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
+                    combo_bonus_mult_x100: 100,
+                    // Hammer bonus; roll between combo 4+ / lines 20
+                    bonus_type: 1,
+                    combo_trigger_threshold: 4,
+                    lines_trigger_threshold: 20,
+                    score_trigger_threshold: 0,
+                    starting_charges: 1,
                 },
             );
 
@@ -1210,27 +1161,19 @@ mod config_system {
                     moves_modifier: 128,
                     ratio_modifier: 128,
                     difficulty_offset: 128,
-                    combo_score_mult_x100: 100,
+                    score_mult_x100: 100,
                     star_threshold_modifier: 128,
                     endless_ramp_mult_x100: 100,
                     line_clear_bonus: 0,
                     perfect_clear_bonus: 0,
                     starting_rows: 0,
-                    // Slot 1: Hammer, combo, threshold 6, start 2
-                    bonus_1_type: 1,
-                    bonus_1_trigger_type: 1,
-                    bonus_1_trigger_threshold: 6,
-                    bonus_1_starting_charges: 2,
-                    // Slot 2: Wave, lines, threshold 12, start 2
-                    bonus_2_type: 3,
-                    bonus_2_trigger_type: 2,
-                    bonus_2_trigger_threshold: 12,
-                    bonus_2_starting_charges: 2,
-                    // Slot 3: Totem, score, threshold 30, start 2
-                    bonus_3_type: 2,
-                    bonus_3_trigger_type: 3,
-                    bonus_3_trigger_threshold: 30,
-                    bonus_3_starting_charges: 2,
+                    combo_bonus_mult_x100: 100,
+                    // Wave bonus; roll among combo 5+ / lines 30 / score 50
+                    bonus_type: 3,
+                    combo_trigger_threshold: 5,
+                    lines_trigger_threshold: 30,
+                    score_trigger_threshold: 50,
+                    starting_charges: 2,
                 },
             );
 
@@ -1243,27 +1186,19 @@ mod config_system {
                     moves_modifier: 128,
                     ratio_modifier: 128,
                     difficulty_offset: 128,
-                    combo_score_mult_x100: 100,
+                    score_mult_x100: 100,
                     star_threshold_modifier: 128,
                     endless_ramp_mult_x100: 100,
                     line_clear_bonus: 0,
                     perfect_clear_bonus: 0,
                     starting_rows: 0,
-                    // Slot 1: Hammer, combo, threshold 4, start 0
-                    bonus_1_type: 1,
-                    bonus_1_trigger_type: 1,
-                    bonus_1_trigger_threshold: 4,
-                    bonus_1_starting_charges: 0,
-                    // Slot 2: Totem, combo, threshold 5, start 0
-                    bonus_2_type: 2,
-                    bonus_2_trigger_type: 1,
-                    bonus_2_trigger_threshold: 5,
-                    bonus_2_starting_charges: 0,
-                    // Slot 3: Wave, combo, threshold 6, start 0
-                    bonus_3_type: 3,
-                    bonus_3_trigger_type: 1,
-                    bonus_3_trigger_threshold: 6,
-                    bonus_3_starting_charges: 0,
+                    combo_bonus_mult_x100: 100,
+                    // Totem bonus; roll between combo 4+ / score 50
+                    bonus_type: 2,
+                    combo_trigger_threshold: 4,
+                    lines_trigger_threshold: 0,
+                    score_trigger_threshold: 50,
+                    starting_charges: 1,
                 },
             );
 
@@ -1276,344 +1211,152 @@ mod config_system {
                     moves_modifier: 128,
                     ratio_modifier: 128,
                     difficulty_offset: 128,
-                    combo_score_mult_x100: 100,
+                    score_mult_x100: 100,
                     star_threshold_modifier: 128,
                     endless_ramp_mult_x100: 100,
                     line_clear_bonus: 0,
                     perfect_clear_bonus: 0,
                     starting_rows: 0,
-                    // Slot 1: Hammer, combo, threshold 5, start 0
-                    bonus_1_type: 1,
-                    bonus_1_trigger_type: 1,
-                    bonus_1_trigger_threshold: 5,
-                    bonus_1_starting_charges: 0,
-                    // Slot 2: None
-                    bonus_2_type: 0,
-                    bonus_2_trigger_type: 0,
-                    bonus_2_trigger_threshold: 0,
-                    bonus_2_starting_charges: 0,
-                    // Slot 3: None
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
+                    combo_bonus_mult_x100: 100,
+                    // Hammer bonus; roll between combo 5+ / lines 30
+                    bonus_type: 1,
+                    combo_trigger_threshold: 5,
+                    lines_trigger_threshold: 30,
+                    score_trigger_threshold: 0,
+                    starting_charges: 1,
+                },
+            );
+
+        // =====================================================================
+        // Tournament-specific Active Mutators (IDs 21+)
+        // =====================================================================
+
+        // Mutator 21 — Tournament Wave (Wave for 4+ combo only)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 21,
+                    zone_id: 0, // not zone-specific
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    score_mult_x100: 100,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 0,
+                    combo_bonus_mult_x100: 100,
+                    bonus_type: 3, // Wave
+                    combo_trigger_threshold: 4,
+                    lines_trigger_threshold: 0,
+                    score_trigger_threshold: 0,
+                    starting_charges: 1,
                 },
             );
 
         // =====================================================================
         // Passive Mutators (even IDs 2-20) — stat modifiers
-        // Bonus fields all 0 (no bonus slots on passive mutators).
+        // Built off MutatorEffectsTrait::neutral(id); only non-default fields
+        // are assigned below so the shape of each zone's deviation is obvious.
         // =====================================================================
 
         // Mutator 2 — Calm Tides (Z1 Polynesian passive)
-        world
-            .write_model(
-                @MutatorDef {
-                    mutator_id: 2,
-                    zone_id: 1,
-                    moves_modifier: 128,
-                    ratio_modifier: 128,
-                    difficulty_offset: 128,
-                    combo_score_mult_x100: 100,
-                    star_threshold_modifier: 127,
-                    endless_ramp_mult_x100: 100,
-                    line_clear_bonus: 1,
-                    perfect_clear_bonus: 0,
-                    starting_rows: 0,
-                    bonus_1_type: 0,
-                    bonus_1_trigger_type: 0,
-                    bonus_1_trigger_threshold: 0,
-                    bonus_1_starting_charges: 0,
-                    bonus_2_type: 0,
-                    bonus_2_trigger_type: 0,
-                    bonus_2_trigger_threshold: 0,
-                    bonus_2_starting_charges: 0,
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
-                },
-            );
+        let mut m2 = MutatorEffectsTrait::neutral(2);
+        m2.zone_id = 1;
+        m2.star_threshold_modifier = 127; // -5% (easier stars)
+        m2.line_clear_bonus = 1;
+        m2.starting_rows = 4;
+        world.write_model(@m2);
 
         // Mutator 4 — Foundation Stone (Z2 Egypt passive)
-        world
-            .write_model(
-                @MutatorDef {
-                    mutator_id: 4,
-                    zone_id: 2,
-                    moves_modifier: 128,
-                    ratio_modifier: 128,
-                    difficulty_offset: 128,
-                    combo_score_mult_x100: 150,
-                    star_threshold_modifier: 128,
-                    endless_ramp_mult_x100: 100,
-                    line_clear_bonus: 0,
-                    perfect_clear_bonus: 15,
-                    starting_rows: 5,
-                    bonus_1_type: 0,
-                    bonus_1_trigger_type: 0,
-                    bonus_1_trigger_threshold: 0,
-                    bonus_1_starting_charges: 0,
-                    bonus_2_type: 0,
-                    bonus_2_trigger_type: 0,
-                    bonus_2_trigger_threshold: 0,
-                    bonus_2_starting_charges: 0,
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
-                },
-            );
+        let mut m4 = MutatorEffectsTrait::neutral(4);
+        m4.zone_id = 2;
+        m4.score_mult_x100 = 200;
+        m4.perfect_clear_bonus = 20;
+        m4.starting_rows = 5;
+        world.write_model(@m4);
 
         // Mutator 6 — Frozen Rage (Z3 Norse passive)
-        world
-            .write_model(
-                @MutatorDef {
-                    mutator_id: 6,
-                    zone_id: 3,
-                    moves_modifier: 128,
-                    ratio_modifier: 128,
-                    difficulty_offset: 128,
-                    combo_score_mult_x100: 150,
-                    star_threshold_modifier: 128,
-                    endless_ramp_mult_x100: 100,
-                    line_clear_bonus: 2,
-                    perfect_clear_bonus: 0,
-                    starting_rows: 4,
-                    bonus_1_type: 0,
-                    bonus_1_trigger_type: 0,
-                    bonus_1_trigger_threshold: 0,
-                    bonus_1_starting_charges: 0,
-                    bonus_2_type: 0,
-                    bonus_2_trigger_type: 0,
-                    bonus_2_trigger_threshold: 0,
-                    bonus_2_starting_charges: 0,
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
-                },
-            );
+        let mut m6 = MutatorEffectsTrait::neutral(6);
+        m6.zone_id = 3;
+        m6.line_clear_bonus = 3;
+        m6.starting_rows = 4;
+        m6.combo_bonus_mult_x100 = 150; // combo fury
+        world.write_model(@m6);
 
         // Mutator 8 — Marble Discipline (Z4 Greece passive)
-        world
-            .write_model(
-                @MutatorDef {
-                    mutator_id: 8,
-                    zone_id: 4,
-                    moves_modifier: 128,
-                    ratio_modifier: 128,
-                    difficulty_offset: 128,
-                    combo_score_mult_x100: 100,
-                    star_threshold_modifier: 130,
-                    endless_ramp_mult_x100: 100,
-                    line_clear_bonus: 0,
-                    perfect_clear_bonus: 10,
-                    starting_rows: 4,
-                    bonus_1_type: 0,
-                    bonus_1_trigger_type: 0,
-                    bonus_1_trigger_threshold: 0,
-                    bonus_1_starting_charges: 0,
-                    bonus_2_type: 0,
-                    bonus_2_trigger_type: 0,
-                    bonus_2_trigger_threshold: 0,
-                    bonus_2_starting_charges: 0,
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
-                },
-            );
+        let mut m8 = MutatorEffectsTrait::neutral(8);
+        m8.zone_id = 4;
+        m8.score_mult_x100 = 250;
+        m8.star_threshold_modifier = 130; // +10% (harder stars)
+        m8.perfect_clear_bonus = 15;
+        m8.starting_rows = 5;
+        world.write_model(@m8);
 
         // Mutator 10 — Imperial Scale (Z5 China passive)
-        world
-            .write_model(
-                @MutatorDef {
-                    mutator_id: 10,
-                    zone_id: 5,
-                    moves_modifier: 128,
-                    ratio_modifier: 128,
-                    difficulty_offset: 128,
-                    combo_score_mult_x100: 100,
-                    star_threshold_modifier: 128,
-                    endless_ramp_mult_x100: 100,
-                    line_clear_bonus: 3,
-                    perfect_clear_bonus: 0,
-                    starting_rows: 5,
-                    bonus_1_type: 0,
-                    bonus_1_trigger_type: 0,
-                    bonus_1_trigger_threshold: 0,
-                    bonus_1_starting_charges: 0,
-                    bonus_2_type: 0,
-                    bonus_2_trigger_type: 0,
-                    bonus_2_trigger_threshold: 0,
-                    bonus_2_starting_charges: 0,
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
-                },
-            );
+        let mut m10 = MutatorEffectsTrait::neutral(10);
+        m10.zone_id = 5;
+        m10.line_clear_bonus = 4;
+        m10.starting_rows = 6;
+        world.write_model(@m10);
 
         // Mutator 12 — Geometric Flow (Z6 Persia passive)
-        world
-            .write_model(
-                @MutatorDef {
-                    mutator_id: 12,
-                    zone_id: 6,
-                    moves_modifier: 128,
-                    ratio_modifier: 128,
-                    difficulty_offset: 128,
-                    combo_score_mult_x100: 120,
-                    star_threshold_modifier: 130,
-                    endless_ramp_mult_x100: 100,
-                    line_clear_bonus: 1,
-                    perfect_clear_bonus: 0,
-                    starting_rows: 4,
-                    bonus_1_type: 0,
-                    bonus_1_trigger_type: 0,
-                    bonus_1_trigger_threshold: 0,
-                    bonus_1_starting_charges: 0,
-                    bonus_2_type: 0,
-                    bonus_2_trigger_type: 0,
-                    bonus_2_trigger_threshold: 0,
-                    bonus_2_starting_charges: 0,
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
-                },
-            );
+        let mut m12 = MutatorEffectsTrait::neutral(12);
+        m12.zone_id = 6;
+        m12.star_threshold_modifier = 129; // +5% (slightly harder stars)
+        m12.line_clear_bonus = 1;
+        m12.perfect_clear_bonus = 10;
+        m12.starting_rows = 5;
+        m12.combo_bonus_mult_x100 = 200; // combo enabler
+        world.write_model(@m12);
 
         // Mutator 14 — Bushido (Z7 Japan passive)
-        world
-            .write_model(
-                @MutatorDef {
-                    mutator_id: 14,
-                    zone_id: 7,
-                    moves_modifier: 128,
-                    ratio_modifier: 128,
-                    difficulty_offset: 128,
-                    combo_score_mult_x100: 130,
-                    star_threshold_modifier: 128,
-                    endless_ramp_mult_x100: 100,
-                    line_clear_bonus: 0,
-                    perfect_clear_bonus: 5,
-                    starting_rows: 4,
-                    bonus_1_type: 0,
-                    bonus_1_trigger_type: 0,
-                    bonus_1_trigger_threshold: 0,
-                    bonus_1_starting_charges: 0,
-                    bonus_2_type: 0,
-                    bonus_2_trigger_type: 0,
-                    bonus_2_trigger_threshold: 0,
-                    bonus_2_starting_charges: 0,
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
-                },
-            );
+        let mut m14 = MutatorEffectsTrait::neutral(14);
+        m14.zone_id = 7;
+        m14.score_mult_x100 = 300;
+        m14.star_threshold_modifier = 131; // +15% (quite hard)
+        m14.perfect_clear_bonus = 10;
+        m14.starting_rows = 5;
+        world.write_model(@m14);
 
         // Mutator 16 — Jungle Altar (Z8 Mayan passive)
-        world
-            .write_model(
-                @MutatorDef {
-                    mutator_id: 16,
-                    zone_id: 8,
-                    moves_modifier: 128,
-                    ratio_modifier: 128,
-                    difficulty_offset: 128,
-                    combo_score_mult_x100: 175,
-                    star_threshold_modifier: 128,
-                    endless_ramp_mult_x100: 100,
-                    line_clear_bonus: 0,
-                    perfect_clear_bonus: 0,
-                    starting_rows: 4,
-                    bonus_1_type: 0,
-                    bonus_1_trigger_type: 0,
-                    bonus_1_trigger_threshold: 0,
-                    bonus_1_starting_charges: 0,
-                    bonus_2_type: 0,
-                    bonus_2_trigger_type: 0,
-                    bonus_2_trigger_threshold: 0,
-                    bonus_2_starting_charges: 0,
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
-                },
-            );
+        let mut m16 = MutatorEffectsTrait::neutral(16);
+        m16.zone_id = 8;
+        m16.star_threshold_modifier = 130; // +10% (harder stars)
+        m16.starting_rows = 6;
+        m16.combo_bonus_mult_x100 = 200; // skill-gated doubler
+        world.write_model(@m16);
 
         // Mutator 18 — Primal Pulse (Z9 Tribal passive)
-        world
-            .write_model(
-                @MutatorDef {
-                    mutator_id: 18,
-                    zone_id: 9,
-                    moves_modifier: 128,
-                    ratio_modifier: 128,
-                    difficulty_offset: 128,
-                    combo_score_mult_x100: 160,
-                    star_threshold_modifier: 130,
-                    endless_ramp_mult_x100: 100,
-                    line_clear_bonus: 0,
-                    perfect_clear_bonus: 0,
-                    starting_rows: 4,
-                    bonus_1_type: 0,
-                    bonus_1_trigger_type: 0,
-                    bonus_1_trigger_threshold: 0,
-                    bonus_1_starting_charges: 0,
-                    bonus_2_type: 0,
-                    bonus_2_trigger_type: 0,
-                    bonus_2_trigger_threshold: 0,
-                    bonus_2_starting_charges: 0,
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
-                },
-            );
+        let mut m18 = MutatorEffectsTrait::neutral(18);
+        m18.zone_id = 9;
+        m18.star_threshold_modifier = 130; // +10% (harder stars)
+        m18.line_clear_bonus = 2;
+        m18.starting_rows = 6;
+        m18.combo_bonus_mult_x100 = 200; // combo cascader
+        world.write_model(@m18);
 
         // Mutator 20 — Altitude (Z10 Inca passive)
-        world
-            .write_model(
-                @MutatorDef {
-                    mutator_id: 20,
-                    zone_id: 10,
-                    moves_modifier: 128,
-                    ratio_modifier: 128,
-                    difficulty_offset: 128,
-                    combo_score_mult_x100: 200,
-                    star_threshold_modifier: 132,
-                    endless_ramp_mult_x100: 100,
-                    line_clear_bonus: 0,
-                    perfect_clear_bonus: 20,
-                    starting_rows: 5,
-                    bonus_1_type: 0,
-                    bonus_1_trigger_type: 0,
-                    bonus_1_trigger_threshold: 0,
-                    bonus_1_starting_charges: 0,
-                    bonus_2_type: 0,
-                    bonus_2_trigger_type: 0,
-                    bonus_2_trigger_threshold: 0,
-                    bonus_2_starting_charges: 0,
-                    bonus_3_type: 0,
-                    bonus_3_trigger_type: 0,
-                    bonus_3_trigger_threshold: 0,
-                    bonus_3_starting_charges: 0,
-                },
-            );
+        let mut m20 = MutatorEffectsTrait::neutral(20);
+        m20.zone_id = 10;
+        m20.score_mult_x100 = 300;
+        m20.star_threshold_modifier = 132; // +20% (endgame pressure)
+        m20.perfect_clear_bonus = 30;
+        m20.starting_rows = 7;
+        m20.combo_bonus_mult_x100 = 250; // crown: 2.5x combo bonus
+        world.write_model(@m20);
 
         // =====================================================================
         // Settings counter and star eligibility
         // =====================================================================
-        // Counter = 20 (Tournament Tiki). Next custom settings will be 21+.
-        self.settings_counter.write(20_u32);
+        // Counter = 100 — reserves 0-100 for official use.
+        // add_custom_game_settings will start at 101+.
+        self.settings_counter.write(100_u32);
 
-        // Zone settings (IDs 0..19) are star-eligible. Tournament Tiki (ID 20)
-        // is intentionally NOT star-eligible — its rewards come from Budokan's
-        // prize pool, so zkube play shouldn't mint stars for it.
+        // Zone settings (IDs 0..19) are star-eligible. Tournaments (51+)
+        // are intentionally NOT star-eligible — their rewards come from
+        // Budokan's prize pool, so zkube play shouldn't mint stars for them.
         let mut sid: u32 = 0;
         loop {
             if sid > 19 {
@@ -1632,7 +1375,7 @@ mod config_system {
 
         if !minigame_token_address.is_zero() {
             let zone_ids: Array<u32> = array![
-                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 51,
             ];
             let zone_descs: Array<ByteArray> = array![
                 "Polynesian map mode", "Polynesian endless mode", "Egypt map mode",
@@ -1640,7 +1383,7 @@ mod config_system {
                 "Greece endless mode", "China map mode", "China endless mode", "Persia map mode",
                 "Persia endless mode", "Japan map mode", "Japan endless mode", "Mayan map mode",
                 "Mayan endless mode", "Tribal map mode", "Tribal endless mode", "Inca map mode",
-                "Inca endless mode", "Open tournament - Tiki-themed",
+                "Inca endless mode", "Tournament Tiki",
             ];
             let zone_labels: Array<ByteArray> = array![
                 "Polynesian", "Polynesian Endless", "Ancient Egypt", "Egypt Endless", "Norse",
@@ -1766,17 +1509,8 @@ mod config_system {
             constraint_start_level: u8,
             // Constraint Distribution (packed)
             constraint_lines_budgets: u64,
-            // Block Distribution (VeryEasy to Master)
-            veryeasy_size1_weight: u8,
-            veryeasy_size2_weight: u8,
-            veryeasy_size3_weight: u8,
-            veryeasy_size4_weight: u8,
-            veryeasy_size5_weight: u8,
-            master_size1_weight: u8,
-            master_size2_weight: u8,
-            master_size3_weight: u8,
-            master_size4_weight: u8,
-            master_size5_weight: u8,
+            // Block weights are no longer per-settings — see
+            // models/config.cairo::get_block_weights_for_difficulty.
             // Variance Settings
             early_variance_percent: u8,
             mid_variance_percent: u8,
@@ -1817,16 +1551,6 @@ mod config_system {
                     constraints_enabled,
                     constraint_start_level,
                     constraint_lines_budgets,
-                    veryeasy_size1_weight,
-                    veryeasy_size2_weight,
-                    veryeasy_size3_weight,
-                    veryeasy_size4_weight,
-                    veryeasy_size5_weight,
-                    master_size1_weight,
-                    master_size2_weight,
-                    master_size3_weight,
-                    master_size4_weight,
-                    master_size5_weight,
                     early_variance_percent,
                     mid_variance_percent,
                     late_variance_percent,
@@ -1868,17 +1592,6 @@ mod config_system {
                 constraint_start_level,
                 // Constraint Distribution (packed)
                 constraint_lines_budgets,
-                // Block Distribution (VeryEasy to Master)
-                veryeasy_size1_weight,
-                veryeasy_size2_weight,
-                veryeasy_size3_weight,
-                veryeasy_size4_weight,
-                veryeasy_size5_weight,
-                master_size1_weight,
-                master_size2_weight,
-                master_size3_weight,
-                master_size4_weight,
-                master_size5_weight,
                 // Variance Settings
                 early_variance_percent,
                 mid_variance_percent,
@@ -2095,6 +1808,22 @@ mod config_system {
             self.star_eligible.write(settings_id, eligible);
         }
 
+        fn set_reward_tiers(
+            ref self: ContractState,
+            kind: u8,
+            tier_0: u32,
+            tier_1: u32,
+            tier_2: u32,
+            tier_3: u32,
+            tier_4: u32,
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            assert!(kind == RewardKind::DAILY || kind == RewardKind::WEEKLY, "invalid reward kind");
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let cfg = RewardTiers { kind, tier_0, tier_1, tier_2, tier_3, tier_4 };
+            world.write_model(@cfg);
+        }
+
         fn is_star_eligible(self: @ContractState, settings_id: u32) -> bool {
             self.star_eligible.read(settings_id)
         }
@@ -2179,17 +1908,6 @@ mod config_system {
             constraint_start_level: u8,
             // Constraint distribution (packed)
             constraint_lines_budgets: u64,
-            // Block distribution (VeryEasy to Master)
-            veryeasy_size1_weight: u8,
-            veryeasy_size2_weight: u8,
-            veryeasy_size3_weight: u8,
-            veryeasy_size4_weight: u8,
-            veryeasy_size5_weight: u8,
-            master_size1_weight: u8,
-            master_size2_weight: u8,
-            master_size3_weight: u8,
-            master_size4_weight: u8,
-            master_size5_weight: u8,
             // Variance settings
             early_variance_percent: u8,
             mid_variance_percent: u8,
@@ -2254,19 +1972,7 @@ mod config_system {
                 "Derived Master budget_min must be <= budget_max",
             );
 
-            // Validate block weights (must have at least some weight to generate blocks)
-            let veryeasy_total: u16 = veryeasy_size1_weight.into()
-                + veryeasy_size2_weight.into()
-                + veryeasy_size3_weight.into()
-                + veryeasy_size4_weight.into()
-                + veryeasy_size5_weight.into();
-            let master_total: u16 = master_size1_weight.into()
-                + master_size2_weight.into()
-                + master_size3_weight.into()
-                + master_size4_weight.into()
-                + master_size5_weight.into();
-            assert!(veryeasy_total > 0, "VeryEasy block weights must sum to > 0");
-            assert!(master_total > 0, "Master block weights must sum to > 0");
+            // Block weights are now hardcoded in get_block_weights_for_difficulty.
 
             // Validate variance settings
             assert!(early_variance_percent <= 50, "Early variance must be <= 50%");
@@ -2318,16 +2024,6 @@ mod config_system {
             GameSetting {
                 name: 'LINES_BUDGET', value: game_settings.constraint_lines_budgets.into(),
             },
-            GameSetting { name: 'VE_S1', value: game_settings.veryeasy_size1_weight.into() },
-            GameSetting { name: 'VE_S2', value: game_settings.veryeasy_size2_weight.into() },
-            GameSetting { name: 'VE_S3', value: game_settings.veryeasy_size3_weight.into() },
-            GameSetting { name: 'VE_S4', value: game_settings.veryeasy_size4_weight.into() },
-            GameSetting { name: 'VE_S5', value: game_settings.veryeasy_size5_weight.into() },
-            GameSetting { name: 'MA_S1', value: game_settings.master_size1_weight.into() },
-            GameSetting { name: 'MA_S2', value: game_settings.master_size2_weight.into() },
-            GameSetting { name: 'MA_S3', value: game_settings.master_size3_weight.into() },
-            GameSetting { name: 'MA_S4', value: game_settings.master_size4_weight.into() },
-            GameSetting { name: 'MA_S5', value: game_settings.master_size5_weight.into() },
             GameSetting { name: 'VAR_E', value: game_settings.early_variance_percent.into() },
             GameSetting { name: 'VAR_M', value: game_settings.mid_variance_percent.into() },
             GameSetting { name: 'VAR_L', value: game_settings.late_variance_percent.into() },

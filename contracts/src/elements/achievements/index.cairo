@@ -30,22 +30,22 @@ pub impl AchievementDefsImpl of AchievementDefsTrait {
     fn grinder_i() -> AchievementDefinitionProps {
         make_achievement(
             'GRINDER_I',
-            array![task(ZTask::GameStart, 10)].span(),
-            metadata('GRINDER', 1, "Grinder I", "Start 10 game runs", 500),
+            array![task(ZTask::GameStart, 20)].span(),
+            metadata('GRINDER', 1, "Grinder I", "Start 20 game runs", 500),
         )
     }
     fn grinder_ii() -> AchievementDefinitionProps {
         make_achievement(
             'GRINDER_II',
-            array![task(ZTask::GameStart, 50)].span(),
-            metadata('GRINDER', 2, "Grinder II", "Start 50 game runs", 1500),
+            array![task(ZTask::GameStart, 100)].span(),
+            metadata('GRINDER', 2, "Grinder II", "Start 100 game runs", 1500),
         )
     }
     fn grinder_iii() -> AchievementDefinitionProps {
         make_achievement(
             'GRINDER_III',
-            array![task(ZTask::GameStart, 200)].span(),
-            metadata('GRINDER', 3, "Grinder III", "Start 200 game runs", 3000),
+            array![task(ZTask::GameStart, 400)].span(),
+            metadata('GRINDER', 3, "Grinder III", "Start 400 game runs", 3000),
         )
     }
     fn grinder_iv() -> AchievementDefinitionProps {
@@ -59,22 +59,22 @@ pub impl AchievementDefsImpl of AchievementDefsTrait {
     fn sweeper_i() -> AchievementDefinitionProps {
         make_achievement(
             'SWEEPER_I',
-            array![task(ZTask::LineClear, 100)].span(),
-            metadata('SWEEPER', 1, "Sweeper I", "Clear 100 lines", 500),
+            array![task(ZTask::LineClear, 200)].span(),
+            metadata('SWEEPER', 1, "Sweeper I", "Clear 200 lines", 500),
         )
     }
     fn sweeper_ii() -> AchievementDefinitionProps {
         make_achievement(
             'SWEEPER_II',
-            array![task(ZTask::LineClear, 500)].span(),
-            metadata('SWEEPER', 2, "Sweeper II", "Clear 500 lines", 1500),
+            array![task(ZTask::LineClear, 1000)].span(),
+            metadata('SWEEPER', 2, "Sweeper II", "Clear 1000 lines", 1500),
         )
     }
     fn sweeper_iii() -> AchievementDefinitionProps {
         make_achievement(
             'SWEEPER_III',
-            array![task(ZTask::LineClear, 2000)].span(),
-            metadata('SWEEPER', 3, "Sweeper III", "Clear 2000 lines", 3000),
+            array![task(ZTask::LineClear, 4000)].span(),
+            metadata('SWEEPER', 3, "Sweeper III", "Clear 4000 lines", 3000),
         )
     }
     fn sweeper_iv() -> AchievementDefinitionProps {
@@ -89,28 +89,28 @@ pub impl AchievementDefsImpl of AchievementDefsTrait {
         make_achievement(
             'COMBO_MASTER_I',
             array![task(ZTask::Combo3, 1)].span(),
-            metadata('COMBO_MASTER', 1, "Combo Master I", "Hit a 3+ combo", 500),
+            metadata('COMBO_MASTER', 1, "Combo Master I", "Clear 3+ lines in a move", 500),
         )
     }
     fn combo_master_ii() -> AchievementDefinitionProps {
         make_achievement(
             'COMBO_MASTER_II',
             array![task(ZTask::Combo4, 1)].span(),
-            metadata('COMBO_MASTER', 2, "Combo Master II", "Hit a 4+ combo", 1500),
+            metadata('COMBO_MASTER', 2, "Combo Master II", "Clear 4+ lines in a move", 1500),
         )
     }
     fn combo_master_iii() -> AchievementDefinitionProps {
         make_achievement(
             'COMBO_MASTER_III',
-            array![task(ZTask::HighCombo, 1)].span(),
-            metadata('COMBO_MASTER', 3, "Combo Master III", "Hit a 10+ combo streak", 3000),
+            array![task(ZTask::Combo5, 1)].span(),
+            metadata('COMBO_MASTER', 3, "Combo Master III", "Clear 5+ lines in a move", 3000),
         )
     }
     fn combo_master_iv() -> AchievementDefinitionProps {
         make_achievement(
             'COMBO_MASTER_IV',
-            array![task(ZTask::HighCombo, 10)].span(),
-            metadata('COMBO_MASTER', 4, "Combo Master IV", "Hit 10 combo streaks of 10+", 5000),
+            array![task(ZTask::Combo6, 1)].span(),
+            metadata('COMBO_MASTER', 4, "Combo Master IV", "Clear 6+ lines in a move", 5000),
         )
     }
 
@@ -176,28 +176,28 @@ pub impl AchievementDefsImpl of AchievementDefsTrait {
         make_achievement(
             'CHALLENGER_I',
             array![task(ZTask::DailyPlay, 1)].span(),
-            metadata('CHALLENGER', 1, "Challenger I", "Play 1 daily challenge", 500),
+            metadata('CHALLENGER', 1, "Challenger I", "Join 1 daily challenge", 500),
         )
     }
     fn challenger_ii() -> AchievementDefinitionProps {
         make_achievement(
             'CHALLENGER_II',
-            array![task(ZTask::DailyPlay, 10)].span(),
-            metadata('CHALLENGER', 2, "Challenger II", "Play 10 daily challenges", 1500),
+            array![task(ZTask::DailyPlay, 7)].span(),
+            metadata('CHALLENGER', 2, "Challenger II", "Join 7 daily challenges", 1500),
         )
     }
     fn challenger_iii() -> AchievementDefinitionProps {
         make_achievement(
             'CHALLENGER_III',
-            array![task(ZTask::DailyPlay, 50)].span(),
-            metadata('CHALLENGER', 3, "Challenger III", "Play 50 daily challenges", 3000),
+            array![task(ZTask::DailyPlay, 30)].span(),
+            metadata('CHALLENGER', 3, "Challenger III", "Join 30 daily challenges", 3000),
         )
     }
     fn challenger_iv() -> AchievementDefinitionProps {
         make_achievement(
             'CHALLENGER_IV',
-            array![task(ZTask::DailyPlay, 200)].span(),
-            metadata('CHALLENGER', 4, "Challenger IV", "Play 200 daily challenges", 5000),
+            array![task(ZTask::DailyPlay, 100)].span(),
+            metadata('CHALLENGER', 4, "Challenger IV", "Join 100 daily challenges", 5000),
         )
     }
 }

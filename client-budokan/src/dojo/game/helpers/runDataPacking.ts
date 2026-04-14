@@ -3,26 +3,26 @@ import { BOSS_INTERVAL } from "@/dojo/game/constants";
  * Bit-packing helpers for efficient storage
  * Mirrors the Cairo packing.cairo implementation
  *
- * run_data layout (107 bits used):
+ * run_data layout (119 bits used):
  * ┌─────────────────────────────────────────────────────────────────────┐
  * │ Bits    │ Field                    │ Size │ Range    │ Description  │
  * ├─────────┼──────────────────────────┼──────┼──────────┼──────────────┤
  * │ 0-7     │ current_level            │ 8    │ 0-255    │ Current level│
- * │ 8-15    │ level_score              │ 8    │ 0-255    │ Score this   │
- * │ 16-23   │ level_moves              │ 8    │ 0-255    │ Moves this   │
- * │ 24-31   │ constraint_progress      │ 8    │ 0-255    │ Primary      │
- * │ 32-39   │ constraint_2_progress    │ 8    │ 0-255    │ Secondary    │
- * │ 40-47   │ max_combo_run            │ 8    │ 0-255    │ Best combo   │
- * │ 48-79   │ total_score              │ 32   │ 0-4B     │ Cumul. score │
- * │ 80      │ zone_cleared             │ 1    │ 0-1      │ Zone clear   │
- * │ 81-84   │ current_difficulty       │ 4    │ 0-15     │ Difficulty   │
- * │ 85-88   │ zone_id                  │ 4    │ 0-15     │ Current zone │
- * │ 89-93   │ active_mutator_id        │ 5    │ 0-31     │ Active mut.  │
- * │ 94      │ run_type                 │ 1    │ 0-1      │ Zone/Endless │
- * │ 95-96   │ bonus_type               │ 2    │ 0-3      │ Bonus type   │
- * │ 97-100  │ bonus_charges            │ 4    │ 0-15     │ Charges left │
- * │ 101-104 │ level_lines_cleared      │ 4    │ 0-15     │ Lines cleared│
- * │ 105-106 │ bonus_slot               │ 2    │ 0-2      │ Bonus slot   │
+ * │ 8-23    │ level_score              │ 16   │ 0-65535  │ Score this   │
+ * │ 24-31   │ level_moves              │ 8    │ 0-255    │ Moves this   │
+ * │ 32-39   │ constraint_progress      │ 8    │ 0-255    │ Primary      │
+ * │ 40-47   │ constraint_2_progress    │ 8    │ 0-255    │ Secondary    │
+ * │ 48-55   │ max_combo_run            │ 8    │ 0-255    │ Best combo   │
+ * │ 56-87   │ total_score              │ 32   │ 0-4B     │ Cumul. score │
+ * │ 88      │ zone_cleared             │ 1    │ 0-1      │ Zone clear   │
+ * │ 89-92   │ current_difficulty       │ 4    │ 0-15     │ Difficulty   │
+ * │ 93-96   │ zone_id                  │ 4    │ 0-15     │ Current zone │
+ * │ 97-101  │ active_mutator_id        │ 5    │ 0-31     │ Active mut.  │
+ * │ 102     │ run_type                 │ 1    │ 0-1      │ Zone/Endless │
+ * │ 103-104 │ bonus_type               │ 2    │ 0-3      │ Bonus type   │
+ * │ 105-108 │ bonus_charges            │ 4    │ 0-15     │ Charges left │
+ * │ 109-116 │ level_lines_cleared      │ 8    │ 0-255    │ Lines cleared│
+ * │ 117-118 │ bonus_trigger_type       │ 2    │ 0-3      │ Trigger type │
  * └─────────────────────────────────────────────────────────────────────┘
  */
 
@@ -42,32 +42,33 @@ export interface RunData {
   bonusType: number;
   bonusCharges: number;
   levelLinesCleared: number;
-  bonusSlot: number;
+  bonusTriggerType: number;
 }
 
 // Bit positions (matching Cairo's RunDataBits exactly)
 const CURRENT_LEVEL_POS = 0;
 const LEVEL_SCORE_POS = 8;
-const LEVEL_MOVES_POS = 16;
-const CONSTRAINT_PROGRESS_POS = 24;
-const CONSTRAINT_2_PROGRESS_POS = 32;
-const MAX_COMBO_RUN_POS = 40;
-const TOTAL_SCORE_POS = 48;
-const ZONE_CLEARED_POS = 80;
-const CURRENT_DIFFICULTY_POS = 81;
-const ZONE_ID_POS = 85;
-const ACTIVE_MUTATOR_ID_POS = 89;
-const RUN_TYPE_POS = 94;
-const BONUS_TYPE_POS = 95;
-const BONUS_CHARGES_POS = 97;
-const LEVEL_LINES_CLEARED_POS = 101;
-const BONUS_SLOT_POS = 105;
+const LEVEL_MOVES_POS = 24;
+const CONSTRAINT_PROGRESS_POS = 32;
+const CONSTRAINT_2_PROGRESS_POS = 40;
+const MAX_COMBO_RUN_POS = 48;
+const TOTAL_SCORE_POS = 56;
+const ZONE_CLEARED_POS = 88;
+const CURRENT_DIFFICULTY_POS = 89;
+const ZONE_ID_POS = 93;
+const ACTIVE_MUTATOR_ID_POS = 97;
+const RUN_TYPE_POS = 102;
+const BONUS_TYPE_POS = 103;
+const BONUS_CHARGES_POS = 105;
+const LEVEL_LINES_CLEARED_POS = 109;
+const BONUS_TRIGGER_TYPE_POS = 117;
 
 const MASK_1BIT = 0x1n;
 const MASK_2BIT = 0x3n;
 const MASK_4BIT = 0xFn;
 const MASK_5BIT = 0x1Fn;
 const MASK_8BIT = 0xFFn;
+const MASK_16BIT = 0xFFFFn;
 const MASK_32BIT = 0xFFFFFFFFn;
 
 function extractBits(packed: bigint, pos: number, mask: bigint): number {
@@ -84,7 +85,7 @@ function extractBool(packed: bigint, pos: number): boolean {
 export function unpackRunData(packed: bigint): RunData {
   return {
     currentLevel: extractBits(packed, CURRENT_LEVEL_POS, MASK_8BIT),
-    levelScore: extractBits(packed, LEVEL_SCORE_POS, MASK_8BIT),
+    levelScore: extractBits(packed, LEVEL_SCORE_POS, MASK_16BIT),
     levelMoves: extractBits(packed, LEVEL_MOVES_POS, MASK_8BIT),
     constraintProgress: extractBits(packed, CONSTRAINT_PROGRESS_POS, MASK_8BIT),
     constraint2Progress: extractBits(packed, CONSTRAINT_2_PROGRESS_POS, MASK_8BIT),
@@ -97,8 +98,8 @@ export function unpackRunData(packed: bigint): RunData {
     mode: extractBits(packed, RUN_TYPE_POS, MASK_1BIT),
     bonusType: extractBits(packed, BONUS_TYPE_POS, MASK_2BIT),
     bonusCharges: extractBits(packed, BONUS_CHARGES_POS, MASK_4BIT),
-    levelLinesCleared: extractBits(packed, LEVEL_LINES_CLEARED_POS, MASK_4BIT),
-    bonusSlot: extractBits(packed, BONUS_SLOT_POS, MASK_2BIT),
+    levelLinesCleared: extractBits(packed, LEVEL_LINES_CLEARED_POS, MASK_8BIT),
+    bonusTriggerType: extractBits(packed, BONUS_TRIGGER_TYPE_POS, MASK_2BIT),
   };
 }
 
@@ -122,7 +123,7 @@ export function createInitialRunData(): RunData {
     bonusType: 0,
     bonusCharges: 0,
     levelLinesCleared: 0,
-    bonusSlot: 0,
+    bonusTriggerType: 0,
   };
 }
 

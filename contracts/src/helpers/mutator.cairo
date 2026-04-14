@@ -17,24 +17,18 @@ pub impl MutatorEffectsImpl of MutatorEffectsTrait {
             moves_modifier: MutatorDefaults::BIAS_ZERO,
             ratio_modifier: MutatorDefaults::BIAS_ZERO,
             difficulty_offset: MutatorDefaults::BIAS_ZERO,
-            combo_score_mult_x100: MutatorDefaults::MULTIPLIER_NEUTRAL_X100,
+            score_mult_x100: MutatorDefaults::MULTIPLIER_NEUTRAL_X100,
             star_threshold_modifier: MutatorDefaults::BIAS_ZERO,
             endless_ramp_mult_x100: MutatorDefaults::MULTIPLIER_NEUTRAL_X100,
             line_clear_bonus: 0,
             perfect_clear_bonus: 0,
             starting_rows: 0,
-            bonus_1_type: 0,
-            bonus_1_trigger_type: 0,
-            bonus_1_trigger_threshold: 0,
-            bonus_1_starting_charges: 0,
-            bonus_2_type: 0,
-            bonus_2_trigger_type: 0,
-            bonus_2_trigger_threshold: 0,
-            bonus_2_starting_charges: 0,
-            bonus_3_type: 0,
-            bonus_3_trigger_type: 0,
-            bonus_3_trigger_threshold: 0,
-            bonus_3_starting_charges: 0,
+            combo_bonus_mult_x100: MutatorDefaults::MULTIPLIER_NEUTRAL_X100,
+            bonus_type: 0,
+            combo_trigger_threshold: 0,
+            lines_trigger_threshold: 0,
+            score_trigger_threshold: 0,
+            starting_charges: 0,
         }
     }
 
@@ -58,14 +52,17 @@ pub impl MutatorEffectsImpl of MutatorEffectsTrait {
         if mutator_def.difficulty_offset == 0 {
             mutator_def.difficulty_offset = MutatorDefaults::BIAS_ZERO;
         }
-        if mutator_def.combo_score_mult_x100 == 0 {
-            mutator_def.combo_score_mult_x100 = MutatorDefaults::MULTIPLIER_NEUTRAL_X100;
+        if mutator_def.score_mult_x100 == 0 {
+            mutator_def.score_mult_x100 = MutatorDefaults::MULTIPLIER_NEUTRAL_X100;
         }
         if mutator_def.star_threshold_modifier == 0 {
             mutator_def.star_threshold_modifier = MutatorDefaults::BIAS_ZERO;
         }
         if mutator_def.endless_ramp_mult_x100 == 0 {
             mutator_def.endless_ramp_mult_x100 = MutatorDefaults::MULTIPLIER_NEUTRAL_X100;
+        }
+        if mutator_def.combo_bonus_mult_x100 == 0 {
+            mutator_def.combo_bonus_mult_x100 = MutatorDefaults::MULTIPLIER_NEUTRAL_X100;
         }
 
         mutator_def
@@ -86,9 +83,9 @@ pub impl MutatorEffectsImpl of MutatorEffectsTrait {
                 apply_difficulty_offset(config.difficulty, *mutator_def.difficulty_offset);
     }
 
-    /// Apply mutator-driven score multiplier.
+    /// Apply mutator-driven flat score multiplier (every move's points × score_mult).
     fn apply_mutator_to_score(mutator_def: @MutatorDef, base_score: u16) -> u16 {
-        let mut multiplier_x100 = *mutator_def.combo_score_mult_x100;
+        let mut multiplier_x100 = *mutator_def.score_mult_x100;
         if multiplier_x100 == 0 {
             multiplier_x100 = MutatorDefaults::MULTIPLIER_NEUTRAL_X100;
         }
