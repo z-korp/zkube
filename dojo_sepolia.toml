@@ -17,7 +17,7 @@ default = "zkube_v2_1_1"
 [env]
 rpc_url = "https://api.cartridge.gg/x/starknet/sepolia"
 account_address = "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859"
-world_address = "0x04315e0cdc96d922fa98b44ed1bef3f230369c5b3bbf69f7a4396c1e2f2d6266"
+world_address = "0x04f65844b8385dc0987dd4536d2c77b8c52073cf65a749a696be49504e7d1d33"
 
 [writers]
 "zkube_v2_1_1" = [
