@@ -12,7 +12,7 @@ use zkube::constants;
 use zkube::helpers::controller::Controller;
 use zkube::helpers::level::LevelGeneratorTrait;
 use zkube::helpers::mutator::MutatorEffectsTrait;
-use zkube::helpers::scoring::{apply_combo_scoring, process_lines_cleared, update_score};
+use zkube::helpers::scoring::{apply_combo_mult, process_lines_cleared, update_score};
 use zkube::models::config::GameSettings;
 use zkube::models::game::{Game, GameLevel, GameSeed, GameTrait};
 use zkube::models::mutator::MutatorDef;
@@ -93,19 +93,21 @@ pub fn execute_move_inline(
     let mut lines_cleared: u8 = 0;
     let mut _cascade: u8 = 0;
     let base_points = assess_game(ref new_blocks, ref lines_cleared, ref _cascade);
-    let points = apply_score_modifiers(
+    let mut move_subtotal: u32 = apply_score_modifiers(
         base_points, run_data.run_type, score_difficulty, @settings, mutator_def,
-    );
-    update_score(ref run_data, points);
+    )
+        .into();
     let line_clear_bonus = MutatorEffectsTrait::get_line_clear_bonus(mutator_def);
 
     // Check grid full
     let is_full = is_grid_full(new_blocks);
     if is_full {
         if lines_cleared > 0 && line_clear_bonus > 0 {
-            let bonus_points: u16 = lines_cleared.into() * line_clear_bonus.into();
-            update_score(ref run_data, bonus_points);
+            move_subtotal += (lines_cleared.into() * line_clear_bonus.into());
         }
+        // Apply combo multiplier on multi-line clears
+        let final_points = apply_combo_mult(move_subtotal, lines_cleared, mutator_def);
+        update_score(ref run_data, final_points);
 
         game.blocks = new_blocks;
         game.set_run_data(run_data);
@@ -122,30 +124,31 @@ pub fn execute_move_inline(
 
     // Assess again after new line
     let more_base_points = assess_game(ref new_blocks, ref lines_cleared, ref _cascade);
-    // Skip modifier computation when no additional points were scored
     if more_base_points > 0 {
-        let more_points = apply_score_modifiers(
+        let more_points: u32 = apply_score_modifiers(
             more_base_points, run_data.run_type, score_difficulty, @settings, mutator_def,
-        );
-        update_score(ref run_data, more_points);
+        )
+            .into();
+        move_subtotal += more_points;
     }
 
     if lines_cleared > 0 && line_clear_bonus > 0 {
-        let bonus_points: u16 = lines_cleared.into() * line_clear_bonus.into();
-        update_score(ref run_data, bonus_points);
+        move_subtotal += (lines_cleared.into() * line_clear_bonus.into());
     }
 
     let perfect_clear_bonus = MutatorEffectsTrait::get_perfect_clear_bonus(mutator_def);
     if new_blocks == 0 && perfect_clear_bonus > 0 {
-        update_score(ref run_data, perfect_clear_bonus.into());
+        move_subtotal += perfect_clear_bonus.into();
     }
 
-    // Update combos and award cube bonuses for multi-line clears
-    process_lines_cleared(ref run_data, ref game.combo_counter, ref game.max_combo, lines_cleared);
+    // Apply combo multiplier: on multi-line clears (lines_cleared > 1),
+    // multiply the move's entire subtotal by combo_bonus_mult_x100 / 100.
+    // At neutral (100) this is ×1.0 = no change. At 200 it doubles, etc.
+    let final_points = apply_combo_mult(move_subtotal, lines_cleared, mutator_def);
+    update_score(ref run_data, final_points);
 
-    // Combo bonus rides on top of base scoring. Only fires for genuine combos
-    // (lines_cleared > 1) and scales by the passive mutator's combo_bonus_mult_x100.
-    apply_combo_scoring(ref run_data, game.combo_counter, lines_cleared, mutator_def);
+    // Track combos for achievements/HUD (no scoring impact)
+    process_lines_cleared(ref run_data, ref game.combo_counter, ref game.max_combo, lines_cleared);
 
     // Compute grid height once — recompute only when grid is modified below
     let mut current_height: u8 = if new_blocks == 0 {
