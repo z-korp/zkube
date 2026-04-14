@@ -927,18 +927,25 @@ mod config_system {
             );
 
         // =====================================================================
-        // Tournament Tiki (Settings 20) — default tournament, Tiki Endless clone
+        // Tournament settings (IDs 51+).
+        //
+        // ID ranges:  0-50 = official story / endless modes (room to grow),
+        //            51-100 = official tournaments,
+        //           101+    = community settings via add_custom_game_settings.
+        //
         // `is_tournament=true` bypasses both the boss gate and the zone-unlock
         // gate, so any player can mint a token against this settings and play
-        // immediately. zone_id=1 carries the theme signal (entry requirements
-        // are enforced at Budokan's metagame layer).
+        // immediately. zone_id carries the theme signal; entry requirements
+        // are enforced at Budokan's metagame layer.
         // =====================================================================
-        let mut t_tiki = GameSettingsTrait::new_with_defaults(20_u32, Difficulty::Increasing);
+
+        // Tournament Tiki (Settings 51) — Wave charges require 4+ combo.
+        let mut t_tiki = GameSettingsTrait::new_with_defaults(51_u32, Difficulty::Increasing);
         t_tiki.base_moves = 16;
         t_tiki.max_moves = 48;
         t_tiki.level_cap = 255;
         t_tiki.zone_id = 1;
-        t_tiki.active_mutator_id = 1;
+        t_tiki.active_mutator_id = 21; // Wave, combo 4+ only (see seed_mutators)
         t_tiki.passive_mutator_id = 2;
         t_tiki.boss_id = 0;
         t_tiki.endless_difficulty_thresholds = 0; // use defaults
@@ -947,9 +954,9 @@ mod config_system {
         world
             .write_model(
                 @GameSettingsMetadata {
-                    settings_id: 20_u32,
+                    settings_id: 51_u32,
                     name: 'Tournament Tiki',
-                    description: "Open tournament variant of Tiki Endless - no zone unlock required.",
+                    description: "Open tournament - Tiki-themed, Wave charges for 4+ combos.",
                     created_by: creator_address,
                     created_at: current_timestamp,
                     theme_id: 1,
@@ -1221,6 +1228,34 @@ mod config_system {
             );
 
         // =====================================================================
+        // Tournament-specific Active Mutators (IDs 21+)
+        // =====================================================================
+
+        // Mutator 21 — Tournament Wave (Wave for 4+ combo only)
+        world
+            .write_model(
+                @MutatorDef {
+                    mutator_id: 21,
+                    zone_id: 0, // not zone-specific
+                    moves_modifier: 128,
+                    ratio_modifier: 128,
+                    difficulty_offset: 128,
+                    score_mult_x100: 100,
+                    star_threshold_modifier: 128,
+                    endless_ramp_mult_x100: 100,
+                    line_clear_bonus: 0,
+                    perfect_clear_bonus: 0,
+                    starting_rows: 0,
+                    combo_bonus_mult_x100: 100,
+                    bonus_type: 3, // Wave
+                    combo_trigger_threshold: 4,
+                    lines_trigger_threshold: 0,
+                    score_trigger_threshold: 0,
+                    starting_charges: 1,
+                },
+            );
+
+        // =====================================================================
         // Passive Mutators (even IDs 2-20) — stat modifiers
         // Built off MutatorEffectsTrait::neutral(id); only non-default fields
         // are assigned below so the shape of each zone's deviation is obvious.
@@ -1315,12 +1350,13 @@ mod config_system {
         // =====================================================================
         // Settings counter and star eligibility
         // =====================================================================
-        // Counter = 20 (Tournament Tiki). Next custom settings will be 21+.
-        self.settings_counter.write(20_u32);
+        // Counter = 100 — reserves 0-100 for official use.
+        // add_custom_game_settings will start at 101+.
+        self.settings_counter.write(100_u32);
 
-        // Zone settings (IDs 0..19) are star-eligible. Tournament Tiki (ID 20)
-        // is intentionally NOT star-eligible — its rewards come from Budokan's
-        // prize pool, so zkube play shouldn't mint stars for it.
+        // Zone settings (IDs 0..19) are star-eligible. Tournaments (51+)
+        // are intentionally NOT star-eligible — their rewards come from
+        // Budokan's prize pool, so zkube play shouldn't mint stars for them.
         let mut sid: u32 = 0;
         loop {
             if sid > 19 {
@@ -1339,7 +1375,7 @@ mod config_system {
 
         if !minigame_token_address.is_zero() {
             let zone_ids: Array<u32> = array![
-                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 51,
             ];
             let zone_descs: Array<ByteArray> = array![
                 "Polynesian map mode", "Polynesian endless mode", "Egypt map mode",
@@ -1347,7 +1383,7 @@ mod config_system {
                 "Greece endless mode", "China map mode", "China endless mode", "Persia map mode",
                 "Persia endless mode", "Japan map mode", "Japan endless mode", "Mayan map mode",
                 "Mayan endless mode", "Tribal map mode", "Tribal endless mode", "Inca map mode",
-                "Inca endless mode", "Open tournament - Tiki-themed",
+                "Inca endless mode", "Tournament Tiki",
             ];
             let zone_labels: Array<ByteArray> = array![
                 "Polynesian", "Polynesian Endless", "Ancient Egypt", "Egypt Endless", "Norse",
