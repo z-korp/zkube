@@ -154,7 +154,7 @@ mod story_system {
             let bonus_mutator_def = Self::read_mutator_def(world, active_mut_id);
             let seed_u256: u256 = seed.into();
             let (bonus_trigger_type, bonus_type, starting_charges) = roll_bonus_trigger(
-                seed_u256, @bonus_mutator_def,
+                seed_u256, @bonus_mutator_def, false,
             );
 
             // Store passive mutator in RunData for stat effects during gameplay

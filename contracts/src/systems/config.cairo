@@ -242,7 +242,7 @@ mod config_system {
         z1_endless.max_moves = 48;
         z1_endless.level_cap = 255;
         z1_endless.zone_id = 1;
-        z1_endless.active_mutator_id = 0;
+        z1_endless.active_mutator_id = 1;
         z1_endless.passive_mutator_id = 2;
         z1_endless.boss_id = 0;
         z1_endless.endless_difficulty_thresholds = 0; // use defaults
@@ -313,7 +313,7 @@ mod config_system {
         z2_endless.max_moves = 55;
         z2_endless.level_cap = 255;
         z2_endless.zone_id = 2;
-        z2_endless.active_mutator_id = 0;
+        z2_endless.active_mutator_id = 3;
         z2_endless.passive_mutator_id = 4;
         z2_endless.boss_id = 0;
         // packed [0, 20, 55, 105, 200, 370, 650, 1170]
@@ -386,7 +386,7 @@ mod config_system {
         z3_endless.max_moves = 50;
         z3_endless.level_cap = 255;
         z3_endless.zone_id = 3;
-        z3_endless.active_mutator_id = 0;
+        z3_endless.active_mutator_id = 5;
         z3_endless.passive_mutator_id = 6;
         z3_endless.boss_id = 0;
         // packed [0, 15, 35, 70, 130, 240, 420, 750]
@@ -459,7 +459,7 @@ mod config_system {
         z4_endless.max_moves = 44;
         z4_endless.level_cap = 255;
         z4_endless.zone_id = 4;
-        z4_endless.active_mutator_id = 0;
+        z4_endless.active_mutator_id = 7;
         z4_endless.passive_mutator_id = 8;
         z4_endless.boss_id = 0;
         // packed [0, 12, 30, 60, 120, 220, 400, 700]
@@ -533,7 +533,7 @@ mod config_system {
         z5_endless.max_moves = 52;
         z5_endless.level_cap = 255;
         z5_endless.zone_id = 5;
-        z5_endless.active_mutator_id = 0;
+        z5_endless.active_mutator_id = 9;
         z5_endless.passive_mutator_id = 10;
         z5_endless.boss_id = 0;
         // packed [0, 18, 45, 90, 170, 310, 550, 950]
@@ -607,7 +607,7 @@ mod config_system {
         z6_endless.max_moves = 48;
         z6_endless.level_cap = 255;
         z6_endless.zone_id = 6;
-        z6_endless.active_mutator_id = 0;
+        z6_endless.active_mutator_id = 11;
         z6_endless.passive_mutator_id = 12;
         z6_endless.boss_id = 0;
         // packed [0, 13, 35, 70, 135, 250, 440, 780]
@@ -681,7 +681,7 @@ mod config_system {
         z7_endless.max_moves = 38;
         z7_endless.level_cap = 255;
         z7_endless.zone_id = 7;
-        z7_endless.active_mutator_id = 0;
+        z7_endless.active_mutator_id = 13;
         z7_endless.passive_mutator_id = 14;
         z7_endless.boss_id = 0;
         // packed [0, 10, 25, 50, 100, 180, 320, 550]
@@ -754,7 +754,7 @@ mod config_system {
         z8_endless.max_moves = 46;
         z8_endless.level_cap = 255;
         z8_endless.zone_id = 8;
-        z8_endless.active_mutator_id = 0;
+        z8_endless.active_mutator_id = 15;
         z8_endless.passive_mutator_id = 16;
         z8_endless.boss_id = 0;
         // packed [0, 18, 45, 95, 180, 330, 580, 1000]
@@ -827,7 +827,7 @@ mod config_system {
         z9_endless.max_moves = 45;
         z9_endless.level_cap = 255;
         z9_endless.zone_id = 9;
-        z9_endless.active_mutator_id = 0;
+        z9_endless.active_mutator_id = 17;
         z9_endless.passive_mutator_id = 18;
         z9_endless.boss_id = 0;
         // packed [0, 14, 35, 75, 140, 260, 460, 800]
@@ -900,7 +900,7 @@ mod config_system {
         z10_endless.max_moves = 42;
         z10_endless.level_cap = 255;
         z10_endless.zone_id = 10;
-        z10_endless.active_mutator_id = 0;
+        z10_endless.active_mutator_id = 19;
         z10_endless.passive_mutator_id = 20;
         z10_endless.boss_id = 0;
         // packed [0, 20, 50, 110, 210, 380, 660, 1100]
@@ -938,7 +938,7 @@ mod config_system {
         t_tiki.max_moves = 48;
         t_tiki.level_cap = 255;
         t_tiki.zone_id = 1;
-        t_tiki.active_mutator_id = 0;
+        t_tiki.active_mutator_id = 1;
         t_tiki.passive_mutator_id = 2;
         t_tiki.boss_id = 0;
         t_tiki.endless_difficulty_thresholds = 0; // use defaults

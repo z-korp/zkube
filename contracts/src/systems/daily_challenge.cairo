@@ -246,7 +246,7 @@ mod daily_challenge_system {
             let bonus_mutator_def = Self::read_mutator_def(world, challenge.active_mutator_id);
             let seed_u256: u256 = challenge.seed.into();
             let (bonus_trigger_type, bonus_type, starting_charges) = roll_bonus_trigger(
-                seed_u256, @bonus_mutator_def,
+                seed_u256, @bonus_mutator_def, false,
             );
 
             // Create Game: zone run_type=0, single level
