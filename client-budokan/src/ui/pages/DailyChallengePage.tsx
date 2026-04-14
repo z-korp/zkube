@@ -17,7 +17,7 @@ import { motion } from "motion/react";
 import { normalizeAddress } from "@/hooks/useGetUsernames";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 import TierContext from "@/ui/components/rewards/TierContext";
-import { DAILY_DAILY_REWARD_TIERS } from "@/config/rewardTiers";
+import { DAILY_REWARD_TIERS } from "@/config/rewardTiers";
 
 const TROPHY_IMAGES: Record<number, string> = {
   1: "/assets/common/trophies/gold.png",
