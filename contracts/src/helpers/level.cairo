@@ -724,10 +724,10 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     /// Scale factor for BreakBlocks target counts by size.
     fn break_scale(size: u8) -> u16 {
         match size {
-            1 => 3,
-            2 => 3,
-            3 => 2,
-            _ => 2,
+            1 => 6,
+            2 => 6,
+            3 => 4,
+            _ => 4,
         }
     }
 

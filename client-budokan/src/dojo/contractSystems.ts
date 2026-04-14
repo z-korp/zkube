@@ -76,16 +76,6 @@ export interface AddCustomGameSettings extends Signer {
   constraints_enabled: number;
   constraint_start_level: number;
   constraint_lines_budgets: string;
-  veryeasy_size1_weight: number;
-  veryeasy_size2_weight: number;
-  veryeasy_size3_weight: number;
-  veryeasy_size4_weight: number;
-  veryeasy_size5_weight: number;
-  master_size1_weight: number;
-  master_size2_weight: number;
-  master_size3_weight: number;
-  master_size4_weight: number;
-  master_size5_weight: number;
   early_variance_percent: number;
   mid_variance_percent: number;
   late_variance_percent: number;
@@ -401,16 +391,6 @@ export function setupWorld(config: Config) {
       constraints_enabled,
       constraint_start_level,
       constraint_lines_budgets,
-      veryeasy_size1_weight,
-      veryeasy_size2_weight,
-      veryeasy_size3_weight,
-      veryeasy_size4_weight,
-      veryeasy_size5_weight,
-      master_size1_weight,
-      master_size2_weight,
-      master_size3_weight,
-      master_size4_weight,
-      master_size5_weight,
       early_variance_percent,
       mid_variance_percent,
       late_variance_percent,
@@ -448,16 +428,6 @@ export function setupWorld(config: Config) {
               constraints_enabled,
               constraint_start_level,
               constraint_lines_budgets,
-              veryeasy_size1_weight,
-              veryeasy_size2_weight,
-              veryeasy_size3_weight,
-              veryeasy_size4_weight,
-              veryeasy_size5_weight,
-              master_size1_weight,
-              master_size2_weight,
-              master_size3_weight,
-              master_size4_weight,
-              master_size5_weight,
               early_variance_percent,
               mid_variance_percent,
               late_variance_percent,

@@ -95,21 +95,14 @@ pub struct GameSettings {
     //   Bits 48-51: veryeasy_min_times (4 bits)
     //   Bits 52-55: master_min_times
     pub constraint_lines_budgets: u64,
-    // === Block Distribution (scales from VeryEasy to Master, tiers 0-7) ===
-    // Weights for each block size (interpolated by difficulty tier)
-    // Weights are relative - they get normalized to sum to 100%
-    // "veryeasy_*" = value at tier 0 (VeryEasy), "master_*" = value at tier 7 (Master)
-    // size1=1-wide, size2=2-wide, size3=3-wide, size4=4-wide, size5=5-wide
-    pub veryeasy_size1_weight: u8, // Weight for 1-wide blocks at VeryEasy (default: 20)
-    pub veryeasy_size2_weight: u8, // Weight for 2-wide blocks at VeryEasy (default: 33)
-    pub veryeasy_size3_weight: u8, // Weight for 3-wide blocks at VeryEasy (default: 27)
-    pub veryeasy_size4_weight: u8, // Weight for 4-wide blocks at VeryEasy (default: 13)
-    pub veryeasy_size5_weight: u8, // Weight for 5-wide blocks at VeryEasy (default: 7)
-    pub master_size1_weight: u8, // Weight for 1-wide blocks at Master (default: 7)
-    pub master_size2_weight: u8, // Weight for 2-wide blocks at Master (default: 13)
-    pub master_size3_weight: u8, // Weight for 3-wide blocks at Master (default: 20)
-    pub master_size4_weight: u8, // Weight for 4-wide blocks at Master (default: 27)
-    pub master_size5_weight: u8, // Weight for 5-wide blocks at Master (default: 33)
+    // === Block Distribution ===
+    // Per-difficulty block weights are hardcoded in
+    // `get_block_weights_for_difficulty` (a u8 lookup over the 8 Difficulty
+    // tiers). Slot order matches `select_block_by_weight`:
+    // (empty, size-1, size-2, size-3, size-4). The 10 legacy
+    // `*_size*_weight` fields previously stored on this struct have been
+    // removed — they were positional with no Block::Five and never
+    // overridden per zone in practice.
     // === Variance Settings ===
     pub early_variance_percent: u8, // Variance % for early levels (default: 5)
     pub mid_variance_percent: u8, // Variance % for mid levels (default: 10)
@@ -192,18 +185,8 @@ pub mod GameSettingsDefaults {
         packed
     }
 
-    // Block Distribution (VeryEasy to Master scaling)
-    // Size = block width (1-5). VeryEasy favors smaller blocks, Master favors larger.
-    pub const VERYEASY_SIZE1_WEIGHT: u8 = 20; // 1-wide blocks at VeryEasy
-    pub const VERYEASY_SIZE2_WEIGHT: u8 = 33; // 2-wide blocks at VeryEasy
-    pub const VERYEASY_SIZE3_WEIGHT: u8 = 27; // 3-wide blocks at VeryEasy
-    pub const VERYEASY_SIZE4_WEIGHT: u8 = 13; // 4-wide blocks at VeryEasy
-    pub const VERYEASY_SIZE5_WEIGHT: u8 = 7; // 5-wide blocks at VeryEasy
-    pub const MASTER_SIZE1_WEIGHT: u8 = 7; // 1-wide blocks at Master
-    pub const MASTER_SIZE2_WEIGHT: u8 = 13; // 2-wide blocks at Master
-    pub const MASTER_SIZE3_WEIGHT: u8 = 20; // 3-wide blocks at Master
-    pub const MASTER_SIZE4_WEIGHT: u8 = 27; // 4-wide blocks at Master
-    pub const MASTER_SIZE5_WEIGHT: u8 = 33; // 5-wide blocks at Master
+    // Block Distribution: per-difficulty weights live in
+    // `GameSettingsTrait::get_block_weights_for_difficulty`.
 
     // Variance Settings (consistent ±5% across all levels)
     pub const EARLY_VARIANCE_PERCENT: u8 = 5; // ±5% for early levels
@@ -276,17 +259,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             constraint_start_level: GameSettingsDefaults::CONSTRAINT_START_LEVEL,
             // Constraint Distribution (packed)
             constraint_lines_budgets: GameSettingsDefaults::DEFAULT_CONSTRAINT_LINES_BUDGETS(),
-            // Block Distribution
-            veryeasy_size1_weight: GameSettingsDefaults::VERYEASY_SIZE1_WEIGHT,
-            veryeasy_size2_weight: GameSettingsDefaults::VERYEASY_SIZE2_WEIGHT,
-            veryeasy_size3_weight: GameSettingsDefaults::VERYEASY_SIZE3_WEIGHT,
-            veryeasy_size4_weight: GameSettingsDefaults::VERYEASY_SIZE4_WEIGHT,
-            veryeasy_size5_weight: GameSettingsDefaults::VERYEASY_SIZE5_WEIGHT,
-            master_size1_weight: GameSettingsDefaults::MASTER_SIZE1_WEIGHT,
-            master_size2_weight: GameSettingsDefaults::MASTER_SIZE2_WEIGHT,
-            master_size3_weight: GameSettingsDefaults::MASTER_SIZE3_WEIGHT,
-            master_size4_weight: GameSettingsDefaults::MASTER_SIZE4_WEIGHT,
-            master_size5_weight: GameSettingsDefaults::MASTER_SIZE5_WEIGHT,
             // Variance Settings
             early_variance_percent: GameSettingsDefaults::EARLY_VARIANCE_PERCENT,
             mid_variance_percent: GameSettingsDefaults::MID_VARIANCE_PERCENT,
@@ -443,44 +415,29 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         (0, 0, budget_min, budget_max, 0)
     }
 
-    /// Get block weights interpolated for a given difficulty
-    /// Returns (size1_weight, size2_weight, size3_weight, size4_weight, size5_weight)
-    /// Weights are relative and get normalized by the caller
+    /// Hand-tuned per-difficulty block-weight curve.
+    ///
+    /// Returns slots `(empty, size1, size2, size3, size4)` matching the
+    /// positional contract of `Controller::select_block_by_weight`
+    /// (`zero_w, one_w, two_w, three_w, four_w`). The `empty` slot is the
+    /// gap rate; it is NOT a 5-wide block (Block::Five does not exist).
+    /// Tied to Difficulty rather than per-zone overrides — every zone uses
+    /// this curve.
     fn get_block_weights_for_difficulty(
         self: GameSettings, difficulty: Difficulty,
     ) -> (u8, u8, u8, u8, u8) {
-        // Map difficulty to a 0-7 scale (VeryEasy=0, Master=7)
-        // None and Increasing are modes, not tiers - treat as VeryEasy for interpolation
-        let diff_value: u8 = match difficulty {
-            Difficulty::None | Difficulty::Increasing => 0,
-            Difficulty::VeryEasy => 0,
-            Difficulty::Easy => 1,
-            Difficulty::Medium => 2,
-            Difficulty::MediumHard => 3,
-            Difficulty::Hard => 4,
-            Difficulty::VeryHard => 5,
-            Difficulty::Expert => 6,
-            Difficulty::Master => 7,
-        };
-
-        // Interpolate each weight from veryeasy (0) to master (7)
-        let size1_weight = Self::interpolate(
-            self.veryeasy_size1_weight, self.master_size1_weight, diff_value, 7,
-        );
-        let size2_weight = Self::interpolate(
-            self.veryeasy_size2_weight, self.master_size2_weight, diff_value, 7,
-        );
-        let size3_weight = Self::interpolate(
-            self.veryeasy_size3_weight, self.master_size3_weight, diff_value, 7,
-        );
-        let size4_weight = Self::interpolate(
-            self.veryeasy_size4_weight, self.master_size4_weight, diff_value, 7,
-        );
-        let size5_weight = Self::interpolate(
-            self.veryeasy_size5_weight, self.master_size5_weight, diff_value, 7,
-        );
-
-        (size1_weight, size2_weight, size3_weight, size4_weight, size5_weight)
+        let _ = self;
+        match difficulty {
+            Difficulty::None | Difficulty::Increasing |
+            Difficulty::VeryEasy => (15, 30, 30, 15, 10),
+            Difficulty::Easy => (15, 25, 30, 20, 10),
+            Difficulty::Medium => (15, 25, 25, 20, 15),
+            Difficulty::MediumHard => (10, 20, 25, 25, 20),
+            Difficulty::Hard => (10, 20, 20, 25, 25),
+            Difficulty::VeryHard => (5, 15, 20, 30, 30),
+            Difficulty::Expert => (0, 15, 15, 35, 35),
+            Difficulty::Master => (0, 5, 10, 50, 35),
+        }
     }
 
     /// Validate all settings invariants
@@ -559,24 +516,8 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             return false;
         }
 
-        // Block weights: at least one weight must be non-zero (avoid div by zero)
-        let veryeasy_total = self.veryeasy_size1_weight.into()
-            + self.veryeasy_size2_weight.into()
-            + self.veryeasy_size3_weight.into()
-            + self.veryeasy_size4_weight.into()
-            + self.veryeasy_size5_weight.into();
-        if veryeasy_total == 0_u16 {
-            return false;
-        }
-
-        let master_total = self.master_size1_weight.into()
-            + self.master_size2_weight.into()
-            + self.master_size3_weight.into()
-            + self.master_size4_weight.into()
-            + self.master_size5_weight.into();
-        if master_total == 0_u16 {
-            return false;
-        }
+        // Block weights are sourced from the hardcoded curve in
+        // `get_block_weights_for_difficulty`; nothing to validate here.
 
         // Boss ID must be 0-10 (0 = no boss, 1-10 = boss identities)
         if self.boss_id > 10 {
@@ -642,20 +583,8 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         assert!(self.tier_6_threshold > self.tier_5_threshold, "tier_6 must be > tier_5");
         assert!(self.tier_7_threshold > self.tier_6_threshold, "tier_7 must be > tier_6");
 
-        // Block weights non-zero
-        let veryeasy_total: u16 = self.veryeasy_size1_weight.into()
-            + self.veryeasy_size2_weight.into()
-            + self.veryeasy_size3_weight.into()
-            + self.veryeasy_size4_weight.into()
-            + self.veryeasy_size5_weight.into();
-        assert!(veryeasy_total > 0, "veryeasy block weights must have at least one non-zero");
-
-        let master_total: u16 = self.master_size1_weight.into()
-            + self.master_size2_weight.into()
-            + self.master_size3_weight.into()
-            + self.master_size4_weight.into()
-            + self.master_size5_weight.into();
-        assert!(master_total > 0, "master block weights must have at least one non-zero");
+        // Block weights are sourced from the hardcoded curve in
+        // `get_block_weights_for_difficulty` — nothing to assert here.
 
         // Boss ID validation
         assert!(self.boss_id <= 10, "boss_id must be 0-10 (0=no boss, 1-10=boss identities)");
@@ -963,49 +892,25 @@ mod tests {
     }
 
     #[test]
-    fn test_block_weight_defaults() {
-        let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-
-        // Verify block weight defaults
-        assert!(settings.veryeasy_size1_weight == 20, "VeryEasy size1 weight should be 20");
-        assert!(settings.veryeasy_size2_weight == 33, "VeryEasy size2 weight should be 33");
-        assert!(settings.veryeasy_size3_weight == 27, "VeryEasy size3 weight should be 27");
-        assert!(settings.veryeasy_size4_weight == 13, "VeryEasy size4 weight should be 13");
-        assert!(settings.veryeasy_size5_weight == 7, "VeryEasy size5 weight should be 7");
-        assert!(settings.master_size1_weight == 7, "Master size1 weight should be 7");
-        assert!(settings.master_size2_weight == 13, "Master size2 weight should be 13");
-        assert!(settings.master_size3_weight == 20, "Master size3 weight should be 20");
-        assert!(settings.master_size4_weight == 27, "Master size4 weight should be 27");
-        assert!(settings.master_size5_weight == 33, "Master size5 weight should be 33");
-    }
-
-    #[test]
     fn test_get_block_weights_for_difficulty() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
 
-        // Test VeryEasy difficulty (tier 0 - uses veryeasy_* values exactly)
-        let (s1, s2, s3, s4, s5) = settings.get_block_weights_for_difficulty(Difficulty::VeryEasy);
-        assert!(s1 == 20, "VeryEasy size1 weight should be 20");
-        assert!(s2 == 33, "VeryEasy size2 weight should be 33");
-        assert!(s3 == 27, "VeryEasy size3 weight should be 27");
-        assert!(s4 == 13, "VeryEasy size4 weight should be 13");
-        assert!(s5 == 7, "VeryEasy size5 weight should be 7");
+        // VeryEasy: gentle, plenty of small blocks and gaps.
+        let (e, s1, s2, s3, s4) = settings.get_block_weights_for_difficulty(Difficulty::VeryEasy);
+        assert!(e == 15 && s1 == 30 && s2 == 30 && s3 == 15 && s4 == 10, "VeryEasy curve mismatch");
 
-        // Test Master difficulty (tier 7 - uses master_* values exactly)
-        let (s1, s2, s3, s4, s5) = settings.get_block_weights_for_difficulty(Difficulty::Master);
-        assert!(s1 == 7, "Master size1 weight should be 7");
-        assert!(s2 == 13, "Master size2 weight should be 13");
-        assert!(s3 == 20, "Master size3 weight should be 20");
-        assert!(s4 == 27, "Master size4 weight should be 27");
-        assert!(s5 == 33, "Master size5 weight should be 33");
+        // Hard: equal mid/large mix, gap rate dropped to 10.
+        let (e, s1, s2, s3, s4) = settings.get_block_weights_for_difficulty(Difficulty::Hard);
+        assert!(e == 10 && s1 == 20 && s2 == 20 && s3 == 25 && s4 == 25, "Hard curve mismatch");
 
-        // Test mid-difficulty (Hard = tier 4/7)
-        // The weights should be interpolated between easy and master
-        let (s1, s2, s3, s4, s5) = settings.get_block_weights_for_difficulty(Difficulty::Hard);
-        // s1: 20 -> 7 at position 4/7 = 20 - (13*4/7) = 20 - 7 = 13
-        assert!(s1 >= 11 && s1 <= 15, "Hard size1 weight should be around 13");
-        // s5: 7 -> 33 at position 4/7 = 7 + (26*4/7) = 7 + 14 = 21
-        assert!(s5 >= 19 && s5 <= 23, "Hard size5 weight should be around 21");
+        // Master: zero gaps, heavy size-3/4 — every spawned row is full
+        // and demands exact alignment.
+        let (e, s1, s2, s3, s4) = settings.get_block_weights_for_difficulty(Difficulty::Master);
+        assert!(e == 0 && s1 == 5 && s2 == 10 && s3 == 50 && s4 == 35, "Master curve mismatch");
+
+        // Increasing/None modes fall back to the VeryEasy entry.
+        let (e, _, _, _, _) = settings.get_block_weights_for_difficulty(Difficulty::Increasing);
+        assert!(e == 15, "Increasing should return VeryEasy slot");
     }
 
     #[test]
@@ -1058,19 +963,6 @@ mod tests {
         // Invalid: not 0 or 1
         settings.constraints_enabled = 2;
         assert!(!settings.validate(), "Should be invalid when constraints_enabled > 1");
-    }
-
-    #[test]
-    fn test_validate_block_weights_zero() {
-        let mut settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-
-        // Invalid: all weights zero (would cause div by zero)
-        settings.veryeasy_size1_weight = 0;
-        settings.veryeasy_size2_weight = 0;
-        settings.veryeasy_size3_weight = 0;
-        settings.veryeasy_size4_weight = 0;
-        settings.veryeasy_size5_weight = 0;
-        assert!(!settings.validate(), "Should be invalid when all veryeasy block weights are zero");
     }
 
     #[test]

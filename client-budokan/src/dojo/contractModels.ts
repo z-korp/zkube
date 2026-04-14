@@ -109,17 +109,7 @@ export function defineContractComponents(world: World) {
           constraint_start_level: RecsType.Number,
           // Constraint Distribution (PACKED fields)
           constraint_lines_budgets: RecsType.BigInt, // u64
-          // Block Distribution (VeryEasy to Master)
-          veryeasy_size1_weight: RecsType.Number,
-          veryeasy_size2_weight: RecsType.Number,
-          veryeasy_size3_weight: RecsType.Number,
-          veryeasy_size4_weight: RecsType.Number,
-          veryeasy_size5_weight: RecsType.Number,
-          master_size1_weight: RecsType.Number,
-          master_size2_weight: RecsType.Number,
-          master_size3_weight: RecsType.Number,
-          master_size4_weight: RecsType.Number,
-          master_size5_weight: RecsType.Number,
+          // Block weights are sourced from hardcoded per-difficulty curve in contracts.
           // Variance Settings
           early_variance_percent: RecsType.Number,
           mid_variance_percent: RecsType.Number,

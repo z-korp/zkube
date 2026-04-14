@@ -28,17 +28,8 @@ pub trait IConfigSystem<T> {
         constraint_start_level: u8,
         // Constraint Distribution (packed - use pack_constraint_* helpers)
         constraint_lines_budgets: u64, // Packed: lines(4x4bits) + budgets(4x8bits) + times(2x4bits)
-        // Block Distribution (VeryEasy to Master scaling)
-        veryeasy_size1_weight: u8,
-        veryeasy_size2_weight: u8,
-        veryeasy_size3_weight: u8,
-        veryeasy_size4_weight: u8,
-        veryeasy_size5_weight: u8,
-        master_size1_weight: u8,
-        master_size2_weight: u8,
-        master_size3_weight: u8,
-        master_size4_weight: u8,
-        master_size5_weight: u8,
+        // Block weights are sourced from the hardcoded difficulty curve in
+        // models/config.cairo::get_block_weights_for_difficulty — no per-zone override.
         // Variance Settings
         early_variance_percent: u8,
         mid_variance_percent: u8,
@@ -1482,17 +1473,8 @@ mod config_system {
             constraint_start_level: u8,
             // Constraint Distribution (packed)
             constraint_lines_budgets: u64,
-            // Block Distribution (VeryEasy to Master)
-            veryeasy_size1_weight: u8,
-            veryeasy_size2_weight: u8,
-            veryeasy_size3_weight: u8,
-            veryeasy_size4_weight: u8,
-            veryeasy_size5_weight: u8,
-            master_size1_weight: u8,
-            master_size2_weight: u8,
-            master_size3_weight: u8,
-            master_size4_weight: u8,
-            master_size5_weight: u8,
+            // Block weights are no longer per-settings — see
+            // models/config.cairo::get_block_weights_for_difficulty.
             // Variance Settings
             early_variance_percent: u8,
             mid_variance_percent: u8,
@@ -1533,16 +1515,6 @@ mod config_system {
                     constraints_enabled,
                     constraint_start_level,
                     constraint_lines_budgets,
-                    veryeasy_size1_weight,
-                    veryeasy_size2_weight,
-                    veryeasy_size3_weight,
-                    veryeasy_size4_weight,
-                    veryeasy_size5_weight,
-                    master_size1_weight,
-                    master_size2_weight,
-                    master_size3_weight,
-                    master_size4_weight,
-                    master_size5_weight,
                     early_variance_percent,
                     mid_variance_percent,
                     late_variance_percent,
@@ -1584,17 +1556,6 @@ mod config_system {
                 constraint_start_level,
                 // Constraint Distribution (packed)
                 constraint_lines_budgets,
-                // Block Distribution (VeryEasy to Master)
-                veryeasy_size1_weight,
-                veryeasy_size2_weight,
-                veryeasy_size3_weight,
-                veryeasy_size4_weight,
-                veryeasy_size5_weight,
-                master_size1_weight,
-                master_size2_weight,
-                master_size3_weight,
-                master_size4_weight,
-                master_size5_weight,
                 // Variance Settings
                 early_variance_percent,
                 mid_variance_percent,
@@ -1911,17 +1872,6 @@ mod config_system {
             constraint_start_level: u8,
             // Constraint distribution (packed)
             constraint_lines_budgets: u64,
-            // Block distribution (VeryEasy to Master)
-            veryeasy_size1_weight: u8,
-            veryeasy_size2_weight: u8,
-            veryeasy_size3_weight: u8,
-            veryeasy_size4_weight: u8,
-            veryeasy_size5_weight: u8,
-            master_size1_weight: u8,
-            master_size2_weight: u8,
-            master_size3_weight: u8,
-            master_size4_weight: u8,
-            master_size5_weight: u8,
             // Variance settings
             early_variance_percent: u8,
             mid_variance_percent: u8,
@@ -1986,19 +1936,7 @@ mod config_system {
                 "Derived Master budget_min must be <= budget_max",
             );
 
-            // Validate block weights (must have at least some weight to generate blocks)
-            let veryeasy_total: u16 = veryeasy_size1_weight.into()
-                + veryeasy_size2_weight.into()
-                + veryeasy_size3_weight.into()
-                + veryeasy_size4_weight.into()
-                + veryeasy_size5_weight.into();
-            let master_total: u16 = master_size1_weight.into()
-                + master_size2_weight.into()
-                + master_size3_weight.into()
-                + master_size4_weight.into()
-                + master_size5_weight.into();
-            assert!(veryeasy_total > 0, "VeryEasy block weights must sum to > 0");
-            assert!(master_total > 0, "Master block weights must sum to > 0");
+            // Block weights are now hardcoded in get_block_weights_for_difficulty.
 
             // Validate variance settings
             assert!(early_variance_percent <= 50, "Early variance must be <= 50%");
@@ -2050,16 +1988,6 @@ mod config_system {
             GameSetting {
                 name: 'LINES_BUDGET', value: game_settings.constraint_lines_budgets.into(),
             },
-            GameSetting { name: 'VE_S1', value: game_settings.veryeasy_size1_weight.into() },
-            GameSetting { name: 'VE_S2', value: game_settings.veryeasy_size2_weight.into() },
-            GameSetting { name: 'VE_S3', value: game_settings.veryeasy_size3_weight.into() },
-            GameSetting { name: 'VE_S4', value: game_settings.veryeasy_size4_weight.into() },
-            GameSetting { name: 'VE_S5', value: game_settings.veryeasy_size5_weight.into() },
-            GameSetting { name: 'MA_S1', value: game_settings.master_size1_weight.into() },
-            GameSetting { name: 'MA_S2', value: game_settings.master_size2_weight.into() },
-            GameSetting { name: 'MA_S3', value: game_settings.master_size3_weight.into() },
-            GameSetting { name: 'MA_S4', value: game_settings.master_size4_weight.into() },
-            GameSetting { name: 'MA_S5', value: game_settings.master_size5_weight.into() },
             GameSetting { name: 'VAR_E', value: game_settings.early_variance_percent.into() },
             GameSetting { name: 'VAR_M', value: game_settings.mid_variance_percent.into() },
             GameSetting { name: 'VAR_L', value: game_settings.late_variance_percent.into() },
