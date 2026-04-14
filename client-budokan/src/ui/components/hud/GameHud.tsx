@@ -310,18 +310,23 @@ const GameHud: React.FC<GameHudProps> = ({
               </button>
             )}
 
-            {/* Difficulty badge (replaces guardian portrait) */}
-            <div
-              className="absolute rounded-full flex flex-col items-center justify-center"
-              style={{
-                ...guardianPos,
-                background: `linear-gradient(135deg, ${currentTier.color}40, ${currentTier.color}15)`,
-                border: `2px solid ${currentTier.color}80`,
-                boxShadow: `0 0 12px ${currentTier.color}30`,
-              }}
-            >
-              <span className="text-[clamp(14px,4vw,22px)] leading-none">{currentTier.emoji}</span>
-              <span className="font-display text-[clamp(6px,1.8vw,9px)] font-bold text-white leading-tight text-center px-0.5">{currentTier.name}</span>
+            {/* Guardian portrait with difficulty badge overlay */}
+            <div className="absolute rounded-full" style={guardianPos}>
+              <img
+                src={portraitSrc}
+                alt={guardian.name}
+                className="absolute inset-0 w-full h-full rounded-full object-cover overflow-hidden"
+              />
+              {/* Difficulty badge — bottom-right, overlaid on portrait */}
+              <div
+                className="absolute -bottom-2 -right-2 rounded-full min-w-[clamp(20px,6vw,32px)] h-[clamp(20px,6vw,32px)] flex items-center justify-center px-0.5 font-sans text-[clamp(10px,3vw,16px)] font-bold z-10 shadow-[0_0_4px_rgba(0,0,0,0.5)]"
+                style={{
+                  background: currentTier.color,
+                  border: `1px solid ${currentTier.color}80`,
+                }}
+              >
+                {currentTier.emoji}
+              </div>
             </div>
 
             {/* Score bar — total score toward next tier */}

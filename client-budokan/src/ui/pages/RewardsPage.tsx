@@ -11,7 +11,12 @@ import DailyTab from "@/ui/components/rewards/DailyTab";
 import WeeklyTab from "@/ui/components/rewards/WeeklyTab";
 import QuestsRewardsTab from "@/ui/components/rewards/QuestsRewardsTab";
 
-const TABS = ["Quests", "Daily", "Weekly"] as const;
+// Weekly tab hidden until endless mode launches (all endless settings are
+// disabled at mainnet launch). Flip to true + re-add "Weekly" to enable.
+const SHOW_WEEKLY_TAB = false;
+const TABS = SHOW_WEEKLY_TAB
+  ? (["Quests", "Daily", "Weekly"] as const)
+  : (["Quests", "Daily"] as const);
 
 const RewardsPage: React.FC = () => {
   const { themeTemplate } = useTheme();

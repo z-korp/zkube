@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x4315e0cdc96d922fa98b44ed1bef3f230369c5b3bbf69f7a4396c1e2f2d6266",
-    "seed": "zkube_2_1",
+    "address": "0x1efac8732d9a126b898bfd05c3104575ea6929ad2b5469eab089887691cba44",
+    "seed": "zkube_2_3",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,8 +33,8 @@
   },
   "contracts": [
     {
-      "address": "0x64230aa4674172ecba94e3dd924710c86940d54dc488219d5fbeabc43f17ec2",
-      "class_hash": "0x7f6286a7cd2f624945e95c1d45f177a3f91af497423e391745b1589852e5c44",
+      "address": "0x6b75d6bcf55fd01fc68dd6131319411feb47f1ee23c6b48bc54252492b70557",
+      "class_hash": "0x5c0c0944d6c43c4320ba626fc3a70e82f890e02eee0e3ce8f529a2ebc68bc6d",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
         "0x072a37e71a4cbfb8b3850b61e4ee25475e8e0a0ce7a6e61fcf9ade139d196133",
@@ -49,10 +49,10 @@
         "unlock_zone_with_stars",
         "set_zone_pricing",
         "set_zone_enabled",
-        "set_zone_theme",
         "set_star_eligible",
         "set_zstar_address",
         "set_treasury",
+        "set_reward_tiers",
         "upgrade",
         "grant_role",
         "revoke_role",
@@ -60,8 +60,8 @@
       ]
     },
     {
-      "address": "0x31137492aa96b0d56379c3b14910decf9e8c6a91d96680f13f7cb1568dc0678",
-      "class_hash": "0x72e3060acfdaa51c41b0a7f227c82b0aa2bd6e12dbb6d4aedb6fec97703f2b8",
+      "address": "0x3029796efb804ccc02904793d068372e7a0ec52a57e97d9c5c92512c9cf6aa4",
+      "class_hash": "0x36ecd34229da2532450119e262adb8f77d320424f4779346f5a50a6fefcff0b",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859"
       ],
@@ -72,18 +72,16 @@
         "start_daily_game",
         "replay_daily_level",
         "settle_challenge",
-        "settle_weekly_endless",
         "upgrade"
       ]
     },
     {
-      "address": "0x5e02a1f750b3fa0e835d454705b664ecb23166cdb49459b1c96c1e3eaf9a2f4",
-      "class_hash": "0x575b7acb475a76737faf4c30d02c9b9d97c15d2d1580142e3a80f893cbd8595",
+      "address": "0x7639297a215ce2fd925d9b47fb4a4611281cdb5c243eabe2701b985bfd106eb",
+      "class_hash": "0x3e1fbef359ea7cae6351041dd94436dcb20cf6eb91240674d7551a636cdc25c",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
         "0x0004e6e5bbf18424dfb825f1dbb65e10473b4603a1ec7b9ab02c143d877114f9",
-        "0x0",
-        "0x0",
+        "0x1",
         "0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f"
       ],
       "tag": "zkube_v2_1_1-game_system",
@@ -98,8 +96,8 @@
       ]
     },
     {
-      "address": "0x55968098229ce2b50e71084ce1edf1356b644972f6b63fb59a400a9b90474dd",
-      "class_hash": "0x639aa4109c48b30cf651fb127a214bb6491b39ff7f0a9a1ffe0304ce4655b5f",
+      "address": "0x3bc17625a052fb12bee91b62df32fa792fb25400454dda18f8aa923b2185123",
+      "class_hash": "0x26cd528392663c56cf80ce01006ae765595a267f838466573372a9f7b879d39",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-grid_system",
       "selector": "0x7bee05eebc6523e85f1898631b25ce16f91b107eb2873ec0234680496839ce7",
@@ -111,8 +109,8 @@
       ]
     },
     {
-      "address": "0x6529fd7f2f9fb974b37372eca5e8b9288b67cbe46791821bc6e702fee1ff150",
-      "class_hash": "0x522989433e228b77e1edf47860b339995f4bf095f34dce0409aaf2155e8312c",
+      "address": "0x2262a550b3adfef633b53cf4e8d6b946f10cc1da3ac673038e0eeef803c1190",
+      "class_hash": "0x15a65ba7a5c8c5c5ccbcff7d47d86c5cea1c827bc9f581f5888447482769bf4",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-level_system",
       "selector": "0x1b08ed4c0314aa961a2fc61197e117a7e8b346cba235ba64b82c70638171440",
@@ -126,8 +124,8 @@
       ]
     },
     {
-      "address": "0x5580afcc9152c1dc858d8aa7d350ad849a182c06f18114a43061379bc779a8d",
-      "class_hash": "0x5a013579ca3686ea52767bc08edabcc4cbf023697b0f17f104db423a30fc012",
+      "address": "0x45575a7ea45067c4dbd37cb5be1cfb37ada909099e6edc1b93cfe18cb36fc6f",
+      "class_hash": "0x8db496c7fc536d52d2606dde1b6b6dd803a6ae2ffe042158e56454c5671b78",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-move_system",
       "selector": "0x23c804211898ab98622b1199ca48308ae9539b9271b1b59e07f12793205883a",
@@ -137,8 +135,8 @@
       ]
     },
     {
-      "address": "0x6a30d2dcd60aeac87c8cc0a30aa7bd26b07e06243085850960a7943554fa93b",
-      "class_hash": "0x6f6f17256ef22173ac4d86ca028c8031c8fe7b7de584f103d053ce08e9dcd2e",
+      "address": "0xbe871a573b3cd65bb9b0926cd02e8439bb86dfb45f0792ad1fe466f53a8cd2",
+      "class_hash": "0x6f4d82dcb010e0ec021fd630384d46798a7ba4650d1e499835fbb414263d187",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-progress_system",
       "selector": "0x1c30136162078a327946ba1fbf968d1ed050182e82dc3ce91d716d199a759a3",
@@ -152,8 +150,8 @@
       ]
     },
     {
-      "address": "0x4fbc9e450aa85f167312c80b2f73a04b717092b33eb93b78e1be57742bb9a87",
-      "class_hash": "0x42d5faaa755f7d9972bfb4fbc5933fd50df5530a0f4231f7c73e306a759e4ba",
+      "address": "0x530c17ffb5c19f27fb00eb9cc9bfc22d2a32df0d61c53dc6040d53c34cb75ea",
+      "class_hash": "0x299a26122c7b5f9d1474b90a55b29c4de8e6367eccaa847db15562d129cfc02",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-renderer_systems",
       "selector": "0x70f3bfccd2499c8e5af4b0efbbe08b8ed4d5114b788283cccfb9e7aa3c59741",
@@ -162,8 +160,8 @@
       ]
     },
     {
-      "address": "0x71b7285475e6c8aa786b82f2a057d72065b6f11ac4a019984afdcf324fdd4ab",
-      "class_hash": "0x1c933ecba799f89dee6a196c13daeab71dcdbfd72958d186acbce1c6545285b",
+      "address": "0x377a9b3fcd8c9e90646dbdb861b659e854a1cf54456583996e1e782be97e4f5",
+      "class_hash": "0x55c96779a70d6b5a736072d54408cfb63a7073b084b292360024ff2d7ad16c2",
       "init_calldata": [],
       "tag": "zkube_v2_1_1-story_system",
       "selector": "0x5a41f5aefd500f750fc3a3633da16042691f5ec5462b5c73d5404107acb52a4",
@@ -171,6 +169,17 @@
         "start_story_attempt",
         "replay_story_level",
         "claim_zone_perfection",
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x52ae9c6312d81d92cdec2deec0e89b6663b98beaaedf82e49f926dec67c4eda",
+      "class_hash": "0x695ed9dad4893421ae7efeb3ee9f1286b2e6aee4494adc7edfb596ffa232cba",
+      "init_calldata": [],
+      "tag": "zkube_v2_1_1-weekly_endless_system",
+      "selector": "0x5efd9b0d3cbc0bf14aab9bb3541e65a233c497bd0c3aee2890d831319b9bd1f",
+      "systems": [
+        "settle_weekly_endless",
         "upgrade"
       ]
     }
@@ -795,56 +804,6 @@
           "key": false
         },
         {
-          "name": "veryeasy_size1_weight",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "veryeasy_size2_weight",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "veryeasy_size3_weight",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "veryeasy_size4_weight",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "veryeasy_size5_weight",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "master_size1_weight",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "master_size2_weight",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "master_size3_weight",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "master_size4_weight",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "master_size5_weight",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
           "name": "early_variance_percent",
           "type": "core::integer::u8",
           "key": false
@@ -905,7 +864,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x6b46f8d625a43fad90d817c03ccd87b0efe10f230ddbddaed8cca6dd524c0b4",
+      "class_hash": "0x3b1739a1716e442a33b279b6fcaff8af4f4275cbf0cad1a72894687a2786a40",
       "tag": "zkube_v2_1_1-GameSettings",
       "selector": "0x7b0d653149d7bca0c09b0394971a4f966cdbde0c5159451d3a3955a9b6570b7"
     },
@@ -1004,7 +963,7 @@
           "key": false
         },
         {
-          "name": "combo_score_mult_x100",
+          "name": "score_mult_x100",
           "type": "core::integer::u16",
           "key": false
         },
@@ -1034,67 +993,37 @@
           "key": false
         },
         {
-          "name": "bonus_1_type",
+          "name": "combo_bonus_mult_x100",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "bonus_type",
           "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "bonus_1_trigger_type",
+          "name": "combo_trigger_threshold",
           "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "bonus_1_trigger_threshold",
+          "name": "lines_trigger_threshold",
           "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "bonus_1_starting_charges",
+          "name": "score_trigger_threshold",
           "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "bonus_2_type",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "bonus_2_trigger_type",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "bonus_2_trigger_threshold",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "bonus_2_starting_charges",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "bonus_3_type",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "bonus_3_trigger_type",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "bonus_3_trigger_threshold",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "bonus_3_starting_charges",
+          "name": "starting_charges",
           "type": "core::integer::u8",
           "key": false
         }
       ],
-      "class_hash": "0x417269c4d18bb5772282f554d3f1bc75cbad6ea0562d4c2f20bf983a80b9c61",
+      "class_hash": "0x5dec9307408737a1ce76ec64224f89ebceb06477e7c29e252b088de5eed022",
       "tag": "zkube_v2_1_1-MutatorDef",
       "selector": "0x5fd234af1e3a65b33362c091dd31b54bcd70edcbca23edc65658f522e11340"
     },
@@ -1326,6 +1255,43 @@
       "class_hash": "0x34f69049813e33a860c758ba15c5bb90033e635d7a625e1fe8eb912d39535b7",
       "tag": "zkube_v2_1_1-QuestDefinition",
       "selector": "0x77422a9ae0bbcfef8ff7d81da448a342bc304b3faae2e9c1168cc2c01d2c461"
+    },
+    {
+      "members": [
+        {
+          "name": "kind",
+          "type": "core::integer::u8",
+          "key": true
+        },
+        {
+          "name": "tier_0",
+          "type": "core::integer::u32",
+          "key": false
+        },
+        {
+          "name": "tier_1",
+          "type": "core::integer::u32",
+          "key": false
+        },
+        {
+          "name": "tier_2",
+          "type": "core::integer::u32",
+          "key": false
+        },
+        {
+          "name": "tier_3",
+          "type": "core::integer::u32",
+          "key": false
+        },
+        {
+          "name": "tier_4",
+          "type": "core::integer::u32",
+          "key": false
+        }
+      ],
+      "class_hash": "0x131a02ba9aa2bf0721e6fc09d53c415a730564edcad1ee80bfab44e71b6406a",
+      "tag": "zkube_v2_1_1-RewardTiers",
+      "selector": "0x15a842b1163b004d18a6e5b86b4b19f78e39353a24b338cfe9a1ceb5c464aa1"
     },
     {
       "members": [
@@ -5967,46 +5933,6 @@
           "type": "core::integer::u64"
         },
         {
-          "name": "veryeasy_size1_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_size2_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_size3_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_size4_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_size5_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_size1_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_size2_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_size3_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_size4_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_size5_weight",
-          "type": "core::integer::u8"
-        },
-        {
           "name": "early_variance_percent",
           "type": "core::integer::u8"
         },
@@ -6225,46 +6151,6 @@
           "type": "core::integer::u64"
         },
         {
-          "name": "veryeasy_size1_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_size2_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_size3_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_size4_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_size5_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_size1_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_size2_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_size3_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_size4_weight",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_size5_weight",
-          "type": "core::integer::u8"
-        },
-        {
           "name": "early_variance_percent",
           "type": "core::integer::u8"
         },
@@ -6315,6 +6201,62 @@
       ]
     },
     {
+      "type": "struct",
+      "name": "zkube::models::config::RewardTiers",
+      "members": [
+        {
+          "name": "kind",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "tier_0",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "tier_1",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "tier_2",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "tier_3",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "tier_4",
+          "type": "core::integer::u32"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::config::RewardTiersValue",
+      "members": [
+        {
+          "name": "tier_0",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "tier_1",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "tier_2",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "tier_3",
+          "type": "core::integer::u32"
+        },
+        {
+          "name": "tier_4",
+          "type": "core::integer::u32"
+        }
+      ]
+    },
+    {
       "type": "event",
       "name": "zkube::models::config::m_GameSettings::Event",
       "kind": "enum",
@@ -6323,6 +6265,12 @@
     {
       "type": "event",
       "name": "zkube::models::config::m_GameSettingsMetadata::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::config::m_RewardTiers::Event",
       "kind": "enum",
       "variants": []
     },
@@ -7045,7 +6993,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "combo_score_mult_x100",
+          "name": "score_mult_x100",
           "type": "core::integer::u16"
         },
         {
@@ -7069,51 +7017,27 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "bonus_1_type",
+          "name": "combo_bonus_mult_x100",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "bonus_type",
           "type": "core::integer::u8"
         },
         {
-          "name": "bonus_1_trigger_type",
+          "name": "combo_trigger_threshold",
           "type": "core::integer::u8"
         },
         {
-          "name": "bonus_1_trigger_threshold",
+          "name": "lines_trigger_threshold",
           "type": "core::integer::u8"
         },
         {
-          "name": "bonus_1_starting_charges",
+          "name": "score_trigger_threshold",
           "type": "core::integer::u8"
         },
         {
-          "name": "bonus_2_type",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_2_trigger_type",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_2_trigger_threshold",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_2_starting_charges",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_3_type",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_3_trigger_type",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_3_trigger_threshold",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_3_starting_charges",
+          "name": "starting_charges",
           "type": "core::integer::u8"
         }
       ]
@@ -7139,7 +7063,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "combo_score_mult_x100",
+          "name": "score_mult_x100",
           "type": "core::integer::u16"
         },
         {
@@ -7163,51 +7087,27 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "bonus_1_type",
+          "name": "combo_bonus_mult_x100",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "bonus_type",
           "type": "core::integer::u8"
         },
         {
-          "name": "bonus_1_trigger_type",
+          "name": "combo_trigger_threshold",
           "type": "core::integer::u8"
         },
         {
-          "name": "bonus_1_trigger_threshold",
+          "name": "lines_trigger_threshold",
           "type": "core::integer::u8"
         },
         {
-          "name": "bonus_1_starting_charges",
+          "name": "score_trigger_threshold",
           "type": "core::integer::u8"
         },
         {
-          "name": "bonus_2_type",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_2_trigger_type",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_2_trigger_threshold",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_2_starting_charges",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_3_type",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_3_trigger_type",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_3_trigger_threshold",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "bonus_3_starting_charges",
+          "name": "starting_charges",
           "type": "core::integer::u8"
         }
       ]
@@ -7623,46 +7523,6 @@
               "type": "core::integer::u64"
             },
             {
-              "name": "veryeasy_size1_weight",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "veryeasy_size2_weight",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "veryeasy_size3_weight",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "veryeasy_size4_weight",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "veryeasy_size5_weight",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "master_size1_weight",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "master_size2_weight",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "master_size3_weight",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "master_size4_weight",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "master_size5_weight",
-              "type": "core::integer::u8"
-            },
-            {
               "name": "early_variance_percent",
               "type": "core::integer::u8"
             },
@@ -7855,22 +7715,6 @@
         },
         {
           "type": "function",
-          "name": "set_zone_theme",
-          "inputs": [
-            {
-              "name": "settings_id",
-              "type": "core::integer::u32"
-            },
-            {
-              "name": "theme_id",
-              "type": "core::integer::u8"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
           "name": "set_star_eligible",
           "inputs": [
             {
@@ -7951,6 +7795,38 @@
             }
           ],
           "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "set_reward_tiers",
+          "inputs": [
+            {
+              "name": "kind",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "tier_0",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "tier_1",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "tier_2",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "tier_3",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "tier_4",
+              "type": "core::integer::u32"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
         }
       ]
     },
@@ -8095,26 +7971,6 @@
             }
           ],
           "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "settle_weekly_endless",
-          "inputs": [
-            {
-              "name": "week_id",
-              "type": "core::integer::u32"
-            },
-            {
-              "name": "settings_id",
-              "type": "core::integer::u32"
-            },
-            {
-              "name": "ranked_players",
-              "type": "core::array::Span::<core::starknet::contract_address::ContractAddress>"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
         }
       ]
     },
@@ -8246,7 +8102,7 @@
           ],
           "outputs": [
             {
-              "type": "(core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u16, core::bool)"
+              "type": "(core::integer::u8, core::integer::u16, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u16, core::bool)"
             }
           ],
           "state_mutability": "view"
@@ -8753,6 +8609,49 @@
     {
       "type": "event",
       "name": "zkube::systems::story::story_system::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "zkube::systems::weekly_endless::IWeeklyEndlessSystem",
+      "items": [
+        {
+          "type": "function",
+          "name": "settle_weekly_endless",
+          "inputs": [
+            {
+              "name": "week_id",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "settings_id",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "ranked_players",
+              "type": "core::array::Span::<core::starknet::contract_address::ContractAddress>"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::systems::weekly_endless::weekly_endless_system::Event",
       "kind": "enum",
       "variants": [
         {

@@ -17,14 +17,7 @@ import { motion } from "motion/react";
 import { normalizeAddress } from "@/hooks/useGetUsernames";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 import TierContext from "@/ui/components/rewards/TierContext";
-
-const REWARD_TIERS = [
-  { pct: 1, label: "Top 1%", reward: 10 },
-  { pct: 5, label: "Top 5%", reward: 7 },
-  { pct: 10, label: "Top 10%", reward: 5 },
-  { pct: 25, label: "Top 25%", reward: 3 },
-  { pct: 50, label: "Top 50%", reward: 1 },
-];
+import { DAILY_REWARD_TIERS } from "@/config/rewardTiers";
 
 const TROPHY_IMAGES: Record<number, string> = {
   1: "/assets/common/trophies/gold.png",
@@ -268,7 +261,7 @@ const DailyChallengePage: React.FC = () => {
                   myScore={playerRank.totalStars ?? 0}
                   myName={playerRank.playerName ?? "You"}
                   totalEntries={leaderboard.length}
-                  tiers={REWARD_TIERS}
+                  tiers={DAILY_REWARD_TIERS}
                   entries={leaderboard.map((e) => ({ rank: e.rank, score: e.totalStars ?? 0, name: e.playerName ?? e.player.slice(0, 8) }))}
                   scoreLabel="★"
                 />

@@ -313,15 +313,23 @@ const PlayScreen: React.FC = () => {
       } else {
         playSfx("levelup");
       }
-      setPendingLevelCompletion({
-        level: prevState.level,
-        levelMoves: prevState.levelMoves,
-        prevTotalScore: levelStartTotalScoreRef.current,
-        totalScore: toriiGame.totalScore,
-        gameLevel: resolveCompletionGameLevel(prevState.level),
-      });
-      levelStartTotalScoreRef.current = toriiGame.totalScore;
-      navNavigate("map");
+
+      // Endless/tournament (mode=1): levels advance seamlessly during play.
+      // Don't navigate to map — just update the score baseline and continue.
+      if (toriiGame.mode === 1) {
+        levelStartTotalScoreRef.current = toriiGame.totalScore;
+      } else {
+        // Story + Daily (mode=0): navigate to map for level completion dialog
+        setPendingLevelCompletion({
+          level: prevState.level,
+          levelMoves: prevState.levelMoves,
+          prevTotalScore: levelStartTotalScoreRef.current,
+          totalScore: toriiGame.totalScore,
+          gameLevel: resolveCompletionGameLevel(prevState.level),
+        });
+        levelStartTotalScoreRef.current = toriiGame.totalScore;
+        navNavigate("map");
+      }
     }
 
     prevGameStateRef.current = {

@@ -14,22 +14,12 @@ import { usePlayerEntry } from "@/hooks/usePlayerEntry";
 import { ZONE_NAMES } from "@/config/profileData";
 import { getMutatorDef } from "@/config/mutatorConfig";
 import TierContext from "@/ui/components/rewards/TierContext";
+import { DAILY_REWARD_TIERS, computeDailyReward } from "@/config/rewardTiers";
 
 const itemVariants: any = {
   hidden: { opacity: 0, y: 12 },
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
 };
-
-function computeDailyReward(rank: number, total: number): number {
-  if (total === 0) return 0;
-  const pct = ((rank - 1) * 100) / total;
-  if (pct < 2) return 10;
-  if (pct < 5) return 7;
-  if (pct < 10) return 5;
-  if (pct < 25) return 3;
-  if (pct < 50) return 1;
-  return 0;
-}
 
 interface CountdownProps {
   endTime: number;
@@ -65,14 +55,6 @@ const Countdown: React.FC<CountdownProps> = ({ endTime, colors }) => {
 interface DailyTabProps {
   colors: ThemeColors;
 }
-
-const REWARD_TIERS = [
-  { pct: 1, label: "Top 1%", reward: 10 },
-  { pct: 5, label: "Top 5%", reward: 7 },
-  { pct: 10, label: "Top 10%", reward: 5 },
-  { pct: 25, label: "Top 25%", reward: 3 },
-  { pct: 50, label: "Top 50%", reward: 1 },
-];
 
 const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
   const { account } = useAccountCustom();
@@ -328,7 +310,7 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
                 myScore={myEntry.totalStars ?? 0}
                 myName={myEntry.playerName ?? "You"}
                 totalEntries={entries.length}
-                tiers={REWARD_TIERS}
+                tiers={DAILY_REWARD_TIERS}
                 entries={tierEntries}
                 scoreLabel="★"
               />
@@ -343,7 +325,7 @@ const DailyTab: React.FC<DailyTabProps> = ({ colors }) => {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-wrap justify-center gap-1.5"
       >
-        {REWARD_TIERS.map((tier) => {
+        {DAILY_REWARD_TIERS.map((tier) => {
           const isMyTier = myEntry && entries.length > 0 && myReward === tier.reward;
           return (
             <span

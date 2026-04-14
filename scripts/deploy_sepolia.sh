@@ -220,7 +220,7 @@ grant_zstar_role() {
         print_warn "  Failed to grant $role_name to $system_name"
         echo "$OUTPUT"
     fi
-    sleep 5
+    sleep 10
 }
 
 grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "game_system" "$GAME_SYSTEM"
@@ -233,50 +233,106 @@ grant_zstar_role "MINTER_ROLE" "$MINTER_ROLE_FELT" "config_system" "$CONFIG_SYST
 grant_zstar_role "BURNER_ROLE" "$BURNER_ROLE_FELT" "config_system" "$CONFIG_SYSTEM"
 
 #-----------------
-# Step 9: Set zone pricing for easy testing (star_cost=10, price=5 STRK for all paid zones)
+# Step 9: Set zone pricing (USDC, 6 decimals — mirrors mainnet)
 #-----------------
-print_info "Step 9: Setting zone pricing (star_cost=10, price=5 STRK for all paid zones)..."
+print_info "Step 9: Setting zone pricing (USDC, mirrors mainnet tiers)..."
 
-SEPOLIA_STRK="0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
+SEPOLIA_USDC="0x053b40a647cedfca6ca84f542a0fe36736031905a9639a7f19a3c1e66bfd5080"
 
 set_zone_pricing() {
     local settings_id="$1"
     local zone_name="$2"
+    local price="$3"
+    local star_cost="$4"
 
     if [ -z "$CONFIG_SYSTEM" ] || [ "$CONFIG_SYSTEM" = "null" ]; then
         print_warn "  Skipping zone pricing (config_system address not found)"
         return
     fi
 
-    # set_zone_pricing(settings_id, is_free=false, price=5 STRK, payment_token=STRK, star_cost=10)
     local OUTPUT=$(sozo execute -P $PROFILE \
         --account-address "$ACCOUNT_ADDRESS" \
         --private-key "$PRIVATE_KEY" \
         --rpc-url "$RPC_URL" \
         "$CONFIG_SYSTEM" \
-        set_zone_pricing "$settings_id" 0 5000000000000000000 "$SEPOLIA_STRK" 10 2>&1) || true
+        set_zone_pricing "$settings_id" 0 "$price" "$SEPOLIA_USDC" "$star_cost" 2>&1) || true
 
     if echo "$OUTPUT" | grep -q "Transaction hash"; then
-        print_info "  Set $zone_name (settings_id=$settings_id) → 5 STRK + star_cost=10"
+        print_info "  Set $zone_name (id=$settings_id) → price=$price, star_cost=$star_cost"
     else
         print_warn "  Failed to set pricing for $zone_name"
         echo "$OUTPUT"
     fi
-    sleep 5
+    sleep 10
 }
 
-# Zone 1 (settings_id=0) is already free — skip
-set_zone_pricing 2  "Zone 2 (Egypt)"
-set_zone_pricing 4  "Zone 3 (Norse)"
-set_zone_pricing 6  "Zone 4 (Greece)"
-set_zone_pricing 8  "Zone 5 (China)"
-set_zone_pricing 10 "Zone 6 (Persia)"
-set_zone_pricing 12 "Zone 7 (Japan)"
-set_zone_pricing 14 "Zone 8 (Mayan)"
-set_zone_pricing 16 "Zone 9 (Tribal)"
-set_zone_pricing 18 "Zone 10 (Inca)"
+# Zone 1 (settings_id=0) is free — skip
+# 5 USDC = 5_000_000 (6 decimals), star_cost = 100
+# 10 USDC = 10_000_000 (6 decimals), star_cost = 200
+# Tier 1: Zones 2-4 at 5 USDC + 100 stars
+set_zone_pricing 2  "Zone 2 (Egypt)"   5000000 100
+set_zone_pricing 4  "Zone 3 (Norse)"   5000000 100
+set_zone_pricing 6  "Zone 4 (Greece)"  5000000 100
+# Tier 2: Zones 5-7 at 10 USDC + 200 stars
+set_zone_pricing 8  "Zone 5 (China)"   10000000 200
+set_zone_pricing 10 "Zone 6 (Persia)"  10000000 200
+set_zone_pricing 12 "Zone 7 (Japan)"   10000000 200
+# Tier 3: Zones 8-10 at 10 USDC + 200 stars
+set_zone_pricing 14 "Zone 8 (Mayan)"   10000000 200
+set_zone_pricing 16 "Zone 9 (Tribal)"  10000000 200
+set_zone_pricing 18 "Zone 10 (Inca)"   10000000 200
 
-print_info "Step 10: Updating torii configuration..."
+#-----------------
+# Step 10: Disable settings not live at launch (mirrors mainnet)
+#-----------------
+print_info "Step 10: Disabling settings not live at launch..."
+
+disable_settings() {
+    local settings_id="$1"
+    local desc="$2"
+
+    if [ -z "$CONFIG_SYSTEM" ] || [ "$CONFIG_SYSTEM" = "null" ]; then
+        print_warn "  Skipping disable (config_system address not found)"
+        return
+    fi
+
+    local OUTPUT=$(sozo execute -P $PROFILE \
+        --account-address "$ACCOUNT_ADDRESS" \
+        --private-key "$PRIVATE_KEY" \
+        --rpc-url "$RPC_URL" \
+        "$CONFIG_SYSTEM" \
+        set_zone_enabled "$settings_id" 0 2>&1) || true
+
+    if echo "$OUTPUT" | grep -q "Transaction hash"; then
+        print_info "  Disabled $desc (id=$settings_id)"
+    else
+        print_warn "  Failed to disable $desc"
+        echo "$OUTPUT"
+    fi
+    sleep 10
+}
+
+# Disable all endless settings (odd IDs 1-19)
+disable_settings 1  "Z1 endless"
+disable_settings 3  "Z2 endless"
+disable_settings 5  "Z3 endless"
+disable_settings 7  "Z4 endless"
+disable_settings 9  "Z5 endless"
+disable_settings 11 "Z6 endless"
+disable_settings 13 "Z7 endless"
+disable_settings 15 "Z8 endless"
+disable_settings 17 "Z9 endless"
+disable_settings 19 "Z10 endless"
+
+# Disable Z5-Z10 map settings (even IDs 8-18)
+disable_settings 8  "Z5 map (China)"
+disable_settings 10 "Z6 map (Persia)"
+disable_settings 12 "Z7 map (Japan)"
+disable_settings 14 "Z8 map (Mayan)"
+disable_settings 16 "Z9 map (Tribal)"
+disable_settings 18 "Z10 map (Inca)"
+
+print_info "Step 11: Updating torii configuration..."
 cat > "$TORII_CONFIG" << EOF
 world_address = "$WORLD_ADDRESS"
 rpc = "$RPC_URL"

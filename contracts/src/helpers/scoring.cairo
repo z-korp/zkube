@@ -65,33 +65,29 @@ pub fn process_lines_cleared(
     update_combo_tracking(ref combo_counter, ref max_combo, ref run_data, lines_cleared);
 }
 
-/// Award a per-move combo bonus on multi-line clears. The bonus scales with
-/// `combo_counter` (total combo-lines cleared this level) and `lines_cleared`
-/// on this move, then is amplified by the passive mutator's
-/// `combo_bonus_mult_x100`. Neutral mult (100) gives `combo_counter *
-/// lines_cleared` points; mult 200 doubles it; mult 0 is treated as neutral.
-///
-/// Only fires on genuine combos (`lines_cleared > 1`) — single-line clears
-/// are not considered combos regardless of prior history.
+/// Multiply the move's subtotal by `combo_bonus_mult_x100 / 100` when the
+/// move cleared multiple lines (lines_cleared > 1). At neutral (100) this
+/// is ×1.0 = no change. At 200 it doubles the move's points, etc.
+/// Single-line clears always return the subtotal unchanged.
 #[inline(always)]
-pub fn apply_combo_scoring(
-    ref run_data: RunData, combo_counter: u8, lines_cleared: u8, mutator_def: @MutatorDef,
-) {
-    if lines_cleared <= 1 || combo_counter == 0 {
-        return;
+pub fn apply_combo_mult(move_subtotal: u32, lines_cleared: u8, mutator_def: @MutatorDef) -> u16 {
+    if lines_cleared <= 1 {
+        return if move_subtotal > 0xFFFF {
+            0xFFFF
+        } else {
+            move_subtotal.try_into().unwrap()
+        };
     }
-    let base_bonus: u32 = combo_counter.into() * lines_cleared.into();
     let mut mult_x100: u16 = *mutator_def.combo_bonus_mult_x100;
     if mult_x100 == 0 {
         mult_x100 = 100;
     }
-    let scaled: u64 = base_bonus.into() * mult_x100.into() / 100_u64;
-    let clamped: u16 = if scaled > 65535_u64 {
-        65535
+    let scaled: u64 = move_subtotal.into() * mult_x100.into() / 100_u64;
+    if scaled > 0xFFFF {
+        0xFFFF
     } else {
         scaled.try_into().unwrap()
-    };
-    update_score(ref run_data, clamped);
+    }
 }
 
 /// Update score after points earned from line clearing.

@@ -37,7 +37,6 @@ export const useZoneProgress = (
   return useMemo(() => {
     const fallbackZones = [
       { settingsId: 0, zoneId: 1, themeId: 1, isFree: true, enabled: true, starCost: 0n, price: 0n },
-      { settingsId: 2, zoneId: 2, themeId: 2, isFree: false, enabled: true, starCost: 50n, price: 5000000n },
     ];
 
     const metadataMap = new Map<
@@ -128,7 +127,8 @@ export const useZoneProgress = (
         };
       });
 
+    const hasContractData = metadataEntityIds.length > 0;
     const totalStars = zonesToShow.reduce((sum, zone) => sum + zone.stars, 0);
-    return { zones: zonesToShow, totalStars, isLoading: false };
+    return { zones: zonesToShow, totalStars, isLoading: !hasContractData };
   }, [ownerBigInt, zStarBalance, metadataEntityIds, storyProgressEntityIds, entitlementEntityIds, GameSettingsMetadata, StoryZoneProgress, ZoneEntitlement]);
 };
