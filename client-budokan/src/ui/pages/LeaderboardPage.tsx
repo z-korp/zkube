@@ -1,15 +1,13 @@
 import { useState, useMemo } from "react";
 import { motion } from "motion/react";
 import { Trophy, Loader2 } from "lucide-react";
-import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useCurrentChallenge } from "@/hooks/useCurrentChallenge";
 import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
 import { usePlayerLeaderboard } from "@/hooks/usePlayerLeaderboard";
-import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
+import { getThemeColors } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
-import { ZONE_NAMES } from "@/config/profileData";
 import PageHeader from "@/ui/components/shared/PageHeader";
 
 const TROPHY_IMAGES: Record<number, string> = {
@@ -26,19 +24,6 @@ const rowVariants: any = {
   })
 };
 
-// Contract uses 0-based rank for percentile: (rank * 100) / total
-function computeWeeklyReward(rank1Based: number, total: number): number {
-  if (total === 0) return 0;
-  const rank = rank1Based - 1;
-  const pct = (rank * 100) / total;
-  if (pct < 2) return 30;
-  if (pct < 5) return 20;
-  if (pct < 10) return 15;
-  if (pct < 25) return 10;
-  if (pct < 50) return 3;
-  return 0;
-}
-
 function computeDailyReward(rank1Based: number, total: number): number {
   if (total === 0) return 0;
   const pct = ((rank1Based - 1) * 100) / total;
@@ -50,26 +35,16 @@ function computeDailyReward(rank1Based: number, total: number): number {
   return 0;
 }
 
-const ZONES = Array.from({ length: 10 }, (_, i) => ({
-  id: i + 1,
-  name: ZONE_NAMES[i + 1] ?? `Zone ${i + 1}`,
-  endlessSettingsId: i * 2 + 1,
-}));
-
 const LeaderboardPage: React.FC = () => {
   const { themeTemplate } = useTheme();
   const colors = getThemeColors(themeTemplate);
   const { account } = useAccountCustom();
   const { challenge } = useCurrentChallenge();
-  const { entries: dailyEntries } = useDailyLeaderboard(challenge?.challenge_id);
-  const { entries: playerEntries } = usePlayerLeaderboard();
-  const [activeTab, setActiveTab] = useState<"daily" | "endless" | "player">("daily");
-  const [selectedZone, setSelectedZone] = useState(1);
+  const { entries: dailyEntries, isLoading: dailyLoading } = useDailyLeaderboard(challenge?.challenge_id);
+  const { entries: playerEntries, isLoading: playerLoading } = usePlayerLeaderboard();
+  const [activeTab, setActiveTab] = useState<"daily" | "player">("daily");
   const navigate = useNavigationStore((s) => s.navigate);
   const setProfileAddress = useNavigationStore((s) => s.setProfileAddress);
-
-  const endlessSettingsId = (selectedZone - 1) * 2 + 1;
-  const { games, loading } = useLeaderboardSlot(endlessSettingsId);
 
   const normalizedAccount = account?.address?.toLowerCase();
 
@@ -90,30 +65,15 @@ const LeaderboardPage: React.FC = () => {
         isYou: normalizedAccount === entry.player.toLowerCase(),
       }));
     }
-    if (activeTab === "player") {
-      return playerEntries.slice(0, 30).map((entry) => ({
-        id: `player-${entry.rank}`,
-        rank: entry.rank,
-        name: entry.playerName ?? entry.player,
-        score: entry.lifetimeXp,
-        playerAddress: entry.player,
-        isYou: normalizedAccount === entry.player.toLowerCase(),
-      }));
-    }
-    return games.slice(0, 30).map((entry, index) => ({
-      id: entry.token_id.toString(),
-      rank: index + 1,
-      name: entry.player_name || "Anonymous",
-      score: entry.score,
-      playerAddress: entry.player_address,
-      isYou:
-        !!normalizedAccount &&
-        !!entry.player_address &&
-        entry.player_address.toLowerCase() === normalizedAccount,
+    return playerEntries.slice(0, 30).map((entry) => ({
+      id: `player-${entry.rank}`,
+      rank: entry.rank,
+      name: entry.playerName ?? entry.player,
+      score: entry.lifetimeXp,
+      playerAddress: entry.player,
+      isYou: normalizedAccount === entry.player.toLowerCase(),
     }));
-  }, [activeTab, dailyEntries, playerEntries, games, normalizedAccount]);
-
-  const totalParticipants = activeTab === "endless" ? games.length : 0;
+  }, [activeTab, dailyEntries, playerEntries, normalizedAccount]);
 
   const myRank = useMemo(() => {
     if (!normalizedAccount) return null;
@@ -121,13 +81,9 @@ const LeaderboardPage: React.FC = () => {
       const entry = dailyEntries.find((e) => e.player.toLowerCase() === normalizedAccount);
       return entry ? { rank: entry.rank, total: dailyEntries.length, score: entry.totalStars ?? 0, name: entry.playerName ?? "You" } : null;
     }
-    if (activeTab === "player") {
-      const entry = playerEntries.find((e) => e.player.toLowerCase() === normalizedAccount);
-      return entry ? { rank: entry.rank, total: playerEntries.length, score: entry.lifetimeXp, name: entry.playerName ?? "You" } : null;
-    }
-    const idx = games.findIndex((g) => g.player_address?.toLowerCase() === normalizedAccount);
-    return idx >= 0 ? { rank: idx + 1, total: games.length, score: games[idx].score, name: games[idx].player_name || "You" } : null;
-  }, [activeTab, dailyEntries, playerEntries, games, normalizedAccount]);
+    const entry = playerEntries.find((e) => e.player.toLowerCase() === normalizedAccount);
+    return entry ? { rank: entry.rank, total: playerEntries.length, score: entry.lifetimeXp, name: entry.playerName ?? "You" } : null;
+  }, [activeTab, dailyEntries, playerEntries, normalizedAccount]);
 
   const isMyRankVisible = myRank ? rankRows.some((r) => r.isYou) : false;
 
@@ -144,7 +100,6 @@ const LeaderboardPage: React.FC = () => {
         <div className="mx-6 mt-2 flex rounded-full border border-white/[0.16] bg-white/[0.1] p-1 shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)] backdrop-blur-xl">
           {([
             { id: "daily", label: "Daily" },
-            { id: "endless", label: "Endless" },
             { id: "player", label: "Player" },
           ] as const).map((tab) => (
             <button
@@ -167,33 +122,10 @@ const LeaderboardPage: React.FC = () => {
             </button>
           ))}
         </div>
-
-        {activeTab === "endless" && (
-          <div className="mx-4 mt-2 flex justify-center gap-1.5 overflow-x-auto hide-scrollbar pb-1">
-            {ZONES.map((zone) => (
-              <button
-                key={zone.id}
-                onClick={() => setSelectedZone(zone.id)}
-                className={`shrink-0 rounded-lg p-0.5 transition-all ${
-                  selectedZone === zone.id
-                    ? "border-2 border-white/60 shadow-[0_0_8px_rgba(255,255,255,0.2)]"
-                    : "border-2 border-transparent hover:border-white/20"
-                }`}
-              >
-                <img
-                  src={getThemeImages(`theme-${zone.id}` as ThemeId).themeIcon}
-                  alt={zone.name}
-                  className="h-7 w-7 rounded-lg object-cover"
-                  draggable={false}
-                />
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       <div className="mx-4 mt-2 mb-4 flex-1 min-h-0 overflow-y-auto hide-scrollbar">
-        {loading ? (
+        {(activeTab === "daily" ? dailyLoading : playerLoading) ? (
           <div className="flex flex-col items-center justify-center py-16" style={{ color: colors.textMuted }}>
             <Loader2 className="h-8 w-8 animate-spin mb-4" style={{ color: colors.accent }} />
             <p className="font-sans text-sm font-medium">Loading rankings...</p>
@@ -211,17 +143,15 @@ const LeaderboardPage: React.FC = () => {
           </motion.div>
         ) : (
           <motion.div
-            key={`${activeTab}-${selectedZone}`}
+            key={activeTab}
             initial="hidden"
             animate="visible"
             className="mx-auto max-w-[640px] space-y-2"
           >
             {rankRows.map((entry, index) => {
-              const reward = activeTab === "endless"
-                ? computeWeeklyReward(entry.rank, totalParticipants)
-                : activeTab === "daily"
-                  ? computeDailyReward(entry.rank, dailyEntries.length)
-                  : 0;
+              const reward = activeTab === "daily"
+                ? computeDailyReward(entry.rank, dailyEntries.length)
+                : 0;
 
               return (
                 <motion.div
@@ -307,10 +237,8 @@ const LeaderboardPage: React.FC = () => {
                     <div className="font-sans text-[16px] font-extrabold tracking-wide" style={{ color: colors.text }}>
                       {myRank.score.toLocaleString()}{activeTab === "player" ? " XP" : activeTab === "daily" ? " ★" : ""}
                     </div>
-                    {(activeTab === "endless" || activeTab === "daily") && (() => {
-                      const reward = activeTab === "endless"
-                        ? computeWeeklyReward(myRank.rank, myRank.total)
-                        : computeDailyReward(myRank.rank, myRank.total);
+                    {activeTab === "daily" && (() => {
+                      const reward = computeDailyReward(myRank.rank, myRank.total);
                       return reward > 0 ? (
                         <div className="shrink-0 rounded-full bg-yellow-500/20 px-1.5 py-0.5 text-[10px] font-bold text-yellow-300">
                           +{reward} ★

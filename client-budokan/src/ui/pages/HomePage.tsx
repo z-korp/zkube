@@ -7,8 +7,6 @@ import { useMusicPlayer } from "@/contexts/hooks";
 import { getThemeColors, getThemeId, getThemeImages, type ThemeId } from "@/config/themes";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
-import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
-import { usePlayerBestRun } from "@/hooks/usePlayerBestRun";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useZStarBalance } from "@/hooks/useZStarBalance";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
@@ -20,9 +18,7 @@ import { ZONE_NAMES, getLevelFromXp, getTitleForLevel, type ZoneProgressData } f
 import { ZONE_GUARDIANS, getGuardianPortrait } from "@/config/bossCharacters";
 import { useNavigationStore } from "@/stores/navigationStore";
 import { showToast } from "@/utils/toast";
-import { normalizeAddress } from "@/hooks/useGetUsernames";
 import Connect from "@/ui/components/Connect";
-import ModePill from "@/ui/components/shared/ModePill";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 import UnlockModal from "@/ui/components/profile/UnlockModal";
 
@@ -179,7 +175,7 @@ const HomePage: React.FC = () => {
   const { account } = useAccountCustom();
   const {
     setup: {
-      systemCalls: { freeMint, create, startRun },
+      systemCalls: { startRun },
     },
   } = useDojo();
   const { username } = useControllerUsername();
@@ -188,8 +184,6 @@ const HomePage: React.FC = () => {
   const navigate = useNavigationStore((s) => s.navigate);
   const mapZoneId = useNavigationStore((s) => s.mapZoneId);
   const setMapZoneId = useNavigationStore((s) => s.setMapZoneId);
-  const selectedMode = useNavigationStore((s) => s.selectedMode);
-  const setSelectedMode = useNavigationStore((s) => s.setSelectedMode);
   const [isStartingGame, setIsStartingGame] = useState(false);
   const [isDailySelected, setIsDailySelected] = useState(false);
   const [unlockZone, setUnlockZone] = useState<ZoneProgressData | null>(null);
@@ -197,7 +191,7 @@ const HomePage: React.FC = () => {
   const playerLevel = getLevelFromXp(playerMeta?.lifetimeXp ?? 0);
   const playerTitle = getTitleForLevel(playerLevel);
   const { balance: zStarBalance } = useZStarBalance(account?.address);
-  const { zones: rawZones, totalStars } = useZoneProgress(account?.address, zStarBalance);
+  const { zones: rawZones, totalStars, isLoading: zonesLoading } = useZoneProgress(account?.address, zStarBalance);
   const zones = useMemo(() =>
     [...rawZones].sort((a, b) => {
       if (a.unlocked !== b.unlocked) return a.unlocked ? -1 : 1;
@@ -243,46 +237,17 @@ const HomePage: React.FC = () => {
     setMusicPlaylist(["main", "level"]);
   }, [setMusicPlaylist]);
 
-  const shouldFetchMyGames = Boolean(account?.address);
-  const normalizedOwner = account?.address ? normalizeAddress(account.address) : undefined;
   const activeStoryRun = useActiveStoryAttempt();
 
-  const { games: ownedGames } = useGameTokensSlot({
-    owner: shouldFetchMyGames ? normalizedOwner : undefined,
-    limit: shouldFetchMyGames ? 100 : 0,
-  });
-
-  const activeGames = useMemo(() => {
-    if (!ownedGames?.length) return [];
-    return ownedGames.filter((g) => !g.game_over);
-  }, [ownedGames]);
-
-  const { bestRuns } = usePlayerBestRun(account?.address);
-
   const activeStoryAttemptId = activeStoryRun?.gameId ?? null;
-  const activeEndlessGameId = activeGames[0]?.token_id ?? null;
-  const endlessZoneOneUnlocked = Boolean(zones.find((zoneData) => zoneData.zoneId === 1)?.bossCleared);
 
   const isZoneSelectable = useCallback(
     (zoneData: (typeof zones)[number] | undefined) => {
       if (!zoneData) return false;
-      if (selectedMode === 0) return zoneData.unlocked;
-      return zoneData.unlocked && zoneData.zoneId === 1 && endlessZoneOneUnlocked;
+      return zoneData.unlocked;
     },
-    [endlessZoneOneUnlocked, selectedMode],
+    [],
   );
-
-  // Only reset zone selection when MODE changes — not on data updates
-  const [lastMode, setLastMode] = useState(selectedMode);
-  useEffect(() => {
-    if (selectedMode === lastMode) return;
-    setLastMode(selectedMode);
-    if (!zones.length) return;
-    const currentSelectable = isZoneSelectable(zones[activeZone]);
-    if (currentSelectable) return;
-    const firstSelectableIndex = zones.findIndex((zoneData) => isZoneSelectable(zoneData));
-    if (firstSelectableIndex >= 0) setActiveZone(firstSelectableIndex);
-  }, [selectedMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const zone = zones[activeZone] ?? zones[0];
   const colors = getThemeColors(themeTemplate);
@@ -304,35 +269,6 @@ const HomePage: React.FC = () => {
 
         setIsStartingGame(true);
         try {
-          if (selectedMode === 1) {
-            if (selectedZone.zoneId !== 1) {
-              showToast({
-                message: "Only Endless Zone 1 is enabled in the MVP.",
-                type: "error",
-              });
-              return;
-            }
-
-            if (!selectedZone.bossCleared) {
-              showToast({
-                message: "Clear Zone 1 Guardian to unlock Endless.",
-                type: "error",
-              });
-              return;
-            }
-
-            // Endless settings are odd IDs (zone1 -> 1, zone2 -> 3, ...)
-            const endlessSettingsId = selectedZone.zoneId * 2 - 1;
-            const mintResult = await freeMint({ account, name: username ?? "", settingsId: endlessSettingsId });
-            const gameId = mintResult.game_id;
-            if (gameId === 0n) throw new Error("Failed to extract game_id from mint");
-            await create({ account, token_id: gameId, run_type: selectedMode });
-            showToast({ message: "Game started!", type: "success" });
-            useNavigationStore.setState({ showEndlessGreeting: true });
-            navigate("play", gameId);
-            return;
-          }
-
           // Story mode: resume existing active story game instead of failing on start_story_attempt.
           if (activeStoryAttemptId) {
             showToast({ message: "Resuming active story run.", type: "success" });
@@ -358,55 +294,35 @@ const HomePage: React.FC = () => {
     },
     [
       account,
-      create,
-      freeMint,
       startRun,
       isStartingGame,
       navigate,
       setMapZoneId,
-      selectedMode,
       zones,
-      username,
       activeStoryAttemptId,
     ],
   );
 
   const hasActiveStoryRun = activeStoryAttemptId !== null;
-  const hasActiveEndlessRun = activeEndlessGameId !== null;
   const selectedZonePlayable = isZoneSelectable(zone);
 
   const handlePrimaryAction = useCallback(() => {
     if (!account || !zone) return;
 
-    // Story mode — resume goes straight to game, new run goes to map
-    if (selectedMode === 0) {
-      if (activeStoryAttemptId !== null) {
-        // Use the active run's zone, not the selected zone card
-        setMapZoneId(activeStoryRun!.zoneId);
-        navigate("play", activeStoryAttemptId);
-      } else {
-        setMapZoneId(zone.zoneId);
-        navigate("map");
-      }
-      return;
+    if (activeStoryAttemptId !== null) {
+      // Use the active run's zone, not the selected zone card
+      setMapZoneId(activeStoryRun!.zoneId);
+      navigate("play", activeStoryAttemptId);
+    } else {
+      setMapZoneId(zone.zoneId);
+      navigate("map");
     }
-
-    // Endless mode
-    if (selectedMode === 1 && activeEndlessGameId !== null) {
-      navigate("play", activeEndlessGameId);
-      return;
-    }
-
-    handleStartGame(zone.settingsId);
   }, [
     account,
-    activeEndlessGameId,
     activeStoryAttemptId,
     activeStoryRun,
-    handleStartGame,
     navigate,
     setMapZoneId,
-    selectedMode,
     zone,
   ]);
 
@@ -456,43 +372,22 @@ const HomePage: React.FC = () => {
                 </span>
               </motion.div>
 
-              <motion.div variants={itemVariants} className="my-1 flex items-center gap-2">
-                <div className="flex-1 border-t border-white/[0.06]" />
-                <span className="font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-white/30">Choose Your Mode</span>
-                <div className="flex-1 border-t border-white/[0.06]" />
-              </motion.div>
-
-              <motion.div variants={itemVariants}>
-                <ModePill selectedMode={selectedMode} onModeChange={(m) => { setSelectedMode(m); setIsDailySelected(false); }} />
-              </motion.div>
-
               <motion.div variants={itemVariants} className="space-y-2">
-                {zones.length === 0 ? (
+                {zonesLoading || zones.length === 0 ? (
                   <div className="rounded-2xl border border-white/[0.14] bg-white/[0.12] p-4 text-center font-sans text-sm font-semibold text-white/80 backdrop-blur-xl">
                     Loading zones...
                   </div>
                 ) : (
                   <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 hide-scrollbar">
                     {zones.map((z, idx) => {
-                      const isEndlessMode = selectedMode === 1;
-                      const endlessSettingsId = z.zoneId * 2 - 1;
-                      const endlessBestScore = bestRuns.get(`${endlessSettingsId}-1`)?.bestScore ?? 0;
-                      const isSelectable = isEndlessMode
-                        ? z.unlocked && z.zoneId === 1 && endlessZoneOneUnlocked
-                        : z.unlocked;
+                      const isSelectable = z.unlocked;
                       const isSelected = !isDailySelected && idx === activeZone && isSelectable;
-                      const cardAccent = isEndlessMode ? "#FFB86B" : colors.accent;
 
-                      let statusText = `${z.stars}/${z.maxStars} ★`;
-                      if (isEndlessMode) {
-                        if (!z.unlocked) statusText = "Unlock Story";
-                        else if (!z.bossCleared) statusText = "Clear Guardian";
-                        else statusText = `Best ${endlessBestScore.toLocaleString()}`;
-                      } else if (!z.unlocked && !z.isFree) {
-                        statusText = (z.starCost ?? 0) > 0
+                      const statusText = !z.unlocked && !z.isFree
+                        ? (z.starCost ?? 0) > 0
                           ? `${z.starCost} ★ to unlock`
-                          : "Locked";
-                      }
+                          : "Locked"
+                        : `${z.stars}/${z.maxStars} ★`;
 
                       return (
                         <motion.button
@@ -502,15 +397,15 @@ const HomePage: React.FC = () => {
                           onClick={() => {
                             if (isSelectable) {
                               setActiveZone(idx);
-                            } else if (!z.unlocked && !z.isFree && selectedMode === 0) {
+                            } else if (!z.unlocked && !z.isFree) {
                               setUnlockZone(z);
                             }
                           }}
                           className="relative flex h-[clamp(8rem,22vw,11rem)] w-[clamp(6.5rem,17vw,9rem)] shrink-0 snap-center flex-col items-start justify-end overflow-hidden rounded-2xl p-2 text-left"
                           style={{
-                            border: isSelected ? `2px solid ${cardAccent}` : "1px solid rgba(255,255,255,0.18)",
+                            border: isSelected ? `2px solid ${colors.accent}` : "1px solid rgba(255,255,255,0.18)",
                             opacity: isSelectable ? 1 : 0.58,
-                            boxShadow: isSelected ? `0 0 16px ${cardAccent}66, 0 0 4px ${cardAccent}44` : "0 10px 18px -8px rgba(0,0,0,0.6)",
+                            boxShadow: isSelected ? `0 0 16px ${colors.accent}66, 0 0 4px ${colors.accent}44` : "0 10px 18px -8px rgba(0,0,0,0.6)",
                           }}
                         >
                           <img
@@ -518,26 +413,25 @@ const HomePage: React.FC = () => {
                             alt=""
                             className="absolute inset-0 h-full w-full object-cover"
                           />
-                          {isEndlessMode ? <div className="absolute inset-0 bg-gradient-to-t from-[#2f1300]/90 via-[#341700]/45 to-transparent" /> : null}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                           <div className="relative z-10 w-full">
                             <span
                               className="mb-1 inline-flex rounded-full px-2 py-0.5 font-sans text-[9px] font-extrabold uppercase tracking-[0.12em]"
                               style={{
-                                color: isEndlessMode ? "#241100" : "#0a1628",
-                                backgroundColor: isEndlessMode ? "#FFB86B" : colors.accent,
+                                color: "#0a1628",
+                                backgroundColor: colors.accent,
                               }}
                             >
-                              {isEndlessMode ? "Endless" : "Story"}
+                              Story
                             </span>
                             <p className="font-sans text-base font-extrabold leading-tight text-white drop-shadow-md">{z.name}</p>
                             <div className="mt-1 flex items-center justify-between">
-                              <p className="font-sans text-[11px] font-bold" style={{ color: isEndlessMode ? "#FFCF9D" : "#FACC15" }}>
+                              <p className="font-sans text-[11px] font-bold" style={{ color: "#FACC15" }}>
                                 {statusText}
                               </p>
                               {!isSelectable && <span className="text-sm">🔒</span>}
                             </div>
-                            {!isEndlessMode && z.unlocked && z.maxStars > 0 && (
+                            {z.unlocked && z.maxStars > 0 && (
                               <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-white/10">
                                 <div
                                   className="h-full rounded-full transition-all duration-300"
@@ -634,30 +528,17 @@ const HomePage: React.FC = () => {
               </ArcadeButton>
             ) : (
               <ArcadeButton disabled={isStartingGame || !selectedZonePlayable} onClick={handlePrimaryAction} accentOverride={
-                selectedMode === 1
-                  ? "#FFB86B"
-                  : selectedMode === 0 && hasActiveStoryRun && activeStoryRun
-                    ? getThemeColors(getThemeId(activeStoryRun.zoneId)).accent
-                    : zone ? getThemeColors(getThemeId(zone.zoneId)).accent : undefined
+                hasActiveStoryRun && activeStoryRun
+                  ? getThemeColors(getThemeId(activeStoryRun.zoneId)).accent
+                  : zone ? getThemeColors(getThemeId(zone.zoneId)).accent : undefined
               }>
                 {isStartingGame
                   ? "Starting..."
-                  : selectedMode === 0
-                    ? hasActiveStoryRun
-                      ? "Resume Story"
-                      : "Play Story"
-                    : hasActiveEndlessRun
-                      ? "Resume Endless"
-                      : "Play Endless"}
+                  : hasActiveStoryRun
+                    ? "Resume Story"
+                    : "Play Story"}
               </ArcadeButton>
             )}
-
-
-            {selectedMode === 1 && zones.length > 0 && !selectedZonePlayable && endlessZoneOneUnlocked ? (
-              <p className="text-center font-sans text-[11px] font-semibold text-white/75">
-                Only Endless Zone 1 is playable for now.
-              </p>
-            ) : null}
           </>
         )}
       </div>

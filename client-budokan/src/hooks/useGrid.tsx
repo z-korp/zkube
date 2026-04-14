@@ -27,12 +27,10 @@ export const useGrid = ({
       return;
     }
     // During level transitions the chain grid is stale (old level's final state).
-    // Return empty so the UI shows a loading state instead of the obsolete grid.
-    if (game?.levelTransitionPending) {
-      setBlocks([]);
-      blocksRef.current = [];
-      return;
-    }
+    // Skip the update instead of clearing — this prevents isGridLoading from
+    // flickering true, which would unmount the Grid and kill in-progress combo
+    // animations. The Grid's receipt-based sync handles its own state.
+    if (game?.levelTransitionPending) return;
     if (game && memoizedBlocks.length > 0) {
       setBlocks(memoizedBlocks);
       blocksRef.current = memoizedBlocks;
