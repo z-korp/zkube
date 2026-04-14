@@ -14,6 +14,7 @@ import { useUnsettledRewards } from "@/hooks/useUnsettledRewards";
 import { ZONE_NAMES } from "@/config/profileData";
 import TierContext from "@/ui/components/rewards/TierContext";
 import { normalizeEntityId } from "@/utils/entityId";
+import { WEEKLY_REWARD_TIERS, computeWeeklyReward } from "@/config/rewardTiers";
 
 const SECONDS_PER_WEEK = 604800;
 const MONDAY_OFFSET = 345600; // Unix epoch was Thursday; +4 days = Monday
@@ -26,31 +27,11 @@ function weekEndTimestamp(weekId: number): number {
   return (weekId + 1) * SECONDS_PER_WEEK + MONDAY_OFFSET;
 }
 
-function computeWeeklyReward(rank1Based: number, total: number): number {
-  if (total === 0) return 0;
-  const rank = rank1Based - 1;
-  const pct = (rank * 100) / total;
-  if (pct < 2) return 30;
-  if (pct < 5) return 20;
-  if (pct < 10) return 15;
-  if (pct < 25) return 10;
-  if (pct < 50) return 3;
-  return 0;
-}
-
 const ZONES = Array.from({ length: 10 }, (_, i) => ({
   id: i + 1,
   name: ZONE_NAMES[i + 1] ?? `Zone ${i + 1}`,
   endlessSettingsId: i * 2 + 1,
 }));
-
-const REWARD_TIERS = [
-  { pct: 2, label: "Top 1%", reward: 30 },
-  { pct: 5, label: "Top 5%", reward: 20 },
-  { pct: 10, label: "Top 10%", reward: 15 },
-  { pct: 25, label: "Top 25%", reward: 10 },
-  { pct: 50, label: "Top 50%", reward: 3 },
-];
 
 interface WeeklyTabProps {
   colors: ThemeColors;
@@ -265,7 +246,7 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
             myRank={myRank}
             myScore={games[myRank - 1]?.score ?? 0}
             totalEntries={games.length}
-            tiers={REWARD_TIERS}
+            tiers={WEEKLY_REWARD_TIERS}
             entries={tierEntries}
             scoreLabel=" pts"
           />
@@ -278,7 +259,7 @@ const WeeklyTab: React.FC<WeeklyTabProps> = ({ colors }) => {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-wrap justify-center gap-1.5"
       >
-        {REWARD_TIERS.map((tier) => {
+        {WEEKLY_REWARD_TIERS.map((tier) => {
           const isMyTier = myRank && games.length > 0 && myReward === tier.reward;
           return (
             <span

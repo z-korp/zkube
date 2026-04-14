@@ -144,8 +144,8 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
           className="absolute flex items-center justify-center"
           style={circleToPercent(ACTION_BAR.sockets.bonus, ACTION_BAR.viewBox)}
         >
-          {isEndless ? (
-            /* ─── Endless: guardian portrait + rules tooltip ─── */
+          {bonusSlots.length === 0 ? (
+            /* ─── No bonuses: guardian portrait + rules tooltip ─── */
             <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -170,7 +170,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
               </Tooltip>
             </TooltipProvider>
           ) : (
-            /* ─── Story: bonus button — disabled at 0 but icon stays vivid ─── */
+            /* ─── Bonus button(s) — story and endless both show when slots exist ─── */
             bonusSlots.map((slot, idx) => {
               const isSelected = activeBonus === slot.type;
               const hasCharges = slot.charges > 0;
