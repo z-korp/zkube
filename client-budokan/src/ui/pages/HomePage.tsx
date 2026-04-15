@@ -89,9 +89,11 @@ const CtaGuardian: React.FC = () => {
 
   // Generate lines of blocks — each line sums to 8 cells
   const fallingLines = useMemo(() => {
-    const lineCount = 6;
+    const slotCount = 6;   // rhythm slots per cycle
+    const lineCount = 5;   // skip the t=0 slot so no block flashes at its start position on first paint
     const lineDuration = 5;
     const lineSpacing = 2.2; // spaced so fastest block clears before slowest of next arrives
+    const totalCycle = slotCount * lineSpacing;
     return Array.from({ length: lineCount }).map((_, lineIdx) => {
       const sizes = generateLine();
       let cellOffset = 0;
@@ -102,10 +104,9 @@ const CtaGuardian: React.FC = () => {
         cellOffset += size;
         return { size, cellX: x, speed: speedPool[(bi + lineIdx * 3) % speedPool.length] };
       });
-      const totalCycle = lineCount * lineSpacing;
       return {
         blocks,
-        delay: lineIdx * lineSpacing,
+        delay: (lineIdx + 1) * lineSpacing,
         duration: lineDuration,
         totalCycle,
       };
@@ -159,7 +160,10 @@ const CtaGuardian: React.FC = () => {
                   left: `${b.cellX * cellPct}%`,
                   width: `${b.size * cellPct}%`,
                   aspectRatio: `${b.size} / 1`,
-                  animation: `fallingBlock ${line.totalCycle}s ease-in ${line.delay}s infinite`,
+                  // `backwards` fill-mode keeps the block in its 0% keyframe
+                  // state (translateY(-20px); opacity 0) during the delay,
+                  // otherwise it flashes at its static top position on first paint.
+                  animation: `fallingBlock ${line.totalCycle / b.speed}s ease-in ${line.delay}s infinite backwards`,
                 }}
                 draggable={false}
               />
