@@ -244,7 +244,16 @@ const GameHud: React.FC<GameHudProps> = ({
   const comboTextColor = combo > 0 ? "text-white" : "text-slate-500";
 
   // ─── Tooltip content for the guardian avatar ───
-  const avatarTooltipContent = (
+  const avatarTooltipContent = isEndless ? (
+    <div className="flex flex-col gap-1.5 max-w-[200px]">
+      <div className="font-sans text-xs font-bold">{guardian.name}</div>
+      {activeMutatorId > 0 && (
+        <div className="font-sans text-[10px] text-yellow-400/90">
+          {mutator.icon} {mutator.name}: {mutator.description}
+        </div>
+      )}
+    </div>
+  ) : (
     <div className="flex flex-col gap-1.5 max-w-[200px]">
       <div className="font-sans text-xs font-bold">{guardian.name} · {guardian.title}</div>
       {isBoss ? (
@@ -311,23 +320,32 @@ const GameHud: React.FC<GameHudProps> = ({
             )}
 
             {/* Guardian portrait with difficulty badge overlay */}
-            <div className="absolute rounded-full" style={guardianPos}>
-              <img
-                src={portraitSrc}
-                alt={guardian.name}
-                className="absolute inset-0 w-full h-full rounded-full object-cover overflow-hidden"
-              />
-              {/* Difficulty badge — bottom-right, overlaid on portrait */}
-              <div
-                className="absolute -bottom-2 -right-2 rounded-full min-w-[clamp(20px,6vw,32px)] h-[clamp(20px,6vw,32px)] flex items-center justify-center px-0.5 font-sans text-[clamp(10px,3vw,16px)] font-bold z-10 shadow-[0_0_4px_rgba(0,0,0,0.5)]"
-                style={{
-                  background: currentTier.color,
-                  border: `1px solid ${currentTier.color}80`,
-                }}
-              >
-                {currentTier.emoji}
-              </div>
-            </div>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="absolute rounded-full" style={guardianPos}>
+                    <img
+                      src={portraitSrc}
+                      alt={guardian.name}
+                      className="absolute inset-0 w-full h-full rounded-full object-cover overflow-hidden"
+                    />
+                    {/* Difficulty badge — bottom-right, overlaid on portrait */}
+                    <div
+                      className="absolute -bottom-2 -right-2 rounded-full min-w-[clamp(20px,6vw,32px)] h-[clamp(20px,6vw,32px)] flex items-center justify-center px-0.5 font-sans text-[clamp(10px,3vw,16px)] font-bold z-10 shadow-[0_0_4px_rgba(0,0,0,0.5)]"
+                      style={{
+                        background: currentTier.color,
+                        border: `1px solid ${currentTier.color}80`,
+                      }}
+                    >
+                      {currentTier.emoji}
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-slate-900 border border-slate-500 text-white px-3 py-2 shadow-lg">
+                  {avatarTooltipContent}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
             {/* Score bar — total score toward next tier */}
             <div className="absolute" style={scorePos}>
