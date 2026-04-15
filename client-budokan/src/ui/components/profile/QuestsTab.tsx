@@ -34,9 +34,15 @@ const QuestsTab: React.FC<QuestsTabProps> = ({ colors }) => {
   } = useDojo();
   const [claimingId, setClaimingId] = useState<bigint | null>(null);
 
-  const activeDaily = daily.filter((quest) => quest.active);
-  const activeWeekly = weekly.filter((quest) => quest.active);
-  const activeFinisher = finisher.filter((quest) => quest.active);
+  // Keep quests visible if they're in their active window OR completed but
+  // not yet claimed — otherwise unclaimed rewards get hidden the moment the
+  // 24h active slot rolls to the next daily group, stranding the claim button.
+  const keepVisible = (quest: QuestStatus) =>
+    quest.active || (quest.completed && !quest.claimed);
+
+  const activeDaily = daily.filter(keepVisible);
+  const activeWeekly = weekly.filter(keepVisible);
+  const activeFinisher = finisher.filter(keepVisible);
 
   const handleClaim = useCallback(
     async (quest: QuestStatus) => {
