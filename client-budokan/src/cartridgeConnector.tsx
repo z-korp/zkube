@@ -219,7 +219,11 @@ const createConnector = (config: ConnectorConfig): Connector => {
     defaultChainId: stringToFelt(config.chainId).toString(),
     namespace: VITE_PUBLIC_NAMESPACE,
     slot: config.slot,
+    preset: "zkube",
     policies: config.policies,
+    // Local manifest-derived policies stay authoritative; the zkube preset
+    // is pulled in for Cartridge-side branding/metadata.
+    shouldOverridePresetPolicies: true,
     signupOptions,
   };
 
@@ -233,6 +237,7 @@ log.info("Configuration", {
   chainId: connectorConfig.chainId,
   chainIdFelt: stringToFelt(connectorConfig.chainId).toString(),
   slot: connectorConfig.slot,
+  preset: "zkube",
   namespace: VITE_PUBLIC_NAMESPACE,
   chains: connectorConfig.chains.map((c) => c.rpcUrl),
   hasPolicies: !!connectorConfig.policies,
