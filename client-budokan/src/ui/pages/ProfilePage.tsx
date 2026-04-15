@@ -10,6 +10,7 @@ import { useZStarBalance } from "@/hooks/useZStarBalance";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
 import { usePlayerStats } from "@/hooks/usePlayerStats";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useTokenPricesUsd } from "@/hooks/useTokenPricesUsd";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import type { WalletBalance } from "@/ui/components/profile/OverviewTab";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -95,9 +96,9 @@ const ProfilePage: React.FC = () => {
   const strkAmount = Number(strkBalance) / 1e18;
   const usdcAmount = Number(cubeBalance) / 1e6;
   const lordsAmount = Number(lordsBalance) / 1e18;
-  // TODO: fetch from price feed
-  const strkPriceUsd = 0.5;
-  const lordsPriceUsd = 0.03;
+  // Live prices from Ekubo mainnet pools — see useTokenPricesUsd.
+  // Fall back to 0 while loading so we don't pretend with stale numbers.
+  const { strk: strkPriceUsd, lords: lordsPriceUsd } = useTokenPricesUsd();
 
   // Only display USDC; STRK/LORDS tracked for portfolio total
   const walletBalances = useMemo<WalletBalance[]>(() => [
@@ -105,7 +106,10 @@ const ProfilePage: React.FC = () => {
   ], [usdcAmount]);
 
   const totalPortfolioValue = useMemo(
-    () => strkAmount * strkPriceUsd + usdcAmount + lordsAmount * lordsPriceUsd,
+    () =>
+      strkAmount * (strkPriceUsd ?? 0)
+      + usdcAmount
+      + lordsAmount * (lordsPriceUsd ?? 0),
     [strkAmount, strkPriceUsd, usdcAmount, lordsAmount, lordsPriceUsd],
   );
 
