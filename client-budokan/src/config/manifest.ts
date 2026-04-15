@@ -4,13 +4,13 @@ import mainnet from "../../../contracts/manifest_mainnet.json";
 
 const deployType = import.meta.env.VITE_PUBLIC_DEPLOY_TYPE;
 
-const manifests = {
+const manifests: Record<string, typeof slot> = {
   sepolia,
   mainnet,
   slot,
 };
 
-// Fallback to `local` if deployType is not a key in `manifests`
-export const manifest = deployType in manifests ? manifests[deployType] : local;
+// Fallback to `slot` if deployType is not a key in `manifests`
+export const manifest = deployType in manifests ? manifests[deployType] : slot;
 
 export type Manifest = typeof manifest;

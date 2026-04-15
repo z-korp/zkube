@@ -1,5 +1,5 @@
-use core::num::traits::zero::Zero;
 use core::integer::NumericLiteral;
+use core::num::traits::zero::Zero;
 
 pub mod errors {
     pub const PACKER_ELEMENT_IS_MISSING: felt252 = 'Packer: element is missing';
@@ -70,7 +70,7 @@ pub impl Packer<
             result.append(value);
             packed = packed / modulo;
             index += 1;
-        };
+        }
 
         result
     }
@@ -91,7 +91,7 @@ pub impl Packer<
                 removed = true;
             }
             packed = packed / modulo;
-        };
+        }
         // [Check] Index not out of bounds
         assert(removed, errors::PACKER_ELEMENT_IS_MISSING);
         // [Return] The new packed value and the removed value
@@ -117,7 +117,7 @@ pub impl Packer<
             }
             idx += 1;
             packed = packed / modulo;
-        };
+        }
         // [Check] Index not out of bounds
         assert(removed, errors::PACKER_ELEMENT_IS_MISSING);
         // [Return] The new packed value and the removed value
@@ -137,9 +137,9 @@ pub impl Packer<
                     }
                     offset = offset * modulo;
                 },
-                Option::None => { break; }
+                Option::None => { break; },
             }
-        };
+        }
 
         result
     }
@@ -147,12 +147,7 @@ pub impl Packer<
 
 #[cfg(test)]
 mod tests {
-    // Core imports
-
-    use core::debug::PrintTrait;
-
     // Local imports
-
     use super::Packer;
 
     #[test]

@@ -1,5 +1,9 @@
 {
 	"devDependencies": {
+		"@fal-ai/client": "^1.9.1",
+		"@google/genai": "^1.41.0",
+		"sharp": "^0.34.5",
+		"tsx": "^4.21.0",
 		"vite-tsconfig-paths": "^5.1.4"
 	}
 }

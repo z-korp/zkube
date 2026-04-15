@@ -1,5 +1,4 @@
-scarb 2.10.1
-dojo 1.6.0
-sozo 1.6.0
-katana 1.7.0
-torii 1.8.8
+scarb 2.15.1
+sozo 1.8.6
+torii 1.8.14
+katana 1.7.1

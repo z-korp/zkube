@@ -1,0 +1,392 @@
+{
+  "theme-1": {
+    "name": "Polynesian",
+    "icon": "🌊",
+    "description": "Moonlit Polynesian coast in deep cobalt tones, silver surf, and quiet lunar haze with restrained tiki presence",
+    "mood": "Nocturnal, lunar, serene",
+    "palette": {
+      "bg": "#041A44",
+      "accent": "#A9D8FF",
+      "blocks": ["#7EC8E3", "#2ECFB0", "#1B3A6B", "#B0BEC5"]
+    },
+    "motifs": "Moon crescents, starlit ocean waves, Polynesian spirals, pearl inlays, palm silhouettes",
+    "blockData": {
+      "centerpiece": "tiki mask",
+      "inspirations": [
+        "Polynesian tiki carvings and sacred temple totems",
+        "Tribal tattoo art and oceanic cultural symbols"
+      ],
+       "themeKeywords": [
+         "Polynesian culture",
+         "tribal spirituality",
+         "oceanic mythology"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Polynesian tiki panel, screen-print style on a solid black background. In the exact center: a simplified tiki mask face with abstract slit eyes (no round pupils), broad nose, grinning mouth with teeth — painted in mid-grey (#8A8278) with black outlines. The face is compact, fitting in the center quarter of the width. Flowing directly out of the face on both sides: large bold tribal spirals and wave curves, connected to the cheeks and chin — the patterns grow organically from the face with zero gap. Only 2-3 large spirals per side, each thick and chunky. Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+    },
+    "scene": "Tranquil Polynesian shoreline at deep night, a single distant tiki statue near the waterline, cobalt moonlight across rolling waves, silver foam on black sand, and a star-rich sky",
+    "loadingScene": "Moonlit coastal detail with cobalt surf, silver spray, and one subtle carved tiki element in the distance; deep indigo shadows and pale blue-white highlights",
+    "mapScene": "deep dark cobalt ocean water with gentle rolling waves, moonlit silver highlights on the swells, deep indigo and navy blue tones",
+    "bossLandmark": "Sacred tiki temple on a volcanic cliff, massive carved tiki faces flanking a glowing lava-lit entrance, torches blazing against the night sky",
+    "gridMaterial": "Dark indigo volcanic basalt with faint moon-etched tribal patterns and subtle silver-blue highlights",
+    "music": {
+      "menu": "A warm Polynesian lo-fi instrumental with soft ukulele fingerpicking over gentle log drum rhythms and ocean wave ambience. Nose flute melody floats through warm island breeze. Around 90 BPM, rhythmic and inviting.",
+      "gameplay": "A lively Polynesian instrumental with rhythmic ukulele strumming and warm log drum grooves. Nose flute melody and conch shell accents float over a steady island pulse. Around 115 BPM, sunny and groovy."
+    },
+    "guardian": {
+      "name": "Mako",
+      "title": "Spirit of the Tides",
+      "portraitPrompt": "A majestic ancient sea turtle spirit, stylized cel-shaded game art with bold black outlines. The turtle is massive with glowing blue tribal patterns on its shell, wise ancient eyes, ocean waves flowing around it. Ethereal translucent fins trailing blue light. Dark background fading to pure black at edges. Vibrant colors with #A9D8FF highlights. 512x512 pixels, fully opaque."
+    }
+  },
+  "theme-2": {
+    "name": "Ancient Egypt",
+    "icon": "🏺",
+    "description": "Golden pyramids at dusk with hieroglyph-covered obelisks and sun-drenched sandstone",
+    "mood": "Monumental, divine, sun-drenched",
+    "palette": {
+      "bg": "#120C08",
+      "accent": "#D4AF37",
+      "blocks": ["#F0EDE8", "#26619C", "#E07858", "#D4AF37"]
+    },
+    "motifs": "Hieroglyphs, scarab beetles, Eye of Horus, lotus flowers, ankh symbols, obelisks, papyrus scrolls",
+    "blockData": {
+      "centerpiece": "winged scarab beetle",
+      "inspirations": [
+        "Ancient Egyptian temple wall reliefs and carved lintels",
+        "Hieroglyphic cartouche panels and papyrus friezes"
+      ],
+       "themeKeywords": [
+         "Ancient Egypt",
+         "protection symbolism",
+         "sacred iconography"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Ancient Egyptian panel, screen-print style on a solid black background. In the exact center: a winged scarab beetle — compact rounded beetle body with broad symmetrical wings fully spread horizontally to each side — painted in mid-grey (#8A8278) with black outlines. The scarab body is compact, fitting in the center quarter of the width, wings reaching outward. Extending directly from the wingtips on both sides: bold geometric Egyptian patterns — thick stepped pyramid zigzags, broad concentric rectangular frames, and angular chevron bands — the patterns physically touch and grow out of the wingtips with absolutely zero gap, as if the stone carving continues outward. Only 2-3 large geometric elements per side, each thick and heavy. Strictly geometric patterns beyond the scarab (no eyes, no birds, no flowers, no sphinxes). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+    },
+    "scene": "Desert twilight, golden pyramids casting long shadows, hieroglyph-covered obelisks, the Nile reflecting amber sky, palm-lined banks, warm sun-drenched atmosphere",
+    "loadingScene": "Close-up of a hieroglyph-covered wall illuminated by golden torchlight, scarab beetle relief with gold leaf details gleaming",
+    "mapScene": "endless golden desert sand dunes seen from above, warm amber and ochre tones with deep shadow valleys between the dunes, wind-rippled sand texture",
+    "bossLandmark": "Golden pyramid with flanking obelisks at the peak, Eye of Horus glowing at the apex, amber sky behind with rays of divine light",
+    "gridMaterial": "Near-black charred basalt with very faint hieroglyph watermark embossed at extremely low opacity, overall tone matching deep shadow",
+    "music": {
+      "menu": "An elegant Egyptian instrumental with a soft oud melody and gentle darbuka hand drum pattern. Arabic maqam Hijaz scale. Around 85 BPM, regal and serene.",
+      "gameplay": "A groovy Egyptian fusion instrumental with steady darbuka and riq tambourine rhythm over warm bass oud riffs. Arabic maqam Hijaz scale. 112 BPM, smooth and monumental."
+    },
+    "guardian": {
+      "name": "Sobek",
+      "title": "The Nile Guardian",
+      "portraitPrompt": "A Nile crocodile spirit god resting in still dark water, only its head and upper back visible above the surface, stylized cel-shaded game art with bold black outlines. Ancient and patient, the crocodile has weathered dark green scales with one single small golden marking on its forehead. Two piercing amber eyes glow just above the waterline, watching. Dark ripples spread outward from its snout. A faint golden aura surrounds its head. Moody and atmospheric, the creature is half-hidden in shadow. Dark background, near black. Warm #D4AF37 gold accents only on the eyes. 512x512 pixels, fully opaque."
+    }
+  },
+  "theme-3": {
+    "name": "Norse",
+    "icon": "❄️",
+    "description": "Frost-covered viking realm with heavy rune stones, iron-clad shields, and aurora-lit skies",
+    "mood": "Cold, powerful, mythic",
+    "palette": {
+      "bg": "#0A1520",
+      "accent": "#7EB8DA",
+      "blocks": ["#E8EDF2", "#C4A882", "#7EC8E3", "#2E6B4F"]
+    },
+    "motifs": "Norse runes, Viking knotwork, longship prows, ravens, Mjolnir, frost patterns, iron rivets",
+    "blockData": {
+      "centerpiece": "Yggdrasil world-tree",
+      "inspirations": [
+        "Viking rune stones and carved standing stones",
+        "Norse knotwork illuminated manuscripts and shield designs"
+      ],
+       "themeKeywords": [
+         "Norse mythology",
+         "runic power",
+         "frost and iron craftsmanship"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Norse Viking panel, screen-print style on a solid black background. In the exact center: a simplified Yggdrasil world-tree silhouette — thick trunk, broad canopy, visible roots below — painted in mid-grey (#8A8278) with black outlines. The tree is compact, fitting in the center quarter of the width. Extending directly from the tree's branches and roots on both sides: bold geometric Norse knotwork bands and angular chevron borders — the patterns physically touch and grow out of the branches above and roots below with absolutely zero gap, as if the knotwork is woven through the tree itself. Only 2-3 large geometric elements per side, each thick and angular. Strictly geometric patterns, no figurative symbols (no ravens, no hammers, no animals, no faces, no runes). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+    },
+    "scene": "Frozen fjord at night, aurora borealis streaming over snow-covered mountains, viking longships moored at icy docks, rune stones glowing faintly in the snow",
+    "loadingScene": "Close-up of an ancient rune stone covered in frost, each carved rune glowing with faint blue light, snow falling gently",
+    "mapScene": "frozen white tundra and cracked ice sheets seen from above, pale blue and silver tones with deep dark crevasses, aurora green shimmer reflecting on the ice surface",
+    "bossLandmark": "Frost-covered Valhalla great hall at the mountain peak, massive iron-banded doors flanked by carved dragon pillars, aurora light crowning the rooftop",
+    "gridMaterial": "Dark rough-hewn granite with faint frost crystallization texture embossed at very low opacity",
+    "music": {
+      "menu": "A haunting Norse ambient instrumental with deep bowed string drone and sparse nyckelharpa melody. Distant war horn echoes through frozen valleys. Around 80 BPM, vast and mythic.",
+      "gameplay": "A steady Norse folk instrumental with rhythmic bodhrán drum and warm nyckelharpa melody over a deep bowed string drone. Distant horn accents. 115 BPM, vast and focused."
+    },
+    "guardian": {
+      "name": "Fenris",
+      "title": "The Frost Wolf",
+      "portraitPrompt": "A massive frost wolf spirit standing alert, stylized cel-shaded game art with bold black outlines. Giant wolf with thick silver-white fur, glowing icy blue eyes, frost crystals forming along its mane and paws, Nordic runes glowing faintly on its body. The wolf stands proud and watchful, ears forward. Dark background fading to pure black at edges. Vibrant colors with cool blue and silver highlights. 512x512 pixels, fully opaque."
+    }
+  },
+  "theme-4": {
+    "name": "Ancient Greece",
+    "icon": "🏛",
+    "description": "White marble temples overlooking the Aegean Sea with elegant Greek-key borders and clean architecture",
+    "mood": "Elegant, clean, architectural",
+    "palette": {
+      "bg": "#1A2030",
+      "accent": "#3B6FA0",
+      "blocks": ["#BBB093", "#AA633F", "#F0EDE8", "#4D89B0"]
+    },
+    "motifs": "Greek columns, olive wreaths, Greek-key meander patterns, amphoras, temple pediments, laurel crowns",
+    "blockData": {
+      "centerpiece": "Greek-key meander medallion",
+      "inspirations": [
+        "Ancient Greek temple pediments and Ionic column capitals",
+        "Hellenic pottery and Greek-key meander border patterns"
+      ],
+       "themeKeywords": [
+         "Ancient Greece",
+         "classical architecture",
+         "Hellenic elegance"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Ancient Greek panel, screen-print style on a solid black background. In the exact center: a bold Greek-key meander square medallion — continuous angular spiral forming a compact square frame — painted in mid-grey (#8A8278) with black outlines. The medallion is compact, fitting in the center quarter of the width. Extending directly from the medallion's corners and edges on both sides: bold geometric Greek patterns — thick meander key bands, stepped wave borders, and broad concentric arcs — the patterns physically touch and grow out of the medallion with absolutely zero gap, as if the meander continues outward. Only 2-3 large geometric elements per side, each thick and architectural. Strictly geometric patterns, no figurative symbols (no columns, no faces, no laurels, no olives, no animals). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+    },
+    "scene": "Aegean Sea coastline at golden hour, white marble temple ruins on a cliff, olive groves descending to azure waters, scattered broken columns, blue sky",
+    "loadingScene": "Close-up of a white marble Ionic column capital with fine hairline cracks, warm golden sunlight streaming through, blue sky behind",
+    "mapScene": "deep azure Aegean sea from above, clear turquoise shallows fading into deep navy blue depths, gentle white foam patterns on the surface, sunlit Mediterranean water",
+    "bossLandmark": "Parthenon-like temple on a hilltop, white marble columns gleaming in golden sunlight, olive wreath crown over the pediment, blue sky backdrop",
+    "gridMaterial": "Dark charcoal marble with very faint blue-grey veining and hairline crack texture at low opacity",
+    "music": {
+      "menu": "An elegant Ancient Greek instrumental with gentle lyre arpeggios and soft aulos flute melody over a light frame drum rhythm. Mediterranean breeze ambience. Around 85 BPM, contemplative and noble.",
+      "gameplay": "A lively Mediterranean instrumental with steady frame drum and tambourine over bright lyre arpeggios and warm aulos melody. 112 BPM, spirited and flowing."
+    },
+    "guardian": {
+      "name": "Noctua",
+      "title": "The Marble Owl",
+      "portraitPrompt": "A wise owl spirit carved from living marble, stylized cel-shaded game art with bold black outlines. Great horned owl with marble-white feathers veined with gold, piercing intelligent eyes, laurel leaves woven into its plumage. Perched on a Greek column fragment. Dark background fading to pure black at edges. Vibrant colors with #4A90D9 blue highlights. 512x512 pixels, fully opaque."
+    }
+  },
+  "theme-5": {
+    "name": "Feudal Japan",
+    "icon": "🎎",
+    "description": "Black lacquer dojo with red trim, brushstroke calligraphy, and cherry blossom petals",
+    "mood": "Refined, disciplined, dramatic",
+    "palette": {
+      "bg": "#0D0D12",
+      "accent": "#C41E3A",
+      "blocks": ["#F5F3EE", "#4B1821", "#B8922E", "#7A3E7E"]
+    },
+    "motifs": "Cherry blossoms, katana blades, torii gates, kanji brushstrokes, bamboo, paper lanterns",
+    "blockData": {
+      "centerpiece": "cherry blossom flower",
+      "inspirations": [
+        "Japanese urushi lacquerware and maki-e gold designs",
+        "Edo period samurai armor motifs and mon emblems"
+      ],
+       "themeKeywords": [
+         "Feudal Japan",
+         "bushido discipline",
+         "refined craftsmanship"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Feudal Japanese panel, screen-print style on a solid black background. In the exact center: a simplified cherry blossom flower — five bold rounded petals arranged symmetrically around a central dot cluster — painted in mid-grey (#8A8278) with black outlines. The blossom is compact, fitting in the center quarter of the width. Extending directly from the petal tips on both sides: bold geometric Japanese patterns — thick parallel horizontal bars, angular zigzag bands, and broad stepped rectangles — the patterns physically touch and grow out of the petals with absolutely zero gap, as if the brushwork continues outward. Only 2-3 large geometric elements per side, each thick and bold. Strictly geometric patterns beyond the flower (no kanji, no katana, no torii, no fans). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+    },
+    "scene": "Feudal Japanese castle courtyard at twilight, black and red architecture, cherry blossom trees in full bloom, stone lanterns glowing, zen rock garden",
+    "loadingScene": "Close-up of a glossy black lacquer surface with crimson kanji brushstrokes, cherry blossom petals drifting down, warm paper lantern light",
+    "mapScene": "dark misty forest canopy seen from above, layers of deep green and black pine treetops with wisps of white fog drifting between them, moody and atmospheric",
+    "bossLandmark": "Red torii gate shrine on a misty mountain peak, layered vermilion gates ascending stone steps, cherry blossoms swirling around the summit shrine",
+    "gridMaterial": "Black lacquered wood with very subtle grain texture at low opacity",
+    "music": {
+      "menu": "A refined Japanese instrumental with gentle koto plucking and soft shakuhachi bamboo flute melody over wind chime accents. Around 80 BPM, meditative and disciplined.",
+      "gameplay": "A focused Japanese instrumental with steady taiko pulse and flowing shinobue flute melody. Gentle shamisen patterns weave through the rhythm. 115 BPM, refined and purposeful."
+    },
+    "guardian": {
+      "name": "Kitsune",
+      "title": "The Spirit Fox",
+      "portraitPrompt": "A mystical nine-tailed fox spirit, stylized cel-shaded game art with bold black outlines. Elegant white fox with multiple translucent tails flowing behind it, each tail tipped with soft red flame. Piercing intelligent red eyes. Cherry blossom petals drift around it. The fox sits alert and watchful, ethereal and graceful. Atmospheric mist at its feet. Dark background fading to black at edges. Deep red and white highlights. 512x512 pixels, fully opaque."
+    }
+  },
+  "theme-6": {
+    "name": "Ancient China",
+    "icon": "🐉",
+    "description": "Imperial jade palace with dragon-scale overlays, golden calligraphy, and mystical mist",
+    "mood": "Mystical, imperial, flowing",
+    "palette": {
+      "bg": "#0A1A0A",
+      "accent": "#50C878",
+      "blocks": ["#4A7CB8", "#D4AF37", "#F0EDE8", "#3A8A6A"]
+    },
+    "motifs": "Imperial dragons, jade carvings, cloud scrolls, gold calligraphy, pagoda roofs, silk lanterns",
+    "blockData": {
+      "centerpiece": "coiled dragon",
+      "inspirations": [
+        "Imperial Chinese jade carvings and silk brocade patterns",
+        "Dragon-scale temple roof ornaments and cloud scroll motifs"
+      ],
+       "themeKeywords": [
+         "Imperial China",
+         "dragon mysticism",
+         "jade craftsmanship"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Imperial Chinese panel, screen-print style on a solid black background. In the exact center: a simplified coiled dragon in circular medallion form — serpentine body curving into a compact disc shape with stylized head and flowing whiskers — painted in mid-grey (#8A8278) with black outlines. The dragon medallion is compact, fitting in the center quarter of the width. Extending directly from the dragon's tail and whiskers on both sides: bold geometric Chinese patterns — thick cloud scroll bands, angular interlocking lattice borders, and broad stepped wave shapes — the patterns physically touch and grow out of the dragon with absolutely zero gap, as if the scrollwork continues from the body. Only 2-3 large geometric elements per side, each thick and flowing. Strictly geometric patterns beyond the centerpiece (no phoenixes, no calligraphy, no flowers, no pagodas). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+    },
+    "scene": "Imperial Chinese palace at night, jade-green rooftops curving skyward, golden silk lanterns lining a marble bridge over misty lotus ponds, dragon statues, moonlit pagodas",
+    "loadingScene": "Close-up of a carved jade dragon head with golden eyes gleaming, mystical mist swirling around it, emerald green luminosity from within",
+    "mapScene": "jade-green river waters flowing through misty terrain seen from above, emerald and dark green tones with soft white mist wisps, smooth flowing water surface with subtle current patterns",
+    "bossLandmark": "Imperial jade palace with curved golden roofs at the mountain summit, dragon statues guarding the entrance, silk lanterns glowing emerald and gold, mystical mist swirling at the base",
+    "gridMaterial": "Dark jade stone with very subtle dragon-scale texture embossed at low opacity",
+    "music": {
+      "menu": "A mystical Chinese instrumental with gentle guzheng zither arpeggios and soft dizi bamboo flute melody floating over a resonant gong drone. Around 85 BPM, flowing and imperial.",
+      "gameplay": "A flowing Chinese instrumental with warm erhu melody and steady drum rhythms. Gentle pipa lute runs over soft guzheng arpeggios. 115 BPM, mystical and focused."
+    },
+    "guardian": {
+      "name": "Long",
+      "title": "The Jade Dragon",
+      "portraitPrompt": "An ancient jade dragon spirit coiling through mist, stylized cel-shaded game art with bold black outlines. Sinuous Chinese dragon with translucent jade-green scales that glow from within, long flowing whiskers, wise ancient eyes. The dragon's body partially dissolves into green ethereal mist. Clouds and jade particles swirl around it. Atmospheric and mystical. Dark background fading to black at edges. #4CAF50 green glow with gold accents. 512x512 pixels, fully opaque."
+    }
+  },
+  "theme-7": {
+    "name": "Ancient Persia",
+    "icon": "🏺",
+    "description": "Regal Persian palace with blue geometric tile mosaics, golden relief carvings, and luminous symmetry",
+    "mood": "Regal, symmetrical, luminous",
+    "palette": {
+      "bg": "#0A0F2A",
+      "accent": "#1E90FF",
+      "blocks": ["#F0A0B0", "#7EB0E0", "#F0EDE8", "#F0A870"]
+    },
+    "motifs": "Geometric tile stars, relief lions, peacocks, cypress trees, arabesques, muqarnas vaults",
+    "blockData": {
+      "centerpiece": "eight-pointed geometric star",
+      "inspirations": [
+        "Persian geometric tile mosaics and muqarnas vault patterns",
+        "Achaemenid palace relief carvings and winged lion motifs"
+      ],
+       "themeKeywords": [
+         "Ancient Persia",
+         "geometric symmetry",
+         "regal craftsmanship"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Ancient Persian panel, screen-print style on a solid black background. In the exact center: a bold eight-pointed Islamic geometric star — precise interlocking lines forming a radiant star pattern — painted in mid-grey (#8A8278) with black outlines. The star is compact, fitting in the center quarter of the width. Extending directly from the star's outer points on both sides: bold geometric Persian patterns — thick arabesque interlocking bands, angular tessellation borders, and broad diamond lattice shapes — the patterns physically touch and grow out of the star points with absolutely zero gap, as if the tessellation continues outward. Only 2-3 large geometric elements per side, each thick and symmetrical. Strictly geometric patterns, no figurative symbols (no lions, no peacocks, no flowers, no cypress trees). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+    },
+    "scene": "Persian palace courtyard at night, blue tile domes and minarets glowing under moonlight, reflecting pools mirroring the stars, golden lamplight, cypress gardens",
+    "loadingScene": "Close-up of an intricate Persian blue geometric tile mosaic wall, golden grout lines catching warm lamplight, luminous symmetrical glow",
+    "mapScene": "deep blue and indigo desert night sky seen from above blending into dark arid terrain, deep royal blue and midnight purple tones, faint starlight reflecting on dark sand",
+    "bossLandmark": "Blue-domed palace with golden minarets at the garden's end, intricate geometric tile facade glowing under moonlight, reflecting pool mirroring the luminous structure",
+    "gridMaterial": "Very dark blue ceramic surface with faint geometric star pattern embossed at very low opacity",
+    "music": {
+      "menu": "An elegant Persian instrumental with soft santur hammered dulcimer arpeggios and gentle ney flute melody. Zarb hand drum keeps a subtle pulse. Around 85 BPM, regal and luminous.",
+      "gameplay": "A groovy Persian fusion instrumental with steady tombak drum patterns and bright tar lute melody. Santur cascades over a relaxed daf frame drum groove. 112 BPM, symmetrical and flowing."
+    },
+    "guardian": {
+      "name": "Lamassu",
+      "title": "The Gate Guardian",
+      "portraitPrompt": "A massive winged lion spirit from ancient Persia, stylized cel-shaded game art with bold black outlines. The lamassu has the powerful body of a lion with enormous feathered wings spread behind it, intricate blue and gold geometric patterns carved into its mane and wings like living tilework. Wise ancient eyes glow with blue light. The creature sits regally, facing forward with calm authority. Faint geometric tile fragments float in the air around it. Dark background fading to black at edges. #4169E1 blue and gold highlights. 512x512 pixels, fully opaque."
+    }
+  },
+  "theme-8": {
+    "name": "Mayan",
+    "icon": "🌿",
+    "description": "Dense jungle temple ruins with carved stone, calendar glyphs, and moss-covered ancient masonry",
+    "mood": "Dense, ancient, powerful",
+    "palette": {
+      "bg": "#0A1A0A",
+      "accent": "#4CAF50",
+      "blocks": ["#C8C4BC", "#8CC88A", "#7EC8E3", "#D4AF37"]
+    },
+    "motifs": "Calendar glyphs, feathered serpents, stepped pyramids, jungle vines, jaguar motifs, obsidian blades",
+    "blockData": {
+      "centerpiece": "Mayan calendar sun disc",
+      "inspirations": [
+        "Mayan temple carved stone lintels and stela monuments",
+        "Calendar glyph panels and feathered serpent architectural reliefs"
+      ],
+       "themeKeywords": [
+         "Mayan civilization",
+         "calendar mysticism",
+         "jungle temple power"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Mayan panel, screen-print style on a solid black background. In the exact center: a simplified Mayan calendar sun disc — circular face with radiating segments and central dot — painted in mid-grey (#8A8278) with black outlines. The sun disc is compact, fitting in the center quarter of the width. Extending directly from the disc's outer segments on both sides: bold geometric Mayan patterns — thick stepped pyramid zigzags, angular T-shaped bands, and broad concentric rectangular frames — the patterns physically touch and grow out of the calendar segments with absolutely zero gap, as if the stone carving continues outward. Only 2-3 large geometric elements per side, each thick and heavy. Strictly geometric patterns, no figurative symbols (no serpents, no jaguars, no skulls, no birds, no glyphs). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+    },
+    "scene": "Deep jungle at dawn, massive stepped Mayan pyramid rising through the canopy, moss-covered stone ruins scattered among giant trees, mist hanging in the air, filtered green light",
+    "loadingScene": "Close-up of a moss-covered carved stone wall with Mayan calendar glyphs, jungle vines creeping over the surface, filtered green light through the canopy",
+    "mapScene": "dense tropical jungle canopy seen from above, rich dark greens and emerald tones, layered treetops with occasional golden light filtering through gaps, lush and impenetrable",
+    "bossLandmark": "Stepped Mayan pyramid temple rising above the jungle canopy, calendar sun disc carved into the facade, green vines crawling up the stone steps, golden light breaking through clouds above",
+    "gridMaterial": "Dark weathered jungle limestone with faint moss texture and carved groove patterns at very low opacity",
+    "music": {
+      "menu": "An atmospheric Mesoamerican instrumental with a wooden pan flute melody over gentle rain stick textures and soft clay drum rhythm. Jungle bird calls in the distance. Around 85 BPM, mysterious and ancient.",
+      "gameplay": "A rhythmic Mesoamerican instrumental with steady wooden slit drum grooves and gentle seed shaker textures over a warm clay ocarina melody. 115 BPM, mysterious and earthy."
+    },
+    "guardian": {
+      "name": "Balam",
+      "title": "The Jungle Jaguar",
+      "portraitPrompt": "A massive shadow jaguar spirit emerging from jungle darkness, stylized cel-shaded game art with bold black outlines. Black jaguar with jade-green spots that glow like embers, three piercing green eyes arranged in a triangle on its face. The jaguar stalks forward, body partially dissolving into dark smoke at the edges. Mayan glyphs float faintly in the air around it. Atmospheric jungle mist. Dark background fading to black at edges. Green and jade highlights. 512x512 pixels, fully opaque."
+    }
+  },
+  "theme-9": {
+    "name": "Chokwe",
+    "icon": "🎭",
+    "description": "Central African Chokwe kingdom with carved wooden masks, woven raffia textiles, and red earth pigments",
+    "mood": "Ancestral, ceremonial, powerful",
+    "palette": {
+      "bg": "#1A1008",
+      "accent": "#D07850",
+      "blocks": ["#C4A882", "#2A6840", "#B85D3C", "#4E8F9B"]
+    },
+    "motifs": "Chokwe masks, geometric scarification patterns, raffia textile weaves, ceremonial staffs, diamond lattice, concentric circles",
+    "blockData": {
+      "centerpiece": "Chokwe ceremonial mask",
+      "inspirations": [
+        "Chokwe Pwo and Mwana Pwo ceremonial masks from Central Africa",
+        "Geometric scarification patterns and raffia textile weaving traditions"
+      ],
+       "themeKeywords": [
+         "Chokwe people",
+         "Central African art",
+         "ceremonial masks"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Central African Chokwe panel, screen-print style on a solid black background. In the exact center: a stylized Chokwe mask face — oval shape with large almond eyes, small triangular nose, wide rectangular mouth, and geometric scarification line patterns on cheeks and forehead — painted in mid-grey (#8A8278) with black outlines. The mask is compact, fitting in the center quarter of the width. Extending directly from the mask's cheeks and chin on both sides: bold geometric Chokwe patterns — thick diamond lattice bands, concentric rectangular frames, and angular crosshatch panels — the patterns physically touch and grow out of the mask with absolutely zero gap, as if the carved wood continues outward. Only 2-3 large geometric elements per side, each thick and bold. Strictly geometric patterns beyond the mask (no animals, no figures, no realistic features). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+    },
+    "scene": "Dense Central African forest clearing at dusk, carved wooden ceremonial poles flanking a packed-earth gathering space, warm firelight casting long shadows on woven raffia screens, red earth pigment on bark-cloth hangings",
+    "loadingScene": "Dramatic African savanna wilderness at golden hour, vast open grassland stretching to the horizon, a lone acacia tree silhouetted against a fiery orange sunset, warm earth tones and deep shadows, wild untamed landscape",
+    "mapScene": "warm red-orange African savanna earth seen from above, rich terracotta and burnt sienna tones with scattered dry golden grass patches, cracked earth texture",
+    "bossLandmark": "Carved wooden ceremonial lodge at the forest clearing's center, massive Chokwe mask facade with geometric scarification patterns, blazing ceremonial fires flanking the entrance, red earth pigment on the walls",
+    "gridMaterial": "Dark carved hardwood with faint geometric scarification patterns and diamond lattice texture at very low opacity",
+    "music": {
+      "menu": "A warm Central African instrumental with soft thumb piano (likembe) melody over gentle wooden slit drum rhythm. Distant forest ambience with bird calls. Around 80 BPM, ancestral and meditative.",
+      "gameplay": "A groovy Central African instrumental with steady wooden slit drum patterns and bright thumb piano melody over gentle shaker and bell accents. 112 BPM, ceremonial and warm."
+    },
+    "guardian": {
+      "name": "Mamba",
+      "title": "The Shadow Mamba",
+      "portraitPrompt": "A colossal black mamba snake spirit coiled and alert, stylized cel-shaded game art with bold black outlines. The snake is massive with sleek dark scales that shimmer with teal bioluminescent patterns. Hood slightly flared, mouth open revealing dark interior, piercing teal eyes. Rhythmic teal energy pulses along its body like a heartbeat. Atmospheric dark mist around its coils. Dark background fading to black at edges. #40C8B8 teal highlights. 512x512 pixels, fully opaque."
+    }
+  },
+  "theme-10": {
+    "name": "Inca",
+    "icon": "🏔",
+    "description": "Mountainous stone citadel with interlocking polygonal masonry, sun-god gold highlights, and rope textile accents",
+    "mood": "Mountainous, precise, monumental",
+    "palette": {
+      "bg": "#1A1A2A",
+      "accent": "#D4AF37",
+      "blocks": ["#F0EDE8", "#4A8A5A", "#D4B840", "#C4A882"]
+    },
+    "motifs": "Interlocking polygonal stones, Inti sun god disc, quipu rope knots, condor silhouettes, textile weave patterns, mountain terraces",
+    "blockData": {
+      "centerpiece": "chakana (Inca cross)",
+      "inspirations": [
+        "Inca polygonal masonry walls and sun temple stonework",
+        "Quipu rope knot textile patterns and condor iconography"
+      ],
+       "themeKeywords": [
+         "Inca empire",
+         "solar worship",
+         "precision stonework"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Inca panel, screen-print style on a solid black background. In the exact center: a bold Inca cross (chakana) — stepped cross symbol with a square hole in the center, four stepped arms extending in cardinal directions — painted in mid-grey (#8A8278) with black outlines. The chakana is compact, fitting in the center quarter of the width. Extending directly from the cross's stepped arm endpoints on both sides: bold geometric Inca patterns — thick interlocking polygonal bands, angular stepped terrace borders, and broad diamond lattice shapes — the patterns physically touch and grow out of the arm endpoints with absolutely zero gap, as if the stonework continues outward. Only 2-3 large geometric elements per side, each thick and monumental. Strictly geometric patterns, no figurative symbols (no condors, no llamas, no sun faces, no rope knots). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+    },
+    "scene": "Mountain citadel at dawn inspired by Machu Picchu, massive interlocking stone walls, terraced hillsides descending into cloud forest, condors soaring over Andes peaks, golden sunrise",
+    "loadingScene": "Close-up of perfectly interlocking polygonal stone wall with a gold Inti sun-god disc embedded in the masonry, morning mist rolling past the stones",
+    "mapScene": "rugged Andean mountainous terrain seen from above, rolling green highland grass and exposed grey-brown rocky ridges, natural mountain slopes with no buildings no paths no stairs no construction, dark slate and warm earth tones with lush green patches",
+    "bossLandmark": "Machu Picchu-style citadel on a mountain ridge, massive interlocking stone walls with golden Inti sun-god disc at the entrance, morning mist curling around the base, condors circling above",
+    "gridMaterial": "Dark grey polygonal stone masonry with faint interlocking joint texture at very low opacity",
+    "music": {
+      "menu": "A majestic Andean instrumental with gentle charango melody and soft pan flute harmonies over a steady bombo drum pulse. Mountain wind ambience. Around 85 BPM, monumental and serene.",
+      "gameplay": "A lively Andean instrumental with steady charango strumming and warm quena flute melody over a grounded bombo drum pulse. 115 BPM, precise and mountainous."
+    },
+    "guardian": {
+      "name": "Kuntur",
+      "title": "The Sun Condor",
+      "portraitPrompt": "A massive Andean condor spirit soaring against a dark sky, stylized cel-shaded game art with bold black outlines. The condor is enormous with dark feathers edged in molten gold, wings spread wide and slightly angled as if banking in flight. A golden sun disc glows behind its head like a halo. Golden light particles trail from its wingtips. The bird fills the frame with power and presence. Dark background fading to black at edges. #DAA520 warm gold highlights. 512x512 pixels, fully opaque."
+    }
+  }
+}

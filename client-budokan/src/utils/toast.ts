@@ -7,10 +7,6 @@ export const isMdOrLarger = (): boolean => {
   return window.matchMedia("(min-width: 768px)").matches;
 };
 
-export const shouldShowToast = (): boolean => {
-  return isMdOrLarger();
-};
-
 export const isSmallHeight = (): boolean => {
   return window.matchMedia("(max-height: 768px)").matches;
 };
@@ -44,10 +40,8 @@ export const getToastPlacement = ():
   | "top-center"
   | "bottom-center"
   | "bottom-right" => {
-  if (!isMdOrLarger()) {
-    return isSmallHeight() ? "top-center" : "bottom-right";
-  }
-  return "bottom-right";
+  // Mobile: bottom-center (CSS moves it to middle), Desktop: bottom-right
+  return isMdOrLarger() ? "bottom-right" : "bottom-center";
 };
 
 export function extractErrorMessages(errorString: string) {
@@ -70,7 +64,6 @@ export const notify = (message: string, transaction: any, toastId: string) => {
   const toastPlacement = getToastPlacement();
 
   if (transaction.execution_status !== "REVERTED") {
-    if (!shouldShowToast()) return;
     toast.success(message, {
       id: toastId,
       description: shortenHex(transaction.transaction_hash),
@@ -88,29 +81,32 @@ export const notify = (message: string, transaction: any, toastId: string) => {
 interface ShowToastOptions {
   message: string;
   txHash?: string;
+  description?: string;
   type?: "loading" | "success" | "error";
   toastId?: string;
+  durationMs?: number;
 }
 
 export const showToast = ({
   message,
   txHash,
+  description,
   type = "loading",
   toastId = "transaction-toast",
+  durationMs,
 }: ShowToastOptions) => {
-  if (!shouldShowToast()) return;
-
   const toastPlacement = getToastPlacement();
   const toastOptions = {
     id: toastId,
-    description: txHash ? shortenHex(txHash) : undefined,
+    description: description ?? (txHash ? shortenHex(txHash) : undefined),
     action: txHash ? getToastAction(txHash) : undefined,
     position: toastPlacement,
+    duration: durationMs,
   };
 
   switch (type) {
     case "loading":
-      toast.loading(message, toastOptions);
+      toast.loading(message, { ...toastOptions, duration: toastOptions.duration ?? 5000 });
       break;
     case "success":
       toast.success(message, toastOptions);
@@ -119,4 +115,55 @@ export const showToast = ({
       toast.error(message, toastOptions);
       break;
   }
+};
+
+export const normalizeErrorMessage = (raw: string): string => {
+  const message = extractedMessage(raw).trim();
+
+  if (!message) {
+    return "Something went wrong.";
+  }
+
+  const lower = message.toLowerCase();
+
+  if (
+    lower.includes("user aborted") ||
+    lower.includes("user rejected") ||
+    lower.includes("transaction rejected") ||
+    lower.includes("request rejected")
+  ) {
+    return "Transaction cancelled.";
+  }
+
+  if (lower.includes("timed out") || lower.includes("timeout")) {
+    return "Transaction timed out. Network may be slow.";
+  }
+
+  if (lower.includes("insufficient") && lower.includes("balance")) {
+    return "Insufficient balance for this action.";
+  }
+
+  return message;
+};
+
+export const deriveUserFacingErrorMessage = (
+  error: unknown,
+  fallback = "Transaction failed."
+): string => {
+  if (error instanceof Error) {
+    return normalizeErrorMessage(error.message || fallback);
+  }
+
+  if (typeof error === "string") {
+    return normalizeErrorMessage(error);
+  }
+
+  if (error && typeof error === "object" && "message" in error) {
+    const maybeMessage = (error as { message?: unknown }).message;
+    if (typeof maybeMessage === "string") {
+      return normalizeErrorMessage(maybeMessage);
+    }
+  }
+
+  return fallback;
 };

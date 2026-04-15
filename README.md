@@ -4,11 +4,11 @@
   <img src="assets/zkube.png" height="256">
 </p>
 
-A fully on-chain game, with Dojo on Starknet.
+A fully on-chain puzzle roguelike built with [Dojo](https://dojoengine.org/) on [Starknet](https://starknet.io/).
 
 ## Overview
 
-zKube is an engaging puzzle game that puts players' strategic thinking to the test. Set within a dynamic grid, the objective is simple: manipulate blocks to form solid lines and earn points. Each turn, a new line of blocks emerges from the bottom of the grid, and players have the opportunity to slide any block horizontally to strategically position them. The challenge lies in clearing lines efficiently to prevent the grid from filling up. With no notion of speed or acceleration, zKube offers a purely reflective gameplay experience, allowing players to focus solely on their puzzle-solving skills. Are you ready to dive into the world of zKube and master its captivating challenges?
+zKube challenges players to manipulate blocks on an 8x10 grid to form solid horizontal lines. Progress through 10 themed zones, earn zStar tokens, unlock bonuses, and complete daily quests. Every action is verified on-chain with VRF-powered randomness.
 
 <p align="center">
   <img src="assets/overview.png" height="256">
@@ -16,12 +16,52 @@ zKube is an engaging puzzle game that puts players' strategic thinking to the te
 
 ## Gameplay
 
-In zKube, players face the task of managing a grid populated by falling blocks. After each player turn, a new line of blocks appears at the bottom of the grid. Players can then strategically slide any block horizontally to arrange them in a manner that clears lines. Clearing a line rewards players with points, and bonus points are awarded for clearing multiple lines simultaneously. However, the challenge intensifies as the grid fills up, requiring players to think critically about each move to prevent the grid from reaching capacity. With its emphasis on thoughtful decision-making and puzzle-solving, zKube promises an immersive gameplay experience that will keep players engaged for hours on end.
+Slide blocks horizontally to form complete lines. Each cleared line awards points and builds combos. Clear the level's point target within the move limit to advance. Use bonuses strategically to clear difficult situations.
 
 <p align="center">
   <img src="assets/gameplay.png" height="256">
 </p>
 
+## Quick Start
+
+### Play
+
+Visit [app.zkube.xyz](https://app.zkube.xyz) to play on mainnet.
+
+### Development
+
+```bash
+# Frontend
+cd client-budokan
+pnpm install
+pnpm slot        # Local development
+pnpm sepolia     # Sepolia testnet
+
+# Contracts
+scarb build                    # Build all packages
+cd contracts && scarb test     # Run tests
+```
+
+See [CLAUDE.md](./CLAUDE.md) for developer/agent reference and [docs/](./docs/) for game design documents.
+
+## Technology Stack
+
+- **Contracts**: Cairo / Dojo
+- **Frontend**: React 19 / TypeScript / Vite
+- **Blockchain**: Starknet
+- **Wallet**: Cartridge Controller
+
+## Links
+
+- [Website](https://app.zkube.xyz)
+- [Twitter](https://x.com/zKube_game)
+- [Discord](https://discord.gg/pzzRSDZY)
+- [GitHub](https://github.com/z-korp/zkube)
+
 ## Team
 
-At the heart of zKube is the dedicated team of developers from zKorp. With their expertise and passion for gaming, they have brought this innovative puzzle experience to life. As the creators of zKube, the zKorp team is committed to delivering quality gameplay and engaging challenges to players worldwide. We welcome collaboration and encourage aspiring developers to join us on our journey. If you're interested in contributing to zKube or exploring the Starknet dojo framework, we invite you to reach out and become part of the dojo growing community. Together, let's shape the future of gaming.
+zKube is developed by [zKorp](https://github.com/z-korp). We welcome contributions - feel free to open issues or pull requests.
+
+## License
+
+MIT

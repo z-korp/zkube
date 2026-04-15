@@ -1,7 +1,5 @@
 // Internal imports
-use zkube::elements::difficulties::{
-    veryeasy, easy, medium, mediumhard, hard, veryhard, expert, master
-};
+use zkube::elements::difficulties::data::{get_block, get_count};
 use zkube::types::block::Block;
 
 #[derive(Introspect, Copy, Drop, Serde, PartialEq)]
@@ -20,34 +18,18 @@ pub enum Difficulty {
 
 #[generate_trait]
 pub impl DifficultyImpl of DifficultyTrait {
+    #[inline(always)]
     fn count(self: Difficulty) -> u32 {
         match self {
             Difficulty::None => 0,
             Difficulty::Increasing => 0,
-            Difficulty::VeryEasy => veryeasy::DifficultyImpl::count(),
-            Difficulty::Easy => easy::DifficultyImpl::count(),
-            Difficulty::Medium => medium::DifficultyImpl::count(),
-            Difficulty::MediumHard => mediumhard::DifficultyImpl::count(),
-            Difficulty::Hard => hard::DifficultyImpl::count(),
-            Difficulty::VeryHard => veryhard::DifficultyImpl::count(),
-            Difficulty::Expert => expert::DifficultyImpl::count(),
-            Difficulty::Master => master::DifficultyImpl::count(),
+            _ => get_count(),
         }
     }
 
+    #[inline(always)]
     fn reveal(self: Difficulty, id: u8) -> Block {
-        match self {
-            Difficulty::None => Block::None,
-            Difficulty::Increasing => Block::None,
-            Difficulty::VeryEasy => veryeasy::DifficultyImpl::reveal(id),
-            Difficulty::Easy => easy::DifficultyImpl::reveal(id),
-            Difficulty::Medium => medium::DifficultyImpl::reveal(id),
-            Difficulty::MediumHard => mediumhard::DifficultyImpl::reveal(id),
-            Difficulty::Hard => hard::DifficultyImpl::reveal(id),
-            Difficulty::VeryHard => veryhard::DifficultyImpl::reveal(id),
-            Difficulty::Expert => expert::DifficultyImpl::reveal(id),
-            Difficulty::Master => master::DifficultyImpl::reveal(id),
-        }
+        get_block(self, id)
     }
 }
 

@@ -1,21 +1,12 @@
 import { useEffect, useState, useRef } from "react";
 import { useGame } from "@/hooks/useGame";
-import { formatBigIntToBinaryArrayCustom } from "@/utils/gridUtils";
 import useDeepMemo from "./useDeepMemo";
-
-interface DebugData {
-  blocksRaw: bigint;
-  blocksRawBinary: string;
-  blocksRawFormatted: string[];
-  blocksRawFormattedContractOrder: string[];
-  blocks: number[][];
-}
 
 export const useGrid = ({
   gameId,
   shouldLog,
 }: {
-  gameId: number | undefined;
+  gameId: bigint | undefined;
   shouldLog: boolean;
 }) => {
   const { game } = useGame({ gameId, shouldLog });
@@ -30,34 +21,19 @@ export const useGrid = ({
   const memoizedBlocks = useDeepMemo(() => game?.blocks ?? [], [game?.blocks]);
 
   useEffect(() => {
-    console.log("qqqqqqqqqqqq [useGrid] game", game?.id);
     if (game?.isOver()) {
       setBlocks([]);
       blocksRef.current = [];
       return;
     }
-    console.log("qqqqqqqqqqqq [useGrid] memoizedBlocks", memoizedBlocks);
+    // During level transitions the chain grid is stale (old level's final state).
+    // Skip the update instead of clearing — this prevents isGridLoading from
+    // flickering true, which would unmount the Grid and kill in-progress combo
+    // animations. The Grid's receipt-based sync handles its own state.
+    if (game?.levelTransitionPending) return;
     if (game && memoizedBlocks.length > 0) {
-      if (shouldLog) {
-        const num = game.blocksRaw;
-        const binaryString = num.toString(2);
-        const [formattedRows, formattedRowsContractOrder] =
-          formatBigIntToBinaryArrayCustom(num);
-
-        const debugData: DebugData = {
-          blocksRaw: num,
-          blocksRawBinary: binaryString,
-          blocksRawFormatted: formattedRows,
-          blocksRawFormattedContractOrder: formattedRowsContractOrder,
-          blocks: memoizedBlocks,
-        };
-
-        console.log("Grid updated:", debugData);
-      }
-
-      // Mettre à jour `blocks` et `blocksRef` simultanément
       setBlocks(memoizedBlocks);
-      blocksRef.current = memoizedBlocks; // synchroniser la ref
+      blocksRef.current = memoizedBlocks;
     }
   }, [memoizedBlocks, game, shouldLog]);
 

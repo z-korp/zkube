@@ -1,261 +1,205 @@
-use core::traits::Into;
-use core::num::traits::zero::Zero;
-use core::poseidon::{PoseidonTrait, HashState};
+use alexandria_math::BitShift;
 use core::hash::HashStateTrait;
-
-use alexandria_math::fast_power::fast_power;
-
+use core::num::traits::zero::Zero;
+use core::poseidon::{HashState, PoseidonTrait};
+use core::traits::Into;
 use zkube::constants;
-use zkube::types::difficulty::Difficulty;
-use zkube::helpers::math::Math;
-use zkube::helpers::packer::Packer;
-use zkube::helpers::controller::Controller;
-use zkube::types::bonus::{Bonus, BonusTrait};
+use zkube::helpers::packing::{RunData, RunDataPackingTrait};
 
+/// Game model for the level-based system
+/// All run progress is packed into run_data for efficient storage
 #[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]
 #[dojo::model]
 pub struct Game {
     #[key]
-    pub game_id: u64,
+    pub game_id: felt252,
     // ----------------------------------------
-    // Change every move
+    // Grid state (changes every move)
     // ----------------------------------------
     pub blocks: felt252, // 10 lines of 3x8 bits = 240 bits
     pub next_row: u32, // 3x8 bits per row = 24 bits
-    pub score: u16,
-    pub moves: u16,
-    // Total = 1 felts + 32 + 16*2 = 1 felts + 64 bits
-
     // ----------------------------------------
-    // Can change when a move breaks lines
+    // Per-level combo tracking (resets each level)
     // ----------------------------------------
-    // Counters
-    pub combo_counter: u16,
-    pub max_combo: u8,
-    // Bonuses usable during the game (start (0, 0, 0) and will evolve)
-    pub hammer_bonus: u8,
-    pub wave_bonus: u8,
-    pub totem_bonus: u8,
-    // Bonuses used during the game
-    pub hammer_used: u8,
-    pub wave_used: u8,
-    pub totem_used: u8,
-    // Total = 16 + 8*7 = 80 bits
-    // ------------------------
-
+    pub combo_counter: u8, // Current combo streak this level
+    pub max_combo: u8, // Best combo this level
     // ----------------------------------------
-    // Change once per game
+    // Level system (bit-packed run progress)
+    // ----------------------------------------
+    pub run_data: felt252, // Bit-packed: level/score/moves + zone/endless state
+    pub level_stars: u32, // 2 bits per level × 10 levels = 20 bits used
+    // ----------------------------------------
+    // Timestamps
+    // ----------------------------------------
+    pub started_at: u64, // Run start timestamp
+    // ----------------------------------------
+    // Game state
     // ----------------------------------------
     pub over: bool,
-} // 1 felt + 64 + 80 = 1 felt + 144 bits
+}
 
+/// Separate model for game seed (kept for VRF consistency)
 #[derive(Copy, Drop, Serde, Introspect)]
 #[dojo::model]
 pub struct GameSeed {
     #[key]
-    pub game_id: u64,
-    pub seed: felt252,
+    pub game_id: felt252,
+    pub seed: felt252, // Original VRF seed — set once at game creation, NEVER changes
+    pub level_seed: felt252, // Per-level seed — updated on each level advance
+    pub vrf_enabled: bool,
+}
+
+/// Current level configuration - synced to client via Torii
+/// This is the single source of truth for level config, eliminating
+/// the need for client-side level generation (which can't work with VRF)
+#[derive(Copy, Drop, Serde, Introspect)]
+#[dojo::model]
+pub struct GameLevel {
+    #[key]
+    pub game_id: felt252,
+    pub level: u8,
+    pub points_required: u16,
+    pub max_moves: u16,
+    pub difficulty: u8, // Difficulty enum as u8
+    // Primary constraint
+    pub constraint_type: u8, // ConstraintType enum as u8 (0-6)
+    pub constraint_value: u8, // Constraint parameter
+    pub constraint_count: u8, // Required count
+    // Secondary constraint
+    pub constraint2_type: u8,
+    pub constraint2_value: u8,
+    pub constraint2_count: u8,
+    // Mutator
+    pub mutator_id: u8 // Active mutator for this level (0=none)
+}
+use zkube::types::level::LevelConfig;
+
+#[generate_trait]
+pub impl GameLevelImpl of GameLevelTrait {
+    /// Create a GameLevel model from a LevelConfig and game_id
+    fn from_level_config(game_id: felt252, config: LevelConfig) -> GameLevel {
+        GameLevel {
+            game_id,
+            level: config.level,
+            points_required: config.points_required,
+            max_moves: config.max_moves,
+            difficulty: config.difficulty.into(),
+            constraint_type: config.constraint.constraint_type.into(),
+            constraint_value: config.constraint.value,
+            constraint_count: config.constraint.required_count,
+            constraint2_type: config.constraint_2.constraint_type.into(),
+            constraint2_value: config.constraint_2.value,
+            constraint2_count: config.constraint_2.required_count,
+            mutator_id: 0,
+        }
+    }
 }
 
 #[generate_trait]
 pub impl GameImpl of GameTrait {
-    #[inline(always)]
-    fn new(game_id: u64, seed: felt252, difficulty: Difficulty) -> Game {
-        let row = Controller::create_line(seed, difficulty);
-        let mut game = Game {
+    /// Create an empty game shell (no grid initialization)
+    /// Grid should be initialized separately via grid_system.initialize_grid()
+    fn new_empty(
+        game_id: felt252, started_at: u64, zone_id: u8, active_mutator_id: u8, run_type: u8,
+    ) -> Game {
+        let run_data = RunDataPackingTrait::new(zone_id, active_mutator_id, run_type);
+
+        Game {
             game_id,
             blocks: 0,
-            next_row: row,
-            score: 0,
-            moves: 0,
+            next_row: 0,
             combo_counter: 0,
             max_combo: 0,
-            hammer_bonus: 0,
-            wave_bonus: 0,
-            totem_bonus: 0,
-            hammer_used: 0,
-            wave_used: 0,
-            totem_used: 0,
+            run_data: run_data.pack(),
+            level_stars: 0,
+            started_at,
             over: false,
-        };
-        game.start(difficulty, seed);
-        game
+        }
     }
 
-    fn start(ref self: Game, difficulty: Difficulty, base_seed: felt252) {
-        // Add lines until we have 5 remaining
-        let mut counter = 0;
-        let div: u256 = fast_power(2_u256, 4 * constants::ROW_BIT_COUNT.into()) - 1;
-        loop {
-            if self.blocks.into() / div > 0 {
-                break;
-            };
-            self.insert_new_line(difficulty, base_seed);
-            self.assess_game(ref counter);
-        };
+    /// Get unpacked run data
+    #[inline(always)]
+    fn get_run_data(self: Game) -> RunData {
+        RunDataPackingTrait::unpack(self.run_data)
     }
 
+    /// Set run data (repack)
+    #[inline(always)]
+    fn set_run_data(ref self: Game, data: RunData) {
+        self.run_data = data.pack();
+    }
+
+    /// Get current level
+    #[inline(always)]
+    fn get_level(self: Game) -> u8 {
+        self.get_run_data().current_level
+    }
+
+    /// Get level score
+    #[inline(always)]
+    fn get_level_score(self: Game) -> u16 {
+        self.get_run_data().level_score
+    }
+
+    /// Get level moves
+    #[inline(always)]
+    fn get_level_moves(self: Game) -> u8 {
+        self.get_run_data().level_moves
+    }
+
+    /// Get constraint progress (primary constraint)
+    #[inline(always)]
+    fn get_constraint_progress(self: Game) -> u8 {
+        self.get_run_data().constraint_progress
+    }
+
+    /// Get constraint_2 progress (secondary constraint)
+    #[inline(always)]
+    fn get_constraint_2_progress(self: Game) -> u8 {
+        self.get_run_data().constraint_2_progress
+    }
+
+    /// Get total score (cumulative across all levels)
+    #[inline(always)]
+    fn get_total_score(self: Game) -> u32 {
+        self.get_run_data().total_score
+    }
+
+    /// Check if grid is full (game over condition)
     #[inline(always)]
     fn assess_over(ref self: Game) {
         let exp: u256 = (constants::DEFAULT_GRID_HEIGHT.into() - 1)
             * constants::ROW_BIT_COUNT.into();
-        let div: u256 = fast_power(2, exp) - 1;
+        let div: u256 = BitShift::shl(1_u256, exp) - 1;
         self.over = self.blocks.into() / div > 0;
     }
 
+    /// Generate a level-specific seed (for starting new levels with different grids)
     #[inline(always)]
-    fn assess_bonuses(self: Game) -> (u8, u8, u8) {
-        let combo_counter: u16 = self.get_combo_counter();
-        let hammer = Bonus::Hammer.get_count(self.score, combo_counter, self.max_combo);
-        let totem = Bonus::Totem.get_count(self.score, combo_counter, self.max_combo);
-        let wave = Bonus::Wave.get_count(self.score, combo_counter, self.max_combo);
-        (hammer, totem, wave)
-    }
-
-    #[inline(always)]
-    fn insert_new_line(ref self: Game, difficulty: Difficulty, seed: felt252) -> felt252 {
-        // Generate a new seed for this operation
-        let new_seed = self.generate_seed_from_base(seed);
-
-        let row = Controller::create_line(new_seed, difficulty);
-
-        self.blocks = Controller::add_line(self.blocks, self.next_row);
-        self.next_row = row;
-
-        new_seed
-    }
-
-    #[inline(always)]
-    fn generate_seed_from_base(self: Game, base_seed: felt252) -> felt252 {
+    fn generate_level_seed(base_seed: felt252, level: u8) -> felt252 {
         let state: HashState = PoseidonTrait::new();
         let state = state.update(base_seed);
-        let state = state.update(self.blocks.into());
+        let state = state.update(level.into());
+        let state = state.update('LEVEL_SEED'); // Domain separator
         state.finalize()
     }
 
-    fn move(
-        ref self: Game,
-        difficulty: Difficulty,
-        base_seed: felt252,
-        row_index: u8,
-        start_index: u8,
-        final_index: u8
-    ) -> u8 {
-        let direction = final_index > start_index;
-        let count = match direction {
-            true => final_index - start_index,
-            false => start_index - final_index,
-        };
-
-        let new_blocks = Controller::swipe(self.blocks, row_index, start_index, direction, count);
-        self.blocks = new_blocks;
-
-        let mut counter: u8 = 0;
-        self.score += self.assess_game(ref counter);
-
-        let (hammer, totem, wave) = self.assess_bonuses();
-        self.hammer_bonus = hammer;
-        self.totem_bonus = totem;
-        self.wave_bonus = wave;
-
-        self.assess_over();
-        if self.over {
-            return 0;
-        };
-
-        self.insert_new_line(difficulty, base_seed);
-
-        self.score += self.assess_game(ref counter);
-        if (counter > 1) {
-            self.update_combo_counter(counter);
-            self.max_combo = Math::max(self.max_combo, counter);
-        }
-        self.moves += 1;
-
-        let (hammer, totem, wave) = self.assess_bonuses();
-        self.hammer_bonus = hammer;
-        self.totem_bonus = totem;
-        self.wave_bonus = wave;
-
-        if self.is_empty_grid() {
-            self.insert_new_line(difficulty, base_seed);
-        }
-
-        // Return break line count
-        counter
+    /// Get stars earned for a specific level (1-indexed, returns 0-3)
+    /// Each level uses 2 bits: level 1 at bits 0-1, level 2 at bits 2-3, etc.
+    fn get_level_stars(self: Game, level: u8) -> u8 {
+        assert!(level >= 1 && level <= 10, "Level must be 1-10");
+        let shift: u32 = ((level - 1) * 2).into();
+        ((BitShift::shr(self.level_stars, shift) & 0x3_u32)).try_into().unwrap()
     }
 
-    #[inline(always)]
-    fn is_empty_grid(ref self: Game) -> bool {
-        self.blocks == 0
-    }
-
-    fn assess_game(ref self: Game, ref counter: u8) -> u16 {
-        let mut points = 0;
-        let mut upper_blocks = 0;
-        loop {
-            let mut inner_blocks = 0;
-            loop {
-                if inner_blocks == self.blocks {
-                    break;
-                };
-                inner_blocks = self.blocks;
-                let new_blocks = Controller::apply_gravity(self.blocks);
-                self.blocks = new_blocks;
-            };
-            self.blocks = Controller::assess_lines(self.blocks, ref counter, ref points, true);
-            if upper_blocks == self.blocks {
-                break points;
-            };
-            upper_blocks = self.blocks;
-        }
-    }
-
-    #[inline(always)]
-    fn apply_bonus(
-        ref self: Game,
-        difficulty: Difficulty,
-        base_seed: felt252,
-        bonus: Bonus,
-        row_index: u8,
-        index: u8
-    ) {
-        let blocks = bonus.apply(self.blocks, row_index, index);
-        self.blocks = blocks;
-
-        // [Effect] Assess game
-        let mut counter = 0;
-        self.score += self.assess_game(ref counter);
-        if (counter > 1) {
-            self.update_combo_counter(counter);
-            self.max_combo = Math::max(self.max_combo, counter);
-        }
-
-        match bonus {
-            Bonus::None => {},
-            Bonus::Hammer => self.hammer_used += 1,
-            Bonus::Totem => self.totem_used += 1,
-            Bonus::Wave => self.wave_used += 1,
-        }
-
-        // [Effect] Grid empty add a new line
-        if self.is_empty_grid() {
-            self.insert_new_line(difficulty, base_seed);
-        }
-    }
-
-    // Put this for patching the u8 combo_counter to u16
-    // this is the case where the game has been started before the patch
-    // in this case we get the highest value from the u8 and u16
-    // the u16 will be updated later (in move and apply_bonus)
-    #[inline(always)]
-    fn get_combo_counter(self: Game) -> u16 {
-        self.combo_counter.into()
-    }
-
-    #[inline(always)]
-    fn update_combo_counter(ref self: Game, counter: u8) {
-        self.combo_counter += counter.into();
+    /// Set stars earned for a specific level (1-indexed, value 0-3)
+    fn set_level_stars(ref self: Game, level: u8, stars: u8) {
+        assert!(level >= 1 && level <= 10, "Level must be 1-10");
+        assert!(stars <= 3, "Stars must be 0-3");
+        let shift: u32 = ((level - 1) * 2).into();
+        let mask: u32 = BitShift::shl(0x3_u32, shift);
+        let star_val: u32 = (stars & 0x3).into();
+        self.level_stars = (self.level_stars & ~mask) | BitShift::shl(star_val, shift);
     }
 }
 
@@ -266,16 +210,11 @@ pub impl ZeroableGame of Zero<Game> {
             game_id: 0,
             blocks: 0,
             next_row: 0,
-            score: 0,
-            moves: 0,
             combo_counter: 0,
             max_combo: 0,
-            hammer_bonus: 0,
-            wave_bonus: 0,
-            totem_bonus: 0,
-            hammer_used: 0,
-            wave_used: 0,
-            totem_used: 0,
+            run_data: 0,
+            level_stars: 0,
+            started_at: 0,
             over: false,
         }
     }
@@ -306,56 +245,5 @@ pub impl GameAssert of AssertTrait {
     #[inline(always)]
     fn assert_is_over(self: Game) {
         assert!(self.over || self.is_zero(), "Game {} is not over", self.game_id);
-    }
-
-    #[inline(always)]
-    fn assert_is_available(self: Game, bonus: Bonus) {
-        let count = match bonus {
-            Bonus::Hammer => self.hammer_bonus - self.hammer_used,
-            Bonus::Totem => self.totem_bonus - self.totem_used,
-            Bonus::Wave => self.wave_bonus - self.wave_used,
-            _ => 0,
-        };
-        assert!(count > 0, "Game {} bonus is not available", self.game_id);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    // Core imports
-    use core::poseidon::{PoseidonTrait, HashState};
-    use core::hash::HashStateTrait;
-
-    // Local imports
-    use super::{Game, GameTrait, AssertTrait};
-    use zkube::types::difficulty::Difficulty;
-
-    // Constants
-    const GAME_ID: u32 = 101;
-    const PLAYER_ID: u32 = 1;
-    const SEED: felt252 = 'SEED';
-
-    #[test]
-    fn test_game_new() {
-        // [Effect] Create game
-        let game = GameTrait::new(GAME_ID, PLAYER_ID, SEED, Mode::Normal, 0);
-        game.assert_exists();
-        game.assert_not_over();
-        // [Assert] Game seed has changed
-
-        let state: HashState = PoseidonTrait::new();
-        let state = state.update(SEED);
-        let state = state.update(GAME_ID.into());
-        let state = state.update(0);
-
-        assert_eq!(game.seed, state.finalize());
-    }
-
-    #[test]
-    fn test_shuffle_line() {
-        // [Effect] Create game
-        let mut game = GameTrait::new(GAME_ID, PLAYER_ID, SEED, Mode::Normal, 0);
-        // [Effect] Get new line
-        game.setup_next();
     }
 }

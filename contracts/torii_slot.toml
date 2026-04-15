@@ -1,18 +1,14 @@
-world_address = "0x079a36feddf1856076a253d9f6f268ee977f52e8f18b4729a64d63bdaab93331"
-rpc = "https://api.cartridge.gg/x/budokan-matth/katana"
+world_address = "0x04315e0cdc96d922fa98b44ed1bef3f230369c5b3bbf69f7a4396c1e2f2d6266"
+rpc = "https://api.cartridge.gg/x/zkube-djizus-slot/katana"
 
 [indexing]
 pending = true
 transactions = true
-namespaces = ["zkube_budo_v1_1_0", "budokan_v_1_0_6"]
+namespaces = ["zkube_v2_1_1"]
 contracts = [
-  "erc721:0x47b3b592e8d8e986fbe01d75c5e1622551e1867cbc17e8a1f8fab89df5cbb05"
+  "erc721:0x02da434b91623ae07cb7f71a774687d22d5e69e362b79961854b0ea360650056",
+  "erc20:0x06e5f1a7bf27f6075006ea9835d6614c7889779e9db19d5edf5c7e894c77868b",
 ]
 
 [events]
 raw = true
-
-[sql]
-historical = [
-  "zkube_budo_v1_1_0-TrophyProgression",
-]

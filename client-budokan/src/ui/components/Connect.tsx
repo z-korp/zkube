@@ -1,54 +1,30 @@
-import { useConnect, useAccount } from "@starknet-react/core";
-import { motion } from "framer-motion";
-import { useMediaQuery } from "react-responsive";
+import { useConnect } from "@starknet-react/core";
+import { Gamepad2 } from "lucide-react";
+import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 
-interface connectProps {
-  inMenu?: boolean;
-}
+type ConnectProps = {
+  ctaLabel?: string;
+  pendingLabel?: string;
+};
 
-const Connect = ({ inMenu = false }: connectProps) => {
-  const { connect, connectors } = useConnect();
-  const { address, status } = useAccount();
-  const isMediumOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+const Connect = ({ ctaLabel = "CONNECT ACCOUNT", pendingLabel = "CONNECTING..." }: ConnectProps) => {
+  const { connect, connectors, isPending } = useConnect();
 
-  if (status === "connected" && address) {
-    return null;
-  }
+  const handleConnect = () => {
+    // Find the controller connector (primary) or use first available
+    const controllerConnector = connectors.find((c) => c.id === "controller");
+    const connector = controllerConnector || connectors[0];
+    
+    if (connector) {
+      connect({ connector });
+    }
+  };
 
   return (
-    <div className="flex items-center gap-3">
-      {connectors.map((connector) => (
-        <span key={connector.id}>
-          <motion.div
-            animate={
-              !inMenu && {
-                translateY: [0, -8, 0, -8, 2, 2, -8, 0, -8, 0],
-                backgroundColor: [
-                  "#FFFFFF",
-                  "#47D1D9",
-                  "#8BA3BC",
-                  "#1974D1",
-                  "#44A4D9",
-                  "#FFFFFF",
-                ],
-              }
-            }
-            transition={{
-              duration: 2,
-              ease: "easeInOut",
-              repeat: Infinity,
-              repeatDelay: 1,
-            }}
-            onClick={() => {
-              connect({ connector });
-            }}
-            className={`${!inMenu ? `cursor-pointer p-2 text-black bg-blue-500 font-bold ${!isMediumOrLarger ? "rounded-none border-4 border-black" : "rounded-lg"}` : "cursor-pointer p-2 border-2 rounded-lg font-bold"}`}
-          >
-            Connect
-          </motion.div>
-        </span>
-      ))}
-    </div>
+    <ArcadeButton onClick={handleConnect} disabled={isPending}>
+      <Gamepad2 size={22} strokeWidth={2.5} />
+      {isPending ? pendingLabel : ctaLabel}
+    </ArcadeButton>
   );
 };
 

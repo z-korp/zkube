@@ -1,27 +1,33 @@
 import { createContext, useEffect, useState } from "react";
+import {
+  loadThemeTemplate,
+  saveThemeTemplate,
+  THEME_IDS,
+  type ThemeId,
+} from "@/config/themes";
 
 type Theme = "dark" | "light" | "system";
-type ThemeTemplate = "theme-1" | "theme-2";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
   defaultTheme?: Theme;
-  defaultThemeTemplate?: ThemeTemplate;
+  defaultThemeTemplate?: ThemeId;
   storageKey?: string;
 };
 
 type ThemeProviderState = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  themeTemplate: ThemeTemplate;
-  setThemeTemplate: (themeTemplate: ThemeTemplate) => void;
+  themeTemplate: ThemeId;
+  /** Set the active theme. Pass `save = false` for temporary overrides (e.g. zone themes). */
+  setThemeTemplate: (themeTemplate: ThemeId, save?: boolean) => void;
 };
 
 const initialState: ThemeProviderState = {
   theme: "system",
   setTheme: () => null,
   themeTemplate: "theme-1",
-  setThemeTemplate: () => null,
+  setThemeTemplate: () => {},
 };
 
 export const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
@@ -36,14 +42,15 @@ export function ThemeProvider({
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme,
   );
-  const [themeTemplate, setThemeTemplate] =
-    useState<ThemeTemplate>(defaultThemeTemplate);
+  const [themeTemplate, setThemeTemplate] = useState<ThemeId>(() => {
+    const stored = loadThemeTemplate();
+    return THEME_IDS.includes(stored) ? stored : defaultThemeTemplate;
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
 
     root.classList.remove("light", "dark");
-    root.classList.remove("theme-1", "theme-2");
 
     if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
@@ -55,7 +62,7 @@ export function ThemeProvider({
       root.classList.add(theme);
     }
 
-    root.classList.add(themeTemplate);
+    root.dataset.theme = themeTemplate;
   }, [theme, themeTemplate]);
 
   const value = {
@@ -65,8 +72,10 @@ export function ThemeProvider({
       setTheme(theme);
     },
     themeTemplate,
-    setThemeTemplate: (themeTemplate: ThemeTemplate) => {
-      setThemeTemplate(themeTemplate);
+    setThemeTemplate: (nextThemeTemplate: ThemeId, save = true) => {
+      if (!THEME_IDS.includes(nextThemeTemplate)) return;
+      if (save) saveThemeTemplate(nextThemeTemplate);
+      setThemeTemplate(nextThemeTemplate);
     },
   };
 
@@ -76,3 +85,5 @@ export function ThemeProvider({
     </ThemeProviderContext.Provider>
   );
 }
+
+export type { ThemeId };

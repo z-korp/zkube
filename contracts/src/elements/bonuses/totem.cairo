@@ -34,22 +34,8 @@ pub impl BonusImpl of BonusTrait {
                 break;
             }
             shift *= modulo;
-        };
+        }
         let new_blocks: u256 = blocks.into() & ~mask;
         new_blocks.try_into().unwrap()
-    }
-
-    #[inline(always)]
-    fn get_count(score: u16, combo_count: u16, max_combo: u8) -> u8 {
-        if max_combo >= 6 {
-            return 3;
-        }
-        if max_combo >= 4 {
-            return 2;
-        }
-        if max_combo >= 2 {
-            return 1;
-        }
-        return 0;
     }
 }

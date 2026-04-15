@@ -1,282 +1,127 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
-import { Card } from "@/ui/elements/card";
-import { useDojo } from "@/dojo/useDojo";
-import { GameBonus } from "../containers/GameBonus";
-import { useMediaQuery } from "react-responsive";
-import { Account } from "starknet";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { ChevronUp } from "lucide-react";
 import Grid from "./Grid";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
-import type { Block } from "@/types/types";
-import GameScores from "./GameScores";
-import { Bonus, BonusType } from "@/dojo/game/types/bonus";
-import BonusAnimation from "./BonusAnimation";
+import { BonusType } from "@/dojo/game/types/bonusTypes";
 import { Game } from "@/dojo/game/models/game";
+import { Account } from "starknet";
 
 import "../../grid.css";
 
 interface GameBoardProps {
   initialGrid: number[][];
   nextLine: number[];
-  score: number;
-  combo: number;
-  maxCombo: number;
-  hammerCount: number;
-  waveCount: number;
-  totemCount: number;
   account: Account | null;
   game: Game;
+  activeBonus: BonusType;
+  bonusDescription: string;
+  onCascadeComplete?: () => void;
+  forceTxProcessing?: boolean;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
   initialGrid,
   nextLine,
-  score,
-  combo,
-  maxCombo,
-  waveCount,
-  hammerCount,
-  totemCount,
   account,
   game,
+  activeBonus,
+  bonusDescription,
+  onCascadeComplete,
+  forceTxProcessing = false,
 }) => {
-  const {
-    setup: {
-      systemCalls: { applyBonus },
-    },
-  } = useDojo();
-
-  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
   const ROWS = 10;
   const COLS = 8;
-  const GRID_SIZE = isMdOrLarger ? 50 : 40;
+  const NEXT_LINE_ROWS = 1;
+  const HORIZONTAL_PADDING = 24;
+  const VERTICAL_CHROME = 36;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [gridSize, setGridSize] = useState(40);
 
   const [isTxProcessing, setIsTxProcessing] = useState(false);
-
-  // State that will allow us to hide or display the next line
+  const effectiveTxProcessing = isTxProcessing || forceTxProcessing;
   const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
-
-  // Optimistic data (score, combo, maxcombo)
-  const [optimisticScore, setOptimisticScore] = useState(score);
-  const [optimisticCombo, setOptimisticCombo] = useState(combo);
-  const [optimisticMaxCombo, setOptimisticMaxCombo] = useState(maxCombo);
-  const [bonusDescription, setBonusDescription] = useState("");
-
-  const [bonus, setBonus] = useState<BonusType>(BonusType.None);
-
-  const handleBonusWaveClick = () => {
-    if (waveCount === 0) return;
-    if (bonus === BonusType.Wave) {
-      setBonus(BonusType.None);
-      setBonusDescription("");
-    } else {
-      setBonus(BonusType.Wave);
-      setBonusDescription("Select the line you want to destroy");
-    }
-  };
-
-  const handleBonusTikiClick = () => {
-    if (totemCount === 0) return;
-    if (bonus === BonusType.Totem) {
-      setBonus(BonusType.None);
-      setBonusDescription("");
-    } else {
-      setBonus(BonusType.Totem);
-      setBonusDescription("Select the block type you want to destroy");
-    }
-  };
-
-  const handleBonusHammerClick = () => {
-    if (hammerCount === 0) return;
-    if (bonus === BonusType.Hammer) {
-      setBonus(BonusType.None);
-      setBonusDescription("");
-    } else {
-      setBonus(BonusType.Hammer);
-      setBonusDescription("Select the block you want to destroy");
-    }
-  };
-
-  const handleBonusWaveTx = useCallback(
-    async (rowIndex: number) => {
-      if (!account) return;
-
-      setIsTxProcessing(true);
-      try {
-        await applyBonus({
-          account: account as Account,
-          game_id: game.id,
-          bonus: new Bonus(BonusType.Wave).into(),
-          row_index: ROWS - rowIndex - 1,
-          block_index: 0,
-        });
-      } finally {
-        //setIsLoading(false);
-      }
-    },
-    [account, applyBonus]
-  );
-
-  const handleBonusHammerTx = useCallback(
-    async (rowIndex: number, colIndex: number) => {
-      if (!account) return;
-
-      setIsTxProcessing(true);
-      try {
-        await applyBonus({
-          account: account as Account,
-          game_id: game.id,
-          bonus: new Bonus(BonusType.Hammer).into(),
-          row_index: ROWS - rowIndex - 1,
-          block_index: colIndex,
-        });
-      } finally {
-        //setIsLoading(false);
-      }
-    },
-    [account, applyBonus]
-  );
-
-  const handleBonusTikiTx = useCallback(
-    async (rowIndex: number, colIndex: number) => {
-      if (!account) return;
-
-      setIsTxProcessing(true);
-      try {
-        await applyBonus({
-          account: account as Account,
-          game_id: game.id,
-          bonus: new Bonus(BonusType.Totem).into(),
-          row_index: ROWS - rowIndex - 1,
-          block_index: colIndex,
-        });
-      } finally {
-        //setIsLoading(false);
-      }
-    },
-    [account, applyBonus]
-  );
-
-  const selectBlock = useCallback(
-    async (block: Block) => {
-      if (bonus === BonusType.Wave) {
-        handleBonusWaveTx(block.y);
-      } else if (bonus === BonusType.Totem) {
-        handleBonusTikiTx(block.y, block.x);
-      } else if (bonus === BonusType.Hammer) {
-        handleBonusHammerTx(block.y, block.x);
-      } else if (bonus === BonusType.None) {
-        console.log("none", block);
-      }
-    },
-    [bonus, handleBonusHammerTx, handleBonusTikiTx, handleBonusWaveTx]
-  );
+  const [nextLineOverride, setNextLineOverride] = useState<number[] | null>(null);
 
   useEffect(() => {
-    // Reset the isTxProcessing state and the bonus state when the grid changes
-    // meaning the tx as been processed, and the client state updated
-    setBonus(BonusType.None);
-    setBonusDescription("");
-  }, [initialGrid]);
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      const w = entry.contentRect.width;
+      const h = entry.contentRect.height;
+      const safeWidth = Math.max(1, w - HORIZONTAL_PADDING);
+      const safeHeight = Math.max(1, h - VERTICAL_CHROME);
+      const cellByWidth = Math.floor(safeWidth / COLS);
+      const cellByHeight = Math.floor(safeHeight / (ROWS + NEXT_LINE_ROWS));
+      const cellSize = Math.min(cellByWidth, cellByHeight);
+      setGridSize(Math.max(28, Math.min(cellSize, 72)));
+    });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const memoizedInitialData = useMemo(() => {
     return transformDataContractIntoBlock(initialGrid);
   }, [initialGrid]);
 
   const memoizedNextLineData = useMemo(() => {
-    return transformDataContractIntoBlock([nextLine]);
-    // initialGrid on purpose
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialGrid]);
+    return transformDataContractIntoBlock([nextLineOverride ?? nextLine]);
+  }, [nextLine, nextLineOverride]);
 
-  if (memoizedInitialData.length === 0) return null; // otherwise sometimes
-  // the grid is not displayed in Grid because the data is not ready
+  if (memoizedInitialData.length === 0) return null;
 
   return (
-    <>
-      <Card
-        className={`relative p-3 md:pt-4 bg-secondary ${
-          isTxProcessing && "cursor-wait"
-        } pb-2 md:pb-3`}
-      >
-        <BonusAnimation
-          isMdOrLarger={isMdOrLarger}
-          optimisticScore={optimisticScore}
-          optimisticCombo={optimisticCombo}
-          optimisticMaxCombo={optimisticMaxCombo}
+    <div
+      ref={containerRef}
+      className={`relative flex h-full min-h-0 w-full flex-col p-2 md:p-3 ${
+        effectiveTxProcessing ? "cursor-wait" : ""
+      }`}
+    >
+      <div className={`flex min-h-0 flex-1 flex-col items-center ${!effectiveTxProcessing ? "cursor-move" : ""}`}>
+        <Grid
+          gameId={game.id}
+          initialData={memoizedInitialData}
+          nextLineData={memoizedNextLineData}
+          setNextLineHasBeenConsumed={setNextLineHasBeenConsumed}
+          gridSize={gridSize}
+          gridHeight={ROWS}
+          gridWidth={COLS}
+          bonus={activeBonus}
+          account={account}
+          isTxProcessing={effectiveTxProcessing}
+          setIsTxProcessing={setIsTxProcessing}
+          levelTransitionPending={game.levelTransitionPending}
+          onCascadeComplete={onCascadeComplete}
+          onNextLineUpdate={setNextLineOverride}
         />
-        <div
-          className={`${
-            isMdOrLarger ? "w-[420px]" : "w-[338px]"
-          } mb-2 md:mb-3 flex justify-between px-1`}
-        >
-          <div className="w-5/12">
-            <GameBonus
-              onBonusWaveClick={handleBonusWaveClick}
-              onBonusTikiClick={handleBonusTikiClick}
-              onBonusHammerClick={handleBonusHammerClick}
-              hammerCount={hammerCount}
-              tikiCount={totemCount}
-              waveCount={waveCount}
-              bonus={bonus}
-            />
+        <div className="mt-1 flex items-center justify-center gap-1 py-0.5">
+          <div className="chevron-pulse">
+            <ChevronUp size={14} className="text-white/50" />
           </div>
-          <GameScores
-            score={optimisticScore}
-            combo={optimisticCombo}
-            maxCombo={optimisticMaxCombo}
-            isMdOrLarger={isMdOrLarger}
-          />
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
+            Next Row
+          </span>
         </div>
-
-        <div
-          className={`flex justify-center items-center ${
-            !isTxProcessing && "cursor-move"
-          }`}
-        >
-          <Grid
-            gameId={game.id}
-            initialData={memoizedInitialData}
-            nextLineData={memoizedNextLineData}
-            setNextLineHasBeenConsumed={setNextLineHasBeenConsumed}
-            gridSize={GRID_SIZE}
-            gridHeight={ROWS}
-            gridWidth={COLS}
-            selectBlock={selectBlock}
-            bonus={bonus}
-            account={account}
-            score={game.score}
-            combo={game.combo}
-            maxCombo={game.max_combo}
-            setOptimisticScore={setOptimisticScore}
-            setOptimisticCombo={setOptimisticCombo}
-            setOptimisticMaxCombo={setOptimisticMaxCombo}
-            isTxProcessing={isTxProcessing}
-            setIsTxProcessing={setIsTxProcessing}
-          />
-        </div>
-
-        <div className="relative">
-          <div className="absolute z-50 text-lg w-full flex justify-center items-center mt-2 md:mt-3 left-1/2 transform -translate-x-1/2">
-            {bonus !== BonusType.None && (
-              <h1
-                className={`text-yellow-500 p-2 rounded font-bold ${
-                  bonusDescription.length > 20 ? "text-sm" : "text-2xl"
-                } md:text-lg bg-black bg-opacity-50 whitespace-nowrap overflow-hidden text-ellipsis`}
-              >
-                {bonusDescription}
-              </h1>
-            )}
-          </div>
+        <div>
           <NextLine
             nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
-            gridSize={GRID_SIZE}
+            gridSize={gridSize}
             gridHeight={1}
             gridWidth={COLS}
           />
         </div>
-      </Card>
-    </>
+      </div>
+
+      {activeBonus !== BonusType.None && (
+        <div className="absolute inset-x-0 top-1/2 flex justify-center pointer-events-none z-50">
+          <div className="text-yellow-500 px-3 py-1.5 rounded font-bold text-sm bg-black/70 whitespace-nowrap">
+            {bonusDescription}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

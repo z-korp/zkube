@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Block } from "@/types/types";
-import BlockContainer from "@/ui/components/Block";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import { getThemeImages, type ThemeId } from "@/config/themes";
 
 interface NextLineProps {
   nextLineData: Block[];
@@ -16,30 +17,59 @@ const NextLine = ({
   gridWidth,
 }: NextLineProps) => {
   const [blocks, setBlocks] = useState<Block[]>(nextLineData);
+  const { themeTemplate } = useTheme();
+  const themeImages = getThemeImages(themeTemplate as ThemeId);
 
-  const borderSize = 2;
+  const blockImages = useMemo<Record<number, string>>(() => ({
+    1: themeImages.block1,
+    2: themeImages.block2,
+    3: themeImages.block3,
+    4: themeImages.block4,
+  }), [themeImages]);
 
   useEffect(() => {
     setBlocks(nextLineData);
   }, [nextLineData]);
 
+  const svgW = gridWidth * gridSize;
+  const svgH = gridHeight * gridSize;
+
   return (
-    <div className="grid-background static-border">
-      <div
-        className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)]`}
-        style={{
-          height: `${gridHeight * gridSize + borderSize}px`,
-          width: `${gridWidth * gridSize + borderSize}px`,
-          backgroundImage:
-            "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
-          backgroundSize: `${gridSize}px ${gridSize}px`,
-        }}
-      >
-        {blocks.map((block) => (
-          <BlockContainer key={block.id} block={block} gridSize={gridSize} />
-        ))}
-      </div>
-    </div>
+    <svg
+      viewBox={`0 0 ${svgW} ${svgH}`}
+      width={svgW}
+      height={svgH}
+    >
+      {/* Grid lines */}
+      {Array.from({ length: gridWidth + 1 }, (_, i) => (
+        <line
+          key={`v${i}`}
+          x1={i * gridSize} y1={0}
+          x2={i * gridSize} y2={svgH}
+          stroke="rgba(255,255,255,0.07)" strokeWidth={1}
+        />
+      ))}
+      <line x1={0} y1={0} x2={svgW} y2={0} stroke="rgba(255,255,255,0.07)" strokeWidth={1} />
+      <line x1={0} y1={svgH} x2={svgW} y2={svgH} stroke="rgba(255,255,255,0.07)" strokeWidth={1} />
+
+      {/* Blocks */}
+      {blocks.map((block) => {
+        const x = block.x * gridSize;
+        const y = block.y * gridSize;
+        const w = block.width * gridSize;
+        const h = gridSize;
+        const imageUrl = blockImages[block.width] ?? "";
+        return (
+          <image
+            key={block.id}
+            href={imageUrl}
+            x={x} y={y}
+            width={w} height={h}
+            preserveAspectRatio="none"
+          />
+        );
+      })}
+    </svg>
   );
 };
 

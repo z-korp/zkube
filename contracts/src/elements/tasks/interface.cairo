@@ -1,4 +1,4 @@
-pub trait TaskTrait {
-    fn identifier(level: u8) -> felt252;
-    fn description(count: u32) -> ByteArray;
+pub trait TaskTrait<T> {
+    fn identifier(self: @T) -> felt252;
+    fn description(self: @T, count: u32) -> ByteArray;
 }

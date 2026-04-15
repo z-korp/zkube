@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
-import { ethers } from "ethers";
 import { symbolImages } from "./tokenImages";
+import { formatUsdcAmount } from "./payment";
 
 export type Prize = {
   full: string;
@@ -14,25 +14,31 @@ export const formatPrize = (
   token_symbol: string,
   symbolNode?: ReactNode,
 ): Prize => {
-  const rawEthPrize = ethers.utils.formatEther(rawPrize);
-  const truncatedPrize = parseFloat(rawEthPrize).toFixed(2);
+  const normalizedSymbol = token_symbol.toUpperCase() === "ETH" ? "USDC" : token_symbol;
+  const truncatedPrize =
+    normalizedSymbol.toUpperCase() === "USDC"
+      ? formatUsdcAmount(rawPrize)
+      : Number(rawPrize).toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
 
   // Check if we have an image for this token
-  const tokenImage = symbolImages[token_symbol];
+  const tokenImage = symbolImages[normalizedSymbol];
 
   return {
-    full: `${truncatedPrize} ${token_symbol}`,
+    full: `${truncatedPrize} ${normalizedSymbol}`,
     formatted_prize: truncatedPrize,
     display: (
       <div className="flex items-center">
         <span>{truncatedPrize}</span>
-        {symbolNode ? symbolNode : <span className="ml-1">{token_symbol}</span>}
+        {symbolNode ? symbolNode : <span className="ml-1">{normalizedSymbol}</span>}
       </div>
     ),
     withImage: tokenImage ? (
       <div className="flex items-center justify-center">
         <span>{truncatedPrize}</span>
-        <img src={tokenImage} alt={token_symbol} className="ml-1 h-8 w-8" />
+        <img src={tokenImage} alt={normalizedSymbol} className="ml-1 h-8 w-8" />
       </div>
     ) : null,
   };

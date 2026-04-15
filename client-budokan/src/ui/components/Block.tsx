@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { GameState } from "@/enums/gameEnums";
 import type { Block } from "@/types/types";
 
@@ -9,16 +9,15 @@ interface BlockProps {
   isTxProcessing?: boolean;
   transitionDuration?: number;
   state?: GameState;
-  handleMouseDown?: (
-    e: React.MouseEvent<HTMLDivElement>,
-    block: BlockProps["block"]
+  isExploding?: boolean;
+  /** Map of block width (1-4) → image URL */
+  blockImages: Record<number, string>;
+  onPointerDown?: (
+    e: React.PointerEvent<SVGGElement>,
+    block: Block,
   ) => void;
-  handleTouchStart?: (
-    e: React.TouchEvent<HTMLDivElement>,
-    block: BlockProps["block"]
-  ) => void;
-  onTransitionBlockStart?: () => void;
-  onTransitionBlockEnd?: () => void;
+  onTransitionBlockStart?: (id: number) => void;
+  onTransitionBlockEnd?: (id: number) => void;
 }
 
 const BlockContainer: React.FC<BlockProps> = ({
@@ -28,63 +27,80 @@ const BlockContainer: React.FC<BlockProps> = ({
   transitionDuration = 100,
   isTxProcessing = false,
   state,
-  handleMouseDown,
-  handleTouchStart,
+  isExploding = false,
+  blockImages,
+  onPointerDown,
   onTransitionBlockStart,
   onTransitionBlockEnd,
 }) => {
-  const ref = useRef<HTMLDivElement | null>(null);
+  const ref = useRef<SVGGElement | null>(null);
+
+  const isGravity =
+    state === GameState.GRAVITY ||
+    state === GameState.GRAVITY2 ||
+    state === GameState.GRAVITY_BONUS ||
+    state === GameState.ADD_LINE_SHIFT;
 
   useEffect(() => {
     const element = ref.current;
     if (element === null) return;
 
-    const onTransitionStart = () => {
-      if (onTransitionBlockStart !== undefined) onTransitionBlockStart();
+    const onTransitionStart = (event: TransitionEvent) => {
+      if (event.propertyName !== "transform") return;
+      if (!isGravity) return;
+      onTransitionBlockStart?.(block.id);
     };
 
     element.addEventListener("transitionstart", onTransitionStart);
-
     return () => {
       element?.removeEventListener("transitionstart", onTransitionStart);
     };
-  }, [onTransitionBlockStart]);
+  }, [onTransitionBlockStart, isGravity, block.id]);
 
-  // Gestion de la fin de la transition via l'événement onTransitionEnd
-  const handleTransitionEnd = () => {
-    //setTriggerParticles(true);
-    if (onTransitionBlockEnd !== undefined) onTransitionBlockEnd(); // Notifier que la transition est terminée
-  };
+  const handleTransitionEnd = useCallback(
+    (e: React.TransitionEvent<SVGGElement>) => {
+      if (e.propertyName !== "transform") return;
+      onTransitionBlockEnd?.(block.id);
+    },
+    [onTransitionBlockEnd, block.id],
+  );
+
+  const x = block.x * gridSize;
+  const y = block.y * gridSize;
+  const w = block.width * gridSize;
+  const h = gridSize;
+  const imageUrl = blockImages[block.width] ?? "";
 
   return (
-    <div
-      className={`block block-${block.width} ${
-        isTxProcessing ? "cursor-wait" : ""
-      } ${block.y != gridHeight - 1 ? "z-10" : ""}`}
+    <g
       ref={ref}
+      className="svg-block"
       style={{
-        position: "absolute",
-        top: `${block.y * gridSize + 1}px`,
-        left: `${block.x * gridSize + 1}px`,
-        width: `${block.width * gridSize}px`,
-        height: `${gridSize}px`,
-        transition:
-          state === GameState.GRAVITY ||
-          state === GameState.GRAVITY2 ||
-          state === GameState.GRAVITY_BONUS
-            ? `top ${transitionDuration / 1000}s linear`
-            : "none", // Désactivation de la transition autrement
-        color: "white",
+        transform: `translate(${x}px, ${y}px)`,
+        transition: isGravity
+          ? `transform ${transitionDuration / 1000}s linear`
+          : "none",
+        cursor: isTxProcessing ? "wait" : "grab",
       }}
-      onMouseDown={(e) => {
-        if (handleMouseDown !== undefined) handleMouseDown(e, block);
-      }}
-      onTouchStart={(e) => {
-        if (handleTouchStart !== undefined) handleTouchStart(e, block);
-      }}
+      onPointerDown={(e) => onPointerDown?.(e, block)}
       onTransitionEnd={handleTransitionEnd}
-    ></div>
+    >
+      {/* Inner group for explosion animation — doesn't conflict with outer translate */}
+      <g
+        className={isExploding ? "svg-block-exploding" : ""}
+        style={{ transformOrigin: `${w / 2}px ${h / 2}px` }}
+      >
+        <image
+          href={imageUrl}
+          x={0}
+          y={0}
+          width={w}
+          height={h}
+          preserveAspectRatio="none"
+        />
+      </g>
+    </g>
   );
 };
 
-export default BlockContainer;
+export default React.memo(BlockContainer);

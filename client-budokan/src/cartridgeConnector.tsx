@@ -1,163 +1,250 @@
 import { Connector } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
-import type { ControllerOptions, SessionPolicies } from "@cartridge/controller";
-import { manifest } from "./config/manifest";
+import type {
+  ControllerOptions,
+  SessionPolicies,
+  AuthOptions,
+} from "@cartridge/controller";
 import { shortString } from "starknet";
+import { createLogger } from "@/utils/logger";
 
-const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
+import manifestSlot from "../../contracts/manifest_slot.json";
+import manifestSepolia from "../../contracts/manifest_sepolia.json";
+import manifestMainnet from "../../contracts/manifest_mainnet.json";
 
-export type Manifest = typeof manifest;
+const log = createLogger("cartridgeConnector");
 
-const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
-
-const preset = "zkube";
-const namespace = VITE_PUBLIC_NAMESPACE;
+const {
+  VITE_PUBLIC_DEPLOY_TYPE,
+  VITE_PUBLIC_SLOT,
+  VITE_PUBLIC_NODE_URL,
+  VITE_PUBLIC_NAMESPACE,
+} = import.meta.env;
 
 export const stringToFelt = (v: string) =>
   v ? shortString.encodeShortString(v) : "0x0";
 
-const getChainId = (): string => {
-  switch (VITE_PUBLIC_DEPLOY_TYPE) {
-    case "sepolia":
-      return "SN_SEPOLIA";
-    case "mainnet":
-      return "SN_MAIN";
-    case "slot":
-      return "WP_BUDOKAN_MATTH";
-    default:
-      return "SN_MAIN";
-  }
+type DeployType = "mainnet" | "sepolia" | "slot";
+
+type DojoManifest = {
+  contracts: Array<{
+    address: string;
+    tag: string;
+    systems: string[];
+  }>;
 };
 
-const getSlot = (): string => {
-  switch (VITE_PUBLIC_DEPLOY_TYPE) {
-    case "slot":
-      return "budokan-matth";
-    case "sepolia":
-      return "zkube-ba-sepolia";
-    default:
-      return "zkube-ba-mainnet";
-  }
+const CHAIN_IDS = {
+  mainnet: "SN_MAIN",
+  sepolia: "SN_SEPOLIA",
+  slot: VITE_PUBLIC_SLOT
+    ? `WP_${VITE_PUBLIC_SLOT.toUpperCase().replace(/-/g, "_")}`
+    : "WP_ZKUBE",
+} as const;
+
+const RPC_URLS = {
+  mainnet: "https://api.cartridge.gg/x/starknet/mainnet",
+  sepolia: "https://api.cartridge.gg/x/starknet/sepolia",
 };
 
-const getPolicies = (): SessionPolicies | undefined => {
-  switch(VITE_PUBLIC_DEPLOY_TYPE) {
-    case "slot":
-      return undefined;
-    case "sepolia":
-      return {contracts:{
-        "0x051Fea4450Da9D6aeE758BDEbA88B2f665bCbf549D2C61421AA724E9AC0Ced8F": {
-            description: "Provides verifiable random functions",
-            methods: [
-              {
-                name: "Request Random",
-                description: "Request a random number",
-                entrypoint: "request_random"
-              }
-            ]
+const SLOTS = {
+  mainnet: "zkube-ba-mainnet",
+  sepolia: "zkube-djizus-sepolia",
+  slot: VITE_PUBLIC_SLOT || "zkube",
+};
+
+const VRF_ADDRESS =
+  "0x051Fea4450Da9D6aeE758BDEbA88B2f665bCbf549D2C61421AA724E9AC0Ced8F";
+
+const EXCLUDED_SYSTEMS = ["renderer_systems"];
+const INTERNAL_SYSTEMS = ["config_system", "grid_system"];
+
+const ADDITIONAL_ENTRYPOINTS: Record<string, string[]> = {
+  game_system: ["mint_game"],
+  config_system: ["add_custom_game_settings", "purchase_zone_access", "unlock_zone_with_stars"],
+};
+
+const buildPoliciesFromManifest = (
+  manifest: DojoManifest,
+  _namespace: string,
+  includeVrf = false
+): SessionPolicies => {
+  const contractsUnsorted: Array<{
+    address: string;
+    policy: {
+      description: string;
+      methods: Array<{ name: string; entrypoint: string }>;
+    };
+  }> = [];
+
+  if (includeVrf) {
+    contractsUnsorted.push({
+      address: VRF_ADDRESS,
+      policy: {
+        description: "Cartridge VRF - Random number generation",
+        methods: [
+          {
+            name: "Request Random",
+            entrypoint: "request_random",
           },
-          "0x6d09ee095fd3fab025ded7802d0f8180a37ee5d7da827e3c642d1ede779abba": {
-            description: "Manages zKube game",
-            methods: [
-              {
-                name: "Create Game",
-                description: "Create a new zKube game",
-                entrypoint: "create"
-              },
-              {
-                name: "Surrender Game",
-                description: "Forfeit the current game",
-                entrypoint: "surrender"
-              },
-              {
-                name: "Make a Move",
-                description: "Make a move in the current game",
-                entrypoint: "move"
-              },
-              {
-                name: "Use Bonus",
-                description: "Apply a special bonus",
-                entrypoint: "apply_bonus"
-              },
-              {
-                name: "Mint Game",
-                description: "Mint a new zKube game",
-                entrypoint: "mint_game"
-              }
-            ]
-          }
-        }
-      }
-    case "mainnet": 
-      return {contracts:{
-          "0x051Fea4450Da9D6aeE758BDEbA88B2f665bCbf549D2C61421AA724E9AC0Ced8F": {
-              description: "Provides verifiable random functions",
-              methods: [
-                {
-                  name: "Request Random",
-                  description: "Request a random number",
-                  entrypoint: "request_random"
-                }
-              ]
-            },
-            "0x79c30d00719faea99297075e22fd84260f39960e14239f2018ba5d1dc1ab907": {
-              description: "Manages zKube game",
-              methods: [
-                {
-                  name: "Create Game",
-                  description: "Create a new zKube game",
-                  entrypoint: "create"
-                },
-                {
-                  name: "Surrender Game",
-                  description: "Forfeit the current game",
-                  entrypoint: "surrender"
-                },
-                {
-                  name: "Make a Move",
-                  description: "Make a move in the current game",
-                  entrypoint: "move"
-                },
-                {
-                  name: "Use Bonus",
-                  description: "Apply a special bonus",
-                  entrypoint: "apply_bonus"
-                },
-                {
-                  name: "Mint Game",
-                  description: "Mint a new zKube game",
-                  entrypoint: "mint_game"
-                }
-              ]
-            }
-          }
-        }
-    default:
-      return undefined;
+        ],
+      },
+    });
   }
-}
 
-const options: ControllerOptions = {
-  chains: [
-    {
-      rpcUrl: "https://api.cartridge.gg/x/starknet/sepolia",
-    },
-    {
-      rpcUrl: "https://api.cartridge.gg/x/starknet/sepolia",
-    },
-    {
-      rpcUrl: "https://api.cartridge.gg/x/budokan-matth/katana",
-    },
-  ],
-  defaultChainId: stringToFelt(getChainId()).toString(),
-  namespace,
-  slot: getSlot(),
-  policies: getPolicies(),
-  preset:VITE_PUBLIC_DEPLOY_TYPE === "mainnet" ? undefined : undefined,
+  for (const contract of manifest.contracts) {
+    const systemName = contract.tag.split("-").pop() || "";
+
+    if (EXCLUDED_SYSTEMS.includes(systemName)) {
+      continue;
+    }
+
+    const userEntrypoints = contract.systems.filter((entrypoint: string) => {
+      if (["dojo_init", "upgrade"].includes(entrypoint)) {
+        return false;
+      }
+      if (INTERNAL_SYSTEMS.includes(systemName)) {
+        return false;
+      }
+      return true;
+    });
+
+    const additionalEntrypoints = ADDITIONAL_ENTRYPOINTS[systemName] || [];
+    const allEntrypoints = [...userEntrypoints, ...additionalEntrypoints];
+
+    if (allEntrypoints.length === 0) {
+      continue;
+    }
+
+    const methods = allEntrypoints
+      .map((entrypoint: string) => ({
+        name: formatEntrypointName(entrypoint),
+        entrypoint,
+      }))
+      .sort((a, b) => a.entrypoint.localeCompare(b.entrypoint));
+
+    contractsUnsorted.push({
+      address: contract.address,
+      policy: {
+        description: `zKube ${formatSystemName(systemName)}`,
+        methods,
+      },
+    });
+  }
+
+  contractsUnsorted.sort((a, b) => a.address.localeCompare(b.address));
+
+  const contracts: SessionPolicies["contracts"] = {};
+  for (const { address, policy } of contractsUnsorted) {
+    contracts[address] = policy;
+  }
+
+  return { contracts };
 };
 
-const cartridgeConnector = new ControllerConnector(
-  options
-) as never as Connector;
+const formatEntrypointName = (entrypoint: string): string => {
+  return entrypoint
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+const formatSystemName = (systemName: string): string => {
+  return systemName
+    .replace(/_/g, " ")
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+const getManifest = (deployType: DeployType): DojoManifest => {
+  switch (deployType) {
+    case "sepolia":
+      return manifestSepolia as DojoManifest;
+    case "slot":
+      return manifestSlot as DojoManifest;
+    case "mainnet":
+    default:
+      return manifestMainnet as DojoManifest;
+  }
+};
+
+type ConnectorConfig = {
+  chainId: string;
+  slot: string;
+  policies: SessionPolicies;
+  chains: Array<{ rpcUrl: string }>;
+};
+
+const getConfig = (): ConnectorConfig => {
+  const deployType = (VITE_PUBLIC_DEPLOY_TYPE as DeployType) || "mainnet";
+  const namespace = VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_2_0";
+  const manifest = getManifest(deployType);
+
+  switch (deployType) {
+    case "sepolia":
+      return {
+        chainId: CHAIN_IDS.sepolia,
+        slot: SLOTS.sepolia,
+        policies: buildPoliciesFromManifest(manifest, namespace, true),
+        chains: [{ rpcUrl: RPC_URLS.sepolia }, { rpcUrl: RPC_URLS.mainnet }],
+      };
+    case "slot":
+      return {
+        chainId: CHAIN_IDS.slot,
+        slot: SLOTS.slot,
+        policies: buildPoliciesFromManifest(manifest, namespace, false),
+        chains: [
+          ...(VITE_PUBLIC_NODE_URL ? [{ rpcUrl: VITE_PUBLIC_NODE_URL }] : []),
+          { rpcUrl: RPC_URLS.sepolia },
+          { rpcUrl: RPC_URLS.mainnet },
+        ],
+      };
+    case "mainnet":
+    default:
+      return {
+        chainId: CHAIN_IDS.mainnet,
+        slot: SLOTS.mainnet,
+        policies: buildPoliciesFromManifest(manifest, namespace, true),
+        chains: [{ rpcUrl: RPC_URLS.mainnet }, { rpcUrl: RPC_URLS.sepolia }],
+      };
+  }
+};
+
+const signupOptions: AuthOptions = ["google", "discord", "webauthn", "password"];
+
+const createConnector = (config: ConnectorConfig): Connector => {
+  const options: ControllerOptions = {
+    chains: config.chains,
+    defaultChainId: stringToFelt(config.chainId).toString(),
+    namespace: VITE_PUBLIC_NAMESPACE,
+    slot: config.slot,
+    policies: config.policies,
+    signupOptions,
+  };
+
+  return new ControllerConnector(options) as unknown as Connector;
+};
+
+const connectorConfig = getConfig();
+
+log.info("Configuration", {
+  deployType: VITE_PUBLIC_DEPLOY_TYPE,
+  chainId: connectorConfig.chainId,
+  chainIdFelt: stringToFelt(connectorConfig.chainId).toString(),
+  slot: connectorConfig.slot,
+  namespace: VITE_PUBLIC_NAMESPACE,
+  chains: connectorConfig.chains.map((c) => c.rpcUrl),
+  hasPolicies: !!connectorConfig.policies,
+  policyContracts: connectorConfig.policies
+    ? Object.keys(connectorConfig.policies.contracts ?? {})
+    : [],
+  signupOptions,
+});
+
+export const cartridgeConnector: Connector | null =
+  typeof window !== "undefined"
+    ? createConnector(connectorConfig)
+    : null;
 
 export default cartridgeConnector;

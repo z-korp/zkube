@@ -3,51 +3,50 @@ pub mod events;
 
 pub mod models {
     pub mod config;
+    pub mod cosmetic;
+    pub mod daily;
+    pub mod entitlement;
     pub mod game;
+    pub mod mutator;
+    pub mod player;
+    pub mod story;
+    pub mod weekly;
 }
 
 pub mod types {
-    pub mod bonus;
-    pub mod width;
     pub mod block;
+    pub mod bonus;
+    pub mod constraint;
     pub mod difficulty;
-    pub mod task;
-    pub mod trophy;
+    pub mod level;
+    pub mod mutator;
+    pub mod width;
 }
 
-mod elements {
+pub mod elements {
+    pub mod achievements {
+        pub mod index;
+    }
+
     pub mod bonuses {
-        pub mod interface;
         pub mod hammer;
+        pub mod interface;
         pub mod totem;
         pub mod wave;
     }
+
     pub mod difficulties {
-        pub mod veryeasy;
-        pub mod easy;
-        pub mod medium;
-        pub mod mediumhard;
-        pub mod hard;
-        pub mod veryhard;
-        pub mod expert;
-        pub mod master;
+        pub mod data;
         pub mod interface;
     }
+
     pub mod tasks {
+        pub mod index;
         pub mod interface;
-        pub mod mastering;
-        pub mod chaining;
-        pub mod playing;
-        pub mod scoring;
-        pub mod cumulative_scoring;
     }
-    pub mod trophies {
-        pub mod interface;
-        pub mod mastery;
-        pub mod chainer;
-        pub mod player;
-        pub mod scorer;
-        pub mod cumulative_scorer;
+
+    pub mod quests {
+        pub mod index;
     }
 }
 
@@ -56,41 +55,49 @@ pub mod interfaces {
 }
 
 pub mod helpers {
-    pub mod math;
-    pub mod packer;
-    pub mod controller;
-    pub mod gravity;
-    pub mod random;
+    pub mod boss;
     pub mod config;
+    pub mod controller;
+    pub mod daily;
+    pub mod economy;
     pub mod encoding;
+    pub mod game_creation;
+    pub mod game_libs;
+    pub mod game_over;
+    pub mod gravity;
+    pub mod grid_ops;
+    pub mod level;
+    pub mod level_check;
+    pub mod mutator;
+    pub mod packer;
+    pub mod packing;
+    pub mod random;
     pub mod renderer;
+    pub mod scoring;
     pub mod token;
+    pub mod weekly;
 }
 
 pub mod systems {
-    pub mod achievement;
-    pub mod game;
     pub mod config;
+    pub mod daily_challenge;
+    pub mod game;
+    pub mod grid;
+    pub mod level;
+    pub mod moves;
+    pub mod progress;
+    pub mod renderer;
+    pub mod story;
+    pub mod weekly_endless;
+}
+
+pub mod external {
+    pub mod zstar_token;
 }
 
 #[cfg(test)]
 mod tests {
-    mod setup;
-    mod test_create;
-    mod test_move;
-    mod test_play;
-    mod test_bonus_hammer;
-    mod test_bonus_wave;
-    mod test_bonus_totem;
-    mod test_admin;
-    mod test_chest;
-    mod test_bonus;
-    mod test_minter;
-    mod test_erc721;
-    mod test_pause;
-
-    mod mocks {
-        mod erc20;
-        mod erc721;
-    }
+    mod test_config_auth;
+    mod test_daily_scores;
+    mod test_run_data;
 }

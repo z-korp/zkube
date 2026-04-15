@@ -3,10 +3,14 @@ import { useEffect, useState, useCallback } from "react";
 
 const useGridAnimations = (lineExplodedCount: number) => {
   const [shouldBounce, setShouldBounce] = useState(false);
-  const [animateText, setAnimateText] = useState(ComboMessages.None);
+  const [animateText, setAnimateText] = useState<string>(ComboMessages.None);
+  const [animatedPoints, setAnimatedPoints] = useState(0);
+  const [animatedCubes, setAnimatedCubes] = useState(0);
 
   const resetAnimateText = useCallback((): void => {
     setAnimateText(ComboMessages.None);
+    setAnimatedPoints(0);
+    setAnimatedCubes(0);
   }, []);
 
   useEffect(() => {
@@ -21,6 +25,10 @@ const useGridAnimations = (lineExplodedCount: number) => {
     animateText,
     resetAnimateText,
     setAnimateText,
+    animatedPoints,
+    setAnimatedPoints,
+    animatedCubes,
+    setAnimatedCubes,
   };
 };
 

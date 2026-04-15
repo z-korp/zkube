@@ -1,0 +1,59 @@
+[world]
+name = "zKube"
+description = "Reversed tetris fully onchain."
+cover_uri = "file://assets/cover.png"
+icon_uri = "file://assets/icon.png"
+website = "https://app.zkube.xyz"
+seed = "zkube_2_3"
+
+[world.socials]
+x = "https://x.com/zKube_game"
+discord = "https://discord.gg/pzzRSDZY"
+github = "https://github.com/z-korp/zkube"
+
+[namespace]
+default = "zkube_v2_1_1"
+
+[env]
+rpc_url = "https://api.cartridge.gg/x/starknet/sepolia"
+account_address = "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859"
+world_address = "0x01efac8732d9a126b898bfd05c3104575ea6929ad2b5469eab089887691cba44"
+
+[writers]
+"zkube_v2_1_1" = [
+    "zkube_v2_1_1-game_system",
+    "zkube_v2_1_1-move_system",
+    "zkube_v2_1_1-grid_system",
+    "zkube_v2_1_1-level_system",
+    "zkube_v2_1_1-config_system",
+    "zkube_v2_1_1-daily_challenge_system",
+    "zkube_v2_1_1-weekly_endless_system",
+    "zkube_v2_1_1-progress_system",
+    "zkube_v2_1_1-renderer_systems",
+    "zkube_v2_1_1-story_system",
+]
+
+[init_call_args]
+"zkube_v2_1_1-game_system" = [
+    "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859", # creator
+    "0x0004e6e5bbf18424dfb825f1dbb65e10473b4603a1ec7b9ab02c143d877114f9", # Denshokan (shared MinigameToken on Sepolia)
+    "0x1",        # renderer_address: Option::None — fallback to DNS
+    "0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f", # vrf_address (Cartridge VRF)
+]
+"zkube_v2_1_1-config_system" = [
+    "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859", # creator
+    "0x072a37e71a4cbfb8b3850b61e4ee25475e8e0a0ce7a6e61fcf9ade139d196133", # cube_token_address
+    "0x0", # payment_token_address (configure per deployment)
+]
+"zkube_v2_1_1-daily_challenge_system" = [
+    "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859", # admin
+]
+
+[migration]
+disable_multicall = true
+order_inits = [
+    "zkube_v2_1_1-game_system",
+    "zkube_v2_1_1-progress_system",
+    "zkube_v2_1_1-config_system",
+    "zkube_v2_1_1-daily_challenge_system",
+]

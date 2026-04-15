@@ -1,0 +1,122 @@
+[
+  {
+    "id": "move",
+    "filename": "move.mp3",
+    "duration": 1,
+    "prompt": "Stone block sliding on marble surface, short scrape"
+  },
+  {
+    "id": "swipe",
+    "filename": "swipe.mp3",
+    "duration": 1,
+    "prompt": "Quick fabric whoosh, single swipe through air"
+  },
+  {
+    "id": "break",
+    "filename": "break.mp3",
+    "duration": 1,
+    "prompt": "Small ceramic pot cracking apart"
+  },
+  {
+    "id": "explode",
+    "filename": "explode.mp3",
+    "duration": 2,
+    "prompt": "Soft crystal chimes cascading downward, gentle and smooth"
+  },
+  {
+    "id": "new",
+    "filename": "new.mp3",
+    "duration": 1,
+    "prompt": "Stone slab dropping onto a pile, heavy thud"
+  },
+  {
+    "id": "start",
+    "filename": "start.mp3",
+    "duration": 2,
+    "prompt": "Ancient horn blowing once, epic single note"
+  },
+  {
+    "id": "over",
+    "filename": "over.mp3",
+    "duration": 2,
+    "prompt": "Low brass descent, three descending notes, somber"
+  },
+  {
+    "id": "levelup",
+    "filename": "levelup.mp3",
+    "duration": 2,
+    "prompt": "Bright chime ascending three notes, magical sparkle"
+  },
+  {
+    "id": "victory",
+    "filename": "victory.mp3",
+    "duration": 5,
+    "prompt": "Triumphant trumpet fanfare, short celebration, 3 seconds"
+  },
+  {
+    "id": "boss-intro",
+    "filename": "boss-intro.mp3",
+    "duration": 3,
+    "prompt": "Deep war drum hit with rumbling echo, ominous"
+  },
+  {
+    "id": "boss-defeat",
+    "filename": "boss-defeat.mp3",
+    "duration": 2,
+    "prompt": "Crowd cheering with a final cymbal crash"
+  },
+  {
+    "id": "click",
+    "filename": "click.mp3",
+    "duration": 1,
+    "prompt": "Short wooden button click"
+  },
+  {
+    "id": "coin",
+    "filename": "coin.mp3",
+    "duration": 1,
+    "prompt": "Single gold coin landing on a wooden table"
+  },
+  {
+    "id": "star",
+    "filename": "star.mp3",
+    "duration": 1,
+    "prompt": "Tinkling wind chime, single bright sparkle"
+  },
+  {
+    "id": "claim",
+    "filename": "claim.mp3",
+    "duration": 2,
+    "prompt": "Treasure chest opening with coins spilling out"
+  },
+  {
+    "id": "bonus-activate",
+    "filename": "bonus-activate.mp3",
+    "duration": 1,
+    "prompt": "Magical power-up whoosh with electric crackle"
+  },
+  {
+    "id": "shop-purchase",
+    "filename": "shop-purchase.mp3",
+    "duration": 1,
+    "prompt": "Old cash register cha-ching"
+  },
+  {
+    "id": "equip",
+    "filename": "equip.mp3",
+    "duration": 1,
+    "prompt": "Metal sword sliding into a leather sheath"
+  },
+  {
+    "id": "unequip",
+    "filename": "unequip.mp3",
+    "duration": 1,
+    "prompt": "Metal sword drawn out from leather sheath"
+  },
+  {
+    "id": "constraint-complete",
+    "filename": "constraint-complete.mp3",
+    "duration": 1,
+    "prompt": "Lock clicking open with a satisfying clunk"
+  }
+]

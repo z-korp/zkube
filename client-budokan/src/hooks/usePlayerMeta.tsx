@@ -1,0 +1,52 @@
+import { useDojo } from "@/dojo/useDojo";
+import { useMemo } from "react";
+import { getEntityIdFromKeys } from "@dojoengine/utils";
+import { useComponentValue } from "@dojoengine/react";
+import { useAccount } from "@starknet-react/core";
+import { unpackMetaData } from "@/dojo/game/helpers/metaDataPacking";
+import { normalizeEntityId } from "@/utils/entityId";
+
+export interface PlayerMeta {
+  player: string;
+  bestLevel: number;
+  totalRuns: number;
+  dailyStars: number;
+  lifetimeXp: number;
+  lastActive: number;
+}
+
+export const usePlayerMeta = (overrideAddress?: string) => {
+  const { address: connectedAddress } = useAccount();
+  const address = overrideAddress || connectedAddress;
+  const {
+    setup: {
+      clientModels: {
+        models: { PlayerMeta },
+      },
+    },
+  } = useDojo();
+
+  const playerKey = useMemo(() => {
+    if (!address) return undefined;
+    const rawKey = getEntityIdFromKeys([BigInt(address)]);
+    return normalizeEntityId(rawKey);
+  }, [address]);
+
+  const component = useComponentValue(PlayerMeta, playerKey);
+
+  const playerMeta = useMemo((): PlayerMeta | null => {
+    if (!component) return null;
+    const unpackedMeta = unpackMetaData(BigInt(component.data));
+
+    return {
+      player: address || "",
+      bestLevel: component.best_level || 0,
+      totalRuns: unpackedMeta.totalRuns,
+      dailyStars: unpackedMeta.dailyStars,
+      lifetimeXp: unpackedMeta.lifetimeXp,
+      lastActive: component.last_active || 0,
+    };
+  }, [component, address]);
+
+  return { playerMeta, isLoading: !component && !!address };
+};

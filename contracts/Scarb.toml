@@ -1,11 +1,14 @@
 [package]
 name = "zkube"
-cairo-version = "=2.10.1"
-edition = "2024_07"
-version = "1.1.3"
+version.workspace = true
+edition.workspace = true
+cairo-version.workspace = true
 
 [cairo]
 sierra-replace-ids = true
+
+[tool.scarb]
+allow-prebuilt-plugins = ["dojo_cairo_macros"]
 
 [scripts]
 slot = "sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate --guest"
@@ -16,34 +19,50 @@ inspect-sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build 
 inspect-mainnet = "sozo --profile mainnet clean && sozo --profile mainnet build && sozo --profile mainnet inspect"
 
 [dependencies]
-openzeppelin_token = "1.0.0"
-openzeppelin_introspection =  "1.0.0"
-dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.6.0" }
-alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.3.0" }
-alexandria_encoding = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.3.0" }
-achievement = { git = "https://github.com/cartridge-gg/arcade", rev= "634edcebaa4999d8d2b94d4fb78cac05649c74f3" }
-origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.6.0" }
-game_components_minigame = { git = "https://github.com/Provable-Games/game-components", tag = "0.0.10" }
-game_components_token = { git = "https://github.com/Provable-Games/game-components", tag = "0.0.10" }
-game_components_metagame = { git = "https://github.com/Provable-Games/game-components", tag = "0.0.10" }
-game_components_utils = { git = "https://github.com/Provable-Games/game-components", tag = "0.0.10" }
-graffiti = { git = "https://github.com/ponderingdemocritus/graffiti", rev = "bc569531791dbc71c6cd8d9bc154c34eedad31fe" }
+dojo.workspace = true
+starknet.workspace = true
+openzeppelin_token.workspace = true
+openzeppelin_introspection.workspace = true
+openzeppelin_interfaces.workspace = true
+openzeppelin_access.workspace = true
+alexandria_math.workspace = true
+alexandria_encoding.workspace = true
+origami_random.workspace = true
+achievement.workspace = true
+quest.workspace = true
+game_components_embeddable_game_standard.workspace = true
+game_components_utilities.workspace = true
+game_components_interfaces.workspace = true
+game_components_test_common.workspace = true
+graffiti.workspace = true
 
 [[target.starknet-contract]]
 casm = true
 build-external-contracts = [
     "dojo::world::world_contract::world",
+    "achievement::models::index::m_AchievementDefinition",
+    "achievement::models::index::m_AchievementCompletion",
+    "achievement::models::index::m_AchievementAdvancement",
+    "achievement::models::index::m_AchievementAssociation",
     "achievement::events::index::e_TrophyCreation",
     "achievement::events::index::e_TrophyProgression",
-    "game_components_token::examples::full_token_contract::FullTokenContract",
-    "game_components_token::examples::minigame_registry_contract::MinigameRegistryContract",
+    "achievement::events::index::e_AchievementCompleted",
+    "achievement::events::index::e_AchievementClaimed",
+    "quest::models::index::m_QuestDefinition",
+    "quest::models::index::m_QuestCompletion",
+    "quest::models::index::m_QuestAdvancement",
+    "quest::models::index::m_QuestAssociation",
+    "quest::models::index::m_QuestCondition",
+    "quest::events::index::e_QuestCreation",
+    "quest::events::index::e_QuestProgression",
+    "quest::events::index::e_QuestUnlocked",
+    "quest::events::index::e_QuestCompleted",
+    "quest::events::index::e_QuestClaimed",
+    "game_components_test_common::examples::full_token_contract::FullTokenContract",
+    "game_components_test_common::examples::minigame_registry_contract::MinigameRegistryContract",
+    "zkube::external::zstar_token::ZStarToken",
 ]
 
 [dev-dependencies]
-dojo_cairo_test = { git = "https://github.com/dojoengine/dojo.git", tag = "v1.6.0" }
-cairo_test = "2.10.1"
-
-# Custom profiles
-[profile.slot]
-[profile.sepolia]
-[profile.mainnet]
+dojo_cairo_test.workspace = true
+cairo_test.workspace = true

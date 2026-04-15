@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Account } from "starknet";
 import { useDojo } from "@/dojo/useDojo";
 import BlockContainer from "./Block";
@@ -6,49 +6,43 @@ import { GameState } from "@/enums/gameEnums";
 import type { Block } from "@/types/types";
 import {
   removeCompleteRows,
-  isGridFull,
   removeBlocksSameWidth,
-  removeBlocksSameRow,
-  removeBlockId,
-  deepCompareBlocks,
-  getBlocksSameRow,
-  getBlocksSameWidth,
-  concatenateNewLineWithGridAndShiftGrid,
+  removeBlocksInRows,
+  transformDataContractIntoBlock,
 } from "@/utils/gridUtils";
-import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
-import { motion } from "framer-motion";
-import { BonusType } from "@/dojo/game/types/bonus";
-import ConfettiExplosion from "./ConfettiExplosion";
-import type { ConfettiExplosionRef } from "./ConfettiExplosion";
+import { motion } from "motion/react";
+import { BonusType } from "@/dojo/game/types/bonusTypes";
 import { useMusicPlayer } from "@/contexts/hooks";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import { getThemeColors, getThemeImages, type ThemeId } from "@/config/themes";
 import useGridAnimations from "@/hooks/useGridAnimations";
 import { useMoveStore } from "@/stores/moveTxStore";
+import { useReceiptGameStore } from "@/stores/receiptGameStore";
+import { parseGameFromReceipt, type ReceiptGameData } from "@/dojo/rpcReader";
+import type { Game } from "@/dojo/game/models/game";
 import { calculateFallDistance } from "@/utils/gridPhysics";
 import useTransitionBlocks from "@/hooks/useTransitionBlocks";
+import { showToast } from "@/utils/toast";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
 interface GridProps {
-  gameId: number;
+  gameId: bigint;
   initialData: Block[];
   nextLineData: Block[];
   setNextLineHasBeenConsumed: React.Dispatch<React.SetStateAction<boolean>>;
   gridSize: number;
   gridWidth: number;
   gridHeight: number;
-  selectBlock: (block: Block) => void;
   bonus: BonusType;
   account: Account | null;
   isTxProcessing: boolean;
   setIsTxProcessing: React.Dispatch<React.SetStateAction<boolean>>;
-  score: number;
-  combo: number;
-  maxCombo: number;
-  setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
-  setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
-  setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
+  levelTransitionPending: boolean;
+  onCascadeComplete?: () => void;
+  onNextLineUpdate?: (nextRow: number[]) => void;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -59,43 +53,44 @@ const Grid: React.FC<GridProps> = ({
   gridHeight,
   gridWidth,
   gridSize,
-  selectBlock,
   bonus,
   account,
-  score,
-  combo,
-  maxCombo,
-  setOptimisticScore,
-  setOptimisticCombo,
-  setOptimisticMaxCombo,
   isTxProcessing,
   setIsTxProcessing,
+  levelTransitionPending,
+  onCascadeComplete,
+  onNextLineUpdate,
 }) => {
   const {
     setup: {
-      systemCalls: { move },
+      systemCalls: { move, applyBonus },
     },
   } = useDojo();
 
-  // ==================== Refs ====================
+  // ==================== Theme ====================
+  const { themeTemplate } = useTheme();
+  const themeColors = getThemeColors(themeTemplate as ThemeId);
+  const themeImages = getThemeImages(themeTemplate as ThemeId);
+  const blockImages = useMemo<Record<number, string>>(() => ({
+    1: themeImages.block1,
+    2: themeImages.block2,
+    3: themeImages.block3,
+    4: themeImages.block4,
+  }), [themeImages]);
 
-  // Grid Position will be used to trigger particle in the right spot
-  const gridRef = useRef<HTMLDivElement | null>(null);
-  const explosionRef = useRef<ConfettiExplosionRef>(null);
-  // Ref to prevent multiple move tx
-  const isProcessingRef = useRef(false);
+  // ==================== Refs ====================
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const draggingRef = useRef<Block | null>(null);
+  const dragStartXRef = useRef(0);
+  const initialXRef = useRef(0);
+  const draggedXRef = useRef(0);
+  const gameStateRef = useRef<GameState>(GameState.WAITING);
+  const endDragRef = useRef<() => void>(() => undefined);
 
   // ==================== State ====================
-
-  const [gridPosition, setGridPosition] = useState<DOMRect | null>(null);
   const [blocks, setBlocks] = useState<Block[]>(initialData);
   const [nextLine, setNextLine] = useState<Block[]>(nextLineData);
-  const [saveGridStateblocks, setSaveGridStateblocks] =
-    useState<Block[]>(initialData);
-  const [applyData, setApplyData] = useState(false);
-  const [dragging, setDragging] = useState<Block | null>(null);
-  const [dragStartX, setDragStartX] = useState(0);
-  const [initialX, setInitialX] = useState(0);
+  const [saveGridStateblocks, setSaveGridStateblocks] = useState<Block[]>(initialData);
   const [isMoving, setIsMoving] = useState(true);
   const [currentMove, setcurrentMove] = useState<{
     rowIndex: number;
@@ -103,546 +98,687 @@ const Grid: React.FC<GridProps> = ({
     finalX: number;
   } | null>(null);
   const [gameState, setGameState] = useState<GameState>(GameState.WAITING);
-  const [isPlayerInDanger, setIsPlayerInDanger] = useState(false);
+  // 0 = safe, 1 = warning (row 1 occupied), 2 = critical (row 0 occupied)
+  const [dangerLevel, setDangerLevel] = useState(0);
   const [lineExplodedCount, setLineExplodedCount] = useState(0);
   const [blockBonus, setBlockBonus] = useState<Block | null>(null);
-  const { playExplode, playSwipe } = useMusicPlayer();
+  const [explodingRows, setExplodingRows] = useState<Set<number>>(new Set());
+  const { playExplode, playSwipe, playSfx } = useMusicPlayer();
 
   // ==================== Custom Hooks ====================
-
-  const isMoveComplete = useMoveStore((state) => state.isMoveComplete);
+  const queue = useMoveStore((state) => state.queue);
+  const isQueueProcessing = useMoveStore((state) => state.isQueueProcessing);
   const { shouldBounce, animateText, resetAnimateText, setAnimateText } =
     useGridAnimations(lineExplodedCount);
   const {
-    transitioningBlocks,
+    isTransitioning,
     handleTransitionBlockStart,
     handleTransitionBlockEnd,
   } = useTransitionBlocks();
 
+  const queueForGame = useMemo(
+    () => queue.filter((item) => item.gameId === gameId),
+    [queue, gameId],
+  );
+  const nextQueuedMove = useMemo(
+    () => queueForGame.find((item) => item.status === "queued"),
+    [queueForGame],
+  );
+
   // ==================== Constants ====================
-  const borderSize = 2;
   const gravitySpeed = 100;
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
 
-  // =================== Grid set up ===================
-  useEffect(() => {
-    // All animations and computing are done
-    // we can apply data that we received from smart contract
-    if (applyData) {
-      if (deepCompareBlocks(saveGridStateblocks, initialData)) {
-        // Prevent render if the grid is the same
-        return;
-      }
+  // SVG dimensions
+  const svgW = gridWidth * gridSize;
+  const svgH = gridHeight * gridSize;
+  // Frame padding
+  const framePad = 9;
+  const frameW = svgW + framePad * 2;
+  const frameH = svgH + framePad * 2;
+  // Total perimeter for stroke-dasharray
+  const framePerimeter = 2 * (svgW + framePad * 2 - 16) + 2 * (svgH + framePad * 2 - 16); // approximate for rounded rect
 
-      // Every time the initial grid changes, we erase the optimistic data
-      // and set the data to the one returned by the contract
-      // just in case of discrepancies
-      setOptimisticScore(score);
-      setOptimisticCombo(combo);
-      setOptimisticMaxCombo(maxCombo);
-
-      if (isMoveComplete) {
-        // Save the grid state
-        setSaveGridStateblocks(initialData);
-        setBlocks(initialData);
-        setNextLine(nextLineData);
-
-        // Check if the player is in danger
-        const inDanger = initialData.some((block) => block.y < 2);
-        setIsPlayerInDanger(inDanger);
-
-        // Reset states
-        setLineExplodedCount(0);
-        setNextLineHasBeenConsumed(false);
-        setApplyData(false);
-        setIsTxProcessing(false);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applyData, initialData, isMoveComplete]);
-
-  // Keep grid position in store used for particles positionning
-  useEffect(() => {
-    if (gridRef.current) {
-      const gridPosition = gridRef.current.getBoundingClientRect();
-      // Pass the grid position to the parent via the callback
-      setGridPosition(gridPosition);
-    }
+  const resetDragRefs = useCallback(() => {
+    draggingRef.current = null;
+    dragStartXRef.current = 0;
+    initialXRef.current = 0;
+    draggedXRef.current = 0;
   }, []);
 
-  const handleTriggerLocalExplosion = (x: number, y: number) => {
-    if (explosionRef.current) {
-      explosionRef.current.triggerLocalExplosion({ x, y });
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
+
+  // =================== Receipt-based sync (replaces Torii for moves/bonuses) ===================
+  const pendingReceiptRef = useRef<ReceiptGameData | null>(null);
+
+  const applyReceipt = (parsed: { blocks: number[][]; nextRow: number[]; over: boolean; game: Game }) => {
+    const newNextLine = transformDataContractIntoBlock([parsed.nextRow]);
+    // Update refs immediately (for pointer handler, before React re-renders)
+    gameStateRef.current = GameState.WAITING;
+    // Save receipt blocks for error rollback — DON'T replace visible blocks.
+    // The local cascade already computed correct positions; replacing would
+    // destroy block IDs and kill CSS transitions (max-update-depth + animation cut).
+    setSaveGridStateblocks(transformDataContractIntoBlock(parsed.blocks));
+    setNextLine(newNextLine);
+    setGameState(GameState.WAITING);
+    // Update the preview in GameBoard with the receipt's next line
+    onNextLineUpdate?.(parsed.nextRow);
+    setNextLineHasBeenConsumed(false);
+    // Push full Game to store so HUD updates instantly
+    useReceiptGameStore.getState().setGame(parsed.game);
+    pendingReceiptRef.current = null;
+    // If game over, keep the spinner going — Torii still needs to sync before
+    // we navigate to map. Otherwise unlock the grid for the next move.
+    if (!parsed.over) {
+      isTxProcessingRef.current = false;
+      setIsTxProcessing(false);
     }
   };
+
+  const receiptSyncRef = useRef<(events: any[]) => void>(() => {});
+  receiptSyncRef.current = (events: any[]) => {
+    const parsed = parseGameFromReceipt(events, gameId);
+    if (!parsed) {
+      return;
+    }
+    // Always store as pending — let the state machine apply it at the right time
+    // (UPDATE_AFTER_MOVE or CASCADE_COMPLETE) so cascade animation plays fully.
+    const state = gameStateRef.current;
+    if (state === GameState.CASCADE_COMPLETE) {
+      applyReceipt(parsed);
+    } else {
+      pendingReceiptRef.current = parsed;
+    }
+  };
+
+  // Recompute danger level whenever blocks change (covers initial load + chain sync + gravity)
+  useEffect(() => {
+    const hasCritical = blocks.some((b) => b.y === 0);
+    const hasWarning = blocks.some((b) => b.y === 1);
+    setDangerLevel(hasCritical ? 2 : hasWarning ? 1 : 0);
+  }, [blocks]);
 
   // =================== DRAG & DROP ===================
+  //
+  // Convert screen clientX → grid cell X using SVG's getScreenCTM().
+  // This handles all viewBox scaling automatically.
 
-  const handleDragStart = (x: number, block: Block) => {
-    setDragging(block);
-    setDragStartX(x);
-    setInitialX(block.x);
-    setGameState(GameState.DRAGGING);
-  };
+  // Mutable refs for stable callbacks
+  const blocksRef = useRef(blocks);
+  blocksRef.current = blocks;
+  const bonusRef = useRef(bonus);
+  bonusRef.current = bonus;
+  const isTxProcessingRef = useRef(isTxProcessing);
+  isTxProcessingRef.current = isTxProcessing;
 
-  const handleDragMove = (x: number, moveType: MoveType) => {
-    if (!dragging) return;
-    if (isTxProcessing || applyData) return;
+  /** Convert screen clientX to grid cell units (0-based, fractional) */
+  const clientXToCellX = useCallback((clientX: number): number => {
+    const svg = svgRef.current;
+    if (!svg) return 0;
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return 0;
+    // Convert screen px → SVG viewBox units, subtract frame padding, divide by cell size
+    const svgX = (clientX - ctm.e) / ctm.a;
+    return (svgX - framePad) / gridSize;
+  }, [framePad, gridSize]);
 
-    const deltaX = x - dragStartX;
-    const newX = initialX + deltaX / gridSize;
-    const boundedX = Math.max(0, Math.min(gridWidth - dragging.width, newX));
+  /** Check if moving a block from initialX to newX is blocked by another block in the same row */
+  const checkBlocked = useCallback((initialX: number, newX: number, y: number, width: number, blockId: number): boolean => {
+    const currentBlocks = blocksRef.current;
+    const rowBlocks = currentBlocks.filter(b => b.y === y);
 
-    if (
-      !isBlocked(
-        initialX,
-        boundedX,
-        dragging.y,
-        dragging.width,
-        blocks,
-        dragging.id
-      )
-    ) {
-      // Vérifie si le nouveau X est en dehors des limites de la grille
-      if (boundedX <= 0 || boundedX >= gridWidth - dragging.width) {
-        if (moveType === MoveType.TOUCH) {
-          endDrag(); // Appelle endDrag si le drag sort de la grille sur un touch
-          return;
-        } else {
-          // Si on est en dehors de la grille, cela implique que la nouvelle start position a changer et on doit la mettre à jour
-          setInitialX(blocks.find((b) => b.id === dragging.id)?.x ?? 0);
-        }
+    if (newX > initialX) {
+      // Moving right: check if any block sits between old right edge and new right edge
+      for (const b of rowBlocks) {
+        if (b.id !== blockId && b.x >= initialX + width && b.x < newX + width) return true;
       }
-      setBlocks((prevBlocks) =>
-        prevBlocks.map((b) =>
-          b.id === dragging.id ? { ...b, x: boundedX } : b
-        )
+    } else {
+      // Moving left: check if any block's right edge is past our new left edge
+      for (const b of rowBlocks) {
+        if (b.id !== blockId && b.x + b.width > newX && b.x <= initialX) return true;
+      }
+    }
+    return false;
+  }, []);
+
+  const onDragMove = useCallback((clientX: number) => {
+    const dragging = draggingRef.current;
+    if (!dragging) return;
+    if (gameStateRef.current !== GameState.DRAGGING) return;
+
+    const cellX = clientXToCellX(clientX);
+    const delta = cellX - dragStartXRef.current;
+    const newX = initialXRef.current + delta;
+    const bounded = Math.max(0, Math.min(gridWidth - dragging.width, newX));
+
+    if (!checkBlocked(initialXRef.current, bounded, dragging.y, dragging.width, dragging.id)) {
+      draggedXRef.current = bounded;
+      setBlocks((prev) =>
+        prev.map((b) => b.id === dragging.id ? { ...b, x: bounded } : b),
       );
     }
-  };
+  }, [clientXToCellX, gridWidth, checkBlocked]);
 
-  const handleTouchStart = (e: React.TouchEvent, block: Block) => {
-    if (isProcessingRef.current || isTxProcessing || applyData) return;
+  const onDragMoveRef = useRef(onDragMove);
+  onDragMoveRef.current = onDragMove;
 
-    const touch = e.touches[0];
-    handleDragStart(touch.clientX, block);
-  };
+  const onDragStart = useCallback((clientX: number, block: Block) => {
+    draggingRef.current = block;
+    dragStartXRef.current = clientXToCellX(clientX);
+    initialXRef.current = block.x;
+    draggedXRef.current = block.x;
+    gameStateRef.current = GameState.DRAGGING;
+    setGameState(GameState.DRAGGING);
+  }, [clientXToCellX]);
 
-  const handleMouseDown = (e: React.MouseEvent, block: Block) => {
-    e.preventDefault();
-    if (isTxProcessing || applyData) return;
+  const onDragEnd = useCallback(() => {
+    const dragging = draggingRef.current;
+    if (!dragging) return;
 
-    setBlockBonus(block);
-    if (bonus === BonusType.Wave) {
-      setBlocks(removeBlocksSameRow(block, blocks));
-      getBlocksSameRow(block.y, blocks).forEach((b) => {
-        if (gridPosition === null) return;
-        handleTriggerLocalExplosion(
-          gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
-          gridPosition.top + b.y * gridSize
-        );
-      });
-    } else if (bonus === BonusType.Totem) {
-      setBlocks(removeBlocksSameWidth(block, blocks));
-      getBlocksSameWidth(block, blocks).forEach((b) => {
-        if (gridPosition === null) return;
-        handleTriggerLocalExplosion(
-          gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
-          gridPosition.top + b.y * gridSize
-        );
-      });
-    } else if (bonus === BonusType.Hammer) {
-      setBlocks(removeBlockId(block, blocks));
-      if (gridPosition === null) return;
-      handleTriggerLocalExplosion(
-        gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
-        gridPosition.top + block.y * gridSize
-      );
+    if (gameStateRef.current !== GameState.DRAGGING) {
+      resetDragRefs();
+      return;
     }
 
-    // if we have a bonus, we go in state gravity_bonus
-    if (bonus !== BonusType.None) {
+    const startX = initialXRef.current;
+    const finalX = Math.round(draggedXRef.current);
+    const hasMoved = Math.trunc(finalX) !== Math.trunc(startX);
+
+    setBlocks((prev) =>
+      prev.map((b) => b.id === dragging.id ? { ...b, x: hasMoved ? finalX : startX } : b),
+    );
+
+    if (hasMoved) {
+      setcurrentMove({ rowIndex: dragging.y, startX, finalX });
+      setIsMoving(true);
+      gameStateRef.current = GameState.GRAVITY;
+      setGameState(GameState.GRAVITY);
+    } else {
+      setcurrentMove(null);
+      setIsMoving(false);
+      gameStateRef.current = GameState.WAITING;
+      setGameState(GameState.WAITING);
+    }
+
+    resetDragRefs();
+  }, [resetDragRefs]);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent<SVGGElement>, block: Block) => {
+    if (gameStateRef.current !== GameState.WAITING || isTxProcessingRef.current) return;
+
+    const currentBonus = bonusRef.current;
+    const currentBlocks = blocksRef.current;
+
+    // Grid bonuses: Hammer, Totem, Wave
+    if (currentBonus === BonusType.Hammer) {
+      setBlockBonus(block);
+      setBlocks(currentBlocks.filter((b) => !(b.x === block.x && b.y === block.y)));
+    } else if (currentBonus === BonusType.Totem) {
+      setBlockBonus(block);
+      setBlocks(removeBlocksSameWidth(block, currentBlocks));
+    } else if (currentBonus === BonusType.Wave) {
+      setBlockBonus(block);
+      const rows: number[] = [block.y];
+      setBlocks(removeBlocksInRows(rows, currentBlocks));
+    }
+
+    if (currentBonus === BonusType.Hammer || currentBonus === BonusType.Totem || currentBonus === BonusType.Wave) {
       setIsTxProcessing(true);
       setIsMoving(true);
       setGameState(GameState.GRAVITY_BONUS);
       return;
     }
-    handleDragStart(e.clientX, block);
-  };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    handleDragMove(e.clientX, MoveType.MOUSE);
-  };
+    onDragStart(e.clientX, block);
+  }, [onDragStart, setIsTxProcessing]);
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    handleDragMove(touch.clientX, MoveType.TOUCH);
-  };
+  // Stable callback refs — identity never changes so Block's React.memo works.
+  const handlePointerDownRef = useRef(handlePointerDown);
+  handlePointerDownRef.current = handlePointerDown;
+  const stablePointerDown = useCallback(
+    (e: React.PointerEvent<SVGGElement>, block: Block) => handlePointerDownRef.current(e, block), [],
+  );
 
-  const endDrag = () => {
-    if (!dragging) return;
-    if (isProcessingRef.current || isTxProcessing || applyData) return;
+  const handleTransitionStartRef = useRef(handleTransitionBlockStart);
+  handleTransitionStartRef.current = handleTransitionBlockStart;
+  const stableTransitionStart = useCallback((id: number) => handleTransitionStartRef.current(id), []);
 
-    setBlocks((prevBlocks) => {
-      const updatedBlocks = prevBlocks.map((b) => {
-        if (b.id === dragging.id) {
-          const finalX = Math.round(b.x);
-          if (Math.trunc(finalX) !== Math.trunc(initialX)) {
-            setcurrentMove({
-              rowIndex: b.y,
-              startX: initialX,
-              finalX,
-            });
-          }
-          return { ...b, x: finalX };
-        }
-        return b;
-      });
-      return updatedBlocks;
-    });
+  const handleTransitionEndRef = useRef(handleTransitionBlockEnd);
+  handleTransitionEndRef.current = handleTransitionBlockEnd;
+  const stableTransitionEnd = useCallback((id: number) => handleTransitionEndRef.current(id), []);
 
-    setDragging(null);
-    setIsMoving(true);
-    setGameState(GameState.GRAVITY);
-  };
-
-  const handleTouchEnd = (/*e: React.TouchEvent*/) => {
-    endDrag();
-  };
+  // Document-level listeners for move and end (works outside SVG bounds)
+  useEffect(() => {
+    const move = (e: PointerEvent) => onDragMoveRef.current(e.clientX);
+    const end = () => endDragRef.current();
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", end);
+    document.addEventListener("pointercancel", end);
+    return () => {
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", end);
+      document.removeEventListener("pointercancel", end);
+    };
+  }, []);
 
   useEffect(() => {
-    const handleMouseUp = (/*event: MouseEvent*/) => {
-      endDrag();
-    };
-    document.addEventListener("mouseup", handleMouseUp);
+    endDragRef.current = onDragEnd;
+  }, [onDragEnd]);
 
-    return () => {
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dragging]);
+  // =================== TX HELPERS ===================
+
+  const rollbackGrid = useCallback((message: string) => {
+    setBlocks(saveGridStateblocks);
+    setNextLine(nextLineData);
+    setLineExplodedCount(0);
+    setcurrentMove(null);
+    resetDragRefs();
+    setIsMoving(false);
+    setExplodingRows(new Set());
+    setBlockBonus(null);
+    gameStateRef.current = GameState.WAITING;
+    setGameState(GameState.WAITING);
+    setIsTxProcessing(false);
+    isTxProcessingRef.current = false;
+    useReceiptGameStore.getState().setGame(null);
+    showToast({ type: "error", message });
+  }, [saveGridStateblocks, nextLineData, resetDragRefs, setIsTxProcessing]);
 
   // =================== MOVE TX ===================
 
   const sendMoveTX = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
-      if (isProcessingRef.current) {
-        console.warn("Already processing a move");
-        return;
-      }
-
       if (startColIndex === finalColIndex) return;
       if (!account) return;
 
-      isProcessingRef.current = true;
-      setIsTxProcessing(true);
       playSwipe();
-      try {
-        console.log(
-          "Move TX (row, start col, end col)",
-          gridHeight - 1 - rowIndex,
-          startColIndex,
-          finalColIndex
-        );
-        await move({
-          account: account as Account,
-          game_id: gameId,
-          row_index: gridHeight - 1 - rowIndex,
-          start_index: Math.trunc(startColIndex),
-          final_index: Math.trunc(finalColIndex),
-        });
-      } catch (error) {
-        console.error("Erreur lors de l'envoi de la transaction", error);
-        isProcessingRef.current = false; // Reset the ref
-      } finally {
-        isProcessingRef.current = false; // Reset the ref
-      }
+      useMoveStore.getState().enqueueMove({
+        gameId,
+        rowIndex: gridHeight - 1 - rowIndex,
+        startIndex: Math.trunc(startColIndex),
+        finalIndex: Math.trunc(finalColIndex),
+      });
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [account, isMoving, gridHeight, move]
+    [account, gameId, gridHeight, playSwipe],
   );
 
-  // Send the move transaction when the currentMove state is updated
-  // Keep it in useEffect to avoid multiple trigger
+  useEffect(() => {
+    if (!account || !nextQueuedMove || isQueueProcessing) return;
+
+    let cancelled = false;
+    const store = useMoveStore.getState();
+
+    const processQueuedMove = async () => {
+      store.setQueueProcessing(true);
+      store.markSubmitting(nextQueuedMove.id);
+
+      try {
+        const { events } = await move({
+          account: account as Account,
+          game_id: gameId,
+          row_index: nextQueuedMove.rowIndex,
+          start_index: nextQueuedMove.startIndex,
+          final_index: nextQueuedMove.finalIndex,
+        });
+        store.markConfirmed(nextQueuedMove.id);
+        // Apply game state from TX receipt events (microtask to escape effect lifecycle)
+        queueMicrotask(() => receiptSyncRef.current(events));
+      } catch (error) {
+        if (cancelled) return;
+        const message = error instanceof Error ? error.message : "Move transaction failed.";
+        store.markFailed(nextQueuedMove.id, message);
+        store.clearQueueForGame(gameId);
+        rollbackGrid("Move sync failed. Grid rolled back.");
+      } finally {
+        store.setQueueProcessing(false);
+      }
+    };
+
+    processQueuedMove();
+    return () => { cancelled = true; };
+  }, [account, nextQueuedMove, isQueueProcessing, move, gameId, resetDragRefs, setIsTxProcessing]);
+
   useEffect(() => {
     if (currentMove) {
       const { rowIndex, startX, finalX } = currentMove;
       sendMoveTX(rowIndex, startX, finalX);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentMove]);
+
+  // =================== BONUS TX ===================
+
+  const fireBonusTx = useCallback(
+    async (block: Block) => {
+      if (!account) return;
+      try {
+        const { events } = await applyBonus({
+          account: account as Account,
+          game_id: gameId,
+          row_index: gridHeight - 1 - block.y,
+          block_index: block.x,
+        });
+        playSfx("bonus-activate");
+        queueMicrotask(() => receiptSyncRef.current(events));
+      } catch (error) {
+        rollbackGrid("Bonus failed. Grid rolled back.");
+      }
+    },
+    [account, applyBonus, gameId, gridHeight, playSfx, saveGridStateblocks, nextLineData, setIsTxProcessing],
+  );
 
   // =================== GAME LOGIC ===================
 
-  const isBlocked = (
-    initialX: number,
-    newX: number,
-    y: number,
-    width: number,
-    blocks: Block[],
-    blockId: number
-  ) => {
-    const rowBlocks = blocks.filter(
-      (block) => block.y === y && block.id !== blockId
-    );
-
-    if (newX > initialX) {
-      for (const block of rowBlocks) {
-        if (block.x >= initialX + width && block.x < newX + width) {
-          return true;
-        }
-      }
-    } else {
-      for (const block of rowBlocks) {
-        if (block.x + block.width > newX && block.x <= initialX) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  };
-
   const applyGravity = () => {
     setBlocks((prevBlocks) => {
+      let anyChanged = false;
       const newBlocks = prevBlocks.map((block) => {
-        const fallDistance = calculateFallDistance(
-          block,
-          prevBlocks,
-          gridHeight
-        );
+        const fallDistance = calculateFallDistance(block, prevBlocks, gridHeight);
         if (fallDistance > 0) {
+          anyChanged = true;
           return { ...block, y: block.y + 1 };
         }
         return block;
       });
-
-      const blocksChanged = !prevBlocks.every((block) => {
-        const newBlock = newBlocks.find((b) => b.id === block.id);
-        return newBlock && block.x === newBlock.x && block.y === newBlock.y;
-      });
-
-      setIsMoving(blocksChanged);
-
-      return newBlocks;
+      setIsMoving(anyChanged);
+      return anyChanged ? newBlocks : prevBlocks;
     });
   };
 
-  const clearCompleteLine = (
-    newGravityState: GameState,
-    newStateOnComplete: GameState
-  ) => {
-    const { updatedBlocks, completeRows } = removeCompleteRows(
-      blocks,
-      gridWidth,
-      gridHeight
-    );
+  const explosionAnimDuration = 250;
+
+  const clearCompleteLine = (newGravityState: GameState, newStateOnComplete: GameState) => {
+    const { updatedBlocks, completeRows } = removeCompleteRows(blocks, gridWidth, gridHeight);
 
     if (updatedBlocks.length < blocks.length) {
       playExplode();
       setLineExplodedCount(lineExplodedCount + completeRows.length);
+      setExplodingRows(new Set(completeRows));
 
-      // Calculate absolute position in the viewport
-      if (gridPosition === null) return;
-
-      // Trigger particle explosions for each cleared row
-      completeRows.forEach((rowIndex) => {
-        const blocksSameRow = getBlocksSameRow(rowIndex, blocks);
-
-        blocksSameRow.forEach((block) => {
-          handleTriggerLocalExplosion(
-            gridPosition.left +
-              block.x * gridSize +
-              (block.width * gridSize) / 2,
-            gridPosition.top + block.y * gridSize
-          );
-        });
-      });
-
-      setBlocks(updatedBlocks);
-      setIsMoving(true);
-      setGameState(newGravityState);
+      setTimeout(() => {
+        setExplodingRows(new Set());
+        setBlocks(updatedBlocks);
+        setIsMoving(true);
+        setGameState(newGravityState);
+      }, explosionAnimDuration);
     } else {
       setGameState(newStateOnComplete);
     }
   };
 
-  // STATE MACHINE : GAME LOGIC
-  // Gravity -> Line Clear -> Add Line -> Gravity2 -> Update After Move -> Waiting
-  //
+  // STATE MACHINE
   useEffect(() => {
-    // Interval ref to clear gravity interval
-    const intervalRef = { current: null as NodeJS.Timeout | null };
-    // Apply gravity with interval
-    const applyGravityWithInterval = () => {
-      intervalRef.current = setInterval(() => {
-        applyGravity();
-      }, gravitySpeed);
+    let rafId: number | null = null;
+    const applyGravityWithRAF = () => {
+      // Start from now so the first tick waits gravitySpeed ms —
+      // this gives CSS transitions time to start and fire transitionstart
+      // events before we check isTransitioning.
+      let lastTick = performance.now();
+      const step = (timestamp: number) => {
+        if (timestamp - lastTick >= gravitySpeed) {
+          lastTick = timestamp;
+          applyGravity();
+        }
+        rafId = requestAnimationFrame(step);
+      };
+      rafId = requestAnimationFrame(step);
     };
 
     switch (gameState) {
       case GameState.GRAVITY:
       case GameState.GRAVITY2:
       case GameState.GRAVITY_BONUS:
-        if (!isMoving && transitioningBlocks.length === 0) {
+        if (!isMoving && !isTransitioning) {
           switch (gameState) {
-            case GameState.GRAVITY:
-              setGameState(GameState.LINE_CLEAR);
-              break;
-            case GameState.GRAVITY2:
-              setGameState(GameState.LINE_CLEAR2);
-              break;
-            case GameState.GRAVITY_BONUS:
-              setGameState(GameState.LINE_CLEAR_BONUS);
-              break;
+            case GameState.GRAVITY: setGameState(GameState.LINE_CLEAR); break;
+            case GameState.GRAVITY2: setGameState(GameState.LINE_CLEAR2); break;
+            case GameState.GRAVITY_BONUS: setGameState(GameState.LINE_CLEAR_BONUS); break;
           }
         } else {
-          // Play gravity game loop
-          applyGravityWithInterval();
+          applyGravityWithRAF();
         }
         break;
 
       case GameState.ADD_LINE:
-        if (currentMove && transitioningBlocks.length === 0) {
+        if (isTransitioning) break;
+        if (!currentMove) {
+          setIsMoving(false);
+          setGameState(GameState.WAITING);
+          break;
+        }
+        {
           const { startX, finalX } = currentMove;
-          if (startX !== finalX) {
-            const updatedBlocks = concatenateNewLineWithGridAndShiftGrid(
-              blocks,
-              nextLine,
-              gridHeight
-            );
-            setNextLineHasBeenConsumed(true);
-            if (isGridFull(updatedBlocks)) {
-              setGameState(GameState.UPDATE_AFTER_MOVE);
-            } else {
-              setBlocks(updatedBlocks);
-            }
+          if (startX === finalX) {
+            setcurrentMove(null);
+            setIsMoving(false);
+            setGameState(GameState.WAITING);
+            break;
           }
-          setIsMoving(true);
-          setGameState(GameState.GRAVITY2);
+          // Grid full after shift? (any block at y=0 would go to y=-1)
+          if (blocks.some(b => b.y === 0)) {
+            setGameState(GameState.UPDATE_AFTER_MOVE);
+            break;
+          }
+          // Phase 1: Place next-line blocks off-screen (y=gridHeight, clipped by SVG)
+          setBlocks(prev => [
+            ...prev,
+            ...nextLine.map(b => ({ ...b, y: gridHeight })),
+          ]);
+          setNextLineHasBeenConsumed(true);
+          setGameState(GameState.ADD_LINE_SHIFT);
+        }
+        break;
+
+      case GameState.ADD_LINE_SHIFT:
+        {
+          const needsShift = blocks.some(b => b.y >= gridHeight);
+          if (needsShift) {
+            // Phase 2: Shift ALL blocks up by 1 — CSS transitions animate the push.
+            // Go straight to GRAVITY2 so gravity applies concurrently with the
+            // shift animation (blocks settle while sliding up).
+            setBlocks(prev => prev.map(b => ({ ...b, y: b.y - 1 })));
+            setIsMoving(true);
+            setGameState(GameState.GRAVITY2);
+          }
         }
         break;
 
       case GameState.LINE_CLEAR:
         clearCompleteLine(GameState.GRAVITY, GameState.ADD_LINE);
         break;
-
       case GameState.LINE_CLEAR2:
         clearCompleteLine(GameState.GRAVITY2, GameState.UPDATE_AFTER_MOVE);
         break;
-
       case GameState.LINE_CLEAR_BONUS:
-        clearCompleteLine(
-          GameState.GRAVITY_BONUS,
-          GameState.UPDATE_AFTER_BONUS
-        );
+        clearCompleteLine(GameState.GRAVITY_BONUS, GameState.UPDATE_AFTER_BONUS);
         break;
 
       case GameState.UPDATE_AFTER_BONUS:
       case GameState.UPDATE_AFTER_MOVE:
         {
-          // Update the score and combo
-          const currentCombo = lineExplodedCount > 1 ? lineExplodedCount : 0;
-          const pointsEarned =
-            (lineExplodedCount * (lineExplodedCount + 1)) / 2;
-
-          setOptimisticScore((prevPoints) => prevPoints + pointsEarned);
-          setOptimisticCombo((prevCombo) => prevCombo + currentCombo);
-          setOptimisticMaxCombo((prevMaxCombo) =>
-            currentCombo > prevMaxCombo ? currentCombo : prevMaxCombo
-          );
-
-          // If we have a combo, we display a message
           if (lineExplodedCount > 1) {
             setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
           }
+          setLineExplodedCount(0);
 
-          // All animations and computing are done
-          // we can apply data that we received from smart contract
-          setApplyData(true);
-
-          // Reset states
           if (gameState === GameState.UPDATE_AFTER_BONUS) {
-            selectBlock(blockBonus as Block);
+            fireBonusTx(blockBonus as Block);
             setBlockBonus(null);
-            setGameState(GameState.WAITING);
+            setIsTxProcessing(true);
+            gameStateRef.current = GameState.CASCADE_COMPLETE;
+            setGameState(GameState.CASCADE_COMPLETE);
+            onCascadeComplete?.();
           } else if (gameState === GameState.UPDATE_AFTER_MOVE) {
             setcurrentMove(null);
-            setGameState(GameState.WAITING);
+            // Check if receipt already arrived while cascade was playing
+            if (pendingReceiptRef.current) {
+              applyReceipt(pendingReceiptRef.current);
+              onCascadeComplete?.();
+            } else {
+              setIsTxProcessing(true);
+              gameStateRef.current = GameState.CASCADE_COMPLETE;
+              setGameState(GameState.CASCADE_COMPLETE);
+              onCascadeComplete?.();
+            }
           }
         }
         break;
-
+      case GameState.CASCADE_COMPLETE:
+        if (pendingReceiptRef.current) {
+          applyReceipt(pendingReceiptRef.current);
+        }
+        break;
       default:
         break;
     }
 
-    // Clear interval on unmount
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      if (rafId !== null) cancelAnimationFrame(rafId);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState, isMoving, transitioningBlocks]);
+  }, [gameState, isMoving, isTransitioning]);
+
+  // =================== RENDER ===================
 
   return (
-    <>
-      <ConfettiExplosion
-        ref={explosionRef}
-        colorSet={["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9", "#01040B"]}
-      />
-      <motion.div
-        animate={shouldBounce ? { scale: [1, 1.1, 1, 1.1, 1] } : {}}
-        transition={{ duration: 0.2, ease: "easeInOut" }}
+    <motion.div
+      animate={shouldBounce ? { scale: [1, 1.1, 1, 1.1, 1] } : {}}
+      transition={{ duration: 0.2, ease: "easeInOut" }}
+      className="relative"
+      style={{ width: frameW, height: frameH }}
+    >
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${frameW} ${frameH}`}
+        width={frameW}
+        height={frameH}
+        className="touch-none"
+        style={{ cursor: isTxProcessing ? "wait" : "default" }}
       >
-        <div
-          className={`grid-background ${
-            isTxProcessing ? " cursor-wait animated-border" : "static-border"
-          }`}
-          id="grid"
-          ref={gridRef}
-        >
-          <div
-            className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${
-              isPlayerInDanger ? " animated-box-player-danger" : ""
-            }`}
-            style={{
-              height: `${gridHeight * gridSize + borderSize}px`,
-              width: `${gridWidth * gridSize + borderSize}px`,
-              backgroundImage:
-                "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
-              backgroundSize: `${gridSize}px ${gridSize}px`,
-            }}
-            onMouseMove={handleMouseMove}
-            //onMouseUp={handleMouseUp}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            {blocks.map((block) => (
-              <BlockContainer
-                key={block.id}
-                block={block}
-                gridSize={gridSize}
-                gridHeight={gridHeight}
-                isTxProcessing={isTxProcessing}
-                transitionDuration={transitionDuration}
-                state={gameState}
-                handleMouseDown={handleMouseDown}
-                handleTouchStart={handleTouchStart}
-                onTransitionBlockStart={() =>
-                  handleTransitionBlockStart(block.id)
-                }
-                onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
-              />
-            ))}
-            <div className="flex items-center justify-center font-sans z-20 pointer-events-none">
-              <AnimatedText textEnum={animateText} reset={resetAnimateText} />
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </>
+        <defs>
+          {/* Frame border gradient */}
+          <linearGradient id="gf-border" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#C9A96E" stopOpacity="0.5" />
+            <stop offset="20%" stopColor="#8B7355" stopOpacity="0.3" />
+            <stop offset="50%" stopColor="#6B5B3E" stopOpacity="0.2" />
+            <stop offset="80%" stopColor="#8B7355" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#C9A96E" stopOpacity="0.5" />
+          </linearGradient>
+          <linearGradient id="gf-inner" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.06" />
+            <stop offset="50%" stopColor="#ffffff" stopOpacity="0.02" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0.06" />
+          </linearGradient>
+          <filter id="gf-shadow" x="-5%" y="-5%" width="110%" height="110%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000" floodOpacity="0.4" />
+          </filter>
+          {/* Clip grid area so blocks sliding in/out are hidden beyond edges */}
+          <clipPath id="grid-clip">
+            <rect x={0} y={0} width={svgW} height={svgH} />
+          </clipPath>
+        </defs>
+
+        {/* ─── Frame border ─── */}
+        <rect
+          x={1} y={1}
+          width={frameW - 2} height={frameH - 2}
+          rx={8} ry={8}
+          fill="none" stroke="url(#gf-border)" strokeWidth={2}
+          filter="url(#gf-shadow)"
+        />
+        <rect
+          x={3} y={3}
+          width={frameW - 6} height={frameH - 6}
+          rx={6} ry={6}
+          fill="none" stroke="url(#gf-inner)" strokeWidth={1}
+        />
+
+        {/* ─── Loading animation (rotating sweep, like old conic-gradient) ─── */}
+        {isTxProcessing && (
+          <rect
+            x={1} y={1}
+            width={frameW - 2} height={frameH - 2}
+            rx={8} ry={8}
+            fill="none"
+            stroke={themeColors.accent}
+            strokeWidth={5}
+            strokeDasharray={`${framePerimeter * 0.15} ${framePerimeter * 0.85}`}
+            className="svg-loading-border"
+            strokeLinecap="round"
+            style={{ ["--perimeter" as string]: framePerimeter }}
+          />
+        )}
+
+        {/* ─── Danger border pulse + grid overlay ─── */}
+        {dangerLevel > 0 && (
+          <>
+            <rect
+              x={1} y={1}
+              width={frameW - 2} height={frameH - 2}
+              rx={8} ry={8}
+              fill="none"
+              stroke={dangerLevel === 2 ? "rgb(209, 18, 28)" : "rgb(255, 100, 80)"}
+              strokeWidth={dangerLevel === 2 ? 4 : 3}
+              className={dangerLevel === 2 ? "svg-danger-border-critical" : "svg-danger-border-warning"}
+            />
+            <rect
+              x={1} y={1}
+              width={frameW - 2} height={frameH - 2}
+              rx={8} ry={8}
+              fill={dangerLevel === 2 ? "rgb(209, 18, 28)" : "rgb(255, 100, 80)"}
+              stroke="none"
+              className={dangerLevel === 2 ? "svg-danger-fill-critical" : "svg-danger-fill-warning"}
+              pointerEvents="none"
+            />
+          </>
+        )}
+
+        {/* ─── Grid area (offset by frame padding, clipped for push animation) ─── */}
+        <g transform={`translate(${framePad}, ${framePad})`} clipPath="url(#grid-clip)">
+          {/* Grid lines */}
+          {Array.from({ length: gridWidth + 1 }, (_, i) => (
+            <line
+              key={`v${i}`}
+              x1={i * gridSize} y1={0}
+              x2={i * gridSize} y2={svgH}
+              stroke="rgba(255,255,255,0.07)" strokeWidth={1}
+            />
+          ))}
+          {Array.from({ length: gridHeight + 1 }, (_, i) => (
+            <line
+              key={`h${i}`}
+              x1={0} y1={i * gridSize}
+              x2={svgW} y2={i * gridSize}
+              stroke="rgba(255,255,255,0.07)" strokeWidth={1}
+            />
+          ))}
+
+
+          {/* Blocks */}
+          {blocks.map((block) => (
+            <BlockContainer
+              key={block.id}
+              block={block}
+              gridSize={gridSize}
+              gridHeight={gridHeight}
+              isTxProcessing={isTxProcessing}
+              transitionDuration={transitionDuration}
+              state={gameState}
+              isExploding={explodingRows.has(block.y)}
+              blockImages={blockImages}
+              onPointerDown={stablePointerDown}
+              onTransitionBlockStart={stableTransitionStart}
+              onTransitionBlockEnd={stableTransitionEnd}
+            />
+          ))}
+        </g>
+      </svg>
+
+      {/* Combo text overlay (HTML — complex text effects) */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+        <AnimatedText textEnum={animateText} reset={resetAnimateText} />
+      </div>
+    </motion.div>
   );
 };
 

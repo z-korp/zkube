@@ -7,16 +7,30 @@ import { defineContractComponents } from "./contractModels";
 import { world } from "./world.ts";
 import type { Config } from "../../dojo.config.ts";
 import { setupWorld } from "./contractSystems.ts";
-import { DojoProvider } from "@dojoengine/core";
+import { createLogger } from "@/utils/logger";
 
 export type SetupResult = Awaited<ReturnType<typeof setup>>;
 
+const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
+const namespace = VITE_PUBLIC_NAMESPACE || "zkube_v2_1_1";
+const arcadeNamespace = "zkube_v2_1_1";
+const log = createLogger("dojo/setup");
+
 export async function setup({ ...config }: Config) {
-  // Initialize Torii client for interacting with the Dojo network
+  const worldAddress = config.manifest.world.address || "";
+
+  log.info("Initializing Dojo setup", {
+    toriiUrl: config.toriiUrl,
+    worldAddress,
+    namespace,
+  });
+
   const toriiClient = await new torii.ToriiClient({
     toriiUrl: config.toriiUrl,
-    worldAddress: config.manifest.world.address || "",
+    worldAddress,
   });
+
+  log.info("Torii client initialized");
 
   // Define contract components based on the world configuration
   const contractComponents = defineContractComponents(world);
@@ -24,26 +38,86 @@ export async function setup({ ...config }: Config) {
   // Create client-side components that mirror the contract components
   const clientModels = models({ contractComponents });
 
-  // Initialize the Dojo provider with the manifest and RPC URL
-  const dojoProvider = new DojoProvider(config.manifest, config.rpcUrl, "info");
+  const modelsToSync = [
+    `${namespace}-Game`,
+    `${namespace}-GameSeed`,
+    `${namespace}-GameLevel`,
+    `${namespace}-GameSettings`,
+    `${namespace}-PlayerMeta`,
+    `${namespace}-PlayerBestRun`,
+    `${namespace}-GameSettingsMetadata`,
+    `${namespace}-ZoneEntitlement`,
+    `${namespace}-DailyChallenge`,
+    `${namespace}-DailyEntry`,
+    `${namespace}-DailyAttempt`,
+    `${namespace}-ActiveDailyAttempt`,
+    `${namespace}-GameChallenge`,
+    `${namespace}-StoryZoneProgress`,
+    `${namespace}-StoryAttempt`,
+    `${namespace}-ActiveStoryAttempt`,
+    `${namespace}-MutatorDef`,
+    `${namespace}-CosmeticDef`,
+    `${namespace}-CosmeticUnlock`,
+    `${namespace}-WeeklyEndless`,
+    `${namespace}-WeeklyEndlessEntry`,
+    `${arcadeNamespace}-QuestAdvancement`,
+    `${arcadeNamespace}-QuestCompletion`,
+    `${arcadeNamespace}-AchievementAdvancement`,
+    `${arcadeNamespace}-AchievementCompletion`,
+  ] as `${string}-${string}`[];
+  const modelsToWatch = [
+    `${namespace}-Game`,
+    `${namespace}-GameSeed`,
+    `${namespace}-GameLevel`,
+    `${namespace}-GameSettings`,
+    `${namespace}-PlayerMeta`,
+    `${namespace}-PlayerBestRun`,
+    `${namespace}-GameSettingsMetadata`,
+    `${namespace}-ZoneEntitlement`,
+    `${namespace}-DailyChallenge`,
+    `${namespace}-DailyEntry`,
+    `${namespace}-DailyAttempt`,
+    `${namespace}-ActiveDailyAttempt`,
+    `${namespace}-GameChallenge`,
+    `${namespace}-StoryZoneProgress`,
+    `${namespace}-StoryAttempt`,
+    `${namespace}-ActiveStoryAttempt`,
+    `${namespace}-MutatorDef`,
+    `${namespace}-CosmeticDef`,
+    `${namespace}-CosmeticUnlock`,
+    `${namespace}-WeeklyEndless`,
+    `${namespace}-WeeklyEndlessEntry`,
+    `${arcadeNamespace}-QuestAdvancement`,
+    `${arcadeNamespace}-QuestCompletion`,
+    `${arcadeNamespace}-AchievementAdvancement`,
+    `${arcadeNamespace}-AchievementCompletion`,
+  ];
+
+  log.info("Starting entity sync", {
+    modelsToSync,
+    modelsToWatch,
+    batchLimit: 10000,
+  });
 
   const sync = await getSyncEntities(
     toriiClient,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     contractComponents as any,
     KeysClause(
-      ["zkube_budo_v1_1_3-Game"],
+      modelsToSync,
       [undefined],
       "VariableLen"
     ).build(),
     [],
-    ["zkube_budo_v1_1_3-Game", "zkube_budo_v1_1_3-GameSettingsMetadata"],
+    modelsToWatch,
     10000,
-    true
+    false
   );
 
+  log.info("Entity sync started");
+
   // Set up the world client for interacting with smart contracts
-  const client = await setupWorld(dojoProvider, config);
+  const client = setupWorld(config);
 
   return {
     client,
@@ -52,8 +126,7 @@ export async function setup({ ...config }: Config) {
     systemCalls: systems({ client }),
     config,
     world,
-    //burnerManager,
-    rpcProvider: dojoProvider.provider,
+    rpcProvider: null, // No longer using DojoProvider
     sync,
     toriiClient,
   };

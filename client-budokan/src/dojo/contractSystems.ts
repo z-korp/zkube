@@ -1,31 +1,44 @@
-import { DojoProvider } from "@dojoengine/core";
 import type { Config } from "../../dojo.config.ts";
+import type { Manifest } from "@/config/manifest.ts";
 import {
   Account,
-  CairoCustomEnum,
   CairoOption,
   CairoOptionVariant,
   CallData,
-  type UniversalDetails,
+  hash,
+  type BigNumberish,
 } from "starknet";
-import { stringToFelt, type Manifest } from "@/cartridgeConnector.tsx";
+import { stringToFelt } from "@/cartridgeConnector.tsx";
 
-const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
+const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
+// VRF is only available on Sepolia/Mainnet, not on Slot
 export const VRF_PROVIDER_ADDRESS =
   "0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f";
+
+const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
 
 export interface Signer {
   account: Account;
 }
 
 export interface Surrender extends Signer {
-  game_id: number;
+  game_id: BigNumberish;
 }
 
 export interface Create extends Signer {
-  token_id: number;
+  token_id: BigNumberish;
+  run_type: number;
 }
+
+export interface CreateRun extends Signer {
+  game_id: BigNumberish;
+  run_type: number;
+}
+
+export interface StartRun extends Signer { zone_id: number; }
+export interface ReplayLevel extends Signer { zone_id: number; level: number; }
+export interface ClaimPerfection extends Signer { zone_id: number; }
 
 export interface FreeMint extends Signer {
   name: string;
@@ -33,89 +46,171 @@ export interface FreeMint extends Signer {
 }
 
 export interface Move extends Signer {
-  game_id: number;
+  game_id: BigNumberish;
   row_index: number;
   start_index: number;
   final_index: number;
 }
 
 export interface BonusTx extends Signer {
-  game_id: number;
-  bonus: number;
+  game_id: BigNumberish;
   row_index: number;
   block_index: number;
 }
 
-export type IWorld = Awaited<ReturnType<typeof setupWorld>>;
+export interface AddCustomGameSettings extends Signer {
+  name: string;
+  description: string;
+  difficulty: number;
+  base_moves: number;
+  max_moves: number;
+  base_ratio_x100: number;
+  max_ratio_x100: number;
+  tier_1_threshold: number;
+  tier_2_threshold: number;
+  tier_3_threshold: number;
+  tier_4_threshold: number;
+  tier_5_threshold: number;
+  tier_6_threshold: number;
+  tier_7_threshold: number;
+  constraints_enabled: number;
+  constraint_start_level: number;
+  constraint_lines_budgets: string;
+  early_variance_percent: number;
+  mid_variance_percent: number;
+  late_variance_percent: number;
+  early_level_threshold: number;
+  mid_level_threshold: number;
+  level_cap: number;
+  zone_id: number;
+  active_mutator_id: number;
+  passive_mutator_id: number;
+  boss_id: number;
+  endless_difficulty_thresholds: BigNumberish;
+  endless_score_multipliers: BigNumberish;
+  is_tournament: boolean;
+}
 
-export async function setupWorld(provider: DojoProvider, config: Config) {
-  const details: UniversalDetails | undefined = undefined;
+export interface QuestClaim extends Signer {
+  player: string;
+  quest_id: string;
+  interval_id: number;
+}
 
+export interface PurchaseMap extends Signer {
+  settings_id: number;
+}
+
+export interface UnlockWithStars extends Signer {
+  settings_id: number;
+}
+
+export interface StartDailyGame extends Signer {}
+export interface ReplayDailyLevel extends Signer { level: number; }
+
+export interface SettleChallenge extends Signer {
+  challenge_id: number;
+  ranked_players: BigNumberish[];
+}
+
+export interface SettleWeeklyEndless extends Signer {
+  week_id: number;
+  settings_id: number;
+  ranked_players: BigNumberish[];
+}
+
+export type IWorld = ReturnType<typeof setupWorld>;
+
+// Build VRF request_random call using Source::Salt for deterministic, game-state-derived randomness.
+// Salt must match the contract-side consume_random(Source::Salt(salt)) call.
+const buildVrfRequestCall = (callerAddress: string, salt: bigint | string) => {
+  const normalizedSalt = typeof salt === "bigint" ? salt : BigInt(salt);
+
+  return {
+    contractAddress: VRF_PROVIDER_ADDRESS,
+    entrypoint: "request_random",
+    calldata: CallData.compile({
+      caller: callerAddress,
+      source: { type: 1, salt: normalizedSalt },
+    }),
+  };
+};
+
+export function setupWorld(config: Config) {
   function game() {
     const contract_name = "game_system";
     const contract = config.manifest.contracts.find(
-      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name)
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
     );
     if (!contract) {
       throw new Error(`Contract ${contract_name} not found in manifest`);
+    }
+
+    // move_system handles move() function
+    const move_contract_name = "move_system";
+    const move_contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(move_contract_name),
+    );
+    if (!move_contract) {
+      throw new Error(`Contract ${move_contract_name} not found in manifest`);
     }
 
     const free_mint = async ({ account, name, settingsId = 0 }: FreeMint) => {
       try {
         const trimmedName = name.trim();
 
-        return await provider.execute(
-          account,
-          [
-            {
-              contractAddress: contract.address,
-              entrypoint: "mint_game",
-              calldata: CallData.compile([
-                new CairoOption(CairoOptionVariant.Some, stringToFelt(trimmedName)),
-                new CairoOption(CairoOptionVariant.Some, settingsId),
-                1, // start
-                1, // end
-                1, // objective_ids
-                1, // context
-                1, // client_url
-                1, // renderer_address
-                account!.address,
-                false, // soulbound
-              ])
-            }
-          ],
-          VITE_PUBLIC_NAMESPACE,
-          details
-        );
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "mint_game",
+            calldata: CallData.compile([
+              new CairoOption(CairoOptionVariant.Some, stringToFelt(trimmedName)),
+              new CairoOption(CairoOptionVariant.Some, settingsId),
+              new CairoOption(CairoOptionVariant.None),
+              new CairoOption(CairoOptionVariant.None),
+              new CairoOption(CairoOptionVariant.None),
+              new CairoOption(CairoOptionVariant.None),
+              new CairoOption(CairoOptionVariant.None),
+              new CairoOption(CairoOptionVariant.None),
+              new CairoOption(CairoOptionVariant.None),
+              account.address,
+              false,
+              false,
+              0,
+              0,
+            ]),
+          },
+        ]);
       } catch (error) {
         console.error("Error executing free_mint:", error);
         throw error;
       }
     };
 
-    const create = async ({ account, token_id }: Create) => {
+    const create = async ({ account, token_id, run_type }: Create) => {
       try {
-        console.log("token_id", token_id);
-        return await provider.execute(
-          account,
-          [
+        const calldata = [token_id, run_type];
+
+        // On Slot, skip VRF call since it's not deployed
+        if (isSlotMode) {
+          return await account.execute([
             {
-              contractAddress: VRF_PROVIDER_ADDRESS,
-              entrypoint: "request_random",
-              calldata: [
-                contract.address,
-                { type: 0, address: account.address },
-              ],
-            },
-            {
-              contractName: contract_name,
+              contractAddress: contract.address,
               entrypoint: "create",
-              calldata: [token_id],
+              calldata,
             },
-          ],
-          VITE_PUBLIC_NAMESPACE,
-          details
-        );
+          ]);
+        }
+
+        // On Sepolia/Mainnet, include VRF request
+        return await account.execute([
+          buildVrfRequestCall(contract.address, BigInt(token_id)),
+          {
+            contractAddress: contract.address,
+            entrypoint: "create",
+            calldata,
+          },
+        ]);
       } catch (error) {
         console.error("Error executing start:", error);
         throw error;
@@ -124,16 +219,13 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
     const surrender = async ({ account, game_id }: Surrender) => {
       try {
-        return await provider.execute(
-          account,
+        return await account.execute([
           {
-            contractName: contract_name,
+            contractAddress: contract.address,
             entrypoint: "surrender",
             calldata: [game_id],
           },
-          VITE_PUBLIC_NAMESPACE,
-          details
-        );
+        ]);
       } catch (error) {
         console.error("Error executing surrender:", error);
         throw error;
@@ -148,52 +240,95 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       final_index,
     }: Move) => {
       try {
-        return await provider.execute(
-          account,
+        // move() no longer needs VRF - level transitions are handled by start_next_level()
+        return await account.execute([
           {
-            contractName: contract_name,
+            contractAddress: move_contract.address,
             entrypoint: "move",
             calldata: [game_id, row_index, start_index, final_index],
           },
-          VITE_PUBLIC_NAMESPACE,
-          details
-        );
+        ]);
       } catch (error) {
         console.error("Error executing move:", error);
         throw error;
       }
     };
-    const getCustomEnum = (bonusIndex: number) => {
-      if (bonusIndex === 1) {
-        return new CairoCustomEnum({ Hammer: "()" });
-      } else if (bonusIndex === 2) {
-        return new CairoCustomEnum({ Totem: "()" });
-      } else if (bonusIndex === 3) {
-        return new CairoCustomEnum({ Wave: "()" });
-      }
-      return new CairoCustomEnum({ None: "()" });
-    };
 
     const bonus = async ({
       account,
       game_id,
-      bonus,
       row_index,
       block_index,
     }: BonusTx) => {
       try {
-        return await provider.execute(
-          account,
+        return await account.execute([
           {
-            contractName: contract_name,
+            contractAddress: contract.address,
             entrypoint: "apply_bonus",
-            calldata: [game_id, getCustomEnum(bonus), row_index, block_index],
+            calldata: [game_id, row_index, block_index],
           },
-          VITE_PUBLIC_NAMESPACE,
-          details
-        );
+        ]);
       } catch (error) {
-        console.error("Error executing bonus:", error);
+        console.error("Error executing apply_bonus:", error);
+        throw error;
+      }
+    };
+
+    /**
+     * Chain-direct check (not Torii) for whether a game has been initialized
+     * via create_run. Used on Budokan deep-link landings to decide if we need
+     * to fire create_run or just wait for Torii to sync. Returns true iff the
+     * Game model's current_level > 0 (set to 1 by create_run).
+     */
+    const isGameInitialized = async ({
+      account,
+      game_id,
+    }: {
+      account: Account;
+      game_id: BigNumberish;
+    }): Promise<boolean> => {
+      try {
+        const response = await account.callContract({
+          contractAddress: contract.address,
+          entrypoint: "get_game_data",
+          calldata: [game_id.toString()],
+        });
+        // Returns (current_level, level_score, level_moves, combo, max_combo, _, _, _, _, over).
+        const currentLevel = BigInt(response[0] ?? 0);
+        return currentLevel > 0n;
+      } catch (err) {
+        console.warn("isGameInitialized call failed, assuming false", err);
+        return false;
+      }
+    };
+
+    const createRun = async ({ account, game_id, run_type }: CreateRun) => {
+      try {
+        if (isSlotMode) {
+          return await account.execute([
+            {
+              contractAddress: contract.address,
+              entrypoint: "create_run",
+              calldata: [game_id, run_type],
+            },
+          ]);
+        }
+
+        return await account.execute([
+          buildVrfRequestCall(
+            contract.address,
+            BigInt(
+              hash.computePoseidonHashOnElements([BigInt(game_id)]),
+            ),
+          ),
+          {
+            contractAddress: contract.address,
+            entrypoint: "create_run",
+            calldata: [game_id, run_type],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing createRun:", error);
         throw error;
       }
     };
@@ -202,13 +337,289 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       address: contract.address,
       free_mint,
       create,
+      createRun,
       surrender,
       move,
       bonus,
+      isGameInitialized,
     };
+  }
+
+  function storySystem() {
+    const contract_name = "story_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      console.warn(`Contract ${contract_name} not found in manifest - story system disabled`);
+      return null;
+    }
+
+    const startRun = async ({ account, zone_id }: StartRun) => account.execute([{ contractAddress: contract.address, entrypoint: "start_story_attempt", calldata: [zone_id] }]);
+    const replayLevel = async ({ account, zone_id, level }: ReplayLevel) => account.execute([{ contractAddress: contract.address, entrypoint: "replay_story_level", calldata: [zone_id, level] }]);
+    const claimPerfection = async ({ account, zone_id }: ClaimPerfection) => account.execute([{ contractAddress: contract.address, entrypoint: "claim_zone_perfection", calldata: [zone_id] }]);
+
+    return { address: contract.address, startRun, replayLevel, claimPerfection };
+  }
+
+  function configSystem() {
+    const contract_name = "config_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      console.warn(`Contract ${contract_name} not found in manifest - config system disabled`);
+      return null;
+    }
+
+    const add_custom_game_settings = async ({
+      account,
+      name,
+      description,
+      difficulty,
+      base_moves,
+      max_moves,
+      base_ratio_x100,
+      max_ratio_x100,
+      tier_1_threshold,
+      tier_2_threshold,
+      tier_3_threshold,
+      tier_4_threshold,
+      tier_5_threshold,
+      tier_6_threshold,
+      tier_7_threshold,
+      constraints_enabled,
+      constraint_start_level,
+      constraint_lines_budgets,
+      early_variance_percent,
+      mid_variance_percent,
+      late_variance_percent,
+      early_level_threshold,
+      mid_level_threshold,
+      level_cap,
+      zone_id,
+      active_mutator_id,
+      passive_mutator_id,
+      boss_id,
+      endless_difficulty_thresholds,
+      endless_score_multipliers,
+      is_tournament,
+    }: AddCustomGameSettings) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "add_custom_game_settings",
+            calldata: CallData.compile([
+              stringToFelt(name),
+              description,
+              difficulty,
+              base_moves,
+              max_moves,
+              base_ratio_x100,
+              max_ratio_x100,
+              tier_1_threshold,
+              tier_2_threshold,
+              tier_3_threshold,
+              tier_4_threshold,
+              tier_5_threshold,
+              tier_6_threshold,
+              tier_7_threshold,
+              constraints_enabled,
+              constraint_start_level,
+              constraint_lines_budgets,
+              early_variance_percent,
+              mid_variance_percent,
+              late_variance_percent,
+              early_level_threshold,
+              mid_level_threshold,
+              level_cap,
+              zone_id,
+              active_mutator_id,
+              passive_mutator_id,
+              boss_id,
+              endless_difficulty_thresholds,
+              endless_score_multipliers,
+              is_tournament,
+            ]),
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing add_custom_game_settings:", error);
+        throw error;
+      }
+    };
+
+    const purchase_zone_access = async ({ account, settings_id }: PurchaseMap) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "purchase_zone_access",
+            calldata: [settings_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing purchase_zone_access:", error);
+        throw error;
+      }
+    };
+
+    const unlock_zone_with_stars = async ({ account, settings_id }: UnlockWithStars) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "unlock_zone_with_stars",
+            calldata: [settings_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing unlock_zone_with_stars:", error);
+        throw error;
+      }
+    };
+
+    return {
+      address: contract.address,
+      add_custom_game_settings,
+      purchase_zone_access,
+      unlock_zone_with_stars,
+    };
+  }
+
+  function daily_challenge() {
+    const contract_name = "daily_challenge_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      console.warn(`Contract ${contract_name} not found in manifest - daily challenge disabled`);
+      return null;
+    }
+
+    const start_daily_game = async ({ account }: StartDailyGame) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "start_daily_game",
+            calldata: [],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing start_daily_game:", error);
+        throw error;
+      }
+    };
+
+    const replay_daily_level = async ({ account, level }: ReplayDailyLevel) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "replay_daily_level",
+            calldata: [level],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing replay_daily_level:", error);
+        throw error;
+      }
+    };
+
+    const settle_challenge = async ({ account, challenge_id, ranked_players }: SettleChallenge) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "settle_challenge",
+            calldata: CallData.compile([challenge_id, ranked_players]),
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing settle_challenge:", error);
+        throw error;
+      }
+    };
+
+    return {
+      address: contract.address,
+      start_daily_game,
+      replay_daily_level,
+      settle_challenge,
+    };
+  }
+
+  function weekly_endless() {
+    const contract_name = "weekly_endless_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      console.warn(`Contract ${contract_name} not found in manifest - weekly endless disabled`);
+      return null;
+    }
+
+    const settle_weekly_endless = async ({ account, week_id, settings_id, ranked_players }: SettleWeeklyEndless) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "settle_weekly_endless",
+            calldata: CallData.compile([week_id, settings_id, ranked_players]),
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing settle_weekly_endless:", error);
+        throw error;
+      }
+    };
+
+    return {
+      address: contract.address,
+      settle_weekly_endless,
+    };
+  }
+
+  function progressSystem() {
+    const contract_name = "progress_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      console.warn(`Contract ${contract_name} not found in manifest - progress system disabled`);
+      return null;
+    }
+
+    const questClaim = async ({ account, player, quest_id, interval_id }: QuestClaim) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "quest_claim",
+            calldata: CallData.compile({
+              player,
+              quest_id,
+              interval_id,
+            }),
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing quest_claim:", error);
+        throw error;
+      }
+    };
+
+    return { address: contract.address, questClaim };
   }
 
   return {
     game: game(),
+    story_system: storySystem(),
+    config: configSystem(),
+    daily_challenge: daily_challenge(),
+    weekly_endless: weekly_endless(),
+    progress_system: progressSystem(),
   };
 }

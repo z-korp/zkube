@@ -1,0 +1,6 @@
+[world]
+name = "zKube"
+seed = "zkube_v2_3"
+
+[namespace]
+default = "zkube_v2_1_0"

@@ -1,0 +1,60 @@
+[workspace]
+members = [
+    "contracts",
+]
+
+[workspace.package]
+version = "1.2.0"
+edition = "2024_07"
+cairo-version = "2.13.1"
+
+[workspace.dependencies]
+# Starknet core
+starknet = "2.13.1"
+
+# OpenZeppelin
+openzeppelin_token = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0" }
+openzeppelin_access = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0" }
+openzeppelin_introspection = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0" }
+openzeppelin_security = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0" }
+openzeppelin_upgrades = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0" }
+openzeppelin_interfaces = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0" }
+
+# Dojo (only for contracts)
+dojo = "1.8.0"
+
+# Alexandria
+alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.9.0" }
+alexandria_encoding = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.9.0" }
+
+# Game components
+game_components_embeddable_game_standard = { git = "https://github.com/Provable-Games/game-components.git", branch = "main" }
+game_components_utilities = { git = "https://github.com/Provable-Games/game-components.git", branch = "main" }
+game_components_interfaces = { git = "https://github.com/Provable-Games/game-components.git", branch = "main" }
+game_components_test_common = { git = "https://github.com/Provable-Games/game-components.git", branch = "main" }
+
+# Arcade (quests, achievements)
+achievement = { git = "https://github.com/cartridge-gg/arcade.git", branch = "main" }
+quest = { git = "https://github.com/cartridge-gg/arcade.git", branch = "main" }
+
+
+# Other
+origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.7.0" }
+graffiti = { git = "https://github.com/z-korp/graffiti" }
+
+# Testing
+snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v0.32.0" }
+assert_macros = "2.13.1"
+dojo_cairo_test = "1.8.0"
+cairo_test = "2.13.1"
+
+[patch."https://github.com/bal7hazar/graffiti.git"]
+graffiti = { git = "https://github.com/z-korp/graffiti" }
+
+[patch."https://github.com/Provable-Games/graffiti"]
+graffiti = { git = "https://github.com/z-korp/graffiti" }
+
+# Profiles for deployment
+[profile.slot]
+[profile.sepolia]
+[profile.mainnet]
