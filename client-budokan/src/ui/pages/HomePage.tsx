@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, type Variants } from "motion/react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { useDojo } from "@/dojo/useDojo";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { getThemeColors, getThemeId, getThemeImages, type ThemeId } from "@/config/themes";
@@ -17,7 +17,7 @@ import { useDailyLeaderboard } from "@/hooks/useDailyLeaderboard";
 import { ZONE_NAMES, getLevelFromXp, getTitleForLevel, type ZoneProgressData } from "@/config/profileData";
 import { ZONE_GUARDIANS, getGuardianPortrait } from "@/config/bossCharacters";
 import { useNavigationStore } from "@/stores/navigationStore";
-import { showToast } from "@/utils/toast";
+import { predictedDailyZoneId } from "@/utils/predictedDailyZone";
 import Connect from "@/ui/components/Connect";
 import ArcadeButton from "@/ui/components/shared/ArcadeButton";
 import UnlockModal from "@/ui/components/profile/UnlockModal";
@@ -89,9 +89,10 @@ const CtaGuardian: React.FC = () => {
 
   // Generate lines of blocks — each line sums to 8 cells
   const fallingLines = useMemo(() => {
-    const lineCount = 6;
-    const lineDuration = 5;
+    const slotCount = 6;   // rhythm slots per cycle
+    const lineCount = 5;   // skip the t=0 slot so no block flashes at its start position on first paint
     const lineSpacing = 2.2; // spaced so fastest block clears before slowest of next arrives
+    const totalCycle = slotCount * lineSpacing;
     return Array.from({ length: lineCount }).map((_, lineIdx) => {
       const sizes = generateLine();
       let cellOffset = 0;
@@ -102,13 +103,7 @@ const CtaGuardian: React.FC = () => {
         cellOffset += size;
         return { size, cellX: x, speed: speedPool[(bi + lineIdx * 3) % speedPool.length] };
       });
-      const totalCycle = lineCount * lineSpacing;
-      return {
-        blocks,
-        delay: lineIdx * lineSpacing,
-        duration: lineDuration,
-        totalCycle,
-      };
+      return { blocks, delay: (lineIdx + 1) * lineSpacing, totalCycle };
     });
   }, [gZoneId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -159,7 +154,10 @@ const CtaGuardian: React.FC = () => {
                   left: `${b.cellX * cellPct}%`,
                   width: `${b.size * cellPct}%`,
                   aspectRatio: `${b.size} / 1`,
-                  animation: `fallingBlock ${line.totalCycle}s ease-in ${line.delay}s infinite`,
+                  // `backwards` fill-mode keeps the block in its 0% keyframe
+                  // state (translateY(-20px); opacity 0) during the delay,
+                  // otherwise it flashes at its static top position on first paint.
+                  animation: `fallingBlock ${line.totalCycle / b.speed}s ease-in ${line.delay}s infinite backwards`,
                 }}
                 draggable={false}
               />
@@ -173,25 +171,19 @@ const CtaGuardian: React.FC = () => {
 
 const HomePage: React.FC = () => {
   const { account } = useAccountCustom();
-  const {
-    setup: {
-      systemCalls: { startRun },
-    },
-  } = useDojo();
   const { username } = useControllerUsername();
   const { themeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
   const navigate = useNavigationStore((s) => s.navigate);
   const mapZoneId = useNavigationStore((s) => s.mapZoneId);
   const setMapZoneId = useNavigationStore((s) => s.setMapZoneId);
-  const [isStartingGame, setIsStartingGame] = useState(false);
   const [isDailySelected, setIsDailySelected] = useState(false);
   const [unlockZone, setUnlockZone] = useState<ZoneProgressData | null>(null);
   const { playerMeta } = usePlayerMeta(account?.address);
   const playerLevel = getLevelFromXp(playerMeta?.lifetimeXp ?? 0);
   const playerTitle = getTitleForLevel(playerLevel);
   const { balance: zStarBalance } = useZStarBalance(account?.address);
-  const { zones: rawZones, totalStars, isLoading: zonesLoading } = useZoneProgress(account?.address, zStarBalance);
+  const { zones: rawZones, isLoading: zonesLoading } = useZoneProgress(account?.address, zStarBalance);
   const zones = useMemo(() =>
     [...rawZones].sort((a, b) => {
       if (a.unlocked !== b.unlocked) return a.unlocked ? -1 : 1;
@@ -209,13 +201,21 @@ const HomePage: React.FC = () => {
     setIsDailySelected(false);
   }, [zones, setMapZoneId]);
   const { challenge, isLoading: challengeLoading } = useCurrentChallenge();
-  const { entry: dailyEntry, isRegistered: hasPlayedDaily } = usePlayerEntry(
+  const { isRegistered: hasPlayedDaily } = usePlayerEntry(
     challenge?.challenge_id,
     account?.address,
   );
   const { entries: dailyEntries } = useDailyLeaderboard(challenge?.challenge_id);
   const dailyCountdown = useDailyCountdown(challenge?.end_time);
-  const dailyZoneName = challenge?.zone_id ? (ZONE_NAMES[challenge.zone_id] ?? null) : null;
+  // Zone for the Daily Challenge panel: prefer the on-chain challenge's zone,
+  // fall back to the deterministic prediction so the panel gets the right
+  // theme even before the first player of the day has spawned the challenge.
+  const dailyZoneId = useMemo(
+    () => challenge?.zone_id ?? predictedDailyZoneId(),
+    [challenge?.zone_id],
+  );
+  const dailyZoneName = ZONE_NAMES[dailyZoneId] ?? null;
+  const dailyColors = getThemeColors(getThemeId(dailyZoneId));
   const dailyMyRank = useMemo(() => {
     if (!account?.address || !dailyEntries.length) return null;
     const norm = account.address.toLowerCase();
@@ -238,73 +238,35 @@ const HomePage: React.FC = () => {
   }, [setMusicPlaylist]);
 
   const activeStoryRun = useActiveStoryAttempt();
-
   const activeStoryAttemptId = activeStoryRun?.gameId ?? null;
-
-  const isZoneSelectable = useCallback(
-    (zoneData: (typeof zones)[number] | undefined) => {
-      if (!zoneData) return false;
-      return zoneData.unlocked;
-    },
-    [],
-  );
-
   const zone = zones[activeZone] ?? zones[0];
   const colors = getThemeColors(themeTemplate);
 
-  const handleStartGame = useCallback(
-    async (settingsId: number) => {
-      if (!account || isStartingGame) return;
+  // Arrow pagination through the story zone strip. Each click scrolls the
+  // container by its own visible width, so if {Tiki, Egypt, Norse} fit on
+  // screen, clicking right advances to {Egypt, Norse, Greece}. Past the end
+  // the scroll wraps back to 0; symmetric for left-edge.
+  const zoneScrollRef = useRef<HTMLDivElement | null>(null);
 
-      const selectedZone = zones.find((zoneData) => zoneData.settingsId === settingsId);
-      if (!selectedZone) {
-        showToast({ message: "Zone data is still loading.", type: "error" });
-        return;
-      }
-
-      if (!selectedZone.unlocked) {
-        showToast({ message: "This zone is locked.", type: "error" });
-        return;
-      }
-
-        setIsStartingGame(true);
-        try {
-          // Story mode: resume existing active story game instead of failing on start_story_attempt.
-          if (activeStoryAttemptId) {
-            showToast({ message: "Resuming active story run.", type: "success" });
-            setMapZoneId(selectedZone.zoneId);
-            navigate("map", activeStoryAttemptId);
-            return;
-          }
-
-          const result = await startRun({ account, zone_id: selectedZone.zoneId });
-          const gameId = result.game_id;
-          if (gameId === 0n) throw new Error("Failed to start story run");
-          showToast({ message: "Story run started.", type: "success" });
-          navigate("play", gameId);
-        } catch (error) {
-        console.error("Error starting game:", error);
-        showToast({
-          message: "Failed to start game.",
-          type: "error",
-        });
-      } finally {
-        setIsStartingGame(false);
-      }
-    },
-    [
-      account,
-      startRun,
-      isStartingGame,
-      navigate,
-      setMapZoneId,
-      zones,
-      activeStoryAttemptId,
-    ],
-  );
+  const pageZones = useCallback((direction: 1 | -1) => {
+    const el = zoneScrollRef.current;
+    if (!el) return;
+    const { scrollLeft, clientWidth, scrollWidth } = el;
+    const maxScroll = scrollWidth - clientWidth;
+    const page = clientWidth; // one viewport-worth of cards
+    let next: number;
+    if (direction === 1) {
+      // already at the end (±2px tolerance) → wrap back to start
+      next = scrollLeft >= maxScroll - 2 ? 0 : Math.min(scrollLeft + page, maxScroll);
+    } else {
+      // at the start → wrap to the end
+      next = scrollLeft <= 2 ? maxScroll : Math.max(scrollLeft - page, 0);
+    }
+    el.scrollTo({ left: next, behavior: "smooth" });
+  }, []);
 
   const hasActiveStoryRun = activeStoryAttemptId !== null;
-  const selectedZonePlayable = isZoneSelectable(zone);
+  const selectedZonePlayable = !!zone?.unlocked;
 
   const handlePrimaryAction = useCallback(() => {
     if (!account || !zone) return;
@@ -372,13 +334,35 @@ const HomePage: React.FC = () => {
                 </span>
               </motion.div>
 
+              <motion.div variants={itemVariants} className="my-1 flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label="Previous zones"
+                  onClick={() => pageZones(-1)}
+                  className="hidden h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white/80 transition-colors hover:bg-black/60 hover:text-white md:flex"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <div className="flex-1 border-t border-white/[0.06]" />
+                <span className="font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-white/30">Story</span>
+                <div className="flex-1 border-t border-white/[0.06]" />
+                <button
+                  type="button"
+                  aria-label="Next zones"
+                  onClick={() => pageZones(1)}
+                  className="hidden h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white/80 transition-colors hover:bg-black/60 hover:text-white md:flex"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </motion.div>
+
               <motion.div variants={itemVariants} className="space-y-2">
                 {zonesLoading || zones.length === 0 ? (
                   <div className="rounded-2xl border border-white/[0.14] bg-white/[0.12] p-4 text-center font-sans text-sm font-semibold text-white/80 backdrop-blur-xl">
                     Loading zones...
                   </div>
                 ) : (
-                  <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 hide-scrollbar">
+                  <div ref={zoneScrollRef} className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 hide-scrollbar">
                     {zones.map((z, idx) => {
                       const isSelectable = z.unlocked;
                       const isSelected = !isDailySelected && idx === activeZone && isSelectable;
@@ -449,7 +433,7 @@ const HomePage: React.FC = () => {
 
               <motion.div variants={itemVariants} className="my-1 flex items-center gap-2">
                 <div className="flex-1 border-t border-white/[0.06]" />
-                <span className="font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-white/30">Tournament</span>
+                <span className="font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-white/30">Tournaments</span>
                 <div className="flex-1 border-t border-white/[0.06]" />
               </motion.div>
 
@@ -460,25 +444,21 @@ const HomePage: React.FC = () => {
                   className="relative w-full overflow-hidden rounded-2xl text-left transition-all"
                   style={{
                     border: isDailySelected
-                      ? `2px solid ${challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : colors.accent}`
+                      ? `2px solid ${dailyColors.accent}`
                       : "1px solid rgba(255,255,255,0.16)",
                     boxShadow: isDailySelected
-                      ? `0 0 16px ${challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : colors.accent}66, 0 0 4px ${challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : colors.accent}44`
+                      ? `0 0 16px ${dailyColors.accent}66, 0 0 4px ${dailyColors.accent}44`
                       : "none",
                   }}
                 >
-                  {challenge?.zone_id ? (
-                    <img
-                      src={getThemeImages(getThemeId(challenge.zone_id)).background}
-                      alt=""
-                      className="absolute inset-0 h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${colors.accent}33, ${colors.accent2}22)` }} />
-                  )}
+                  <img
+                    src={getThemeImages(getThemeId(dailyZoneId)).background}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/70 to-black/50" />
                   <div className="relative z-10 px-4 py-3">
-                    <p className="font-sans text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : colors.accent }}>
+                    <p className="font-sans text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: dailyColors.accent }}>
                       Daily Challenge
                     </p>
                     <div className="mt-1 flex items-center justify-between">
@@ -497,7 +477,7 @@ const HomePage: React.FC = () => {
                         </p>
                       </div>
                       {dailyCountdown ? (
-                        <span className="rounded-full px-3 py-1.5 font-sans text-xs font-bold tabular-nums text-white" style={{ background: challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : colors.accent }}>
+                        <span className="rounded-full px-3 py-1.5 font-sans text-xs font-bold tabular-nums text-white" style={{ background: dailyColors.accent }}>
                           {dailyCountdown}
                         </span>
                       ) : challenge ? (
@@ -522,21 +502,17 @@ const HomePage: React.FC = () => {
             {isDailySelected ? (
               <ArcadeButton
                 onClick={() => navigate("daily")}
-                accentOverride={challenge?.zone_id ? getThemeColors(getThemeId(challenge.zone_id)).accent : undefined}
+                accentOverride={dailyColors.accent}
               >
                 Go to Daily
               </ArcadeButton>
             ) : (
-              <ArcadeButton disabled={isStartingGame || !selectedZonePlayable} onClick={handlePrimaryAction} accentOverride={
+              <ArcadeButton disabled={!selectedZonePlayable} onClick={handlePrimaryAction} accentOverride={
                 hasActiveStoryRun && activeStoryRun
                   ? getThemeColors(getThemeId(activeStoryRun.zoneId)).accent
                   : zone ? getThemeColors(getThemeId(zone.zoneId)).accent : undefined
               }>
-                {isStartingGame
-                  ? "Starting..."
-                  : hasActiveStoryRun
-                    ? "Resume Story"
-                    : "Play Story"}
+                {hasActiveStoryRun ? "Resume Story" : "Play Story"}
               </ArcadeButton>
             )}
           </>

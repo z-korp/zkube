@@ -9,6 +9,7 @@ import { getThemeColors } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
 import PageHeader from "@/ui/components/shared/PageHeader";
+import { getLevelFromXp, getTitleForLevel } from "@/config/profileData";
 
 const TROPHY_IMAGES: Record<number, string> = {
   1: "/assets/common/trophies/gold.png",
@@ -63,16 +64,21 @@ const LeaderboardPage: React.FC = () => {
         score: entry.totalStars ?? 0,
         playerAddress: entry.player,
         isYou: normalizedAccount === entry.player.toLowerCase(),
+        subtitle: undefined as string | undefined,
       }));
     }
-    return playerEntries.slice(0, 30).map((entry) => ({
-      id: `player-${entry.rank}`,
-      rank: entry.rank,
-      name: entry.playerName ?? entry.player,
-      score: entry.lifetimeXp,
-      playerAddress: entry.player,
-      isYou: normalizedAccount === entry.player.toLowerCase(),
-    }));
+    return playerEntries.slice(0, 30).map((entry) => {
+      const level = getLevelFromXp(entry.lifetimeXp);
+      return {
+        id: `player-${entry.rank}`,
+        rank: entry.rank,
+        name: entry.playerName ?? entry.player,
+        score: entry.lifetimeXp,
+        playerAddress: entry.player,
+        isYou: normalizedAccount === entry.player.toLowerCase(),
+        subtitle: `Lv.${level} · ${getTitleForLevel(level)}`,
+      };
+    });
   }, [activeTab, dailyEntries, playerEntries, normalizedAccount]);
 
   const myRank = useMemo(() => {
@@ -153,30 +159,46 @@ const LeaderboardPage: React.FC = () => {
                 ? computeDailyReward(entry.rank, dailyEntries.length)
                 : 0;
 
+              // Background per row: rank colors for top 3, neutral white otherwise.
+              const baseBg =
+                entry.rank === 1
+                  ? "rgba(255,215,0,0.2)"
+                  : entry.rank === 2
+                    ? "rgba(192,192,192,0.18)"
+                    : entry.rank === 3
+                      ? "rgba(205,127,50,0.18)"
+                      : "rgba(255,255,255,0.1)";
+              // Pulse only fires for "you": gently brighten the row's base color.
+              const pulseBright =
+                entry.rank === 1
+                  ? "rgba(255,215,0,0.32)"
+                  : entry.rank === 2
+                    ? "rgba(192,192,192,0.28)"
+                    : entry.rank === 3
+                      ? "rgba(205,127,50,0.28)"
+                      : `${colors.accent}40`;
+              const pulseBase = entry.rank <= 3 ? baseBg : `${colors.accent}20`;
+
               return (
                 <motion.div
                   custom={index}
                   variants={rowVariants}
                   key={entry.id}
                   onClick={() => handleRowClick(entry.playerAddress)}
-                  className="flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-xl shadow-lg shadow-black/20 transition-all active:scale-[0.98]"
+                  className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-xl transition-all active:scale-[0.98] ${entry.isYou ? "leaderboard-pulse" : ""}`}
                   style={{
-                    backgroundColor:
-                      entry.rank === 1
-                        ? "rgba(255,215,0,0.2)"
-                        : entry.rank === 2
-                          ? "rgba(192,192,192,0.18)"
-                          : entry.rank === 3
-                            ? "rgba(205,127,50,0.18)"
-                            : entry.isYou
-                              ? `${colors.accent}2A`
-                              : "rgba(255,255,255,0.1)",
-                    borderColor:
-                      entry.rank <= 3
+                    // For non-"you" rows: static rank-based background.
+                    // For "you": CSS keyframe animates background-color between
+                    // --pulse-base and --pulse-bright so the rank color itself
+                    // shimmers (gold dims/brightens for #1, etc).
+                    ...(entry.isYou
+                      ? ({ "--pulse-base": pulseBase, "--pulse-bright": pulseBright } as React.CSSProperties)
+                      : { backgroundColor: baseBg }),
+                    borderColor: entry.isYou
+                      ? `${colors.accent}AA`
+                      : entry.rank <= 3
                         ? "rgba(255,255,255,0.3)"
-                        : entry.isYou
-                          ? `${colors.accent}75`
-                          : "rgba(255,255,255,0.14)",
+                        : "rgba(255,255,255,0.14)",
                   }}
                 >
                   <div className="flex w-8 items-center justify-center text-center font-sans text-base font-black" style={{ color: entry.rank <= 3 ? colors.accent2 : colors.textMuted }}>
@@ -193,9 +215,14 @@ const LeaderboardPage: React.FC = () => {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-sans text-sm font-extrabold" style={{ color: colors.text }}>
-                      {entry.name} {entry.isYou ? "(You)" : ""}
+                    <p className="truncate font-sans text-sm font-extrabold" style={{ color: entry.isYou ? colors.accent : colors.text }}>
+                      {entry.name}
                     </p>
+                    {entry.subtitle && (
+                      <p className="truncate font-sans text-[11px] font-semibold" style={{ color: colors.textMuted }}>
+                        {entry.subtitle}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -219,19 +246,28 @@ const LeaderboardPage: React.FC = () => {
                 <motion.div
                   custom={rankRows.length}
                   variants={rowVariants}
-                  className="flex items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-xl shadow-lg shadow-black/20"
+                  className="leaderboard-pulse flex items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-xl"
                   style={{
-                    backgroundColor: `${colors.accent}2A`,
-                    borderColor: `${colors.accent}75`,
+                    ["--pulse-base" as any]: `${colors.accent}20`,
+                    ["--pulse-bright" as any]: `${colors.accent}40`,
+                    borderColor: `${colors.accent}AA`,
                   }}
                 >
                   <div className="flex w-8 items-center justify-center text-center font-sans text-base font-black" style={{ color: colors.accent }}>
                     {myRank.rank}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-sans text-sm font-extrabold" style={{ color: colors.text }}>
-                      {myRank.name} (You)
+                    <p className="truncate font-sans text-sm font-extrabold" style={{ color: colors.accent }}>
+                      {myRank.name}
                     </p>
+                    {activeTab === "player" && (() => {
+                      const lvl = getLevelFromXp(myRank.score);
+                      return (
+                        <p className="truncate font-sans text-[11px] font-semibold" style={{ color: colors.textMuted }}>
+                          Lv.{lvl} · {getTitleForLevel(lvl)}
+                        </p>
+                      );
+                    })()}
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="font-sans text-[16px] font-extrabold tracking-wide" style={{ color: colors.text }}>

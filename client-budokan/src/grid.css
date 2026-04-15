@@ -145,6 +145,15 @@
   animation: guardianPulse 4s ease-in-out infinite;
 }
 
+/* ─── Leaderboard "you" row pulse (background only, no glow) ─── */
+@keyframes leaderboardPulse {
+  0%, 100% { background-color: var(--pulse-base); }
+  50%      { background-color: var(--pulse-bright); }
+}
+.leaderboard-pulse {
+  animation: leaderboardPulse 3.5s ease-in-out infinite;
+}
+
 /* ─── Home page falling blocks (CSS, not JS) ─── */
 @keyframes fallingBlock {
   0%   { transform: translateY(-20px); opacity: 0; }

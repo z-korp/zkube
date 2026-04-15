@@ -1,14 +1,32 @@
 export const XP_PER_STAR = 100;
-export const LEVEL_THRESHOLDS = [0, 500, 1200, 2000, 3000, 4500, 6500, 9000, 12000, 16000];
 
+// Quadratic curve: threshold(L) = 16 * L²
+// L1 = 0, L2 = 64, L10 = 1600, L50 = 40 000, L100 = 160 000.
+// Formula picked so the early game (L1–L10) keeps roughly the previous
+// pace post-XP-nerf, while the long tail gives endgame players a real
+// goal to chase.
+export const LEVEL_THRESHOLDS: number[] = Array.from(
+  { length: 100 },
+  (_, i) => (i === 0 ? 0 : 16 * (i + 1) * (i + 1)),
+);
+
+// Titles spread across the 100-level ladder. Levels not listed inherit
+// the most recent earlier title.
 export const PLAYER_TITLES: Record<number, string> = {
   1: "Novice",
-  2: "Apprentice",
-  3: "Puzzle Adept",
-  5: "Block Master",
-  7: "Grid Sage",
-  10: "Puzzle Legend",
-  15: "Eternal",
+  5: "Apprentice",
+  10: "Initiate",
+  15: "Block Tinker",
+  20: "Block Master",
+  25: "Cascade Adept",
+  30: "Grid Sage",
+  40: "Combo Weaver",
+  50: "Spirit Caller",
+  60: "Mutator Bender",
+  70: "Guardian Ally",
+  80: "Zone Legend",
+  90: "Eternal",
+  100: "Ascended",
 };
 
 export const ZONE_EMOJIS: Record<number, string> = {

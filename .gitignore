@@ -28,6 +28,7 @@ dist-ssr
 !.env.example
 !.env.slot
 !.env.sepolia
+!.env.mainnet
 *.log
 
 # Account files with private keys

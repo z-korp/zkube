@@ -10,6 +10,7 @@ import { useZStarBalance } from "@/hooks/useZStarBalance";
 import { useZoneProgress } from "@/hooks/useZoneProgress";
 import { usePlayerStats } from "@/hooks/usePlayerStats";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useTokenPricesUsd } from "@/hooks/useTokenPricesUsd";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import type { WalletBalance } from "@/ui/components/profile/OverviewTab";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -68,11 +69,12 @@ const ProfilePage: React.FC = () => {
   const { zones, totalStars } = useZoneProgress(viewingAddress, zStarBalance);
   const playerStats = usePlayerStats(viewingAddress);
 
-  const { VITE_PUBLIC_FEE_TOKEN_ADDRESS, VITE_PUBLIC_CUBE_TOKEN_ADDRESS } = import.meta.env;
+  // Wallet balances are pulled from Starknet mainnet by useTokenBalance.
   const STRK_TOKEN = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+  const USDC_TOKEN = "0x033068f6539f8e6e6b131e6b2b814e6c34a5224bc66947c47dab9dfee93b35fb";
   const LORDS_TOKEN = "0x0124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49";
   const { balance: strkBalance } = useTokenBalance(STRK_TOKEN, viewingAddress);
-  const { balance: cubeBalance } = useTokenBalance(VITE_PUBLIC_CUBE_TOKEN_ADDRESS, viewingAddress);
+  const { balance: cubeBalance } = useTokenBalance(USDC_TOKEN, viewingAddress);
   const { balance: lordsBalance } = useTokenBalance(LORDS_TOKEN, viewingAddress);
 
   // Resolve username for viewed profile
@@ -94,9 +96,9 @@ const ProfilePage: React.FC = () => {
   const strkAmount = Number(strkBalance) / 1e18;
   const usdcAmount = Number(cubeBalance) / 1e6;
   const lordsAmount = Number(lordsBalance) / 1e18;
-  // TODO: fetch from price feed
-  const strkPriceUsd = 0.5;
-  const lordsPriceUsd = 0.03;
+  // Live prices from Ekubo mainnet pools — see useTokenPricesUsd.
+  // Fall back to 0 while loading so we don't pretend with stale numbers.
+  const { strk: strkPriceUsd, lords: lordsPriceUsd } = useTokenPricesUsd();
 
   // Only display USDC; STRK/LORDS tracked for portfolio total
   const walletBalances = useMemo<WalletBalance[]>(() => [
@@ -104,7 +106,10 @@ const ProfilePage: React.FC = () => {
   ], [usdcAmount]);
 
   const totalPortfolioValue = useMemo(
-    () => strkAmount * strkPriceUsd + usdcAmount + lordsAmount * lordsPriceUsd,
+    () =>
+      strkAmount * (strkPriceUsd ?? 0)
+      + usdcAmount
+      + lordsAmount * (lordsPriceUsd ?? 0),
     [strkAmount, strkPriceUsd, usdcAmount, lordsAmount, lordsPriceUsd],
   );
 
@@ -241,7 +246,7 @@ const ProfilePage: React.FC = () => {
               totalPortfolioValue={totalPortfolioValue}
               isOwnProfile={isOwnProfile}
               onFundAccount={() => {
-                window.open("https://starkgate.starknet.io", "_blank");
+                /* disabled — feature coming soon */
               }}
             />
           )}
