@@ -1,121 +1,83 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useDojo } from "@/dojo/useDojo";
-import {
-  fetchTokenBalances,
-  type TokenBalance,
-  updateTokenBalance,
-} from "@/dojo/torii/tokens";
+import { useEffect, useState } from "react";
 
-interface BalanceSubscription {
-  cancel: () => void;
-}
+/**
+ * Fetch ERC20 balance directly from Starknet mainnet via JSON-RPC.
+ * Replaces the previous Torii-backed implementation so wallet balances
+ * (STRK, USDC, LORDS, zStar, …) always reflect the controller's real
+ * mainnet holdings, regardless of which network the game is deployed on.
+ *
+ * Pattern lifted from death-mountain (`client/src/api/starknet.ts`):
+ * a single `starknet_call` to the token's `balanceOf`, parsing the
+ * u256 [low, high] result.
+ */
 
-const getMatchedBalance = (
-  balances: TokenBalance[],
-  contractAddress: string,
-  accountAddress: string
-): bigint => {
-  const match = balances.find(
-    (balance) =>
-      BigInt(balance.contract_address) === BigInt(contractAddress) &&
-      BigInt(balance.account_address) === BigInt(accountAddress)
-  );
+const MAINNET_RPC_URL = "https://api.cartridge.gg/x/starknet/mainnet";
 
-  return BigInt(match?.balance ?? "0");
-};
+// keccak("balanceOf") truncated — standard Starknet ERC20 selector
+const BALANCE_OF_SELECTOR =
+  "0x2e4263afad30923c891518314c3c95dbe830a16874e8abc5777a9a20b54c76e";
+
+const uint256ToBigInt = (low: string, high: string): bigint =>
+  (BigInt(high) << 128n) + BigInt(low);
 
 export const useTokenBalance = (
   contractAddress: string | undefined,
-  accountAddress: string | undefined
+  accountAddress: string | undefined,
 ) => {
-  const {
-    setup: { toriiClient },
-  } = useDojo();
-
   const [balance, setBalance] = useState(0n);
-  const [balances, setBalances] = useState<TokenBalance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const subscriptionRef = useRef<BalanceSubscription | null>(null);
 
-  const currentBalance = useMemo(() => {
+  useEffect(() => {
     if (!contractAddress || !accountAddress) {
-      return 0n;
-    }
-
-    return getMatchedBalance(balances, contractAddress, accountAddress);
-  }, [balances, contractAddress, accountAddress]);
-
-  useEffect(() => {
-    setBalance(currentBalance);
-  }, [currentBalance]);
-
-  useEffect(() => {
-    if (!toriiClient || !contractAddress || !accountAddress) {
-      setBalances([]);
       setBalance(0n);
       setIsLoading(false);
-      subscriptionRef.current?.cancel();
-      subscriptionRef.current = null;
       return;
     }
 
     let cancelled = false;
     setIsLoading(true);
 
-    const init = async () => {
+    (async () => {
       try {
-        const balances = await fetchTokenBalances(
-          toriiClient,
-          [contractAddress],
-          [accountAddress]
-        );
+        const response = await fetch(MAINNET_RPC_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: 1,
+            jsonrpc: "2.0",
+            method: "starknet_call",
+            params: [
+              {
+                contract_address: contractAddress,
+                entry_point_selector: BALANCE_OF_SELECTOR,
+                calldata: [accountAddress],
+              },
+              "latest",
+            ],
+          }),
+        });
 
-        if (cancelled) {
-          return;
-        }
+        const data: { result?: [string, string] } = await response.json();
+        if (cancelled) return;
 
-        setBalances(balances);
-        setIsLoading(false);
-
-        const subscription = await toriiClient.onTokenBalanceUpdated(
-          [contractAddress],
-          [accountAddress],
-          [],
-          (nextBalance: TokenBalance) => {
-            if (cancelled) {
-              return;
-            }
-
-            setBalances((prevBalances) =>
-              updateTokenBalance(prevBalances, nextBalance)
-            );
-          }
-        );
-
-        if (cancelled) {
-          subscription.cancel();
-          return;
-        }
-
-        subscriptionRef.current?.cancel();
-        subscriptionRef.current = subscription;
-      } catch {
-        if (!cancelled) {
-          setBalances([]);
+        if (!data.result) {
           setBalance(0n);
-          setIsLoading(false);
+        } else {
+          const [low, high] = data.result;
+          setBalance(uint256ToBigInt(low, high));
         }
+      } catch (err) {
+        console.error("[useTokenBalance] fetch failed", err);
+        if (!cancelled) setBalance(0n);
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
-    };
-
-    init();
+    })();
 
     return () => {
       cancelled = true;
-      subscriptionRef.current?.cancel();
-      subscriptionRef.current = null;
     };
-  }, [toriiClient, contractAddress, accountAddress]);
+  }, [contractAddress, accountAddress]);
 
   return { balance, isLoading };
 };

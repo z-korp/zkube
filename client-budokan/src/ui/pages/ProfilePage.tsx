@@ -68,11 +68,12 @@ const ProfilePage: React.FC = () => {
   const { zones, totalStars } = useZoneProgress(viewingAddress, zStarBalance);
   const playerStats = usePlayerStats(viewingAddress);
 
-  const { VITE_PUBLIC_FEE_TOKEN_ADDRESS, VITE_PUBLIC_CUBE_TOKEN_ADDRESS } = import.meta.env;
+  // Wallet balances are pulled from Starknet mainnet by useTokenBalance.
   const STRK_TOKEN = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+  const USDC_TOKEN = "0x033068f6539f8e6e6b131e6b2b814e6c34a5224bc66947c47dab9dfee93b35fb";
   const LORDS_TOKEN = "0x0124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49";
   const { balance: strkBalance } = useTokenBalance(STRK_TOKEN, viewingAddress);
-  const { balance: cubeBalance } = useTokenBalance(VITE_PUBLIC_CUBE_TOKEN_ADDRESS, viewingAddress);
+  const { balance: cubeBalance } = useTokenBalance(USDC_TOKEN, viewingAddress);
   const { balance: lordsBalance } = useTokenBalance(LORDS_TOKEN, viewingAddress);
 
   // Resolve username for viewed profile
@@ -241,7 +242,7 @@ const ProfilePage: React.FC = () => {
               totalPortfolioValue={totalPortfolioValue}
               isOwnProfile={isOwnProfile}
               onFundAccount={() => {
-                window.open("https://starkgate.starknet.io", "_blank");
+                /* disabled — feature coming soon */
               }}
             />
           )}

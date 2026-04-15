@@ -91,12 +91,13 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           <motion.button
             variants={itemVariants}
             type="button"
-            onClick={onFundAccount}
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 font-sans text-[12px] font-bold uppercase tracking-[0.08em] transition-colors hover:bg-white/[0.06]"
-            style={{ borderColor: `${colors.accent}55`, color: colors.accent }}
+            disabled
+            aria-disabled
+            className="mt-2 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl border px-3 py-2.5 font-sans text-[12px] font-bold uppercase tracking-[0.08em] opacity-60"
+            style={{ borderColor: `${colors.textMuted}55`, color: colors.textMuted }}
           >
             <Wallet size={14} />
-            Fund Account
+            Fund Account · Soon™
           </motion.button>
         )}
       </section>
