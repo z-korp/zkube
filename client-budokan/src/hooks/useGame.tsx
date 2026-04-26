@@ -1,9 +1,10 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import useDeepMemo from "./useDeepMemo";
 import { normalizeEntityId } from "@/utils/entityId";
+import { useReceiptGameStore } from "@/stores/receiptGameStore";
 
 export const useGame = ({
   gameId,
@@ -30,35 +31,27 @@ export const useGame = ({
   const component = useComponentValue(Game, gameKey);
   const seedComponent = useComponentValue(GameSeed, gameKey);
 
-  const game = useDeepMemo(() => {
+  // Receipt-based fast path: when a start-game TX has just confirmed, the
+  // receipt store holds the freshly-minted Game + GameSeed, so we skip the
+  // wait for Torii to index. Only honor it when the gameId matches.
+  const receiptGameId = useReceiptGameStore((s) => s.gameId);
+  const receiptGame = useReceiptGameStore((s) => s.game);
+  const receiptSeed = useReceiptGameStore((s) => s.seed);
+  const useReceipt =
+    gameId !== undefined &&
+    receiptGameId !== null &&
+    BigInt(gameId) === receiptGameId;
+
+  const toriiGame = useDeepMemo(() => {
     return component ? new GameClass(component) : null;
   }, [component]);
 
-  // Track if we need to retry fetching the seed
-  const [retryCount, setRetryCount] = useState(0);
+  const game = useReceipt && receiptGame ? receiptGame : toriiGame;
 
   const seed = useMemo(() => {
-    const s = seedComponent?.seed ? BigInt(seedComponent.seed) : BigInt(0);
-    return s;
-  }, [seedComponent, gameKey, retryCount]);
-
-  // Retry fetching seed if game exists but seed is missing
-  useEffect(() => {
-    if (game && !seedComponent && retryCount < 5) {
-      const delay = 500 * Math.pow(2, retryCount);
-      const timer = setTimeout(() => {
-        setRetryCount((prev) => prev + 1);
-      }, delay);
-      return () => clearTimeout(timer);
-    }
-  }, [game, seedComponent, retryCount]);
-
-  // Reset retry count when game changes
-  useEffect(() => {
-    setRetryCount(0);
-  }, [gameKey]);
-
-
+    if (useReceipt && receiptSeed != null) return receiptSeed;
+    return seedComponent?.seed ? BigInt(seedComponent.seed) : 0n;
+  }, [useReceipt, receiptSeed, seedComponent]);
 
   return { game, gameKey, seed };
 };

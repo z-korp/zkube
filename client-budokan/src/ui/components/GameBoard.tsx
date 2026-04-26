@@ -18,6 +18,13 @@ interface GameBoardProps {
   bonusDescription: string;
   onCascadeComplete?: () => void;
   forceTxProcessing?: boolean;
+  /**
+   * True while the contract-side level is transitioning. PlayScreen owns the
+   * computation because it has access to both the receipt-merged `game` and
+   * `toriiGame`; we OR it into effectiveTxProcessing so the grid stays locked
+   * until Torii catches up and the level-complete navigation fires.
+   */
+  levelTransitionPending: boolean;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -29,6 +36,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   bonusDescription,
   onCascadeComplete,
   forceTxProcessing = false,
+  levelTransitionPending,
 }) => {
   const ROWS = 10;
   const COLS = 8;
@@ -39,7 +47,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [gridSize, setGridSize] = useState(40);
 
   const [isTxProcessing, setIsTxProcessing] = useState(false);
-  const effectiveTxProcessing = isTxProcessing || forceTxProcessing;
+  const effectiveTxProcessing =
+    isTxProcessing || forceTxProcessing || levelTransitionPending;
   const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
   const [nextLineOverride, setNextLineOverride] = useState<number[] | null>(null);
 
@@ -92,7 +101,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           account={account}
           isTxProcessing={effectiveTxProcessing}
           setIsTxProcessing={setIsTxProcessing}
-          levelTransitionPending={game.levelTransitionPending}
+          levelTransitionPending={levelTransitionPending}
           onCascadeComplete={onCascadeComplete}
           onNextLineUpdate={setNextLineOverride}
         />

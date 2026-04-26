@@ -250,8 +250,16 @@ const Grid: React.FC<GridProps> = ({
 
     const cellX = clientXToCellX(clientX);
     const delta = cellX - dragStartXRef.current;
-    const newX = initialXRef.current + delta;
+    // Snap to integer cells during drag (not just at release): keeps the
+    // visual position and the eventual landing column in lockstep, so a
+    // block dragged flush against the wall or an obstacle actually lands
+    // there instead of rounding back by one when the cursor is mid-cell.
+    const newX = Math.round(initialXRef.current + delta);
     const bounded = Math.max(0, Math.min(gridWidth - dragging.width, newX));
+    // Sub-cell pointer wobble re-enters this handler with the same snapped
+    // column. Skipping the setBlocks call avoids re-allocating the blocks
+    // array (and the [blocks] effect chain) per pointermove event.
+    if (bounded === draggedXRef.current) return;
 
     if (!checkBlocked(initialXRef.current, bounded, dragging.y, dragging.width, dragging.id)) {
       draggedXRef.current = bounded;
@@ -283,8 +291,8 @@ const Grid: React.FC<GridProps> = ({
     }
 
     const startX = initialXRef.current;
-    const finalX = Math.round(draggedXRef.current);
-    const hasMoved = Math.trunc(finalX) !== Math.trunc(startX);
+    const finalX = draggedXRef.current;
+    const hasMoved = finalX !== startX;
 
     setBlocks((prev) =>
       prev.map((b) => b.id === dragging.id ? { ...b, x: hasMoved ? finalX : startX } : b),

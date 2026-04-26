@@ -40,6 +40,7 @@ const BlockContainer: React.FC<BlockProps> = ({
     state === GameState.GRAVITY2 ||
     state === GameState.GRAVITY_BONUS ||
     state === GameState.ADD_LINE_SHIFT;
+  const isDragging = state === GameState.DRAGGING;
 
   useEffect(() => {
     const element = ref.current;
@@ -79,7 +80,9 @@ const BlockContainer: React.FC<BlockProps> = ({
         transform: `translate(${x}px, ${y}px)`,
         transition: isGravity
           ? `transform ${transitionDuration / 1000}s linear`
-          : "none",
+          : isDragging
+            ? "transform 80ms ease-out"
+            : "none",
         cursor: isTxProcessing ? "wait" : "grab",
       }}
       onPointerDown={(e) => onPointerDown?.(e, block)}

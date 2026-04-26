@@ -11,6 +11,7 @@ import {
 } from "@/utils/toast";
 import { useMoveStore } from "@/stores/moveTxStore";
 import { createLogger } from "@/utils/logger";
+import { tryApplyStartGameReceipt } from "./rpcReader";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
@@ -212,12 +213,14 @@ export function systems({ client }: { client: IWorld }) {
       token_id: props.token_id,
       run_type: props.run_type,
     });
-    await handleTransaction(
+    const { events } = await handleTransaction(
       account,
       () => client.game.create({ account, ...props }),
       "Game has been started.",
     );
-    log.info("create success");
+    const gameId = BigInt(props.token_id);
+    const seeded = tryApplyStartGameReceipt(events, gameId);
+    log.info("create success", { receiptSeeded: seeded, game_id: gameId });
   };
 
   const createRun = async ({ account, ...props }: SystemTypes.CreateRun) => {
@@ -225,18 +228,21 @@ export function systems({ client }: { client: IWorld }) {
       game_id: props.game_id,
       run_type: props.run_type,
     });
-    await handleTransaction(
+    const { events } = await handleTransaction(
       account,
       () => client.game.createRun({ account, ...props }),
       "Run has been created.",
     );
-    log.info("createRun success");
+    const gameId = BigInt(props.game_id);
+    const seeded = tryApplyStartGameReceipt(events, gameId);
+    log.info("createRun success", { receiptSeeded: seeded, game_id: gameId });
   };
 
   const startRun = async ({ account, ...props }: SystemTypes.StartRun): Promise<{ game_id: bigint }> => {
     if (!client.story_system) throw new Error("Story system not available");
     const { events } = await handleTransaction(account, () => client.story_system!.startRun({ account, ...props }), "Story run started.");
     const gameId = extractStoryAttemptIdFromEvents(events, client.story_system.address, account.address);
+    if (gameId > 0n) tryApplyStartGameReceipt(events, gameId);
     return { game_id: gameId };
   };
 
@@ -244,6 +250,7 @@ export function systems({ client }: { client: IWorld }) {
     if (!client.story_system) throw new Error("Story system not available");
     const { events } = await handleTransaction(account, () => client.story_system!.replayLevel({ account, ...props }), "Story level replayed.");
     const gameId = extractStoryAttemptIdFromEvents(events, client.story_system.address, account.address);
+    if (gameId > 0n) tryApplyStartGameReceipt(events, gameId);
     return { game_id: gameId };
   };
 
@@ -361,6 +368,7 @@ export function systems({ client }: { client: IWorld }) {
         break;
       }
     }
+    if (gameId > 0n) tryApplyStartGameReceipt(events, gameId);
     return { game_id: gameId };
   };
 
@@ -389,6 +397,7 @@ export function systems({ client }: { client: IWorld }) {
         break;
       }
     }
+    if (gameId > 0n) tryApplyStartGameReceipt(events, gameId);
     return { game_id: gameId };
   };
 

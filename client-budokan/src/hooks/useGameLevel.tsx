@@ -1,11 +1,16 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
+import type { Entity } from "@dojoengine/recs";
 import { ConstraintType } from "@/dojo/game/types/constraint";
 import { useMutatorDef } from "./useMutatorDef";
 import { applyStarThresholdModifier } from "@/dojo/game/types/level";
 import { normalizeEntityId } from "@/utils/entityId";
+import {
+  useReceiptGameStore,
+  type ReceiptGameLevelComponent,
+} from "@/stores/receiptGameStore";
 
 export interface GameLevelData {
   gameId: bigint;
@@ -26,12 +31,14 @@ export interface GameLevelData {
   star2Threshold: number;
 }
 
+type GameLevelComponent = ReceiptGameLevelComponent;
+
 /**
- * Hook to fetch the GameLevel model from RECS.
- * This model is written by the contract and contains the authoritative level configuration.
- * 
- * @param gameId - The game ID to fetch the level for
- * @returns The GameLevel data if available, or null if not yet synced
+ * Hook to fetch the GameLevel model.
+ *
+ * Source preference: receipt store (set by start-game TX) → Torii component.
+ * The receipt path lets a freshly-started game render its level config without
+ * waiting for Torii to index the new entity.
  */
 export const useGameLevel = ({
   gameId,
@@ -52,27 +59,30 @@ export const useGameLevel = ({
     return normalizeEntityId(rawKey);
   }, [gameId]);
 
-  const component = useComponentValue(GameLevel, gameKey ?? ("0x0" as Entity));
+  const toriiComponent = useComponentValue(
+    GameLevel,
+    gameKey ?? ("0x0" as Entity),
+  );
+
+  const receiptGameId = useReceiptGameStore((s) => s.gameId);
+  const receiptLevel = useReceiptGameStore((s) => s.level);
+  const useReceipt =
+    gameId !== undefined &&
+    receiptGameId !== null &&
+    BigInt(gameId) === receiptGameId;
+
+  // Kickstart pattern: prefer the receipt-cached level only until Torii syncs.
+  // Once toriiComponent arrives we yield to it — this ensures level-up writes
+  // (which the contract makes via level_system, not parsed from move
+  // receipts here) take effect without needing a refresh.
+  const component: GameLevelComponent | undefined = toriiComponent
+    ? (toriiComponent as GameLevelComponent)
+    : useReceipt && receiptLevel
+      ? receiptLevel
+      : undefined;
+
   const passiveMutatorId = component?.mutator_id ?? 0;
   const { data: passiveMutator } = useMutatorDef(passiveMutatorId);
-
-  // Track if we need to retry fetching
-  const [retryCount, setRetryCount] = useState(0);
-
-  // Retry fetching if component is missing but we expect it
-  useEffect(() => {
-    if (gameId !== undefined && !component && retryCount < 5) {
-      const timer = setTimeout(() => {
-        setRetryCount((prev) => prev + 1);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [gameId, component, retryCount]);
-
-  // Reset retry count when game changes
-  useEffect(() => {
-    setRetryCount(0);
-  }, [gameId]);
 
   const gameLevel = useMemo((): GameLevelData | null => {
     if (!component) return null;
@@ -81,7 +91,7 @@ export const useGameLevel = ({
     const modifier = passiveMutator?.starThresholdModifier ?? 128;
     const { star3Pct, star2Pct } = applyStarThresholdModifier(modifier);
     const data: GameLevelData = {
-      gameId: component.game_id,
+      gameId: BigInt(component.game_id),
       level: component.level,
       pointsRequired: component.points_required,
       maxMoves,
@@ -98,7 +108,7 @@ export const useGameLevel = ({
     };
 
     return data;
-  }, [component, retryCount, passiveMutator]);
+  }, [component, passiveMutator]);
 
   return gameLevel;
 };

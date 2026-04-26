@@ -81,9 +81,11 @@ const PlayScreen: React.FC = () => {
     return toriiGame;
   }, [toriiGame, receiptGame]);
 
-  // Clear receipt game when switching to a different game (navigation)
+  // Clear ALL receipt overrides when switching games (navigation). This drops
+  // stale cached seed/level/gameId from a previous game so the new game
+  // either uses its own start-game receipt or falls back to Torii cleanly.
   useEffect(() => {
-    useReceiptGameStore.getState().setGame(null);
+    useReceiptGameStore.getState().clear();
   }, [gameId]);
 
   const grid = useGrid({ gameId: game?.id ?? 0n, shouldLog: true });
@@ -129,6 +131,18 @@ const PlayScreen: React.FC = () => {
   const targetScore = effectiveGameLevel?.pointsRequired ?? 0;
   const maxMoves = effectiveGameLevel?.maxMoves ?? 0;
 
+  // Level-transition lock: covers two cases that should both freeze the grid.
+  //   1. The contract has cleared blocks (blocksRaw === 0n) but hasn't ended
+  //      the game — Game.levelTransitionPending captures this directly.
+  //   2. The receipt-merged `game` already shows the next level but `toriiGame`
+  //      hasn't synced yet — without this, the receipt unlocks the grid before
+  //      PlayScreen's toriiGame-driven nav effect can move the player to the
+  //      level-complete dialog, letting them play a free move on the new level.
+  const levelTransitionPending =
+    !!game &&
+    (game.levelTransitionPending ||
+      (!!toriiGame && game.level > toriiGame.level));
+
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const showEndlessGreeting = useNavigationStore((s) => s.showEndlessGreeting);
@@ -171,12 +185,12 @@ const PlayScreen: React.FC = () => {
     prevBossLevelRef.current = level;
   }, [game?.level, playSfx, setMusicContext, setMusicPlaylist]);
 
+  // Show the spinner whenever we transition to a new gameId; the
+  // receipt-driven effect below clears it the instant the start-game TX
+  // populates useReceiptGameStore (or as soon as Torii catches up on
+  // cold-load / refresh).
   useEffect(() => {
     setIsGameLoading(true);
-    // 30s is the worst-case budget for a Budokan-deep-link landing where we
-    // also need create_run to confirm before Torii indexes the new Game model.
-    const timer = setTimeout(() => setIsGameLoading(false), 30000);
-    return () => clearTimeout(timer);
   }, [gameId]);
 
   useEffect(() => {
@@ -596,6 +610,7 @@ const PlayScreen: React.FC = () => {
               bonusDescription={bonusDescription}
               onCascadeComplete={handleCascadeComplete}
               forceTxProcessing={surrendering}
+              levelTransitionPending={levelTransitionPending}
             />
           </div>
         )}
@@ -611,6 +626,7 @@ const PlayScreen: React.FC = () => {
               bonusDescription={bonusDescription}
               onCascadeComplete={handleCascadeComplete}
               forceTxProcessing={surrendering}
+              levelTransitionPending={levelTransitionPending}
             />
           </div>
         )}
