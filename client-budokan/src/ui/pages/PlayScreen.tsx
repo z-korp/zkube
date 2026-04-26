@@ -131,6 +131,18 @@ const PlayScreen: React.FC = () => {
   const targetScore = effectiveGameLevel?.pointsRequired ?? 0;
   const maxMoves = effectiveGameLevel?.maxMoves ?? 0;
 
+  // Level-transition lock: covers two cases that should both freeze the grid.
+  //   1. The contract has cleared blocks (blocksRaw === 0n) but hasn't ended
+  //      the game — Game.levelTransitionPending captures this directly.
+  //   2. The receipt-merged `game` already shows the next level but `toriiGame`
+  //      hasn't synced yet — without this, the receipt unlocks the grid before
+  //      PlayScreen's toriiGame-driven nav effect can move the player to the
+  //      level-complete dialog, letting them play a free move on the new level.
+  const levelTransitionPending =
+    !!game &&
+    (game.levelTransitionPending ||
+      (!!toriiGame && game.level > toriiGame.level));
+
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const showEndlessGreeting = useNavigationStore((s) => s.showEndlessGreeting);
@@ -598,6 +610,7 @@ const PlayScreen: React.FC = () => {
               bonusDescription={bonusDescription}
               onCascadeComplete={handleCascadeComplete}
               forceTxProcessing={surrendering}
+              levelTransitionPending={levelTransitionPending}
             />
           </div>
         )}
@@ -613,6 +626,7 @@ const PlayScreen: React.FC = () => {
               bonusDescription={bonusDescription}
               onCascadeComplete={handleCascadeComplete}
               forceTxProcessing={surrendering}
+              levelTransitionPending={levelTransitionPending}
             />
           </div>
         )}
