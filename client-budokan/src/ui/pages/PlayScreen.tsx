@@ -81,9 +81,11 @@ const PlayScreen: React.FC = () => {
     return toriiGame;
   }, [toriiGame, receiptGame]);
 
-  // Clear receipt game when switching to a different game (navigation)
+  // Clear ALL receipt overrides when switching games (navigation). This drops
+  // stale cached seed/level/gameId from a previous game so the new game
+  // either uses its own start-game receipt or falls back to Torii cleanly.
   useEffect(() => {
-    useReceiptGameStore.getState().setGame(null);
+    useReceiptGameStore.getState().clear();
   }, [gameId]);
 
   const grid = useGrid({ gameId: game?.id ?? 0n, shouldLog: true });
@@ -171,12 +173,12 @@ const PlayScreen: React.FC = () => {
     prevBossLevelRef.current = level;
   }, [game?.level, playSfx, setMusicContext, setMusicPlaylist]);
 
+  // Show the spinner whenever we transition to a new gameId; the
+  // receipt-driven effect below clears it the instant the start-game TX
+  // populates useReceiptGameStore (or as soon as Torii catches up on
+  // cold-load / refresh).
   useEffect(() => {
     setIsGameLoading(true);
-    // 30s is the worst-case budget for a Budokan-deep-link landing where we
-    // also need create_run to confirm before Torii indexes the new Game model.
-    const timer = setTimeout(() => setIsGameLoading(false), 30000);
-    return () => clearTimeout(timer);
   }, [gameId]);
 
   useEffect(() => {
